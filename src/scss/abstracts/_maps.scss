@@ -1,0 +1,71 @@
+$brand-colors: (
+  "navy": #001f33,
+  "blue": #0045e3,
+  "teal": #59ff9e,
+  "off-white": #f5f6f7,
+  "cool-grey": #a6b1b8,
+  "white": #ffffff,
+  "black": #000000,
+);
+
+$spaces: (
+  0: 0,
+  1: 0.25rem,
+  2: 0.5rem,
+  3: 0.75rem,
+  4: 1rem,
+  5: 1.25rem,
+  6: 1.5rem,
+  8: 2rem,
+  10: 2.5rem,
+  12: 3rem,
+  16: 4rem,
+  20: 5rem,
+  24: 6rem,
+);
+
+$radii: (
+  "none": 0,
+  "sm": 0.375rem,
+  "md": 0.75rem,
+  "lg": 1rem,
+  "xl": 1.25rem,
+  "2xl": 1.5rem,
+  "pill": 999px,
+);
+
+$shadows: (
+  "none": none,
+  "sm": 0 1px 2px rgb(0 0 0 / 0.05),
+  "md": 0 8px 24px rgb(0 0 0 / 0.08),
+  "lg": 0 16px 48px rgb(0 0 0 / 0.12),
+  "xl": 0 24px 64px rgb(0 0 0 / 0.18),
+);
+
+$font-weights: (
+  "light": 300,
+  "regular": 400,
+  "medium": 500,
+  "semibold": 600,
+  "bold": 700,
+  "heavy": 800,
+  "black": 900,
+);
+
+$z-indexes: (
+  "base": 1,
+  "dropdown": 1000,
+  "sticky": 1020,
+  "fixed": 1030,
+  "overlay": 1040,
+  "modal": 1050,
+  "popover": 1060,
+  "tooltip": 1070,
+  "toast": 1080,
+);
+
+$motions: (
+  "fast": 150ms ease,
+  "normal": 200ms ease,
+  "slow": 300ms ease,
+);

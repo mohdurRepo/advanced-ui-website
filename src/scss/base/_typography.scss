@@ -1,0 +1,53 @@
+:root {
+  --text-xs: clamp(0.75rem, 0.72rem + 0.15vw, 0.8125rem);
+
+  --text-sm: clamp(0.875rem, 0.84rem + 0.2vw, 0.9375rem);
+
+  --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.0625rem);
+
+  --text-lg: clamp(1.125rem, 1.05rem + 0.35vw, 1.25rem);
+
+  --text-xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+
+  --text-2xl: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+
+  --text-3xl: clamp(1.875rem, 1.45rem + 1.6vw, 2.75rem);
+
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+}
+body {
+  font-size: var(--text-base);
+  line-height: var(--line-height-normal);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  line-height: var(--line-height-tight);
+  font-weight: 700;
+}
+
+h1 {
+  font-size: var(--text-3xl);
+}
+
+h2 {
+  font-size: var(--text-2xl);
+}
+
+h3 {
+  font-size: var(--text-xl);
+}
+
+h4 {
+  font-size: var(--text-lg);
+}
+
+small {
+  font-size: var(--text-sm);
+}

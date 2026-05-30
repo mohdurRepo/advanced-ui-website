@@ -1,0 +1,88 @@
+@use "functions" as *;
+@use "sass:map";
+@use "breakpoints";
+
+@mixin respond-up($key) {
+  @if not map.has-key(breakpoints.$breakpoints, $key) {
+    @error "Breakpoint `#{$key}` does not exist.";
+  }
+
+  @media (min-width: map.get(breakpoints.$breakpoints, $key)) {
+    @content;
+  }
+}
+
+@mixin respond-down($key) {
+  @if not map.has-key(breakpoints.$breakpoints, $key) {
+    @error "Breakpoint `#{$key}` does not exist.";
+  }
+
+  @media (max-width: calc(map.get(breakpoints.$breakpoints, $key) - 0.02px)) {
+    @content;
+  }
+}
+
+@mixin respond-between($min, $max) {
+  @if not map.has-key(breakpoints.$breakpoints, $min) {
+    @error "Breakpoint `#{$min}` does not exist.";
+  }
+
+  @if not map.has-key(breakpoints.$breakpoints, $max) {
+    @error "Breakpoint `#{$max}` does not exist.";
+  }
+
+  @media (min-width: map.get(breakpoints.$breakpoints, $min)) and (max-width: calc(map.get(breakpoints.$breakpoints, $max) - 0.02px)) {
+    @content;
+  }
+}
+
+@mixin focus-ring {
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem var(--focus-ring);
+}
+
+@mixin transition($speed: normal) {
+  transition: all motion($speed);
+}
+
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin line-clamp($lines) {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin square($size) {
+  width: $size;
+  height: $size;
+}
+
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}

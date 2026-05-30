@@ -1,0 +1,45 @@
+:root {
+  /* Layout */
+  --app-header-height: 80px;
+  --app-sidebar-width: 280px;
+  --app-sidebar-collapsed-width: 88px;
+
+  /* Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-pill: 999px;
+
+  /* Motion */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 8px 24px rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.12);
+
+  /* Z-index */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-overlay: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+}
+
+html {
+  font-family: var(--font-sans);
+}
+
+html[dir="rtl"] {
+  direction: rtl;
+}
+
+body {
+  font-family: var(--font-sans);
+}

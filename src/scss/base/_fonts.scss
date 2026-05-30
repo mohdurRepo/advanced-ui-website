@@ -1,0 +1,57 @@
+@font-face {
+  font-family: "Avenir";
+  src: url("../assets/fonts/english-avenir/Avenir-Roman.woff2") format("woff2"),
+    url("../assets/fonts/english-avenir/Avenir-Roman.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Avenir";
+  src: url("../assets/fonts/english-avenir/Avenir-Medium.woff2") format("woff2"),
+    url("../assets/fonts/english-avenir/Avenir-Medium.woff") format("woff");
+  font-weight: 500 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Avenir";
+  src: url("../assets/fonts/english-avenir/Avenir-Heavy.woff2") format("woff2"),
+    url("../assets/fonts/english-avenir/Avenir-heavy.woff") format("woff");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "AvenirArabic";
+  src: url("../assets/fonts/arabic-avenir/AvenirArabic-Book.otf")
+    format("opentype");
+  font-weight: 300 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "AvenirArabic";
+  src: url("../assets/fonts/arabic-avenir/AvenirArabic-Medium.woff")
+      format("woff"),
+    url("../assets/fonts/arabic-avenir/AvenirArabic-Medium.otf")
+      format("opentype");
+  font-weight: 500 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "AvenirArabic";
+  src: url("../assets/fonts/arabic-avenir/AvenirArabic-Heavy.woff")
+      format("woff"),
+    url("../assets/fonts/arabic-avenir/AvenirArabic-Heavy.otf")
+      format("opentype");
+  font-weight: 800 900;
+  font-style: normal;
+  font-display: swap;
+}

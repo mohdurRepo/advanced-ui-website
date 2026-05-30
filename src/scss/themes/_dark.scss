@@ -1,0 +1,43 @@
+html[data-theme="dark"] {
+  /* Core */
+
+  --color-bg: #071521;
+
+  --color-surface: #0b2233;
+  --color-surface-alt: #102f45;
+
+  /* Text */
+
+  --color-text: #f5f6f7;
+  --color-text-muted: #a6b1b8;
+
+  --color-heading: #ffffff;
+
+  /* Brand */
+
+  --color-primary: #4d7cff;
+  --color-primary-hover: #7095ff;
+
+  --color-accent: #59ff9e;
+
+  /* Borders */
+
+  --color-border: #1e3d52;
+  --color-border-strong: #35556d;
+
+  /* States */
+
+  --color-success: #22c55e;
+  --color-warning: #fbbf24;
+  --color-danger: #ef4444;
+  --color-info: #38bdf8;
+
+  /* On Colors */
+
+  --color-on-primary: #ffffff;
+  --color-on-accent: #001f33;
+
+  /* Focus */
+
+  --focus-ring: rgb(89 255 158 / 0.25);
+}

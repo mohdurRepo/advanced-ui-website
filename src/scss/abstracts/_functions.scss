@@ -1,0 +1,58 @@
+@use "sass:map";
+@use "maps";
+
+@function brand($key) {
+  @if not map.has-key(maps.$brand-colors, $key) {
+    @error "Brand color `#{$key}` does not exist.";
+  }
+
+  @return map.get(maps.$brand-colors, $key);
+}
+
+@function space($key) {
+  @if not map.has-key(maps.$spaces, $key) {
+    @error "Space `#{$key}` does not exist.";
+  }
+
+  @return map.get(maps.$spaces, $key);
+}
+
+@function radius($key) {
+  @if not map.has-key(maps.$radii, $key) {
+    @error "Radius `#{$key}` does not exist.";
+  }
+
+  @return map.get(maps.$radii, $key);
+}
+
+@function shadow($key) {
+  @if not map.has-key(maps.$shadows, $key) {
+    @error "Shadow `#{$key}` does not exist.";
+  }
+
+  @return map.get(maps.$shadows, $key);
+}
+
+@function font-weight($key) {
+  @if not map.has-key(maps.$font-weights, $key) {
+    @error "Font weight `#{$key}` does not exist.";
+  }
+
+  @return map.get(maps.$font-weights, $key);
+}
+
+@function z($key) {
+  @if not map.has-key(maps.$z-indexes, $key) {
+    @error "Z-index `#{$key}` does not exist.";
+  }
+
+  @return map.get(maps.$z-indexes, $key);
+}
+
+@function motion($key) {
+  @if not map.has-key(maps.$motions, $key) {
+    @error "Motion `#{$key}` does not exist.";
+  }
+
+  @return map.get(maps.$motions, $key);
+}

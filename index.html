@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Abu Faisal Design System</title>
+
+    <script type="module" src="/src/js/main.js"></script>
+  </head>
+
+  <body>
+    <main style="padding: 3rem; background: var(--color-bg); min-height: 100vh">
+      <h1>Abu Faisal Design System</h1>
+
+      <p>
+        This page validates our theme foundation, typography system and future
+        component architecture.
+      </p>
+
+      <br />
+      <br />
+
+      <section
+        style="
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-lg);
+          padding: 2rem;
+        "
+      >
+        <h2>Theme Test</h2>
+
+        <p>
+          Current theme should control colors, typography and spacing globally.
+        </p>
+
+        <br />
+
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap">
+          <div
+            style="
+              width: 120px;
+              height: 60px;
+              background: var(--color-primary);
+              color: var(--color-on-primary);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border-radius: var(--radius-md);
+            "
+          >
+            Primary
+          </div>
+
+          <div
+            style="
+              width: 120px;
+              height: 60px;
+              background: var(--color-accent);
+              color: var(--color-on-accent);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border-radius: var(--radius-md);
+            "
+          >
+            Accent
+          </div>
+
+          <div
+            style="
+              width: 120px;
+              height: 60px;
+              background: var(--color-success);
+              color: white;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border-radius: var(--radius-md);
+            "
+          >
+            Success
+          </div>
+
+          <div
+            style="
+              width: 120px;
+              height: 60px;
+              background: var(--color-warning);
+              color: black;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border-radius: var(--radius-md);
+            "
+          >
+            Warning
+          </div>
+
+          <div
+            style="
+              width: 120px;
+              height: 60px;
+              background: var(--color-danger);
+              color: white;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border-radius: var(--radius-md);
+            "
+          >
+            Danger
+          </div>
+        </div>
+      </section>
+
+      <br />
+
+      <section
+        style="
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-lg);
+          padding: 2rem;
+        "
+      >
+        <h2>Typography Test</h2>
+
+        <h1>Heading 1</h1>
+        <h2>Heading 2</h2>
+        <h3>Heading 3</h3>
+        <h4>Heading 4</h4>
+
+        <p>
+          This paragraph should use fluid typography. Resize the browser width
+          and watch the font scale smoothly.
+        </p>
+
+        <small> Small text example </small>
+      </section>
+
+      <br />
+
+      <section
+        style="
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-lg);
+          padding: 2rem;
+        "
+      >
+        <h2>RTL Test</h2>
+
+        <p lang="ar">مرحباً أبو فيصل، هذا اختبار لنظام الخطوط العربية.</p>
+      </section>
+
+      <br />
+
+      <section style="display: flex; gap: 1rem">
+        <button
+          onclick="document.documentElement.setAttribute('data-theme','light')"
+        >
+          Light Theme
+        </button>
+
+        <button
+          onclick="document.documentElement.setAttribute('data-theme','dark')"
+        >
+          Dark Theme
+        </button>
+      </section>
+    </main>
+  </body>
+</html>

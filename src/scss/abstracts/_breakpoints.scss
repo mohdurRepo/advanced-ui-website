@@ -1,0 +1,9 @@
+@use "variables" as var;
+
+$breakpoints: (
+  "sm": var.$breakpoint-sm,
+  "md": var.$breakpoint-md,
+  "lg": var.$breakpoint-lg,
+  "xl": var.$breakpoint-xl,
+  "xxl": var.$breakpoint-xxl,
+);
