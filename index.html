@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" dir="ltr" data-theme="light">
   <head>
     <meta charset="UTF-8" />
@@ -158,17 +158,11 @@
       <br />
 
       <section style="display: flex; gap: 1rem">
-        <button
-          onclick="document.documentElement.setAttribute('data-theme','light')"
-        >
-          Light Theme
-        </button>
+        <button type="button" data-theme-set="light">Light Theme</button>
 
-        <button
-          onclick="document.documentElement.setAttribute('data-theme','dark')"
-        >
-          Dark Theme
-        </button>
+        <button type="button" data-theme-set="dark">Dark Theme</button>
+
+        <button type="button" data-theme-toggle>Toggle Theme</button>
       </section>
     </main>
   </body>
