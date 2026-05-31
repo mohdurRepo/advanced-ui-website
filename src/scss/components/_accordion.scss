@@ -1,0 +1,106 @@
+@use "../abstracts" as *;
+
+.accordion {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.accordion-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.accordion-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  padding: 1rem 1.25rem;
+
+  background: transparent;
+  color: var(--color-heading);
+
+  border: 0;
+  cursor: pointer;
+
+  font-size: var(--text-base);
+  font-weight: 700;
+  text-align: start;
+}
+
+.accordion-trigger:hover {
+  background: var(--color-surface-alt);
+}
+
+.accordion-trigger:focus-visible {
+  @include focus-ring;
+}
+
+.accordion-icon {
+  position: relative;
+  flex: 0 0 auto;
+
+  width: 1rem;
+  height: 1rem;
+
+  transition: transform var(--transition-fast);
+}
+
+.accordion-icon::before,
+.accordion-icon::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+
+  width: 0.875rem;
+  height: 2px;
+
+  background: currentColor;
+  border-radius: var(--radius-pill);
+}
+
+.accordion-icon::before {
+  transform: translate(-50%, -50%);
+}
+
+.accordion-icon::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.accordion-item.is-open .accordion-icon::after {
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+
+.accordion-panel {
+  display: none;
+  padding: 0 1.25rem 1.25rem;
+  color: var(--color-text-muted);
+}
+
+.accordion-item.is-open .accordion-panel {
+  display: block;
+}
+
+/* Variants */
+
+.accordion-flush {
+  gap: 0;
+}
+
+.accordion-flush .accordion-item {
+  border-radius: 0;
+  border-inline: 0;
+}
+
+.accordion-bordered .accordion-item {
+  border-width: 2px;
+}
+
+.accordion-elevated .accordion-item {
+  box-shadow: var(--shadow-sm);
+}
