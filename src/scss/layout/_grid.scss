@@ -1,3 +1,5 @@
+@use "sass:math";
+@use "sass:map";
 @use "../abstracts" as *;
 
 .grid {
@@ -34,5 +36,35 @@
   .grid-3,
   .grid-4 {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Row / Column System */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-inline: calc(var(--grid-gutter, 1.5rem) / -2);
+}
+
+.row > * {
+  width: 100%;
+  padding-inline: calc(var(--grid-gutter, 1.5rem) / 2);
+}
+
+@for $i from 1 through 12 {
+  .col-#{$i} {
+    flex: 0 0 auto;
+    width: math.percentage(math.div($i, 12));
+  }
+}
+
+@each $breakpoint, $value in $breakpoints {
+  @media (min-width: $value) {
+    @for $i from 1 through 12 {
+      .col-#{$breakpoint}-#{$i} {
+        flex: 0 0 auto;
+        width: math.percentage(math.div($i, 12));
+      }
+    }
   }
 }
