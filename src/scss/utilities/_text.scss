@@ -10,16 +10,20 @@
   text-align: end;
 }
 
+.text-justify {
+  text-align: justify;
+}
+
 .text-primary {
   color: var(--color-primary);
 }
 
-.text-accent {
-  color: var(--color-accent);
+.text-secondary {
+  color: var(--color-secondary);
 }
 
-.text-muted {
-  color: var(--color-text-muted);
+.text-accent {
+  color: var(--color-accent);
 }
 
 .text-success {
@@ -34,6 +38,26 @@
   color: var(--color-danger);
 }
 
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-body {
+  color: var(--color-text);
+}
+
+.text-white {
+  color: #fff;
+}
+
+.text-black {
+  color: #000;
+}
+
+.fw-light {
+  font-weight: 300;
+}
+
 .fw-regular {
   font-weight: 400;
 }
@@ -42,10 +66,117 @@
   font-weight: 500;
 }
 
+.fw-semibold {
+  font-weight: 600;
+}
+
 .fw-bold {
   font-weight: 700;
 }
 
 .fw-heavy {
   font-weight: 800;
+}
+
+.fw-black {
+  font-weight: 900;
+}
+
+.fst-normal {
+  font-style: normal;
+}
+
+.fst-italic {
+  font-style: italic;
+}
+
+.text-uppercase {
+  text-transform: uppercase;
+}
+
+.text-lowercase {
+  text-transform: lowercase;
+}
+
+.text-capitalize {
+  text-transform: capitalize;
+}
+
+.text-decoration-none {
+  text-decoration: none;
+}
+
+.text-underline {
+  text-decoration: underline;
+}
+
+.text-line-through {
+  text-decoration: line-through;
+}
+
+.text-wrap {
+  white-space: normal;
+}
+
+.text-nowrap {
+  white-space: nowrap;
+}
+
+.text-break {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.lh-1 {
+  line-height: 1;
+}
+
+.lh-sm {
+  line-height: 1.25;
+}
+
+.lh-base {
+  line-height: 1.5;
+}
+
+.lh-lg {
+  line-height: 1.75;
+}
+
+.lh-xl {
+  line-height: 2;
+}
+
+.tracking-tight {
+  letter-spacing: -0.02em;
+}
+
+.tracking-normal {
+  letter-spacing: 0;
+}
+
+.tracking-wide {
+  letter-spacing: 0.05em;
+}
+
+.tracking-wider {
+  letter-spacing: 0.1em;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-select-none {
+  user-select: none;
+}
+
+.user-select-all {
+  user-select: all;
+}
+
+.user-select-auto {
+  user-select: auto;
 }

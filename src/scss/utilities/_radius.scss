@@ -1,0 +1,7 @@
+@use "../abstracts/maps" as maps;
+
+@each $key, $value in maps.$radii {
+  .rounded-#{$key} {
+    border-radius: $value;
+  }
+}

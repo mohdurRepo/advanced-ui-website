@@ -1,0 +1,28 @@
+.position-relative {
+  position: relative;
+}
+.position-absolute {
+  position: absolute;
+}
+.position-fixed {
+  position: fixed;
+}
+.position-sticky {
+  position: sticky;
+}
+
+.inset-0 {
+  inset: 0;
+}
+.top-0 {
+  inset-block-start: 0;
+}
+.bottom-0 {
+  inset-block-end: 0;
+}
+.start-0 {
+  inset-inline-start: 0;
+}
+.end-0 {
+  inset-inline-end: 0;
+}

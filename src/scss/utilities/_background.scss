@@ -1,0 +1,17 @@
+.bg-body {
+  background: var(--color-bg);
+}
+.bg-surface {
+  background: var(--color-surface);
+}
+.bg-surface-alt {
+  background: var(--color-surface-alt);
+}
+.bg-primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.bg-accent {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}

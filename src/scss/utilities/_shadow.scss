@@ -1,0 +1,7 @@
+@use "../abstracts/maps" as maps;
+
+@each $key, $value in maps.$shadows {
+  .shadow-#{$key} {
+    box-shadow: $value;
+  }
+}
