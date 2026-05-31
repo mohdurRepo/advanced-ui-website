@@ -1,0 +1,31 @@
+@use "../abstracts" as *;
+
+.container {
+  width: min(100% - 2rem, 1320px);
+  margin-inline: auto;
+}
+
+.container-sm {
+  width: min(100% - 2rem, 540px);
+  margin-inline: auto;
+}
+
+.container-md {
+  width: min(100% - 2rem, 720px);
+  margin-inline: auto;
+}
+
+.container-lg {
+  width: min(100% - 2rem, 960px);
+  margin-inline: auto;
+}
+
+.container-xl {
+  width: min(100% - 2rem, 1140px);
+  margin-inline: auto;
+}
+
+.container-fluid {
+  width: min(100% - 2rem, 100%);
+  margin-inline: auto;
+}
