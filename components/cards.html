@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Buttons | Abu Faisal Design System</title>
+    <script type="module" src="/src/js/main.js"></script>
+  </head>
+
+  <body>
+    <main class="section">
+      <div class="container">
+        <div class="d-flex justify-between align-center flex-wrap gap-3 mb-8">
+          <div>
+            <h1>Button System</h1>
+            <p>
+              Testing sharp buttons, rounded buttons, colors, states, theme,
+              language, and RTL.
+            </p>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            <button
+              class="btn btn-outline-primary btn-sm"
+              data-theme-set="light"
+            >
+              Light
+            </button>
+
+            <button
+              class="btn btn-outline-primary btn-sm"
+              data-theme-set="dark"
+            >
+              Dark
+            </button>
+
+            <button
+              class="btn btn-primary btn-sm btn-rounded"
+              data-theme-toggle
+            >
+              Toggle Theme
+            </button>
+
+            <button class="btn btn-outline-accent btn-sm" data-lang-set="en">
+              English
+            </button>
+
+            <button class="btn btn-outline-accent btn-sm" data-lang-set="ar">
+              العربية
+            </button>
+
+            <button class="btn btn-accent btn-sm btn-rounded" data-lang-toggle>
+              Toggle Lang
+            </button>
+          </div>
+        </div>
+
+        <section class="card card-elevated p-3">
+          <h1 class="mb-4">Card System</h1>
+
+          <div class="grid-3">
+            <!-- Default -->
+
+            <article class="card">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title">Default Card</h3>
+                  <div class="card-subtitle">Reusable foundation</div>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <p class="card-text">
+                  This is the base card component used across the entire
+                  platform.
+                </p>
+              </div>
+
+              <div class="card-footer">
+                <span class="text-muted"> Footer Content </span>
+
+                <div class="card-actions">
+                  <button class="btn btn-primary btn-rounded">Action</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- Elevated -->
+
+            <article class="card card-elevated">
+              <div class="card-header">
+                <h3 class="card-title">Elevated Card</h3>
+              </div>
+
+              <div class="card-body">
+                <p class="card-text">Uses medium elevation shadow.</p>
+              </div>
+            </article>
+
+            <!-- Hover -->
+
+            <article class="card card-hover">
+              <div class="card-header">
+                <h3 class="card-title">Hover Card</h3>
+              </div>
+
+              <div class="card-body">
+                <p class="card-text">Hover me.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>
