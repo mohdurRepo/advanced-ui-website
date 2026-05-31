@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Buttons | Abu Faisal Design System</title>
+    <script type="module" src="/src/js/main.js"></script>
+  </head>
+
+  <body>
+    <main class="section">
+      <div class="container">
+        <div class="d-flex justify-between align-center flex-wrap gap-3 mb-8">
+          <div>
+            <h1>Button System</h1>
+            <p>
+              Testing sharp buttons, rounded buttons, colors, states, theme,
+              language, and RTL.
+            </p>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            <button
+              class="btn btn-outline-primary btn-sm"
+              data-theme-set="light"
+            >
+              Light
+            </button>
+
+            <button
+              class="btn btn-outline-primary btn-sm"
+              data-theme-set="dark"
+            >
+              Dark
+            </button>
+
+            <button
+              class="btn btn-primary btn-sm btn-rounded"
+              data-theme-toggle
+            >
+              Toggle Theme
+            </button>
+
+            <button class="btn btn-outline-accent btn-sm" data-lang-set="en">
+              English
+            </button>
+
+            <button class="btn btn-outline-accent btn-sm" data-lang-set="ar">
+              العربية
+            </button>
+
+            <button class="btn btn-accent btn-sm btn-rounded" data-lang-toggle>
+              Toggle Lang
+            </button>
+          </div>
+        </div>
+
+        <section class="bg-surface border rounded-lg shadow-sm p-6 mb-6">
+          <h2 class="mb-4">Sharp Buttons</h2>
+
+          <div class="d-flex flex-wrap gap-3">
+            <button class="btn btn-primary">Primary</button>
+            <button class="btn btn-secondary">Secondary</button>
+            <button class="btn btn-accent">Accent</button>
+            <button class="btn btn-success">Success</button>
+            <button class="btn btn-info">Info</button>
+            <button class="btn btn-warning">Warning</button>
+            <button class="btn btn-danger">Danger</button>
+            <button class="btn btn-light">Light</button>
+            <button class="btn btn-dark">Dark</button>
+          </div>
+        </section>
+
+        <section class="bg-surface border rounded-lg shadow-sm p-6 mb-6">
+          <h2 class="mb-4">Rounded Buttons</h2>
+
+          <div class="d-flex flex-wrap gap-3">
+            <button class="btn btn-primary btn-rounded">Primary</button>
+            <button class="btn btn-secondary btn-rounded">Secondary</button>
+            <button class="btn btn-accent btn-rounded">Accent</button>
+            <button class="btn btn-success btn-rounded">Success</button>
+            <button class="btn btn-info btn-rounded">Info</button>
+            <button class="btn btn-warning btn-rounded">Warning</button>
+            <button class="btn btn-danger btn-rounded">Danger</button>
+            <button class="btn btn-light btn-rounded">Light</button>
+            <button class="btn btn-dark btn-rounded">Dark</button>
+          </div>
+        </section>
+
+        <section class="bg-surface border rounded-lg shadow-sm p-6 mb-6">
+          <h2 class="mb-4">Outline Buttons</h2>
+
+          <div class="d-flex flex-wrap gap-3">
+            <button class="btn btn-outline-primary">Primary</button>
+            <button class="btn btn-outline-secondary">Secondary</button>
+            <button class="btn btn-outline-accent">Accent</button>
+            <button class="btn btn-outline-success">Success</button>
+            <button class="btn btn-outline-info">Info</button>
+            <button class="btn btn-outline-warning">Warning</button>
+            <button class="btn btn-outline-danger">Danger</button>
+            <button class="btn btn-outline-light">Light</button>
+            <button class="btn btn-outline-dark">Dark</button>
+          </div>
+        </section>
+
+        <section class="bg-surface border rounded-lg shadow-sm p-6 mb-6">
+          <h2 class="mb-4">Outline Rounded Buttons</h2>
+
+          <div class="d-flex flex-wrap gap-3">
+            <button class="btn btn-outline-primary btn-rounded">Primary</button>
+            <button class="btn btn-outline-secondary btn-rounded">
+              Secondary
+            </button>
+            <button class="btn btn-outline-accent btn-rounded">Accent</button>
+            <button class="btn btn-outline-success btn-rounded">Success</button>
+            <button class="btn btn-outline-info btn-rounded">Info</button>
+            <button class="btn btn-outline-warning btn-rounded">Warning</button>
+            <button class="btn btn-outline-danger btn-rounded">Danger</button>
+          </div>
+        </section>
+
+        <section class="bg-surface border rounded-lg shadow-sm p-6 mb-6">
+          <h2 class="mb-4">Sizes</h2>
+
+          <div class="d-flex flex-wrap align-center gap-3">
+            <button class="btn btn-primary btn-sm">Small</button>
+            <button class="btn btn-primary">Default</button>
+            <button class="btn btn-primary btn-lg">Large</button>
+
+            <button class="btn btn-primary btn-sm btn-rounded">
+              Small Rounded
+            </button>
+            <button class="btn btn-primary btn-rounded">Default Rounded</button>
+            <button class="btn btn-primary btn-lg btn-rounded">
+              Large Rounded
+            </button>
+          </div>
+        </section>
+
+        <section class="bg-surface border rounded-lg shadow-sm p-6 mb-6">
+          <h2 class="mb-4">Ghost, Icon, Block</h2>
+
+          <div class="d-flex flex-wrap gap-3 mb-4">
+            <button class="btn btn-ghost">Ghost</button>
+            <button class="btn btn-primary btn-icon">+</button>
+            <button class="btn btn-primary btn-icon btn-rounded">★</button>
+            <button class="btn btn-outline-primary btn-icon btn-rounded">
+              →
+            </button>
+          </div>
+
+          <button class="btn btn-primary btn-block">Full Width Button</button>
+        </section>
+
+        <section class="bg-surface border rounded-lg shadow-sm p-6 mb-6">
+          <h2 class="mb-4">Disabled State</h2>
+
+          <div class="d-flex flex-wrap gap-3">
+            <button class="btn btn-primary" disabled>Disabled Primary</button>
+            <button class="btn btn-outline-primary is-disabled">
+              Disabled Class
+            </button>
+            <button class="btn btn-danger btn-rounded" disabled>
+              Disabled Rounded
+            </button>
+          </div>
+        </section>
+
+        <section class="bg-surface border rounded-lg shadow-sm p-6">
+          <h2 class="mb-4">Arabic Test</h2>
+
+          <div class="d-flex flex-wrap gap-3">
+            <button class="btn btn-primary">حفظ</button>
+            <button class="btn btn-outline-primary">إلغاء</button>
+            <button class="btn btn-accent btn-rounded">متابعة</button>
+            <button class="btn btn-danger btn-rounded">حذف</button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

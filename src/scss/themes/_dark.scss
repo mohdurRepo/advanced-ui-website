@@ -1,43 +1,51 @@
 html[data-theme="dark"] {
-  /* Core */
-
   --color-bg: #071521;
-
   --color-surface: #0b2233;
   --color-surface-alt: #102f45;
 
-  /* Text */
-
   --color-text: #f5f6f7;
-  --color-text-muted: #a6b1b8;
-
   --color-heading: #ffffff;
-
-  /* Brand */
+  --color-text-muted: #a6b1b8;
 
   --color-primary: #4d7cff;
   --color-primary-hover: #7095ff;
 
-  --color-accent: #59ff9e;
+  --color-secondary: #a6b1b8;
+  --color-secondary-hover: #c1c9ce;
 
-  /* Borders */
+  --color-accent: #59ff9e;
+  --color-accent-hover: #7cffb2;
+
+  --color-success: #22c55e;
+  --color-success-hover: #4ade80;
+
+  --color-info: #38bdf8;
+  --color-info-hover: #7dd3fc;
+
+  --color-warning: #fbbf24;
+  --color-warning-hover: #facc15;
+
+  --color-danger: #ef4444;
+  --color-danger-hover: #f87171;
+
+  --color-light: #ffffff;
+  --color-light-hover: #f3f4f6;
+
+  --color-dark: #001f33;
+  --color-dark-hover: #002b47;
 
   --color-border: #1e3d52;
   --color-border-strong: #35556d;
 
-  /* States */
-
-  --color-success: #22c55e;
-  --color-warning: #fbbf24;
-  --color-danger: #ef4444;
-  --color-info: #38bdf8;
-
-  /* On Colors */
-
   --color-on-primary: #ffffff;
+  --color-on-secondary: #001f33;
   --color-on-accent: #001f33;
-
-  /* Focus */
+  --color-on-success: #ffffff;
+  --color-on-info: #001f33;
+  --color-on-warning: #001f33;
+  --color-on-danger: #ffffff;
+  --color-on-light: #001f33;
+  --color-on-dark: #ffffff;
 
   --focus-ring: rgb(89 255 158 / 0.25);
 }

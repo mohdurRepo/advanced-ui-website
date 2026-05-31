@@ -1,44 +1,52 @@
 :root,
 html[data-theme="light"] {
-  /* Core */
-
   --color-bg: #f5f6f7;
-
   --color-surface: #ffffff;
   --color-surface-alt: #eef2f5;
 
-  /* Text */
-
   --color-text: #001f33;
-  --color-text-muted: #64707a;
-
   --color-heading: #001f33;
-
-  /* Brand */
+  --color-text-muted: #64707a;
 
   --color-primary: #0045e3;
   --color-primary-hover: #0038bb;
 
-  --color-accent: #59ff9e;
+  --color-secondary: #a6b1b8;
+  --color-secondary-hover: #8f9ba3;
 
-  /* Borders */
+  --color-accent: #59ff9e;
+  --color-accent-hover: #35e982;
+
+  --color-success: #16a34a;
+  --color-success-hover: #15803d;
+
+  --color-info: #0ea5e9;
+  --color-info-hover: #0284c7;
+
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+
+  --color-light: #ffffff;
+  --color-light-hover: #f3f4f6;
+
+  --color-dark: #001f33;
+  --color-dark-hover: #001524;
 
   --color-border: #d7dde3;
   --color-border-strong: #bcc6cf;
 
-  /* States */
-
-  --color-success: #00c763;
-  --color-warning: #f59e0b;
-  --color-danger: #dc2626;
-  --color-info: #0ea5e9;
-
-  /* On Colors */
-
   --color-on-primary: #ffffff;
+  --color-on-secondary: #001f33;
   --color-on-accent: #001f33;
-
-  /* Focus */
+  --color-on-success: #ffffff;
+  --color-on-info: #ffffff;
+  --color-on-warning: #001f33;
+  --color-on-danger: #ffffff;
+  --color-on-light: #001f33;
+  --color-on-dark: #ffffff;
 
   --focus-ring: rgb(0 69 227 / 0.25);
 }
