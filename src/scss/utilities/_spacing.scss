@@ -1,0 +1,64 @@
+@use "sass:map";
+@use "../abstracts/maps" as maps;
+
+@each $key, $value in maps.$spaces {
+  .m-#{$key} {
+    margin: $value;
+  }
+
+  .mt-#{$key} {
+    margin-block-start: $value;
+  }
+
+  .mb-#{$key} {
+    margin-block-end: $value;
+  }
+
+  .ms-#{$key} {
+    margin-inline-start: $value;
+  }
+
+  .me-#{$key} {
+    margin-inline-end: $value;
+  }
+
+  .mx-#{$key} {
+    margin-inline: $value;
+  }
+
+  .my-#{$key} {
+    margin-block: $value;
+  }
+
+  .p-#{$key} {
+    padding: $value;
+  }
+
+  .pt-#{$key} {
+    padding-block-start: $value;
+  }
+
+  .pb-#{$key} {
+    padding-block-end: $value;
+  }
+
+  .ps-#{$key} {
+    padding-inline-start: $value;
+  }
+
+  .pe-#{$key} {
+    padding-inline-end: $value;
+  }
+
+  .px-#{$key} {
+    padding-inline: $value;
+  }
+
+  .py-#{$key} {
+    padding-block: $value;
+  }
+
+  .gap-#{$key} {
+    gap: $value;
+  }
+}
