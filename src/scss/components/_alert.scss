@@ -1,0 +1,64 @@
+.alert {
+  display: flex;
+  gap: 0.875rem;
+  padding: 1rem 1.25rem;
+
+  border: 1px solid var(--alert-border);
+  border-radius: var(--radius-md);
+
+  background: var(--alert-bg);
+  color: var(--alert-color);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+.alert-title {
+  margin: 0 0 0.25rem;
+  color: inherit;
+  font-weight: 700;
+}
+
+.alert-text {
+  margin: 0;
+  color: inherit;
+}
+
+.alert-icon {
+  flex: 0 0 auto;
+  font-weight: 800;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-primary {
+  --alert-bg: color-mix(in oklab, var(--color-primary), transparent 88%);
+  --alert-color: var(--color-primary);
+  --alert-border: color-mix(in oklab, var(--color-primary), transparent 60%);
+}
+
+.alert-success {
+  --alert-bg: color-mix(in oklab, var(--color-success), transparent 88%);
+  --alert-color: var(--color-success);
+  --alert-border: color-mix(in oklab, var(--color-success), transparent 60%);
+}
+
+.alert-info {
+  --alert-bg: color-mix(in oklab, var(--color-info), transparent 88%);
+  --alert-color: var(--color-info);
+  --alert-border: color-mix(in oklab, var(--color-info), transparent 60%);
+}
+
+.alert-warning {
+  --alert-bg: color-mix(in oklab, var(--color-warning), transparent 84%);
+  --alert-color: var(--color-warning);
+  --alert-border: color-mix(in oklab, var(--color-warning), transparent 55%);
+}
+
+.alert-danger {
+  --alert-bg: color-mix(in oklab, var(--color-danger), transparent 88%);
+  --alert-color: var(--color-danger);
+  --alert-border: color-mix(in oklab, var(--color-danger), transparent 60%);
+}

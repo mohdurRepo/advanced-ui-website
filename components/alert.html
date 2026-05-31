@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Buttons | Abu Faisal Design System</title>
+    <script type="module" src="/src/js/main.js"></script>
+  </head>
+
+  <body>
+    <main class="section">
+      <div class="container">
+        <div class="d-flex justify-between align-center flex-wrap gap-3 mb-8">
+          <div>
+            <h1>Button System</h1>
+            <p>
+              Testing sharp buttons, rounded buttons, colors, states, theme,
+              language, and RTL.
+            </p>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            <button
+              class="btn btn-outline-primary btn-sm"
+              data-theme-set="light"
+            >
+              Light
+            </button>
+
+            <button
+              class="btn btn-outline-primary btn-sm"
+              data-theme-set="dark"
+            >
+              Dark
+            </button>
+
+            <button
+              class="btn btn-primary btn-sm btn-rounded"
+              data-theme-toggle
+            >
+              Toggle Theme
+            </button>
+
+            <button class="btn btn-outline-accent btn-sm" data-lang-set="en">
+              English
+            </button>
+
+            <button class="btn btn-outline-accent btn-sm" data-lang-set="ar">
+              العربية
+            </button>
+
+            <button class="btn btn-accent btn-sm btn-rounded" data-lang-toggle>
+              Toggle Lang
+            </button>
+          </div>
+        </div>
+
+        <section class="mt-8">
+          <h2 class="mb-4">Alert System</h2>
+
+          <div class="grid gap-4">
+            <div class="alert alert-primary">
+              <div class="alert-icon">i</div>
+              <div class="alert-content">
+                <h3 class="alert-title">Primary Alert</h3>
+                <p class="alert-text">This is a general system message.</p>
+              </div>
+            </div>
+
+            <div class="alert alert-success">
+              <div class="alert-icon">✓</div>
+              <div class="alert-content">
+                <h3 class="alert-title">Success Alert</h3>
+                <p class="alert-text">The operation completed successfully.</p>
+              </div>
+            </div>
+
+            <div class="alert alert-warning">
+              <div class="alert-icon">!</div>
+              <div class="alert-content">
+                <h3 class="alert-title">Warning Alert</h3>
+                <p class="alert-text">
+                  Please review the information before continuing.
+                </p>
+              </div>
+            </div>
+
+            <div class="alert alert-danger">
+              <div class="alert-icon">×</div>
+              <div class="alert-content">
+                <h3 class="alert-title">Danger Alert</h3>
+                <p class="alert-text">
+                  Something went wrong. Please try again.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>
