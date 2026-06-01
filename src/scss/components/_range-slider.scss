@@ -1,0 +1,26 @@
+/* =========================================
+   Range Slider
+========================================= */
+
+.range-slider {
+  display: grid;
+  gap: 0.75rem;
+
+  &-input {
+    width: 100%;
+    accent-color: var(--color-primary);
+  }
+
+  &-labels {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  &-value {
+    color: var(--color-heading);
+    font-weight: 700;
+  }
+}

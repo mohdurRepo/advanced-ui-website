@@ -11,5 +11,11 @@
   "devDependencies": {
     "sass": "^1.100.0",
     "vite": "^8.0.12"
+  },
+  "dependencies": {
+    "datatables.net-dt": "^2.3.8",
+    "datatables.net-fixedheader-dt": "^4.0.6",
+    "datatables.net-rowgroup-dt": "^1.6.0",
+    "jquery": "^4.0.0"
   }
 }

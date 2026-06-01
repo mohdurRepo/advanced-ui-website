@@ -1,0 +1,769 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Buttons | Abu Faisal Design System</title>
+    <link rel="stylesheet" href="/src/scss/main.scss" />
+
+    <script>
+      (function () {
+        var storageKey = "se-theme";
+        var savedTheme = localStorage.getItem(storageKey);
+        var prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches;
+        var theme = savedTheme || (prefersDark ? "dark" : "light");
+
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
+    <script type="module" src="/src/js/main.js"></script>
+  </head>
+
+  <body>
+    <main class="section">
+      <div class="container">
+        <div class="d-flex justify-between align-center flex-wrap gap-3 mb-8">
+          <div>
+            <h1>Button System</h1>
+            <p>
+              Testing sharp buttons, rounded buttons, colors, states, theme,
+              language, and RTL.
+            </p>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            <button
+              class="btn btn-outline-primary btn-sm"
+              data-theme-set="light"
+            >
+              Light
+            </button>
+
+            <button
+              class="btn btn-outline-primary btn-sm"
+              data-theme-set="dark"
+            >
+              Dark
+            </button>
+
+            <button
+              class="btn btn-primary btn-sm btn-rounded"
+              data-theme-toggle
+            >
+              Toggle Theme
+            </button>
+
+            <button class="btn btn-outline-accent btn-sm" data-lang-set="en">
+              English
+            </button>
+
+            <button class="btn btn-outline-accent btn-sm" data-lang-set="ar">
+              العربية
+            </button>
+
+            <button class="btn btn-accent btn-sm btn-rounded" data-lang-toggle>
+              Toggle Lang
+            </button>
+          </div>
+        </div>
+
+        <section class="mt-8">
+          <div class="d-flex justify-between align-center flex-wrap gap-3 mb-6">
+            <div>
+              <h2>Table System</h2>
+              <p>
+                Base tables, responsive tables, range slider, and DataTables
+                examples.
+              </p>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+              <button
+                class="btn btn-outline-primary btn-sm"
+                data-theme-set="light"
+              >
+                Light
+              </button>
+              <button
+                class="btn btn-outline-primary btn-sm"
+                data-theme-set="dark"
+              >
+                Dark
+              </button>
+              <button
+                class="btn btn-primary btn-sm btn-rounded"
+                data-theme-toggle
+              >
+                Toggle Theme
+              </button>
+              <button class="btn btn-outline-accent btn-sm" data-lang-set="en">
+                English
+              </button>
+              <button class="btn btn-outline-accent btn-sm" data-lang-set="ar">
+                العربية
+              </button>
+            </div>
+          </div>
+
+          <!-- Basic Table -->
+          <section class="card mb-6">
+            <div class="card-header">
+              <h3 class="card-title">Basic Table</h3>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Company</th>
+                      <th>Sector</th>
+                      <th class="numeric">Price</th>
+                      <th class="numeric">Change</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <tr>
+                      <td>2222</td>
+                      <td>Saudi Aramco</td>
+                      <td>Energy</td>
+                      <td class="numeric">31.20</td>
+                      <td class="numeric td-flash-up">+1.20%</td>
+                      <td>
+                        <span class="badge badge-success badge-rounded"
+                          >Up</span
+                        >
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td>1120</td>
+                      <td>Al Rajhi Bank</td>
+                      <td>Banks</td>
+                      <td class="numeric">87.40</td>
+                      <td class="numeric td-flash-down">-0.45%</td>
+                      <td>
+                        <span class="badge badge-danger badge-rounded"
+                          >Down</span
+                        >
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td>7010</td>
+                      <td>stc</td>
+                      <td>Telecom</td>
+                      <td class="numeric">42.60</td>
+                      <td class="numeric td-flash-equal">0.00%</td>
+                      <td>
+                        <span class="badge badge-secondary badge-rounded"
+                          >Flat</span
+                        >
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Table Variants -->
+          <section class="card mb-6">
+            <div class="card-header">
+              <h3 class="card-title">
+                Striped / Hover / Bordered / Compact / Nowrap
+              </h3>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table
+                  class="table table-striped table-hover table-bordered table-compact table-nowrap"
+                >
+                  <thead>
+                    <tr>
+                      <th>Market</th>
+                      <th>Sector</th>
+                      <th class="numeric">Volume</th>
+                      <th class="numeric">Value</th>
+                      <th class="numeric">Trades</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <tr>
+                      <td>Main Market</td>
+                      <td>Banks</td>
+                      <td class="numeric">1,245,000</td>
+                      <td class="numeric">54,200,000</td>
+                      <td class="numeric">8,400</td>
+                    </tr>
+
+                    <tr>
+                      <td>Nomu</td>
+                      <td>Technology</td>
+                      <td class="numeric">320,000</td>
+                      <td class="numeric">7,800,000</td>
+                      <td class="numeric">1,120</td>
+                    </tr>
+
+                    <tr class="table-total-row">
+                      <td colspan="2">Total</td>
+                      <td class="numeric">1,565,000</td>
+                      <td class="numeric">62,000,000</td>
+                      <td class="numeric">9,520</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Fixed First Column -->
+          <section class="card mb-6">
+            <div class="card-header">
+              <h3 class="card-title">Fixed First Column</h3>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table
+                  class="table table-striped table-hover table-nowrap table-fixed-column"
+                >
+                  <thead>
+                    <tr>
+                      <th>Company</th>
+                      <th>Q1</th>
+                      <th>Q2</th>
+                      <th>Q3</th>
+                      <th>Q4</th>
+                      <th>Total</th>
+                      <th>Growth</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <tr>
+                      <td>Saudi Aramco</td>
+                      <td>120</td>
+                      <td>135</td>
+                      <td>142</td>
+                      <td>155</td>
+                      <td>552</td>
+                      <td>+8%</td>
+                    </tr>
+
+                    <tr>
+                      <td>Al Rajhi Bank</td>
+                      <td>90</td>
+                      <td>94</td>
+                      <td>98</td>
+                      <td>102</td>
+                      <td>384</td>
+                      <td>+5%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Empty / Loading -->
+          <section class="card mb-6">
+            <div class="card-header">
+              <h3 class="card-title">Empty & Loading States</h3>
+            </div>
+
+            <div class="card-body">
+              <div class="grid-2 gap-4">
+                <div class="table-responsive">
+                  <table class="table table-bordered">
+                    <tbody>
+                      <tr class="table-empty">
+                        <td>No data available</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="table table-bordered">
+                    <tbody>
+                      <tr class="table-loading">
+                        <td>Loading data...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Range Slider -->
+          <section class="card mb-6">
+            <div class="card-header">
+              <h3 class="card-title">Range Slider</h3>
+            </div>
+
+            <div class="card-body">
+              <div class="range-slider">
+                <input
+                  class="range-slider-input"
+                  type="range"
+                  min="0"
+                  max="100"
+                  value="45"
+                />
+                <div class="range-slider-labels">
+                  <span>Low</span>
+                  <span class="range-slider-value">Current: 45%</span>
+                  <span>High</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- DataTables Default Paging -->
+          <section class="card mb-6">
+            <div class="card-header">
+              <h3 class="card-title">DataTables — Default Paging</h3>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table
+                  class="table table-striped table-hover"
+                  data-datatable
+                  data-datatable-preset="standard"
+                >
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Company</th>
+                      <th>Sector</th>
+                      <th class="numeric">Price</th>
+                      <th class="numeric">Change</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <tr>
+                      <td>1010</td>
+                      <td>Riyad Bank</td>
+                      <td>Banks</td>
+                      <td class="numeric">28.10</td>
+                      <td class="numeric">+0.30%</td>
+                    </tr>
+                    <tr>
+                      <td>1120</td>
+                      <td>Al Rajhi Bank</td>
+                      <td>Banks</td>
+                      <td class="numeric">87.40</td>
+                      <td class="numeric">-0.45%</td>
+                    </tr>
+                    <tr>
+                      <td>2222</td>
+                      <td>Saudi Aramco</td>
+                      <td>Energy</td>
+                      <td class="numeric">31.20</td>
+                      <td class="numeric">+1.20%</td>
+                    </tr>
+                    <tr>
+                      <td>2010</td>
+                      <td>SABIC</td>
+                      <td>Materials</td>
+                      <td class="numeric">76.90</td>
+                      <td class="numeric">-0.20%</td>
+                    </tr>
+                    <tr>
+                      <td>7010</td>
+                      <td>stc</td>
+                      <td>Telecom</td>
+                      <td class="numeric">42.60</td>
+                      <td class="numeric">+0.10%</td>
+                    </tr>
+                    <tr>
+                      <td>7020</td>
+                      <td>Mobily</td>
+                      <td>Telecom</td>
+                      <td class="numeric">49.90</td>
+                      <td class="numeric">-0.15%</td>
+                    </tr>
+                    <tr>
+                      <td>4030</td>
+                      <td>Bahri</td>
+                      <td>Transport</td>
+                      <td class="numeric">23.80</td>
+                      <td class="numeric">+0.80%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- DataTables Searchable -->
+          <section class="card mb-6">
+            <div class="card-header">
+              <h3 class="card-title">DataTables — Searchable</h3>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table
+                  class="table table-striped table-hover"
+                  data-datatable
+                  data-datatable-preset="searchable"
+                >
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Company</th>
+                      <th>Sector</th>
+                      <th class="numeric">Price</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <tr>
+                      <td>1010</td>
+                      <td>Riyad Bank</td>
+                      <td>Banks</td>
+                      <td class="numeric">28.10</td>
+                    </tr>
+                    <tr>
+                      <td>1120</td>
+                      <td>Al Rajhi Bank</td>
+                      <td>Banks</td>
+                      <td class="numeric">87.40</td>
+                    </tr>
+                    <tr>
+                      <td>2222</td>
+                      <td>Saudi Aramco</td>
+                      <td>Energy</td>
+                      <td class="numeric">31.20</td>
+                    </tr>
+                    <tr>
+                      <td>2010</td>
+                      <td>SABIC</td>
+                      <td>Materials</td>
+                      <td class="numeric">76.90</td>
+                    </tr>
+                    <tr>
+                      <td>7010</td>
+                      <td>stc</td>
+                      <td>Telecom</td>
+                      <td class="numeric">42.60</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- DataTables Fixed Header -->
+          <section class="card mb-6">
+            <div class="card-header">
+              <h3 class="card-title">DataTables — Fixed Header</h3>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table
+                  class="table table-striped table-hover table-nowrap"
+                  data-datatable
+                  data-datatable-preset="searchable"
+                  data-datatable-fixed-header
+                >
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Company</th>
+                      <th>Sector</th>
+                      <th class="numeric">Price</th>
+                      <th class="numeric">Change</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <tr>
+                      <td>1010</td>
+                      <td>Riyad Bank</td>
+                      <td>Banks</td>
+                      <td class="numeric">28.10</td>
+                      <td class="numeric">+0.30%</td>
+                    </tr>
+                    <tr>
+                      <td>1120</td>
+                      <td>Al Rajhi Bank</td>
+                      <td>Banks</td>
+                      <td class="numeric">87.40</td>
+                      <td class="numeric">-0.45%</td>
+                    </tr>
+                    <tr>
+                      <td>2222</td>
+                      <td>Saudi Aramco</td>
+                      <td>Energy</td>
+                      <td class="numeric">31.20</td>
+                      <td class="numeric">+1.20%</td>
+                    </tr>
+                    <tr>
+                      <td>2010</td>
+                      <td>SABIC</td>
+                      <td>Materials</td>
+                      <td class="numeric">76.90</td>
+                      <td class="numeric">-0.20%</td>
+                    </tr>
+                    <tr>
+                      <td>7010</td>
+                      <td>stc</td>
+                      <td>Telecom</td>
+                      <td class="numeric">42.60</td>
+                      <td class="numeric">+0.10%</td>
+                    </tr>
+                    <tr>
+                      <td>7020</td>
+                      <td>Mobily</td>
+                      <td>Telecom</td>
+                      <td class="numeric">49.90</td>
+                      <td class="numeric">-0.15%</td>
+                    </tr>
+                    <tr>
+                      <td>4030</td>
+                      <td>Bahri</td>
+                      <td>Transport</td>
+                      <td class="numeric">23.80</td>
+                      <td class="numeric">+0.80%</td>
+                    </tr>
+                    <tr>
+                      <td>4004</td>
+                      <td>Dallah Healthcare</td>
+                      <td>Healthcare</td>
+                      <td class="numeric">158.20</td>
+                      <td class="numeric">+0.40%</td>
+                    </tr>
+                    <tr>
+                      <td>1830</td>
+                      <td>Leejam Sports</td>
+                      <td>Consumer Services</td>
+                      <td class="numeric">196.00</td>
+                      <td class="numeric">-1.10%</td>
+                    </tr>
+                    <tr>
+                      <td>4002</td>
+                      <td>Mouwasat</td>
+                      <td>Healthcare</td>
+                      <td class="numeric">97.80</td>
+                      <td class="numeric">+0.25%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- DataTables Row Group -->
+          <section class="card mb-6">
+            <div class="card-header">
+              <h3 class="card-title">DataTables — Row Group</h3>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table
+                  class="table table-hover table-nowrap"
+                  data-datatable
+                  data-datatable-preset="standard"
+                  data-datatable-row-group="2"
+                >
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Company</th>
+                      <th>Sector</th>
+                      <th class="numeric">Price</th>
+                      <th class="numeric">Change</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <tr>
+                      <td>1010</td>
+                      <td>Riyad Bank</td>
+                      <td>Banks</td>
+                      <td class="numeric">28.10</td>
+                      <td class="numeric">+0.30%</td>
+                    </tr>
+                    <tr>
+                      <td>1120</td>
+                      <td>Al Rajhi Bank</td>
+                      <td>Banks</td>
+                      <td class="numeric">87.40</td>
+                      <td class="numeric">-0.45%</td>
+                    </tr>
+                    <tr>
+                      <td>2222</td>
+                      <td>Saudi Aramco</td>
+                      <td>Energy</td>
+                      <td class="numeric">31.20</td>
+                      <td class="numeric">+1.20%</td>
+                    </tr>
+                    <tr>
+                      <td>2010</td>
+                      <td>SABIC</td>
+                      <td>Materials</td>
+                      <td class="numeric">76.90</td>
+                      <td class="numeric">-0.20%</td>
+                    </tr>
+                    <tr>
+                      <td>7010</td>
+                      <td>stc</td>
+                      <td>Telecom</td>
+                      <td class="numeric">42.60</td>
+                      <td class="numeric">+0.10%</td>
+                    </tr>
+                    <tr>
+                      <td>7020</td>
+                      <td>Mobily</td>
+                      <td>Telecom</td>
+                      <td class="numeric">49.90</td>
+                      <td class="numeric">-0.15%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+          <section class="card mb-6">
+            <div class="card-header">
+              <h3 class="card-title">DataTables — JS Render Default</h3>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table
+                  id="jsDefaultDataTable"
+                  class="table table-striped table-hover"
+                >
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Company</th>
+                      <th>Sector</th>
+                      <th class="numeric">Price</th>
+                      <th class="numeric">Change</th>
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Custom Feed Pagination Markup -->
+          <section class="card mb-6">
+            <div class="card-header">
+              <h3 class="card-title">DataTables — Custom Feed Paging</h3>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table
+                  id="feedDataTable"
+                  class="table table-striped table-hover table-nowrap"
+                >
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Company</th>
+                      <th>Sector</th>
+                      <th class="numeric">Price</th>
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+
+              <div class="datatable-feed-pagination" id="feedPaginationDemo">
+                <div class="datatable-feed-range" data-feed-range>0–0 of 0</div>
+
+                <div class="datatable-feed-actions">
+                  <button class="btn btn-outline-primary btn-sm" data-feed-prev>
+                    Previous
+                  </button>
+
+                  <select data-feed-page></select>
+
+                  <span>of <strong data-feed-total-pages>1</strong></span>
+
+                  <button class="btn btn-outline-primary btn-sm" data-feed-next>
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </section>
+      </div>
+    </main>
+  </body>
+
+  <script type="module">
+    const feedData = [
+      ["1010", "Riyad Bank", "Banks", "28.10"],
+      ["1120", "Al Rajhi Bank", "Banks", "87.40"],
+      ["2222", "Saudi Aramco", "Energy", "31.20"],
+      ["2010", "SABIC", "Materials", "76.90"],
+      ["7010", "stc", "Telecom", "42.60"],
+      ["7020", "Mobily", "Telecom", "49.90"],
+      ["4030", "Bahri", "Transport", "23.80"],
+    ];
+
+    window.renderDataTable({
+      target: "#feedDataTable",
+      preset: "minimal",
+      data: feedData,
+      columns: [
+        { title: "Code" },
+        { title: "Company" },
+        { title: "Sector" },
+        { title: "Price", className: "numeric" },
+      ],
+      dtOptions: {
+        pageLength: 3,
+        paging: true,
+      },
+      features: {
+        feedPagination: {
+          container: "#feedPaginationDemo",
+        },
+      },
+    });
+  </script>
+
+  <script type="module">
+    const defaultData = [
+      ["1010", "Riyad Bank", "Banks", "28.10", "+0.30%"],
+      ["1120", "Al Rajhi Bank", "Banks", "87.40", "-0.45%"],
+      ["2222", "Saudi Aramco", "Energy", "31.20", "+1.20%"],
+      ["2010", "SABIC", "Materials", "76.90", "-0.20%"],
+      ["7010", "stc", "Telecom", "42.60", "+0.10%"],
+    ];
+
+    window.renderDataTable({
+      target: "#jsDefaultDataTable",
+      preset: "searchable",
+      data: defaultData,
+      columns: [
+        { title: "Code" },
+        { title: "Company" },
+        { title: "Sector" },
+        { title: "Price", className: "numeric" },
+        { title: "Change", className: "numeric" },
+      ],
+    });
+  </script>
+</html>
