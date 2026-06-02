@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script>
+      (function () {
+        var theme = localStorage.getItem("se-theme") || "light";
+        var lang = localStorage.getItem("se-lang") || "en";
+
+        document.documentElement.setAttribute("data-theme", theme);
+        document.documentElement.setAttribute("lang", lang);
+        document.documentElement.setAttribute(
+          "dir",
+          lang === "ar" ? "rtl" : "ltr",
+        );
+      })();
+    </script>
+
+    <link rel="stylesheet" href="/src/scss/main.scss" />
+    <title>Icons | Abu Faisal Design System</title>
+    <script type="module" src="/src/js/main.js"></script>
+  </head>
+
+  <body>
+    <main class="section">
+      <div class="container">
+        <div class="d-flex justify-between align-center flex-wrap gap-3 mb-8">
+          <div>
+            <h1>Icon System</h1>
+            <p>
+              Class-based icons for buttons, lists, cards, and SVG sprite usage.
+            </p>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            <button
+              class="btn btn-outline-primary btn-sm"
+              data-theme-set="light"
+            >
+              Light
+            </button>
+            <button
+              class="btn btn-outline-primary btn-sm"
+              data-theme-set="dark"
+            >
+              Dark
+            </button>
+            <button
+              class="btn btn-primary btn-sm btn-rounded"
+              data-theme-toggle
+            >
+              Toggle Theme
+            </button>
+            <button class="btn btn-outline-accent btn-sm" data-lang-set="en">
+              English
+            </button>
+            <button class="btn btn-outline-accent btn-sm" data-lang-set="ar">
+              العربية
+            </button>
+          </div>
+        </div>
+
+        <section class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">How Developers Use Icons</h3>
+          </div>
+
+          <div class="card-body">
+            <pre><code>&lt;button class="btn btn-primary has-icon icon-home"&gt;
+  Home
+&lt;/button&gt;
+
+&lt;button class="btn btn-primary has-icon icon-refresh icon-spin"&gt;
+  Refresh
+&lt;/button&gt;
+
+&lt;ul class="icon-list"&gt;
+  &lt;li class="has-icon icon-check"&gt;Reusable item&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+          </div>
+        </section>
+
+        <section class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">Icon Gallery</h3>
+          </div>
+
+          <div class="card-body">
+            <div class="row">
+              <div class="col-6 col-md-4 col-lg-3 mb-4">
+                <div class="card p-4 text-center">
+                  <span
+                    class="has-icon icon-home icon-2xl mb-3"
+                    aria-hidden="true"
+                  ></span>
+                  <strong>Home</strong>
+                  <small class="text-muted">has-icon icon-home</small>
+                </div>
+              </div>
+
+              <div class="col-6 col-md-4 col-lg-3 mb-4">
+                <div class="card p-4 text-center">
+                  <span
+                    class="has-icon icon-user icon-2xl mb-3"
+                    aria-hidden="true"
+                  ></span>
+                  <strong>User</strong>
+                  <small class="text-muted">has-icon icon-user</small>
+                </div>
+              </div>
+
+              <div class="col-6 col-md-4 col-lg-3 mb-4">
+                <div class="card p-4 text-center">
+                  <span
+                    class="has-icon icon-search icon-2xl mb-3"
+                    aria-hidden="true"
+                  ></span>
+                  <strong>Search</strong>
+                  <small class="text-muted">has-icon icon-search</small>
+                </div>
+              </div>
+
+              <div class="col-6 col-md-4 col-lg-3 mb-4">
+                <div class="card p-4 text-center">
+                  <span
+                    class="has-icon icon-refresh icon-2xl mb-3"
+                    aria-hidden="true"
+                  ></span>
+                  <strong>Refresh</strong>
+                  <small class="text-muted">has-icon icon-refresh</small>
+                </div>
+              </div>
+
+              <div class="col-6 col-md-4 col-lg-3 mb-4">
+                <div class="card p-4 text-center">
+                  <span
+                    class="has-icon icon-arrow-right icon-flip-rtl icon-2xl mb-3"
+                    aria-hidden="true"
+                  ></span>
+                  <strong>Arrow Right</strong>
+                  <small class="text-muted">has-icon icon-arrow-right</small>
+                </div>
+              </div>
+
+              <div class="col-6 col-md-4 col-lg-3 mb-4">
+                <div class="card p-4 text-center">
+                  <span
+                    class="has-icon icon-check icon-2xl mb-3"
+                    aria-hidden="true"
+                  ></span>
+                  <strong>Check</strong>
+                  <small class="text-muted">has-icon icon-check</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">Buttons With Icons</h3>
+          </div>
+
+          <div class="card-body d-flex flex-wrap gap-3">
+            <button class="btn btn-primary btn-rounded has-icon icon-home">
+              Home
+            </button>
+
+            <button
+              class="btn btn-outline-primary btn-rounded has-icon icon-search"
+            >
+              Search
+            </button>
+
+            <button class="btn btn-success btn-rounded has-icon icon-check">
+              Confirm
+            </button>
+
+            <button
+              class="btn btn-warning btn-rounded has-icon icon-refresh icon-spin"
+            >
+              Refreshing
+            </button>
+
+            <button
+              class="btn btn-primary btn-rounded has-icon btn-icon-end icon-arrow-right icon-flip-rtl"
+            >
+              Next
+            </button>
+          </div>
+        </section>
+
+        <section class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">Icon Sizes</h3>
+          </div>
+
+          <div class="card-body d-flex flex-wrap align-center gap-4">
+            <span class="has-icon icon-home icon-xs">XS</span>
+            <span class="has-icon icon-home icon-sm">SM</span>
+            <span class="has-icon icon-home icon-md">MD</span>
+            <span class="has-icon icon-home icon-lg">LG</span>
+            <span class="has-icon icon-home icon-xl">XL</span>
+            <span class="has-icon icon-home icon-2xl">2XL</span>
+          </div>
+        </section>
+
+        <section class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">Icon List</h3>
+          </div>
+
+          <div class="card-body">
+            <ul class="icon-list">
+              <li class="has-icon icon-check">
+                Use class only: <code>has-icon icon-check</code>
+              </li>
+              <li class="has-icon icon-check">Works with theme colors</li>
+              <li class="has-icon icon-check">Works in English and Arabic</li>
+              <li class="has-icon icon-check">
+                Useful for feature lists and menu descriptions
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <h3 class="card-title">SVG Sprite Usage</h3>
+          </div>
+
+          <div class="card-body">
+            <p class="mb-4">
+              Use SVG sprite only for complex SVG icons that should not be
+              converted to mask icons.
+            </p>
+
+            <div class="d-flex flex-wrap gap-3 mb-4">
+              <span class="svg-icon icon-2xl">
+                <svg aria-hidden="true">
+                  <use href="#custom-home"></use>
+                </svg>
+              </span>
+
+              <span class="svg-icon icon-2xl">
+                <svg aria-hidden="true">
+                  <use href="#custom-check"></use>
+                </svg>
+              </span>
+            </div>
+
+            <pre><code>&lt;span class="svg-icon icon-2xl"&gt;
+  &lt;svg aria-hidden="true"&gt;
+    &lt;use href="#custom-home"&gt;&lt;/use&gt;
+  &lt;/svg&gt;
+&lt;/span&gt;</code></pre>
+          </div>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>
