@@ -9,7 +9,7 @@ import { renderDataTable } from "./vendors/datatables/datatable.core";
 import { initDataTables } from "./vendors/datatables/datatable.init";
 import { initIconSprite } from "./components/icons";
 import { initDropdowns } from "./components/dropdown";
-initDropdowns();
+import { initForms } from "./components/form";
 
 window.renderDataTable = renderDataTable;
 initTheme();
@@ -19,3 +19,5 @@ initAccordions();
 initToasts();
 initDataTables();
 initIconSprite();
+initDropdowns();
+initForms();

@@ -1,79 +1,61 @@
-const LANGUAGE_STORAGE_KEY = "se-language";
+const LANGUAGE_STORAGE_KEY = "se-lang";
+const LANGUAGES = ["en", "ar"];
 
-const LANGUAGES = {
-  en: {
-    lang: "en",
-    dir: "ltr",
-  },
-  ar: {
-    lang: "ar",
-    dir: "rtl",
-  },
-};
-
-const DEFAULT_LANGUAGE = "en";
-const root = document.documentElement;
-
-function isValidLanguage(language) {
-  return Object.prototype.hasOwnProperty.call(LANGUAGES, language);
+function isValidLanguage(lang) {
+  return LANGUAGES.includes(lang);
 }
 
-function getSavedLanguage() {
-  return localStorage.getItem(LANGUAGE_STORAGE_KEY);
+function getCurrentLanguage() {
+  const bootLang = window.APP_LOCALE?.lang;
+  const savedLang = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+
+  if (isValidLanguage(bootLang)) return bootLang;
+  if (isValidLanguage(savedLang)) return savedLang;
+
+  return "en";
 }
 
-export function setLanguage(language) {
-  const nextLanguage = isValidLanguage(language) ? language : DEFAULT_LANGUAGE;
+function applyLanguage(lang) {
+  const safeLang = isValidLanguage(lang) ? lang : "en";
+  const dir = safeLang === "ar" ? "rtl" : "ltr";
 
-  const config = LANGUAGES[nextLanguage];
+  document.documentElement.lang = safeLang;
+  document.documentElement.dir = dir;
 
-  root.setAttribute("lang", config.lang);
-  root.setAttribute("dir", config.dir);
+  localStorage.setItem(LANGUAGE_STORAGE_KEY, safeLang);
 
-  localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage);
+  window.APP_LOCALE = {
+    ...(window.APP_LOCALE || {}),
+    lang: safeLang,
+    dir,
+  };
 
   document.dispatchEvent(
     new CustomEvent("languagechange", {
-      detail: {
-        language: nextLanguage,
-        direction: config.dir,
-      },
+      detail: { lang: safeLang, dir },
     }),
   );
 }
 
-export function getLanguage() {
-  return root.getAttribute("lang") || DEFAULT_LANGUAGE;
-}
-
-export function toggleLanguage() {
-  const currentLanguage = getLanguage();
-  const nextLanguage = currentLanguage === "ar" ? "en" : "ar";
-
-  setLanguage(nextLanguage);
-}
-
 export function initLanguage() {
-  const savedLanguage = getSavedLanguage();
-  const initialLanguage = isValidLanguage(savedLanguage)
-    ? savedLanguage
-    : DEFAULT_LANGUAGE;
+  const currentLang = getCurrentLanguage();
 
-  setLanguage(initialLanguage);
-
-  document.addEventListener("click", (event) => {
-    const trigger = event.target.closest("[data-lang-set]");
-
-    if (!trigger) return;
-
-    setLanguage(trigger.getAttribute("data-lang-set"));
-  });
+  // Important: apply same value only, no default reset.
+  document.documentElement.lang = currentLang;
+  document.documentElement.dir = currentLang === "ar" ? "rtl" : "ltr";
 
   document.addEventListener("click", (event) => {
-    const trigger = event.target.closest("[data-lang-toggle]");
+    const setButton = event.target.closest("[data-lang-set]");
+    const toggleButton = event.target.closest("[data-lang-toggle]");
 
-    if (!trigger) return;
+    if (setButton) {
+      applyLanguage(setButton.getAttribute("data-lang-set"));
+      return;
+    }
 
-    toggleLanguage();
+    if (toggleButton) {
+      const nextLang = getCurrentLanguage() === "ar" ? "en" : "ar";
+      applyLanguage(nextLang);
+    }
   });
 }

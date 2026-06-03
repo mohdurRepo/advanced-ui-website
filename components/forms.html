@@ -1,0 +1,638 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+
+    <script>
+      (function () {
+        var theme = localStorage.getItem("se-theme") || "light";
+        var lang = localStorage.getItem("se-lang") || "en";
+        var dir = lang === "ar" ? "rtl" : "ltr";
+
+        document.documentElement.lang = lang;
+        document.documentElement.dir = dir;
+        document.documentElement.dataset.theme = theme;
+
+        window.APP_LOCALE = {
+          lang: lang,
+          dir: dir,
+          theme: theme,
+        };
+      })();
+    </script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/src/scss/main.scss" />
+    <title>Abu Faisal Design System</title>
+    <script type="module" src="/src/js/main.js"></script>
+  </head>
+
+  <body>
+    <main class="section">
+      <div class="container">
+        <div class="d-flex justify-between align-center flex-wrap gap-3 mb-8">
+          <div>
+            <h1>Form System</h1>
+            <p>
+              Complete form controls, advanced inputs, validation, OTP, upload,
+              fieldsets, horizontal and inline layouts.
+            </p>
+          </div>
+
+          <div class="d-flex gap-2 flex-wrap">
+            <button
+              class="btn btn-outline-primary btn-sm"
+              data-theme-set="light"
+            >
+              Light
+            </button>
+            <button
+              class="btn btn-outline-primary btn-sm"
+              data-theme-set="dark"
+            >
+              Dark
+            </button>
+            <button
+              class="btn btn-primary btn-sm btn-rounded"
+              data-theme-toggle
+            >
+              Toggle Theme
+            </button>
+            <button class="btn btn-outline-accent btn-sm" data-lang-set="en">
+              English
+            </button>
+            <button class="btn btn-outline-accent btn-sm" data-lang-set="ar">
+              العربية
+            </button>
+          </div>
+        </div>
+
+        <!-- Basic Controls -->
+        <section class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">Basic Controls</h3>
+          </div>
+
+          <div class="card-body">
+            <form class="form">
+              <div class="form-row grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="fullName">
+                    Full Name <span class="form-required">*</span>
+                  </label>
+                  <input
+                    id="fullName"
+                    class="form-control"
+                    type="text"
+                    placeholder="Enter full name"
+                  />
+                  <div class="form-help">Use your official full name.</div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="email">Email</label>
+                  <input
+                    id="email"
+                    class="form-control"
+                    type="email"
+                    placeholder="name@example.com"
+                  />
+                  <div class="form-help">Business email is preferred.</div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="description">Description</label>
+                <textarea
+                  id="description"
+                  class="form-control"
+                  placeholder="Write description..."
+                ></textarea>
+              </div>
+
+              <div class="form-row grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="market">Native Select</label>
+                  <div class="form-select-wrap">
+                    <select id="market" class="form-select">
+                      <option>Main Market</option>
+                      <option>Nomu Market</option>
+                      <option>Sukuk & Bonds</option>
+                    </select>
+                  </div>
+                  <div class="form-help">
+                    Native select keeps mobile and browser accessibility.
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="disabledInput">
+                    Disabled Input
+                  </label>
+                  <input
+                    id="disabledInput"
+                    class="form-control"
+                    type="text"
+                    value="Disabled value"
+                    disabled
+                  />
+                </div>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- Input Groups -->
+        <section class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">Input Groups</h3>
+          </div>
+
+          <div class="card-body">
+            <form class="form">
+              <div class="form-row grid-3">
+                <div class="form-group">
+                  <label class="form-label" for="emailPrefix"
+                    >Email Prefix</label
+                  >
+                  <div class="input-group">
+                    <span class="input-group-text">@</span>
+                    <input
+                      id="emailPrefix"
+                      class="form-control"
+                      type="email"
+                      placeholder="username"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="numberPrefix">
+                    Number Prefix
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text">00</span>
+                    <input
+                      id="numberPrefix"
+                      class="form-control"
+                      type="number"
+                      placeholder="5000"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="amountSuffix">
+                    Amount Suffix
+                  </label>
+                  <div class="input-group">
+                    <input
+                      id="amountSuffix"
+                      class="form-control"
+                      type="number"
+                      placeholder="1000"
+                    />
+                    <span class="input-group-text">SAR</span>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- Advanced Controls -->
+        <section class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">Advanced Controls</h3>
+          </div>
+
+          <div class="card-body">
+            <form class="form">
+              <div class="form-row grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="searchInput"
+                    >Search Input</label
+                  >
+
+                  <div class="form-field form-field-icon-start">
+                    <span
+                      class="form-field-icon has-icon icon-search"
+                      aria-hidden="true"
+                    ></span>
+
+                    <input
+                      id="searchInput"
+                      class="form-control"
+                      type="search"
+                      placeholder="Search companies..."
+                    />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="passwordInput">
+                    Password Input
+                  </label>
+
+                  <div class="form-field form-field-icon-end">
+                    <input
+                      id="passwordInput"
+                      class="form-control"
+                      type="password"
+                      placeholder="Enter password"
+                    />
+
+                    <button
+                      class="form-field-action has-icon icon-eye"
+                      type="button"
+                      data-password-toggle="#passwordInput"
+                      aria-label="Show password"
+                      aria-pressed="false"
+                    ></button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="floatingName">
+                    Floating Label
+                  </label>
+
+                  <div class="form-floating">
+                    <input
+                      id="floatingName"
+                      class="form-control"
+                      type="text"
+                      placeholder="Full Name"
+                    />
+                    <label for="floatingName">Full Name</label>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">File Upload</label>
+
+                  <div class="form-file">
+                    <input
+                      id="fileUpload"
+                      class="form-file-input"
+                      type="file"
+                      data-file-input
+                    />
+
+                    <label class="form-file-label" for="fileUpload">
+                      <span>Choose file</span>
+                      <span class="form-file-name" data-file-name>
+                        No file selected
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Drag & Drop Upload</label>
+
+                <div class="form-file">
+                  <input
+                    id="dropUpload"
+                    class="form-file-input"
+                    type="file"
+                    multiple
+                    data-file-input
+                  />
+
+                  <label
+                    class="form-dropzone"
+                    for="dropUpload"
+                    data-dropzone="#dropUpload"
+                  >
+                    <span class="form-dropzone-content">
+                      <span
+                        class="form-dropzone-icon has-icon icon-upload icon-2xl"
+                        aria-hidden="true"
+                      ></span>
+                      <strong>Drop files here or click to upload</strong>
+                      <span class="form-file-name" data-file-name>
+                        No file selected
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">OTP Input</label>
+
+                <div class="otp" data-otp>
+                  <input
+                    class="otp-input"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="1"
+                  />
+                  <input
+                    class="otp-input"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="1"
+                  />
+                  <input
+                    class="otp-input"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="1"
+                  />
+                  <input
+                    class="otp-input"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="1"
+                  />
+                  <input
+                    class="otp-input"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="1"
+                  />
+                  <input
+                    class="otp-input"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="1"
+                  />
+                </div>
+
+                <div class="form-help">
+                  Paste is supported. Only numbers are allowed.
+                </div>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- Check Radio Switch -->
+        <section class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">Checkbox, Radio & Switch</h3>
+          </div>
+
+          <div class="card-body">
+            <form class="form">
+              <div class="form-row grid-3">
+                <div class="form-group">
+                  <label class="form-label">Checkboxes</label>
+
+                  <div class="form-check">
+                    <input id="checkBanks" type="checkbox" checked />
+                    <label for="checkBanks">Banks</label>
+                  </div>
+
+                  <div class="form-check">
+                    <input id="checkEnergy" type="checkbox" />
+                    <label for="checkEnergy">Energy</label>
+                  </div>
+
+                  <div class="form-check">
+                    <input id="checkDisabled" type="checkbox" disabled />
+                    <label for="checkDisabled">Disabled checkbox</label>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Radio Buttons</label>
+
+                  <div class="form-check">
+                    <input
+                      id="radioMain"
+                      name="marketType"
+                      type="radio"
+                      checked
+                    />
+                    <label for="radioMain">Main Market</label>
+                  </div>
+
+                  <div class="form-check">
+                    <input id="radioNomu" name="marketType" type="radio" />
+                    <label for="radioNomu">Nomu Market</label>
+                  </div>
+
+                  <div class="form-check">
+                    <input
+                      id="radioDisabled"
+                      name="marketType"
+                      type="radio"
+                      disabled
+                    />
+                    <label for="radioDisabled">Disabled radio</label>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Switches</label>
+
+                  <label class="form-switch">
+                    <input type="checkbox" checked />
+                    Enable notifications
+                  </label>
+
+                  <label class="form-switch">
+                    <input type="checkbox" />
+                    Auto refresh
+                  </label>
+
+                  <label class="form-switch">
+                    <input type="checkbox" disabled />
+                    Disabled switch
+                  </label>
+                </div>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- Validation -->
+        <section class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">Validation States</h3>
+          </div>
+
+          <div class="card-body">
+            <form class="form">
+              <div class="form-row grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="validInput">Valid Input</label>
+                  <input
+                    id="validInput"
+                    class="form-control is-valid"
+                    type="text"
+                    value="Correct value"
+                  />
+                  <div class="form-success">Looks good.</div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="invalidInput">
+                    Invalid Input
+                  </label>
+                  <input
+                    id="invalidInput"
+                    class="form-control is-invalid"
+                    type="text"
+                    value="Wrong value"
+                  />
+                  <div class="form-error">Please enter a valid value.</div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- Fieldset -->
+        <section class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">Fieldset & Sections</h3>
+          </div>
+
+          <div class="card-body">
+            <form class="form">
+              <fieldset class="form-fieldset">
+                <legend class="form-legend">Account Information</legend>
+
+                <div class="form-row grid-2">
+                  <div class="form-group">
+                    <label class="form-label" for="accountName">Name</label>
+                    <input id="accountName" class="form-control" type="text" />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="accountEmail">Email</label>
+                    <input
+                      id="accountEmail"
+                      class="form-control"
+                      type="email"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <div class="form-section">
+                <h4 class="form-section-title">Preferences</h4>
+                <p class="form-section-text">
+                  These settings can be changed later.
+                </p>
+
+                <label class="form-switch">
+                  <input type="checkbox" checked />
+                  Receive email notifications
+                </label>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- Horizontal -->
+        <section class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">Horizontal Form</h3>
+          </div>
+
+          <div class="card-body">
+            <form class="form form-horizontal">
+              <div class="form-group">
+                <label class="form-label" for="horizontalName">Name</label>
+                <input id="horizontalName" class="form-control" type="text" />
+                <div class="form-help">Label and input align horizontally.</div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="horizontalEmail">Email</label>
+                <input id="horizontalEmail" class="form-control" type="email" />
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- Inline -->
+        <section class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">Inline Form</h3>
+          </div>
+
+          <div class="card-body">
+            <form class="form form-inline">
+              <div class="form-group">
+                <label class="form-label" for="inlineSearch">Keyword</label>
+                <input
+                  id="inlineSearch"
+                  class="form-control"
+                  type="search"
+                  placeholder="Search..."
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="inlineMarket">Market</label>
+                <div class="form-select-wrap">
+                  <select id="inlineMarket" class="form-select">
+                    <option>Main Market</option>
+                    <option>Nomu Market</option>
+                  </select>
+                </div>
+              </div>
+
+              <button class="btn btn-primary btn-rounded" type="button">
+                Apply Filters
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <!-- Actions -->
+        <section class="card">
+          <div class="card-header">
+            <h3 class="card-title">Form Actions</h3>
+          </div>
+
+          <div class="card-body">
+            <form class="form">
+              <div class="form-row grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="readonlyInput">Readonly</label>
+                  <input
+                    id="readonlyInput"
+                    class="form-control"
+                    type="text"
+                    value="Readonly value"
+                    readonly
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="disabledSelect">
+                    Disabled Select
+                  </label>
+                  <div class="form-select-wrap">
+                    <select id="disabledSelect" class="form-select" disabled>
+                      <option>Disabled select</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button class="btn btn-outline-primary" type="button">
+                  Cancel
+                </button>
+                <button class="btn btn-primary btn-rounded" type="submit">
+                  Submit Form
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>
