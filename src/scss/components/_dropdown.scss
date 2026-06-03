@@ -1,0 +1,292 @@
+@use "../abstracts" as *;
+
+/* =========================================
+   Dropdown
+========================================= */
+
+.dropdown {
+  --dropdown-control-height: 2.75rem;
+  --dropdown-control-padding-x: 0.875rem;
+  --dropdown-control-radius: var(--radius-md);
+  --dropdown-control-border: var(--color-border);
+  --dropdown-control-bg: var(--color-surface);
+  --dropdown-control-color: var(--color-text);
+
+  --dropdown-width: 100%;
+  --dropdown-max-height: 18rem;
+
+  position: relative;
+  display: inline-flex;
+}
+
+/* =========================================
+   Toggle
+========================================= */
+
+.dropdown-toggle {
+  min-block-size: var(--dropdown-control-height);
+  inline-size: 100%;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  padding-inline: var(--dropdown-control-padding-x);
+
+  border: 1px solid var(--dropdown-control-border);
+  border-radius: var(--dropdown-control-radius);
+
+  background: var(--dropdown-control-bg);
+  color: var(--dropdown-control-color);
+
+  cursor: pointer;
+  text-align: start;
+
+  &::after {
+    content: "";
+
+    flex: 0 0 auto;
+
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+
+    transform: rotate(45deg);
+    transition: transform var(--transition-fast);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.dropdown.is-open {
+  .dropdown-toggle::after {
+    transform: rotate(-135deg);
+  }
+
+  .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================
+   Dropup
+========================================= */
+
+.dropdown.is-dropup {
+  .dropdown-menu {
+    inset-block-start: auto;
+    inset-block-end: calc(100% + 0.5rem);
+    transform: translateY(-0.25rem);
+  }
+
+  &.is-open {
+    .dropdown-menu {
+      transform: translateY(0);
+    }
+  }
+}
+
+/* =========================================
+   Menu
+========================================= */
+
+.dropdown-menu {
+  position: absolute;
+  z-index: var(--z-dropdown);
+
+  inset-block-start: calc(100% + 0.5rem);
+  inset-inline-start: 0;
+
+  inline-size: var(--dropdown-width);
+  min-inline-size: 100%;
+  max-block-size: var(--dropdown-max-height);
+
+  padding: 0.5rem;
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  box-shadow: var(--shadow-lg);
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transform: translateY(0.25rem);
+
+  transition:
+    opacity var(--transition-fast),
+    transform var(--transition-fast),
+    visibility var(--transition-fast);
+}
+
+.dropdown-end {
+  .dropdown-menu {
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+  }
+}
+
+/* =========================================
+   Search
+========================================= */
+
+.dropdown-search {
+  padding: 0.5rem;
+}
+
+.dropdown-search-input {
+  inline-size: 100%;
+  min-block-size: 2.5rem;
+
+  padding: 0.5rem 0.75rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  &:focus {
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem var(--focus-ring);
+  }
+}
+
+/* =========================================
+   List / Items
+========================================= */
+
+.dropdown-list {
+  display: grid;
+  gap: 0.25rem;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.dropdown-item {
+  inline-size: 100%;
+
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+
+  padding: 0.625rem 0.75rem;
+
+  border: 0;
+  border-radius: var(--radius-sm);
+
+  background: transparent;
+  color: var(--color-text);
+
+  cursor: pointer;
+  text-align: start;
+  text-decoration: none;
+
+  font-size: var(--text-sm);
+
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--color-surface-alt);
+    color: var(--color-heading);
+    outline: 0;
+  }
+
+  &.is-active {
+    background: color-mix(in oklab, var(--color-primary), transparent 88%);
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+}
+
+/* =========================================
+   Checkbox Items
+========================================= */
+
+.dropdown-checkbox {
+  cursor: pointer;
+
+  input {
+    inline-size: 1rem;
+    block-size: 1rem;
+
+    flex: 0 0 auto;
+
+    accent-color: var(--color-primary);
+  }
+}
+
+/* =========================================
+   Empty State
+========================================= */
+
+.dropdown-empty {
+  display: none;
+
+  padding: 0.75rem;
+
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.dropdown.has-empty {
+  .dropdown-empty {
+    display: block;
+  }
+}
+
+/* =========================================
+   Actions
+========================================= */
+
+.dropdown-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+
+  margin-block-start: 0.5rem;
+  padding-block-start: 0.5rem;
+
+  border-block-start: 1px solid var(--color-border);
+}
+
+/* =========================================
+   Responsive
+========================================= */
+
+@include respond-down(sm) {
+  .dropdown {
+    inline-size: 100%;
+  }
+
+  .dropdown-actions {
+    flex-wrap: wrap;
+
+    .btn {
+      flex: 1 1 auto;
+    }
+  }
+}

@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script>
+      (function () {
+        var theme = localStorage.getItem("se-theme") || "light";
+        var lang = localStorage.getItem("se-lang") || "en";
+
+        document.documentElement.setAttribute("data-theme", theme);
+        document.documentElement.setAttribute("lang", lang);
+        document.documentElement.setAttribute(
+          "dir",
+          lang === "ar" ? "rtl" : "ltr",
+        );
+      })();
+    </script>
+
+    <link rel="stylesheet" href="/src/scss/main.scss" />
+    <title>Dropdown System</title>
+    <script type="module" src="/src/js/main.js"></script>
+  </head>
+
+  <body>
+    <main class="section">
+      <div class="container">
+        <div class="d-flex justify-between align-center flex-wrap gap-3 mb-8">
+          <div>
+            <h1>Dropdown System</h1>
+            <p>
+              Advanced dropdowns with search, checkbox options, selected values,
+              actions, RTL, and smart positioning.
+            </p>
+          </div>
+
+          <div class="d-flex gap-2 flex-wrap">
+            <button
+              class="btn btn-outline-primary btn-sm"
+              data-theme-set="light"
+            >
+              Light
+            </button>
+
+            <button
+              class="btn btn-outline-primary btn-sm"
+              data-theme-set="dark"
+            >
+              Dark
+            </button>
+
+            <button
+              class="btn btn-primary btn-sm btn-rounded"
+              data-theme-toggle
+            >
+              Toggle Theme
+            </button>
+
+            <button class="btn btn-outline-accent btn-sm" data-lang-set="en">
+              English
+            </button>
+
+            <button class="btn btn-outline-accent btn-sm" data-lang-set="ar">
+              العربية
+            </button>
+          </div>
+        </div>
+
+        <section class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">Developer Usage</h3>
+          </div>
+
+          <div class="card-body">
+            <pre><code>&lt;div class="dropdown" data-dropdown&gt;
+  &lt;button
+    class="btn btn-primary dropdown-toggle"
+    type="button"
+    data-dropdown-toggle
+    data-placeholder="Select Market"
+    aria-expanded="false"
+  &gt;
+    &lt;span data-dropdown-value&gt;Select Market&lt;/span&gt;
+  &lt;/button&gt;
+
+  &lt;div class="dropdown-menu"&gt;
+    ...
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+        </section>
+
+        <div class="grid-2">
+          <section class="card">
+            <div class="card-header">
+              <h3 class="card-title">Normal Dropdown</h3>
+            </div>
+
+            <div class="card-body">
+              <div class="dropdown" data-dropdown>
+                <button
+                  class="btn btn-primary dropdown-toggle"
+                  type="button"
+                  data-dropdown-toggle
+                  data-placeholder="Select Market"
+                  aria-expanded="false"
+                >
+                  <span data-dropdown-value>Select Market</span>
+                </button>
+
+                <div class="dropdown-menu">
+                  <ul class="dropdown-list">
+                    <li data-dropdown-item>
+                      <button class="dropdown-item is-active" type="button">
+                        Main Market
+                      </button>
+                    </li>
+
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Nomu Market
+                      </button>
+                    </li>
+
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Sukuk & Bonds
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-header">
+              <h3 class="card-title">Dropdown End</h3>
+            </div>
+
+            <div class="card-body text-end">
+              <div class="dropdown dropdown-end" data-dropdown>
+                <button
+                  class="btn btn-outline-primary dropdown-toggle"
+                  type="button"
+                  data-dropdown-toggle
+                  data-placeholder="Actions"
+                  aria-expanded="false"
+                >
+                  <span data-dropdown-value>Actions</span>
+                </button>
+
+                <div class="dropdown-menu">
+                  <ul class="dropdown-list">
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">Edit</button>
+                    </li>
+
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Duplicate
+                      </button>
+                    </li>
+
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Delete
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-header">
+              <h3 class="card-title">Dropdown With Search</h3>
+            </div>
+
+            <div class="card-body">
+              <div class="dropdown" data-dropdown>
+                <button
+                  class="btn btn-primary dropdown-toggle"
+                  type="button"
+                  data-dropdown-toggle
+                  data-placeholder="Search Companies"
+                  aria-expanded="false"
+                >
+                  <span data-dropdown-value>Search Companies</span>
+                </button>
+
+                <div class="dropdown-menu">
+                  <div class="dropdown-search">
+                    <input
+                      type="search"
+                      class="dropdown-search-input"
+                      placeholder="Search..."
+                      data-dropdown-search
+                    />
+                  </div>
+
+                  <ul class="dropdown-list">
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Saudi Aramco
+                      </button>
+                    </li>
+
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Al Rajhi Bank
+                      </button>
+                    </li>
+
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">STC</button>
+                    </li>
+
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">SABIC</button>
+                    </li>
+                  </ul>
+
+                  <div class="dropdown-empty">No results found</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-header">
+              <h3 class="card-title">Dropdown With Checkbox</h3>
+            </div>
+
+            <div class="card-body">
+              <div class="dropdown" data-dropdown>
+                <button
+                  class="btn btn-primary dropdown-toggle"
+                  type="button"
+                  data-dropdown-toggle
+                  data-placeholder="Select Sectors"
+                  aria-expanded="false"
+                >
+                  <span data-dropdown-value>Select Sectors</span>
+                </button>
+
+                <div class="dropdown-menu">
+                  <ul class="dropdown-list">
+                    <li data-dropdown-item>
+                      <label class="dropdown-item dropdown-checkbox">
+                        <input type="checkbox" />
+                        Banks
+                      </label>
+                    </li>
+
+                    <li data-dropdown-item>
+                      <label class="dropdown-item dropdown-checkbox">
+                        <input type="checkbox" />
+                        Telecom
+                      </label>
+                    </li>
+
+                    <li data-dropdown-item>
+                      <label class="dropdown-item dropdown-checkbox">
+                        <input type="checkbox" />
+                        Energy
+                      </label>
+                    </li>
+
+                    <li data-dropdown-item>
+                      <label class="dropdown-item dropdown-checkbox">
+                        <input type="checkbox" />
+                        Materials
+                      </label>
+                    </li>
+                  </ul>
+
+                  <div class="dropdown-actions">
+                    <button
+                      class="btn btn-outline-primary btn-sm"
+                      type="button"
+                      data-dropdown-select-all
+                    >
+                      Select All
+                    </button>
+
+                    <button
+                      class="btn btn-outline-danger btn-sm"
+                      type="button"
+                      data-dropdown-clear
+                    >
+                      Clear
+                    </button>
+
+                    <button
+                      class="btn btn-primary btn-sm"
+                      type="button"
+                      data-dropdown-apply
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-header">
+              <h3 class="card-title">Search + Checkbox</h3>
+            </div>
+
+            <div class="card-body">
+              <div class="dropdown" data-dropdown>
+                <button
+                  class="btn btn-primary dropdown-toggle"
+                  type="button"
+                  data-dropdown-toggle
+                  data-placeholder="Filter Companies"
+                  aria-expanded="false"
+                >
+                  <span data-dropdown-value>Filter Companies</span>
+                </button>
+
+                <div class="dropdown-menu">
+                  <div class="dropdown-search">
+                    <input
+                      type="search"
+                      class="dropdown-search-input"
+                      placeholder="Search..."
+                      data-dropdown-search
+                    />
+                  </div>
+
+                  <ul class="dropdown-list">
+                    <li data-dropdown-item>
+                      <label class="dropdown-item dropdown-checkbox">
+                        <input type="checkbox" />
+                        Saudi Aramco
+                      </label>
+                    </li>
+
+                    <li data-dropdown-item>
+                      <label class="dropdown-item dropdown-checkbox">
+                        <input type="checkbox" />
+                        Al Rajhi Bank
+                      </label>
+                    </li>
+
+                    <li data-dropdown-item>
+                      <label class="dropdown-item dropdown-checkbox">
+                        <input type="checkbox" />
+                        STC
+                      </label>
+                    </li>
+
+                    <li data-dropdown-item>
+                      <label class="dropdown-item dropdown-checkbox">
+                        <input type="checkbox" />
+                        SABIC
+                      </label>
+                    </li>
+                  </ul>
+
+                  <div class="dropdown-empty">No results found</div>
+
+                  <div class="dropdown-actions">
+                    <button
+                      class="btn btn-outline-primary btn-sm"
+                      type="button"
+                      data-dropdown-select-all
+                    >
+                      Select All
+                    </button>
+
+                    <button
+                      class="btn btn-outline-danger btn-sm"
+                      type="button"
+                      data-dropdown-clear
+                    >
+                      Clear
+                    </button>
+
+                    <button
+                      class="btn btn-primary btn-sm"
+                      type="button"
+                      data-dropdown-apply
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-header">
+              <h3 class="card-title">Long List Scroll Test</h3>
+            </div>
+
+            <div class="card-body">
+              <div class="dropdown" data-dropdown>
+                <button
+                  class="btn btn-outline-primary dropdown-toggle"
+                  type="button"
+                  data-dropdown-toggle
+                  data-placeholder="Scroll Test"
+                  aria-expanded="false"
+                >
+                  <span data-dropdown-value>Scroll Test</span>
+                </button>
+
+                <div class="dropdown-menu">
+                  <ul class="dropdown-list">
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Item 01
+                      </button>
+                    </li>
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Item 02
+                      </button>
+                    </li>
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Item 03
+                      </button>
+                    </li>
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Item 04
+                      </button>
+                    </li>
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Item 05
+                      </button>
+                    </li>
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Item 06
+                      </button>
+                    </li>
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Item 07
+                      </button>
+                    </li>
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Item 08
+                      </button>
+                    </li>
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Item 09
+                      </button>
+                    </li>
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Item 10
+                      </button>
+                    </li>
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Item 11
+                      </button>
+                    </li>
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Item 12
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-header">
+              <h3 class="card-title">Dropup Position Test</h3>
+            </div>
+
+            <div class="card-body">
+              <p class="mb-4">
+                Scroll near the bottom and open this dropdown. It should open
+                upward when there is not enough space below.
+              </p>
+
+              <div class="dropdown" data-dropdown>
+                <button
+                  class="btn btn-primary dropdown-toggle"
+                  type="button"
+                  data-dropdown-toggle
+                  data-placeholder="Open Near Bottom"
+                  aria-expanded="false"
+                >
+                  <span data-dropdown-value>Open Near Bottom</span>
+                </button>
+
+                <div class="dropdown-menu">
+                  <ul class="dropdown-list">
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Top Option
+                      </button>
+                    </li>
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Middle Option
+                      </button>
+                    </li>
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Bottom Option
+                      </button>
+                    </li>
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Extra Option 1
+                      </button>
+                    </li>
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Extra Option 2
+                      </button>
+                    </li>
+                    <li data-dropdown-item>
+                      <button class="dropdown-item" type="button">
+                        Extra Option 3
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div style="height: 40vh"></div>
+      </div>
+    </main>
+  </body>
+</html>

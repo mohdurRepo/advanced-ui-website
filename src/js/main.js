@@ -8,6 +8,8 @@ import { initToasts } from "./components/toast";
 import { renderDataTable } from "./vendors/datatables/datatable.core";
 import { initDataTables } from "./vendors/datatables/datatable.init";
 import { initIconSprite } from "./components/icons";
+import { initDropdowns } from "./components/dropdown";
+initDropdowns();
 
 window.renderDataTable = renderDataTable;
 initTheme();
@@ -17,5 +19,3 @@ initAccordions();
 initToasts();
 initDataTables();
 initIconSprite();
-
-document.documentElement.classList.add("app-ready");
