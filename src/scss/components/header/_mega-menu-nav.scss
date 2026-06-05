@@ -1,0 +1,98 @@
+@use "../../abstracts" as *;
+
+.mega-menu-nav {
+  display: grid;
+  gap: 0.5rem;
+
+  &__title {
+    margin-block-end: 0.75rem;
+
+    color: var(--color-text-muted);
+
+    font-size: var(--text-xs);
+    font-weight: 700;
+
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  &__item {
+    inline-size: 100%;
+    min-block-size: 3.25rem;
+
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    padding: 0.75rem;
+
+    border: 0;
+    border-radius: var(--radius-md);
+
+    background: transparent;
+    color: var(--color-text);
+
+    cursor: pointer;
+    text-align: start;
+
+    transition:
+      background-color var(--transition-fast),
+      color var(--transition-fast);
+
+    &:hover,
+    &:focus-visible,
+    &.is-active {
+      background: var(--color-surface-alt);
+      color: var(--color-primary);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  &__icon {
+    --icon-size: 1.125rem;
+    flex: 0 0 auto;
+  }
+
+  &__body {
+    display: grid;
+    gap: 0.125rem;
+    min-inline-size: 0;
+  }
+
+  &__heading {
+    font-size: var(--text-sm);
+    font-weight: 700;
+  }
+
+  &__text {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  &__arrow {
+    --icon-size: 0.75rem;
+
+    margin-inline-start: auto;
+    flex: 0 0 auto;
+    opacity: 0;
+
+    transition:
+      opacity var(--transition-fast),
+      transform var(--transition-fast);
+  }
+
+  &__item.is-active &__arrow {
+    opacity: 1;
+  }
+}
+
+html[dir="rtl"] {
+  .mega-menu-nav {
+    &__arrow {
+      transform: rotate(180deg);
+    }
+  }
+}

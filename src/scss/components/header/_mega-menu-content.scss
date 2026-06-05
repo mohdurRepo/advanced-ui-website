@@ -1,0 +1,92 @@
+@use "../../abstracts" as *;
+
+.mega-menu-panel {
+  display: none;
+  min-inline-size: 0;
+
+  &.is-active {
+    display: grid;
+    gap: 1rem;
+  }
+
+  &__title {
+    margin: 0;
+
+    color: var(--color-heading);
+
+    font-size: var(--text-lg);
+    font-weight: 800;
+  }
+
+  &__layout {
+    min-inline-size: 0;
+
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr)
+      minmax(14rem, 20rem);
+
+    gap: clamp(0.75rem, 1.5vw, 1rem);
+    align-items: start;
+  }
+
+  &__column,
+  &__feature {
+    min-inline-size: 0;
+  }
+
+  &__column {
+    display: grid;
+    gap: 0.25rem;
+    align-content: start;
+  }
+
+  &__link {
+    min-inline-size: 0;
+    min-block-size: 2.5rem;
+
+    padding: 0.625rem 0.75rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    border-radius: var(--radius-md);
+
+    color: var(--color-text);
+    text-decoration: none;
+
+    overflow-wrap: anywhere;
+
+    transition:
+      background-color var(--transition-fast),
+      color var(--transition-fast);
+
+    &:hover,
+    &:focus-visible {
+      background: var(--color-surface-alt);
+      color: var(--color-primary);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  &__feature {
+    align-self: stretch;
+  }
+}
+
+@media (max-width: 1180px) {
+  .mega-menu-panel {
+    &__layout {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    &__feature {
+      grid-column: 1 / -1;
+    }
+  }
+}

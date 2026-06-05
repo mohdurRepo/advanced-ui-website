@@ -1,0 +1,59 @@
+@use "../../abstracts" as *;
+
+.mega-menu {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline: 0;
+  z-index: var(--z-dropdown);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(0.5rem);
+
+  transition:
+    opacity var(--transition-fast),
+    visibility var(--transition-fast),
+    transform var(--transition-fast);
+
+  @include respond-down(lg) {
+    display: none;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: -0.75rem;
+    block-size: 0.75rem;
+  }
+
+  &__container {
+    width: min(100% - 2rem, 1320px);
+    max-inline-size: 100%;
+    min-inline-size: 0;
+
+    margin-inline: auto;
+    padding: clamp(1rem, 2vw, 1.5rem);
+
+    display: grid;
+    grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
+    gap: clamp(1rem, 2vw, 2rem);
+
+    background: var(--color-surface);
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+
+    box-shadow: var(--shadow-lg);
+  }
+
+  &__rail,
+  &__content {
+    min-inline-size: 0;
+  }
+
+  &__content {
+    overflow: visible;
+  }
+}

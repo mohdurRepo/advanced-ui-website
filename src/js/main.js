@@ -10,7 +10,9 @@ import { initDataTables } from "./vendors/datatables/datatable.init";
 import { initIconSprite } from "./components/icons";
 import { initDropdowns } from "./components/dropdown";
 import { initForms } from "./components/form";
+import { initHeader } from "./components/header";
 
+initHeader();
 window.renderDataTable = renderDataTable;
 initTheme();
 initLanguage();

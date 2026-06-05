@@ -1,0 +1,54 @@
+@use "../../abstracts" as *;
+
+.site-header {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--z-sticky);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-block-end: 1px solid var(--color-border);
+
+  &__inner {
+    width: min(100% - 2rem, 1320px);
+    min-block-size: var(--app-header-height);
+    margin-inline: auto;
+    min-inline-size: 0;
+
+    display: flex;
+    align-items: center;
+    gap: clamp(0.5rem, 1vw, 1rem);
+  }
+
+  &__brand {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    min-inline-size: 0;
+  }
+
+  &__logo {
+    display: block;
+    inline-size: auto;
+    max-block-size: clamp(2rem, 3vw, 2.75rem);
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.375rem, 0.75vw, 0.75rem);
+
+    flex: 0 0 auto;
+    min-inline-size: max-content;
+    margin-inline-start: auto;
+  }
+
+  &__burger {
+    display: inline-flex;
+    flex: 0 0 auto;
+
+    @include respond-up(lg) {
+      display: none;
+    }
+  }
+}

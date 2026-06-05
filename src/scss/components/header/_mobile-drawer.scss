@@ -1,0 +1,278 @@
+@use "../../abstracts" as *;
+
+.mobile-nav-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+
+  background: rgb(0 0 0 / 0.55);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transition:
+    opacity var(--transition-fast),
+    visibility var(--transition-fast);
+
+  &.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  @include respond-up(lg) {
+    display: none;
+  }
+}
+
+.mobile-nav {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-end: 0;
+  z-index: var(--z-modal);
+
+  inline-size: min(100%, 25rem);
+  block-size: 100dvh;
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  border-inline-start: 1px solid var(--color-border);
+
+  transform: translateX(100%);
+  visibility: hidden;
+
+  transition:
+    transform var(--transition-normal),
+    visibility var(--transition-normal);
+
+  &.is-open {
+    transform: translateX(0);
+    visibility: visible;
+  }
+
+  @include respond-up(lg) {
+    display: none;
+  }
+
+  &__content {
+    position: relative;
+    block-size: 100%;
+    overflow: hidden;
+  }
+
+  &__panel {
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    background: var(--color-surface);
+
+    transform: translateX(100%);
+    visibility: hidden;
+
+    transition:
+      transform var(--transition-normal),
+      visibility var(--transition-normal);
+
+    &.is-active {
+      transform: translateX(0);
+      visibility: visible;
+    }
+  }
+
+  &__header {
+    flex: 0 0 auto;
+
+    min-block-size: var(--app-header-height);
+
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+
+    padding-inline: 1rem;
+
+    border-block-end: 1px solid var(--color-border);
+  }
+
+  &__title {
+    min-inline-size: 0;
+
+    color: var(--color-heading);
+
+    font-size: var(--text-base);
+    font-weight: 800;
+    text-align: center;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__body {
+    flex: 1 1 auto;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    padding: 1rem;
+
+    border-block-end: 1px solid var(--color-border);
+  }
+
+  &__menu {
+    margin: 0;
+    padding: 0;
+
+    list-style: none;
+  }
+
+  &__item {
+    border-block-end: 1px solid var(--color-border);
+  }
+
+  &__link,
+  &__trigger {
+    inline-size: 100%;
+    min-block-size: 3rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+
+    padding-inline: 1rem;
+
+    border: 0;
+    background: transparent;
+    color: var(--color-text);
+
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: 700;
+
+    cursor: pointer;
+    text-align: start;
+    text-decoration: none;
+
+    transition:
+      background-color var(--transition-fast),
+      color var(--transition-fast);
+
+    &:hover {
+      background: var(--color-surface-alt);
+      color: var(--color-primary);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  &__link-text,
+  &__trigger-text {
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__back,
+  &__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-inline-size: 2.25rem;
+    min-block-size: 2.25rem;
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+
+    background: var(--color-surface);
+    color: var(--color-text);
+
+    cursor: pointer;
+
+    transition:
+      background-color var(--transition-fast),
+      border-color var(--transition-fast),
+      color var(--transition-fast);
+
+    &:hover {
+      background: var(--color-surface-alt);
+      color: var(--color-primary);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  &__back {
+    gap: 0.5rem;
+    padding-inline: 0.75rem;
+  }
+
+  &__close {
+    margin-inline-start: auto;
+  }
+
+  &__arrow,
+  &__back-icon,
+  &__close-icon {
+    --icon-size: 0.75rem;
+    flex: 0 0 auto;
+  }
+
+  &__close-icon {
+    --icon-size: 1rem;
+  }
+
+  &__feature {
+    margin-block-start: auto;
+    padding: 1rem;
+  }
+}
+
+html[dir="rtl"] {
+  .mobile-nav {
+    border-inline-start: 0;
+    border-inline-end: 1px solid var(--color-border);
+
+    transform: translateX(-100%);
+
+    &.is-open,
+    &__panel.is-active {
+      transform: translateX(0);
+    }
+
+    &__panel {
+      transform: translateX(-100%);
+    }
+
+    &__arrow,
+    &__back-icon {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+html:has(.mobile-nav.is-open),
+body.is-mobile-nav-open {
+  overflow: hidden;
+}

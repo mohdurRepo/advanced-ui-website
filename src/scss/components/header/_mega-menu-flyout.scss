@@ -1,0 +1,140 @@
+@use "../../abstracts" as *;
+
+.mega-menu-flyout {
+  position: relative;
+  min-inline-size: 0;
+
+  &__trigger {
+    inline-size: 100%;
+    min-block-size: 2.5rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+
+    padding: 0.625rem 0.75rem;
+
+    border: 0;
+    border-radius: var(--radius-md);
+
+    background: transparent;
+    color: var(--color-text);
+
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: 700;
+    text-align: start;
+
+    cursor: pointer;
+
+    transition:
+      background-color var(--transition-fast),
+      color var(--transition-fast);
+
+    &:hover,
+    &:focus-visible {
+      background: var(--color-surface-alt);
+      color: var(--color-primary);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  &__text {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+
+  &__icon {
+    --icon-size: 0.75rem;
+    flex: 0 0 auto;
+  }
+
+  &__menu {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: calc(100% + 0.5rem);
+    z-index: calc(var(--z-dropdown) + 1);
+
+    min-inline-size: 14rem;
+    max-inline-size: min(20rem, calc(100vw - 2rem));
+
+    padding: 0.5rem;
+
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transform: translateX(0.25rem);
+
+    transition:
+      opacity var(--transition-fast),
+      visibility var(--transition-fast),
+      transform var(--transition-fast);
+  }
+
+  &:hover,
+  &:focus-within {
+    > .mega-menu-flyout__menu {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
+  }
+
+  &__link {
+    display: block;
+
+    padding: 0.625rem 0.75rem;
+
+    border-radius: var(--radius-sm);
+
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    text-decoration: none;
+
+    transition:
+      background-color var(--transition-fast),
+      color var(--transition-fast);
+
+    &:hover,
+    &:focus-visible {
+      background: var(--color-surface-alt);
+      color: var(--color-primary);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+}
+
+html[dir="rtl"] {
+  .mega-menu-flyout {
+    &__menu {
+      inset-inline-start: auto;
+      inset-inline-end: calc(100% + 0.5rem);
+      transform: translateX(-0.25rem);
+    }
+
+    &:hover,
+    &:focus-within {
+      > .mega-menu-flyout__menu {
+        transform: translateX(0);
+      }
+    }
+
+    &__icon {
+      transform: rotate(180deg);
+    }
+  }
+}

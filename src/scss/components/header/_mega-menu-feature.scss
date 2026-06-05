@@ -1,0 +1,70 @@
+@use "../../abstracts" as *;
+
+.mega-feature {
+  display: grid;
+  gap: 1rem;
+
+  min-inline-size: 0;
+
+  padding: 1rem;
+
+  border-radius: var(--radius-lg);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+
+  overflow: hidden;
+
+  &__media {
+    inline-size: 100%;
+    max-inline-size: 18rem;
+    margin-inline: auto;
+
+    aspect-ratio: 16 / 9;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: var(--radius-md);
+    background: color-mix(in oklab, var(--color-on-primary), transparent 90%);
+
+    overflow: hidden;
+  }
+
+  &__image {
+    display: block;
+
+    max-inline-size: 100%;
+    max-block-size: 100%;
+
+    inline-size: auto;
+    block-size: auto;
+
+    object-fit: contain;
+  }
+
+  &__body {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  &__title {
+    margin: 0;
+    color: inherit;
+
+    font-size: var(--text-lg);
+    font-weight: 800;
+  }
+
+  &__text {
+    margin: 0;
+    color: inherit;
+    opacity: 0.85;
+  }
+
+  &__link {
+    color: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+  }
+}
