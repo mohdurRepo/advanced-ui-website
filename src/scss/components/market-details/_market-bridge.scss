@@ -1,0 +1,51 @@
+@use "../../abstracts" as *;
+
+.market-bridge {
+  --market-bridge-height: 3rem;
+  --market-bridge-overlap: 100%;
+  --market-bridge-bg: var(--market-details-bg, #334c5c);
+
+  position: relative;
+  z-index: 5;
+
+  block-size: var(--market-bridge-height);
+
+  margin-block-start: calc(var(--market-bridge-height) * -1);
+  margin-block-end: calc(var(--market-bridge-height) * -0.7);
+
+  pointer-events: none;
+
+  &__inner {
+    position: relative;
+
+    width: min(100% - 2rem, 1320px);
+    block-size: 100%;
+    margin-inline: auto;
+
+    overflow: hidden;
+    bottom: 1rem;
+  }
+
+  &__bar {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+
+    inline-size: 0;
+    background: var(--market-bridge-bg);
+
+    will-change: transform, inline-size;
+  }
+
+  @include respond-down(lg) {
+    --market-bridge-height: 3rem;
+  }
+
+  @include respond-down(sm) {
+    --market-bridge-height: 2.5rem;
+
+    &__inner {
+      width: min(100% - 1rem, 1320px);
+    }
+  }
+}

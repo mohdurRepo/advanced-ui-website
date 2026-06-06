@@ -1,0 +1,39 @@
+@use "../abstracts" as *;
+
+/* ==========================================================================
+   Section Heading
+   ========================================================================== */
+
+.section-heading {
+  --section-heading-color: currentColor;
+  --section-heading-rule-color: currentColor;
+  --section-heading-rule-size: 2rem;
+
+  display: grid;
+  gap: 0.35rem;
+
+  margin: 0;
+
+  color: var(--section-heading-color);
+
+  font-size: var(--text-sm);
+  font-weight: 800;
+  line-height: 1.2;
+
+  &::after {
+    content: "";
+    inline-size: var(--section-heading-rule-size);
+    block-size: 0.125rem;
+
+    border-radius: var(--radius-pill);
+    background: var(--section-heading-rule-color);
+    opacity: 0.8;
+  }
+}
+
+.surface {
+  .section-heading {
+    --section-heading-color: var(--surface-heading);
+    --section-heading-rule-color: var(--surface-heading);
+  }
+}

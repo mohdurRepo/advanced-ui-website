@@ -7,6 +7,10 @@
   --market-summary-border: rgb(255 255 255 / 0.18);
   --market-summary-surface: rgb(255 255 255 / 0.08);
 
+  --market-summary-space-start: 0;
+  --market-summary-space-end: 0;
+  --market-summary-bridge-space: 2.1rem;
+
   padding-block: 0;
   background: var(--market-summary-bg);
   color: var(--market-summary-fg);
@@ -14,7 +18,9 @@
   &__container {
     width: min(100% - 2rem, 1320px);
     margin-inline: auto;
-    padding-block: clamp(0.75rem, 1.5vw, 1.25rem);
+
+    padding-block-start: var(--market-summary-space-start);
+    padding-block-end: var(--market-summary-bridge-space);
 
     display: grid;
     grid-template-columns: minmax(20rem, 20rem) minmax(0, 1fr);
@@ -23,6 +29,7 @@
   }
 
   &__cards-wrap {
+    position: relative;
     min-inline-size: 0;
     display: flex;
     align-items: stretch;
@@ -41,14 +48,106 @@
     overscroll-behavior-inline: contain;
     scroll-snap-type: inline proximity;
 
-    padding-block-end: 0.625rem;
+    padding-block: 0.625rem;
+
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--color-primary), transparent 25%)
+      transparent;
+
+    &::-webkit-scrollbar {
+      block-size: 0.375rem;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: color-mix(in oklab, var(--color-primary), transparent 25%);
+      border-radius: var(--radius-pill);
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
   }
 
-  &__bridge {
-    display: none;
+  &__return-arrow {
+    --icon-size: 1.25rem;
+
+    position: absolute;
+    z-index: 5;
+    inset-block-start: 50%;
+
+    inline-size: 3rem;
+    block-size: 4.5rem;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid var(--market-summary-border);
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--market-summary-bg), white 22%),
+      color-mix(in oklab, var(--market-summary-bg), white 8%)
+    );
+    color: var(--market-summary-fg);
+    box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 0.24);
+    backdrop-filter: blur(10px);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transform: translateY(-50%) scale(0.96);
+    transition:
+      opacity 180ms ease,
+      visibility 180ms ease,
+      transform 180ms ease;
+
+    cursor: pointer;
+
+    &::before {
+      content: "";
+
+      inline-size: var(--icon-size);
+      block-size: var(--icon-size);
+
+      background: currentColor;
+
+      mask: var(--icon-svg) center / contain no-repeat;
+      -webkit-mask: var(--icon-svg) center / contain no-repeat;
+    }
+
+    &.is-visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateY(-50%) scale(1);
+      animation: marketReturnArrowPulse 1.15s ease-in-out infinite;
+    }
+
+    &.is-start {
+      inset-inline-start: 0;
+
+      border-start-end-radius: 999px;
+      border-end-end-radius: 999px;
+      border-inline-start: 0;
+
+      &::before {
+        transform: rotate(180deg);
+      }
+    }
+
+    &.is-end {
+      inset-inline-end: 0;
+
+      border-start-start-radius: 999px;
+      border-end-start-radius: 999px;
+      border-inline-end: 0;
+    }
   }
 
   @include respond-down(lg) {
+    --market-summary-bridge-space: 3rem;
+
     &__container {
       grid-template-columns: 1fr;
     }
@@ -59,14 +158,27 @@
   }
 
   @include respond-down(sm) {
+    --market-summary-space-start: 0.75rem;
+    --market-summary-bridge-space: 2.5rem;
+
     &__container {
       width: min(100% - 1rem, 1320px);
-      padding-block: 0.75rem;
     }
 
     &__cards {
       grid-auto-columns: minmax(14.5rem, 85vw);
       gap: 0.75rem;
     }
+
+    &__return-arrow {
+      inline-size: 2.25rem;
+      block-size: 2.25rem;
+    }
+  }
+}
+
+@keyframes marketReturnArrowPulse {
+  50% {
+    opacity: 0.55;
   }
 }

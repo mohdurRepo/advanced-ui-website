@@ -1,0 +1,167 @@
+@use "../../abstracts" as *;
+
+.market-details-panel {
+  --market-details-bg: #334c5c;
+  --market-details-side-bg: #0d1e2b;
+  --market-details-insights-bg: #254456;
+  --market-details-border: rgb(255 255 255 / 0.08);
+  --market-details-height: clamp(15rem, 25vw, 18.5rem);
+
+  position: relative;
+
+  background: var(--market-details-bg);
+  color: #fff;
+
+  &[hidden] {
+    display: none !important;
+  }
+
+  &__grid {
+    min-inline-size: 0;
+    min-block-size: var(--market-details-height);
+
+    display: grid;
+    align-items: stretch;
+
+    background: var(--market-details-bg);
+  }
+
+  &--overview &__grid,
+  &__grid {
+    grid-template-columns: minmax(0, 45%) minmax(16rem, 25%) minmax(18rem, 30%);
+  }
+
+  &--analytics &__grid {
+    grid-template-columns: minmax(0, 70%) minmax(18rem, 30%);
+  }
+
+  &--dashboard &__grid {
+    grid-template-columns: 1fr;
+  }
+
+  &__main,
+  &__insights,
+  &__stats {
+    min-inline-size: 0;
+    min-block-size: 0;
+  }
+
+  &__main {
+    padding: 1rem;
+    background: var(--market-details-bg);
+  }
+
+  &__chart,
+  &__table {
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
+  &__chart {
+    background:
+      linear-gradient(rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.06)),
+      transparent;
+  }
+
+  &__table {
+    overflow: auto;
+  }
+
+  &__insights {
+    background: var(--market-details-insights-bg);
+    overflow: hidden;
+  }
+
+  &__stats {
+    background: var(--market-details-side-bg);
+    overflow: hidden;
+  }
+
+  &--analytics &__insights,
+  &--dashboard &__insights,
+  &--dashboard &__stats {
+    display: none;
+  }
+
+  @include respond-down(xl) {
+    &--overview &__grid,
+    &__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-areas:
+        "main insights"
+        "stats stats";
+    }
+
+    &--analytics &__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.45fr);
+      grid-template-areas: "main stats";
+    }
+
+    &--dashboard &__grid {
+      grid-template-columns: 1fr;
+      grid-template-areas: "main";
+    }
+
+    &__main {
+      grid-area: main;
+    }
+
+    &__insights {
+      grid-area: insights;
+    }
+
+    &__stats {
+      grid-area: stats;
+    }
+  }
+
+  @include respond-between(md, lg) {
+    &--overview &__grid,
+    &__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-areas:
+        "main main"
+        "insights stats";
+    }
+
+    &__insights,
+    &__stats {
+      min-block-size: clamp(14rem, 28vh, 18rem);
+    }
+
+    &--analytics &__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.55fr);
+      grid-template-areas:
+        "main main"
+        "stats stats";
+    }
+
+    &__main {
+      min-block-size: clamp(14rem, 42vh, 22rem);
+    }
+  }
+
+  @include respond-down(md) {
+    --market-details-height: auto;
+
+    &--overview &__grid,
+    &--analytics &__grid,
+    &__grid {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "main"
+        "insights"
+        "stats";
+    }
+
+    &--analytics &__grid {
+      grid-template-areas:
+        "main"
+        "stats";
+    }
+
+    &__main {
+      min-block-size: clamp(14rem, 45vh, 22rem);
+    }
+  }
+}

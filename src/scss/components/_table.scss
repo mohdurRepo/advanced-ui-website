@@ -1,22 +1,22 @@
 @use "../abstracts" as *;
 
-/* =========================================
+/* ==========================================================================
    Table Wrapper
-========================================= */
+   ========================================================================== */
 
 .table-responsive {
-  width: 100%;
+  inline-size: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
-/* =========================================
+/* ==========================================================================
    Base Table
-========================================= */
+   ========================================================================== */
 
 .table {
-  width: 100%;
-
+  inline-size: 100%;
   border-collapse: collapse;
   border-spacing: 0;
 
@@ -29,49 +29,38 @@
   td {
     padding: 0.875rem 1rem;
 
+    border-block-end: 1px solid var(--color-border);
+
+    color: inherit;
     text-align: start;
     vertical-align: middle;
+  }
 
-    border-bottom: 1px solid var(--color-border);
+  thead th {
+    background: var(--color-surface-alt);
+    color: var(--color-heading);
 
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    transition: background-color var(--transition-fast);
+  }
+
+  a {
     color: inherit;
   }
 
-  thead {
-    th {
-      background: var(--color-surface-alt);
-
-      color: var(--color-heading);
-
-      font-weight: 700;
-
-      white-space: nowrap;
-    }
-  }
-
-  tbody {
-    tr {
-      transition: background-color var(--transition-fast);
-    }
-  }
-
-  /* ==========================
-     Modifiers
-  ========================== */
-
   &.table-striped {
-    tbody {
-      tr:nth-child(even) {
-        background: var(--color-surface-alt);
-      }
+    tbody tr:nth-child(even) {
+      background: var(--color-surface-alt);
     }
   }
 
   &.table-hover {
-    tbody {
-      tr:hover {
-        background: var(--color-surface-alt);
-      }
+    tbody tr:hover {
+      background: var(--color-surface-alt);
     }
   }
 
@@ -102,9 +91,7 @@
     th:first-child,
     td:first-child {
       position: sticky;
-
       inset-inline-start: 0;
-
       z-index: 2;
 
       background: var(--color-surface);
@@ -115,18 +102,12 @@
     }
   }
 
-  /* ==========================
-     States
-  ========================== */
-
   .table-empty,
   .table-loading {
     td {
       padding: 2rem;
-
-      text-align: center;
-
       color: var(--color-text-muted);
+      text-align: center;
     }
   }
 
@@ -134,14 +115,9 @@
     td {
       background: var(--color-primary);
       color: var(--color-on-primary);
-
       font-weight: 700;
     }
   }
-
-  /* ==========================
-     Alignment
-  ========================== */
 
   .numeric,
   .table-cell-numeric {
@@ -149,9 +125,50 @@
   }
 }
 
-/* =========================================
+/* ==========================================================================
+   Surface-aware Tables
+   ========================================================================== */
+
+.surface {
+  .table {
+    background: var(--color-surface);
+    color: var(--color-text);
+
+    th,
+    td {
+      border-color: var(--color-border);
+      color: inherit;
+    }
+
+    thead th {
+      background: var(--color-surface-alt);
+      color: var(--color-heading);
+    }
+
+    tbody tr:nth-child(even) {
+      background: color-mix(in oklab, var(--color-surface), white 4%);
+    }
+
+    tbody tr:hover {
+      background: color-mix(in oklab, var(--color-surface), white 8%);
+    }
+
+    a {
+      color: var(--color-heading);
+      font-weight: 700;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+      }
+    }
+  }
+}
+
+/* ==========================================================================
    Market Flash Effects
-========================================= */
+   ========================================================================== */
 
 @keyframes tableFlashUp {
   0% {

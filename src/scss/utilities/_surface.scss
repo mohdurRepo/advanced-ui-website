@@ -1,0 +1,44 @@
+@use "../abstracts" as *;
+
+/* ==========================================================================
+   Surface Utilities
+   ========================================================================== */
+
+.surface {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.surface-market {
+  --color-surface: #254456;
+  --color-surface-alt: #1f4a60;
+
+  --color-text: #ffffff;
+  --color-heading: #ffffff;
+  --color-text-muted: #9cb3c9;
+
+  --color-border: rgb(255 255 255 / 0.1);
+  --color-border-strong: rgb(255 255 255 / 0.18);
+
+  --scrollbar-thumb: rgb(255 255 255 / 0.28);
+  --scrollbar-thumb-hover: rgb(255 255 255 / 0.46);
+  --scrollbar-track: transparent;
+}
+
+html[data-theme="dark"] {
+  .surface-market {
+    --color-surface: #102f45;
+    --color-surface-alt: #0b2233;
+
+    --color-text: #f5f6f7;
+    --color-heading: #ffffff;
+    --color-text-muted: #b7c7d4;
+
+    --color-border: #35556d;
+    --color-border-strong: #4b6f88;
+
+    --scrollbar-thumb: rgb(255 255 255 / 0.3);
+    --scrollbar-thumb-hover: rgb(255 255 255 / 0.52);
+    --scrollbar-track: transparent;
+  }
+}

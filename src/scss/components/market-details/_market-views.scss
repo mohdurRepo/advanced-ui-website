@@ -1,0 +1,72 @@
+@use "../../abstracts" as *;
+
+.market-views {
+  display: flex;
+  justify-content: center;
+
+  padding-block: 1rem;
+  background: var(--market-details-bg, #334c5c);
+
+  &__list {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+
+    padding: 0.375rem;
+
+    border-radius: var(--radius-pill);
+    background: rgb(255 255 255 / 0.1);
+  }
+
+  &__tab {
+    border: 0;
+    border-radius: var(--radius-pill);
+
+    padding: 0.65rem 1.35rem;
+
+    background: transparent;
+    color: rgb(255 255 255 / 0.78);
+
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: 800;
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+      background-color var(--transition-fast),
+      color var(--transition-fast),
+      box-shadow var(--transition-fast);
+
+    &:hover {
+      color: #fff;
+      background: rgb(255 255 255 / 0.1);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+
+    &.is-active,
+    &[aria-selected="true"] {
+      background: var(--color-primary);
+      color: #fff;
+      box-shadow: 0 0.375rem 1rem rgb(0 0 0 / 0.16);
+    }
+  }
+
+  @include respond-down(sm) {
+    padding-inline: 1rem;
+
+    &__list {
+      inline-size: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    &__tab {
+      padding-inline: 0.75rem;
+    }
+  }
+}

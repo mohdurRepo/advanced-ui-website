@@ -12,6 +12,7 @@ import { initDropdowns } from "./components/dropdown";
 import { initForms } from "./components/form";
 import { initHeader } from "./components/header";
 import { initMarketSummary } from "./components/market-summary";
+import { initMarketDetails } from "./components/market-details";
 
 initHeader();
 window.renderDataTable = renderDataTable;
@@ -25,3 +26,4 @@ initIconSprite();
 initDropdowns();
 initForms();
 initMarketSummary();
+initMarketDetails();

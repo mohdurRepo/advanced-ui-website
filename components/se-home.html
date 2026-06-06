@@ -1154,7 +1154,7 @@
         </section>
       </div>
     </aside>
-    <main class="section">
+    <main>
       <section class="market-summary">
         <div class="market-summary__container">
           <div class="market-summary__clock">
@@ -1387,9 +1387,1873 @@
                 <div class="market-card__timer">Opens in 00:22:10</div>
               </button>
             </div>
-          </div>
 
-          <div class="market-summary__bridge" aria-hidden="true"></div>
+            <button
+              class="market-summary__return-arrow icon-arrow-right"
+              type="button"
+              data-market-return-arrow
+              aria-label="Scroll back to selected market"
+            ></button>
+          </div>
+        </div>
+      </section>
+      <div class="market-bridge" aria-hidden="true" data-market-bridge>
+        <div class="market-bridge__inner">
+          <div class="market-bridge__bar" data-market-bridge-bar></div>
+        </div>
+      </div>
+
+      <section class="intro-section">
+        <div class="intro-section__background" aria-hidden="true">
+          <div
+            class="intro-section__gradient intro-section__gradient--top"
+          ></div>
+          <div
+            class="intro-section__gradient intro-section__gradient--bottom"
+          ></div>
+          <div class="intro-section__media intro-section__media--default"></div>
+        </div>
+
+        <div class="intro-section__content">
+          <div class="intro-section__container">
+            <!-- Main Market / TASI -->
+            <section
+              class="market-details-panel market-details-panel--overview is-active"
+              id="market-panel-tasi"
+              data-market-detail-panel
+              aria-label="Main Market details"
+              aria-hidden="false"
+            >
+              <div class="market-details-panel__grid">
+                <div class="market-details-panel__main">
+                  <div
+                    class="market-details-panel__chart market-chart"
+                    id="tasi"
+                    data-chart-id="tasi"
+                  ></div>
+                </div>
+
+                <div class="market-details-panel__insights">
+                  <div class="market-movers" data-market-movers>
+                    <div
+                      class="market-movers__tabs"
+                      role="tablist"
+                      aria-label="TASI movers"
+                    >
+                      <button
+                        class="market-movers__tab is-active"
+                        type="button"
+                        role="tab"
+                        id="tasi-tab-gainers"
+                        aria-selected="true"
+                        aria-controls="tasi-gainers"
+                        data-market-movers-tab
+                      >
+                        Gainers
+                      </button>
+                      <button
+                        class="market-movers__tab"
+                        type="button"
+                        role="tab"
+                        id="tasi-tab-losers"
+                        aria-selected="false"
+                        aria-controls="tasi-losers"
+                        tabindex="-1"
+                        data-market-movers-tab
+                      >
+                        Losers
+                      </button>
+                      <button
+                        class="market-movers__tab"
+                        type="button"
+                        role="tab"
+                        id="tasi-tab-volume"
+                        aria-selected="false"
+                        aria-controls="tasi-volume"
+                        tabindex="-1"
+                        data-market-movers-tab
+                      >
+                        Volume
+                      </button>
+                      <button
+                        class="market-movers__tab"
+                        type="button"
+                        role="tab"
+                        id="tasi-tab-value"
+                        aria-selected="false"
+                        aria-controls="tasi-value"
+                        tabindex="-1"
+                        data-market-movers-tab
+                      >
+                        Value
+                      </button>
+                    </div>
+
+                    <div
+                      class="market-movers__panel is-active"
+                      id="tasi-gainers"
+                      role="tabpanel"
+                      aria-labelledby="tasi-tab-gainers"
+                      data-market-movers-panel
+                    >
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >MARAFIQ <span class="status-circle green"></span
+                          ></a>
+                          <span class="market-movers__market">Main Market</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">49.40</div>
+                          <div
+                            class="market-movers__change market-change market-change--up"
+                          >
+                            <span
+                              class="has-icon icon-arrow-up market-change__icon"
+                              aria-hidden="true"
+                            ></span
+                            >3.10 (6.70%)
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >SHL <span class="status-circle orange"></span
+                          ></a>
+                          <span class="market-movers__market">Main Market</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">17.32</div>
+                          <div
+                            class="market-movers__change market-change market-change--up"
+                          >
+                            <span
+                              class="has-icon icon-arrow-up market-change__icon"
+                              aria-hidden="true"
+                            ></span
+                            >0.66 (3.96%)
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >ADVANCED <span class="status-circle yellow"></span
+                          ></a>
+                          <span class="market-movers__market">Main Market</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">26.75</div>
+                          <div
+                            class="market-movers__change market-change market-change--up"
+                          >
+                            <span
+                              class="has-icon icon-arrow-up market-change__icon"
+                              aria-hidden="true"
+                            ></span
+                            >0.75 (2.88%)
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="market-movers__panel"
+                      id="tasi-losers"
+                      role="tabpanel"
+                      aria-labelledby="tasi-tab-losers"
+                      data-market-movers-panel
+                      hidden
+                    >
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >ALUJAIN <span class="status-circle red"></span
+                          ></a>
+                          <span class="market-movers__market">Main Market</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">41.15</div>
+                          <div
+                            class="market-movers__change market-change market-change--down"
+                          >
+                            <span
+                              class="has-icon icon-arrow-down market-change__icon"
+                              aria-hidden="true"
+                            ></span
+                            >-2.10 (-4.86%)
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >SAUDI CABLE
+                            <span class="status-circle orange"></span
+                          ></a>
+                          <span class="market-movers__market">Main Market</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">83.20</div>
+                          <div
+                            class="market-movers__change market-change market-change--down"
+                          >
+                            <span
+                              class="has-icon icon-arrow-down market-change__icon"
+                              aria-hidden="true"
+                            ></span
+                            >-3.20 (-3.70%)
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="market-movers__panel"
+                      id="tasi-volume"
+                      role="tabpanel"
+                      aria-labelledby="tasi-tab-volume"
+                      data-market-movers-panel
+                      hidden
+                    >
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >ARAMCO <span class="status-circle green"></span
+                          ></a>
+                          <span class="market-movers__market">Main Market</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">28.90</div>
+                          <div class="market-movers__change">18,450,000</div>
+                        </div>
+                      </div>
+
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >AL RAJHI <span class="status-circle yellow"></span
+                          ></a>
+                          <span class="market-movers__market">Main Market</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">96.10</div>
+                          <div class="market-movers__change">12,320,000</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="market-movers__panel"
+                      id="tasi-value"
+                      role="tabpanel"
+                      aria-labelledby="tasi-tab-value"
+                      data-market-movers-panel
+                      hidden
+                    >
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >SABIC <span class="status-circle orange"></span
+                          ></a>
+                          <span class="market-movers__market">Main Market</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">74.80</div>
+                          <div class="market-movers__change">SAR 420.5M</div>
+                        </div>
+                      </div>
+
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >SNB <span class="status-circle red"></span
+                          ></a>
+                          <span class="market-movers__market">Main Market</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">37.20</div>
+                          <div class="market-movers__change">SAR 385.2M</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="market-details-panel__stats">
+                  <div class="market-stats">
+                    <div class="market-stats__item">
+                      <span class="market-stats__label"
+                        >Value Traded
+                        <span
+                          class="has-icon icon-riyal market-stats__icon"
+                          aria-hidden="true"
+                        ></span
+                      ></span>
+                      <span class="market-stats__value">1,830,365,570.67</span>
+                    </div>
+                    <div class="market-stats__item">
+                      <span class="market-stats__label">Volume Traded</span>
+                      <span class="market-stats__value">74,704,803</span>
+                    </div>
+                    <div class="market-stats__item">
+                      <span class="market-stats__label"
+                        >Market Cap
+                        <span
+                          class="has-icon icon-riyal market-stats__icon"
+                          aria-hidden="true"
+                        ></span
+                      ></span>
+                      <span class="market-stats__value">9,205,843.73</span>
+                    </div>
+                    <div class="market-stats__item">
+                      <span class="market-stats__label">Symbols Listed</span>
+                      <span class="market-stats__value">254</span>
+                    </div>
+                    <div class="market-stats__item">
+                      <span
+                        class="market-stats__label market-stats__label--down"
+                        >Symbols Down</span
+                      >
+                      <span class="market-stats__value">41</span>
+                    </div>
+                    <div class="market-stats__item">
+                      <span class="market-stats__label market-stats__label--up"
+                        >Symbols Up</span
+                      >
+                      <span class="market-stats__value">202</span>
+                    </div>
+                    <div class="market-stats__item">
+                      <span class="market-stats__label"
+                        >Daily Index Change</span
+                      >
+                      <span
+                        class="market-stats__value market-change market-change--up"
+                        ><span
+                          class="has-icon icon-arrow-up market-change__icon"
+                          aria-hidden="true"
+                        ></span
+                        >125.42</span
+                      >
+                    </div>
+                    <div class="market-stats__item">
+                      <span class="market-stats__label">Change Percentage</span>
+                      <span
+                        class="market-stats__value market-change market-change--up"
+                        ><span
+                          class="has-icon icon-arrow-up market-change__icon"
+                          aria-hidden="true"
+                        ></span
+                        >1.14%</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Nomu / Parallel Market -->
+            <section
+              class="market-details-panel market-details-panel--overview"
+              id="market-panel-nomu"
+              data-market-detail-panel
+              aria-label="Nomu market details"
+              aria-hidden="true"
+              hidden
+            >
+              <div class="market-details-panel__grid">
+                <div class="market-details-panel__main">
+                  <div
+                    class="market-details-panel__chart market-chart"
+                    id="nomu"
+                    data-chart-id="nomu"
+                  ></div>
+                </div>
+
+                <div class="market-details-panel__insights">
+                  <div class="market-movers" data-market-movers>
+                    <div
+                      class="market-movers__tabs"
+                      role="tablist"
+                      aria-label="Nomu movers"
+                    >
+                      <button
+                        class="market-movers__tab is-active"
+                        type="button"
+                        role="tab"
+                        id="nomu-tab-gainers"
+                        aria-selected="true"
+                        aria-controls="nomu-gainers"
+                        data-market-movers-tab
+                      >
+                        Gainers
+                      </button>
+                      <button
+                        class="market-movers__tab"
+                        type="button"
+                        role="tab"
+                        id="nomu-tab-losers"
+                        aria-selected="false"
+                        aria-controls="nomu-losers"
+                        tabindex="-1"
+                        data-market-movers-tab
+                      >
+                        Losers
+                      </button>
+                      <button
+                        class="market-movers__tab"
+                        type="button"
+                        role="tab"
+                        id="nomu-tab-volume"
+                        aria-selected="false"
+                        aria-controls="nomu-volume"
+                        tabindex="-1"
+                        data-market-movers-tab
+                      >
+                        Volume
+                      </button>
+                      <button
+                        class="market-movers__tab"
+                        type="button"
+                        role="tab"
+                        id="nomu-tab-value"
+                        aria-selected="false"
+                        aria-controls="nomu-value"
+                        tabindex="-1"
+                        data-market-movers-tab
+                      >
+                        Value
+                      </button>
+                    </div>
+
+                    <div
+                      class="market-movers__panel is-active"
+                      id="nomu-gainers"
+                      role="tabpanel"
+                      aria-labelledby="nomu-tab-gainers"
+                      data-market-movers-panel
+                    >
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >NABA ALSAHA
+                            <span class="status-circle green"></span
+                          ></a>
+                          <span class="market-movers__market">Nomu</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">42.10</div>
+                          <div
+                            class="market-movers__change market-change market-change--up"
+                          >
+                            <span
+                              class="has-icon icon-arrow-up market-change__icon"
+                              aria-hidden="true"
+                            ></span
+                            >1.20 (2.93%)
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >ALWASAIL <span class="status-circle orange"></span
+                          ></a>
+                          <span class="market-movers__market">Nomu</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">18.70</div>
+                          <div
+                            class="market-movers__change market-change market-change--up"
+                          >
+                            <span
+                              class="has-icon icon-arrow-up market-change__icon"
+                              aria-hidden="true"
+                            ></span
+                            >0.55 (3.03%)
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="market-movers__panel"
+                      id="nomu-losers"
+                      role="tabpanel"
+                      aria-labelledby="nomu-tab-losers"
+                      data-market-movers-panel
+                      hidden
+                    >
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >VIEW UNITED <span class="status-circle red"></span
+                          ></a>
+                          <span class="market-movers__market">Nomu</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">63.00</div>
+                          <div
+                            class="market-movers__change market-change market-change--down"
+                          >
+                            <span
+                              class="has-icon icon-arrow-down market-change__icon"
+                              aria-hidden="true"
+                            ></span
+                            >-2.40 (-3.67%)
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >MULKIA <span class="status-circle orange"></span
+                          ></a>
+                          <span class="market-movers__market">Nomu</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">31.80</div>
+                          <div
+                            class="market-movers__change market-change market-change--down"
+                          >
+                            <span
+                              class="has-icon icon-arrow-down market-change__icon"
+                              aria-hidden="true"
+                            ></span
+                            >-1.05 (-3.20%)
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="market-movers__panel"
+                      id="nomu-volume"
+                      role="tabpanel"
+                      aria-labelledby="nomu-tab-volume"
+                      data-market-movers-panel
+                      hidden
+                    >
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >LEEN ALKHAIR
+                            <span class="status-circle yellow"></span
+                          ></a>
+                          <span class="market-movers__market">Nomu</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">21.50</div>
+                          <div class="market-movers__change">2,450,000</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="market-movers__panel"
+                      id="nomu-value"
+                      role="tabpanel"
+                      aria-labelledby="nomu-tab-value"
+                      data-market-movers-panel
+                      hidden
+                    >
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >SUMOU <span class="status-circle orange"></span
+                          ></a>
+                          <span class="market-movers__market">Nomu</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">44.60</div>
+                          <div class="market-movers__change">SAR 92.7M</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="market-details-panel__stats">
+                  <div class="market-stats">
+                    <div class="market-stats__item">
+                      <span class="market-stats__label"
+                        >Value Traded
+                        <span
+                          class="has-icon icon-riyal market-stats__icon"
+                          aria-hidden="true"
+                        ></span
+                      ></span>
+                      <span class="market-stats__value">1,600,000,000.00</span>
+                    </div>
+                    <div class="market-stats__item">
+                      <span class="market-stats__label">Volume Traded</span>
+                      <span class="market-stats__value">88,000,000</span>
+                    </div>
+                    <div class="market-stats__item">
+                      <span class="market-stats__label"
+                        >Market Cap
+                        <span
+                          class="has-icon icon-riyal market-stats__icon"
+                          aria-hidden="true"
+                        ></span
+                      ></span>
+                      <span class="market-stats__value">4,200,000.00</span>
+                    </div>
+                    <div class="market-stats__item">
+                      <span class="market-stats__label">Symbols Listed</span>
+                      <span class="market-stats__value">120</span>
+                    </div>
+                    <div class="market-stats__item">
+                      <span
+                        class="market-stats__label market-stats__label--down"
+                        >Symbols Down</span
+                      >
+                      <span class="market-stats__value">30</span>
+                    </div>
+                    <div class="market-stats__item">
+                      <span class="market-stats__label market-stats__label--up"
+                        >Symbols Up</span
+                      >
+                      <span class="market-stats__value">75</span>
+                    </div>
+                    <div class="market-stats__item">
+                      <span class="market-stats__label"
+                        >Daily Index Change</span
+                      >
+                      <span
+                        class="market-stats__value market-change market-change--down"
+                        ><span
+                          class="has-icon icon-arrow-down market-change__icon"
+                          aria-hidden="true"
+                        ></span
+                        >-42.35</span
+                      >
+                    </div>
+                    <div class="market-stats__item">
+                      <span class="market-stats__label">Change Percentage</span>
+                      <span
+                        class="market-stats__value market-change market-change--down"
+                        ><span
+                          class="has-icon icon-arrow-down market-change__icon"
+                          aria-hidden="true"
+                        ></span
+                        >-0.48%</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <!-- Sukuk & Bonds -->
+            <section
+              class="market-details-panel market-details-panel--overview"
+              id="market-panel-sukuk"
+              data-market-detail-panel
+              aria-label="Sukuk and Bonds market details"
+              aria-hidden="true"
+              hidden
+            >
+              <div class="market-details-panel__grid">
+                <div class="market-details-panel__main">
+                  <div
+                    class="market-details-panel__chart market-chart"
+                    id="sukuk"
+                    data-chart-id="sukuk"
+                  ></div>
+                </div>
+
+                <div class="market-details-panel__insights">
+                  <div class="market-movers" data-market-movers>
+                    <div
+                      class="market-movers__tabs"
+                      role="tablist"
+                      aria-label="Sukuk and Bonds movers"
+                    >
+                      <button
+                        class="market-movers__tab is-active"
+                        type="button"
+                        role="tab"
+                        id="sukuk-tab-gainers"
+                        aria-selected="true"
+                        aria-controls="sukuk-gainers"
+                        data-market-movers-tab
+                      >
+                        Gainers
+                      </button>
+                      <button
+                        class="market-movers__tab"
+                        type="button"
+                        role="tab"
+                        id="sukuk-tab-losers"
+                        aria-selected="false"
+                        aria-controls="sukuk-losers"
+                        tabindex="-1"
+                        data-market-movers-tab
+                      >
+                        Losers
+                      </button>
+                      <button
+                        class="market-movers__tab"
+                        type="button"
+                        role="tab"
+                        id="sukuk-tab-volume"
+                        aria-selected="false"
+                        aria-controls="sukuk-volume"
+                        tabindex="-1"
+                        data-market-movers-tab
+                      >
+                        Volume
+                      </button>
+                      <button
+                        class="market-movers__tab"
+                        type="button"
+                        role="tab"
+                        id="sukuk-tab-value"
+                        aria-selected="false"
+                        aria-controls="sukuk-value"
+                        tabindex="-1"
+                        data-market-movers-tab
+                      >
+                        Value
+                      </button>
+                    </div>
+
+                    <div
+                      class="market-movers__panel is-active"
+                      id="sukuk-gainers"
+                      role="tabpanel"
+                      aria-labelledby="sukuk-tab-gainers"
+                      data-market-movers-panel
+                    >
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >SAUDI SUKUK 2030
+                            <span class="status-circle green"></span
+                          ></a>
+                          <span class="market-movers__market">Bond</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">101.32</div>
+                          <div
+                            class="market-movers__change market-change market-change--up"
+                          >
+                            <span
+                              class="has-icon icon-arrow-up market-change__icon"
+                              aria-hidden="true"
+                            ></span>
+                            0.12%
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >KSA BOND 2029
+                            <span class="status-circle yellow"></span
+                          ></a>
+                          <span class="market-movers__market">Bond</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">99.84</div>
+                          <div
+                            class="market-movers__change market-change market-change--up"
+                          >
+                            <span
+                              class="has-icon icon-arrow-up market-change__icon"
+                              aria-hidden="true"
+                            ></span>
+                            0.08%
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="market-movers__panel"
+                      id="sukuk-losers"
+                      role="tabpanel"
+                      aria-labelledby="sukuk-tab-losers"
+                      data-market-movers-panel
+                      hidden
+                    >
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >SUKUK 2028 <span class="status-circle red"></span
+                          ></a>
+                          <span class="market-movers__market">Sukuk</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">97.45</div>
+                          <div
+                            class="market-movers__change market-change market-change--down"
+                          >
+                            <span
+                              class="has-icon icon-arrow-down market-change__icon"
+                              aria-hidden="true"
+                            ></span>
+                            -0.22%
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >GOV BOND 2032
+                            <span class="status-circle orange"></span
+                          ></a>
+                          <span class="market-movers__market">Bond</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">103.10</div>
+                          <div
+                            class="market-movers__change market-change market-change--down"
+                          >
+                            <span
+                              class="has-icon icon-arrow-down market-change__icon"
+                              aria-hidden="true"
+                            ></span>
+                            -0.14%
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="market-movers__panel"
+                      id="sukuk-volume"
+                      role="tabpanel"
+                      aria-labelledby="sukuk-tab-volume"
+                      data-market-movers-panel
+                      hidden
+                    >
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >SAUDI SUKUK 2030
+                            <span class="status-circle green"></span
+                          ></a>
+                          <span class="market-movers__market">Bond</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">2,840,000</div>
+                          <div class="market-movers__change">0.12%</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="market-movers__panel"
+                      id="sukuk-value"
+                      role="tabpanel"
+                      aria-labelledby="sukuk-tab-value"
+                      data-market-movers-panel
+                      hidden
+                    >
+                      <div class="market-movers__row">
+                        <div class="market-movers__info">
+                          <a class="market-movers__name" href="#"
+                            >KSA BOND 2029
+                            <span class="status-circle yellow"></span
+                          ></a>
+                          <span class="market-movers__market">Bond</span>
+                        </div>
+                        <div class="market-movers__numbers">
+                          <div class="market-movers__price">SAR 185.6M</div>
+                          <div class="market-movers__change">0.08%</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="market-details-panel__stats">
+                  <div class="market-stats">
+                    <div class="market-stats__item">
+                      <span class="market-stats__label">
+                        Value Traded
+                        <span
+                          class="has-icon icon-riyal market-stats__icon"
+                          aria-hidden="true"
+                        ></span>
+                      </span>
+                      <span class="market-stats__value">1,600,000,000.00</span>
+                    </div>
+
+                    <div class="market-stats__item">
+                      <span class="market-stats__label">Volume Traded</span>
+                      <span class="market-stats__value">88,000,000</span>
+                    </div>
+
+                    <div class="market-stats__item">
+                      <span class="market-stats__label">
+                        Market Cap
+                        <span
+                          class="has-icon icon-riyal market-stats__icon"
+                          aria-hidden="true"
+                        ></span>
+                      </span>
+                      <span class="market-stats__value">3,850,000.00</span>
+                    </div>
+
+                    <div class="market-stats__item">
+                      <span class="market-stats__label">Issues Listed</span>
+                      <span class="market-stats__value">150</span>
+                    </div>
+
+                    <div class="market-stats__item">
+                      <span
+                        class="market-stats__label market-stats__label--down"
+                        >Issues Down</span
+                      >
+                      <span class="market-stats__value">20</span>
+                    </div>
+
+                    <div class="market-stats__item">
+                      <span class="market-stats__label market-stats__label--up"
+                        >Issues Up</span
+                      >
+                      <span class="market-stats__value">90</span>
+                    </div>
+
+                    <div class="market-stats__item">
+                      <span class="market-stats__label"
+                        >Daily Index Change</span
+                      >
+                      <span
+                        class="market-stats__value market-change market-change--up"
+                      >
+                        <span
+                          class="has-icon icon-arrow-up market-change__icon"
+                          aria-hidden="true"
+                        ></span>
+                        7.84
+                      </span>
+                    </div>
+
+                    <div class="market-stats__item">
+                      <span class="market-stats__label">Change Percentage</span>
+                      <span
+                        class="market-stats__value market-change market-change--up"
+                      >
+                        <span
+                          class="has-icon icon-arrow-up market-change__icon"
+                          aria-hidden="true"
+                        ></span>
+                        0.18%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <!-- Funds -->
+            <section
+              class="market-details-panel"
+              id="market-panel-funds"
+              data-market-detail-panel
+              aria-label="Funds market details"
+              aria-hidden="true"
+              hidden
+            >
+              <div
+                class="market-views"
+                role="tablist"
+                aria-label="Funds categories"
+              >
+                <div class="market-views__list">
+                  <button
+                    class="market-views__tab is-active"
+                    type="button"
+                    role="tab"
+                    id="funds-tab-reits"
+                    aria-selected="true"
+                    aria-controls="funds-reits"
+                    data-market-view-tab
+                  >
+                    REITs
+                  </button>
+                  <button
+                    class="market-views__tab"
+                    type="button"
+                    role="tab"
+                    id="funds-tab-etfs"
+                    aria-selected="false"
+                    aria-controls="funds-etfs"
+                    tabindex="-1"
+                    data-market-view-tab
+                  >
+                    ETFs
+                  </button>
+                  <button
+                    class="market-views__tab"
+                    type="button"
+                    role="tab"
+                    id="funds-tab-cefs"
+                    aria-selected="false"
+                    aria-controls="funds-cefs"
+                    tabindex="-1"
+                    data-market-view-tab
+                  >
+                    CEFs
+                  </button>
+                </div>
+              </div>
+
+              <!-- REITs -->
+              <div
+                class="market-view-panel market-details-panel--overview is-active"
+                id="funds-reits"
+                role="tabpanel"
+                aria-labelledby="funds-tab-reits"
+                data-market-view-panel
+              >
+                <div class="market-details-panel__grid">
+                  <div class="market-details-panel__main">
+                    <div
+                      class="market-details-panel__chart market-chart"
+                      id="reits"
+                      data-chart-id="reits"
+                    ></div>
+                  </div>
+
+                  <div class="market-details-panel__insights">
+                    <div class="market-movers" data-market-movers>
+                      <div
+                        class="market-movers__tabs"
+                        role="tablist"
+                        aria-label="REITs movers"
+                      >
+                        <button
+                          class="market-movers__tab is-active"
+                          type="button"
+                          role="tab"
+                          id="reits-tab-gainers"
+                          aria-selected="true"
+                          aria-controls="reits-gainers"
+                          data-market-movers-tab
+                        >
+                          Gainers
+                        </button>
+                        <button
+                          class="market-movers__tab"
+                          type="button"
+                          role="tab"
+                          id="reits-tab-losers"
+                          aria-selected="false"
+                          aria-controls="reits-losers"
+                          tabindex="-1"
+                          data-market-movers-tab
+                        >
+                          Losers
+                        </button>
+                        <button
+                          class="market-movers__tab"
+                          type="button"
+                          role="tab"
+                          id="reits-tab-volume"
+                          aria-selected="false"
+                          aria-controls="reits-volume"
+                          tabindex="-1"
+                          data-market-movers-tab
+                        >
+                          Volume
+                        </button>
+                        <button
+                          class="market-movers__tab"
+                          type="button"
+                          role="tab"
+                          id="reits-tab-value"
+                          aria-selected="false"
+                          aria-controls="reits-value"
+                          tabindex="-1"
+                          data-market-movers-tab
+                        >
+                          Value
+                        </button>
+                      </div>
+
+                      <div
+                        class="market-movers__panel is-active"
+                        id="reits-gainers"
+                        role="tabpanel"
+                        aria-labelledby="reits-tab-gainers"
+                        data-market-movers-panel
+                      >
+                        <div class="market-movers__row">
+                          <div class="market-movers__info">
+                            <a class="market-movers__name" href="#"
+                              >RIYAD REIT
+                              <span class="status-circle green"></span
+                            ></a>
+                            <span class="market-movers__market">REITs</span>
+                          </div>
+                          <div class="market-movers__numbers">
+                            <div class="market-movers__price">12.30</div>
+                            <div
+                              class="market-movers__change market-change market-change--up"
+                            >
+                              <span
+                                class="has-icon icon-arrow-up market-change__icon"
+                                aria-hidden="true"
+                              ></span>
+                              0.20 (1.65%)
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="market-movers__row">
+                          <div class="market-movers__info">
+                            <a class="market-movers__name" href="#"
+                              >JADWA REIT
+                              <span class="status-circle yellow"></span
+                            ></a>
+                            <span class="market-movers__market">REITs</span>
+                          </div>
+                          <div class="market-movers__numbers">
+                            <div class="market-movers__price">9.85</div>
+                            <div
+                              class="market-movers__change market-change market-change--up"
+                            >
+                              <span
+                                class="has-icon icon-arrow-up market-change__icon"
+                                aria-hidden="true"
+                              ></span>
+                              0.10 (1.02%)
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        class="market-movers__panel"
+                        id="reits-losers"
+                        role="tabpanel"
+                        aria-labelledby="reits-tab-losers"
+                        data-market-movers-panel
+                        hidden
+                      >
+                        <div class="market-movers__row">
+                          <div class="market-movers__info">
+                            <a class="market-movers__name" href="#"
+                              >ALINMA RETAIL REIT
+                              <span class="status-circle red"></span
+                            ></a>
+                            <span class="market-movers__market">REITs</span>
+                          </div>
+                          <div class="market-movers__numbers">
+                            <div class="market-movers__price">7.42</div>
+                            <div
+                              class="market-movers__change market-change market-change--down"
+                            >
+                              <span
+                                class="has-icon icon-arrow-down market-change__icon"
+                                aria-hidden="true"
+                              ></span>
+                              -0.12 (-1.59%)
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        class="market-movers__panel"
+                        id="reits-volume"
+                        role="tabpanel"
+                        aria-labelledby="reits-tab-volume"
+                        data-market-movers-panel
+                        hidden
+                      >
+                        <div class="market-movers__row">
+                          <div class="market-movers__info">
+                            <a class="market-movers__name" href="#"
+                              >SEDCO CAPITAL REIT
+                              <span class="status-circle orange"></span
+                            ></a>
+                            <span class="market-movers__market">REITs</span>
+                          </div>
+                          <div class="market-movers__numbers">
+                            <div class="market-movers__price">8.92</div>
+                            <div class="market-movers__change">3,240,000</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        class="market-movers__panel"
+                        id="reits-value"
+                        role="tabpanel"
+                        aria-labelledby="reits-tab-value"
+                        data-market-movers-panel
+                        hidden
+                      >
+                        <div class="market-movers__row">
+                          <div class="market-movers__info">
+                            <a class="market-movers__name" href="#"
+                              >MUSHARAKA REIT
+                              <span class="status-circle yellow"></span
+                            ></a>
+                            <span class="market-movers__market">REITs</span>
+                          </div>
+                          <div class="market-movers__numbers">
+                            <div class="market-movers__price">6.88</div>
+                            <div class="market-movers__change">SAR 68.4M</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="market-details-panel__stats">
+                    <div class="market-stats">
+                      <div class="market-stats__item">
+                        <span class="market-stats__label"
+                          >Value Traded
+                          <span
+                            class="has-icon icon-riyal market-stats__icon"
+                            aria-hidden="true"
+                          ></span></span
+                        ><span class="market-stats__value"
+                          >1,100,000,000.00</span
+                        >
+                      </div>
+                      <div class="market-stats__item">
+                        <span class="market-stats__label">Volume Traded</span
+                        ><span class="market-stats__value">65,000,000</span>
+                      </div>
+                      <div class="market-stats__item">
+                        <span class="market-stats__label">Funds Listed</span
+                        ><span class="market-stats__value">90</span>
+                      </div>
+                      <div class="market-stats__item">
+                        <span class="market-stats__label">Funds Traded</span
+                        ><span class="market-stats__value">72</span>
+                      </div>
+                      <div class="market-stats__item">
+                        <span
+                          class="market-stats__label market-stats__label--down"
+                          >Funds Down</span
+                        ><span class="market-stats__value">25</span>
+                      </div>
+                      <div class="market-stats__item">
+                        <span
+                          class="market-stats__label market-stats__label--up"
+                          >Funds Up</span
+                        ><span class="market-stats__value">60</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ETFs -->
+              <div
+                class="market-view-panel market-details-panel--overview"
+                id="funds-etfs"
+                role="tabpanel"
+                aria-labelledby="funds-tab-etfs"
+                data-market-view-panel
+                hidden
+              >
+                <div class="market-details-panel__grid">
+                  <div class="market-details-panel__main">
+                    <div class="surface surface-market">
+                      <div class="table-responsive custom-scrollbar">
+                        <table class="table table-compact">
+                          <thead>
+                            <tr>
+                              <th scope="col">Fund</th>
+                              <th scope="col" class="numeric">Price</th>
+                              <th scope="col" class="numeric">Change</th>
+                              <th scope="col" class="numeric">Value</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td><a href="#">Falcom Saudi ETF</a></td>
+                              <td class="numeric">31.20</td>
+                              <td
+                                class="numeric market-change market-change--up"
+                              >
+                                <span
+                                  class="has-icon icon-arrow-up market-change__icon"
+                                  aria-hidden="true"
+                                ></span
+                                >0.42%
+                              </td>
+                              <td class="numeric">SAR 22.4M</td>
+                            </tr>
+                            <tr>
+                              <td><a href="#">HSBC Saudi 20 ETF</a></td>
+                              <td class="numeric">42.85</td>
+                              <td
+                                class="numeric market-change market-change--down"
+                              >
+                                <span
+                                  class="has-icon icon-arrow-down market-change__icon"
+                                  aria-hidden="true"
+                                ></span
+                                >-0.18%
+                              </td>
+                              <td class="numeric">SAR 18.7M</td>
+                            </tr>
+                            <tr>
+                              <td><a href="#">Saudi ETF 30</a></td>
+                              <td class="numeric">28.40</td>
+                              <td
+                                class="numeric market-change market-change--up"
+                              >
+                                <span
+                                  class="has-icon icon-arrow-up market-change__icon"
+                                  aria-hidden="true"
+                                ></span
+                                >0.21%
+                              </td>
+                              <td class="numeric">SAR 31.2M</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="market-details-panel__insights">
+                    <div class="market-movers" data-market-movers>
+                      <div
+                        class="market-movers__tabs"
+                        role="tablist"
+                        aria-label="ETFs movers"
+                      >
+                        <button
+                          class="market-movers__tab is-active"
+                          type="button"
+                          role="tab"
+                          id="etfs-tab-gainers"
+                          aria-selected="true"
+                          aria-controls="etfs-gainers"
+                          data-market-movers-tab
+                        >
+                          Gainers
+                        </button>
+                        <button
+                          class="market-movers__tab"
+                          type="button"
+                          role="tab"
+                          id="etfs-tab-losers"
+                          aria-selected="false"
+                          aria-controls="etfs-losers"
+                          tabindex="-1"
+                          data-market-movers-tab
+                        >
+                          Losers
+                        </button>
+                        <button
+                          class="market-movers__tab"
+                          type="button"
+                          role="tab"
+                          id="etfs-tab-volume"
+                          aria-selected="false"
+                          aria-controls="etfs-volume"
+                          tabindex="-1"
+                          data-market-movers-tab
+                        >
+                          Volume
+                        </button>
+                        <button
+                          class="market-movers__tab"
+                          type="button"
+                          role="tab"
+                          id="etfs-tab-value"
+                          aria-selected="false"
+                          aria-controls="etfs-value"
+                          tabindex="-1"
+                          data-market-movers-tab
+                        >
+                          Value
+                        </button>
+                      </div>
+
+                      <div
+                        class="market-movers__panel is-active"
+                        id="etfs-gainers"
+                        role="tabpanel"
+                        aria-labelledby="etfs-tab-gainers"
+                        data-market-movers-panel
+                      >
+                        <div class="market-movers__row">
+                          <div class="market-movers__info">
+                            <a class="market-movers__name" href="#"
+                              >Falcom Saudi ETF
+                              <span class="status-circle green"></span
+                            ></a>
+                            <span class="market-movers__market">ETFs</span>
+                          </div>
+                          <div class="market-movers__numbers">
+                            <div class="market-movers__price">31.20</div>
+                            <div
+                              class="market-movers__change market-change market-change--up"
+                            >
+                              <span
+                                class="has-icon icon-arrow-up market-change__icon"
+                                aria-hidden="true"
+                              ></span
+                              >0.42%
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        class="market-movers__panel"
+                        id="etfs-losers"
+                        role="tabpanel"
+                        aria-labelledby="etfs-tab-losers"
+                        data-market-movers-panel
+                        hidden
+                      >
+                        <div class="market-movers__row">
+                          <div class="market-movers__info">
+                            <a class="market-movers__name" href="#"
+                              >HSBC Saudi 20 ETF
+                              <span class="status-circle red"></span
+                            ></a>
+                            <span class="market-movers__market">ETFs</span>
+                          </div>
+                          <div class="market-movers__numbers">
+                            <div class="market-movers__price">42.85</div>
+                            <div
+                              class="market-movers__change market-change market-change--down"
+                            >
+                              <span
+                                class="has-icon icon-arrow-down market-change__icon"
+                                aria-hidden="true"
+                              ></span
+                              >-0.18%
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        class="market-movers__panel"
+                        id="etfs-volume"
+                        role="tabpanel"
+                        aria-labelledby="etfs-tab-volume"
+                        data-market-movers-panel
+                        hidden
+                      ></div>
+                      <div
+                        class="market-movers__panel"
+                        id="etfs-value"
+                        role="tabpanel"
+                        aria-labelledby="etfs-tab-value"
+                        data-market-movers-panel
+                        hidden
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div class="market-details-panel__stats">
+                    <div class="market-stats">
+                      <div class="market-stats__item">
+                        <span class="market-stats__label"
+                          >Value Traded
+                          <span
+                            class="has-icon icon-riyal market-stats__icon"
+                            aria-hidden="true"
+                          ></span></span
+                        ><span class="market-stats__value">320,000,000.00</span>
+                      </div>
+                      <div class="market-stats__item">
+                        <span class="market-stats__label">Volume Traded</span
+                        ><span class="market-stats__value">14,200,000</span>
+                      </div>
+                      <div class="market-stats__item">
+                        <span class="market-stats__label">Funds Listed</span
+                        ><span class="market-stats__value">12</span>
+                      </div>
+                      <div class="market-stats__item">
+                        <span
+                          class="market-stats__label market-stats__label--up"
+                          >Funds Up</span
+                        ><span class="market-stats__value">7</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CEFs -->
+              <div
+                class="market-view-panel market-details-panel--analytics"
+                id="funds-cefs"
+                role="tabpanel"
+                aria-labelledby="funds-tab-cefs"
+                data-market-view-panel
+                hidden
+              >
+                <div class="market-details-panel__grid">
+                  <div class="market-details-panel__main">
+                    <div class="surface surface-market">
+                      <div class="table-responsive custom-scrollbar">
+                        <table class="table table-compact">
+                          <thead>
+                            <tr>
+                              <th scope="col">Fund</th>
+                              <th scope="col" class="numeric">Price</th>
+                              <th scope="col" class="numeric">Change</th>
+                              <th scope="col" class="numeric">Value</th>
+                              <th scope="col" class="numeric">Volume</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td><a href="#">Alkhabeer Growth Fund</a></td>
+                              <td class="numeric">13.40</td>
+                              <td
+                                class="numeric market-change market-change--down"
+                              >
+                                <span
+                                  class="has-icon icon-arrow-down market-change__icon"
+                                  aria-hidden="true"
+                                ></span
+                                >-0.22%
+                              </td>
+                              <td class="numeric">SAR 98M</td>
+                              <td class="numeric">6.3M</td>
+                            </tr>
+                            <tr>
+                              <td><a href="#">Derayah Income Fund</a></td>
+                              <td class="numeric">10.95</td>
+                              <td
+                                class="numeric market-change market-change--up"
+                              >
+                                <span
+                                  class="has-icon icon-arrow-up market-change__icon"
+                                  aria-hidden="true"
+                                ></span
+                                >0.36%
+                              </td>
+                              <td class="numeric">SAR 76M</td>
+                              <td class="numeric">4.8M</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="market-details-panel__stats">
+                    <div class="market-stats">
+                      <div class="market-stats__item">
+                        <span class="market-stats__label"
+                          >Value Traded
+                          <span
+                            class="has-icon icon-riyal market-stats__icon"
+                            aria-hidden="true"
+                          ></span></span
+                        ><span class="market-stats__value">210,000,000.00</span>
+                      </div>
+                      <div class="market-stats__item">
+                        <span class="market-stats__label">Volume Traded</span
+                        ><span class="market-stats__value">9,400,000</span>
+                      </div>
+                      <div class="market-stats__item">
+                        <span class="market-stats__label">Funds Listed</span
+                        ><span class="market-stats__value">18</span>
+                      </div>
+                      <div class="market-stats__item">
+                        <span
+                          class="market-stats__label market-stats__label--down"
+                          >Funds Down</span
+                        ><span class="market-stats__value">5</span>
+                      </div>
+                      <div class="market-stats__item">
+                        <span
+                          class="market-stats__label market-stats__label--up"
+                          >Funds Up</span
+                        ><span class="market-stats__value">11</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Derivatives -->
+            <section
+              class="market-details-panel"
+              id="market-panel-derivatives"
+              data-market-detail-panel
+              aria-label="Derivatives market details"
+              aria-hidden="true"
+              hidden
+            >
+              <div
+                class="market-views"
+                role="tablist"
+                aria-label="Derivatives views"
+              >
+                <div class="market-views__list">
+                  <button
+                    class="market-views__tab is-active"
+                    type="button"
+                    role="tab"
+                    id="derivatives-tab-mt30"
+                    aria-selected="true"
+                    aria-controls="derivatives-mt30"
+                    data-market-view-tab
+                  >
+                    MT30
+                  </button>
+                  <button
+                    class="market-views__tab"
+                    type="button"
+                    role="tab"
+                    id="derivatives-tab-summary"
+                    aria-selected="false"
+                    aria-controls="derivatives-summary"
+                    tabindex="-1"
+                    data-market-view-tab
+                  >
+                    Derivatives
+                  </button>
+                </div>
+              </div>
+
+              <!-- MT30 -->
+              <div
+                class="market-view-panel market-details-panel--analytics is-active"
+                id="derivatives-mt30"
+                role="tabpanel"
+                aria-labelledby="derivatives-tab-mt30"
+                data-market-view-panel
+              >
+                <div class="market-details-panel__grid">
+                  <div class="market-details-panel__main">
+                    <div
+                      class="market-details-panel__chart market-chart"
+                      id="mt30"
+                      data-chart-id="mt30"
+                    ></div>
+                  </div>
+
+                  <div class="market-details-panel__stats">
+                    <div class="market-stats">
+                      <div class="market-stats__item">
+                        <span class="market-stats__label"
+                          >Open
+                          <span
+                            class="has-icon icon-riyal market-stats__icon"
+                            aria-hidden="true"
+                          ></span></span
+                        ><span class="market-stats__value">1,582.25</span>
+                      </div>
+                      <div class="market-stats__item">
+                        <span class="market-stats__label">Close</span
+                        ><span class="market-stats__value">1,575.80</span>
+                      </div>
+                      <div class="market-stats__item">
+                        <span class="market-stats__label">Daily Change</span
+                        ><span
+                          class="market-stats__value market-change market-change--up"
+                          ><span
+                            class="has-icon icon-arrow-up market-change__icon"
+                            aria-hidden="true"
+                          ></span
+                          >6.45</span
+                        >
+                      </div>
+                      <div class="market-stats__item">
+                        <span class="market-stats__label"
+                          >Change Percentage</span
+                        ><span
+                          class="market-stats__value market-change market-change--up"
+                          ><span
+                            class="has-icon icon-arrow-up market-change__icon"
+                            aria-hidden="true"
+                          ></span
+                          >0.41%</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Derivatives Summary -->
+              <div
+                class="market-view-panel market-details-panel--dashboard"
+                id="derivatives-summary"
+                role="tabpanel"
+                aria-labelledby="derivatives-tab-summary"
+                data-market-view-panel
+                hidden
+              >
+                <div class="derivatives-dashboard">
+                  <article
+                    class="derivatives-dashboard__card surface surface-market"
+                  >
+                    <header class="derivatives-dashboard__header">
+                      <h3 class="derivatives-dashboard__title section-heading">
+                        Derivative Market
+                      </h3>
+                    </header>
+                    <div class="surface surface-market">
+                      <div class="table-responsive custom-scrollbar">
+                        <table class="table table-compact">
+                          <thead>
+                            <tr>
+                              <th scope="col">Instrument Type</th>
+                              <th scope="col" class="numeric">Volume Traded</th>
+                              <th scope="col" class="numeric">Open Interest</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td><a href="#">Index Futures</a></td>
+                              <td class="numeric">12,450</td>
+                              <td class="numeric">34,120</td>
+                            </tr>
+                            <tr>
+                              <td><a href="#">Single Stock Futures</a></td>
+                              <td class="numeric">8,920</td>
+                              <td class="numeric">21,840</td>
+                            </tr>
+                            <tr>
+                              <td><a href="#">Single Stock Options</a></td>
+                              <td class="numeric">4,310</td>
+                              <td class="numeric">15,760</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </article>
+
+                  <article
+                    class="derivatives-dashboard__card surface surface-market"
+                  >
+                    <header class="derivatives-dashboard__header">
+                      <h3 class="derivatives-dashboard__title section-heading">
+                        Index Futures
+                      </h3>
+                    </header>
+                    <div class="surface surface-market">
+                      <div class="table-responsive custom-scrollbar">
+                        <table class="table table-compact">
+                          <thead>
+                            <tr>
+                              <th scope="col">Underlying</th>
+                              <th scope="col" class="numeric">Volume Traded</th>
+                              <th scope="col" class="numeric">Open Interest</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td><a href="#">MT30 Index Futures</a></td>
+                              <td class="numeric">7,280.00</td>
+                              <td class="numeric">18,450</td>
+                            </tr>
+                            <tr>
+                              <td><a href="#">MT30 Weekly Futures</a></td>
+                              <td class="numeric">3,620.00</td>
+                              <td class="numeric">9,875</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </article>
+
+                  <article
+                    class="derivatives-dashboard__card surface surface-market"
+                  >
+                    <header class="derivatives-dashboard__header">
+                      <h3 class="derivatives-dashboard__title section-heading">
+                        Single Stock Futures
+                      </h3>
+                    </header>
+                    <div class="table-responsive custom-scrollbar">
+                      <table class="table table-compact">
+                        <thead>
+                          <tr>
+                            <th scope="col">Underlying</th>
+                            <th scope="col" class="numeric">Volume Traded</th>
+                            <th scope="col" class="numeric">Open Interest</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td><a href="#">ARAMCO Futures</a></td>
+                            <td class="numeric">2,840.00</td>
+                            <td class="numeric">7,520</td>
+                          </tr>
+                          <tr>
+                            <td><a href="#">AL RAJHI Futures</a></td>
+                            <td class="numeric">1,965.00</td>
+                            <td class="numeric">5,330</td>
+                          </tr>
+                          <tr>
+                            <td><a href="#">SABIC Futures</a></td>
+                            <td class="numeric">1,420.00</td>
+                            <td class="numeric">4,870</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </article>
+
+                  <article
+                    class="derivatives-dashboard__card surface surface-market"
+                  >
+                    <header class="derivatives-dashboard__header">
+                      <h3 class="derivatives-dashboard__title section-heading">
+                        Single Stock Options
+                      </h3>
+                    </header>
+                    <div class="table-responsive custom-scrollbar">
+                      <table class="table table-compact">
+                        <thead>
+                          <tr>
+                            <th scope="col">Contract Name</th>
+                            <th scope="col" class="numeric">Volume Traded</th>
+                            <th scope="col" class="numeric">Open Interest</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td><a href="#">ARAMCO Call Options</a></td>
+                            <td class="numeric">1,260.00</td>
+                            <td class="numeric">3,780</td>
+                          </tr>
+                          <tr>
+                            <td><a href="#">AL RAJHI Put Options</a></td>
+                            <td class="numeric">940.00</td>
+                            <td class="numeric">2,615</td>
+                          </tr>
+                          <tr>
+                            <td><a href="#">SNB Call Options</a></td>
+                            <td class="numeric">725.00</td>
+                            <td class="numeric">1,980</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </article>
+                </div>
+              </div>
+            </section>
+          </div>
         </div>
       </section>
     </main>

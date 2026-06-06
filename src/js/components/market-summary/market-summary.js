@@ -1,4 +1,56 @@
 const CARD_SELECTOR = "[data-market-card]";
+const RETURN_ARROW_SELECTOR = "[data-market-return-arrow]";
+
+function getActiveCard(summary = document) {
+  return summary.querySelector(`${CARD_SELECTOR}.is-active`);
+}
+
+function getReturnArrow(card) {
+  return card?.closest(".market-summary")?.querySelector(RETURN_ARROW_SELECTOR);
+}
+
+function updateReturnArrow(card = getActiveCard()) {
+  const returnArrow = getReturnArrow(card);
+
+  if (!card || !returnArrow) return;
+
+  const scroller = card.closest(".market-summary__cards");
+
+  if (!scroller) return;
+
+  const isRTL = getComputedStyle(scroller).direction === "rtl";
+
+  const cardRect = card.getBoundingClientRect();
+  const scrollerRect = scroller.getBoundingClientRect();
+
+  const isBeforeView = cardRect.left < scrollerRect.left;
+  const isAfterView = cardRect.right > scrollerRect.right;
+
+  returnArrow.classList.remove("is-visible", "is-start", "is-end");
+
+  if (!isBeforeView && !isAfterView) return;
+
+  const directionClass = isRTL
+    ? isBeforeView
+      ? "is-end"
+      : "is-start"
+    : isBeforeView
+      ? "is-start"
+      : "is-end";
+
+  const label = isBeforeView
+    ? "Scroll back to selected market"
+    : "Scroll forward to selected market";
+
+  returnArrow.classList.add("is-visible", directionClass);
+  returnArrow.setAttribute("aria-label", label);
+}
+
+function requestReturnArrowUpdate(card = getActiveCard()) {
+  window.requestAnimationFrame(() => {
+    updateReturnArrow(card);
+  });
+}
 
 function setActiveCard(card) {
   const summary = card.closest(".market-summary");
@@ -12,17 +64,66 @@ function setActiveCard(card) {
     item.setAttribute("aria-selected", String(isActive));
     item.setAttribute("tabindex", isActive ? "0" : "-1");
   });
+
+  requestReturnArrowUpdate(card);
+
+  document.dispatchEvent(
+    new CustomEvent("market:change", {
+      detail: {
+        card,
+        panelId: card.getAttribute("aria-controls"),
+        market: card.dataset.market,
+      },
+    }),
+  );
 }
 
-function scrollCardIntoView(card) {
+function scrollCardIntoView(card, inline = "nearest") {
   card.scrollIntoView({
     behavior: "smooth",
     block: "nearest",
-    inline: "nearest",
+    inline,
   });
 }
 
+function scrollToActiveCard(event) {
+  const summary = event.currentTarget.closest(".market-summary");
+  const card = getActiveCard(summary);
+
+  if (!card) return;
+
+  scrollCardIntoView(card, "center");
+  requestReturnArrowUpdate(card);
+}
+
 export function initMarketCards() {
+  document.querySelectorAll(".market-summary").forEach((summary) => {
+    const scroller = summary.querySelector(".market-summary__cards");
+    const returnArrow = summary.querySelector(RETURN_ARROW_SELECTOR);
+
+    requestReturnArrowUpdate(getActiveCard(summary));
+
+    scroller?.addEventListener(
+      "scroll",
+      () => requestReturnArrowUpdate(getActiveCard(summary)),
+      { passive: true },
+    );
+
+    returnArrow?.addEventListener("click", scrollToActiveCard);
+  });
+
+  window.addEventListener("load", () => {
+    document.querySelectorAll(".market-summary").forEach((summary) => {
+      requestReturnArrowUpdate(getActiveCard(summary));
+    });
+  });
+
+  window.addEventListener("resize", () => {
+    document.querySelectorAll(".market-summary").forEach((summary) => {
+      requestReturnArrowUpdate(getActiveCard(summary));
+    });
+  });
+
   document.addEventListener("click", (event) => {
     const card = event.target.closest(CARD_SELECTOR);
 
@@ -42,22 +143,17 @@ export function initMarketCards() {
 
     if (!cards.length) return;
 
+    const isRTL = document.documentElement.dir === "rtl";
     const currentIndex = cards.indexOf(card);
 
     let nextIndex = currentIndex;
 
     if (event.key === "ArrowRight") {
-      nextIndex =
-        document.documentElement.dir === "rtl"
-          ? currentIndex - 1
-          : currentIndex + 1;
+      nextIndex = isRTL ? currentIndex - 1 : currentIndex + 1;
     }
 
     if (event.key === "ArrowLeft") {
-      nextIndex =
-        document.documentElement.dir === "rtl"
-          ? currentIndex + 1
-          : currentIndex - 1;
+      nextIndex = isRTL ? currentIndex + 1 : currentIndex - 1;
     }
 
     if (event.key === "Home") {
