@@ -1,0 +1,72 @@
+@use "../../abstracts" as *;
+
+.market-summary {
+  --market-summary-bg: #0b2c41;
+  --market-summary-fg: #ffffff;
+  --market-summary-muted: #a9c4ff;
+  --market-summary-border: rgb(255 255 255 / 0.18);
+  --market-summary-surface: rgb(255 255 255 / 0.08);
+
+  padding-block: 0;
+  background: var(--market-summary-bg);
+  color: var(--market-summary-fg);
+
+  &__container {
+    width: min(100% - 2rem, 1320px);
+    margin-inline: auto;
+    padding-block: clamp(0.75rem, 1.5vw, 1.25rem);
+
+    display: grid;
+    grid-template-columns: minmax(20rem, 20rem) minmax(0, 1fr);
+    gap: clamp(1rem, 2vw, 2rem);
+    align-items: stretch;
+  }
+
+  &__cards-wrap {
+    min-inline-size: 0;
+    display: flex;
+    align-items: stretch;
+  }
+
+  &__cards {
+    inline-size: 100%;
+    min-inline-size: 0;
+
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: clamp(15.5rem, 21vw, 17.5rem);
+    gap: 1rem;
+
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline proximity;
+
+    padding-block-end: 0.625rem;
+  }
+
+  &__bridge {
+    display: none;
+  }
+
+  @include respond-down(lg) {
+    &__container {
+      grid-template-columns: 1fr;
+    }
+
+    &__cards {
+      grid-auto-columns: minmax(15rem, 18rem);
+    }
+  }
+
+  @include respond-down(sm) {
+    &__container {
+      width: min(100% - 1rem, 1320px);
+      padding-block: 0.75rem;
+    }
+
+    &__cards {
+      grid-auto-columns: minmax(14.5rem, 85vw);
+      gap: 0.75rem;
+    }
+  }
+}

@@ -1,0 +1,338 @@
+@use "../../abstracts" as *;
+
+/* ==========================================================================
+   Market Clock
+   ========================================================================== */
+
+.market-summary__clock {
+  --clock-size: 6.25rem;
+  --clock-number-radius: calc(var(--clock-size) * 0.37);
+  --clock-tick-radius: calc(var(--clock-size) * 0.47);
+
+  --clock-panel-bg: color-mix(in oklab, var(--market-summary-bg), white 12%);
+  --clock-face-bg: radial-gradient(circle at center, #405163, #4d6681);
+
+  --clock-number-color: rgb(255 255 255 / 0.82);
+  --clock-tick-minor-color: rgb(255 255 255 / 0.42);
+  --clock-tick-major-color: rgb(255 255 255 / 0.78);
+
+  --clock-hand-color: #fff;
+  --clock-second-color: var(--color-accent);
+
+  min-inline-size: 0;
+  block-size: 100%;
+
+  display: grid;
+  grid-template-columns: var(--clock-size) minmax(0, 1fr);
+  align-items: center;
+  gap: 0.875rem;
+
+  padding: 1rem 1.25rem;
+
+  border: 1px solid var(--market-summary-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--clock-panel-bg);
+  color: var(--market-summary-fg);
+}
+
+/* ==========================================================================
+   Face
+   ========================================================================== */
+
+.clock-face {
+  position: relative;
+
+  inline-size: var(--clock-size);
+  block-size: var(--clock-size);
+
+  border-radius: var(--radius-pill);
+  background: var(--clock-face-bg);
+
+  box-shadow:
+    inset 0 0 0.375rem rgb(0 0 0 / 0.3),
+    0 0 0.1875rem rgb(0 0 0 / 0.2);
+}
+
+.tick-marks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tick,
+.clock-number,
+.clock-hand,
+.clock-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+.tick {
+  inline-size: 0.0625rem;
+  block-size: 0.1875rem;
+
+  background: var(--clock-tick-minor-color);
+
+  transform: translate(-50%, -50%) rotate(var(--rotation))
+    translateY(calc(var(--clock-tick-radius) * -1));
+
+  transform-origin: center;
+}
+
+.tick--major {
+  block-size: 0.3125rem;
+  background: var(--clock-tick-major-color);
+}
+
+/* ==========================================================================
+   Numbers
+   ========================================================================== */
+
+.clock-number {
+  display: none;
+
+  color: var(--clock-number-color);
+
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+
+  transform: translate(-50%, -50%) rotate(var(--angle))
+    translateY(calc(var(--clock-number-radius) * -1))
+    rotate(calc(var(--angle) * -1));
+}
+
+.clock-number--12,
+.clock-number--3,
+.clock-number--6,
+.clock-number--9 {
+  display: block;
+}
+
+/* ==========================================================================
+   Brand
+   ========================================================================== */
+
+.clock-brand {
+  position: absolute;
+  top: 35%;
+  left: 50%;
+  z-index: 2;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--clock-number-color);
+  pointer-events: none;
+
+  transform: translate(-50%, -50%);
+}
+
+.clock-brand__icon {
+  --icon-size: 0.45rem;
+}
+
+/* ==========================================================================
+   Hands
+   ========================================================================== */
+
+.clock-hand {
+  border-radius: var(--radius-pill);
+  background: var(--clock-hand-color);
+
+  transform-origin: center bottom;
+  transform: translate(-50%, -100%) rotate(0deg);
+
+  filter: drop-shadow(0 0.0625rem 0.0625rem rgb(0 0 0 / 0.6))
+    drop-shadow(0 0.125rem 0.125rem rgb(0 0 0 / 0.3));
+
+  will-change: transform;
+}
+
+.hour-hand {
+  inline-size: 0.1875rem;
+  block-size: calc(var(--clock-size) * 0.22);
+  z-index: 3;
+}
+
+.minute-hand {
+  inline-size: 0.125rem;
+  block-size: calc(var(--clock-size) * 0.32);
+  z-index: 2;
+}
+
+.second-hand {
+  inline-size: 0.0625rem;
+  block-size: calc(var(--clock-size) * 0.42);
+  z-index: 1;
+
+  background: var(--clock-second-color);
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+
+    inline-size: 0.0625rem;
+    block-size: calc(var(--clock-size) * 0.1);
+
+    border-radius: inherit;
+    background: inherit;
+
+    transform: translateX(-50%);
+  }
+}
+
+.clock-center {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  z-index: 10;
+
+  border: 1px solid rgb(255 255 255 / 0.8);
+  border-radius: var(--radius-pill);
+
+  background: var(--clock-second-color);
+
+  transform: translate(-50%, -50%);
+
+  box-shadow: 0 0 0.1875rem rgb(0 0 0 / 0.4);
+}
+
+/* ==========================================================================
+   Info
+   ========================================================================== */
+
+.clock-info {
+  min-inline-size: 0;
+
+  display: grid;
+  gap: 0.35rem;
+  align-content: center;
+
+  text-align: start;
+}
+
+.clock-info__time-group,
+.clock-info__date-group {
+  min-inline-size: 0;
+
+  display: grid;
+  gap: 0.15rem;
+  justify-items: start;
+}
+
+.market-summary__location {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  color: var(--market-summary-muted);
+
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.2;
+
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.location-icon {
+  --icon-size: 1rem;
+  flex: 0 0 auto;
+}
+
+.location-text {
+  min-inline-size: 0;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.market-summary__time {
+  color: var(--market-summary-fg);
+
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.03125rem;
+
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.market-summary__day,
+.market-summary__date {
+  color: rgb(255 255 255 / 0.86);
+
+  font-size: 0.8rem;
+  line-height: 1.2;
+
+  white-space: nowrap;
+}
+
+.market-summary__day {
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@include respond-down(md) {
+  .market-summary__clock {
+    --clock-size: 5.5rem;
+
+    grid-template-columns: var(--clock-size) minmax(0, 1fr) auto;
+    gap: 0.875rem;
+
+    padding: 0.875rem 1rem;
+  }
+
+  .clock-face {
+    justify-self: start;
+  }
+
+  .clock-info {
+    display: contents;
+  }
+
+  .clock-info__time-group {
+    min-inline-size: 0;
+    justify-self: stretch;
+    align-self: center;
+  }
+
+  .clock-info__date-group {
+    justify-self: end;
+    align-self: center;
+
+    text-align: end;
+    justify-items: end;
+  }
+}
+
+@include respond-down(sm) {
+  .market-summary__clock {
+    --clock-size: 5.25rem;
+
+    gap: 0.75rem;
+  }
+
+  .market-summary__time {
+    font-size: 1.25rem;
+  }
+
+  .market-summary__location,
+  .market-summary__day,
+  .market-summary__date {
+    font-size: 0.75rem;
+  }
+}

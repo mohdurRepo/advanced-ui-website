@@ -1,0 +1,68 @@
+.market-status {
+  --market-status-color: #9cb3c9;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--market-status-color);
+
+  &::before {
+    content: "";
+    inline-size: 0.625rem;
+    block-size: 0.625rem;
+
+    border-radius: var(--radius-pill);
+    background: currentColor;
+
+    animation: marketStatusPulse 1.4s ease-in-out infinite;
+  }
+
+  &--open {
+    --market-status-color: var(--color-success);
+  }
+
+  &--closed {
+    --market-status-color: var(--color-danger);
+  }
+
+  &--pre-open,
+  &--auction {
+    --market-status-color: var(--color-warning);
+  }
+
+  &--halted {
+    --market-status-color: #fff12c;
+  }
+
+  &--neutral {
+    --market-status-color: #9cb3c9;
+  }
+}
+
+.market-change {
+  &--up {
+    color: var(--color-success);
+  }
+
+  &--down {
+    color: var(--color-danger);
+  }
+
+  &--neutral {
+    color: #9cb3c9;
+  }
+}
+
+@keyframes marketStatusPulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.65;
+    transform: scale(1.18);
+  }
+}
