@@ -1,36 +1,64 @@
 @use "../../abstracts" as *;
 
+/* ==========================================================================
+   Market Summary
+   ========================================================================== */
+
 .market-summary {
   --market-summary-bg: #0b2c41;
-  --market-summary-fg: #ffffff;
+  --market-summary-fg: var(--color-on-dark);
   --market-summary-muted: #a9c4ff;
-  --market-summary-border: rgb(255 255 255 / 0.18);
-  --market-summary-surface: rgb(255 255 255 / 0.08);
 
-  --market-summary-space-start: 0;
-  --market-summary-space-end: 0;
+  --market-summary-border: rgb(255 255 255 / 0.18);
+  --market-summary-border-hover: rgb(255 255 255 / 0.32);
+
+  --market-summary-surface: rgb(255 255 255 / 0.08);
+  --market-summary-surface-active: color-mix(
+    in oklab,
+    var(--market-summary-bg),
+    white 18%
+  );
+
+  --market-summary-container-width: 1320px;
+  --market-summary-container-x: 2rem;
+  --market-summary-container-gap: clamp(1rem, 2vw, 2rem);
+
+  --market-summary-clock-width: 20rem;
   --market-summary-bridge-space: 2.1rem;
 
   padding-block: 0;
+
   background: var(--market-summary-bg);
   color: var(--market-summary-fg);
 
-  &__container {
-    width: min(100% - 2rem, 1320px);
-    margin-inline: auto;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
 
-    padding-block-start: var(--market-summary-space-start);
+  &__container {
+    width: min(
+      100% - var(--market-summary-container-x),
+      var(--market-summary-container-width)
+    );
+    margin-inline: auto;
     padding-block-end: var(--market-summary-bridge-space);
 
     display: grid;
-    grid-template-columns: minmax(20rem, 20rem) minmax(0, 1fr);
-    gap: clamp(1rem, 2vw, 2rem);
+    grid-template-columns:
+      minmax(
+        var(--market-summary-clock-width),
+        var(--market-summary-clock-width)
+      )
+      minmax(0, 1fr);
+    gap: var(--market-summary-container-gap);
     align-items: stretch;
   }
 
   &__cards-wrap {
     position: relative;
+
     min-inline-size: 0;
+
     display: flex;
     align-items: stretch;
   }
@@ -44,28 +72,11 @@
     grid-auto-columns: clamp(15.5rem, 21vw, 17.5rem);
     gap: 1rem;
 
+    padding-block: 0.625rem;
+
     overflow-x: auto;
     overscroll-behavior-inline: contain;
     scroll-snap-type: inline proximity;
-
-    padding-block: 0.625rem;
-
-    scrollbar-width: thin;
-    scrollbar-color: color-mix(in oklab, var(--color-primary), transparent 25%)
-      transparent;
-
-    &::-webkit-scrollbar {
-      block-size: 0.375rem;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: color-mix(in oklab, var(--color-primary), transparent 25%);
-      border-radius: var(--radius-pill);
-    }
-
-    &::-webkit-scrollbar-track {
-      background: transparent;
-    }
   }
 
   &__return-arrow {
@@ -98,9 +109,9 @@
 
     transform: translateY(-50%) scale(0.96);
     transition:
-      opacity 180ms ease,
-      visibility 180ms ease,
-      transform 180ms ease;
+      opacity var(--transition-fast),
+      visibility var(--transition-fast),
+      transform var(--transition-fast);
 
     cursor: pointer;
 
@@ -120,6 +131,7 @@
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
+
       transform: translateY(-50%) scale(1);
       animation: marketReturnArrowPulse 1.15s ease-in-out infinite;
     }
@@ -127,8 +139,8 @@
     &.is-start {
       inset-inline-start: 0;
 
-      border-start-end-radius: 999px;
-      border-end-end-radius: 999px;
+      border-start-end-radius: var(--radius-pill);
+      border-end-end-radius: var(--radius-pill);
       border-inline-start: 0;
 
       &::before {
@@ -139,9 +151,13 @@
     &.is-end {
       inset-inline-end: 0;
 
-      border-start-start-radius: 999px;
-      border-end-start-radius: 999px;
+      border-start-start-radius: var(--radius-pill);
+      border-end-start-radius: var(--radius-pill);
       border-inline-end: 0;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
     }
   }
 
@@ -158,12 +174,8 @@
   }
 
   @include respond-down(sm) {
-    --market-summary-space-start: 0.75rem;
+    --market-summary-container-x: 1rem;
     --market-summary-bridge-space: 2.5rem;
-
-    &__container {
-      width: min(100% - 1rem, 1320px);
-    }
 
     &__cards {
       grid-auto-columns: minmax(14.5rem, 85vw);

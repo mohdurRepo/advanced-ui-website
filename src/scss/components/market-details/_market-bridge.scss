@@ -1,12 +1,15 @@
 @use "../../abstracts" as *;
 
+/* ==========================================================================
+   Market Bridge
+   ========================================================================== */
+
 .market-bridge {
   --market-bridge-height: 3rem;
-  --market-bridge-overlap: 100%;
   --market-bridge-bg: var(--market-details-bg, #334c5c);
 
   position: relative;
-  z-index: 5;
+  z-index: var(--z-base, 5);
 
   block-size: var(--market-bridge-height);
 
@@ -17,13 +20,13 @@
 
   &__inner {
     position: relative;
+    bottom: 1rem;
 
-    width: min(100% - 2rem, 1320px);
+    inline-size: min(100% - 2rem, 1320px);
     block-size: 100%;
     margin-inline: auto;
 
     overflow: hidden;
-    bottom: 1rem;
   }
 
   &__bar {
@@ -32,9 +35,10 @@
     inset-inline-start: 0;
 
     inline-size: 0;
+
     background: var(--market-bridge-bg);
 
-    will-change: transform, inline-size;
+    will-change: inline-size, transform;
   }
 
   @include respond-down(lg) {
@@ -45,7 +49,7 @@
     --market-bridge-height: 2.5rem;
 
     &__inner {
-      width: min(100% - 1rem, 1320px);
+      inline-size: min(100% - 1rem, 1320px);
     }
   }
 }
