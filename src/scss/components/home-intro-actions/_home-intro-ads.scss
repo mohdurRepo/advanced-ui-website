@@ -1,0 +1,48 @@
+@use "../../abstracts" as *;
+
+.home-intro-actions {
+  &__ad {
+    inline-size: 100%;
+    min-block-size: 10rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    background: var(--color-secondary);
+    color: var(--color-on-secondary);
+
+    text-align: center;
+    text-decoration: none;
+
+    transition:
+      transform var(--transition-fast),
+      box-shadow var(--transition-fast);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  &__ad-image {
+    inline-size: 100%;
+    block-size: 100%;
+
+    display: block;
+    object-fit: cover;
+  }
+
+  @include respond-down(lg) {
+    &__ad {
+      inline-size: min(100%, 20rem);
+      min-block-size: 8rem;
+    }
+  }
+}

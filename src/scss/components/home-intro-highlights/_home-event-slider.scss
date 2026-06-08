@@ -1,0 +1,127 @@
+@use "../../abstracts" as *;
+
+.home-event-slider {
+  position: relative;
+
+  min-inline-size: 0;
+  min-block-size: 100%;
+
+  overflow: hidden;
+
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+
+  &__wrapper {
+    min-block-size: 100%;
+  }
+
+  &__slide {
+    block-size: auto;
+  }
+
+  &__card {
+    position: relative;
+
+    min-block-size: clamp(10rem, 20vw, 18rem);
+
+    display: flex;
+    align-items: flex-end;
+
+    overflow: hidden;
+
+    color: #ffffff;
+  }
+
+  &__image {
+    position: absolute;
+    inset: 0;
+
+    inline-size: 100%;
+    block-size: 100%;
+
+    object-fit: cover;
+  }
+
+  &__overlay {
+    position: relative;
+    z-index: 1;
+
+    inline-size: 100%;
+    padding: clamp(1rem, 2vw, 1.5rem);
+
+    background: linear-gradient(
+      to block-start,
+      rgb(0 0 0 / 0.72),
+      rgb(0 0 0 / 0.12),
+      transparent
+    );
+  }
+
+  &__title {
+    margin: 0;
+
+    color: #ffffff;
+    font-size: var(--text-xl);
+    font-weight: 800;
+    line-height: var(--line-height-tight);
+  }
+
+  &__text {
+    margin-block-start: 0.375rem;
+
+    color: rgb(255 255 255 / 0.86);
+    font-size: var(--text-sm);
+    line-height: var(--line-height-normal);
+  }
+
+  .swiper-button-prev,
+  .swiper-button-next {
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+
+    border-radius: var(--radius-pill);
+
+    color: grey;
+
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(8px);
+
+    &::after {
+      font-size: 0.875rem;
+      font-weight: 800;
+    }
+  }
+
+  .swiper-button-prev {
+    inset-inline-start: 0.75rem;
+    inset-inline-end: auto;
+  }
+
+  .swiper-button-next {
+    inset-inline-start: auto;
+    inset-inline-end: 0.75rem;
+  }
+
+  .swiper-pagination {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 1rem;
+    z-index: 3;
+  }
+
+  .swiper-pagination-bullet {
+    background: rgb(255 255 255 / 0.75);
+    opacity: 1;
+  }
+
+  .swiper-pagination-bullet-active {
+    background: var(--color-primary);
+  }
+
+  @include respond-down(sm) {
+    &__card {
+      min-block-size: 18rem;
+    }
+  }
+}

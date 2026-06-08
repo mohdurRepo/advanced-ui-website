@@ -16,6 +16,7 @@
     "datatables.net-dt": "^2.3.8",
     "datatables.net-fixedheader-dt": "^4.0.6",
     "datatables.net-rowgroup-dt": "^1.6.0",
-    "jquery": "^4.0.0"
+    "jquery": "^4.0.0",
+    "swiper": "^12.2.0"
   }
 }

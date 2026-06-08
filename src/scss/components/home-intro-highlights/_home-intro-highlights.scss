@@ -1,0 +1,52 @@
+@use "../../abstracts" as *;
+
+.home-intro-highlights {
+  padding-block: clamp(1.5rem, 3vw, 2.5rem);
+
+  &__grid {
+    min-inline-size: 0;
+
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: clamp(1rem, 2vw, 1.5rem);
+    align-items: stretch;
+  }
+
+  &__side,
+  &__media-grid {
+    min-inline-size: 0;
+    min-block-size: 100%;
+  }
+
+  &__media-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(14rem, 5fr);
+    gap: clamp(1rem, 2vw, 1.5rem);
+    align-items: stretch;
+  }
+
+  @include respond-down(lg) {
+    &__grid {
+      grid-template-columns: 1fr;
+    }
+
+    &__media-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(14rem, 0.7fr);
+    }
+  }
+
+  @include respond-down(md) {
+    &__media-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @include respond-down(sm) {
+    padding-block: 1.5rem;
+
+    &__grid,
+    &__media-grid {
+      gap: 1rem;
+    }
+  }
+}

@@ -1,0 +1,46 @@
+@use "../../abstracts" as *;
+
+.home-intro-actions {
+  &__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  &__button {
+    --btn-bg: var(--color-surface);
+    --btn-color: var(--color-text);
+    --btn-border-color: var(--color-border);
+
+    --btn-hover-bg: var(--color-surface-alt);
+    --btn-hover-color: var(--color-heading);
+    --btn-hover-border-color: var(--color-border-strong);
+
+    min-block-size: 2.25rem;
+    min-inline-size: auto;
+
+    padding: 0.5rem 0.875rem;
+
+    font-size: var(--text-xs);
+    font-weight: 700;
+  }
+
+  &__button-icon {
+    --icon-size: 0.875rem;
+
+    flex: 0 0 auto;
+    color: var(--home-intro-accent);
+  }
+
+  @include respond-down(sm) {
+    &__buttons {
+      inline-size: 100%;
+      gap: 0.5rem;
+    }
+
+    &__button {
+      flex: 1 1 auto;
+    }
+  }
+}

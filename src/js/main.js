@@ -13,6 +13,9 @@ import { initForms } from "./components/form";
 import { initHeader } from "./components/header";
 import { initMarketSummary } from "./components/market-summary";
 import { initMarketDetails } from "./components/market-details";
+import { initHomeEventSlider } from "./components/intro-section/home-event-slider";
+import { initHomeCountdownSlider } from "./components/intro-section/home-countdown-slider";
+import { initHomeVideoPlayer } from "./components/intro-section/home-video-player";
 
 initHeader();
 window.renderDataTable = renderDataTable;
@@ -27,3 +30,6 @@ initDropdowns();
 initForms();
 initMarketSummary();
 initMarketDetails();
+initHomeEventSlider();
+initHomeCountdownSlider();
+initHomeVideoPlayer();

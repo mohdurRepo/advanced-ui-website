@@ -1,0 +1,102 @@
+@use "../../abstracts" as *;
+
+.home-video-card {
+  min-inline-size: 0;
+  min-block-size: 100%;
+
+  overflow: hidden;
+
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+
+  &__wrapper {
+    position: relative;
+
+    block-size: 100%;
+    min-block-size: clamp(10rem, 20vw, 18rem);
+
+    overflow: hidden;
+    cursor: pointer;
+
+    &:hover {
+      .home-video-card__thumbnail {
+        transform: scale(1.03);
+      }
+
+      .home-video-card__play {
+        transform: translate(-50%, -50%) scale(1.05);
+      }
+    }
+  }
+
+  &__thumbnail,
+  &__video {
+    inline-size: 100%;
+    block-size: 100%;
+
+    display: block;
+    object-fit: cover;
+  }
+
+  &__thumbnail {
+    transition: transform var(--transition-normal);
+  }
+
+  &__play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+
+    inline-size: 4rem;
+    block-size: 4rem;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 0;
+    border-radius: var(--radius-pill);
+
+    background: rgb(255 255 255 / 0.92);
+    color: var(--color-primary);
+
+    box-shadow: var(--shadow-md);
+
+    transform: translate(-50%, -50%);
+
+    transition:
+      transform var(--transition-fast),
+      background-color var(--transition-fast);
+
+    cursor: pointer;
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+
+    .icon,
+    svg {
+      inline-size: 2rem;
+      block-size: 2rem;
+      fill: currentColor;
+    }
+  }
+
+  @include respond-down(sm) {
+    &__wrapper {
+      min-block-size: 16rem;
+    }
+
+    &__play {
+      inline-size: 3.5rem;
+      block-size: 3.5rem;
+
+      .icon,
+      svg {
+        inline-size: 1.75rem;
+        block-size: 1.75rem;
+      }
+    }
+  }
+}
