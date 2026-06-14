@@ -4,12 +4,166 @@
    Surface Utilities
    ========================================================================== */
 
+/*
+|--------------------------------------------------------------------------
+| Default Surface
+|--------------------------------------------------------------------------
+|
+| Uses the current theme tokens (light/dark).
+|
+*/
+
 .surface {
   background: var(--color-surface);
   color: var(--color-text);
 }
 
+/*
+|--------------------------------------------------------------------------
+| Page Background Surface
+|--------------------------------------------------------------------------
+|
+| Uses the application background color.
+|
+*/
+
+.surface-bg {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/*
+|--------------------------------------------------------------------------
+| Explicit Light Surface
+|--------------------------------------------------------------------------
+|
+| Forces a light card/section appearance regardless of theme.
+|
+*/
+
+.surface-light {
+  background: var(--color-light);
+  color: var(--color-on-light);
+
+  --color-surface: var(--color-light);
+  --color-surface-alt: var(--color-light-hover);
+
+  --color-text: var(--color-on-light);
+  --color-heading: var(--color-on-light);
+  --color-text-muted: #64707a;
+
+  --color-border: #d7dde3;
+  --color-border-strong: #bcc6cf;
+
+  --scrollbar-thumb: rgb(0 31 51 / 0.18);
+  --scrollbar-thumb-hover: rgb(0 31 51 / 0.3);
+  --scrollbar-track: transparent;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Explicit Dark Surface
+|--------------------------------------------------------------------------
+|
+| Forces a dark card/section appearance regardless of theme.
+|
+*/
+
+.surface-dark {
+  background: var(--color-dark);
+  color: var(--color-on-dark);
+
+  --color-surface: var(--color-dark);
+  --color-surface-alt: var(--color-dark-hover);
+
+  --color-text: var(--color-on-dark);
+  --color-heading: var(--color-on-dark);
+  --color-text-muted: rgb(255 255 255 / 0.72);
+
+  --color-border: rgb(255 255 255 / 0.12);
+  --color-border-strong: rgb(255 255 255 / 0.22);
+
+  --scrollbar-thumb: rgb(255 255 255 / 0.28);
+  --scrollbar-thumb-hover: rgb(255 255 255 / 0.46);
+  --scrollbar-track: transparent;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Brand Surface
+|--------------------------------------------------------------------------
+|
+| Primary branded sections.
+|
+*/
+
+.surface-brand {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+
+  --color-surface: var(--color-primary);
+  --color-surface-alt: var(--color-primary-hover);
+
+  --color-text: var(--color-on-primary);
+  --color-heading: var(--color-on-primary);
+  --color-text-muted: rgb(255 255 255 / 0.78);
+
+  --color-border: rgb(255 255 255 / 0.16);
+  --color-border-strong: rgb(255 255 255 / 0.28);
+
+  --scrollbar-thumb: rgb(255 255 255 / 0.32);
+  --scrollbar-thumb-hover: rgb(255 255 255 / 0.5);
+  --scrollbar-track: transparent;
+}
+
+/* ==========================================================================
+   Insights Surface
+   ========================================================================== */
+
+.surface-insights {
+  background: #cbdbf9;
+  color: #001f33;
+
+  --color-surface: #00243a;
+  --color-surface-alt: #0a3148;
+
+  --color-text: #ffffff;
+  --color-heading: #ffffff;
+  --color-text-muted: rgb(255 255 255 / 0.72);
+
+  --color-border: rgb(255 255 255 / 0.08);
+  --color-border-strong: rgb(255 255 255 / 0.14);
+
+  --tabs-bg: transparent;
+  --tabs-pill-bg: transparent;
+
+  --tabs-pill-color: rgb(255 255 255 / 0.72);
+  --tabs-pill-hover-bg: rgb(255 255 255 / 0.08);
+  --tabs-pill-hover-color: #ffffff;
+
+  --tabs-pill-active-bg: #ffffff;
+  --tabs-pill-active-color: #001f33;
+
+  --calendar-accent: #17d4bb;
+
+  --scrollbar-thumb: rgb(255 255 255 / 0.22);
+  --scrollbar-thumb-hover: rgb(255 255 255 / 0.36);
+  --scrollbar-track: transparent;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Market Surface
+|--------------------------------------------------------------------------
+|
+| Special market area appearance.
+|
+*/
+
 .surface-market {
+  background: #254456;
+  color: #ffffff;
+
   --color-surface: #254456;
   --color-surface-alt: #1f4a60;
 
@@ -27,6 +181,8 @@
 
 html[data-theme="dark"] {
   .surface-market {
+    background: #102f45;
+
     --color-surface: #102f45;
     --color-surface-alt: #0b2233;
 

@@ -1,62 +1,162 @@
+@use "../abstracts" as *;
+
+/* ==========================================================================
+   Tabs
+   ========================================================================== */
+
 .tabs {
-  width: 100%;
+  --tabs-gap: 0.5rem;
+  --tabs-nav-border: var(--color-border);
+  --tabs-content-space: 1.5rem;
+
+  --tab-bg: transparent;
+  --tab-color: var(--color-text-muted);
+  --tab-border: transparent;
+
+  --tab-hover-bg: transparent;
+  --tab-hover-color: var(--color-text);
+
+  --tab-active-bg: transparent;
+  --tab-active-color: var(--color-primary);
+  --tab-active-border: var(--color-primary);
+
+  inline-size: 100%;
 }
 
 .tabs-nav {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--tabs-gap);
 
-  border-bottom: 1px solid var(--color-border);
+  border-block-end: 1px solid var(--tabs-nav-border);
 
   overflow-x: auto;
   scrollbar-width: none;
-}
 
-.tabs-nav::-webkit-scrollbar {
-  display: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .tab-link {
   appearance: none;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  min-block-size: 2.75rem;
+
+  padding: 0.75rem 1rem;
+
   border: 0;
-  background: transparent;
+  border-block-end: 2px solid var(--tab-border);
 
-  cursor: pointer;
+  background: var(--tab-bg);
+  color: var(--tab-color);
 
-  padding: 0.875rem 1rem;
-
-  color: var(--color-text-muted);
-
+  font: inherit;
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1;
 
   white-space: nowrap;
-
-  border-bottom: 2px solid transparent;
+  cursor: pointer;
 
   transition:
+    background-color var(--transition-fast),
     color var(--transition-fast),
-    border-color var(--transition-fast);
-}
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 
-.tab-link:hover {
-  color: var(--color-text);
-}
+  &:hover {
+    background: var(--tab-hover-bg);
+    color: var(--tab-hover-color);
+  }
 
-.tab-link.active {
-  color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.active,
+  &[aria-selected="true"] {
+    background: var(--tab-active-bg);
+    color: var(--tab-active-color);
+    border-color: var(--tab-active-border);
+  }
 }
 
 .tabs-content {
-  padding-top: 1.5rem;
+  padding-block-start: var(--tabs-content-space);
 }
 
 .tab-pane {
   display: none;
+
+  &.active,
+  &[data-active="true"] {
+    display: block;
+  }
 }
 
-.tab-pane.active {
-  display: block;
+/* ==========================================================================
+   Pill Tabs Variant
+   ========================================================================== */
+
+.tabs--pill {
+  --tabs-gap: 0.5rem;
+  --tabs-nav-border: transparent;
+  --tabs-content-space: 1rem;
+
+  --tab-bg: transparent;
+  --tab-color: var(--color-text-muted);
+  --tab-border: transparent;
+
+  --tab-hover-bg: var(--color-surface-alt);
+  --tab-hover-color: var(--color-heading);
+
+  --tab-active-bg: var(--color-light);
+  --tab-active-color: var(--color-on-light);
+  --tab-active-border: transparent;
+
+  .tabs-nav {
+    padding-block: 0.5rem;
+    border-block-end: 0;
+  }
+
+  .tab-link {
+    flex: 1 1 auto;
+
+    min-block-size: 2.5rem;
+
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Compact Tabs Variant
+   ========================================================================== */
+
+.tabs--compact {
+  --tabs-content-space: 1rem;
+
+  .tab-link {
+    min-block-size: 2.25rem;
+    padding: 0.5rem 0.875rem;
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Full Width Tabs Variant
+   ========================================================================== */
+
+.tabs--full {
+  .tab-link {
+    flex: 1 1 0;
+  }
 }

@@ -16,6 +16,7 @@ import { initMarketDetails } from "./components/market-details";
 import { initHomeEventSlider } from "./components/intro-section/home-event-slider";
 import { initHomeCountdownSlider } from "./components/intro-section/home-countdown-slider";
 import { initHomeVideoPlayer } from "./components/intro-section/home-video-player";
+import { initCalendar } from "./components/calendar";
 
 initHeader();
 window.renderDataTable = renderDataTable;
@@ -33,3 +34,4 @@ initMarketDetails();
 initHomeEventSlider();
 initHomeCountdownSlider();
 initHomeVideoPlayer();
+initCalendar();

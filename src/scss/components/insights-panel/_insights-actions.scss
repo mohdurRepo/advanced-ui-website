@@ -1,0 +1,12 @@
+@use "../../abstracts" as *;
+
+/* ==========================================================================
+   Insights Actions
+   ========================================================================== */
+
+.insights-actions {
+  display: flex;
+  justify-content: flex-end;
+
+  margin-block-start: 1rem;
+}

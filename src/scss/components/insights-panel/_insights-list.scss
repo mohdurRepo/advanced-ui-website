@@ -1,0 +1,133 @@
+@use "../../abstracts" as *;
+
+/* ==========================================================================
+   Insights List
+   ========================================================================== */
+
+.insights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  min-block-size: 0;
+
+  &__item {
+    border-block-end: 1px solid var(--color-border);
+
+    &:last-child {
+      border-block-end: 0;
+    }
+  }
+
+  &__link {
+    min-inline-size: 0;
+
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.875rem;
+    align-items: center;
+
+    padding-block: 0.875rem;
+
+    color: inherit;
+    text-decoration: none;
+
+    transition:
+      background-color var(--transition-fast),
+      color var(--transition-fast);
+
+    &:hover {
+      background: color-mix(
+        in oklab,
+        var(--color-surface-alt),
+        transparent 45%
+      );
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  &__logo {
+    inline-size: 3rem;
+    block-size: 3rem;
+
+    flex: 0 0 auto;
+
+    border-radius: var(--radius-sm);
+
+    object-fit: contain;
+
+    background: var(--color-surface-alt);
+  }
+
+  &__content {
+    min-inline-size: 0;
+
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  &__title {
+    margin: 0;
+
+    color: var(--color-heading);
+
+    font-size: var(--text-sm);
+    font-weight: 700;
+    line-height: var(--line-height-normal);
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.625rem;
+
+    color: var(--color-text-muted);
+
+    font-size: var(--text-xs);
+    line-height: var(--line-height-tight);
+  }
+
+  &__symbol {
+    font-weight: 700;
+  }
+
+  &__change {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+
+    &--negative {
+      color: var(--color-danger);
+    }
+
+    &--positive {
+      color: var(--color-success);
+    }
+
+    &--neutral {
+      color: var(--color-text-muted);
+    }
+  }
+
+  &__date {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @include respond-down(sm) {
+    &__link {
+      grid-template-columns: 1fr;
+    }
+
+    &__logo {
+      display: none;
+    }
+  }
+}

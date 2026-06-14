@@ -1,0 +1,29 @@
+@use "../../abstracts" as *;
+
+/* ==========================================================================
+   Insights Panel
+   ========================================================================== */
+
+.insights-panel {
+  display: flex;
+  flex-direction: column;
+
+  min-block-size: 100%;
+
+  padding: 1.5rem;
+
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
+
+  box-shadow: var(--shadow-md);
+
+  &__tabs {
+    flex: 1 1 auto;
+    min-block-size: 0;
+  }
+
+  @include respond-down(sm) {
+    padding: 1rem;
+  }
+}

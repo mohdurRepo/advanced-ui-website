@@ -1,0 +1,30 @@
+@use "../../abstracts" as *;
+
+.announcements-calendar {
+  &__surface {
+    padding: clamp(1.25rem, 3vw, 2rem);
+
+    background: #cbdbf9;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(20rem, 0.95fr);
+    gap: clamp(1rem, 2vw, 1.5rem);
+    align-items: stretch;
+  }
+
+  &__column {
+    min-inline-size: 0;
+
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 1rem;
+  }
+
+  @include respond-down(lg) {
+    &__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}
