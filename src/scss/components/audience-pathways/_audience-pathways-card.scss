@@ -1,0 +1,149 @@
+@use "../../abstracts" as *;
+
+/* ==========================================================================
+   Audience Pathways Card
+   ========================================================================== */
+
+.audience-pathways-card {
+  display: grid;
+  gap: 0.875rem;
+
+  color: var(--color-text);
+  text-decoration: none;
+
+  &:hover {
+    .audience-pathways-card__image {
+      transform: scale(1.05);
+    }
+
+    .audience-pathways-card__arrow {
+      transform: translate(0.2rem, -0.2rem);
+    }
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &__media {
+    position: relative;
+
+    aspect-ratio: 4 / 5;
+
+    overflow: hidden;
+
+    background: var(--color-surface-alt);
+  }
+
+  &__image {
+    inline-size: 100%;
+    block-size: 100%;
+
+    display: block;
+    object-fit: cover;
+
+    transition: transform var(--transition-normal);
+  }
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    align-items: flex-end;
+
+    padding: 0.875rem;
+
+    background: linear-gradient(
+      to top,
+      rgb(0 38 128 / 0.96) 0%,
+      rgb(0 69 227 / 0.78) 26%,
+      rgb(0 69 227 / 0.34) 48%,
+      transparent 72%
+    );
+  }
+
+  &__title {
+    inline-size: 100%;
+    max-inline-size: none;
+    margin: 0;
+
+    color: #ffffff;
+
+    font-size: clamp(1rem, 1.25vw, 1.25rem);
+    font-weight: 500;
+    line-height: 1.18;
+
+    text-shadow: 0 0.25rem 0.875rem rgb(0 0 0 / 0.25);
+  }
+
+  &__arrow {
+    position: absolute;
+    z-index: 2;
+
+    inset-block-start: 0.75rem;
+    inset-inline-end: 0.75rem;
+
+    --icon-size: 1.25rem;
+
+    color: #ffffff;
+
+    transition: transform var(--transition-fast);
+  }
+
+  &__text {
+    margin: 0;
+
+    color: var(--color-text);
+
+    font-size: var(--text-sm);
+    font-weight: 600;
+    line-height: var(--line-height-normal);
+  }
+
+  [dir="rtl"] & {
+    &:hover {
+      .audience-pathways-card__arrow {
+        transform: translate(-0.2rem, -0.2rem);
+      }
+    }
+  }
+
+  @include respond-down(md) {
+    &__media {
+      aspect-ratio: 16 / 9;
+    }
+
+    &__title {
+      font-size: var(--text-xl);
+    }
+  }
+
+  @include respond-down(sm) {
+    &__media {
+      aspect-ratio: 3 / 2;
+    }
+
+    &__title {
+      font-size: var(--text-lg);
+    }
+
+    &__text {
+      font-size: var(--text-xs);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &__image,
+    &__arrow {
+      transition: none;
+    }
+
+    &:hover {
+      .audience-pathways-card__image,
+      .audience-pathways-card__arrow {
+        transform: none;
+      }
+    }
+  }
+}
