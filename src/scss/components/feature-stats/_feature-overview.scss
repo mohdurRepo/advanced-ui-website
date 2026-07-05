@@ -1,0 +1,107 @@
+@use "../../abstracts" as *;
+
+/* ==========================================================================
+   Feature Overview
+   ========================================================================== */
+
+.feature-overview {
+  padding-block: clamp(3rem, 6vw, 5rem);
+
+  background: var(--color-bg);
+  color: var(--color-text);
+
+  &__container {
+    width: min(100% - 2rem, 1320px);
+    margin-inline: auto;
+  }
+
+  &__header {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: start;
+
+    margin-block-end: clamp(2rem, 4vw, 3rem);
+  }
+
+  &__eyebrow {
+    margin: 0 0 0.75rem;
+
+    color: var(--color-text-muted);
+
+    font-size: var(--text-xs);
+    font-weight: 700;
+    line-height: var(--line-height-tight);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &__title {
+    margin: 0;
+
+    color: var(--color-heading);
+
+    font-size: clamp(2rem, 3vw, 3rem);
+    font-weight: 800;
+    line-height: var(--line-height-tight);
+  }
+
+  &__intro {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  &__heading {
+    margin: 0;
+  }
+
+  &__description {
+    max-inline-size: 42rem;
+    margin: 0;
+
+    color: var(--color-text-muted);
+
+    font-size: clamp(1rem, 1.4vw, 1.25rem);
+    font-weight: 400;
+    line-height: 1.55;
+  }
+
+  &__subheading {
+    margin: 0 0 1rem;
+
+    color: var(--color-heading);
+
+    font-size: clamp(1.25rem, 2vw, 1.75rem);
+    font-weight: 700;
+    line-height: var(--line-height-tight);
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(1rem, 2vw, 1.5rem);
+  }
+
+  @include respond-down(lg) {
+    &__header {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    &__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @include respond-down(sm) {
+    padding-block: 2.5rem;
+
+    &__container {
+      width: min(100% - 1rem, 1320px);
+    }
+
+    &__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}

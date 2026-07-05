@@ -17,6 +17,7 @@ import { initHomeEventSlider } from "./components/intro-section/home-event-slide
 import { initHomeCountdownSlider } from "./components/intro-section/home-countdown-slider";
 import { initHomeVideoPlayer } from "./components/intro-section/home-video-player";
 import { initCalendar } from "./components/calendar";
+import { initFeatureOverview } from "./components/feature-overview";
 
 initHeader();
 window.renderDataTable = renderDataTable;
@@ -35,3 +36,4 @@ initHomeEventSlider();
 initHomeCountdownSlider();
 initHomeVideoPlayer();
 initCalendar();
+initFeatureOverview();
