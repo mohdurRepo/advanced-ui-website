@@ -1,0 +1,194 @@
+@use "../../abstracts" as *;
+
+/* ==========================================================================
+   App Download
+   ========================================================================== */
+
+.app-download {
+  padding-block: clamp(3rem, 6vw, 5rem);
+
+  background: var(--color-bg);
+  color: var(--color-text);
+
+  &__container {
+    inline-size: min(100% - 2rem, 1320px);
+    margin-inline: auto;
+  }
+
+  &__surface {
+    padding: clamp(1rem, 2vw, 1.5rem);
+
+    background: #cbdbf9;
+  }
+
+  &__panel {
+    position: relative;
+    isolation: isolate;
+
+    min-block-size: clamp(24rem, 42vw, 36rem);
+
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: stretch;
+
+    overflow: hidden;
+
+    background: #001f2e;
+    color: #ffffff;
+  }
+
+  &__content {
+    position: relative;
+    z-index: 2;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    padding: clamp(2rem, 5vw, 4rem);
+  }
+
+  &__logo {
+    inline-size: clamp(9rem, 15vw, 13rem);
+    block-size: auto;
+
+    margin-block-end: clamp(1.75rem, 3vw, 2.5rem);
+  }
+
+  &__title {
+    margin: 0;
+
+    color: #ffffff;
+
+    font-size: clamp(1.75rem, 3vw, 3rem);
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  &__text {
+    max-inline-size: 29rem;
+    margin: clamp(1rem, 2vw, 1.5rem) 0 0;
+
+    color: rgb(255 255 255 / 0.62);
+
+    font-size: clamp(1rem, 1.6vw, 1.5rem);
+    font-weight: 400;
+    line-height: 1.45;
+  }
+
+  &__stores {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.875rem;
+
+    margin-block-start: clamp(3rem, 6vw, 5.5rem);
+  }
+
+  &__store-link {
+    display: inline-flex;
+
+    transition:
+      transform var(--transition-fast),
+      opacity var(--transition-fast);
+
+    &:hover {
+      opacity: 0.9;
+      transform: translateY(-0.125rem);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  &__store-image {
+    block-size: clamp(2rem, 2.6vw, 2.625rem);
+    inline-size: auto;
+
+    display: block;
+  }
+
+  &__media {
+    position: relative;
+    z-index: 1;
+
+    min-inline-size: 0;
+
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-end;
+  }
+
+  &__mockup {
+    inline-size: 100%;
+    block-size: 100%;
+
+    display: block;
+
+    object-fit: cover;
+    object-position: center right;
+  }
+
+  @include respond-down(lg) {
+    &__panel {
+      grid-template-columns: 1fr;
+      min-block-size: auto;
+    }
+
+    &__content {
+      align-items: center;
+      text-align: center;
+      padding-block-end: 2rem;
+    }
+
+    &__text {
+      max-inline-size: 34rem;
+    }
+
+    &__stores {
+      justify-content: center;
+      margin-block-start: 2rem;
+    }
+
+    &__media {
+      min-block-size: 22rem;
+      justify-content: center;
+    }
+
+    &__mockup {
+      object-position: center;
+    }
+  }
+
+  @include respond-down(sm) {
+    padding-block: 2.5rem;
+
+    &__container {
+      inline-size: min(100% - 1rem, 1320px);
+    }
+
+    &__surface {
+      padding: 0.75rem;
+    }
+
+    &__content {
+      padding: 1.5rem;
+    }
+
+    &__title {
+      font-size: var(--text-2xl);
+    }
+
+    &__text {
+      font-size: var(--text-base);
+    }
+
+    &__store-image {
+      block-size: 2rem;
+    }
+
+    &__media {
+      min-block-size: 16rem;
+    }
+  }
+}
