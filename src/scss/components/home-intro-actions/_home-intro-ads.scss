@@ -3,7 +3,7 @@
 .home-intro-actions {
   &__ad {
     inline-size: 100%;
-    min-block-size: 10rem;
+    min-block-size: 15rem;
 
     display: flex;
     align-items: center;
@@ -43,6 +43,7 @@
     &__ad {
       inline-size: min(100%, 20rem);
       min-block-size: 8rem;
+      width: 100%;
     }
   }
 }

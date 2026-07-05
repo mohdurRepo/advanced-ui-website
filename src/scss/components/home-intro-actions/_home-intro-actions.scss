@@ -5,7 +5,7 @@
   --home-intro-muted: var(--color-text-muted);
   --home-intro-accent: var(--color-primary);
 
-  padding-block: clamp(1.5rem, 3vw, 2.5rem);
+  padding: clamp(1.5rem, 3vw, 2.5rem);
 
   color: var(--home-intro-fg);
 
@@ -35,7 +35,6 @@
 
     color: var(--home-intro-fg);
 
-    font-size: clamp(1.5rem, 2.4vw, 2.5rem);
     font-weight: 800;
     line-height: 1.25;
 
