@@ -1,0 +1,37 @@
+@use "../../abstracts" as *;
+
+.site-footer-bottom {
+  background: var(--footer-accent);
+  color: var(--color-on-primary);
+
+  &__container {
+    inline-size: min(100% - 2rem, 1320px);
+    min-block-size: 4rem;
+
+    margin-inline: auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+  }
+
+  &__text {
+    margin: 0;
+
+    font-size: var(--text-sm);
+    font-weight: 700;
+  }
+
+  @include respond-down(sm) {
+    &__container {
+      inline-size: min(100% - 1rem, 1320px);
+      min-block-size: 3.5rem;
+    }
+
+    &__text {
+      font-size: var(--text-xs);
+    }
+  }
+}

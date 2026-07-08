@@ -1,0 +1,124 @@
+@use "../../abstracts" as *;
+
+.site-footer {
+  --footer-bg: #001f2e;
+  --footer-text: rgb(255 255 255 / 0.76);
+  --footer-heading: #ffffff;
+  --footer-muted: rgb(255 255 255 / 0.56);
+  --footer-border: rgb(255 255 255 / 0.06);
+  --footer-accent: var(--color-primary);
+  --footer-pattern: url("../../assets/images/background-pattern.png");
+
+  padding-block-start: clamp(2.5rem, 5vw, 4rem);
+
+  background: var(--color-bg);
+  color: var(--footer-text);
+
+  &__container {
+    inline-size: min(100% - 2rem, 1320px);
+    margin-inline: auto;
+  }
+
+  &__surface {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+
+    background: var(--footer-bg);
+  }
+
+  &__surface::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+
+    inset-inline-start: 34%;
+    inset-block-end: -16rem;
+
+    inline-size: min(54rem, 68vw);
+    block-size: min(54rem, 68vw);
+
+    background-image: var(--footer-pattern);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+
+    opacity: 0.22;
+    pointer-events: none;
+  }
+
+  &__main {
+    display: grid;
+    grid-template-columns: minmax(18rem, 0.9fr) minmax(0, 1.9fr);
+    grid-template-areas:
+      "brand nav"
+      "social nav";
+
+    min-block-size: clamp(28rem, 46vw, 40rem);
+  }
+
+  &__brand {
+    grid-area: brand;
+
+    padding: clamp(2rem, 3.5vw, 3.25rem);
+
+    border-inline-end: 1px solid var(--footer-border);
+  }
+
+  &__navigation {
+    grid-area: nav;
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  &__social {
+    grid-area: social;
+
+    padding: 0 clamp(2rem, 3.5vw, 3.25rem) clamp(2rem, 3.5vw, 3.25rem);
+
+    border-inline-end: 1px solid var(--footer-border);
+  }
+
+  @include respond-down(lg) {
+    &__main {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "brand"
+        "nav"
+        "social";
+
+      min-block-size: auto;
+    }
+
+    &__brand {
+      border-inline-end: 0;
+      border-block-end: 1px solid var(--footer-border);
+    }
+
+    &__social {
+      border-inline-end: 0;
+      border-block-start: 1px solid var(--footer-border);
+      padding: 2rem clamp(2rem, 3.5vw, 3.25rem);
+    }
+  }
+
+  @include respond-down(md) {
+    &__navigation {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @include respond-down(sm) {
+    padding-block-start: 2.5rem;
+
+    &__container {
+      inline-size: min(100% - 1rem, 1320px);
+    }
+
+    &__brand,
+    &__social {
+      padding: 2rem 1.25rem;
+    }
+  }
+}

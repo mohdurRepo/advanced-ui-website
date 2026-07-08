@@ -1155,7 +1155,8 @@
         </section>
       </div>
     </aside>
-    <main>
+    <main id="main-content" class="page">
+      <div class="page__background" aria-hidden="true"></div>
       <section class="market-summary">
         <div class="market-summary__container">
           <div class="market-summary__clock">
@@ -1405,15 +1406,6 @@
       </div>
 
       <section class="intro-section">
-        <div class="intro-section__background" aria-hidden="true">
-          <div
-            class="intro-section__gradient intro-section__gradient--top"
-          ></div>
-          <div
-            class="intro-section__gradient intro-section__gradient--bottom"
-          ></div>
-          <div class="intro-section__media intro-section__media--default"></div>
-        </div>
         <div class="intro-section__content">
           <div class="intro-section__container">
             <!-- Main Market / TASI -->
@@ -3611,322 +3603,325 @@
           </div>
         </div>
       </section>
-      <section class="home-intro-highlights" aria-label="Featured highlights">
-        <div class="home-intro-highlights__grid">
-          <div class="home-intro-highlights__side">
-            <div class="home-event-slider swiper" data-home-event-slider>
-              <div class="home-event-slider__wrapper swiper-wrapper">
-                <div class="home-event-slider__slide swiper-slide">
-                  <article class="home-event-slider__card">
-                    <img
-                      class="home-event-slider__image"
-                      src="assets/images/swiper1.png"
-                      alt="CMF 2025 Event"
-                      loading="lazy"
-                    />
+      <section class="home-highlights" aria-label="Featured highlights">
+        <div class="home-highlights__container">
+          <div class="home-highlights__grid">
+            <div class="home-highlights__side">
+              <div class="home-event-slider swiper" data-home-event-slider>
+                <div class="home-event-slider__wrapper swiper-wrapper">
+                  <div class="home-event-slider__slide swiper-slide">
+                    <article class="home-event-slider__card">
+                      <img
+                        class="home-event-slider__image"
+                        src="assets/images/swiper1.png"
+                        alt="CMF 2025 Event"
+                        loading="lazy"
+                      />
 
-                    <div class="home-event-slider__overlay">
-                      <h3 class="home-event-slider__title">CMF 2025</h3>
-                      <p class="home-event-slider__text">
-                        Be part of the largest market conference
-                      </p>
-                    </div>
-                  </article>
+                      <div class="home-event-slider__overlay">
+                        <h3 class="home-event-slider__title">CMF 2025</h3>
+                        <p class="home-event-slider__text">
+                          Be part of the largest market conference
+                        </p>
+                      </div>
+                    </article>
+                  </div>
+
+                  <div class="home-event-slider__slide swiper-slide">
+                    <article class="home-event-slider__card">
+                      <img
+                        class="home-event-slider__image"
+                        src="assets/images/swiper1.png"
+                        alt="CMF 2026"
+                        loading="lazy"
+                      />
+
+                      <div class="home-event-slider__overlay">
+                        <h3 class="home-event-slider__title">CMF 2026</h3>
+                        <p class="home-event-slider__text">
+                          Join leading investors, issuers, and market
+                          participants
+                        </p>
+                      </div>
+                    </article>
+                  </div>
                 </div>
-
-                <div class="home-event-slider__slide swiper-slide">
-                  <article class="home-event-slider__card">
-                    <img
-                      class="home-event-slider__image"
-                      src="assets/images/swiper1.png"
-                      alt="CMF 2026"
-                      loading="lazy"
-                    />
-
-                    <div class="home-event-slider__overlay">
-                      <h3 class="home-event-slider__title">CMF 2026</h3>
-                      <p class="home-event-slider__text">
-                        Join leading investors, issuers, and market participants
-                      </p>
-                    </div>
-                  </article>
-                </div>
-              </div>
-
-              <button
-                class="swiper-button-prev"
-                type="button"
-                aria-label="Previous event"
-              ></button>
-
-              <button
-                class="swiper-button-next"
-                type="button"
-                aria-label="Next event"
-              ></button>
-
-              <div class="swiper-pagination"></div>
-            </div>
-          </div>
-
-          <div class="home-intro-highlights__media-grid">
-            <article class="home-video-card">
-              <div
-                class="home-video-card__wrapper"
-                data-home-video
-                data-video-url="assets/videos/STG-18-Feb.mp4"
-              >
-                <img
-                  class="home-video-card__thumbnail"
-                  src="assets/images/video.png"
-                  alt="Video preview"
-                  loading="lazy"
-                />
 
                 <button
-                  class="home-video-card__play has-icon icon-play"
+                  class="swiper-button-prev"
                   type="button"
-                  aria-label="Play video"
-                  data-home-video-play
+                  aria-label="Previous event"
                 ></button>
-              </div>
-            </article>
 
-            <section
-              class="home-countdown-card"
-              aria-label="Upcoming activities"
-            >
-              <div
-                class="home-countdown-card__swiper swiper"
-                data-home-countdown-slider
-              >
-                <div class="swiper-wrapper">
-                  <div class="home-countdown-card__slide swiper-slide">
-                    <article
-                      class="home-countdown-card__body home-countdown-card--ipo"
-                    >
-                      <h3 class="home-countdown-card__header">IPO</h3>
-
-                      <div class="home-countdown-card__list">
-                        <div class="home-countdown-card__item">
-                          <div class="home-countdown-card__counter">
-                            <strong class="home-countdown-card__days"
-                              >05</strong
-                            >
-                            <span class="home-countdown-card__label"
-                              >Days Left</span
-                            >
-                          </div>
-
-                          <div class="home-countdown-card__content">
-                            <div class="home-countdown-card__meta">
-                              <span>1446/08/07</span>
-                              <span class="home-countdown-card__separator"
-                                >|</span
-                              >
-                              <span>06/02/2025</span>
-                            </div>
-
-                            <div class="home-countdown-card__company">
-                              <img
-                                class="home-countdown-card__logo"
-                                src="assets/img/ipo-logo.svg"
-                                alt=""
-                                loading="lazy"
-                              />
-                              <span class="home-countdown-card__name">
-                                Zahr AlKhuzama Aluminum Co.
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="home-countdown-card__item">
-                          <div class="home-countdown-card__counter">
-                            <strong class="home-countdown-card__days"
-                              >04</strong
-                            >
-                            <span class="home-countdown-card__label"
-                              >Days Left</span
-                            >
-                          </div>
-
-                          <div class="home-countdown-card__content">
-                            <div class="home-countdown-card__meta">
-                              <span>1446/08/09</span>
-                              <span class="home-countdown-card__separator"
-                                >|</span
-                              >
-                              <span>08/02/2025</span>
-                            </div>
-
-                            <div class="home-countdown-card__company">
-                              <img
-                                class="home-countdown-card__logo"
-                                src="assets/img/ipo-logo.svg"
-                                alt=""
-                                loading="lazy"
-                              />
-                              <span class="home-countdown-card__name">
-                                Al Waha Steel Industries
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="home-countdown-card__item">
-                          <div class="home-countdown-card__counter">
-                            <strong class="home-countdown-card__days"
-                              >03</strong
-                            >
-                            <span class="home-countdown-card__label"
-                              >Days Left</span
-                            >
-                          </div>
-
-                          <div class="home-countdown-card__content">
-                            <div class="home-countdown-card__meta">
-                              <span>1446/08/10</span>
-                              <span class="home-countdown-card__separator"
-                                >|</span
-                              >
-                              <span>09/02/2025</span>
-                            </div>
-
-                            <div class="home-countdown-card__company">
-                              <img
-                                class="home-countdown-card__logo"
-                                src="assets/img/ipo-logo.svg"
-                                alt=""
-                                loading="lazy"
-                              />
-                              <span class="home-countdown-card__name">
-                                United Mining Co.
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="home-countdown-card__footer">
-                        <a
-                          class="btn btn-sm btn-outline-primary btn-radius home-countdown-card__action"
-                          href="#"
-                        >
-                          View All
-                        </a>
-                      </div>
-                    </article>
-                  </div>
-
-                  <div class="home-countdown-card__slide swiper-slide">
-                    <article
-                      class="home-countdown-card__body home-countdown-card--listing"
-                    >
-                      <h3 class="home-countdown-card__header">Listing</h3>
-
-                      <div class="home-countdown-card__list">
-                        <div class="home-countdown-card__item">
-                          <div class="home-countdown-card__counter">
-                            <strong class="home-countdown-card__days"
-                              >10</strong
-                            >
-                            <span class="home-countdown-card__label"
-                              >Days Left</span
-                            >
-                          </div>
-
-                          <div class="home-countdown-card__content">
-                            <div class="home-countdown-card__meta">
-                              <span>1446/09/12</span>
-                              <span class="home-countdown-card__separator"
-                                >|</span
-                              >
-                              <span>10/03/2025</span>
-                            </div>
-
-                            <div class="home-countdown-card__company">
-                              <img
-                                class="home-countdown-card__logo"
-                                src="assets/img/listing-logo.svg"
-                                alt=""
-                                loading="lazy"
-                              />
-                              <span class="home-countdown-card__name">
-                                AlNour Building Materials
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="home-countdown-card__footer">
-                        <a
-                          class="btn btn-sm btn-outline-primary btn-radius home-countdown-card__action"
-                          href="#"
-                        >
-                          View All
-                        </a>
-                      </div>
-                    </article>
-                  </div>
-
-                  <div class="home-countdown-card__slide swiper-slide">
-                    <article
-                      class="home-countdown-card__body home-countdown-card--cmf"
-                    >
-                      <h3 class="home-countdown-card__header">CMF</h3>
-
-                      <div class="home-countdown-card__list">
-                        <div class="home-countdown-card__item">
-                          <div class="home-countdown-card__counter">
-                            <strong class="home-countdown-card__days"
-                              >15</strong
-                            >
-                            <span class="home-countdown-card__label"
-                              >Days Left</span
-                            >
-                          </div>
-
-                          <div class="home-countdown-card__content">
-                            <div class="home-countdown-card__meta">
-                              <span>1446/10/04</span>
-                              <span class="home-countdown-card__separator"
-                                >|</span
-                              >
-                              <span>05/04/2025</span>
-                            </div>
-
-                            <div class="home-countdown-card__company">
-                              <img
-                                class="home-countdown-card__logo"
-                                src="assets/img/cmf-logo.svg"
-                                alt=""
-                                loading="lazy"
-                              />
-                              <span class="home-countdown-card__name">
-                                Gulf Finance Corp.
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="home-countdown-card__footer">
-                        <a
-                          class="btn btn-sm btn-outline-primary btn-radius home-countdown-card__action"
-                          href="#"
-                        >
-                          View All
-                        </a>
-                      </div>
-                    </article>
-                  </div>
-                </div>
+                <button
+                  class="swiper-button-next"
+                  type="button"
+                  aria-label="Next event"
+                ></button>
 
                 <div class="swiper-pagination"></div>
               </div>
-            </section>
+            </div>
+
+            <div class="home-highlights__media-grid">
+              <article class="home-video-card">
+                <div
+                  class="home-video-card__wrapper"
+                  data-home-video
+                  data-video-url="assets/videos/STG-18-Feb.mp4"
+                >
+                  <img
+                    class="home-video-card__thumbnail"
+                    src="assets/images/video.png"
+                    alt="Video preview"
+                    loading="lazy"
+                  />
+
+                  <button
+                    class="home-video-card__play has-icon icon-play"
+                    type="button"
+                    aria-label="Play video"
+                    data-home-video-play
+                  ></button>
+                </div>
+              </article>
+
+              <section
+                class="home-countdown-card"
+                aria-label="Upcoming activities"
+              >
+                <div
+                  class="home-countdown-card__swiper swiper"
+                  data-home-countdown-slider
+                >
+                  <div class="swiper-wrapper">
+                    <div class="home-countdown-card__slide swiper-slide">
+                      <article
+                        class="home-countdown-card__body home-countdown-card--ipo"
+                      >
+                        <h3 class="home-countdown-card__header">IPO</h3>
+
+                        <div class="home-countdown-card__list">
+                          <div class="home-countdown-card__item">
+                            <div class="home-countdown-card__counter">
+                              <strong class="home-countdown-card__days"
+                                >05</strong
+                              >
+                              <span class="home-countdown-card__label">
+                                Days Left
+                              </span>
+                            </div>
+
+                            <div class="home-countdown-card__content">
+                              <div class="home-countdown-card__meta">
+                                <span>1446/08/07</span>
+                                <span class="home-countdown-card__separator"
+                                  >|</span
+                                >
+                                <span>06/02/2025</span>
+                              </div>
+
+                              <div class="home-countdown-card__company">
+                                <img
+                                  class="home-countdown-card__logo"
+                                  src="assets/img/ipo-logo.svg"
+                                  alt=""
+                                  loading="lazy"
+                                />
+                                <span class="home-countdown-card__name">
+                                  Zahr AlKhuzama Aluminum Co.
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="home-countdown-card__item">
+                            <div class="home-countdown-card__counter">
+                              <strong class="home-countdown-card__days"
+                                >04</strong
+                              >
+                              <span class="home-countdown-card__label">
+                                Days Left
+                              </span>
+                            </div>
+
+                            <div class="home-countdown-card__content">
+                              <div class="home-countdown-card__meta">
+                                <span>1446/08/09</span>
+                                <span class="home-countdown-card__separator"
+                                  >|</span
+                                >
+                                <span>08/02/2025</span>
+                              </div>
+
+                              <div class="home-countdown-card__company">
+                                <img
+                                  class="home-countdown-card__logo"
+                                  src="assets/img/ipo-logo.svg"
+                                  alt=""
+                                  loading="lazy"
+                                />
+                                <span class="home-countdown-card__name">
+                                  Al Waha Steel Industries
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="home-countdown-card__item">
+                            <div class="home-countdown-card__counter">
+                              <strong class="home-countdown-card__days"
+                                >03</strong
+                              >
+                              <span class="home-countdown-card__label">
+                                Days Left
+                              </span>
+                            </div>
+
+                            <div class="home-countdown-card__content">
+                              <div class="home-countdown-card__meta">
+                                <span>1446/08/10</span>
+                                <span class="home-countdown-card__separator"
+                                  >|</span
+                                >
+                                <span>09/02/2025</span>
+                              </div>
+
+                              <div class="home-countdown-card__company">
+                                <img
+                                  class="home-countdown-card__logo"
+                                  src="assets/img/ipo-logo.svg"
+                                  alt=""
+                                  loading="lazy"
+                                />
+                                <span class="home-countdown-card__name">
+                                  United Mining Co.
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="home-countdown-card__footer">
+                          <a
+                            class="btn btn-sm btn-outline-primary btn-radius home-countdown-card__action"
+                            href="#"
+                          >
+                            View All
+                          </a>
+                        </div>
+                      </article>
+                    </div>
+
+                    <div class="home-countdown-card__slide swiper-slide">
+                      <article
+                        class="home-countdown-card__body home-countdown-card--listing"
+                      >
+                        <h3 class="home-countdown-card__header">Listing</h3>
+
+                        <div class="home-countdown-card__list">
+                          <div class="home-countdown-card__item">
+                            <div class="home-countdown-card__counter">
+                              <strong class="home-countdown-card__days"
+                                >10</strong
+                              >
+                              <span class="home-countdown-card__label">
+                                Days Left
+                              </span>
+                            </div>
+
+                            <div class="home-countdown-card__content">
+                              <div class="home-countdown-card__meta">
+                                <span>1446/09/12</span>
+                                <span class="home-countdown-card__separator"
+                                  >|</span
+                                >
+                                <span>10/03/2025</span>
+                              </div>
+
+                              <div class="home-countdown-card__company">
+                                <img
+                                  class="home-countdown-card__logo"
+                                  src="assets/img/listing-logo.svg"
+                                  alt=""
+                                  loading="lazy"
+                                />
+                                <span class="home-countdown-card__name">
+                                  AlNour Building Materials
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="home-countdown-card__footer">
+                          <a
+                            class="btn btn-sm btn-outline-primary btn-radius home-countdown-card__action"
+                            href="#"
+                          >
+                            View All
+                          </a>
+                        </div>
+                      </article>
+                    </div>
+
+                    <div class="home-countdown-card__slide swiper-slide">
+                      <article
+                        class="home-countdown-card__body home-countdown-card--cmf"
+                      >
+                        <h3 class="home-countdown-card__header">CMF</h3>
+
+                        <div class="home-countdown-card__list">
+                          <div class="home-countdown-card__item">
+                            <div class="home-countdown-card__counter">
+                              <strong class="home-countdown-card__days"
+                                >15</strong
+                              >
+                              <span class="home-countdown-card__label">
+                                Days Left
+                              </span>
+                            </div>
+
+                            <div class="home-countdown-card__content">
+                              <div class="home-countdown-card__meta">
+                                <span>1446/10/04</span>
+                                <span class="home-countdown-card__separator"
+                                  >|</span
+                                >
+                                <span>05/04/2025</span>
+                              </div>
+
+                              <div class="home-countdown-card__company">
+                                <img
+                                  class="home-countdown-card__logo"
+                                  src="assets/img/cmf-logo.svg"
+                                  alt=""
+                                  loading="lazy"
+                                />
+                                <span class="home-countdown-card__name">
+                                  Gulf Finance Corp.
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="home-countdown-card__footer">
+                          <a
+                            class="btn btn-sm btn-outline-primary btn-radius home-countdown-card__action"
+                            href="#"
+                          >
+                            View All
+                          </a>
+                        </div>
+                      </article>
+                    </div>
+                  </div>
+
+                  <div class="swiper-pagination"></div>
+                </div>
+              </section>
+            </div>
           </div>
         </div>
       </section>
@@ -4644,5 +4639,158 @@
         </div>
       </section>
     </main>
+    <footer class="site-footer">
+      <div class="site-footer__container">
+        <div class="site-footer__surface">
+          <div class="site-footer__main">
+            <section class="site-footer__brand">
+              <div class="site-footer-brand">
+                <img
+                  class="site-footer-brand__logo"
+                  src="assets/images/footer/saudi-exchange-logo.svg"
+                  alt="Saudi Exchange"
+                  loading="lazy"
+                />
+
+                <div class="site-footer-brand__section">
+                  <h2 class="site-footer-brand__title">Contact us</h2>
+
+                  <p class="site-footer-brand__text">
+                    For further information, please get in touch with us:
+                  </p>
+
+                  <ul class="site-footer-brand__list">
+                    <li>
+                      <a
+                        class="site-footer-brand__link"
+                        href="mailto:csc@saudiexchange.sa"
+                      >
+                        <span
+                          class="site-footer-brand__icon has-icon icon-mail"
+                          aria-hidden="true"
+                        ></span>
+                        <span>csc@saudiexchange.sa</span>
+                      </a>
+                    </li>
+
+                    <li>
+                      <a
+                        class="site-footer-brand__link"
+                        href="tel:+966920001919"
+                      >
+                        <span
+                          class="site-footer-brand__icon has-icon icon-phone"
+                          aria-hidden="true"
+                        ></span>
+                        <span>(+966) 92000 1919</span>
+                      </a>
+                    </li>
+                  </ul>
+
+                  <a class="btn btn-link site-footer-brand__cta" href="#">
+                    Contact us
+                    <span
+                      class="has-icon icon-chevron-right"
+                      aria-hidden="true"
+                    ></span>
+                  </a>
+                </div>
+              </div>
+            </section>
+
+            <nav class="site-footer__navigation" aria-label="Footer navigation">
+              <div class="site-footer-links">
+                <h2 class="site-footer-links__title">Utility Pages</h2>
+
+                <ul class="site-footer-links__list">
+                  <li>
+                    <a class="site-footer-links__link" href="#">Sitemap</a>
+                  </li>
+                  <li>
+                    <a class="site-footer-links__link" href="#">Legal Notice</a>
+                  </li>
+                  <li>
+                    <a class="site-footer-links__link" href="#">Contact Us</a>
+                  </li>
+                  <li>
+                    <a class="site-footer-links__link" href="#"
+                      >Privacy Policy</a
+                    >
+                  </li>
+                </ul>
+              </div>
+
+              <div class="site-footer-links">
+                <h2 class="site-footer-links__title">Other Pages</h2>
+
+                <ul class="site-footer-links__list">
+                  <li>
+                    <a class="site-footer-links__link" href="#"
+                      >Website Survey</a
+                    >
+                  </li>
+                  <li>
+                    <a class="site-footer-links__link" href="#"
+                      >Helpful Links</a
+                    >
+                  </li>
+                  <li>
+                    <a class="site-footer-links__link" href="#"
+                      >Acceptable User Policy</a
+                    >
+                  </li>
+                  <li>
+                    <a class="site-footer-links__link" href="#">Careers</a>
+                  </li>
+                </ul>
+              </div>
+            </nav>
+
+            <section class="site-footer__social">
+              <h2 class="site-footer-social__title">Social Media</h2>
+
+              <ul class="site-footer-social" aria-label="Social media links">
+                <li>
+                  <a
+                    class="site-footer-social__link has-icon icon-facebook"
+                    href="#"
+                    aria-label="Facebook"
+                  ></a>
+                </li>
+                <li>
+                  <a
+                    class="site-footer-social__link has-icon icon-x"
+                    href="#"
+                    aria-label="X"
+                  ></a>
+                </li>
+                <li>
+                  <a
+                    class="site-footer-social__link has-icon icon-linkedin"
+                    href="#"
+                    aria-label="LinkedIn"
+                  ></a>
+                </li>
+                <li>
+                  <a
+                    class="site-footer-social__link has-icon icon-instagram"
+                    href="#"
+                    aria-label="Instagram"
+                  ></a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <div class="site-footer-bottom">
+        <div class="site-footer-bottom__container">
+          <p class="site-footer-bottom__text">
+            Copyright © 2025 Saudi Tadawul Group
+          </p>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>

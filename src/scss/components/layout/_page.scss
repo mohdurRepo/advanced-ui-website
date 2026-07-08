@@ -1,0 +1,114 @@
+@use "../../abstracts" as *;
+
+/* ==========================================================================
+   Page Layout
+   ========================================================================== */
+
+.page {
+  --page-bg: var(--color-bg);
+
+  --page-pattern-image: url("../assets/images/background-pattern.png");
+  --page-pattern-opacity: 0.14;
+  --page-pattern-position-y: 8rem;
+  --page-pattern-size: min(1320px, calc(100% - 2rem));
+
+  --page-glow-size: 100rem;
+  --page-glow-opacity: 0.18;
+
+  position: relative;
+  isolation: isolate;
+
+  overflow-x: clip;
+  overflow-y: visible;
+
+  background: var(--page-bg);
+  color: var(--color-text);
+
+  &__background {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+
+    pointer-events: none;
+
+    background:
+      radial-gradient(
+        circle at left top,
+        rgb(from var(--color-primary) r g b / var(--page-glow-opacity)) 0%,
+        transparent 45%
+      ),
+      radial-gradient(
+        circle at right bottom,
+        rgb(from var(--color-primary) r g b / var(--page-glow-opacity)) 0%,
+        transparent 45%
+      ),
+      var(--page-pattern-image);
+
+    background-repeat: no-repeat, no-repeat, no-repeat;
+
+    background-size:
+      var(--page-glow-size) var(--page-glow-size),
+      var(--page-glow-size) var(--page-glow-size),
+      var(--page-pattern-size) auto;
+
+    background-position:
+      left -7rem top -7rem,
+      right -9rem bottom 0,
+      center var(--page-pattern-position-y);
+
+    opacity: 1;
+  }
+
+  [dir="rtl"] &__background {
+    background-position:
+      right -9rem top -7rem,
+      left -9rem bottom 10rem,
+      center var(--page-pattern-position-y);
+  }
+
+  @include respond-down(md) {
+    --page-pattern-opacity: 0.08;
+    --page-pattern-size: min(1320px, calc(100% - 1rem));
+    --page-glow-size: 36rem;
+    --page-glow-opacity: 0.14;
+
+    &__background {
+      opacity: 0.9;
+    }
+  }
+
+  @include respond-down(sm) {
+    --page-glow-size: 24rem;
+    --page-glow-opacity: 0.12;
+
+    &__background {
+      background:
+        radial-gradient(
+          circle at left top,
+          rgb(from var(--color-primary) r g b / var(--page-glow-opacity)) 0%,
+          transparent 42%
+        ),
+        radial-gradient(
+          circle at right bottom,
+          rgb(from var(--color-primary) r g b / var(--page-glow-opacity)) 0%,
+          transparent 42%
+        );
+
+      background-repeat: no-repeat, no-repeat;
+
+      background-size:
+        var(--page-glow-size) var(--page-glow-size),
+        var(--page-glow-size) var(--page-glow-size);
+
+      background-position:
+        left -7rem top -5rem,
+        right -7rem bottom 8rem;
+    }
+
+    [dir="rtl"] &__background {
+      background-position:
+        right -7rem top -5rem,
+        left -7rem bottom 8rem;
+    }
+  }
+}

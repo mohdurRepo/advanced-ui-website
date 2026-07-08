@@ -1,0 +1,53 @@
+@use "../../abstracts" as *;
+
+.site-footer-social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.875rem;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+
+  &__title {
+    margin: 0 0 1rem;
+
+    color: var(--footer-heading);
+
+    font-size: var(--text-lg);
+    font-weight: 800;
+    line-height: var(--line-height-tight);
+  }
+
+  &__link {
+    --icon-size: 1.125rem;
+
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: var(--radius-pill);
+
+    background: #ffffff;
+    color: var(--footer-bg);
+
+    transition:
+      transform var(--transition-fast),
+      background-color var(--transition-fast),
+      color var(--transition-fast);
+
+    &:hover {
+      transform: translateY(-0.125rem);
+      background: var(--footer-accent);
+      color: var(--color-on-primary);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+}
