@@ -4,80 +4,12 @@
   --intro-bg: var(--color-bg);
   --intro-padding-block: 0;
 
-  --intro-media-opacity: 0.14;
-  --intro-media-image: url("../../assets/images/background-pattern.png");
-
   position: relative;
   isolation: isolate;
   overflow: hidden;
 
   padding-block: var(--intro-padding-block);
   background: var(--intro-bg);
-
-  &__background {
-    position: absolute;
-    inset-block: 0;
-    inset-inline: 0;
-    z-index: 0;
-
-    width: min(100% - 2rem, 1320px);
-    margin-inline: auto;
-
-    overflow: hidden;
-    pointer-events: none;
-  }
-
-  &__gradient {
-    position: absolute;
-
-    inline-size: 40rem;
-    block-size: 50rem;
-
-    border-radius: var(--radius-pill);
-
-    background: radial-gradient(circle, var(--color-primary), transparent 70%);
-    opacity: 0.18;
-    filter: blur(5rem);
-
-    &--top {
-      inset-block-start: -9rem;
-      inset-inline-start: -7rem;
-    }
-
-    &--bottom {
-      inset-block-end: -7rem;
-      inset-inline-end: -7rem;
-    }
-  }
-
-  &__media {
-    position: absolute;
-    inset: 0;
-
-    inline-size: 100%;
-    block-size: 100%;
-
-    opacity: var(--intro-media-opacity);
-  }
-
-  &__media--default {
-    background-image: var(--intro-media-image);
-    background-repeat: no-repeat;
-    background-position: center top;
-    background-size: 100% auto;
-  }
-
-  &__media--cover {
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover;
-  }
-
-  &__media--contain {
-    background-repeat: no-repeat;
-    background-position: center top;
-    background-size: contain;
-  }
 
   &__content {
     position: relative;
@@ -91,26 +23,13 @@
 
   @include respond-down(md) {
     --intro-padding-block: 0 3rem;
-
-    &__background {
-      width: min(100% - 1rem, 1320px);
-    }
-
-    &__media {
-      opacity: 0.08;
-    }
   }
 
   @include respond-down(sm) {
     --intro-padding-block: 0 2rem;
 
-    &__container,
-    &__background {
+    &__container {
       width: min(100% - 1rem, 1320px);
-    }
-
-    &__media {
-      display: none;
     }
   }
 }

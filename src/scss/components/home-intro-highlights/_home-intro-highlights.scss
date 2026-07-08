@@ -1,7 +1,19 @@
 @use "../../abstracts" as *;
 
-.home-intro-highlights {
-  padding: clamp(1.5rem, 3vw, 2.5rem);
+/* ==========================================================================
+   Home Highlights
+   ========================================================================== */
+
+.home-highlights {
+  padding-block: clamp(3rem, 6vw, 5rem);
+
+  background: var(--color-bg);
+  color: var(--color-text);
+
+  &__container {
+    inline-size: min(100% - 2rem, 1320px);
+    margin-inline: auto;
+  }
 
   &__grid {
     min-inline-size: 0;
@@ -42,7 +54,11 @@
   }
 
   @include respond-down(sm) {
-    padding-block: 1.5rem;
+    padding-block: 2.5rem;
+
+    &__container {
+      inline-size: min(100% - 1rem, 1320px);
+    }
 
     &__grid,
     &__media-grid {
