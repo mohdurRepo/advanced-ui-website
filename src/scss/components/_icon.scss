@@ -1,4 +1,6 @@
-/* Base icon trigger */
+/* ==========================================================================
+   1. Base Core Framework Icon Trigger Engine
+   ========================================================================== */
 .has-icon {
   --icon-size: 1em;
   --icon-gap: 0.5rem;
@@ -7,84 +9,61 @@
   display: inline-flex;
   align-items: center;
   gap: var(--icon-gap);
+  
+  /* Layout Constraint Fix: Prevents empty display spans from collapsing to 0px */
+  min-width: var(--icon-size);
+  min-height: var(--icon-size);
 
   &::before {
     content: "";
-
     width: var(--icon-size);
     height: var(--icon-size);
-
     flex: 0 0 auto;
-
     background: currentColor;
-
+    
     mask: var(--icon-svg) center / contain no-repeat;
     -webkit-mask: var(--icon-svg) center / contain no-repeat;
-
+    
     animation: var(--icon-animation);
   }
 }
 
-/* Sizes */
-.icon-xs {
-  --icon-size: 0.75rem;
-}
+/* ==========================================================================
+   2. Geometric Dimension Utility Scale Matrix
+   ========================================================================== */
+.icon-xs   { --icon-size: 0.75rem; }
+.icon-sm   { --icon-size: 1rem; }
+.icon-md   { --icon-size: 1.25rem; }
+.icon-lg   { --icon-size: 1.5rem; }
+.icon-xl   { --icon-size: 2rem; }
+.icon-2xl  { --icon-size: 3rem; }
 
-.icon-sm {
-  --icon-size: 1rem;
-}
-
-.icon-md {
-  --icon-size: 1.25rem;
-}
-
-.icon-lg {
-  --icon-size: 1.5rem;
-}
-
-.icon-xl {
-  --icon-size: 2rem;
-}
-
-.icon-2xl {
-  --icon-size: 3rem;
-}
-
-/* Position */
+/* ==========================================================================
+   3. Positional Alignment & RTL Auto-Mirroring Engine
+   ========================================================================== */
 .icon-end,
 .btn-icon-end {
   flex-direction: row-reverse;
 }
 
-/* RTL */
 .icon-flip-rtl {
   html[dir="rtl"] &::before {
     transform: scaleX(-1);
   }
 }
 
-/* Animation */
-.icon-spin {
-  --icon-animation: iconSpin 1s linear infinite;
-}
+/* ==========================================================================
+   4. Performance-Optimized CSS Hardware Animations
+   ========================================================================== */
+.icon-spin  { --icon-animation: iconSpin 1s linear infinite; }
+.icon-pulse { --icon-animation: iconPulse 1.2s ease-in-out infinite; }
 
-.icon-pulse {
-  --icon-animation: iconPulse 1.2s ease-in-out infinite;
-}
+@keyframes iconSpin { to { transform: rotate(360deg); } }
+@keyframes iconPulse { 50% { opacity: 0.45; } }
 
-@keyframes iconSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes iconPulse {
-  50% {
-    opacity: 0.45;
-  }
-}
-
-/* List */
+/* ==========================================================================
+   5. Context Layouts (Unordered Lists & SVG Inline Fallbacks)
+   ========================================================================== */
 .icon-list {
   display: grid;
   gap: 0.75rem;
@@ -97,14 +76,14 @@
     align-items: flex-start;
     gap: 0.625rem;
   }
-
+  
+  /* Precision alignment fix for list item pseudo triggers */
   li.has-icon::before {
     margin-block-start: 0.2em;
-    color: var(--color-primary);
+    color: var(--color-primary, currentColor);
   }
 }
 
-/* SVG sprite */
 .svg-icon {
   display: inline-flex;
   width: var(--icon-size, 1em);
@@ -120,27 +99,289 @@
   }
 }
 
-/* Icon map */
-.icon-home {
-  --icon-svg: url("../../assets/icons/home.svg");
-}
-
-.icon-user {
-  --icon-svg: url("../../assets/icons/user.svg");
+/* Icon map patch */
+.icon-check {
+  --icon-svg: url("../../assets/icons/check.svg");
 }
 
 .icon-search {
   --icon-svg: url("../../assets/icons/search.svg");
 }
 
-.icon-refresh {
-  --icon-svg: url("../../assets/icons/refresh.svg");
+.icon-sun {
+  --icon-svg: url("../../assets/icons/sun.svg");
 }
 
-.icon-arrow-right {
-  --icon-svg: url("../../assets/icons/arrow-right.svg");
+.icon-chevron-up {
+  --icon-svg: url("../../assets/icons/chevron-up.svg");
 }
 
-.icon-check {
-  --icon-svg: url("../../assets/icons/check.svg");
+.icon-chevron-down {
+  --icon-svg: url("../../assets/icons/chevron-down.svg");
+}
+
+.icon-chevron-right {
+  --icon-svg: url("../../assets/icons/chevron-right.svg");
+}
+
+/* Icon map patch */
+.icon-chevron-left {
+  --icon-svg: url("../../assets/icons/chevron-left.svg");
+}
+
+.icon-location-pin {
+  --icon-svg: url("../../assets/icons/location-pin.svg");
+}
+
+.icon-globe {
+  --icon-svg: url("../../assets/icons/globe.svg");
+}
+
+.icon-calendar-add {
+  --icon-svg: url("../../assets/icons/calendar-add.svg");
+}
+
+.icon-tadawul {
+  --icon-svg: url("../../assets/icons/tadawul-icon.svg");
+}
+
+.icon-tadawul-outline {
+  --icon-svg: url("../../assets/icons/tadawul-icon-outline.svg");
+}
+
+/* Icon map patch */
+.icon-external-link {
+  --icon-svg: url("../../assets/icons/external-link.svg");
+}
+
+.icon-star-outline {
+  --icon-svg: url("../../assets/icons/star-outline.svg");
+}
+
+.icon-star-filled {
+  --icon-svg: url("../../assets/icons/star-filled.svg");
+}
+
+.icon-triangle-up {
+  --icon-svg: url("../../assets/icons/triangle-up.svg");
+}
+
+.icon-triangle-down {
+  --icon-svg: url("../../assets/icons/triangle-down.svg");
+}
+
+.icon-arrow-up-right {
+  --icon-svg: url("../../assets/icons/arrow-up-right.svg");
+}
+
+/* Icon map patch */
+.icon-info-warning {
+  --icon-svg: url("../../assets/icons/info-warning.svg");
+}
+
+.icon-riyal {
+  --icon-svg: url("../../assets/icons/riyal.svg");
+}
+
+.icon-riyal-parentheses {
+  --icon-svg: url("../../assets/icons/riyal-parentheses.svg");
+}
+
+.icon-trend-up {
+  --icon-svg: url("../../assets/icons/trend-up.svg");
+}
+
+.icon-analytics-filter {
+  --icon-svg: url("../../assets/icons/analytics-filter.svg");
+}
+
+/* Icon map patch */
+.icon-share {
+  --icon-svg: url("../../assets/icons/share.svg");
+}
+
+.icon-file-download {
+  --icon-svg: url("../../assets/icons/file-download.svg");
+}
+
+.icon-copy {
+  --icon-svg: url("../../assets/icons/copy.svg");
+}
+
+.icon-close-x {
+  --icon-svg: url("../../assets/icons/close-x.svg");
+}
+
+.icon-pdf-file {
+  --icon-svg: url("../../assets/icons/pdf-file.svg");
+}
+
+/* Icon map patch */
+.icon-filter-funnel {
+  --icon-svg: url("../../assets/icons/filter-funnel.svg");
+}
+
+.icon-sync-refresh {
+  --icon-svg: url("../../assets/icons/sync-refresh.svg");
+}
+
+.icon-list-bullet {
+  --icon-svg: url("../../assets/icons/list-bullet.svg");
+}
+
+.icon-chart-bar {
+  --icon-svg: url("../../assets/icons/chart-bar.svg");
+}
+
+.icon-segment-container {
+  --icon-svg: url("../../assets/icons/segment-container.svg");
+}
+
+.icon-card-list-view {
+  --icon-svg: url("../../assets/icons/card-list-view.svg");
+}
+
+.icon-grid-bento-view {
+  --icon-svg: url("../../assets/icons/grid-bento-view.svg");
+}
+
+/* Icon map patch */
+.icon-telephone-support {
+  --icon-svg: url("../../assets/icons/telephone-support.svg");
+}
+
+.icon-scanner-fax {
+  --icon-svg: url("../../assets/icons/scanner-fax.svg");
+}
+
+.icon-inbox-email {
+  --icon-svg: url("../../assets/icons/inbox-email.svg");
+}
+
+.icon-alert-bell {
+  --icon-svg: url("../../assets/icons/alert-bell.svg");
+}
+
+.icon-history-clock {
+  --icon-svg: url("../../assets/icons/history-clock.svg");
+}
+
+/* Icon map patch */
+.icon-headset-support {
+  --icon-svg: url("../../assets/icons/headset-support.svg");
+}
+
+.icon-brand-whatsapp {
+  --icon-svg: url("../../assets/icons/brand-whatsapp.svg");
+}
+
+.icon-mailbox-split {
+  --icon-svg: url("../../assets/icons/mailbox-split.svg");
+}
+
+.icon-bookmark-ribbon {
+  --icon-svg: url("../../assets/icons/bookmark-ribbon.svg");
+}
+
+.icon-calendar-scheduler {
+  --icon-svg: url("../../assets/icons/calendar-scheduler.svg");
+}
+
+.icon-telephone-handle {
+  --icon-svg: url("../../assets/icons/telephone-handle.svg");
+}
+
+/* Icon map patch */
+.icon-at-sign {
+  --icon-svg: url("../../assets/icons/at-sign.svg");
+}
+
+.icon-add-plus {
+  --icon-svg: url("../../assets/icons/add-plus.svg");
+}
+
+.icon-edit-pencil {
+  --icon-svg: url("../../assets/icons/edit-pencil.svg");
+}
+
+.icon-logout-door {
+  --icon-svg: url("../../assets/icons/logout-door.svg");
+}
+
+.icon-trash-delete {
+  --icon-svg: url("../../assets/icons/trash-delete.svg");
+}
+
+/* Icon map patch */
+.icon-folder-import {
+  --icon-svg: url("../../assets/icons/folder-import.svg");
+}
+
+.icon-edaa {
+  --icon-svg: url("../../assets/icons/edaa-icon.svg");
+}
+
+.icon-muqassa {
+  --icon-svg: url("../../assets/icons/muqassa-icon.svg");
+}
+
+.icon-chevron-down-bold {
+  --icon-svg: url("../../assets/icons/chevron-down-bold.svg");
+}
+
+.icon-chevron-right-bold {
+  --icon-svg: url("../../assets/icons/chevron-right-bold.svg");
+}
+
+.icon-chevron-left-bold {
+  --icon-svg: url("../../assets/icons/chevron-left-bold.svg");
+}
+
+.icon-chevron-up-bold {
+  --icon-svg: url("../../assets/icons/chevron-up-bold.svg");
+}
+
+.icon-menu-dots-vertical {
+  --icon-svg: url("../../assets/icons/menu-dots-vertical.svg");
+}
+
+/* Icon map patch */
+.icon-minus-line {
+  --icon-svg: url("../../assets/icons/minus-line.svg");
+}
+
+.icon-brand-facebook {
+  --icon-svg: url("../../assets/icons/brand-facebook.svg");
+}
+
+.icon-brand-linkedin {
+  --icon-svg: url("../../assets/icons/brand-linkedin.svg");
+}
+
+.icon-brand-instagram {
+  --icon-svg: url("../../assets/icons/brand-instagram.svg");
+}
+
+.icon-brand-x {
+  --icon-svg: url("../../assets/icons/brand-x.svg");
+}
+
+.icon-brand-youtube {
+  --icon-svg: url("../../assets/icons/brand-youtube.svg");
+}
+
+.icon-theme-palette {
+  --icon-svg: url("../../assets/icons/theme-palette.svg");
+}
+
+.icon-panel-dashboard {
+  --icon-svg: url("../../assets/icons/panel-dashboard.svg");
+}
+
+.icon-network-radar {
+  --icon-svg: url("../../assets/icons/network-radar.svg");
+}
+
+.icon-analytics-steps {
+  --icon-svg: url("../../assets/icons/analytics-steps.svg");
 }
