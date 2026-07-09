@@ -1,33 +1,29 @@
 @use "sass:math";
-@use "sass:map";
 @use "../abstracts" as *;
+@use "../abstracts/breakpoints" as bp;
 
-.grid {
+.grid,
+.grid-auto,
+.grid-2,
+.grid-3,
+.grid-4 {
   display: grid;
   gap: var(--grid-gap, 1rem);
 }
 
 .grid-auto {
-  display: grid;
-  gap: var(--grid-gap, 1rem);
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
 }
 
 .grid-2 {
-  display: grid;
-  gap: var(--grid-gap, 1rem);
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .grid-3 {
-  display: grid;
-  gap: var(--grid-gap, 1rem);
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .grid-4 {
-  display: grid;
-  gap: var(--grid-gap, 1rem);
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
@@ -39,7 +35,6 @@
   }
 }
 
-/* Row / Column System */
 .row {
   display: flex;
   flex-wrap: wrap;
@@ -58,12 +53,14 @@
   }
 }
 
-@each $breakpoint, $value in $breakpoints {
-  @media (min-width: $value) {
-    @for $i from 1 through 12 {
-      .col-#{$breakpoint}-#{$i} {
-        flex: 0 0 auto;
-        width: math.percentage(math.div($i, 12));
+@each $breakpoint, $value in bp.$breakpoints {
+  @if $breakpoint != "xs" {
+    @media (min-width: $value) {
+      @for $i from 1 through 12 {
+        .col-#{$breakpoint}-#{$i} {
+          flex: 0 0 auto;
+          width: math.percentage(math.div($i, 12));
+        }
       }
     }
   }

@@ -1,129 +1,68 @@
-/* =========================================
-   Avenir English
-========================================= */
+/* ==========================================================================
+   Fonts
+   ========================================================================== */
+
+/* English */
 
 @font-face {
-  font-family: "Avenir";
+  font-family: "SEFont";
   src:
     url("../../assets/fonts/english-avenir/Avenir-Roman.woff2") format("woff2"),
-    url("../../assets/fonts/english-avenir/Avenir-Roman.woff") format("woff"),
-    url("../../assets/fonts/english-avenir/Avenir-Roman.ttf") format("truetype");
-  font-weight: 100 400;
+    url("../../assets/fonts/english-avenir/Avenir-Roman.woff") format("woff");
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
-  font-synthesis: none;
+  unicode-range: U+0000-007F, U+0080-00FF, U+0100-017F;
 }
 
 @font-face {
-  font-family: "Avenir";
-  src:
-    url("../../assets/fonts/english-avenir/Avenir-Oblique.woff2")
-      format("woff2"),
-    url("../../assets/fonts/english-avenir/Avenir-Oblique.woff") format("woff"),
-    url("../../assets/fonts/english-avenir/Avenir-Oblique.ttf")
-      format("truetype");
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-  font-synthesis: none;
-}
-
-@font-face {
-  font-family: "Avenir";
+  font-family: "SEFont";
   src:
     url("../../assets/fonts/english-avenir/Avenir-Medium.woff2") format("woff2"),
-    url("../../assets/fonts/english-avenir/Avenir-Medium.woff") format("woff"),
-    url("../../assets/fonts/english-avenir/Avenir-Medium.ttf")
-      format("truetype");
+    url("../../assets/fonts/english-avenir/Avenir-Medium.woff") format("woff");
   font-weight: 500 700;
   font-style: normal;
   font-display: swap;
-  font-synthesis: none;
+  unicode-range: U+0000-007F, U+0080-00FF, U+0100-017F;
 }
 
 @font-face {
-  font-family: "Avenir";
-  src:
-    url("../../assets/fonts/english-avenir/Avenir-MediumOblique.woff2")
-      format("woff2"),
-    url("../../assets/fonts/english-avenir/Avenir-MediumOblique.woff")
-      format("woff"),
-    url("../../assets/fonts/english-avenir/Avenir-MediumOblique.ttf")
-      format("truetype");
-  font-weight: 500 700;
-  font-style: italic;
-  font-display: swap;
-  font-synthesis: none;
-}
-
-@font-face {
-  font-family: "Avenir";
+  font-family: "SEFont";
   src:
     url("../../assets/fonts/english-avenir/Avenir-heavy.woff2") format("woff2"),
-    url("../../assets/fonts/english-avenir/Avenir-heavy.woff") format("woff"),
-    url("../../assets/fonts/english-avenir/Avenir-Heavy.ttf") format("truetype");
+    url("../../assets/fonts/english-avenir/Avenir-heavy.woff") format("woff");
   font-weight: 800;
   font-style: normal;
   font-display: swap;
-  font-synthesis: none;
+  unicode-range: U+0000-007F, U+0080-00FF, U+0100-017F;
 }
 
 @font-face {
-  font-family: "Avenir";
-  src:
-    url("../../assets/fonts/english-avenir/Avenir-HeavyOblique.woff")
-      format("woff"),
-    url("../../assets/fonts/english-avenir/Avenir-HeavyOblique.ttf")
-      format("truetype");
-  font-weight: 800;
-  font-style: italic;
-  font-display: swap;
-  font-synthesis: none;
-}
-
-@font-face {
-  font-family: "Avenir";
+  font-family: "SEFont";
   src:
     url("../../assets/fonts/english-avenir/Avenir-Black.woff2") format("woff2"),
-    url("../../assets/fonts/english-avenir/Avenir-Black.woff") format("woff"),
-    url("../../assets/fonts/english-avenir/Avenir-Black.ttf") format("truetype");
+    url("../../assets/fonts/english-avenir/Avenir-Black.woff") format("woff");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
-  font-synthesis: none;
+  unicode-range: U+0000-007F, U+0080-00FF, U+0100-017F;
 }
 
-@font-face {
-  font-family: "Avenir";
-  src:
-    url("../../assets/fonts/english-avenir/Avenir-BlackOblique.woff2")
-      format("woff2"),
-    url("../../assets/fonts/english-avenir/Avenir-BlackOblique.woff")
-      format("woff"),
-    url("../../assets/fonts/english-avenir/Avenir-BlackOblique.ttf")
-      format("truetype");
-  font-weight: 900;
-  font-style: italic;
-  font-display: swap;
-  font-synthesis: none;
-}
-
-/* =========================================
-   Avenir Arabic
-========================================= */
+/* Arabic */
 
 @font-face {
-  font-family: "AvenirArabic";
+  font-family: "SEFont";
   src: url("../../assets/fonts/arabic-avenir/AvenirArabic-Book.otf")
     format("opentype");
-  font-weight: 100 400;
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
-  font-synthesis: none;
+  unicode-range:
+    U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
 }
 
 @font-face {
-  font-family: "AvenirArabic";
+  font-family: "SEFont";
   src:
     url("../../assets/fonts/arabic-avenir/AvenirArabic-Medium.woff")
       format("woff"),
@@ -132,11 +71,12 @@
   font-weight: 500 700;
   font-style: normal;
   font-display: swap;
-  font-synthesis: none;
+  unicode-range:
+    U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
 }
 
 @font-face {
-  font-family: "AvenirArabic";
+  font-family: "SEFont";
   src:
     url("../../assets/fonts/arabic-avenir/AvenirArabic-Heavy.woff")
       format("woff"),
@@ -145,63 +85,28 @@
   font-weight: 800 900;
   font-style: normal;
   font-display: swap;
-  font-synthesis: none;
+  unicode-range:
+    U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
 }
 
-/* =========================================
-   Font Tokens
-========================================= */
+/* Tokens */
 
 :root {
-  /*
-    English page:
-    - English uses Avenir.
-    - Arabic text can still use AvenirArabic automatically if browser fallback reaches it.
-  */
+  --font-sans:
+    "SEFont", system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
+
   --font-sans-en:
-    "Avenir", "AvenirArabic", system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+    "SEFont", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
 
-  /*
-    Arabic page:
-    - Arabic uses AvenirArabic.
-    - English text can still use Avenir.
-  */
-  --font-sans-ar:
-    "AvenirArabic", "Avenir", "Segoe UI", Tahoma, Arial, sans-serif;
-
-  --font-sans: var(--font-sans-en);
+  --font-sans-ar: "SEFont", "Segoe UI", Tahoma, Arial, sans-serif;
 }
 
-/* Page language decides primary font */
-html[lang="ar"] {
-  --font-sans: var(--font-sans-ar);
-}
-
-html[lang="en"] {
-  --font-sans: var(--font-sans-en);
-}
-
-/* Base application font */
 html,
 body {
   font-family: var(--font-sans);
 }
 
-/* Element-level language override */
-:lang(ar) {
-  font-family: var(--font-sans-ar);
-}
-
-:lang(en) {
-  font-family: var(--font-sans-en);
-}
-
-/* Helpful utility classes */
-.font-en {
-  font-family: var(--font-sans-en);
-}
-
+.font-en,
 .font-ar {
-  font-family: var(--font-sans-ar);
+  font-family: var(--font-sans) !important;
 }

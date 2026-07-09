@@ -1,6 +1,19 @@
+@use "../abstracts" as *;
+
+/* ==========================================================================
+   Alert
+   ========================================================================== */
+
 .alert {
+  --alert-bg: var(--color-surface);
+  --alert-color: var(--color-text);
+  --alert-border: var(--color-border);
+  --alert-icon-color: currentColor;
+
   display: flex;
+  align-items: flex-start;
   gap: 0.875rem;
+
   padding: 1rem 1.25rem;
 
   border: 1px solid var(--alert-border);
@@ -13,10 +26,25 @@
   line-height: var(--line-height-normal);
 }
 
+.alert-icon {
+  --icon-size: 1.25rem;
+
+  flex: 0 0 auto;
+  color: var(--alert-icon-color);
+}
+
+.alert-content {
+  flex: 1;
+  min-inline-size: 0;
+}
+
 .alert-title {
   margin: 0 0 0.25rem;
+
   color: inherit;
-  font-weight: 700;
+  font-size: var(--text-sm);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
 }
 
 .alert-text {
@@ -24,41 +52,66 @@
   color: inherit;
 }
 
-.alert-icon {
+.alert-close {
   flex: 0 0 auto;
-  font-weight: 800;
 }
 
-.alert-content {
-  flex: 1;
-}
+/* Variants */
 
 .alert-primary {
   --alert-bg: color-mix(in oklab, var(--color-primary), transparent 88%);
   --alert-color: var(--color-primary);
   --alert-border: color-mix(in oklab, var(--color-primary), transparent 60%);
+  --alert-icon-color: var(--color-primary);
 }
 
 .alert-success {
   --alert-bg: color-mix(in oklab, var(--color-success), transparent 88%);
   --alert-color: var(--color-success);
   --alert-border: color-mix(in oklab, var(--color-success), transparent 60%);
+  --alert-icon-color: var(--color-success);
 }
 
 .alert-info {
   --alert-bg: color-mix(in oklab, var(--color-info), transparent 88%);
   --alert-color: var(--color-info);
   --alert-border: color-mix(in oklab, var(--color-info), transparent 60%);
+  --alert-icon-color: var(--color-info);
 }
 
 .alert-warning {
   --alert-bg: color-mix(in oklab, var(--color-warning), transparent 84%);
   --alert-color: var(--color-warning);
   --alert-border: color-mix(in oklab, var(--color-warning), transparent 55%);
+  --alert-icon-color: var(--color-warning);
 }
 
 .alert-danger {
   --alert-bg: color-mix(in oklab, var(--color-danger), transparent 88%);
   --alert-color: var(--color-danger);
   --alert-border: color-mix(in oklab, var(--color-danger), transparent 60%);
+  --alert-icon-color: var(--color-danger);
+}
+
+/* Sizes */
+
+.alert-sm {
+  padding: 0.75rem 1rem;
+  font-size: calc(var(--text-xs) * var(--font-scale));
+
+  .alert-icon {
+    --icon-size: 1rem;
+  }
+}
+
+/* Banner */
+
+.alert-banner {
+  border-radius: var(--radius-none);
+}
+
+/* Dismissible */
+
+.alert-dismissible {
+  align-items: flex-start;
 }

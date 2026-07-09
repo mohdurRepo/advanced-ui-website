@@ -1,0 +1,220 @@
+@use "../abstracts" as *;
+
+/* ==========================================================================
+   Drawer
+   ========================================================================== */
+
+.drawer {
+  --drawer-width: 420px;
+  --drawer-bg: var(--color-surface);
+  --drawer-color: var(--color-text);
+  --drawer-border: var(--color-border);
+  --drawer-shadow: var(--shadow-xl);
+  --drawer-backdrop: var(--color-overlay);
+
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+
+  display: none;
+  pointer-events: none;
+}
+
+.drawer.is-open {
+  display: block;
+  pointer-events: auto;
+}
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+
+  background: var(--drawer-backdrop);
+
+  opacity: 0;
+  pointer-events: none;
+
+  @include transition(opacity, normal);
+}
+
+.drawer.is-open .drawer-backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer-panel {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-end: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  inline-size: min(100%, var(--drawer-width));
+  block-size: 100vh;
+
+  border-inline-start: 1px solid var(--drawer-border);
+
+  background: var(--drawer-bg);
+  color: var(--drawer-color);
+
+  box-shadow: var(--drawer-shadow);
+
+  overflow: hidden;
+
+  transform: translateX(100%);
+
+  @include transition(transform, normal);
+}
+
+html[dir="rtl"] .drawer-panel {
+  border-inline-start: 0;
+  border-inline-end: 1px solid var(--drawer-border);
+
+  transform: translateX(-100%);
+}
+
+.drawer.is-open .drawer-panel {
+  transform: translateX(0);
+}
+
+/* Toggle */
+
+.drawer-toggle {
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 3rem;
+  block-size: 3rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+
+  box-shadow: var(--shadow-lg);
+
+  cursor: pointer;
+
+  @include transition(
+    (background-color, border-color, box-shadow, transform),
+    fast
+  );
+
+  &:hover {
+    background: var(--color-primary-hover);
+    transform: translateY(-2px);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* Floating Trigger Position */
+
+.drawer-floating-trigger {
+  position: fixed;
+  z-index: var(--z-fixed);
+
+  inset-block-end: 1.25rem;
+  inset-inline-end: 1.25rem;
+}
+
+/* Header */
+
+.drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+
+  padding: 1.25rem;
+
+  border-block-end: 1px solid var(--drawer-border);
+}
+
+.drawer-title {
+  margin: 0;
+
+  color: var(--color-heading);
+  font-size: var(--text-lg);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+.drawer-text {
+  margin-block-start: 0.25rem;
+
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+.drawer-close {
+  --icon-size: 1rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  inline-size: 2rem;
+  block-size: 2rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* Body */
+
+.drawer-body {
+  flex: 1;
+  min-block-size: 0;
+
+  padding: 1.25rem;
+
+  overflow-y: auto;
+}
+
+/* Footer */
+
+.drawer-footer {
+  padding: 1rem 1.25rem;
+  border-block-start: 1px solid var(--drawer-border);
+}
+
+/* Mobile */
+
+@include respond-down(sm) {
+  .drawer {
+    --drawer-width: 100%;
+  }
+
+  .drawer-floating-trigger {
+    inset-block-end: 1rem;
+    inset-inline-end: 1rem;
+  }
+
+  html[dir="rtl"] .drawer-floating-trigger {
+    inset-inline-start: 1rem;
+  }
+}

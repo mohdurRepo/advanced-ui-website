@@ -1,5 +1,5 @@
-@use "functions" as *;
 @use "sass:map";
+@use "functions" as *;
 @use "breakpoints";
 
 @mixin respond-up($key) {
@@ -17,7 +17,9 @@
     @error "Breakpoint `#{$key}` does not exist.";
   }
 
-  @media (max-width: calc(map.get(breakpoints.$breakpoints, $key) - 0.02px)) {
+  $value: map.get(breakpoints.$breakpoints, $key);
+
+  @media (max-width: ($value - 0.02px)) {
     @content;
   }
 }
@@ -31,18 +33,21 @@
     @error "Breakpoint `#{$max}` does not exist.";
   }
 
-  @media (min-width: map.get(breakpoints.$breakpoints, $min)) and (max-width: calc(map.get(breakpoints.$breakpoints, $max) - 0.02px)) {
+  $min-value: map.get(breakpoints.$breakpoints, $min);
+  $max-value: map.get(breakpoints.$breakpoints, $max);
+
+  @media (min-width: $min-value) and (max-width: ($max-value - 0.02px)) {
     @content;
   }
 }
 
 @mixin focus-ring {
   outline: 0;
-  box-shadow: 0 0 0 0.25rem var(--focus-ring);
+  box-shadow: 0 0 0 0.25rem var(--focus-ring, rgb(0 69 227 / 0.25));
 }
 
-@mixin transition($speed: normal) {
-  transition: all motion($speed);
+@mixin transition($properties: all, $speed: normal) {
+  transition: $properties motion($speed);
 }
 
 @mixin truncate {
@@ -51,7 +56,7 @@
   white-space: nowrap;
 }
 
-@mixin line-clamp($lines) {
+@mixin line-clamp($lines: 2) {
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: $lines;
@@ -83,6 +88,6 @@
   margin: -1px;
   overflow: hidden;
   border: 0;
-  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
   white-space: nowrap;
 }

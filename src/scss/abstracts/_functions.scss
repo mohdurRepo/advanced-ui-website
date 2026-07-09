@@ -56,3 +56,19 @@
 
   @return map.get(maps.$motions, $key);
 }
+
+@function font-size($key) {
+  @if not map.has-key(maps.$font-sizes, $key) {
+    @error "Font size `#{$key}` does not exist.";
+  }
+
+  @return map.get(maps.$font-sizes, $key);
+}
+
+@function line-height($key) {
+  @if not map.has-key(maps.$line-heights, $key) {
+    @error "Line height `#{$key}` does not exist.";
+  }
+
+  @return map.get(maps.$line-heights, $key);
+}

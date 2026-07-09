@@ -4,9 +4,13 @@
 @import "datatables.net-fixedheader-dt/css/fixedHeader.dataTables.css";
 @import "datatables.net-rowgroup-dt/css/rowGroup.dataTables.css";
 
-/* Wrapper */
+/* ==========================================================================
+   DataTables
+   ========================================================================== */
+
 .dt-container {
   direction: inherit;
+
   color: var(--color-text);
   font-size: var(--text-sm);
 
@@ -15,7 +19,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    width: 100%;
+
+    inline-size: 100%;
     margin-block: 1rem;
   }
 
@@ -48,7 +53,7 @@
     margin-inline-start: auto;
 
     input {
-      min-width: 220px;
+      min-inline-size: 220px;
     }
   }
 
@@ -59,15 +64,23 @@
 
   input,
   select {
-    min-height: 2.5rem;
+    min-block-size: 2.5rem;
     padding: 0.5rem 0.75rem;
+
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
+
     background: var(--color-surface);
     color: var(--color-text);
 
+    font: inherit;
+    font-size: var(--text-sm);
+
+    @include transition((border-color, box-shadow, background-color), fast);
+
     &:focus {
-      outline: 0;
+      outline: none;
+      border-color: var(--color-primary);
       box-shadow: 0 0 0 0.25rem var(--focus-ring);
     }
   }
@@ -80,27 +93,34 @@
 }
 
 /* Table */
+
 table.dataTable {
-  width: 100%;
+  inline-size: 100%;
+
   border-collapse: collapse;
+
   background: var(--color-surface);
   color: var(--color-text);
 
   th,
   td {
     padding: 0.875rem 1rem;
-    text-align: start;
-    vertical-align: middle;
-    border-bottom: 1px solid var(--color-border);
+
+    border-block-end: 1px solid var(--color-border);
+
     background: transparent;
     color: var(--color-text);
+
+    text-align: start;
+    vertical-align: middle;
   }
 
   thead {
     th {
       background: var(--color-surface-alt);
       color: var(--color-heading);
-      font-weight: 700;
+
+      font-weight: font-weight("bold");
       white-space: nowrap;
       cursor: pointer;
     }
@@ -109,7 +129,8 @@ table.dataTable {
   tbody {
     tr {
       background: var(--color-surface);
-      transition: background-color var(--transition-fast);
+
+      @include transition(background-color, fast);
 
       &:nth-child(even) {
         background: var(--color-surface-alt);
@@ -126,7 +147,7 @@ table.dataTable {
         td {
           background: var(--color-primary);
           color: var(--color-on-primary);
-          font-weight: 700;
+          font-weight: font-weight("bold");
         }
       }
     }
@@ -151,6 +172,7 @@ table.dataTable {
 }
 
 /* Pagination */
+
 .dt-paging {
   display: flex;
   align-items: center;
@@ -158,18 +180,36 @@ table.dataTable {
   gap: 0.375rem;
 
   .dt-paging-button {
-    min-width: 2.25rem;
-    min-height: 2.25rem;
+    min-inline-size: 2.25rem;
+    min-block-size: 2.25rem;
+
     padding: 0.375rem 0.625rem;
+
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
+
     background: var(--color-surface);
     color: var(--color-text);
+
+    font: inherit;
+    font-size: var(--text-sm);
+
     cursor: pointer;
+
+    @include transition((background-color, border-color, color), fast);
 
     &:hover:not(.disabled):not(.current) {
       background: var(--color-surface-alt);
       color: var(--color-heading);
+      border-color: var(--color-border-strong);
+    }
+
+    &:focus {
+      outline: none;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
     }
 
     &.current {
@@ -179,18 +219,22 @@ table.dataTable {
     }
 
     &.disabled {
-      opacity: 0.45;
+      color: var(--color-on-disabled);
+      border-color: var(--color-disabled);
       cursor: not-allowed;
+      pointer-events: none;
     }
   }
 }
 
-/* Scroll header */
+/* Scroll Header */
+
 div.dt-scroll-body > table.dataTable > thead {
   visibility: collapse;
 }
 
 /* FixedHeader */
+
 div.dtfh-floatingparent,
 div.dtfh-floatingparent-head,
 div.dtfh-floating-limiter,
@@ -215,16 +259,18 @@ table.fixedHeader-locked {
 }
 
 /* RowGroup */
+
 tr.dtrg-group {
   th,
   td {
     background: var(--color-primary);
     color: var(--color-on-primary);
-    font-weight: 700;
+    font-weight: font-weight("bold");
   }
 }
 
 /* Loader */
+
 .datatable-loader-row {
   td {
     padding: 2rem;
@@ -237,31 +283,37 @@ tr.dtrg-group {
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
+
   color: var(--color-text-muted);
 }
 
 .datatable-spinner {
-  width: 1rem;
-  height: 1rem;
+  inline-size: 1rem;
+  block-size: 1rem;
+
   border: 2px solid var(--color-border);
   border-block-start-color: var(--color-primary);
   border-radius: var(--radius-pill);
-  animation: datatableSpinner 0.75s linear infinite;
+
+  animation: datatable-spinner 0.75s linear infinite;
 }
 
-@keyframes datatableSpinner {
+@keyframes datatable-spinner {
   to {
     transform: rotate(360deg);
   }
 }
 
 /* Feed Pagination */
+
 .datatable-feed-pagination {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+
   margin-block-start: 1rem;
+
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 
@@ -274,20 +326,26 @@ tr.dtrg-group {
     align-items: center;
     justify-content: flex-end;
     gap: 0.5rem;
+
     margin-inline-start: auto;
   }
 
   select {
-    min-height: 2.25rem;
+    min-block-size: 2.25rem;
     padding: 0.375rem 0.625rem;
+
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
+
     background: var(--color-surface);
     color: var(--color-text);
+
+    font: inherit;
   }
 }
 
 /* RTL */
+
 html[dir="rtl"] {
   .dt-container {
     direction: rtl;
@@ -321,6 +379,7 @@ html[dir="rtl"] {
 }
 
 /* Responsive */
+
 @include respond-down(md) {
   .dt-container {
     .dt-layout-row {
@@ -330,23 +389,24 @@ html[dir="rtl"] {
 
     .dt-layout-start,
     .dt-layout-end {
-      width: 100%;
+      inline-size: 100%;
       justify-content: space-between;
       margin-inline-start: 0;
     }
 
     .dt-search {
-      width: 100%;
+      inline-size: 100%;
       margin-inline-start: 0;
 
       input {
         flex: 1;
-        min-width: 0;
+        min-inline-size: 0;
       }
     }
 
     .dt-paging {
       justify-content: center;
+      flex-wrap: wrap;
     }
   }
 

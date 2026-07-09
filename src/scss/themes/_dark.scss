@@ -37,6 +37,14 @@ html[data-theme="dark"] {
   --color-border: #1e3d52;
   --color-border-strong: #35556d;
 
+  --color-link: var(--color-primary);
+  --color-link-hover: var(--color-primary-hover);
+
+  --color-overlay: rgb(0 0 0 / 0.65);
+
+  --color-disabled: #334155;
+  --color-on-disabled: #94a3b8;
+
   --color-on-primary: #ffffff;
   --color-on-secondary: #001f33;
   --color-on-accent: #001f33;

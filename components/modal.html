@@ -1,9 +1,43 @@
 <!doctype html>
-<html lang="en" dir="ltr" data-theme="light">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Buttons | Abu Faisal Design System</title>
+
+    <script>
+      (function () {
+        var root = document.documentElement;
+
+        var lang = localStorage.getItem("se-lang") || "en";
+        var themeChoice = localStorage.getItem("se-theme") || "system";
+        var accent = localStorage.getItem("se-accent") || "blue";
+        var fontSize = localStorage.getItem("se-font-size") || "0";
+        var contrast = localStorage.getItem("se-contrast") || "normal";
+        var motion = localStorage.getItem("se-motion") || "normal";
+
+        var systemTheme =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+
+        var resolvedTheme =
+          themeChoice === "system" ? systemTheme : themeChoice;
+
+        root.lang = lang === "ar" ? "ar" : "en";
+        root.dir = lang === "ar" ? "rtl" : "ltr";
+
+        root.setAttribute("data-theme", resolvedTheme);
+        root.setAttribute("data-theme-choice", themeChoice);
+        root.setAttribute("data-accent", accent);
+        root.setAttribute("data-font-size", fontSize);
+        root.setAttribute("data-contrast", contrast);
+        root.setAttribute("data-motion", motion);
+      })();
+    </script>
+
+    <link rel="stylesheet" href="/src/scss/main.scss" />
+    <title>Dropdown System</title>
     <script type="module" src="/src/js/main.js"></script>
   </head>
 
@@ -12,14 +46,14 @@
       <div class="container">
         <div class="d-flex justify-between align-center flex-wrap gap-3 mb-8">
           <div>
-            <h1>Button System</h1>
+            <h1>Dropdown System</h1>
             <p>
-              Testing sharp buttons, rounded buttons, colors, states, theme,
-              language, and RTL.
+              Advanced dropdowns with search, checkbox options, selected values,
+              actions, RTL, and smart positioning.
             </p>
           </div>
 
-          <div class="d-flex flex-wrap gap-2">
+          <div class="d-flex gap-2 flex-wrap">
             <button
               class="btn btn-outline-primary btn-sm"
               data-theme-set="light"
@@ -47,10 +81,6 @@
 
             <button class="btn btn-outline-accent btn-sm" data-lang-set="ar">
               العربية
-            </button>
-
-            <button class="btn btn-accent btn-sm btn-rounded" data-lang-toggle>
-              Toggle Lang
             </button>
           </div>
         </div>

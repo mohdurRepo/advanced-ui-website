@@ -1,12 +1,18 @@
+/* ==========================================================================
+   Tooltip
+   ========================================================================== */
+
 .tooltip {
+  --tooltip-bg: var(--color-heading);
+  --tooltip-color: var(--color-bg);
+  --tooltip-radius: var(--radius-md);
+  --tooltip-offset: 0.75rem;
+  --tooltip-arrow-offset: 0.25rem;
+
   position: relative;
   display: inline-flex;
   overflow: visible;
 }
-
-/* ==========================
-   Tooltip Body
-========================== */
 
 .tooltip::after {
   content: attr(data-tooltip);
@@ -14,34 +20,34 @@
   position: absolute;
   z-index: var(--z-tooltip);
 
-  inset-block-end: calc(100% + 0.75rem);
+  inset-block-end: calc(100% + var(--tooltip-offset));
   inset-inline-start: 50%;
 
-  transform: translateX(-50%) translateY(4px);
-
-  min-width: 120px;
-  max-width: 260px;
+  min-inline-size: 120px;
+  max-inline-size: 260px;
 
   padding: 0.625rem 0.875rem;
 
-  background: var(--color-heading);
-  color: var(--color-on-primary);
+  border-radius: var(--tooltip-radius);
 
-  border-radius: var(--radius-md);
+  background: var(--tooltip-bg);
+  color: var(--tooltip-color);
 
-  font-size: var(--text-xs);
-  line-height: 1.4;
+  box-shadow: var(--shadow-md);
+
+  font-size: calc(var(--text-xs) * var(--font-scale));
   font-weight: 500;
+  line-height: 1.4;
 
   text-align: center;
   white-space: normal;
   word-break: break-word;
 
-  box-shadow: var(--shadow-md);
-
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+
+  transform: translateX(-50%) translateY(4px);
 
   transition:
     opacity var(--transition-fast),
@@ -49,38 +55,30 @@
     visibility var(--transition-fast);
 }
 
-/* ==========================
-   Arrow
-========================== */
-
 .tooltip::before {
   content: "";
 
   position: absolute;
   z-index: calc(var(--z-tooltip) + 1);
 
-  inset-block-end: calc(100% + 0.25rem);
+  inset-block-end: calc(100% + var(--tooltip-arrow-offset));
   inset-inline-start: 50%;
 
-  width: 10px;
-  height: 10px;
+  inline-size: 10px;
+  block-size: 10px;
 
-  background: var(--color-heading);
-
-  transform: translateX(-50%) rotate(45deg);
+  background: var(--tooltip-bg);
 
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
 
+  transform: translateX(-50%) rotate(45deg);
+
   transition:
     opacity var(--transition-fast),
     visibility var(--transition-fast);
 }
-
-/* ==========================
-   Show
-========================== */
 
 .tooltip:hover::after,
 .tooltip:hover::before,
@@ -95,47 +93,34 @@
   transform: translateX(-50%) translateY(0);
 }
 
-/* ==========================
-   Bottom
-========================== */
+/* Bottom */
 
 .tooltip-bottom::after {
-  inset-block-start: calc(100% + 0.75rem);
+  inset-block-start: calc(100% + var(--tooltip-offset));
   inset-block-end: auto;
 }
 
 .tooltip-bottom::before {
-  inset-block-start: calc(100% + 0.25rem);
+  inset-block-start: calc(100% + var(--tooltip-arrow-offset));
   inset-block-end: auto;
-
-  transform: translateX(-50%) rotate(45deg);
 }
 
-.tooltip-bottom:hover::after,
-.tooltip-bottom:focus-within::after {
-  transform: translateX(-50%) translateY(0);
-}
-
-/* ==========================
-   Start
-========================== */
+/* Start */
 
 .tooltip-start::after {
-  inset-inline-end: calc(100% + 0.75rem);
-  inset-inline-start: auto;
-
   inset-block-start: 50%;
   inset-block-end: auto;
+  inset-inline-end: calc(100% + var(--tooltip-offset));
+  inset-inline-start: auto;
 
   transform: translateY(-50%) translateX(4px);
 }
 
 .tooltip-start::before {
-  inset-inline-end: calc(100% + 0.25rem);
-  inset-inline-start: auto;
-
   inset-block-start: 50%;
   inset-block-end: auto;
+  inset-inline-end: calc(100% + var(--tooltip-arrow-offset));
+  inset-inline-start: auto;
 
   transform: translateY(-50%) rotate(45deg);
 }
@@ -145,24 +130,20 @@
   transform: translateY(-50%) translateX(0);
 }
 
-/* ==========================
-   End
-========================== */
+/* End */
 
 .tooltip-end::after {
-  inset-inline-start: calc(100% + 0.75rem);
-
   inset-block-start: 50%;
   inset-block-end: auto;
+  inset-inline-start: calc(100% + var(--tooltip-offset));
 
   transform: translateY(-50%) translateX(-4px);
 }
 
 .tooltip-end::before {
-  inset-inline-start: calc(100% + 0.25rem);
-
   inset-block-start: 50%;
   inset-block-end: auto;
+  inset-inline-start: calc(100% + var(--tooltip-arrow-offset));
 
   transform: translateY(-50%) rotate(45deg);
 }

@@ -1,11 +1,29 @@
 :root {
-  --text-xs: clamp(0.75rem, 0.72rem + 0.15vw, 0.8125rem);
-  --text-sm: clamp(0.875rem, 0.84rem + 0.2vw, 0.9375rem);
-  --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.0625rem);
-  --text-lg: clamp(1.125rem, 1.05rem + 0.35vw, 1.25rem);
-  --text-xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
-  --text-2xl: clamp(1.5rem, 1.25rem + 1vw, 2rem);
-  --text-3xl: clamp(1.875rem, 1.45rem + 1.6vw, 2.75rem);
+  --text-xs: calc(
+    clamp(0.75rem, 0.72rem + 0.15vw, 0.8125rem) * var(--font-scale)
+  );
+
+  --text-sm: calc(
+    clamp(0.875rem, 0.84rem + 0.2vw, 0.9375rem) * var(--font-scale)
+  );
+
+  --text-base: calc(
+    clamp(1rem, 0.95rem + 0.25vw, 1.0625rem) * var(--font-scale)
+  );
+
+  --text-lg: calc(
+    clamp(1.125rem, 1.05rem + 0.35vw, 1.25rem) * var(--font-scale)
+  );
+
+  --text-xl: calc(clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem) * var(--font-scale));
+
+  --text-2xl: calc(clamp(1.5rem, 1.25rem + 1vw, 2rem) * var(--font-scale));
+
+  --text-3xl: calc(
+    clamp(1.875rem, 1.45rem + 1.6vw, 2.75rem) * var(--font-scale)
+  );
+
+  --text-4xl: calc(clamp(2.25rem, 1.7rem + 2.2vw, 3.5rem) * var(--font-scale));
 
   --line-height-tight: 1.2;
   --line-height-normal: 1.5;
@@ -26,31 +44,44 @@ h5,
 h6 {
   color: var(--color-heading);
   line-height: var(--line-height-tight);
-  font-weight: 700;
+  font-weight: 800;
 }
 
 h1 {
-  font-size: var(--text-3xl);
+  font-size: var(--text-4xl);
 }
 
 h2 {
-  font-size: var(--text-2xl);
+  font-size: var(--text-3xl);
 }
 
 h3 {
-  font-size: var(--text-xl);
+  font-size: var(--text-2xl);
 }
 
 h4 {
+  font-size: var(--text-xl);
+}
+
+h5 {
   font-size: var(--text-lg);
+}
+
+h6 {
+  font-size: var(--text-base);
 }
 
 p {
   color: var(--color-text-muted);
+  line-height: var(--line-height-relaxed);
 }
 
 small {
   font-size: var(--text-sm);
+}
+
+strong {
+  font-weight: 800;
 }
 
 span,

@@ -1,17 +1,25 @@
 .bg-body {
-  background: var(--color-bg);
+  background: var(--color-bg) !important;
 }
+
 .bg-surface {
-  background: var(--color-surface);
+  background: var(--color-surface) !important;
 }
+
 .bg-surface-alt {
-  background: var(--color-surface-alt);
+  background: var(--color-surface-alt) !important;
 }
+
 .bg-primary {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  background: var(--color-primary) !important;
+  color: var(--color-on-primary) !important;
 }
+
 .bg-accent {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+  background: var(--color-accent) !important;
+  color: var(--color-on-accent) !important;
+}
+
+.bg-transparent {
+  background: transparent !important;
 }

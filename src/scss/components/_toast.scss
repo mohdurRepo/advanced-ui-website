@@ -1,5 +1,9 @@
 @use "../abstracts" as *;
 
+/* ==========================================================================
+   Toast
+   ========================================================================== */
+
 .toast-container {
   position: fixed;
   z-index: var(--z-toast);
@@ -10,7 +14,7 @@
   display: grid;
   gap: 0.75rem;
 
-  width: min(100% - 2rem, 420px);
+  inline-size: min(100% - 2rem, 420px);
 
   pointer-events: none;
 }
@@ -28,21 +32,20 @@
   gap: 0.875rem;
 
   padding: 1rem 1.25rem;
-  padding-inline-start: 1rem;
-
-  background: var(--toast-bg);
-  color: var(--toast-color);
 
   border: 1px solid var(--toast-border);
   border-inline-start: 4px solid var(--toast-accent);
   border-radius: var(--radius-md);
 
+  background: var(--toast-bg);
+  color: var(--toast-color);
+
   box-shadow: var(--shadow-lg);
 
   pointer-events: auto;
 
-  transform: translateX(1rem);
   opacity: 0;
+  transform: translateX(1rem);
 
   animation: toast-in var(--transition-normal) forwards;
 }
@@ -56,35 +59,42 @@ html[dir="rtl"] .toast {
 }
 
 .toast-icon {
+  --icon-size: 1.25rem;
+
   flex: 0 0 auto;
   color: var(--toast-accent);
-  font-weight: 800;
-  line-height: 1.4;
 }
 
 .toast-content {
   flex: 1;
-  min-width: 0;
+  min-inline-size: 0;
 }
 
 .toast-title {
   margin: 0 0 0.25rem;
+
   color: var(--toast-color);
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
 }
 
 .toast-message {
   margin: 0;
+
   color: var(--color-text-muted);
   font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
 }
 
 .toast-close {
+  display: inline-grid;
+  place-items: center;
+
   flex: 0 0 auto;
 
-  width: 1.75rem;
-  height: 1.75rem;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
 
   border: 0;
   border-radius: var(--radius-pill);
@@ -95,18 +105,26 @@ html[dir="rtl"] .toast {
   cursor: pointer;
   opacity: 0.7;
 
-  transition:
-    opacity var(--transition-fast),
-    background-color var(--transition-fast);
+  @include transition((opacity, background-color, color), fast);
+
+  &:hover {
+    opacity: 1;
+    background: var(--color-surface-alt);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
 }
 
-.toast-close:hover {
-  opacity: 1;
-  background: var(--color-surface-alt);
-}
+/* Variants */
 
-.toast-close:focus-visible {
-  @include focus-ring;
+.toast-primary {
+  --toast-accent: var(--color-primary);
 }
 
 .toast-success {
@@ -125,36 +143,36 @@ html[dir="rtl"] .toast {
   --toast-accent: var(--color-danger);
 }
 
-.toast-primary {
-  --toast-accent: var(--color-primary);
-}
+/* Motion */
 
 @keyframes toast-in {
   to {
-    transform: translateX(0);
     opacity: 1;
+    transform: translateX(0);
   }
 }
 
 @keyframes toast-out {
   to {
-    transform: translateX(1rem);
     opacity: 0;
+    transform: translateX(1rem);
   }
 }
 
 html[dir="rtl"] {
   @keyframes toast-out {
     to {
-      transform: translateX(-1rem);
       opacity: 0;
+      transform: translateX(-1rem);
     }
   }
 }
 
+/* Responsive */
+
 @include respond-down(sm) {
   .toast-container {
     inset-inline: 1rem;
-    width: auto;
+    inline-size: auto;
   }
 }

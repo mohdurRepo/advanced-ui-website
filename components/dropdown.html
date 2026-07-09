@@ -6,15 +6,33 @@
 
     <script>
       (function () {
-        var theme = localStorage.getItem("se-theme") || "light";
-        var lang = localStorage.getItem("se-lang") || "en";
+        var root = document.documentElement;
 
-        document.documentElement.setAttribute("data-theme", theme);
-        document.documentElement.setAttribute("lang", lang);
-        document.documentElement.setAttribute(
-          "dir",
-          lang === "ar" ? "rtl" : "ltr",
-        );
+        var lang = localStorage.getItem("se-lang") || "en";
+        var themeChoice = localStorage.getItem("se-theme") || "system";
+        var accent = localStorage.getItem("se-accent") || "blue";
+        var fontSize = localStorage.getItem("se-font-size") || "0";
+        var contrast = localStorage.getItem("se-contrast") || "normal";
+        var motion = localStorage.getItem("se-motion") || "normal";
+
+        var systemTheme =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+
+        var resolvedTheme =
+          themeChoice === "system" ? systemTheme : themeChoice;
+
+        root.lang = lang === "ar" ? "ar" : "en";
+        root.dir = lang === "ar" ? "rtl" : "ltr";
+
+        root.setAttribute("data-theme", resolvedTheme);
+        root.setAttribute("data-theme-choice", themeChoice);
+        root.setAttribute("data-accent", accent);
+        root.setAttribute("data-font-size", fontSize);
+        root.setAttribute("data-contrast", contrast);
+        root.setAttribute("data-motion", motion);
       })();
     </script>
 

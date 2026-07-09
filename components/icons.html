@@ -6,15 +6,33 @@
 
     <script>
       (function () {
-        var theme = localStorage.getItem("se-theme") || "light";
-        var lang = localStorage.getItem("se-lang") || "en";
+        var root = document.documentElement;
 
-        document.documentElement.setAttribute("data-theme", theme);
-        document.documentElement.setAttribute("lang", lang);
-        document.documentElement.setAttribute(
-          "dir",
-          lang === "ar" ? "rtl" : "ltr",
-        );
+        var lang = localStorage.getItem("se-lang") || "en";
+        var themeChoice = localStorage.getItem("se-theme") || "system";
+        var accent = localStorage.getItem("se-accent") || "blue";
+        var fontSize = localStorage.getItem("se-font-size") || "0";
+        var contrast = localStorage.getItem("se-contrast") || "normal";
+        var motion = localStorage.getItem("se-motion") || "normal";
+
+        var systemTheme =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+
+        var resolvedTheme =
+          themeChoice === "system" ? systemTheme : themeChoice;
+
+        root.lang = lang === "ar" ? "ar" : "en";
+        root.dir = lang === "ar" ? "rtl" : "ltr";
+
+        root.setAttribute("data-theme", resolvedTheme);
+        root.setAttribute("data-theme-choice", themeChoice);
+        root.setAttribute("data-accent", accent);
+        root.setAttribute("data-font-size", fontSize);
+        root.setAttribute("data-contrast", contrast);
+        root.setAttribute("data-motion", motion);
       })();
     </script>
 
@@ -89,11 +107,10 @@
 
           <div class="card-body">
             <div class="row">
-              <!-- Check Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-check icon-2xl mb-3 justify-center"
+                    class="has-icon icon-check icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Check</strong>
@@ -101,11 +118,10 @@
                 </div>
               </div>
 
-              <!-- Search Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-search icon-2xl mb-3 justify-center"
+                    class="has-icon icon-search icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Search</strong>
@@ -113,11 +129,10 @@
                 </div>
               </div>
 
-              <!-- Sun Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-sun icon-2xl mb-3 justify-center"
+                    class="has-icon icon-sun icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Sun</strong>
@@ -125,11 +140,10 @@
                 </div>
               </div>
 
-              <!-- Chevron Up Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-chevron-up icon-2xl mb-3 justify-center"
+                    class="has-icon icon-chevron-up icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Chevron Up</strong>
@@ -137,11 +151,10 @@
                 </div>
               </div>
 
-              <!-- Chevron Down Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-chevron-down icon-2xl mb-3 justify-center"
+                    class="has-icon icon-chevron-down icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Chevron Down</strong>
@@ -149,11 +162,10 @@
                 </div>
               </div>
 
-              <!-- Chevron Right Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-chevron-right icon-2xl mb-3 justify-center"
+                    class="has-icon icon-chevron-right icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Chevron Right</strong>
@@ -161,11 +173,10 @@
                 </div>
               </div>
 
-              <!-- Chevron Left Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-chevron-left icon-2xl mb-3 justify-center"
+                    class="has-icon icon-chevron-left icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Chevron Left</strong>
@@ -173,11 +184,10 @@
                 </div>
               </div>
 
-              <!-- Location Pin Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-location-pin icon-2xl mb-3 justify-center"
+                    class="has-icon icon-location-pin icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Location Pin</strong>
@@ -185,11 +195,10 @@
                 </div>
               </div>
 
-              <!-- Globe Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-globe icon-2xl mb-3 justify-center"
+                    class="has-icon icon-globe icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Globe</strong>
@@ -197,11 +206,10 @@
                 </div>
               </div>
 
-              <!-- Calendar Add Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-calendar-add icon-2xl mb-3 justify-center"
+                    class="has-icon icon-calendar-add icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Calendar Add</strong>
@@ -209,11 +217,10 @@
                 </div>
               </div>
 
-              <!-- Tadawul Solid Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-tadawul icon-2xl mb-3 justify-center"
+                    class="has-icon icon-tadawul icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Tadawul</strong>
@@ -221,11 +228,10 @@
                 </div>
               </div>
 
-              <!-- Tadawul Outline Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-tadawul-outline icon-2xl mb-3 justify-center"
+                    class="has-icon icon-tadawul-outline icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Tadawul Outline</strong>
@@ -235,11 +241,10 @@
                 </div>
               </div>
 
-              <!-- External Link Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-external-link icon-2xl mb-3 justify-center"
+                    class="has-icon icon-external-link icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>External Link</strong>
@@ -247,11 +252,10 @@
                 </div>
               </div>
 
-              <!-- Star Outline Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-star-outline icon-2xl mb-3 justify-center"
+                    class="has-icon icon-star-outline icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Star Outline</strong>
@@ -259,11 +263,10 @@
                 </div>
               </div>
 
-              <!-- Star Filled Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-star-filled icon-2xl mb-3 justify-center"
+                    class="has-icon icon-star-filled icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Star Filled</strong>
@@ -271,11 +274,10 @@
                 </div>
               </div>
 
-              <!-- Triangle Up Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-triangle-up icon-2xl mb-3 justify-center"
+                    class="has-icon icon-triangle-up icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Triangle Up</strong>
@@ -283,11 +285,10 @@
                 </div>
               </div>
 
-              <!-- Triangle Down Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-triangle-down icon-2xl mb-3 justify-center"
+                    class="has-icon icon-triangle-down icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Triangle Down</strong>
@@ -295,11 +296,10 @@
                 </div>
               </div>
 
-              <!-- Arrow Up Right Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-arrow-up-right icon-2xl mb-3 justify-center"
+                    class="has-icon icon-arrow-up-right icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Arrow Up Right</strong>
@@ -307,11 +307,10 @@
                 </div>
               </div>
 
-              <!-- Info Warning Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-info-warning icon-2xl mb-3 justify-center"
+                    class="has-icon icon-info-warning icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Info Warning</strong>
@@ -319,11 +318,10 @@
                 </div>
               </div>
 
-              <!-- Riyal Symbol Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-riyal icon-2xl mb-3 justify-center"
+                    class="has-icon icon-riyal icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Riyal Symbol</strong>
@@ -331,11 +329,10 @@
                 </div>
               </div>
 
-              <!-- Riyal Parentheses Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-riyal-parentheses icon-2xl mb-3 justify-center"
+                    class="has-icon icon-riyal-parentheses icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Riyal Parentheses</strong>
@@ -345,11 +342,10 @@
                 </div>
               </div>
 
-              <!-- Trend Up Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-trend-up icon-2xl mb-3 justify-center"
+                    class="has-icon icon-trend-up icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Trend Up</strong>
@@ -357,11 +353,10 @@
                 </div>
               </div>
 
-              <!-- Analytics Filter Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-analytics-filter icon-2xl mb-3 justify-center"
+                    class="has-icon icon-analytics-filter icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Analytics Filter</strong>
@@ -371,11 +366,10 @@
                 </div>
               </div>
 
-              <!-- Share Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-share icon-2xl mb-3 justify-center"
+                    class="has-icon icon-share icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Share</strong>
@@ -383,11 +377,10 @@
                 </div>
               </div>
 
-              <!-- File Download Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-file-download icon-2xl mb-3 justify-center"
+                    class="has-icon icon-file-download icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>File Download</strong>
@@ -395,11 +388,10 @@
                 </div>
               </div>
 
-              <!-- Copy Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-copy icon-2xl mb-3 justify-center"
+                    class="has-icon icon-copy icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Copy</strong>
@@ -407,11 +399,10 @@
                 </div>
               </div>
 
-              <!-- Close X Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-close-x icon-2xl mb-3 justify-center"
+                    class="has-icon icon-close-x icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Close X</strong>
@@ -419,11 +410,10 @@
                 </div>
               </div>
 
-              <!-- PDF File Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-pdf-file icon-2xl mb-3 justify-center"
+                    class="has-icon icon-pdf-file icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>PDF File</strong>
@@ -431,11 +421,10 @@
                 </div>
               </div>
 
-              <!-- Filter Funnel Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-filter-funnel icon-2xl mb-3 justify-center"
+                    class="has-icon icon-filter-funnel icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Filter Funnel</strong>
@@ -443,11 +432,10 @@
                 </div>
               </div>
 
-              <!-- Sync Refresh Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-sync-refresh icon-2xl mb-3 justify-center"
+                    class="has-icon icon-sync-refresh icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Sync Refresh</strong>
@@ -455,11 +443,10 @@
                 </div>
               </div>
 
-              <!-- List Bullet Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-list-bullet icon-2xl mb-3 justify-center"
+                    class="has-icon icon-list-bullet icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>List Bullet</strong>
@@ -467,11 +454,10 @@
                 </div>
               </div>
 
-              <!-- Chart Bar Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-chart-bar icon-2xl mb-3 justify-center"
+                    class="has-icon icon-chart-bar icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Chart Bar</strong>
@@ -479,11 +465,10 @@
                 </div>
               </div>
 
-              <!-- Segment Container Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-segment-container icon-2xl mb-3 justify-center"
+                    class="has-icon icon-segment-container icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Segment Container</strong>
@@ -493,11 +478,10 @@
                 </div>
               </div>
 
-              <!-- Card List View Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-card-list-view icon-2xl mb-3 justify-center"
+                    class="has-icon icon-card-list-view icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Card List View</strong>
@@ -505,11 +489,10 @@
                 </div>
               </div>
 
-              <!-- Grid Bento View Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-grid-bento-view icon-2xl mb-3 justify-center"
+                    class="has-icon icon-grid-bento-view icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Grid Bento View</strong>
@@ -519,11 +502,10 @@
                 </div>
               </div>
 
-              <!-- Telephone Support Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-telephone-support icon-2xl mb-3 justify-center"
+                    class="has-icon icon-telephone-support icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Telephone Support</strong>
@@ -533,11 +515,10 @@
                 </div>
               </div>
 
-              <!-- Scanner Fax Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-scanner-fax icon-2xl mb-3 justify-center"
+                    class="has-icon icon-scanner-fax icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Scanner Fax</strong>
@@ -545,11 +526,10 @@
                 </div>
               </div>
 
-              <!-- Inbox Email Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-inbox-email icon-2xl mb-3 justify-center"
+                    class="has-icon icon-inbox-email icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Inbox Email</strong>
@@ -557,11 +537,10 @@
                 </div>
               </div>
 
-              <!-- Alert Bell Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-alert-bell icon-2xl mb-3 justify-center"
+                    class="has-icon icon-alert-bell icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Alert Bell</strong>
@@ -569,11 +548,10 @@
                 </div>
               </div>
 
-              <!-- History Clock Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-history-clock icon-2xl mb-3 justify-center"
+                    class="has-icon icon-history-clock icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>History Clock</strong>
@@ -581,11 +559,10 @@
                 </div>
               </div>
 
-              <!-- Headset Support Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-headset-support icon-2xl mb-3 justify-center"
+                    class="has-icon icon-headset-support icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Headset Support</strong>
@@ -595,11 +572,10 @@
                 </div>
               </div>
 
-              <!-- WhatsApp Brand Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-brand-whatsapp icon-2xl mb-3 justify-center"
+                    class="has-icon icon-brand-whatsapp icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>WhatsApp</strong>
@@ -607,11 +583,10 @@
                 </div>
               </div>
 
-              <!-- Mailbox Split Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-mailbox-split icon-2xl mb-3 justify-center"
+                    class="has-icon icon-mailbox-split icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Mailbox Split</strong>
@@ -619,11 +594,10 @@
                 </div>
               </div>
 
-              <!-- Bookmark Ribbon Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-bookmark-ribbon icon-2xl mb-3 justify-center"
+                    class="has-icon icon-bookmark-ribbon icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Bookmark Ribbon</strong>
@@ -633,11 +607,10 @@
                 </div>
               </div>
 
-              <!-- Calendar Scheduler Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-calendar-scheduler icon-2xl mb-3 justify-center"
+                    class="has-icon icon-calendar-scheduler icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Calendar Scheduler</strong>
@@ -647,11 +620,10 @@
                 </div>
               </div>
 
-              <!-- Telephone Handle Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-telephone-handle icon-2xl mb-3 justify-center"
+                    class="has-icon icon-telephone-handle icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Telephone Handle</strong>
@@ -661,11 +633,10 @@
                 </div>
               </div>
 
-              <!-- At Sign Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-at-sign icon-2xl mb-3 justify-center"
+                    class="has-icon icon-at-sign icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>At Sign</strong>
@@ -673,11 +644,10 @@
                 </div>
               </div>
 
-              <!-- Add Plus Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-add-plus icon-2xl mb-3 justify-center"
+                    class="has-icon icon-add-plus icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Add Plus</strong>
@@ -685,11 +655,10 @@
                 </div>
               </div>
 
-              <!-- Edit Pencil Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-edit-pencil icon-2xl mb-3 justify-center"
+                    class="has-icon icon-edit-pencil icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Edit Pencil</strong>
@@ -697,11 +666,10 @@
                 </div>
               </div>
 
-              <!-- Logout Door Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-logout-door icon-2xl mb-3 justify-center"
+                    class="has-icon icon-logout-door icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Logout Door</strong>
@@ -709,11 +677,10 @@
                 </div>
               </div>
 
-              <!-- Trash Delete Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-trash-delete icon-2xl mb-3 justify-center"
+                    class="has-icon icon-trash-delete icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Trash Delete</strong>
@@ -721,11 +688,10 @@
                 </div>
               </div>
 
-              <!-- Folder Import Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-folder-import icon-2xl mb-3 justify-center"
+                    class="has-icon icon-folder-import icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Folder Import</strong>
@@ -733,11 +699,10 @@
                 </div>
               </div>
 
-              <!-- Edaa Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-edaa icon-2xl mb-3 justify-center"
+                    class="has-icon icon-edaa icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Edaa</strong>
@@ -745,11 +710,10 @@
                 </div>
               </div>
 
-              <!-- Muqassa Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-muqassa icon-2xl mb-3 justify-center"
+                    class="has-icon icon-muqassa icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Muqassa</strong>
@@ -757,11 +721,10 @@
                 </div>
               </div>
 
-              <!-- Chevron Down Bold Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-chevron-down-bold icon-2xl mb-3 justify-center"
+                    class="has-icon icon-chevron-down-bold icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Chevron Down Bold</strong>
@@ -771,12 +734,10 @@
                 </div>
               </div>
 
-              
-              <!-- Chevron Right Bold Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-chevron-right-bold icon-2xl mb-3"
+                    class="has-icon icon-chevron-right-bold icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Chevron Right Bold</strong>
@@ -786,11 +747,10 @@
                 </div>
               </div>
 
-              <!-- Chevron Left Bold Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-chevron-left-bold icon-2xl mb-3"
+                    class="has-icon icon-chevron-left-bold icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Chevron Left Bold</strong>
@@ -800,11 +760,10 @@
                 </div>
               </div>
 
-              <!-- Chevron Up Bold Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-chevron-up-bold icon-2xl mb-3"
+                    class="has-icon icon-chevron-up-bold icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Chevron Up Bold</strong>
@@ -814,11 +773,10 @@
                 </div>
               </div>
 
-              <!-- Menu Dots Vertical Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-menu-dots-vertical icon-2xl mb-3 justify-center"
+                    class="has-icon icon-menu-dots-vertical icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Menu Dots Vertical</strong>
@@ -828,11 +786,10 @@
                 </div>
               </div>
 
-              <!-- Minus Line Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-minus-line icon-2xl mb-3 justify-center"
+                    class="has-icon icon-minus-line icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Minus Line</strong>
@@ -840,11 +797,10 @@
                 </div>
               </div>
 
-              <!-- Facebook Brand Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-brand-facebook icon-2xl mb-3 justify-center"
+                    class="has-icon icon-brand-facebook icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Facebook</strong>
@@ -852,11 +808,10 @@
                 </div>
               </div>
 
-              <!-- LinkedIn Brand Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-brand-linkedin icon-2xl mb-3 justify-center"
+                    class="has-icon icon-brand-linkedin icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>LinkedIn</strong>
@@ -864,11 +819,10 @@
                 </div>
               </div>
 
-              <!-- Instagram Brand Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-brand-instagram icon-2xl mb-3 justify-center"
+                    class="has-icon icon-brand-instagram icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Instagram</strong>
@@ -878,11 +832,10 @@
                 </div>
               </div>
 
-              <!-- X Brand Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-brand-x icon-2xl mb-3 justify-center"
+                    class="has-icon icon-brand-x icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>X (Twitter)</strong>
@@ -890,11 +843,10 @@
                 </div>
               </div>
 
-              <!-- YouTube Brand Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-brand-youtube icon-2xl mb-3 justify-center"
+                    class="has-icon icon-brand-youtube icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>YouTube</strong>
@@ -902,11 +854,10 @@
                 </div>
               </div>
 
-              <!-- Theme Palette Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-theme-palette icon-2xl mb-3 justify-center"
+                    class="has-icon icon-theme-palette icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
                   <strong>Theme Palette</strong>
@@ -914,46 +865,42 @@
                 </div>
               </div>
 
-              <!-- Theme panel dashboard Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-panel-dashboard icon-2xl mb-3 justify-center"
+                    class="has-icon icon-panel-dashboard icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
-                  <strong>Theme Palette</strong>
+                  <strong>Panel Dashboard</strong>
                   <small class="text-muted"
                     >has-icon icon-panel-dashboard</small
                   >
                 </div>
               </div>
 
-              <!-- Theme network radar -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-network-radar icon-2xl mb-3 justify-center"
+                    class="has-icon icon-network-radar icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
-                  <strong>Theme Palette</strong>
+                  <strong>Network Radar</strong>
                   <small class="text-muted">has-icon icon-network-radar</small>
                 </div>
               </div>
 
-              <!-- Theme analytics steps Icon -->
               <div class="col-6 col-md-4 col-lg-3 mb-4">
                 <div class="card p-4 text-center">
                   <span
-                    class="has-icon icon-analytics-steps icon-2xl mb-3 justify-center"
+                    class="has-icon icon-analytics-steps icon-2xl icon-accent mb-3 justify-center"
                     aria-hidden="true"
                   ></span>
-                  <strong>Theme Palette</strong>
+                  <strong>Analytics Steps</strong>
                   <small class="text-muted"
                     >has-icon icon-analytics-steps</small
                   >
                 </div>
               </div>
-
             </div>
           </div>
         </section>
@@ -964,33 +911,28 @@
           </div>
 
           <div class="card-body d-flex flex-wrap gap-3">
-            <!-- Home Button using your theme palette selector -->
             <button
               class="btn btn-primary btn-rounded has-icon icon-theme-palette"
             >
               Theme
             </button>
 
-            <!-- Search Button using your custom line-art look -->
             <button
               class="btn btn-outline-primary btn-rounded has-icon icon-search"
             >
               Search
             </button>
 
-            <!-- Confirm Button using your verified clean check path -->
             <button class="btn btn-success btn-rounded has-icon icon-check">
               Confirm
             </button>
 
-            <!-- Refreshing Button using your custom synchronization asset with the rotation layout -->
             <button
               class="btn btn-warning btn-rounded has-icon icon-sync-refresh icon-spin icon-lg"
             >
               Refreshing
             </button>
 
-            <!-- Next Button using your specialized asymmetric right navigation vector -->
             <button
               class="btn btn-primary btn-rounded has-icon btn-icon-end icon-arrow-right icon-flip-rtl"
             >
@@ -1010,7 +952,7 @@
             <span class="has-icon icon-home icon-md">MD</span>
             <span class="has-icon icon-home icon-lg">LG</span>
             <span class="has-icon icon-home icon-xl">XL</span>
-            <span class="has-icon icon-home icon-2xl">2XL</span>
+            <span class="has-icon icon-home icon-2xl icon-accent">2XL</span>
           </div>
         </section>
 
@@ -1045,380 +987,14 @@
             </p>
 
             <div class="d-flex flex-wrap gap-3 mb-4">
-              <span class="svg-icon icon-2xl">
+              <span class="svg-icon icon-2xl icon-accent">
                 <svg aria-hidden="true">
-                  <use href="#custom-check"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-search"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-sun"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-chevron-left"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-chevron-up"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-chevron-right"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-chevron-down"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-location-pin"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-calendar-add"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-tadawul-icon"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-tadawul-icon-outline"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-external-link"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-star-outline"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-star-filled"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-triangle-up"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-triangle-down"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-arrow-up-right"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-info-warning"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-riyal-symbol"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-riyal-parentheses"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-trend-up"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-analytics-filter"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-share"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-file-download"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-copy"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-close-x"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-pdf-file"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-filter-funnel"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-sync-refresh"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-list-bullet"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-chart-bar"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-segment-container"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-card-list-view"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-grid-bento-view"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-telephone-support"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-scanner-fax"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-inbox-email"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-alert-bell"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-history-clock"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-headset-support"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-brand-whatsapp"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-mailbox-split"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-bookmark-ribbon"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-calendar-scheduler"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-telephone-handle"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-icon-at-sign"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-add-plus"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-minus-line"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-edit-pencil"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-logout-door"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-trash-delete"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-folder-import"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-edaa-icon"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-muqassa-icon"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-chevron-down-bold"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-menu-dots-vertical"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-brand-facebook"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-brand-instagram"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-brand-linkedin"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-brand-x"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-brand-youtube"></use>
-                </svg>
-              </span>
-
-              <span class="svg-icon icon-2xl">
-                <svg aria-hidden="true">
-                  <use href="#custom-globe"></use>
+                  <use href="#custom-home"></use>
                 </svg>
               </span>
             </div>
 
-            <pre><code>&lt;span class="svg-icon icon-2xl"&gt;
+            <pre><code>&lt;span class="svg-icon icon-2xl icon-accent"&gt;
   &lt;svg aria-hidden="true"&gt;
     &lt;use href="#custom-home"&gt;&lt;/use&gt;
   &lt;/svg&gt;
@@ -1427,5 +1003,53 @@
         </section>
       </div>
     </main>
+    <!-- Floating Drawer Trigger -->
+    <button
+      class="drawer-toggle drawer-floating-trigger has-icon icon-theme-palette icon-lg"
+      type="button"
+      data-preferences-toggle
+      aria-label="Open display settings"
+      aria-expanded="false"
+      aria-controls="preferences-drawer"
+    ></button>
+
+    <!-- Preferences Drawer -->
+    <aside
+      id="preferences-drawer"
+      class="drawer"
+      data-preferences
+      aria-hidden="true"
+    >
+      <div class="drawer-backdrop" data-preferences-close></div>
+
+      <div
+        class="drawer-panel"
+        data-preferences-panel
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="preferences-title"
+      >
+        <header class="drawer-header">
+          <div>
+            <h2 id="preferences-title" class="drawer-title">
+              Display Settings
+            </h2>
+
+            <p class="drawer-text">Customize your viewing experience.</p>
+          </div>
+
+          <button
+            class="drawer-close has-icon icon-close-x"
+            type="button"
+            data-preferences-close
+            aria-label="Close settings"
+          ></button>
+        </header>
+
+        <div class="drawer-body">
+          <!-- your preferences groups stay here -->
+        </div>
+      </div>
+    </aside>
   </body>
 </html>

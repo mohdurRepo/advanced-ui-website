@@ -18,7 +18,11 @@ import { initHomeCountdownSlider } from "./components/intro-section/home-countdo
 import { initHomeVideoPlayer } from "./components/intro-section/home-video-player";
 import { initCalendar } from "./components/calendar";
 import { initFeatureOverview } from "./components/feature-overview";
+import { initPreferences } from "./core/preferences";
+import { initPreferencesUI } from "./core/preferences-ui";
 
+initPreferences();
+initPreferencesUI();
 initHeader();
 window.renderDataTable = renderDataTable;
 initTheme();

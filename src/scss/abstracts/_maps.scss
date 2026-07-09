@@ -69,3 +69,21 @@ $motions: (
   "normal": 200ms ease,
   "slow": 300ms ease,
 );
+
+$font-sizes: (
+  "xs": 0.75rem,
+  "sm": 0.875rem,
+  "base": 1rem,
+  "md": 1.125rem,
+  "lg": 1.25rem,
+  "xl": 1.5rem,
+  "2xl": 2rem,
+  "3xl": 2.5rem,
+  "4xl": 3rem,
+);
+
+$line-heights: (
+  "tight": 1.2,
+  "normal": 1.5,
+  "relaxed": 1.7,
+);

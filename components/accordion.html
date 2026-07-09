@@ -1,9 +1,43 @@
 <!doctype html>
-<html lang="en" dir="ltr" data-theme="light">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Buttons | Abu Faisal Design System</title>
+
+    <script>
+      (function () {
+        var root = document.documentElement;
+
+        var lang = localStorage.getItem("se-lang") || "en";
+        var themeChoice = localStorage.getItem("se-theme") || "system";
+        var accent = localStorage.getItem("se-accent") || "blue";
+        var fontSize = localStorage.getItem("se-font-size") || "0";
+        var contrast = localStorage.getItem("se-contrast") || "normal";
+        var motion = localStorage.getItem("se-motion") || "normal";
+
+        var systemTheme =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+
+        var resolvedTheme =
+          themeChoice === "system" ? systemTheme : themeChoice;
+
+        root.lang = lang === "ar" ? "ar" : "en";
+        root.dir = lang === "ar" ? "rtl" : "ltr";
+
+        root.setAttribute("data-theme", resolvedTheme);
+        root.setAttribute("data-theme-choice", themeChoice);
+        root.setAttribute("data-accent", accent);
+        root.setAttribute("data-font-size", fontSize);
+        root.setAttribute("data-contrast", contrast);
+        root.setAttribute("data-motion", motion);
+      })();
+    </script>
+
+    <link rel="stylesheet" href="/src/scss/main.scss" />
+    <title>Icons | Abu Faisal Design System</title>
     <script type="module" src="/src/js/main.js"></script>
   </head>
 
@@ -12,10 +46,9 @@
       <div class="container">
         <div class="d-flex justify-between align-center flex-wrap gap-3 mb-8">
           <div>
-            <h1>Button System</h1>
+            <h1>Icon System</h1>
             <p>
-              Testing sharp buttons, rounded buttons, colors, states, theme,
-              language, and RTL.
+              Class-based icons for buttons, lists, cards, and SVG sprite usage.
             </p>
           </div>
 
@@ -26,31 +59,23 @@
             >
               Light
             </button>
-
             <button
               class="btn btn-outline-primary btn-sm"
               data-theme-set="dark"
             >
               Dark
             </button>
-
             <button
               class="btn btn-primary btn-sm btn-rounded"
               data-theme-toggle
             >
               Toggle Theme
             </button>
-
             <button class="btn btn-outline-accent btn-sm" data-lang-set="en">
               English
             </button>
-
             <button class="btn btn-outline-accent btn-sm" data-lang-set="ar">
               العربية
-            </button>
-
-            <button class="btn btn-accent btn-sm btn-rounded" data-lang-toggle>
-              Toggle Lang
             </button>
           </div>
         </div>
@@ -59,6 +84,7 @@
           <h2 class="mb-4">Accordion System</h2>
 
           <div class="grid-2">
+            <!-- Single Open -->
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title">Single Open Accordion</h3>
@@ -73,12 +99,19 @@
                       data-accordion-trigger
                       aria-expanded="true"
                     >
-                      What is this design system?
-                      <span class="accordion-icon"></span>
+                      <span>What is this design system?</span>
+
+                      <span
+                        class="has-icon icon-chevron-down accordion-icon"
+                        aria-hidden="true"
+                      ></span>
                     </button>
 
                     <div class="accordion-panel">
-                      This is the reusable frontend foundation for the project.
+                      <div class="accordion-panel-inner">
+                        This is the reusable frontend foundation for the
+                        project.
+                      </div>
                     </div>
                   </div>
 
@@ -89,13 +122,19 @@
                       data-accordion-trigger
                       aria-expanded="false"
                     >
-                      Does it support RTL?
-                      <span class="accordion-icon"></span>
+                      <span>Does it support RTL?</span>
+
+                      <span
+                        class="has-icon icon-chevron-down accordion-icon"
+                        aria-hidden="true"
+                      ></span>
                     </button>
 
-                    <div class="accordion-panel" hidden>
-                      Yes. It supports Arabic and English using logical CSS
-                      properties.
+                    <div class="accordion-panel">
+                      <div class="accordion-panel-inner">
+                        Yes. It supports Arabic and English using logical CSS
+                        properties.
+                      </div>
                     </div>
                   </div>
 
@@ -106,18 +145,26 @@
                       data-accordion-trigger
                       aria-expanded="false"
                     >
-                      Does it support dark mode?
-                      <span class="accordion-icon"></span>
+                      <span>Does it support dark mode?</span>
+
+                      <span
+                        class="has-icon icon-chevron-down accordion-icon"
+                        aria-hidden="true"
+                      ></span>
                     </button>
 
-                    <div class="accordion-panel" hidden>
-                      Yes. The theme system is based on semantic CSS variables.
+                    <div class="accordion-panel">
+                      <div class="accordion-panel-inner">
+                        Yes. The theme system is based on semantic CSS
+                        variables.
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
+            <!-- Multiple Open -->
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title">Multiple Open Accordion</h3>
@@ -135,12 +182,18 @@
                       data-accordion-trigger
                       aria-expanded="false"
                     >
-                      Market information
-                      <span class="accordion-icon"></span>
+                      <span>Market information</span>
+
+                      <span
+                        class="has-icon icon-chevron-down accordion-icon"
+                        aria-hidden="true"
+                      ></span>
                     </button>
 
-                    <div class="accordion-panel" hidden>
-                      Useful for market summary and company profile details.
+                    <div class="accordion-panel">
+                      <div class="accordion-panel-inner">
+                        Useful for market summary and company profile details.
+                      </div>
                     </div>
                   </div>
 
@@ -151,12 +204,18 @@
                       data-accordion-trigger
                       aria-expanded="false"
                     >
-                      Announcements
-                      <span class="accordion-icon"></span>
+                      <span>Announcements</span>
+
+                      <span
+                        class="has-icon icon-chevron-down accordion-icon"
+                        aria-hidden="true"
+                      ></span>
                     </button>
 
-                    <div class="accordion-panel" hidden>
-                      Useful for grouped announcement content.
+                    <div class="accordion-panel">
+                      <div class="accordion-panel-inner">
+                        Useful for grouped announcement content.
+                      </div>
                     </div>
                   </div>
 
@@ -167,12 +226,18 @@
                       data-accordion-trigger
                       aria-expanded="false"
                     >
-                      FAQ section
-                      <span class="accordion-icon"></span>
+                      <span>FAQ section</span>
+
+                      <span
+                        class="has-icon icon-chevron-down accordion-icon"
+                        aria-hidden="true"
+                      ></span>
                     </button>
 
-                    <div class="accordion-panel" hidden>
-                      Useful for FAQ and investor education pages.
+                    <div class="accordion-panel">
+                      <div class="accordion-panel-inner">
+                        Useful for FAQ and investor education pages.
+                      </div>
                     </div>
                   </div>
                 </div>

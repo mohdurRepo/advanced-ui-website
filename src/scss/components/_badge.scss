@@ -1,103 +1,183 @@
+@use "../abstracts" as *;
+
+/* ==========================================================================
+   Badge
+   ========================================================================== */
+
 .badge {
+  --badge-bg: transparent;
+  --badge-color: var(--color-text);
+  --badge-border: transparent;
+  --badge-radius: var(--radius-none);
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
 
-  min-height: 1.5rem;
+  min-block-size: 1.5rem;
   padding: 0.25rem 0.625rem;
 
-  border: 1px solid transparent;
-  border-radius: var(--radius-none);
+  border: 1px solid var(--badge-border);
+  border-radius: var(--badge-radius);
 
-  font-size: var(--text-xs);
-  font-weight: 700;
+  background: var(--badge-bg);
+  color: var(--badge-color);
+
+  font-size: calc(var(--text-xs) * var(--font-scale));
+  font-weight: font-weight("bold");
   line-height: 1;
+
   white-space: nowrap;
+
+  @include transition((background-color, border-color, color), fast);
 }
+
+/* ==========================================================================
+   Shape
+   ========================================================================== */
 
 .badge-rounded {
-  border-radius: var(--radius-pill);
+  --badge-radius: var(--radius-pill);
 }
 
+.badge-square {
+  --badge-radius: var(--radius-none);
+}
+
+/* ==========================================================================
+   Solid
+   ========================================================================== */
+
 .badge-primary {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  --badge-bg: var(--color-primary);
+  --badge-color: var(--color-on-primary);
 }
 
 .badge-secondary {
-  background: var(--color-secondary);
-  color: var(--color-on-secondary);
+  --badge-bg: var(--color-secondary);
+  --badge-color: var(--color-on-secondary);
 }
 
 .badge-accent {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+  --badge-bg: var(--color-accent);
+  --badge-color: var(--color-on-accent);
 }
 
 .badge-success {
-  background: var(--color-success);
-  color: var(--color-on-success);
+  --badge-bg: var(--color-success);
+  --badge-color: var(--color-on-success);
 }
 
 .badge-info {
-  background: var(--color-info);
-  color: var(--color-on-info);
+  --badge-bg: var(--color-info);
+  --badge-color: var(--color-on-info);
 }
 
 .badge-warning {
-  background: var(--color-warning);
-  color: var(--color-on-warning);
+  --badge-bg: var(--color-warning);
+  --badge-color: var(--color-on-warning);
 }
 
 .badge-danger {
-  background: var(--color-danger);
-  color: var(--color-on-danger);
+  --badge-bg: var(--color-danger);
+  --badge-color: var(--color-on-danger);
 }
 
 .badge-light {
-  background: var(--color-light);
-  color: var(--color-on-light);
+  --badge-bg: var(--color-light);
+  --badge-color: var(--color-on-light);
 }
 
 .badge-dark {
-  background: var(--color-dark);
-  color: var(--color-on-dark);
+  --badge-bg: var(--color-dark);
+  --badge-color: var(--color-on-dark);
 }
 
-/* Outline */
+/* ==========================================================================
+   Outline
+   ========================================================================== */
 
 .badge-outline-primary {
-  color: var(--color-primary);
-  border-color: var(--color-primary);
+  --badge-color: var(--color-primary);
+  --badge-border: var(--color-primary);
 }
 
 .badge-outline-secondary {
-  color: var(--color-secondary);
-  border-color: var(--color-secondary);
+  --badge-color: var(--color-secondary);
+  --badge-border: var(--color-secondary);
 }
 
 .badge-outline-accent {
-  color: var(--color-accent);
-  border-color: var(--color-accent);
+  --badge-color: var(--color-accent);
+  --badge-border: var(--color-accent);
 }
 
 .badge-outline-success {
-  color: var(--color-success);
-  border-color: var(--color-success);
+  --badge-color: var(--color-success);
+  --badge-border: var(--color-success);
 }
 
 .badge-outline-info {
-  color: var(--color-info);
-  border-color: var(--color-info);
+  --badge-color: var(--color-info);
+  --badge-border: var(--color-info);
 }
 
 .badge-outline-warning {
-  color: var(--color-warning);
-  border-color: var(--color-warning);
+  --badge-color: var(--color-warning);
+  --badge-border: var(--color-warning);
 }
 
 .badge-outline-danger {
-  color: var(--color-danger);
-  border-color: var(--color-danger);
+  --badge-color: var(--color-danger);
+  --badge-border: var(--color-danger);
+}
+
+.badge-outline-light {
+  --badge-color: var(--color-light);
+  --badge-border: var(--color-light);
+}
+
+.badge-outline-dark {
+  --badge-color: var(--color-dark);
+  --badge-border: var(--color-dark);
+}
+
+/* ==========================================================================
+   Sizes
+   ========================================================================== */
+
+.badge-sm {
+  min-block-size: 1.25rem;
+  padding: 0.125rem 0.5rem;
+
+  font-size: calc(var(--text-xs) * 0.9 * var(--font-scale));
+}
+
+.badge-lg {
+  min-block-size: 1.875rem;
+  padding: 0.375rem 0.875rem;
+
+  font-size: var(--text-sm);
+}
+
+/* ==========================================================================
+   Icon Support
+   ========================================================================== */
+
+.badge .has-icon,
+.badge .svg-icon {
+  --icon-size: 0.875em;
+
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   States
+   ========================================================================== */
+
+.badge-disabled,
+.badge[aria-disabled="true"] {
+  opacity: 0.6;
+  pointer-events: none;
 }

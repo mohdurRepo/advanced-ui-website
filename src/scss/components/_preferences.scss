@@ -1,0 +1,216 @@
+@use "../abstracts" as *;
+
+/* ==========================================================================
+   Preferences Panel
+   ========================================================================== */
+
+.preferences {
+  position: fixed;
+  z-index: var(--z-fixed);
+
+  inset-block-end: 1.25rem;
+  inset-inline-end: 1.25rem;
+}
+
+html[dir="rtl"] .preferences {
+  inset-inline-end: auto;
+  inset-inline-start: 1.25rem;
+}
+
+.preferences-toggle {
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 3rem;
+  block-size: 3rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+
+  box-shadow: var(--shadow-lg);
+
+  cursor: pointer;
+
+  @include transition(
+    (background-color, border-color, box-shadow, transform),
+    fast
+  );
+
+  &:hover {
+    background: var(--color-primary-hover);
+    transform: translateY(-2px);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.preferences-panel {
+  position: absolute;
+
+  inset-block-end: calc(100% + 0.75rem);
+  inset-inline-end: 0;
+
+  inline-size: min(100vw - 2rem, 380px);
+  max-block-size: min(80vh, 640px);
+
+  display: flex;
+  flex-direction: column;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  box-shadow: var(--shadow-xl);
+
+  overflow: hidden;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transform: translateY(0.75rem) scale(0.98);
+
+  @include transition((opacity, visibility, transform), normal);
+}
+
+html[dir="rtl"] .preferences-panel {
+  inset-inline-end: auto;
+  inset-inline-start: 0;
+}
+
+.preferences.is-open {
+  .preferences-panel {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+
+    transform: translateY(0) scale(1);
+  }
+}
+
+.preferences-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+
+  padding: 1.25rem;
+
+  border-block-end: 1px solid var(--color-border);
+}
+
+.preferences-title {
+  margin: 0;
+
+  color: var(--color-heading);
+  font-size: var(--text-lg);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+.preferences-text {
+  margin-block-start: 0.25rem;
+
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+.preferences-close {
+  --icon-size: 1rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  inline-size: 2rem;
+  block-size: 2rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+
+  cursor: pointer;
+
+  @include transition((background-color, border-color, color), fast);
+
+  &:hover {
+    border-color: var(--color-border-strong);
+    background: var(--color-bg);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.preferences-body {
+  display: grid;
+  gap: 1.25rem;
+
+  padding: 1.25rem;
+
+  overflow-y: auto;
+}
+
+.preferences-group {
+  display: grid;
+  gap: 0.625rem;
+}
+
+.preferences-label {
+  margin: 0;
+
+  color: var(--color-heading);
+  font-size: var(--text-sm);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+.preferences-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.preferences-options .btn.is-active {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
+}
+
+/* Mobile */
+
+@include respond-down(sm) {
+  .preferences {
+    inset-block-end: 1rem;
+    inset-inline-end: 1rem;
+  }
+
+  html[dir="rtl"] .preferences {
+    inset-inline-start: 1rem;
+  }
+
+  .preferences-panel {
+    inline-size: calc(100vw - 2rem);
+    max-block-size: 75vh;
+  }
+}

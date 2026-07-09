@@ -1,8 +1,8 @@
 @use "../abstracts" as *;
 
-/* =========================================
+/* ==========================================================================
    Dropdown
-========================================= */
+   ========================================================================== */
 
 .dropdown {
   --dropdown-control-height: 2.75rem;
@@ -14,23 +14,22 @@
 
   --dropdown-width: 100%;
   --dropdown-max-height: 18rem;
+  --dropdown-offset: 0.5rem;
 
   position: relative;
   display: inline-flex;
 }
 
-/* =========================================
-   Toggle
-========================================= */
+/* Toggle */
 
 .dropdown-toggle {
-  min-block-size: var(--dropdown-control-height);
-  inline-size: 100%;
-
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+
+  inline-size: 100%;
+  min-block-size: var(--dropdown-control-height);
 
   padding-inline: var(--dropdown-control-padding-x);
 
@@ -40,26 +39,53 @@
   background: var(--dropdown-control-bg);
   color: var(--dropdown-control-color);
 
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: 1;
+
   cursor: pointer;
   text-align: start;
 
+  @include transition(
+    (background-color, border-color, color, box-shadow),
+    fast
+  );
+
   &::after {
     content: "";
-
     flex: 0 0 auto;
 
     inline-size: 0.5rem;
     block-size: 0.5rem;
 
-    border-right: 2px solid currentColor;
-    border-bottom: 2px solid currentColor;
+    border-inline-end: 2px solid currentColor;
+    border-block-end: 2px solid currentColor;
 
     transform: rotate(45deg);
-    transition: transform var(--transition-fast);
+    transform-origin: center;
+
+    @include transition(transform, fast);
+  }
+
+  &:hover:not(:disabled):not(.is-disabled) {
+    border-color: var(--color-border-strong);
+  }
+
+  &:focus {
+    outline: none;
   }
 
   &:focus-visible {
     @include focus-ring;
+  }
+
+  &:disabled,
+  &.is-disabled {
+    background: var(--color-surface-alt);
+    color: var(--color-on-disabled);
+    border-color: var(--color-disabled);
+    cursor: not-allowed;
+    pointer-events: none;
   }
 }
 
@@ -76,14 +102,12 @@
   }
 }
 
-/* =========================================
-   Dropup
-========================================= */
+/* Dropup */
 
 .dropdown.is-dropup {
   .dropdown-menu {
     inset-block-start: auto;
-    inset-block-end: calc(100% + 0.5rem);
+    inset-block-end: calc(100% + var(--dropdown-offset));
     transform: translateY(-0.25rem);
   }
 
@@ -94,15 +118,13 @@
   }
 }
 
-/* =========================================
-   Menu
-========================================= */
+/* Menu */
 
 .dropdown-menu {
   position: absolute;
   z-index: var(--z-dropdown);
 
-  inset-block-start: calc(100% + 0.5rem);
+  inset-block-start: calc(100% + var(--dropdown-offset));
   inset-inline-start: 0;
 
   inline-size: var(--dropdown-width);
@@ -111,11 +133,11 @@
 
   padding: 0.5rem;
 
-  background: var(--color-surface);
-  color: var(--color-text);
-
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+  color: var(--color-text);
 
   box-shadow: var(--shadow-lg);
 
@@ -128,10 +150,7 @@
 
   transform: translateY(0.25rem);
 
-  transition:
-    opacity var(--transition-fast),
-    transform var(--transition-fast),
-    visibility var(--transition-fast);
+  @include transition((opacity, transform, visibility), fast);
 }
 
 .dropdown-end {
@@ -141,9 +160,7 @@
   }
 }
 
-/* =========================================
-   Search
-========================================= */
+/* Search */
 
 .dropdown-search {
   padding: 0.5rem;
@@ -161,15 +178,24 @@
   background: var(--color-surface);
   color: var(--color-text);
 
+  font: inherit;
+  font-size: var(--text-sm);
+
+  @include transition((border-color, box-shadow), fast);
+
+  &::placeholder {
+    color: var(--color-text-muted);
+    opacity: 1;
+  }
+
   &:focus {
-    outline: 0;
+    outline: none;
+    border-color: var(--color-primary);
     box-shadow: 0 0 0 0.25rem var(--focus-ring);
   }
 }
 
-/* =========================================
-   List / Items
-========================================= */
+/* List / Items */
 
 .dropdown-list {
   display: grid;
@@ -182,11 +208,11 @@
 }
 
 .dropdown-item {
-  inline-size: 100%;
-
   display: flex;
   align-items: center;
   gap: 0.625rem;
+
+  inline-size: 100%;
 
   padding: 0.625rem 0.75rem;
 
@@ -196,33 +222,39 @@
   background: transparent;
   color: var(--color-text);
 
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+
   cursor: pointer;
   text-align: start;
   text-decoration: none;
 
-  font-size: var(--text-sm);
-
-  transition:
-    background-color var(--transition-fast),
-    color var(--transition-fast);
+  @include transition((background-color, color), fast);
 
   &:hover,
   &:focus-visible {
     background: var(--color-surface-alt);
     color: var(--color-heading);
-    outline: 0;
+    outline: none;
   }
 
-  &.is-active {
+  &.is-active,
+  &[aria-selected="true"] {
     background: color-mix(in oklab, var(--color-primary), transparent 88%);
     color: var(--color-primary);
-    font-weight: 700;
+    font-weight: font-weight("bold");
+  }
+
+  &.is-disabled,
+  &[aria-disabled="true"] {
+    color: var(--color-on-disabled);
+    cursor: not-allowed;
+    pointer-events: none;
   }
 }
 
-/* =========================================
-   Checkbox Items
-========================================= */
+/* Checkbox Items */
 
 .dropdown-checkbox {
   cursor: pointer;
@@ -234,12 +266,11 @@
     flex: 0 0 auto;
 
     accent-color: var(--color-primary);
+    cursor: pointer;
   }
 }
 
-/* =========================================
-   Empty State
-========================================= */
+/* Empty State */
 
 .dropdown-empty {
   display: none;
@@ -257,9 +288,7 @@
   }
 }
 
-/* =========================================
-   Actions
-========================================= */
+/* Actions */
 
 .dropdown-actions {
   display: flex;
@@ -273,9 +302,7 @@
   border-block-start: 1px solid var(--color-border);
 }
 
-/* =========================================
-   Responsive
-========================================= */
+/* Responsive */
 
 @include respond-down(sm) {
   .dropdown {

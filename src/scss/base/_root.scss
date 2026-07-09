@@ -1,4 +1,7 @@
 :root {
+  /* Accessibility */
+  --font-scale: 1;
+
   /* Layout */
   --app-header-height: 80px;
   --app-sidebar-width: 280px;
@@ -10,6 +13,7 @@
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
   --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
   --radius-pill: 999px;
 
   /* Motion */
@@ -21,6 +25,7 @@
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
   --shadow-md: 0 8px 24px rgb(0 0 0 / 0.08);
   --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.12);
+  --shadow-xl: 0 24px 64px rgb(0 0 0 / 0.18);
 
   /* Z-index */
   --z-dropdown: 1000;
@@ -31,6 +36,44 @@
   --z-popover: 1060;
   --z-tooltip: 1070;
   --z-toast: 1080;
+}
+
+/* Font accessibility */
+
+html[data-font-size="-2"] {
+  --font-scale: 0.9;
+}
+
+html[data-font-size="-1"] {
+  --font-scale: 0.95;
+}
+
+html[data-font-size="0"] {
+  --font-scale: 1;
+}
+
+html[data-font-size="1"] {
+  --font-scale: 1.06;
+}
+
+html[data-font-size="2"] {
+  --font-scale: 1.12;
+}
+
+/* Reduced motion */
+
+html[data-motion="reduce"] {
+  --transition-fast: 0ms;
+  --transition-normal: 0ms;
+  --transition-slow: 0ms;
+
+  scroll-behavior: auto;
+}
+
+/* High contrast */
+
+html[data-contrast="high"] {
+  --focus-ring-width: 4px;
 }
 
 html,
@@ -54,11 +97,14 @@ html[data-theme="dark"] {
 
 body {
   min-height: 100vh;
+
   background: var(--color-bg);
   color: var(--color-text);
+
   font-family: var(--font-sans);
   font-size: var(--text-base);
   line-height: var(--line-height-normal);
+
   transition:
     background-color var(--transition-normal),
     color var(--transition-normal);

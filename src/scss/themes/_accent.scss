@@ -1,0 +1,59 @@
+html[data-accent="blue"] {
+  --color-primary: #0045e3;
+  --color-primary-hover: #0038bb;
+  --focus-ring: rgb(0 69 227 / 0.25);
+}
+
+html[data-theme="dark"][data-accent="blue"] {
+  --color-primary: #4d7cff;
+  --color-primary-hover: #7095ff;
+  --focus-ring: rgb(77 124 255 / 0.3);
+}
+
+html[data-accent="navy"] {
+  --color-primary: #001f33;
+  --color-primary-hover: #002b47;
+  --focus-ring: rgb(0 31 51 / 0.25);
+}
+
+html[data-theme="dark"][data-accent="navy"] {
+  --color-primary: #7ca6c4;
+  --color-primary-hover: #9bbbd2;
+  --focus-ring: rgb(124 166 196 / 0.3);
+}
+
+html[data-accent="teal"] {
+  --color-primary: #0f766e;
+  --color-primary-hover: #115e59;
+  --focus-ring: rgb(15 118 110 / 0.25);
+}
+
+html[data-theme="dark"][data-accent="teal"] {
+  --color-primary: #5eead4;
+  --color-primary-hover: #99f6e4;
+  --focus-ring: rgb(94 234 212 / 0.3);
+}
+
+html[data-accent="green"] {
+  --color-primary: #15803d;
+  --color-primary-hover: #166534;
+  --focus-ring: rgb(21 128 61 / 0.25);
+}
+
+html[data-theme="dark"][data-accent="green"] {
+  --color-primary: #4ade80;
+  --color-primary-hover: #86efac;
+  --focus-ring: rgb(74 222 128 / 0.3);
+}
+
+html[data-accent="grey"] {
+  --color-primary: #475569;
+  --color-primary-hover: #334155;
+  --focus-ring: rgb(71 85 105 / 0.25);
+}
+
+html[data-theme="dark"][data-accent="grey"] {
+  --color-primary: #cbd5e1;
+  --color-primary-hover: #e2e8f0;
+  --focus-ring: rgb(203 213 225 / 0.3);
+}

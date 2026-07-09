@@ -1,8 +1,19 @@
 @use "../abstracts" as *;
 
+/* ==========================================================================
+   Modal
+   ========================================================================== */
+
 .modal {
   --modal-width: 560px;
   --modal-max-height: 80vh;
+  --modal-padding: 1rem;
+  --modal-radius: var(--radius-xl);
+  --modal-bg: var(--color-surface);
+  --modal-color: var(--color-text);
+  --modal-border: var(--color-border);
+  --modal-backdrop-bg: var(--color-overlay);
+  --modal-shadow: 0 24px 80px rgb(0 0 0 / 0.35);
 
   position: fixed;
   inset: 0;
@@ -12,7 +23,7 @@
   align-items: center;
   justify-content: center;
 
-  padding: 1rem;
+  padding: var(--modal-padding);
 }
 
 .modal.is-open {
@@ -22,45 +33,44 @@
 .modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgb(0 0 0 / 0.55);
+
+  background: var(--modal-backdrop-bg);
 }
 
 .modal-dialog {
   position: relative;
   z-index: 1;
-  width: min(100%, var(--modal-width));
-  max-height: var(--modal-max-height);
+
+  inline-size: min(100%, var(--modal-width));
+  max-block-size: var(--modal-max-height);
 }
 
 .modal-content {
   position: relative;
+
   display: flex;
   flex-direction: column;
 
-  max-height: var(--modal-max-height);
+  max-block-size: var(--modal-max-height);
 
-  background: var(--color-surface);
-  color: var(--color-text);
+  border: 1px solid var(--modal-border);
+  border-radius: var(--modal-radius);
 
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-none);
+  background: var(--modal-bg);
+  color: var(--modal-color);
 
-  box-shadow: 0 24px 80px rgb(0 0 0 / 0.35);
+  box-shadow: var(--modal-shadow);
   overflow: hidden;
 
-  transform: translateY(12px) scale(0.98);
   opacity: 0;
+  transform: translateY(12px) scale(0.98);
 
-  transition:
-    transform var(--transition-normal),
-    opacity var(--transition-normal),
-    background-color var(--transition-normal),
-    border-color var(--transition-normal);
+  @include transition((transform, opacity, background-color, border-color));
 }
 
 .modal.is-open .modal-content {
-  transform: translateY(0) scale(1);
   opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
 /* Header */
@@ -74,44 +84,49 @@
   gap: 1rem;
 
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--color-border);
+
+  border-block-end: 1px solid var(--color-border);
 }
 
 .modal-title {
   margin: 0;
+
   color: var(--color-heading);
-  font-size: var(--text-xl);
-  font-weight: 700;
+  font-size: calc(var(--text-xl) * var(--font-scale));
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
 }
 
 .modal-subtitle {
-  margin-top: 0.25rem;
+  margin-block-start: 0.25rem;
+
   color: var(--color-text-muted);
   font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
 }
 
 /* Body */
 
 .modal-body {
-  min-height: 0;
+  min-block-size: 0;
   padding: 1.5rem;
   overflow-y: auto;
 
   scrollbar-width: thin;
   scrollbar-color: var(--color-border-strong) transparent;
-}
 
-.modal-body::-webkit-scrollbar {
-  width: 6px;
-}
+  &::-webkit-scrollbar {
+    inline-size: 6px;
+  }
 
-.modal-body::-webkit-scrollbar-track {
-  background: transparent;
-}
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
-.modal-body::-webkit-scrollbar-thumb {
-  background: var(--color-border-strong);
-  border-radius: var(--radius-pill);
+  &::-webkit-scrollbar-thumb {
+    border-radius: var(--radius-pill);
+    background: var(--color-border-strong);
+  }
 }
 
 /* Footer */
@@ -125,21 +140,22 @@
   gap: 0.75rem;
 
   padding: 1.25rem 1.5rem;
-  border-top: 1px solid var(--color-border);
-}
 
-html[dir="rtl"] .modal-footer {
-  justify-content: flex-start;
+  border-block-start: 1px solid var(--color-border);
 }
 
 /* Close Button */
 
 .modal-close {
   position: relative;
+
+  display: inline-grid;
+  place-items: center;
+
   flex: 0 0 auto;
 
-  width: 2.25rem;
-  height: 2.25rem;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
 
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
@@ -149,43 +165,54 @@ html[dir="rtl"] .modal-footer {
 
   cursor: pointer;
 
-  transition:
-    background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    transform var(--transition-fast);
-}
+  @include transition((background-color, border-color, color, transform), fast);
 
-.modal-close::before,
-.modal-close::after {
-  content: "";
-  position: absolute;
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
 
-  top: 50%;
-  left: 50%;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
 
-  width: 14px;
-  height: 2px;
+    inline-size: 14px;
+    block-size: 2px;
 
-  background: currentColor;
-  border-radius: var(--radius-pill);
-  transform-origin: center;
-}
+    border-radius: var(--radius-pill);
+    background: currentColor;
 
-.modal-close::before {
-  transform: translate(-50%, -50%) rotate(45deg);
-}
+    transform-origin: center;
+  }
 
-.modal-close::after {
-  transform: translate(-50%, -50%) rotate(-45deg);
-}
+  &::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
 
-.modal-close:hover {
-  background: var(--color-bg);
-  transform: rotate(90deg);
-}
+  &::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
 
-.modal-close:focus-visible {
-  @include focus-ring;
+  &:hover:not(:disabled):not(.is-disabled) {
+    background: var(--color-bg);
+    border-color: var(--color-border-strong);
+    transform: rotate(90deg);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled,
+  &.is-disabled {
+    color: var(--color-on-disabled);
+    border-color: var(--color-disabled);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
 }
 
 .modal-floating-close {
@@ -232,23 +259,28 @@ html[dir="rtl"] .modal-footer {
 .modal-full {
   --modal-width: 100%;
   --modal-max-height: 100vh;
-  padding: 0;
+  --modal-padding: 0;
+  --modal-radius: 0;
 }
 
 .modal-full .modal-dialog,
 .modal-full .modal-content {
-  width: 100%;
-  height: 100vh;
-  max-height: 100vh;
+  inline-size: 100%;
+  block-size: 100vh;
+  max-block-size: 100vh;
 }
 
 /* Shape */
 
-.modal-rounded .modal-content {
-  border-radius: var(--radius-xl);
+.modal-square {
+  --modal-radius: var(--radius-none);
 }
 
-/* Header/Footer options */
+.modal-rounded {
+  --modal-radius: var(--radius-xl);
+}
+
+/* Header / Footer options */
 
 .modal-no-header .modal-header {
   display: none;
@@ -266,17 +298,18 @@ html[dir="rtl"] .modal-footer {
 
 @include respond-down(md) {
   .modal {
+    --modal-padding: 0;
+
     align-items: flex-end;
-    padding: 0;
   }
 
   .modal-dialog {
-    width: 100%;
-    max-height: 90vh;
+    inline-size: 100%;
+    max-block-size: 90vh;
   }
 
   .modal-content {
-    max-height: 90vh;
+    max-block-size: 90vh;
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   }
 
@@ -297,7 +330,7 @@ html[dir="rtl"] .modal-footer {
   }
 
   .modal-footer .btn {
-    width: 100%;
+    inline-size: 100%;
   }
 
   .modal-full .modal-content {

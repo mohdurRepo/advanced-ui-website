@@ -1,35 +1,42 @@
 @use "../abstracts" as *;
 
 /* ==========================================================================
-   Table Wrapper
+   Table
    ========================================================================== */
 
 .table-responsive {
   inline-size: 100%;
+
   overflow-x: auto;
   overflow-y: hidden;
+
   -webkit-overflow-scrolling: touch;
 }
 
-/* ==========================================================================
-   Base Table
-   ========================================================================== */
-
 .table {
+  --table-bg: var(--color-surface);
+  --table-color: var(--color-text);
+  --table-border: var(--color-border);
+  --table-head-bg: var(--color-surface-alt);
+  --table-head-color: var(--color-heading);
+  --table-row-hover-bg: var(--color-surface-alt);
+  --table-cell-padding: 0.875rem 1rem;
+
   inline-size: 100%;
+
   border-collapse: collapse;
   border-spacing: 0;
 
-  background: var(--color-surface);
-  color: var(--color-text);
+  background: var(--table-bg);
+  color: var(--table-color);
 
   font-size: var(--text-sm);
 
   th,
   td {
-    padding: 0.875rem 1rem;
+    padding: var(--table-cell-padding);
 
-    border-block-end: 1px solid var(--color-border);
+    border-block-end: 1px solid var(--table-border);
 
     color: inherit;
     text-align: start;
@@ -37,85 +44,25 @@
   }
 
   thead th {
-    background: var(--color-surface-alt);
-    color: var(--color-heading);
+    background: var(--table-head-bg);
+    color: var(--table-head-color);
 
-    font-weight: 700;
+    font-weight: font-weight("bold");
     white-space: nowrap;
   }
 
   tbody tr {
-    transition: background-color var(--transition-fast);
+    @include transition(background-color, fast);
   }
 
   a {
     color: inherit;
-  }
+    text-decoration: none;
 
-  &.table-striped {
-    tbody tr:nth-child(even) {
-      background: var(--color-surface-alt);
-    }
-  }
-
-  &.table-hover {
-    tbody tr:hover {
-      background: var(--color-surface-alt);
-    }
-  }
-
-  &.table-bordered {
-    border: 1px solid var(--color-border);
-
-    th,
-    td {
-      border: 1px solid var(--color-border);
-    }
-  }
-
-  &.table-compact {
-    th,
-    td {
-      padding: 0.5rem 0.75rem;
-    }
-  }
-
-  &.table-nowrap {
-    th,
-    td {
-      white-space: nowrap;
-    }
-  }
-
-  &.table-fixed-column {
-    th:first-child,
-    td:first-child {
-      position: sticky;
-      inset-inline-start: 0;
-      z-index: 2;
-
-      background: var(--color-surface);
-    }
-
-    thead th:first-child {
-      z-index: 3;
-    }
-  }
-
-  .table-empty,
-  .table-loading {
-    td {
-      padding: 2rem;
-      color: var(--color-text-muted);
-      text-align: center;
-    }
-  }
-
-  .table-total-row {
-    td {
-      background: var(--color-primary);
-      color: var(--color-on-primary);
-      font-weight: 700;
+    &:hover {
+      color: var(--color-primary);
+      text-decoration: underline;
+      text-underline-offset: 0.2em;
     }
   }
 
@@ -125,52 +72,121 @@
   }
 }
 
-/* ==========================================================================
-   Surface-aware Tables
-   ========================================================================== */
+/* Variants */
+
+.table-striped {
+  tbody tr:nth-child(even) {
+    background: var(--color-surface-alt);
+  }
+}
+
+.table-hover {
+  tbody tr:hover {
+    background: var(--table-row-hover-bg);
+  }
+}
+
+.table-bordered {
+  border: 1px solid var(--table-border);
+
+  th,
+  td {
+    border: 1px solid var(--table-border);
+  }
+}
+
+.table-compact {
+  --table-cell-padding: 0.5rem 0.75rem;
+}
+
+.table-nowrap {
+  th,
+  td {
+    white-space: nowrap;
+  }
+}
+
+.table-clickable {
+  tbody tr {
+    cursor: pointer;
+  }
+}
+
+/* Sticky */
+
+.table-sticky-head {
+  thead th {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: var(--z-sticky);
+  }
+}
+
+.table-fixed-column {
+  th:first-child,
+  td:first-child {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 2;
+
+    background: var(--table-bg);
+  }
+
+  thead th:first-child {
+    z-index: 3;
+    background: var(--table-head-bg);
+  }
+}
+
+/* States */
+
+.table-empty,
+.table-loading {
+  td {
+    padding: 2rem;
+
+    color: var(--color-text-muted);
+    text-align: center;
+  }
+}
+
+.table-total-row {
+  td {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-weight: font-weight("bold");
+  }
+}
+
+/* Surface-aware */
 
 .surface {
   .table {
-    background: var(--color-surface);
-    color: var(--color-text);
-
-    th,
-    td {
-      border-color: var(--color-border);
-      color: inherit;
-    }
-
-    thead th {
-      background: var(--color-surface-alt);
-      color: var(--color-heading);
-    }
-
-    tbody tr:nth-child(even) {
-      background: color-mix(in oklab, var(--color-surface), white 4%);
-    }
-
-    tbody tr:hover {
-      background: color-mix(in oklab, var(--color-surface), white 8%);
-    }
+    --table-bg: var(--color-surface);
+    --table-color: var(--color-text);
+    --table-border: var(--color-border);
+    --table-head-bg: var(--color-surface-alt);
+    --table-head-color: var(--color-heading);
+    --table-row-hover-bg: color-mix(
+      in oklab,
+      var(--color-primary),
+      transparent 92%
+    );
 
     a {
       color: var(--color-heading);
-      font-weight: 700;
-      text-decoration: none;
+      font-weight: font-weight("bold");
 
       &:hover {
-        text-decoration: underline;
-        text-underline-offset: 0.2em;
+        color: var(--color-primary);
       }
     }
   }
 }
 
-/* ==========================================================================
-   Market Flash Effects
-   ========================================================================== */
+/* Market Flash Effects */
 
-@keyframes tableFlashUp {
+@keyframes table-flash-up {
   0% {
     background-color: rgb(34 197 94 / 30%);
   }
@@ -180,7 +196,7 @@
   }
 }
 
-@keyframes tableFlashDown {
+@keyframes table-flash-down {
   0% {
     background-color: rgb(239 68 68 / 30%);
   }
@@ -190,7 +206,7 @@
   }
 }
 
-@keyframes tableFlashEqual {
+@keyframes table-flash-equal {
   0% {
     background-color: rgb(148 163 184 / 25%);
   }
@@ -201,13 +217,13 @@
 }
 
 .td-flash-up {
-  animation: tableFlashUp 1.2s ease-out;
+  animation: table-flash-up 1.2s ease-out;
 }
 
 .td-flash-down {
-  animation: tableFlashDown 1.2s ease-out;
+  animation: table-flash-down 1.2s ease-out;
 }
 
 .td-flash-equal {
-  animation: tableFlashEqual 1.2s ease-out;
+  animation: table-flash-equal 1.2s ease-out;
 }

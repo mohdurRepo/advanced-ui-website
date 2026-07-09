@@ -1,31 +1,50 @@
-@use "../abstracts" as *;
+.container,
+.container-sm,
+.container-md,
+.container-lg,
+.container-xl,
+.container-xxl,
+.container-fluid {
+  width: min(100% - var(--container-padding, 2rem), var(--container-max, 100%));
+  margin-inline: auto;
+}
 
 .container {
-  width: min(100% - 2rem, 1320px);
-  margin-inline: auto;
+  --container-max: 1320px;
 }
 
 .container-sm {
-  width: min(100% - 2rem, 540px);
-  margin-inline: auto;
+  --container-max: 540px;
 }
 
 .container-md {
-  width: min(100% - 2rem, 720px);
-  margin-inline: auto;
+  --container-max: 720px;
 }
 
 .container-lg {
-  width: min(100% - 2rem, 960px);
-  margin-inline: auto;
+  --container-max: 960px;
 }
 
 .container-xl {
-  width: min(100% - 2rem, 1140px);
-  margin-inline: auto;
+  --container-max: 1140px;
+}
+
+.container-xxl {
+  --container-max: 1320px;
 }
 
 .container-fluid {
-  width: min(100% - 2rem, 100%);
-  margin-inline: auto;
+  --container-max: 100%;
+}
+
+@media (max-width: 575.98px) {
+  .container,
+  .container-sm,
+  .container-md,
+  .container-lg,
+  .container-xl,
+  .container-xxl,
+  .container-fluid {
+    --container-padding: 1rem;
+  }
 }
