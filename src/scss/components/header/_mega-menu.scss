@@ -1,5 +1,9 @@
 @use "../../abstracts" as *;
 
+/* ==========================================================================
+   Mega Menu
+   ========================================================================== */
+
 .mega-menu {
   position: absolute;
   inset-block-start: 100%;
@@ -9,12 +13,10 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+
   transform: translateY(0.5rem);
 
-  transition:
-    opacity var(--transition-fast),
-    visibility var(--transition-fast),
-    transform var(--transition-fast);
+  @include transition((opacity, visibility, transform), fast);
 
   @include respond-down(lg) {
     display: none;
@@ -22,38 +24,102 @@
 
   &::before {
     content: "";
+
     position: absolute;
     inset-inline: 0;
     inset-block-start: -0.75rem;
+
     block-size: 0.75rem;
   }
+}
 
-  &__container {
-    width: min(100% - 2rem, 1320px);
-    max-inline-size: 100%;
-    min-inline-size: 0;
+.site-nav__item.is-open > .mega-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 
-    margin-inline: auto;
-    padding: clamp(1rem, 2vw, 1.5rem);
+  transform: translateY(0);
+}
 
-    display: grid;
-    grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
-    gap: clamp(1rem, 2vw, 2rem);
+/* ==========================================================================
+   Container
+   ========================================================================== */
 
-    background: var(--color-surface);
+.mega-menu__container {
+  display: grid;
+  grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
+  gap: clamp(1rem, 2vw, 2rem);
 
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-xl);
+  inline-size: min(100% - 2rem, 1320px);
+  max-inline-size: 100%;
+  min-inline-size: 0;
 
-    box-shadow: var(--shadow-lg);
+  margin-inline: auto;
+  padding: clamp(1rem, 2vw, 1.5rem);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  box-shadow: var(--shadow-lg);
+}
+
+/* ==========================================================================
+   Structural Areas
+   ========================================================================== */
+
+.mega-menu__rail,
+.mega-menu__content {
+  min-inline-size: 0;
+}
+
+.mega-menu__rail {
+  padding-inline-end: clamp(0.75rem, 1.5vw, 1.25rem);
+
+  border-inline-end: 1px solid var(--color-border);
+}
+
+.mega-menu__content {
+  overflow: visible;
+}
+
+/* ==========================================================================
+   Accessibility / Focus
+   ========================================================================== */
+
+.mega-menu:focus {
+  outline: none;
+}
+
+.mega-menu:focus-visible {
+  @include focus-ring;
+}
+
+/* ==========================================================================
+   Large Desktop
+   ========================================================================== */
+
+@include respond-up(xl) {
+  .mega-menu__container {
+    grid-template-columns: minmax(15rem, 19rem) minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   Constrained Desktop
+   ========================================================================== */
+
+@media (min-width: 992px) and (max-width: 1180px) {
+  .mega-menu__container {
+    grid-template-columns: minmax(12rem, 15rem) minmax(0, 1fr);
+    gap: 1rem;
+
+    padding: 1rem;
   }
 
-  &__rail,
-  &__content {
-    min-inline-size: 0;
-  }
-
-  &__content {
-    overflow: visible;
+  .mega-menu__rail {
+    padding-inline-end: 0.75rem;
   }
 }

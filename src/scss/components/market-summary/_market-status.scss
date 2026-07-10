@@ -5,50 +5,114 @@
    ========================================================================== */
 
 .market-status {
-  --market-status-color: #9cb3c9;
-  --market-status-indicator-size: 0.625rem;
+  --market-status-color: var(--market-status-neutral);
+  --market-status-indicator-size: 0.6875rem;
+  --market-status-dot-animation: none;
+  --market-status-halo-animation: none;
 
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
+  position: relative;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: calc(var(--market-status-indicator-size) * 2.25);
+  block-size: calc(var(--market-status-indicator-size) * 2.25);
+
+  flex: 0 0 auto;
 
   color: var(--market-status-color);
 
-  &::before {
+  &::before,
+  &::after {
     content: "";
+
+    position: absolute;
+
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+
+    border-radius: var(--radius-pill);
+
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  /* Solid status dot */
+
+  &::before {
+    z-index: 2;
 
     inline-size: var(--market-status-indicator-size);
     block-size: var(--market-status-indicator-size);
 
-    flex: 0 0 auto;
-
-    border-radius: var(--radius-pill);
     background: currentColor;
 
-    animation: marketStatusPulse 1.4s ease-in-out infinite;
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.18),
+      0 0 0.45rem color-mix(in oklab, currentColor, transparent 28%);
+
+    animation: var(--market-status-dot-animation);
   }
 
-  &--open {
-    --market-status-color: var(--color-success);
-  }
+  /* Expanding live halo */
 
-  &--closed {
-    --market-status-color: var(--color-danger);
-  }
+  &::after {
+    z-index: 1;
 
-  &--pre-open,
-  &--auction {
-    --market-status-color: var(--color-warning);
-  }
+    inline-size: var(--market-status-indicator-size);
+    block-size: var(--market-status-indicator-size);
 
-  &--halted {
-    --market-status-color: #fff12c;
-  }
+    border: 1px solid currentColor;
 
-  &--neutral {
-    --market-status-color: #9cb3c9;
+    opacity: 0;
+
+    animation: var(--market-status-halo-animation);
   }
+}
+
+/* ==========================================================================
+   Status Variants
+   ========================================================================== */
+
+.market-status--open {
+  --market-status-color: var(--color-success);
+
+  --market-status-dot-animation: market-status-dot 1.8s ease-in-out infinite;
+
+  --market-status-halo-animation: market-status-halo 1.8s ease-out infinite;
+}
+
+.market-status--closed {
+  --market-status-color: var(--color-danger);
+
+  --market-status-dot-animation: market-status-dot 1.8s ease-in-out infinite;
+
+  --market-status-halo-animation: market-status-halo 1.8s ease-out infinite;
+}
+
+.market-status--pre-open,
+.market-status--auction {
+  --market-status-color: var(--color-warning);
+
+  --market-status-dot-animation: market-status-dot 2.4s ease-in-out infinite;
+
+  --market-status-halo-animation: market-status-halo 2.4s ease-out infinite;
+}
+
+.market-status--halted {
+  --market-status-color: var(--market-status-halted);
+
+  --market-status-dot-animation: market-status-dot 1.8s ease-in-out infinite;
+
+  --market-status-halo-animation: market-status-halo 1.8s ease-out infinite;
+}
+
+.market-status--neutral {
+  --market-status-color: var(--market-status-neutral);
+
+  --market-status-dot-animation: market-status-dot 1.8s ease-in-out infinite;
+
+  --market-status-halo-animation: market-status-halo 1.8s ease-out infinite;
 }
 
 /* ==========================================================================
@@ -56,34 +120,100 @@
    ========================================================================== */
 
 .market-change {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+
+  min-inline-size: 0;
+
   font-variant-numeric: tabular-nums;
+}
 
-  &--up {
-    color: var(--color-success);
-  }
+.market-change--up {
+  color: var(--color-success);
+}
 
-  &--down {
-    color: var(--color-danger);
-  }
+.market-change--down {
+  color: var(--color-danger);
+}
 
-  &--neutral {
-    color: #9cb3c9;
-  }
+.market-change--neutral {
+  color: var(--market-status-neutral);
+}
+
+.market-change__icon {
+  --icon-size: 0.75rem;
+
+  flex: 0 0 auto;
 }
 
 /* ==========================================================================
    Animations
    ========================================================================== */
 
-@keyframes marketStatusPulse {
+@keyframes market-status-dot {
   0%,
   100% {
     opacity: 1;
-    transform: scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
 
   50% {
-    opacity: 0.65;
-    transform: scale(1.18);
+    opacity: 0.88;
+    transform: translate(-50%, -50%) scale(1.14);
+  }
+}
+
+@keyframes market-status-halo {
+  0% {
+    opacity: 0.62;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  65% {
+    opacity: 0.18;
+    transform: translate(-50%, -50%) scale(2);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2.55);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-status::before {
+    outline: 1px solid currentColor;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+
+  .market-change {
+    font-weight: font-weight("bold");
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .market-status {
+    --market-status-dot-animation: none;
+    --market-status-halo-animation: none;
+  }
+
+  .market-status::before {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+
+  .market-status::after {
+    display: none;
   }
 }

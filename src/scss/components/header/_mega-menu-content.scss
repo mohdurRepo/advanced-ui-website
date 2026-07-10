@@ -1,92 +1,130 @@
 @use "../../abstracts" as *;
 
+/* ==========================================================================
+   Mega Menu Content
+   ========================================================================== */
+
 .mega-menu-panel {
   display: none;
   min-inline-size: 0;
+}
 
-  &.is-active {
-    display: grid;
-    gap: 1rem;
+.mega-menu-panel.is-active,
+.mega-menu-panel[aria-hidden="false"] {
+  display: grid;
+  gap: 1rem;
+}
+
+.mega-menu-panel__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-lg);
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+.mega-menu-panel__layout {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr)
+    minmax(14rem, 20rem);
+
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  align-items: start;
+
+  min-inline-size: 0;
+}
+
+.mega-menu-panel__column,
+.mega-menu-panel__feature {
+  min-inline-size: 0;
+}
+
+.mega-menu-panel__column {
+  display: grid;
+  align-content: start;
+  gap: 0.25rem;
+}
+
+.mega-menu-panel__feature {
+  align-self: stretch;
+}
+
+/* ==========================================================================
+   Links
+   ========================================================================== */
+
+.mega-menu-panel__link {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  min-inline-size: 0;
+  min-block-size: 2.5rem;
+
+  padding: 0.625rem 0.75rem;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+
+  background: transparent;
+  color: var(--color-text);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  text-decoration: none;
+  overflow-wrap: anywhere;
+
+  @include transition(
+    (background-color, border-color, color, box-shadow),
+    fast
+  );
+
+  &:hover {
+    border-color: color-mix(in oklab, var(--color-primary), transparent 82%);
+
+    background: color-mix(in oklab, var(--color-primary), transparent 94%);
+
+    color: var(--color-primary);
   }
 
-  &__title {
-    margin: 0;
-
-    color: var(--color-heading);
-
-    font-size: var(--text-lg);
-    font-weight: 800;
+  &:focus {
+    outline: none;
   }
 
-  &__layout {
-    min-inline-size: 0;
-
-    display: grid;
-    grid-template-columns:
-      minmax(0, 1fr)
-      minmax(0, 1fr)
-      minmax(14rem, 20rem);
-
-    gap: clamp(0.75rem, 1.5vw, 1rem);
-    align-items: start;
+  &:focus-visible {
+    @include focus-ring;
   }
 
-  &__column,
-  &__feature {
-    min-inline-size: 0;
-  }
+  &[aria-current="page"] {
+    border-color: color-mix(in oklab, var(--color-primary), transparent 72%);
 
-  &__column {
-    display: grid;
-    gap: 0.25rem;
-    align-content: start;
-  }
+    background: color-mix(in oklab, var(--color-primary), transparent 90%);
 
-  &__link {
-    min-inline-size: 0;
-    min-block-size: 2.5rem;
-
-    padding: 0.625rem 0.75rem;
-
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-
-    border-radius: var(--radius-md);
-
-    color: var(--color-text);
-    text-decoration: none;
-
-    overflow-wrap: anywhere;
-
-    transition:
-      background-color var(--transition-fast),
-      color var(--transition-fast);
-
-    &:hover,
-    &:focus-visible {
-      background: var(--color-surface-alt);
-      color: var(--color-primary);
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-    }
-  }
-
-  &__feature {
-    align-self: stretch;
+    color: var(--color-primary);
+    font-weight: font-weight("bold");
   }
 }
 
-@media (max-width: 1180px) {
-  .mega-menu-panel {
-    &__layout {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+/* ==========================================================================
+   Constrained Desktop
+   ========================================================================== */
 
-    &__feature {
-      grid-column: 1 / -1;
-    }
+@media (min-width: 992px) and (max-width: 1180px) {
+  .mega-menu-panel__layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mega-menu-panel__feature {
+    grid-column: 1 / -1;
   }
 }

@@ -1,5 +1,9 @@
 @use "../../abstracts" as *;
 
+/* ==========================================================================
+   Mobile Navigation Overlay
+   ========================================================================== */
+
 .mobile-nav-overlay {
   position: fixed;
   inset: 0;
@@ -11,9 +15,7 @@
   visibility: hidden;
   pointer-events: none;
 
-  transition:
-    opacity var(--transition-fast),
-    visibility var(--transition-fast);
+  @include transition((opacity, visibility), normal);
 
   &.is-open {
     opacity: 1;
@@ -26,253 +28,482 @@
   }
 }
 
+/* ==========================================================================
+   Mobile Navigation Drawer
+   ========================================================================== */
+
 .mobile-nav {
+  --mobile-nav-width: 25rem;
+
   position: fixed;
   inset-block: 0;
   inset-inline-end: 0;
   z-index: var(--z-modal);
 
-  inline-size: min(100%, 25rem);
+  inline-size: min(100%, var(--mobile-nav-width));
   block-size: 100dvh;
+
+  border-inline-start: 1px solid var(--color-border);
 
   background: var(--color-surface);
   color: var(--color-text);
 
-  border-inline-start: 1px solid var(--color-border);
+  box-shadow: var(--shadow-xl);
+
+  visibility: hidden;
+  pointer-events: none;
 
   transform: translateX(100%);
-  visibility: hidden;
 
-  transition:
-    transform var(--transition-normal),
-    visibility var(--transition-normal);
+  @include transition((transform, visibility), normal);
 
   &.is-open {
-    transform: translateX(0);
     visibility: visible;
+    pointer-events: auto;
+
+    transform: translateX(0);
   }
 
   @include respond-up(lg) {
     display: none;
   }
-
-  &__content {
-    position: relative;
-    block-size: 100%;
-    overflow: hidden;
-  }
-
-  &__panel {
-    position: absolute;
-    inset: 0;
-
-    display: flex;
-    flex-direction: column;
-
-    background: var(--color-surface);
-
-    transform: translateX(100%);
-    visibility: hidden;
-
-    transition:
-      transform var(--transition-normal),
-      visibility var(--transition-normal);
-
-    &.is-active {
-      transform: translateX(0);
-      visibility: visible;
-    }
-  }
-
-  &__header {
-    flex: 0 0 auto;
-
-    min-block-size: var(--app-header-height);
-
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 0.75rem;
-
-    padding-inline: 1rem;
-
-    border-block-end: 1px solid var(--color-border);
-  }
-
-  &__title {
-    min-inline-size: 0;
-
-    color: var(--color-heading);
-
-    font-size: var(--text-base);
-    font-weight: 800;
-    text-align: center;
-
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  &__body {
-    flex: 1 1 auto;
-
-    display: flex;
-    flex-direction: column;
-
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  &__actions {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-
-    padding: 1rem;
-
-    border-block-end: 1px solid var(--color-border);
-  }
-
-  &__menu {
-    margin: 0;
-    padding: 0;
-
-    list-style: none;
-  }
-
-  &__item {
-    border-block-end: 1px solid var(--color-border);
-  }
-
-  &__link,
-  &__trigger {
-    inline-size: 100%;
-    min-block-size: 3rem;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-
-    padding-inline: 1rem;
-
-    border: 0;
-    background: transparent;
-    color: var(--color-text);
-
-    font: inherit;
-    font-size: var(--text-sm);
-    font-weight: 700;
-
-    cursor: pointer;
-    text-align: start;
-    text-decoration: none;
-
-    transition:
-      background-color var(--transition-fast),
-      color var(--transition-fast);
-
-    &:hover {
-      background: var(--color-surface-alt);
-      color: var(--color-primary);
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-    }
-  }
-
-  &__link-text,
-  &__trigger-text {
-    min-inline-size: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  &__back,
-  &__close {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    min-inline-size: 2.25rem;
-    min-block-size: 2.25rem;
-
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-
-    background: var(--color-surface);
-    color: var(--color-text);
-
-    cursor: pointer;
-
-    transition:
-      background-color var(--transition-fast),
-      border-color var(--transition-fast),
-      color var(--transition-fast);
-
-    &:hover {
-      background: var(--color-surface-alt);
-      color: var(--color-primary);
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-    }
-  }
-
-  &__back {
-    gap: 0.5rem;
-    padding-inline: 0.75rem;
-  }
-
-  &__close {
-    margin-inline-start: auto;
-  }
-
-  &__arrow,
-  &__back-icon,
-  &__close-icon {
-    --icon-size: 0.75rem;
-    flex: 0 0 auto;
-  }
-
-  &__close-icon {
-    --icon-size: 1rem;
-  }
-
-  &__feature {
-    margin-block-start: auto;
-    padding: 1rem;
-  }
 }
 
 html[dir="rtl"] {
   .mobile-nav {
+    inset-inline-end: auto;
+    inset-inline-start: 0;
+
     border-inline-start: 0;
     border-inline-end: 1px solid var(--color-border);
 
     transform: translateX(-100%);
 
-    &.is-open,
-    &__panel.is-active {
+    &.is-open {
       transform: translateX(0);
-    }
-
-    &__panel {
-      transform: translateX(-100%);
-    }
-
-    &__arrow,
-    &__back-icon {
-      transform: rotate(180deg);
     }
   }
 }
 
-html:has(.mobile-nav.is-open),
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+.mobile-nav__layout {
+  display: flex;
+  flex-direction: column;
+
+  block-size: 100%;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.mobile-nav__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  flex: 0 0 auto;
+
+  min-block-size: var(--app-header-height);
+  padding-inline: 1rem;
+
+  border-block-end: 1px solid var(--color-border);
+
+  background: var(--color-surface);
+}
+
+.mobile-nav__brand {
+  display: inline-flex;
+  align-items: center;
+
+  min-inline-size: 0;
+
+  color: inherit;
+  text-decoration: none;
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.mobile-nav__logo {
+  display: block;
+
+  inline-size: auto;
+  max-inline-size: 9rem;
+  max-block-size: 2.25rem;
+
+  object-fit: contain;
+}
+
+.mobile-nav__logo--dark {
+  display: none;
+}
+
+html[data-theme="dark"] {
+  .mobile-nav__logo--light {
+    display: none;
+  }
+
+  .mobile-nav__logo--dark {
+    display: block;
+  }
+}
+
+.mobile-nav__close {
+  --icon-size: 1rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Primary Controls
+   ========================================================================== */
+
+.mobile-nav__controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+
+  flex: 0 0 auto;
+
+  padding: 1rem;
+
+  border-block-end: 1px solid var(--color-border);
+
+  background: var(--color-surface);
+}
+
+.mobile-nav__search,
+.mobile-nav__language {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+
+  min-block-size: 2.75rem;
+
+  padding-inline: 0.875rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: font-weight("bold");
+  line-height: 1;
+
+  cursor: pointer;
+  text-align: start;
+
+  @include transition(
+    (background-color, border-color, color, box-shadow),
+    fast
+  );
+
+  &:hover {
+    border-color: var(--color-border-strong);
+    background: var(--color-surface-alt);
+    color: var(--color-primary);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.mobile-nav__search {
+  justify-content: flex-start;
+
+  &::before {
+    --icon-size: 1rem;
+  }
+}
+
+.mobile-nav__language {
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.mobile-nav__language-icon {
+  --icon-size: 1rem;
+
+  flex: 0 0 auto;
+}
+
+.mobile-nav__language-text {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Navigation Body
+   ========================================================================== */
+
+.mobile-nav__body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-nav__menu,
+.mobile-nav__submenu-list {
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.mobile-nav__item,
+.mobile-nav__submenu-item {
+  border-block-end: 1px solid var(--color-border);
+}
+
+/* ==========================================================================
+   Primary Links and Triggers
+   ========================================================================== */
+
+.mobile-nav__trigger,
+.mobile-nav__subtrigger,
+.mobile-nav__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  inline-size: 100%;
+  min-block-size: 3.25rem;
+
+  padding-inline: 1rem;
+
+  border: 0;
+
+  background: transparent;
+  color: var(--color-text);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  text-align: start;
+  text-decoration: none;
+
+  cursor: pointer;
+
+  @include transition((background-color, color, box-shadow), fast);
+
+  &:hover {
+    background: var(--color-surface-alt);
+    color: var(--color-primary);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.mobile-nav__link--primary {
+  min-block-size: 3.5rem;
+}
+
+.mobile-nav__trigger-text,
+.mobile-nav__subtrigger-text {
+  min-inline-size: 0;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-nav__trigger-icon,
+.mobile-nav__subtrigger-icon {
+  --icon-size: 0.75rem;
+
+  flex: 0 0 auto;
+
+  @include transition(transform, fast);
+}
+
+.mobile-nav__trigger[aria-expanded="true"],
+.mobile-nav__subtrigger[aria-expanded="true"] {
+  color: var(--color-primary);
+
+  .mobile-nav__trigger-icon,
+  .mobile-nav__subtrigger-icon {
+    transform: rotate(180deg);
+  }
+}
+
+/* ==========================================================================
+   Nested Submenus
+   ========================================================================== */
+
+.mobile-nav__submenu {
+  overflow: hidden;
+
+  border-block-start: 1px solid var(--color-border);
+
+  background: color-mix(in oklab, var(--color-surface-alt), transparent 15%);
+}
+
+.mobile-nav__submenu[hidden] {
+  display: none;
+}
+
+.mobile-nav__submenu.is-open {
+  display: block;
+}
+
+.mobile-nav__submenu .mobile-nav__link,
+.mobile-nav__submenu .mobile-nav__subtrigger {
+  padding-inline-start: 1.75rem;
+}
+
+.mobile-nav__submenu--nested .mobile-nav__link,
+.mobile-nav__submenu--nested .mobile-nav__subtrigger {
+  padding-inline-start: 2.5rem;
+}
+
+.mobile-nav__submenu--nested .mobile-nav__submenu--nested .mobile-nav__link,
+.mobile-nav__submenu--nested
+  .mobile-nav__submenu--nested
+  .mobile-nav__subtrigger {
+  padding-inline-start: 3.25rem;
+}
+
+html[dir="rtl"] {
+  .mobile-nav__submenu .mobile-nav__link,
+  .mobile-nav__submenu .mobile-nav__subtrigger {
+    padding-inline-start: 1.75rem;
+  }
+
+  .mobile-nav__submenu--nested .mobile-nav__link,
+  .mobile-nav__submenu--nested .mobile-nav__subtrigger {
+    padding-inline-start: 2.5rem;
+  }
+
+  .mobile-nav__submenu--nested .mobile-nav__submenu--nested .mobile-nav__link,
+  .mobile-nav__submenu--nested
+    .mobile-nav__submenu--nested
+    .mobile-nav__subtrigger {
+    padding-inline-start: 3.25rem;
+  }
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.mobile-nav__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  flex: 0 0 auto;
+
+  padding: 1rem;
+
+  border-block-start: 1px solid var(--color-border);
+
+  background: var(--color-surface);
+}
+
+.mobile-nav__footer-link {
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("bold");
+
+  text-decoration: none;
+
+  @include transition(color, fast);
+
+  &:hover {
+    color: var(--color-primary);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Scroll Lock
+   ========================================================================== */
+
+html.has-mobile-nav-open,
 body.is-mobile-nav-open {
   overflow: hidden;
+}
+
+/* ==========================================================================
+   Small Screens
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .mobile-nav {
+    --mobile-nav-width: 100%;
+  }
+
+  .mobile-nav__header {
+    min-block-size: 4rem;
+  }
+
+  .mobile-nav__controls {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-nav__language {
+    justify-content: flex-start;
+  }
 }

@@ -1,46 +1,110 @@
 @use "../../abstracts" as *;
 
-.home-intro-actions {
-  &__buttons {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.75rem;
+/* ==========================================================================
+   Home Intro Quick Links
+   ========================================================================== */
+
+.home-intro-actions__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.75rem;
+
+  inline-size: 100%;
+}
+
+/* ==========================================================================
+   Quick Link
+   ========================================================================== */
+
+.home-intro-actions__button {
+  --btn-bg: var(--color-surface);
+  --btn-color: var(--color-text);
+  --btn-border-color: var(--color-border);
+
+  --btn-hover-bg: var(--color-surface-alt);
+  --btn-hover-color: var(--color-heading);
+  --btn-hover-border-color: var(--color-primary);
+
+  min-inline-size: 7rem;
+  min-block-size: 2.5rem;
+
+  padding: 0.5rem 0.875rem;
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("bold");
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Icon
+   ========================================================================== */
+
+.home-intro-actions__button-icon {
+  --icon-size: 0.875rem;
+
+  flex: 0 0 auto;
+
+  color: var(--home-intro-accent);
+}
+
+/* ==========================================================================
+   Hover
+   ========================================================================== */
+
+.home-intro-actions__button:hover {
+  .home-intro-actions__button-icon {
+    transform: translateY(-1px);
+  }
+}
+
+.home-intro-actions__button-icon {
+  @include transition(transform, fast);
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .home-intro-actions__buttons {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
   }
 
-  &__button {
-    --btn-bg: var(--color-surface);
-    --btn-color: var(--color-text);
-    --btn-border-color: var(--color-border);
+  .home-intro-actions__button {
+    min-inline-size: 0;
 
-    --btn-hover-bg: var(--color-surface-alt);
-    --btn-hover-color: var(--color-heading);
-    --btn-hover-border-color: var(--color-border-strong);
+    padding-inline: 0.625rem;
 
-    min-block-size: 2.25rem;
-    min-inline-size: auto;
+    white-space: normal;
+    text-align: center;
+  }
+}
 
-    padding: 0.5rem 0.875rem;
-
-    font-size: var(--text-xs);
-    font-weight: 700;
+@media (max-width: 420px) {
+  .home-intro-actions__buttons {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  &__button-icon {
-    --icon-size: 0.875rem;
+  .home-intro-actions__button {
+    inline-size: 100%;
+  }
+}
 
-    flex: 0 0 auto;
-    color: var(--home-intro-accent);
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .home-intro-actions__button-icon {
+    transition: none;
   }
 
-  @include respond-down(sm) {
-    &__buttons {
-      inline-size: 100%;
-      gap: 0.5rem;
-    }
-
-    &__button {
-      flex: 1 1 auto;
-    }
+  .home-intro-actions__button:hover .home-intro-actions__button-icon {
+    transform: none;
   }
 }

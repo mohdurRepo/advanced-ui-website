@@ -1,7 +1,7 @@
-import { initMarketClock } from "./clock";
-import { initMarketCards } from "./market-summary";
+import { initMarketSummary } from "./market-summary";
+import { initMarketClock } from "./market-clock";
 
-export function initMarketSummary() {
+export function initMarketSummarySection() {
+  initMarketSummary();
   initMarketClock();
-  initMarketCards();
 }

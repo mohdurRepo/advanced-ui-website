@@ -6,7 +6,27 @@
 
 .insights-actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
 
   margin-block-start: 1rem;
+  padding-block-start: 1rem;
+
+  border-block-start: 1px solid var(--surface-border);
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .insights-actions {
+    justify-content: stretch;
+  }
+
+  .insights-actions .btn {
+    inline-size: 100%;
+
+    justify-content: center;
+  }
 }

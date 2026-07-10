@@ -6,50 +6,111 @@
 
 .market-bridge {
   --market-bridge-height: 3rem;
+  --market-bridge-offset: 1rem;
+
+  --market-bridge-container-width: 1320px;
+  --market-bridge-container-space: 2rem;
+
   --market-bridge-bg: var(--market-details-bg, #334c5c);
 
   position: relative;
-  z-index: var(--z-base, 5);
+  z-index: 1;
 
   block-size: var(--market-bridge-height);
 
   margin-block-start: calc(var(--market-bridge-height) * -1);
-  margin-block-end: calc(var(--market-bridge-height) * -0.7);
+  margin-block-end: calc(
+    (var(--market-bridge-height) - var(--market-bridge-offset)) * -1
+  );
 
   pointer-events: none;
+}
 
-  &__inner {
-    position: relative;
-    bottom: 1rem;
+/* ==========================================================================
+   Inner Track
+   ========================================================================== */
 
-    inline-size: min(100% - 2rem, 1320px);
-    block-size: 100%;
-    margin-inline: auto;
+.market-bridge__inner {
+  position: relative;
 
-    overflow: hidden;
+  inline-size: min(
+    100% - var(--market-bridge-container-space),
+    var(--market-bridge-container-width)
+  );
+
+  block-size: 100%;
+
+  margin-inline: auto;
+
+  transform: translateY(calc(var(--market-bridge-offset) * -1));
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Active Bridge Bar
+   ========================================================================== */
+
+.market-bridge__bar {
+  position: absolute;
+
+  inset-block: 0;
+  inset-inline-start: 0;
+
+  inline-size: 0;
+
+  border-start-start-radius: var(--radius-md);
+  border-start-end-radius: var(--radius-md);
+
+  background: var(--market-bridge-bg);
+
+  transform: translate3d(0, 0, 0);
+  transform-origin: left center;
+
+  will-change: transform, inline-size;
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-bridge__bar {
+    outline: 2px solid var(--color-border-strong);
+    outline-offset: -2px;
   }
+}
 
-  &__bar {
-    position: absolute;
-    inset-block: 0;
-    inset-inline-start: 0;
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
 
-    inline-size: 0;
-
-    background: var(--market-bridge-bg);
-
-    will-change: inline-size, transform;
+html[data-motion="reduce"] {
+  .market-bridge__bar {
+    transition: none;
   }
+}
 
-  @include respond-down(lg) {
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .market-bridge {
     --market-bridge-height: 3rem;
+    --market-bridge-offset: 0.875rem;
+  }
+}
+
+@include respond-down(sm) {
+  .market-bridge {
+    --market-bridge-height: 2.5rem;
+    --market-bridge-offset: 0.75rem;
+    --market-bridge-container-space: 1rem;
   }
 
-  @include respond-down(sm) {
-    --market-bridge-height: 2.5rem;
-
-    &__inner {
-      inline-size: min(100% - 1rem, 1320px);
-    }
+  .market-bridge__bar {
+    border-start-start-radius: var(--radius-sm);
+    border-start-end-radius: var(--radius-sm);
   }
 }

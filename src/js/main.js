@@ -1,7 +1,8 @@
 import "./components/tabs";
 
-import { initTheme } from "./core/theme";
+/*import { initTheme } from "./core/theme";
 import { initLanguage } from "./core/language";
+*/
 import { initModals } from "./components/modal";
 import { initAccordions } from "./components/accordion";
 import { initToasts } from "./components/toast";
@@ -11,7 +12,7 @@ import { initIconSprite } from "./components/icons";
 import { initDropdowns } from "./components/dropdown";
 import { initForms } from "./components/form";
 import { initHeader } from "./components/header";
-import { initMarketSummary } from "./components/market-summary";
+import { initMarketSummarySection } from "./components/market-summary";
 import { initMarketDetails } from "./components/market-details";
 import { initHomeEventSlider } from "./components/intro-section/home-event-slider";
 import { initHomeCountdownSlider } from "./components/intro-section/home-countdown-slider";
@@ -25,8 +26,9 @@ initPreferences();
 initPreferencesUI();
 initHeader();
 window.renderDataTable = renderDataTable;
-initTheme();
+/*initTheme();
 initLanguage();
+*/
 initModals();
 initAccordions();
 initToasts();
@@ -34,7 +36,7 @@ initDataTables();
 initIconSprite();
 initDropdowns();
 initForms();
-initMarketSummary();
+initMarketSummarySection();
 initMarketDetails();
 initHomeEventSlider();
 initHomeCountdownSlider();

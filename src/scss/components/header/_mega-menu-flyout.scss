@@ -1,140 +1,193 @@
 @use "../../abstracts" as *;
 
+/* ==========================================================================
+   Mega Menu Flyout
+   ========================================================================== */
+
 .mega-menu-flyout {
   position: relative;
   min-inline-size: 0;
+}
 
-  &__trigger {
-    inline-size: 100%;
-    min-block-size: 2.5rem;
+/* Trigger */
 
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
+.mega-menu-flyout__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 
-    padding: 0.625rem 0.75rem;
+  inline-size: 100%;
+  min-block-size: 2.5rem;
 
-    border: 0;
-    border-radius: var(--radius-md);
+  padding: 0.625rem 0.75rem;
 
-    background: transparent;
-    color: var(--color-text);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
 
-    font: inherit;
-    font-size: var(--text-sm);
-    font-weight: 700;
-    text-align: start;
+  background: transparent;
+  color: var(--color-text);
 
-    cursor: pointer;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-normal);
 
-    transition:
-      background-color var(--transition-fast),
-      color var(--transition-fast);
+  text-align: start;
 
-    &:hover,
-    &:focus-visible {
-      background: var(--color-surface-alt);
-      color: var(--color-primary);
-    }
+  cursor: pointer;
 
-    &:focus-visible {
-      @include focus-ring;
-    }
+  @include transition(
+    (background-color, border-color, color, box-shadow),
+    fast
+  );
+
+  &:hover {
+    border-color: color-mix(in oklab, var(--color-primary), transparent 82%);
+
+    background: color-mix(in oklab, var(--color-primary), transparent 94%);
+
+    color: var(--color-primary);
   }
 
-  &__text {
-    min-inline-size: 0;
-    overflow-wrap: anywhere;
+  &:focus {
+    outline: none;
   }
 
-  &__icon {
-    --icon-size: 0.75rem;
-    flex: 0 0 auto;
-  }
-
-  &__menu {
-    position: absolute;
-    inset-block-start: 0;
-    inset-inline-start: calc(100% + 0.5rem);
-    z-index: calc(var(--z-dropdown) + 1);
-
-    min-inline-size: 14rem;
-    max-inline-size: min(20rem, calc(100vw - 2rem));
-
-    padding: 0.5rem;
-
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg);
-
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-
-    transform: translateX(0.25rem);
-
-    transition:
-      opacity var(--transition-fast),
-      visibility var(--transition-fast),
-      transform var(--transition-fast);
-  }
-
-  &:hover,
-  &:focus-within {
-    > .mega-menu-flyout__menu {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-      transform: translateX(0);
-    }
-  }
-
-  &__link {
-    display: block;
-
-    padding: 0.625rem 0.75rem;
-
-    border-radius: var(--radius-sm);
-
-    color: var(--color-text);
-    font-size: var(--text-sm);
-    text-decoration: none;
-
-    transition:
-      background-color var(--transition-fast),
-      color var(--transition-fast);
-
-    &:hover,
-    &:focus-visible {
-      background: var(--color-surface-alt);
-      color: var(--color-primary);
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-    }
+  &:focus-visible {
+    @include focus-ring;
   }
 }
 
+.mega-menu-flyout__text {
+  min-inline-size: 0;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mega-menu-flyout__icon {
+  --icon-size: 0.75rem;
+
+  flex: 0 0 auto;
+
+  @include transition(transform, fast);
+}
+
+/* Flyout Menu */
+
+.mega-menu-flyout__menu {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: calc(100% + 0.5rem);
+  z-index: calc(var(--z-dropdown) + 1);
+
+  min-inline-size: 14rem;
+  max-inline-size: min(20rem, calc(100vw - 2rem));
+
+  padding: 0.5rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  box-shadow: var(--shadow-lg);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transform: translateX(0.25rem);
+
+  @include transition((opacity, visibility, transform), fast);
+}
+
+/* Open State */
+
+.mega-menu-flyout:hover > .mega-menu-flyout__menu,
+.mega-menu-flyout:focus-within > .mega-menu-flyout__menu,
+.mega-menu-flyout.is-open > .mega-menu-flyout__menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+
+  transform: translateX(0);
+}
+
+.mega-menu-flyout:hover > .mega-menu-flyout__trigger,
+.mega-menu-flyout:focus-within > .mega-menu-flyout__trigger,
+.mega-menu-flyout.is-open > .mega-menu-flyout__trigger {
+  border-color: color-mix(in oklab, var(--color-primary), transparent 82%);
+
+  background: color-mix(in oklab, var(--color-primary), transparent 94%);
+
+  color: var(--color-primary);
+}
+
+/* Links */
+
+.mega-menu-flyout__link {
+  display: block;
+
+  padding: 0.625rem 0.75rem;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+
+  background: transparent;
+  color: var(--color-text);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  text-decoration: none;
+
+  @include transition(
+    (background-color, border-color, color, box-shadow),
+    fast
+  );
+
+  &:hover {
+    border-color: color-mix(in oklab, var(--color-primary), transparent 84%);
+
+    background: color-mix(in oklab, var(--color-primary), transparent 94%);
+
+    color: var(--color-primary);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &[aria-current="page"] {
+    background: color-mix(in oklab, var(--color-primary), transparent 90%);
+
+    color: var(--color-primary);
+    font-weight: font-weight("bold");
+  }
+}
+
+/* RTL */
+
 html[dir="rtl"] {
-  .mega-menu-flyout {
-    &__menu {
-      inset-inline-start: auto;
-      inset-inline-end: calc(100% + 0.5rem);
-      transform: translateX(-0.25rem);
-    }
+  .mega-menu-flyout__menu {
+    inset-inline-start: auto;
+    inset-inline-end: calc(100% + 0.5rem);
 
-    &:hover,
-    &:focus-within {
-      > .mega-menu-flyout__menu {
-        transform: translateX(0);
-      }
-    }
+    transform: translateX(-0.25rem);
+  }
 
-    &__icon {
-      transform: rotate(180deg);
-    }
+  .mega-menu-flyout:hover > .mega-menu-flyout__menu,
+  .mega-menu-flyout:focus-within > .mega-menu-flyout__menu,
+  .mega-menu-flyout.is-open > .mega-menu-flyout__menu {
+    transform: translateX(0);
   }
 }

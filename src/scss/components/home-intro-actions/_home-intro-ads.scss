@@ -1,49 +1,137 @@
 @use "../../abstracts" as *;
 
-.home-intro-actions {
-  &__ad {
-    inline-size: 100%;
+/* ==========================================================================
+   Home Intro Advertisements
+   ========================================================================== */
+
+.home-intro-actions__ad {
+  position: relative;
+
+  display: block;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  min-block-size: clamp(15rem, 20vw, 18rem);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+
+  overflow: hidden;
+
+  box-shadow: var(--shadow-sm);
+
+  text-decoration: none;
+
+  @include transition((border-color, box-shadow, transform), fast);
+
+  &:hover {
+    border-color: var(--color-border-strong);
+
+    box-shadow: var(--shadow-md);
+
+    transform: translateY(-2px);
+
+    .home-intro-actions__ad-image {
+      transform: scale(1.03);
+    }
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Image
+   ========================================================================== */
+
+.home-intro-actions__ad-image {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  object-fit: cover;
+  object-position: center;
+
+  @include transition(transform, normal);
+}
+
+/* ==========================================================================
+   Optional Advertisements
+   ========================================================================== */
+
+.home-intro-actions__ad[hidden] {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .home-intro-actions__ad {
     min-block-size: 15rem;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    overflow: hidden;
-
-    background: var(--color-secondary);
-    color: var(--color-on-secondary);
-
-    text-align: center;
-    text-decoration: none;
-
-    transition:
-      transform var(--transition-fast),
-      box-shadow var(--transition-fast);
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-    }
   }
+}
 
-  &__ad-image {
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .home-intro-actions__ad {
+    inline-size: min(100%, 24rem);
+
+    min-block-size: 11rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .home-intro-actions__ad {
     inline-size: 100%;
-    block-size: 100%;
 
-    display: block;
-    object-fit: cover;
+    min-block-size: 10rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .home-intro-actions__ad {
+    border-width: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .home-intro-actions__ad,
+  .home-intro-actions__ad-image {
+    transition: none;
   }
 
-  @include respond-down(lg) {
-    &__ad {
-      inline-size: min(100%, 20rem);
-      min-block-size: 8rem;
-      width: 100%;
+  .home-intro-actions__ad:hover {
+    transform: none;
+
+    .home-intro-actions__ad-image {
+      transform: none;
     }
   }
 }

@@ -7,76 +7,152 @@
 .derivatives-dashboard {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
+  gap: var(--market-panel-gap);
 
-  padding: 1rem;
+  padding: var(--market-panel-space);
 
   background: var(--market-details-bg, #334c5c);
 
-  font-family: var(--font-sans);
   font-size: var(--text-xs);
   line-height: var(--line-height-normal);
+}
 
-  &__card {
-    min-inline-size: 0;
-    min-block-size: 0;
+/* ==========================================================================
+   Card
+   ========================================================================== */
 
-    display: flex;
-    flex-direction: column;
+.derivatives-dashboard__card {
+  display: flex;
+  flex-direction: column;
 
-    overflow: hidden;
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  border: 1px solid var(--market-panel-line);
+  border-radius: var(--market-panel-radius);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  overflow: hidden;
+
+  @include transition((border-color, box-shadow, transform), fast);
+
+  &:hover {
+    border-color: var(--color-border-strong);
+    box-shadow: var(--shadow-sm);
   }
+}
 
-  &__header {
-    padding: 0.75rem 1rem 0.55rem;
+/* ==========================================================================
+   Header
+   ========================================================================== */
 
-    background: var(--surface-bg, var(--color-surface));
-  }
+.derivatives-dashboard__header {
+  display: flex;
+  align-items: center;
 
-  &__title {
-    margin: 0;
+  flex: 0 0 auto;
 
-    color: var(--color-heading);
-    font-size: var(--text-xs);
-    font-weight: 800;
-    line-height: var(--line-height-tight);
-  }
+  min-block-size: 3rem;
 
+  padding: 0.75rem var(--market-panel-space-sm);
+
+  border-block-end: 1px solid var(--color-border);
+
+  background: var(--color-surface);
+}
+
+.derivatives-dashboard__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Table Region
+   ========================================================================== */
+
+.derivatives-dashboard__card {
   .table-responsive {
     flex: 1 1 auto;
 
+    min-inline-size: 0;
     min-block-size: 0;
-    max-block-size: 13rem;
 
-    overflow-x: hidden;
-    overflow-y: auto;
+    /*
+     * Horizontal overflow is allowed for narrow cards.
+     * Vertical overflow belongs to the document, preventing scroll trapping.
+     */
+    overflow-x: auto;
+    overflow-y: visible;
+
+    overscroll-behavior-inline: auto;
+    touch-action: pan-x pan-y;
+
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--color-text), transparent 72%)
+      transparent;
+
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      block-size: 0.375rem;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      border-radius: var(--radius-pill);
+
+      background: color-mix(in oklab, var(--color-text), transparent 72%);
+    }
   }
 
   .table {
     inline-size: 100%;
+    min-inline-size: 24rem;
+
     table-layout: fixed;
 
     font-size: var(--text-xs);
 
     th,
     td {
-      padding: 0.5rem 0.625rem;
+      padding: 0.625rem 0.75rem;
 
       vertical-align: middle;
 
-      white-space: normal;
       word-break: normal;
-      overflow-wrap: normal;
+      overflow-wrap: anywhere;
     }
 
     th {
+      color: var(--color-heading);
+
       font-size: var(--text-xs);
-      font-weight: 800;
+      font-weight: font-weight("heavy");
       line-height: var(--line-height-tight);
+
+      white-space: normal;
     }
 
     td {
       line-height: var(--line-height-normal);
+    }
+
+    tbody tr {
+      @include transition(background-color, fast);
+
+      &:hover {
+        background: var(--color-surface-alt);
+      }
     }
 
     a {
@@ -84,24 +160,141 @@
 
       max-inline-size: 100%;
 
+      color: inherit;
+
+      font-weight: font-weight("bold");
+      text-decoration: none;
+
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+
+      @include transition(color, fast);
+
+      &:hover {
+        color: var(--color-primary);
+      }
+
+      &:focus {
+        outline: none;
+      }
+
+      &:focus-visible {
+        @include focus-ring;
+      }
     }
 
     .numeric,
     .table-cell-numeric {
       text-align: end;
       white-space: nowrap;
+
       font-variant-numeric: tabular-nums;
     }
   }
+}
 
-  @include respond-between(md, lg) {
+/* ==========================================================================
+   Mobile Table Disclosure
+   ========================================================================== */
+
+.derivatives-dashboard__toggle {
+  display: none;
+
+  grid-column: 1 / -1;
+}
+
+.derivatives-dashboard__more {
+  display: contents;
+}
+
+.derivatives-dashboard__more[hidden] {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Constrained Desktop: 992px–1200px
+   ========================================================================== */
+
+@media (min-width: 992px) and (max-width: 1200px) {
+  .derivatives-dashboard {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
 
-  @include respond-down(md) {
-    grid-template-columns: 1fr;
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-between(md, lg) {
+  .derivatives-dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(md) {
+  .derivatives-dashboard {
+    grid-template-columns: minmax(0, 1fr);
+
+    padding: var(--market-panel-space-sm);
+  }
+
+  .derivatives-dashboard__toggle {
+    display: block;
+  }
+
+  .derivatives-dashboard__toggle .btn {
+    inline-size: 100%;
+
+    justify-content: center;
+  }
+
+  .derivatives-dashboard__more {
+    display: grid;
+    grid-column: 1 / -1;
+    gap: var(--market-panel-gap);
+  }
+
+  .derivatives-dashboard__more[hidden] {
+    display: none !important;
+  }
+
+  .derivatives-dashboard__card {
+    .table-responsive {
+      overflow-x: auto;
+      overflow-y: visible;
+
+      touch-action: pan-x pan-y;
+    }
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .derivatives-dashboard__card {
+    border-width: 2px;
+  }
+
+  .derivatives-dashboard__header {
+    border-block-end-width: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .derivatives-dashboard__card,
+  .derivatives-dashboard__card tbody tr,
+  .derivatives-dashboard__card .table a {
+    transition: none;
   }
 }

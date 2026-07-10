@@ -15,6 +15,16 @@
   --page-glow-size: 100rem;
   --page-glow-opacity: 0.18;
 
+  /*
+   * Physical decorative coordinates.
+   * These are overridden in RTL without changing the component structure.
+   */
+  --page-glow-top-origin: left top;
+  --page-glow-bottom-origin: right bottom;
+
+  --page-glow-top-position: left -7rem top -7rem;
+  --page-glow-bottom-position: right -9rem bottom 0;
+
   position: relative;
   isolation: isolate;
 
@@ -33,12 +43,12 @@
 
     background:
       radial-gradient(
-        circle at left top,
+        circle at var(--page-glow-top-origin),
         rgb(from var(--color-primary) r g b / var(--page-glow-opacity)) 0%,
         transparent 45%
       ),
       radial-gradient(
-        circle at right bottom,
+        circle at var(--page-glow-bottom-origin),
         rgb(from var(--color-primary) r g b / var(--page-glow-opacity)) 0%,
         transparent 45%
       ),
@@ -52,23 +62,29 @@
       var(--page-pattern-size) auto;
 
     background-position:
-      left -7rem top -7rem,
-      right -9rem bottom 0,
+      var(--page-glow-top-position),
+      var(--page-glow-bottom-position),
       center var(--page-pattern-position-y);
 
     opacity: 1;
   }
 
-  [dir="rtl"] &__background {
-    background-position:
-      right -9rem top -7rem,
-      left -9rem bottom 10rem,
-      center var(--page-pattern-position-y);
+  /*
+   * Mirror only the decorative glow geometry.
+   * No z-index, pseudo-element, or content-layer changes.
+   */
+  [dir="rtl"] & {
+    --page-glow-top-origin: right top;
+    --page-glow-bottom-origin: left bottom;
+
+    --page-glow-top-position: right -9rem top -7rem;
+    --page-glow-bottom-position: left -9rem bottom 10rem;
   }
 
   @include respond-down(md) {
     --page-pattern-opacity: 0.08;
     --page-pattern-size: min(1320px, calc(100% - 1rem));
+
     --page-glow-size: 36rem;
     --page-glow-opacity: 0.14;
 
@@ -81,15 +97,21 @@
     --page-glow-size: 24rem;
     --page-glow-opacity: 0.12;
 
+    --page-glow-top-origin: left top;
+    --page-glow-bottom-origin: right bottom;
+
+    --page-glow-top-position: left -7rem top -5rem;
+    --page-glow-bottom-position: right -7rem bottom 8rem;
+
     &__background {
       background:
         radial-gradient(
-          circle at left top,
+          circle at var(--page-glow-top-origin),
           rgb(from var(--color-primary) r g b / var(--page-glow-opacity)) 0%,
           transparent 42%
         ),
         radial-gradient(
-          circle at right bottom,
+          circle at var(--page-glow-bottom-origin),
           rgb(from var(--color-primary) r g b / var(--page-glow-opacity)) 0%,
           transparent 42%
         );
@@ -101,14 +123,15 @@
         var(--page-glow-size) var(--page-glow-size);
 
       background-position:
-        left -7rem top -5rem,
-        right -7rem bottom 8rem;
+        var(--page-glow-top-position), var(--page-glow-bottom-position);
     }
 
-    [dir="rtl"] &__background {
-      background-position:
-        right -7rem top -5rem,
-        left -7rem bottom 8rem;
+    [dir="rtl"] & {
+      --page-glow-top-origin: right top;
+      --page-glow-bottom-origin: left bottom;
+
+      --page-glow-top-position: right -7rem top -5rem;
+      --page-glow-bottom-position: left -7rem bottom 8rem;
     }
   }
 }

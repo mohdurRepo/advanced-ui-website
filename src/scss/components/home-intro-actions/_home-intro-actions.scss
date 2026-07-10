@@ -1,78 +1,142 @@
 @use "../../abstracts" as *;
 
+/* ==========================================================================
+   Home Intro Actions
+   ========================================================================== */
+
 .home-intro-actions {
   --home-intro-fg: var(--color-heading);
   --home-intro-muted: var(--color-text-muted);
   --home-intro-accent: var(--color-primary);
 
+  --home-intro-ad-width: 15rem;
+  --home-intro-content-width: 48rem;
+  --home-intro-gap: clamp(1rem, 2vw, 2rem);
+
   padding: clamp(1.5rem, 3vw, 2.5rem);
 
   color: var(--home-intro-fg);
+}
 
-  &__grid {
-    display: grid;
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+.home-intro-actions__grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, var(--home-intro-ad-width))
+    minmax(0, var(--home-intro-content-width))
+    minmax(0, var(--home-intro-ad-width));
+
+  grid-template-areas: "ad-start main ad-end";
+
+  align-items: start;
+  justify-content: center;
+  gap: var(--home-intro-gap);
+
+  min-inline-size: 0;
+}
+
+.home-intro-actions__ad--start {
+  grid-area: ad-start;
+}
+
+.home-intro-actions__main {
+  grid-area: main;
+
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  text-align: center;
+}
+
+.home-intro-actions__ad--end {
+  grid-area: ad-end;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.home-intro-actions__title {
+  max-inline-size: 38rem;
+
+  margin: 0;
+
+  color: var(--home-intro-fg);
+
+  font-size: clamp(var(--text-xl), 1rem + 1.2vw, var(--text-2xl));
+
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+  text-wrap: balance;
+}
+
+.home-intro-actions__title-accent {
+  display: block;
+
+  color: var(--home-intro-accent);
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .home-intro-actions__grid {
     grid-template-columns:
-      minmax(10rem, 15rem)
-      minmax(0, 1fr)
-      minmax(10rem, 15rem);
+      minmax(0, var(--home-intro-ad-width))
+      minmax(0, var(--home-intro-content-width))
+      minmax(0, var(--home-intro-ad-width));
 
-    gap: clamp(1rem, 2vw, 2rem);
-    align-items: start;
-  }
-
-  &__main {
-    min-inline-size: 0;
-
-    display: grid;
-    justify-items: center;
     gap: 1rem;
+  }
+}
 
-    text-align: center;
+/* ==========================================================================
+   Stacked Layout
+   ========================================================================== */
+
+@include respond-down(md) {
+  .home-intro-actions__grid {
+    grid-template-columns: minmax(0, 1fr);
+
+    grid-template-areas:
+      "ad-start"
+      "main"
+      "ad-end";
+
+    justify-items: center;
   }
 
-  &__title {
-    margin: 0;
+  .home-intro-actions__main {
+    inline-size: min(100%, var(--home-intro-content-width));
+  }
+}
 
-    color: var(--home-intro-fg);
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
 
-    font-weight: 800;
-    line-height: 1.25;
-
-    span {
-      color: var(--home-intro-accent);
-    }
+@include respond-down(sm) {
+  .home-intro-actions {
+    padding: 1.5rem 1rem;
   }
 
-  @include respond-down(lg) {
-    &__grid {
-      grid-template-columns: 1fr;
-      justify-items: center;
-    }
-
-    &__main {
-      order: 1;
-      inline-size: 100%;
-      max-inline-size: 48rem;
-    }
-
-    &__ad--start {
-      order: 0;
-    }
-
-    &__ad--end {
-      order: 2;
-    }
+  .home-intro-actions__grid {
+    gap: 1.25rem;
   }
 
-  @include respond-down(sm) {
-    padding-block: 1.5rem;
+  .home-intro-actions__main {
+    gap: 0.875rem;
+  }
 
-    &__grid {
-      gap: 1.25rem;
-    }
-
-    &__title {
-      font-size: var(--text-2xl);
-    }
+  .home-intro-actions__title {
+    font-size: var(--text-lg);
   }
 }

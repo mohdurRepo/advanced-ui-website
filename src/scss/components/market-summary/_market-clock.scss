@@ -10,22 +10,24 @@
   --clock-tick-radius: calc(var(--clock-size) * 0.47);
 
   --clock-panel-bg: color-mix(in oklab, var(--market-summary-bg), white 12%);
-  --clock-face-bg: radial-gradient(circle at center, #405163, #4d6681);
+
+  --clock-face-start: #405163;
+  --clock-face-end: #4d6681;
 
   --clock-number-color: rgb(255 255 255 / 0.82);
   --clock-tick-minor-color: rgb(255 255 255 / 0.42);
   --clock-tick-major-color: rgb(255 255 255 / 0.78);
 
   --clock-hand-color: #ffffff;
-  --clock-second-color: var(--color-accent);
-
-  min-inline-size: 0;
-  block-size: 100%;
+  --clock-second-color: var(--color-primary);
 
   display: grid;
   grid-template-columns: var(--clock-size) minmax(0, 1fr);
   align-items: center;
   gap: 0.875rem;
+
+  min-inline-size: 0;
+  block-size: 100%;
 
   padding: 1rem 1.25rem;
 
@@ -42,27 +44,34 @@
 
 .clock-face {
   position: relative;
+  isolation: isolate;
 
   inline-size: var(--clock-size);
   block-size: var(--clock-size);
 
   justify-self: start;
 
-  border-radius: var(--radius-pill);
-  background: var(--clock-face-bg);
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle at center,
+    var(--clock-face-start),
+    var(--clock-face-end)
+  );
 
   box-shadow:
     inset 0 0 0.375rem rgb(0 0 0 / 0.3),
     0 0 0.1875rem rgb(0 0 0 / 0.2);
 }
 
-.tick-marks {
+.clock-ticks {
   position: absolute;
   inset: 0;
+
   pointer-events: none;
 }
 
-.tick,
+.clock-tick,
 .clock-number,
 .clock-hand,
 .clock-center {
@@ -71,20 +80,21 @@
   left: 50%;
 }
 
-.tick {
+.clock-tick {
   inline-size: 0.0625rem;
   block-size: 0.1875rem;
 
   background: var(--clock-tick-minor-color);
 
-  transform: translate(-50%, -50%) rotate(var(--rotation))
+  transform: translate(-50%, -50%) rotate(var(--clock-angle))
     translateY(calc(var(--clock-tick-radius) * -1));
 
   transform-origin: center;
 }
 
-.tick--major {
+.clock-tick--major {
   block-size: 0.3125rem;
+
   background: var(--clock-tick-major-color);
 }
 
@@ -98,19 +108,19 @@
   color: var(--clock-number-color);
 
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: font-weight("bold");
   line-height: 1;
 
-  transform: translate(-50%, -50%) rotate(var(--angle))
+  transform: translate(-50%, -50%) rotate(var(--clock-angle))
     translateY(calc(var(--clock-number-radius) * -1))
-    rotate(calc(var(--angle) * -1));
+    rotate(calc(var(--clock-angle) * -1));
+}
 
-  &--12,
-  &--3,
-  &--6,
-  &--9 {
-    display: block;
-  }
+.clock-number--12,
+.clock-number--3,
+.clock-number--6,
+.clock-number--9 {
+  display: block;
 }
 
 /* ==========================================================================
@@ -128,13 +138,14 @@
   justify-content: center;
 
   color: var(--clock-number-color);
+
   pointer-events: none;
 
   transform: translate(-50%, -50%);
+}
 
-  &__icon {
-    --icon-size: 0.45rem;
-  }
+.clock-brand__icon {
+  --icon-size: 0.65rem;
 }
 
 /* ==========================================================================
@@ -143,6 +154,7 @@
 
 .clock-hand {
   border-radius: var(--radius-pill);
+
   background: var(--clock-hand-color);
 
   transform-origin: center bottom;
@@ -154,27 +166,31 @@
   will-change: transform;
 }
 
-.hour-hand {
+.clock-hand--hour {
+  z-index: 3;
+
   inline-size: 0.1875rem;
   block-size: calc(var(--clock-size) * 0.22);
-  z-index: 3;
 }
 
-.minute-hand {
+.clock-hand--minute {
+  z-index: 2;
+
   inline-size: 0.125rem;
   block-size: calc(var(--clock-size) * 0.32);
-  z-index: 2;
 }
 
-.second-hand {
+.clock-hand--second {
+  z-index: 1;
+
   inline-size: 0.0625rem;
   block-size: calc(var(--clock-size) * 0.42);
-  z-index: 1;
 
   background: var(--clock-second-color);
 
   &::before {
     content: "";
+
     position: absolute;
     top: 100%;
     left: 50%;
@@ -183,6 +199,7 @@
     block-size: calc(var(--clock-size) * 0.1);
 
     border-radius: inherit;
+
     background: inherit;
 
     transform: translateX(-50%);
@@ -190,67 +207,69 @@
 }
 
 .clock-center {
-  inline-size: 0.5rem;
-  block-size: 0.5rem;
   z-index: 10;
 
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+
   border: 1px solid rgb(255 255 255 / 0.8);
-  border-radius: var(--radius-pill);
+  border-radius: 50%;
 
   background: var(--clock-second-color);
 
-  transform: translate(-50%, -50%);
-
   box-shadow: 0 0 0.1875rem rgb(0 0 0 / 0.4);
+
+  transform: translate(-50%, -50%);
 }
 
 /* ==========================================================================
-   Clock Info
+   Clock Information
    ========================================================================== */
 
 .clock-info {
-  min-inline-size: 0;
-
   display: grid;
-  gap: 0.35rem;
   align-content: center;
+  gap: 0.5rem;
+
+  min-inline-size: 0;
 
   text-align: start;
 }
 
 .clock-info__time-group,
 .clock-info__date-group {
-  min-inline-size: 0;
-
   display: grid;
-  gap: 0.15rem;
   justify-items: start;
+  gap: 0.15rem;
+
+  min-inline-size: 0;
 }
 
 .market-summary__location {
-  min-inline-size: 0;
-  max-inline-size: 100%;
-
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
 
+  min-inline-size: 0;
+  max-inline-size: 100%;
+
   color: var(--market-summary-muted);
 
   font-size: var(--text-xs);
-  font-weight: 600;
+  font-weight: font-weight("semibold");
   line-height: var(--line-height-tight);
 
-  white-space: nowrap;
   overflow: hidden;
+  white-space: nowrap;
 }
 
-.location-icon {
+.market-summary__location-icon {
   --icon-size: 1rem;
+
   flex: 0 0 auto;
 }
 
-.location-text {
+.market-summary__location-text {
   min-inline-size: 0;
 
   overflow: hidden;
@@ -262,17 +281,17 @@
   color: var(--market-summary-fg);
 
   font-size: var(--text-xl);
-  font-weight: 800;
+  font-weight: font-weight("heavy");
   line-height: 1;
   letter-spacing: 0.03em;
 
-  white-space: nowrap;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .market-summary__day,
 .market-summary__date {
-  color: rgb(255 255 255 / 0.86);
+  color: color-mix(in oklab, var(--market-summary-fg), transparent 14%);
 
   font-size: var(--text-xs);
   line-height: var(--line-height-tight);
@@ -281,7 +300,71 @@
 }
 
 .market-summary__day {
-  font-weight: 600;
+  font-weight: font-weight("semibold");
+}
+
+/* ==========================================================================
+   Bidirectional Layout
+   ========================================================================== */
+
+/*
+ * The clock face itself uses physical coordinates because its geometry is
+ * identical in LTR and RTL.
+ *
+ * The information area remains directional and uses logical alignment.
+ */
+
+[dir="rtl"] {
+  .market-summary__clock {
+    direction: rtl;
+  }
+
+  .clock-info,
+  .clock-info__time-group,
+  .clock-info__date-group {
+    text-align: start;
+  }
+
+  /*
+   * Keeps Latin time values visually stable in an RTL document.
+   * Remove this declaration if the time uses Arabic-Indic numerals and
+   * should follow the surrounding RTL text direction.
+   */
+  .market-summary__time {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-summary__clock {
+    border-width: 2px;
+  }
+
+  .clock-face {
+    box-shadow:
+      inset 0 0 0 2px rgb(255 255 255 / 0.6),
+      0 0 0 1px rgb(0 0 0 / 0.4);
+  }
+
+  .clock-hand,
+  .clock-center {
+    filter: none;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .clock-hand {
+    will-change: auto;
+  }
 }
 
 /* ==========================================================================
@@ -292,41 +375,42 @@
   .market-summary__clock {
     --clock-size: 5.5rem;
 
-    grid-template-columns: var(--clock-size) minmax(0, 1fr) auto;
+    grid-template-columns: var(--clock-size) minmax(0, 1fr);
     gap: 0.875rem;
 
     padding: 0.875rem 1rem;
   }
 
   .clock-info {
-    display: contents;
-  }
-
-  .clock-info__time-group {
-    min-inline-size: 0;
-
-    justify-self: stretch;
-    align-self: center;
-    justify-items: start;
-    text-align: start;
+    gap: 0.35rem;
   }
 
   .clock-info__date-group {
-    justify-self: end;
-    align-self: center;
-
-    justify-items: end;
-    text-align: end;
+    grid-template-columns: auto auto;
+    align-items: center;
+    justify-content: start;
+    gap: 0.5rem;
   }
 }
 
 @include respond-down(sm) {
   .market-summary__clock {
     --clock-size: 5.25rem;
+
+    align-items: center;
     gap: 0.75rem;
   }
 
   .market-summary__time {
     font-size: var(--text-lg);
+  }
+
+  .market-summary__location {
+    max-inline-size: 12rem;
+  }
+
+  .clock-info__date-group {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
   }
 }

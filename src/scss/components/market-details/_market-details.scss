@@ -1,22 +1,39 @@
 @use "../../abstracts" as *;
 
 /* ==========================================================================
-   Market Details Panel
+   Market Details
    ========================================================================== */
 
 .market-details-panel {
   --market-details-bg: #334c5c;
   --market-details-side-bg: #0d1e2b;
   --market-details-insights-bg: #254456;
-  --market-details-border: rgb(255 255 255 / 0.08);
+
+  --market-details-fg: #ffffff;
+  --market-details-muted: #9cb3c9;
+
+  --market-details-border: rgb(255 255 255 / 0.1);
+  --market-details-border-strong: rgb(255 255 255 / 0.2);
 
   --market-details-height: clamp(15rem, 25vw, 18.5rem);
-  --market-details-padding: 1rem;
+
+  /*
+   * Shared component rhythm.
+   * Charts, movers, stats, and dashboard cards should use these tokens.
+   */
+  --market-panel-space: 1.25rem;
+  --market-panel-space-sm: 1rem;
+  --market-panel-gap: 1rem;
+
+  --market-panel-radius: var(--radius-md);
+  --market-panel-line: var(--market-details-border);
 
   position: relative;
 
+  min-inline-size: 0;
+
   background: var(--market-details-bg);
-  color: #fff;
+  color: var(--market-details-fg);
 
   font-family: var(--font-sans);
   font-size: var(--text-sm);
@@ -26,168 +43,495 @@
     display: none !important;
   }
 
-  &__grid {
-    min-inline-size: 0;
-    min-block-size: var(--market-details-height);
-
-    display: grid;
-    align-items: stretch;
-
-    background: var(--market-details-bg);
+  &.is-active {
+    display: block;
   }
+}
 
-  &--overview &__grid,
-  &__grid {
+/* ==========================================================================
+   Reusable Market Panel
+   ========================================================================== */
+
+.market-panel {
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  border: 1px solid var(--market-panel-line);
+  border-radius: var(--market-panel-radius);
+
+  background: var(--market-details-side-bg);
+  color: var(--market-details-fg);
+
+  overflow: hidden;
+}
+
+.market-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  min-block-size: 3rem;
+
+  padding: 0.75rem var(--market-panel-space);
+
+  border-block-end: 1px solid var(--market-panel-line);
+}
+
+.market-panel__title {
+  margin: 0;
+
+  color: var(--market-details-fg);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+}
+
+.market-panel__body {
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  padding: var(--market-panel-space);
+}
+
+/* ==========================================================================
+   Details Grid
+   ========================================================================== */
+
+.market-details-panel__grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 45%)
+    minmax(16rem, 25%)
+    minmax(18rem, 30%);
+
+  align-items: stretch;
+
+  min-inline-size: 0;
+  min-block-size: var(--market-details-height);
+
+  background: var(--market-details-bg);
+}
+
+/* ==========================================================================
+   Grid Variants
+   ========================================================================== */
+
+.market-details-panel--overview {
+  .market-details-panel__grid {
     grid-template-columns:
       minmax(0, 45%)
       minmax(16rem, 25%)
       minmax(18rem, 30%);
   }
+}
 
-  &--analytics &__grid {
+.market-details-panel--analytics {
+  .market-details-panel__grid {
     grid-template-columns:
       minmax(0, 70%)
       minmax(18rem, 30%);
   }
 
-  &--dashboard &__grid {
-    grid-template-columns: 1fr;
-  }
-
-  &__main,
-  &__insights,
-  &__stats {
-    min-inline-size: 0;
-    min-block-size: 0;
-  }
-
-  &__main {
-    padding: var(--market-details-padding);
-    background: var(--market-details-bg);
-  }
-
-  &__chart,
-  &__table {
-    inline-size: 100%;
-    block-size: 100%;
-  }
-
-  &__chart {
-    background:
-      linear-gradient(rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.06)),
-      transparent;
-  }
-
-  &__table {
-    overflow: auto;
-  }
-
-  &__insights {
-    background: var(--market-details-insights-bg);
-    overflow: hidden;
-  }
-
-  &__stats {
-    background: var(--market-details-side-bg);
-    overflow: hidden;
-  }
-
-  &--analytics &__insights,
-  &--dashboard &__insights,
-  &--dashboard &__stats {
+  .market-details-panel__insights {
     display: none;
   }
+}
 
-  @include respond-down(xl) {
-    &--overview &__grid,
-    &__grid {
+.market-details-panel--dashboard {
+  .market-details-panel__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .market-details-panel__insights,
+  .market-details-panel__stats {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Structural Regions
+   ========================================================================== */
+
+.market-details-panel__main,
+.market-details-panel__insights,
+.market-details-panel__stats {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+.market-details-panel__main {
+  padding: var(--market-panel-space);
+
+  background: var(--market-details-bg);
+}
+
+.market-details-panel__insights {
+  background: var(--market-details-insights-bg);
+
+  overflow: clip;
+}
+
+.market-details-panel__stats {
+  background: var(--market-details-side-bg);
+
+  overflow: clip;
+}
+
+/* ==========================================================================
+   Chart and Table Regions
+   ========================================================================== */
+
+.market-details-panel__chart,
+.market-details-panel__table {
+  inline-size: 100%;
+  block-size: 100%;
+  min-block-size: 0;
+}
+
+.market-details-panel__chart {
+  border: 1px solid var(--market-panel-line);
+  border-radius: var(--market-panel-radius);
+
+  background:
+    linear-gradient(rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.05)),
+    transparent;
+
+  overflow: hidden;
+}
+
+.market-details-panel__table {
+  inline-size: 100%;
+  block-size: 100%;
+  min-block-size: 0;
+
+  overflow-x: auto;
+  overflow-y: auto;
+
+  overscroll-behavior: auto;
+  -webkit-overflow-scrolling: touch;
+
+  touch-action: pan-x pan-y;
+}
+/* ==========================================================================
+   Mobile Summary Metrics
+   ========================================================================== */
+
+.market-details-panel__mobile-summary {
+  display: none;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+
+  border-block-start: 1px solid var(--market-panel-line);
+  border-block-end: 1px solid var(--market-panel-line);
+
+  background: var(--market-panel-line);
+}
+
+.market-details-panel__mobile-metric {
+  display: grid;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+  min-block-size: 4.75rem;
+
+  padding: var(--market-panel-space-sm);
+
+  background: var(--market-details-side-bg);
+}
+
+.market-details-panel__mobile-metric-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+
+  color: var(--market-details-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+.market-details-panel__mobile-metric-icon {
+  --icon-size: 0.875rem;
+
+  flex: 0 0 auto;
+
+  color: var(--color-primary);
+}
+
+.market-details-panel__mobile-metric-value {
+  min-inline-size: 0;
+
+  color: var(--market-details-fg);
+
+  font-size: var(--text-base);
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  font-variant-numeric: tabular-nums;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Mobile Expand Control
+   ========================================================================== */
+
+.market-details-panel__toggle-wrap {
+  display: none;
+
+  padding: var(--market-panel-space-sm);
+
+  background: var(--market-details-bg);
+}
+
+.market-details-panel__toggle {
+  --icon-size: 0.75rem;
+
+  inline-size: 100%;
+
+  justify-content: center;
+}
+
+.market-details-panel__toggle-icon {
+  flex: 0 0 auto;
+
+  @include transition(transform, fast);
+}
+
+.market-details-panel__toggle[aria-expanded="true"] {
+  .market-details-panel__toggle-icon {
+    transform: rotate(180deg);
+  }
+}
+
+/* ==========================================================================
+   Mobile Collapsible Content
+   ========================================================================== */
+
+.market-details-panel__collapsible {
+  display: contents;
+}
+
+.market-details-panel__collapsible[hidden] {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Constrained Desktop: 992px–1200px
+   ========================================================================== */
+
+@media (min-width: 992px) and (max-width: 1200px) {
+  .market-details-panel--overview {
+    .market-details-panel__grid {
       grid-template-columns:
-        minmax(0, 1fr)
-        minmax(0, 1fr);
+        minmax(0, 1.3fr)
+        minmax(18rem, 0.7fr);
 
       grid-template-areas:
         "main insights"
         "stats stats";
     }
+  }
 
-    &--analytics &__grid {
+  .market-details-panel--analytics {
+    .market-details-panel__grid {
       grid-template-columns:
         minmax(0, 1fr)
         minmax(18rem, 0.45fr);
 
       grid-template-areas: "main stats";
     }
+  }
 
-    &--dashboard &__grid {
-      grid-template-columns: 1fr;
+  .market-details-panel--dashboard {
+    .market-details-panel__grid {
+      grid-template-columns: minmax(0, 1fr);
       grid-template-areas: "main";
-    }
-
-    &__main {
-      grid-area: main;
-    }
-
-    &__insights {
-      grid-area: insights;
-    }
-
-    &__stats {
-      grid-area: stats;
     }
   }
 
-  @include respond-between(md, lg) {
-    &--overview &__grid,
-    &__grid {
+  .market-details-panel__main {
+    grid-area: main;
+  }
+
+  .market-details-panel__insights {
+    grid-area: insights;
+  }
+
+  .market-details-panel__stats {
+    grid-area: stats;
+  }
+}
+
+/* ==========================================================================
+   Tablet: Below 992px
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .market-details-panel {
+    --market-details-height: auto;
+    --market-panel-space: 1rem;
+  }
+
+  .market-details-panel--overview {
+    .market-details-panel__grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
 
       grid-template-areas:
         "main main"
         "insights stats";
     }
+  }
 
-    &__insights,
-    &__stats {
-      min-block-size: clamp(14rem, 28vh, 18rem);
-    }
-
-    &--analytics &__grid {
-      grid-template-columns:
-        minmax(0, 1fr)
-        minmax(18rem, 0.55fr);
+  .market-details-panel--analytics {
+    .market-details-panel__grid {
+      grid-template-columns: minmax(0, 1fr);
 
       grid-template-areas:
-        "main main"
-        "stats stats";
-    }
-
-    &__main {
-      min-block-size: clamp(14rem, 42vh, 22rem);
+        "main"
+        "stats";
     }
   }
 
-  @include respond-down(md) {
-    --market-details-height: auto;
+  .market-details-panel--dashboard {
+    .market-details-panel__grid {
+      grid-template-columns: minmax(0, 1fr);
 
-    &--overview &__grid,
-    &--analytics &__grid,
-    &__grid {
-      grid-template-columns: 1fr;
-
-      grid-template-areas:
-        "main"
-        "insights"
-        "stats";
+      grid-template-areas: "main";
     }
+  }
 
-    &--analytics &__grid {
-      grid-template-areas:
-        "main"
-        "stats";
-    }
+  .market-details-panel__main {
+    grid-area: main;
 
-    &__main {
-      min-block-size: clamp(14rem, 45vh, 22rem);
+    min-block-size: clamp(16rem, 42vh, 24rem);
+  }
+
+  .market-details-panel__insights {
+    grid-area: insights;
+
+    min-block-size: clamp(14rem, 28vh, 18rem);
+  }
+
+  .market-details-panel__stats {
+    grid-area: stats;
+
+    min-block-size: clamp(14rem, 28vh, 18rem);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(md) {
+  .market-details-panel {
+    --market-panel-space: 0.875rem;
+    --market-panel-space-sm: 0.875rem;
+  }
+
+  .market-details-panel__table {
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  .market-details-panel--overview,
+  .market-details-panel--analytics,
+  .market-details-panel--dashboard {
+    .market-details-panel__grid {
+      display: block;
+
+      min-block-size: 0;
     }
+  }
+
+  .market-details-panel__main {
+    min-block-size: clamp(15rem, 48vh, 22rem);
+  }
+
+  .market-details-panel__mobile-summary {
+    display: grid;
+  }
+
+  .market-details-panel__toggle-wrap {
+    display: block;
+  }
+
+  .market-details-panel__collapsible {
+    display: block;
+  }
+
+  .market-details-panel__collapsible[hidden] {
+    display: none !important;
+  }
+
+  .market-details-panel__insights,
+  .market-details-panel__stats {
+    min-block-size: auto;
+  }
+
+  .market-details-panel__insights,
+  .market-details-panel__stats {
+    border-block-start: 1px solid var(--market-panel-line);
+  }
+}
+
+/* ==========================================================================
+   Small Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .market-details-panel__main {
+    min-block-size: clamp(14rem, 44vh, 20rem);
+  }
+
+  .market-details-panel__mobile-metric {
+    padding: 0.75rem;
+  }
+
+  .market-details-panel__mobile-metric-value {
+    font-size: var(--text-sm);
+  }
+
+  .market-details-panel__toggle-wrap {
+    padding: 0.75rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-details-panel {
+    --market-details-border: rgb(255 255 255 / 0.45);
+    --market-details-border-strong: rgb(255 255 255 / 0.8);
+  }
+
+  .market-panel,
+  .market-details-panel__chart {
+    border-width: 2px;
+  }
+
+  .market-details-panel__mobile-summary {
+    border-block-width: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .market-details-panel__toggle-icon {
+    transition: none;
   }
 }

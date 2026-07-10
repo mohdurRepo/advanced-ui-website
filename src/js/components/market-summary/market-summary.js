@@ -1,177 +1,476 @@
-const CARD_SELECTOR = "[data-market-card]";
-const RETURN_ARROW_SELECTOR = "[data-market-return-arrow]";
+/* ==========================================================================
+   Market Summary
+   ========================================================================== */
 
-function getActiveCard(summary = document) {
-  return summary.querySelector(`${CARD_SELECTOR}.is-active`);
+const SELECTORS = {
+  root: "[data-market-summary]",
+  tabs: "[data-market-tabs]",
+  card: "[data-market-card]",
+  cardsWrap: ".market-summary__cards-wrap",
+
+  selectedMarket: "[data-selected-market]",
+  selectedMarketName: "[data-selected-market-name]",
+  cardName: ".market-card__title",
+};
+
+const CLASSES = {
+  active: "is-active",
+  visible: "is-visible",
+  overflowStart: "has-overflow-start",
+  overflowEnd: "has-overflow-end",
+};
+
+const SCROLL_TOLERANCE = 2;
+
+let animationFrame = null;
+let resizeObserver = null;
+let initialized = false;
+
+/* ==========================================================================
+   Elements
+   ========================================================================== */
+
+function getRoot() {
+  return document.querySelector(SELECTORS.root);
 }
 
-function getReturnArrow(card) {
-  return card?.closest(".market-summary")?.querySelector(RETURN_ARROW_SELECTOR);
+function getElements(root = getRoot()) {
+  if (!root) {
+    return {
+      root: null,
+      tabs: null,
+      cards: [],
+      wrap: null,
+      selectedMarket: null,
+      selectedMarketName: null,
+    };
+  }
+
+  return {
+    root,
+    tabs: root.querySelector(SELECTORS.tabs),
+    cards: Array.from(root.querySelectorAll(SELECTORS.card)),
+    wrap: root.querySelector(SELECTORS.cardsWrap),
+    selectedMarket: root.querySelector(SELECTORS.selectedMarket),
+    selectedMarketName: root.querySelector(SELECTORS.selectedMarketName),
+  };
 }
 
-function updateReturnArrow(card = getActiveCard()) {
-  const returnArrow = getReturnArrow(card);
+/* ==========================================================================
+   General Helpers
+   ========================================================================== */
 
-  if (!card || !returnArrow) return;
-
-  const scroller = card.closest(".market-summary__cards");
-
-  if (!scroller) return;
-
-  const isRTL = getComputedStyle(scroller).direction === "rtl";
-
-  const cardRect = card.getBoundingClientRect();
-  const scrollerRect = scroller.getBoundingClientRect();
-
-  const isBeforeView = cardRect.left < scrollerRect.left;
-  const isAfterView = cardRect.right > scrollerRect.right;
-
-  returnArrow.classList.remove("is-visible", "is-start", "is-end");
-
-  if (!isBeforeView && !isAfterView) return;
-
-  const directionClass = isRTL
-    ? isBeforeView
-      ? "is-end"
-      : "is-start"
-    : isBeforeView
-      ? "is-start"
-      : "is-end";
-
-  const label = isBeforeView
-    ? "Scroll back to selected market"
-    : "Scroll forward to selected market";
-
-  returnArrow.classList.add("is-visible", directionClass);
-  returnArrow.setAttribute("aria-label", label);
+function isRTL(element) {
+  return getComputedStyle(element).direction === "rtl";
 }
 
-function requestReturnArrowUpdate(card = getActiveCard()) {
-  window.requestAnimationFrame(() => {
-    updateReturnArrow(card);
-  });
+function prefersReducedMotion() {
+  return document.documentElement.dataset.motion === "reduce";
 }
 
-function setActiveCard(card) {
-  const summary = card.closest(".market-summary");
+function getScrollBehavior() {
+  return prefersReducedMotion() ? "auto" : "smooth";
+}
 
-  if (!summary) return;
+function getActiveCard(root = getRoot()) {
+  if (!root) return null;
 
-  summary.querySelectorAll(CARD_SELECTOR).forEach((item) => {
-    const isActive = item === card;
+  return (
+    root.querySelector(`${SELECTORS.card}[aria-selected="true"]`) ||
+    root.querySelector(`${SELECTORS.card}.${CLASSES.active}`) ||
+    root.querySelector(SELECTORS.card)
+  );
+}
 
-    item.classList.toggle("is-active", isActive);
-    item.setAttribute("aria-selected", String(isActive));
-    item.setAttribute("tabindex", isActive ? "0" : "-1");
-  });
+function getCardName(card) {
+  return (
+    card?.querySelector(SELECTORS.cardName)?.textContent?.trim() ||
+    card?.dataset.market ||
+    ""
+  );
+}
 
-  requestReturnArrowUpdate(card);
-
+function dispatchMarketChange(card) {
   document.dispatchEvent(
     new CustomEvent("market:change", {
       detail: {
         card,
+        market: card.dataset.market || null,
         panelId: card.getAttribute("aria-controls"),
-        market: card.dataset.market,
       },
     }),
   );
 }
 
-function scrollCardIntoView(card, inline = "nearest") {
-  card.scrollIntoView({
-    behavior: "smooth",
-    block: "nearest",
-    inline,
+/* ==========================================================================
+   Visibility
+   ========================================================================== */
+
+function isCardFullyVisible(card, scroller) {
+  if (!card || !scroller) return false;
+
+  const cardRect = card.getBoundingClientRect();
+  const scrollerRect = scroller.getBoundingClientRect();
+
+  return (
+    cardRect.left >= scrollerRect.left - SCROLL_TOLERANCE &&
+    cardRect.right <= scrollerRect.right + SCROLL_TOLERANCE
+  );
+}
+
+function getPhysicalOverflowState(scroller) {
+  const cards = Array.from(scroller.querySelectorAll(SELECTORS.card));
+
+  if (!cards.length) {
+    return {
+      canScroll: false,
+      hasOverflowStart: false,
+      hasOverflowEnd: false,
+    };
+  }
+
+  const firstCard = cards[0];
+  const lastCard = cards[cards.length - 1];
+
+  const scrollerRect = scroller.getBoundingClientRect();
+  const firstRect = firstCard.getBoundingClientRect();
+  const lastRect = lastCard.getBoundingClientRect();
+
+  const rtl = isRTL(scroller);
+
+  const hasOverflowStart = rtl
+    ? lastRect.right > scrollerRect.right + SCROLL_TOLERANCE
+    : firstRect.left < scrollerRect.left - SCROLL_TOLERANCE;
+
+  const hasOverflowEnd = rtl
+    ? firstRect.left < scrollerRect.left - SCROLL_TOLERANCE
+    : lastRect.right > scrollerRect.right + SCROLL_TOLERANCE;
+
+  return {
+    canScroll: scroller.scrollWidth > scroller.clientWidth + SCROLL_TOLERANCE,
+    hasOverflowStart,
+    hasOverflowEnd,
+  };
+}
+
+/* ==========================================================================
+   Active Market
+   ========================================================================== */
+
+function setActiveCard(
+  card,
+  { focus = false, scroll = true, dispatch = true } = {},
+) {
+  const root = card?.closest(SELECTORS.root);
+
+  if (!root) return;
+
+  const { tabs, cards } = getElements(root);
+
+  cards.forEach((item) => {
+    const active = item === card;
+
+    item.classList.toggle(CLASSES.active, active);
+    item.setAttribute("aria-selected", String(active));
+    item.setAttribute("tabindex", active ? "0" : "-1");
+  });
+
+  if (focus) {
+    card.focus({
+      preventScroll: true,
+    });
+  }
+
+  if (scroll && tabs && !isCardFullyVisible(card, tabs)) {
+    card.scrollIntoView({
+      behavior: getScrollBehavior(),
+      block: "nearest",
+      inline: "nearest",
+    });
+  }
+
+  if (dispatch) {
+    dispatchMarketChange(card);
+  }
+
+  requestVisualUpdate(root);
+}
+
+function initializeActiveCard(root) {
+  const activeCard = getActiveCard(root);
+
+  if (!activeCard) return;
+
+  setActiveCard(activeCard, {
+    focus: false,
+    scroll: false,
+    dispatch: true,
   });
 }
 
-function scrollToActiveCard(event) {
-  const summary = event.currentTarget.closest(".market-summary");
-  const card = getActiveCard(summary);
+/* ==========================================================================
+   Keyboard Navigation
+   ========================================================================== */
+
+function getAdjacentCard(cards, currentCard, direction, rtl) {
+  const currentIndex = cards.indexOf(currentCard);
+
+  if (currentIndex < 0) return null;
+
+  let step = direction === "next" ? 1 : -1;
+
+  if (rtl) {
+    step *= -1;
+  }
+
+  const nextIndex = (currentIndex + step + cards.length) % cards.length;
+
+  return cards[nextIndex];
+}
+
+function handleCardKeydown(event) {
+  const card = event.target.closest(SELECTORS.card);
 
   if (!card) return;
 
-  scrollCardIntoView(card, "center");
-  requestReturnArrowUpdate(card);
+  const root = card.closest(SELECTORS.root);
+  const { tabs, cards } = getElements(root);
+
+  if (!tabs || !cards.length) return;
+
+  let nextCard = null;
+
+  switch (event.key) {
+    case "ArrowRight":
+      nextCard = getAdjacentCard(cards, card, "next", isRTL(tabs));
+      break;
+
+    case "ArrowLeft":
+      nextCard = getAdjacentCard(cards, card, "previous", isRTL(tabs));
+      break;
+
+    case "Home":
+      nextCard = cards[0];
+      break;
+
+    case "End":
+      nextCard = cards[cards.length - 1];
+      break;
+
+    case "Enter":
+    case " ":
+      event.preventDefault();
+
+      setActiveCard(card, {
+        focus: true,
+        scroll: true,
+      });
+
+      return;
+
+    default:
+      return;
+  }
+
+  if (!nextCard) return;
+
+  event.preventDefault();
+
+  setActiveCard(nextCard, {
+    focus: true,
+    scroll: true,
+  });
 }
 
-export function initMarketCards() {
-  document.querySelectorAll(".market-summary").forEach((summary) => {
-    const scroller = summary.querySelector(".market-summary__cards");
-    const returnArrow = summary.querySelector(RETURN_ARROW_SELECTOR);
+/* ==========================================================================
+   Edge Fades
+   ========================================================================== */
 
-    requestReturnArrowUpdate(getActiveCard(summary));
+function updateOverflowState(root) {
+  const { tabs, wrap } = getElements(root);
 
-    scroller?.addEventListener(
-      "scroll",
-      () => requestReturnArrowUpdate(getActiveCard(summary)),
-      { passive: true },
-    );
+  if (!tabs || !wrap) return;
 
-    returnArrow?.addEventListener("click", scrollToActiveCard);
+  const { canScroll, hasOverflowStart, hasOverflowEnd } =
+    getPhysicalOverflowState(tabs);
+
+  wrap.classList.toggle(CLASSES.overflowStart, canScroll && hasOverflowStart);
+
+  wrap.classList.toggle(CLASSES.overflowEnd, canScroll && hasOverflowEnd);
+}
+
+/* ==========================================================================
+   Selected Market Chip
+   ========================================================================== */
+
+function updateSelectedMarketChip(root) {
+  const { tabs, selectedMarket, selectedMarketName } = getElements(root);
+
+  const activeCard = getActiveCard(root);
+
+  if (!tabs || !selectedMarket || !activeCard) return;
+
+  const activeCardVisible = isCardFullyVisible(activeCard, tabs);
+  const shouldShow = !activeCardVisible;
+
+  selectedMarket.hidden = !shouldShow;
+  selectedMarket.classList.toggle(CLASSES.visible, shouldShow);
+
+  if (selectedMarketName) {
+    selectedMarketName.textContent = getCardName(activeCard);
+  }
+
+  selectedMarket.setAttribute(
+    "aria-label",
+    `Return to selected market: ${getCardName(activeCard)}`,
+  );
+}
+
+function scrollToSelectedMarket(root) {
+  const activeCard = getActiveCard(root);
+
+  if (!activeCard) return;
+
+  activeCard.scrollIntoView({
+    behavior: getScrollBehavior(),
+    block: "nearest",
+    inline: "center",
   });
 
-  window.addEventListener("load", () => {
-    document.querySelectorAll(".market-summary").forEach((summary) => {
-      requestReturnArrowUpdate(getActiveCard(summary));
+  window.requestAnimationFrame(() => {
+    requestVisualUpdate(root);
+  });
+}
+
+/* ==========================================================================
+   Visual Updates
+   ========================================================================== */
+
+function updateVisualState(root) {
+  updateOverflowState(root);
+  updateSelectedMarketChip(root);
+}
+
+function requestVisualUpdate(root = getRoot()) {
+  if (!root) return;
+
+  if (animationFrame !== null) {
+    window.cancelAnimationFrame(animationFrame);
+  }
+
+  animationFrame = window.requestAnimationFrame(() => {
+    updateVisualState(root);
+    animationFrame = null;
+  });
+}
+
+/* ==========================================================================
+   Events
+   ========================================================================== */
+
+function handleClick(event) {
+  const card = event.target.closest(SELECTORS.card);
+
+  if (card) {
+    setActiveCard(card, {
+      focus: false,
+      scroll: true,
     });
+
+    return;
+  }
+
+  const selectedMarket = event.target.closest(SELECTORS.selectedMarket);
+
+  if (selectedMarket) {
+    const root = selectedMarket.closest(SELECTORS.root);
+
+    scrollToSelectedMarket(root);
+  }
+}
+
+function handlePreferenceChange(event) {
+  const relevantPreferences = ["lang", "fontSize", "motion", "contrast"];
+
+  if (event.detail?.name && !relevantPreferences.includes(event.detail.name)) {
+    return;
+  }
+
+  requestVisualUpdate();
+}
+
+function handleLanguageChange() {
+  requestVisualUpdate();
+}
+
+/* ==========================================================================
+   Resize Observer
+   ========================================================================== */
+
+function initializeResizeObserver(root) {
+  if (!("ResizeObserver" in window)) return;
+
+  const { tabs, wrap, cards } = getElements(root);
+
+  resizeObserver = new ResizeObserver(() => {
+    requestVisualUpdate(root);
+  });
+
+  if (tabs) {
+    resizeObserver.observe(tabs);
+  }
+
+  if (wrap) {
+    resizeObserver.observe(wrap);
+  }
+
+  cards.forEach((card) => {
+    resizeObserver.observe(card);
+  });
+}
+
+/* ==========================================================================
+   Initializer
+   ========================================================================== */
+
+export function initMarketSummary() {
+  if (initialized) return;
+
+  const root = getRoot();
+
+  if (!root) return;
+
+  initialized = true;
+
+  const { tabs } = getElements(root);
+
+  initializeActiveCard(root);
+  initializeResizeObserver(root);
+
+  root.addEventListener("click", handleClick);
+  root.addEventListener("keydown", handleCardKeydown);
+
+  tabs?.addEventListener(
+    "scroll",
+    () => {
+      requestVisualUpdate(root);
+    },
+    {
+      passive: true,
+    },
+  );
+
+  window.addEventListener("load", () => {
+    requestVisualUpdate(root);
   });
 
   window.addEventListener("resize", () => {
-    document.querySelectorAll(".market-summary").forEach((summary) => {
-      requestReturnArrowUpdate(getActiveCard(summary));
-    });
+    requestVisualUpdate(root);
   });
 
-  document.addEventListener("click", (event) => {
-    const card = event.target.closest(CARD_SELECTOR);
+  document.addEventListener("preferencechange", handlePreferenceChange);
 
-    if (!card) return;
+  document.addEventListener("languagechange", handleLanguageChange);
 
-    setActiveCard(card);
-    scrollCardIntoView(card);
-  });
-
-  document.addEventListener("keydown", (event) => {
-    const card = event.target.closest(CARD_SELECTOR);
-
-    if (!card) return;
-
-    const summary = card.closest(".market-summary");
-    const cards = Array.from(summary?.querySelectorAll(CARD_SELECTOR) || []);
-
-    if (!cards.length) return;
-
-    const isRTL = document.documentElement.dir === "rtl";
-    const currentIndex = cards.indexOf(card);
-
-    let nextIndex = currentIndex;
-
-    if (event.key === "ArrowRight") {
-      nextIndex = isRTL ? currentIndex - 1 : currentIndex + 1;
-    }
-
-    if (event.key === "ArrowLeft") {
-      nextIndex = isRTL ? currentIndex + 1 : currentIndex - 1;
-    }
-
-    if (event.key === "Home") {
-      nextIndex = 0;
-    }
-
-    if (event.key === "End") {
-      nextIndex = cards.length - 1;
-    }
-
-    if (nextIndex === currentIndex) return;
-
-    const nextCard = cards[Math.max(0, Math.min(cards.length - 1, nextIndex))];
-
-    event.preventDefault();
-
-    nextCard.focus();
-    setActiveCard(nextCard);
-    scrollCardIntoView(nextCard);
-  });
+  requestVisualUpdate(root);
 }

@@ -13,18 +13,24 @@
   --market-summary-border-hover: rgb(255 255 255 / 0.32);
 
   --market-summary-surface: rgb(255 255 255 / 0.08);
+
   --market-summary-surface-active: color-mix(
     in oklab,
     var(--market-summary-bg),
     white 18%
   );
 
+  --market-status-neutral: #9cb3c9;
+  --market-status-halted: #fff12c;
+
   --market-summary-container-width: 1320px;
-  --market-summary-container-x: 2rem;
-  --market-summary-container-gap: clamp(1rem, 2vw, 2rem);
+  --market-summary-container-space: 2rem;
+  --market-summary-gap: clamp(1rem, 2vw, 2rem);
 
   --market-summary-clock-width: 20rem;
   --market-summary-bridge-space: 2.1rem;
+
+  position: relative;
 
   padding-block: 0;
 
@@ -34,163 +40,344 @@
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   line-height: var(--line-height-normal);
+}
 
-  &__container {
-    width: min(
-      100% - var(--market-summary-container-x),
-      var(--market-summary-container-width)
-    );
-    margin-inline: auto;
-    padding-block-end: var(--market-summary-bridge-space);
+/* ==========================================================================
+   Container
+   ========================================================================== */
 
-    display: grid;
-    grid-template-columns:
-      minmax(
-        var(--market-summary-clock-width),
-        var(--market-summary-clock-width)
-      )
-      minmax(0, 1fr);
-    gap: var(--market-summary-container-gap);
-    align-items: stretch;
+.market-summary__container {
+  display: grid;
+  grid-template-columns:
+    minmax(var(--market-summary-clock-width), var(--market-summary-clock-width))
+    minmax(0, 1fr);
+
+  align-items: stretch;
+  gap: var(--market-summary-gap);
+
+  inline-size: min(
+    100% - var(--market-summary-container-space),
+    var(--market-summary-container-width)
+  );
+
+  min-inline-size: 0;
+
+  margin-inline: auto;
+  padding-block-end: var(--market-summary-bridge-space);
+}
+
+/* ==========================================================================
+   Cards Area
+   ========================================================================== */
+
+.market-summary__cards-wrap {
+  position: relative;
+
+  display: flex;
+  align-items: stretch;
+
+  min-inline-size: 0;
+}
+
+.market-summary__cards {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: clamp(15.5rem, 21vw, 17.5rem);
+  gap: 1rem;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  padding-block: 0.625rem;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  overscroll-behavior-inline: contain;
+
+  scroll-behavior: smooth;
+  scroll-snap-type: inline proximity;
+
+  scrollbar-width: thin;
+
+  scrollbar-color: color-mix(
+      in oklab,
+      var(--market-summary-fg),
+      transparent 65%
+    )
+    transparent;
+
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    block-size: 0.375rem;
   }
 
-  &__cards-wrap {
-    position: relative;
-
-    min-inline-size: 0;
-
-    display: flex;
-    align-items: stretch;
+  &::-webkit-scrollbar-track {
+    background: transparent;
   }
 
-  &__cards {
-    inline-size: 100%;
-    min-inline-size: 0;
+  &::-webkit-scrollbar-thumb {
+    border-radius: var(--radius-pill);
 
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: clamp(15.5rem, 21vw, 17.5rem);
-    gap: 1rem;
-
-    padding-block: 0.625rem;
-
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    scroll-snap-type: inline proximity;
+    background: color-mix(in oklab, var(--market-summary-fg), transparent 65%);
   }
 
-  &__return-arrow {
-    --icon-size: 1.25rem;
-
-    position: absolute;
-    z-index: 5;
-    inset-block-start: 50%;
-
-    inline-size: 3rem;
-    block-size: 4.5rem;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    border: 1px solid var(--market-summary-border);
-    background: linear-gradient(
-      135deg,
-      color-mix(in oklab, var(--market-summary-bg), white 22%),
-      color-mix(in oklab, var(--market-summary-bg), white 8%)
-    );
-    color: var(--market-summary-fg);
-    box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 0.24);
-    backdrop-filter: blur(10px);
-
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-
-    transform: translateY(-50%) scale(0.96);
-    transition:
-      opacity var(--transition-fast),
-      visibility var(--transition-fast),
-      transform var(--transition-fast);
-
-    cursor: pointer;
-
-    &::before {
-      content: "";
-
-      inline-size: var(--icon-size);
-      block-size: var(--icon-size);
-
-      background: currentColor;
-
-      mask: var(--icon-svg) center / contain no-repeat;
-      -webkit-mask: var(--icon-svg) center / contain no-repeat;
-    }
-
-    &.is-visible {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-
-      transform: translateY(-50%) scale(1);
-      animation: marketReturnArrowPulse 1.15s ease-in-out infinite;
-    }
-
-    &.is-start {
-      inset-inline-start: 0;
-
-      border-start-end-radius: var(--radius-pill);
-      border-end-end-radius: var(--radius-pill);
-      border-inline-start: 0;
-
-      &::before {
-        transform: rotate(180deg);
-      }
-    }
-
-    &.is-end {
-      inset-inline-end: 0;
-
-      border-start-start-radius: var(--radius-pill);
-      border-end-start-radius: var(--radius-pill);
-      border-inline-end: 0;
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-    }
-  }
-
-  @include respond-down(lg) {
-    --market-summary-bridge-space: 3rem;
-
-    &__container {
-      grid-template-columns: 1fr;
-    }
-
-    &__cards {
-      grid-auto-columns: minmax(15rem, 18rem);
-    }
-  }
-
-  @include respond-down(sm) {
-    --market-summary-container-x: 1rem;
-    --market-summary-bridge-space: 2.5rem;
-
-    &__cards {
-      grid-auto-columns: minmax(14.5rem, 85vw);
-      gap: 0.75rem;
-    }
-
-    &__return-arrow {
-      inline-size: 2.25rem;
-      block-size: 2.25rem;
-    }
+  &::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--market-summary-fg), transparent 48%);
   }
 }
 
-@keyframes marketReturnArrowPulse {
-  50% {
-    opacity: 0.55;
+/* ==========================================================================
+   Scroll Edge Fades
+   ========================================================================== */
+
+.market-summary__cards-wrap::before,
+.market-summary__cards-wrap::after {
+  content: "";
+
+  position: absolute;
+
+  inset-block-start: 0.625rem;
+  inset-block-end: 0.625rem;
+
+  z-index: 2;
+
+  inline-size: 2.5rem;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  @include transition(opacity, fast);
+}
+
+.market-summary__cards-wrap::before {
+  inset-inline-start: 0;
+}
+
+.market-summary__cards-wrap::after {
+  inset-inline-end: 0;
+
+  background: linear-gradient(
+    to left,
+    var(--market-summary-bg) 0%,
+    color-mix(in oklab, var(--market-summary-bg), transparent 18%) 42%,
+    transparent 100%
+  );
+}
+
+.market-summary__cards-wrap.has-overflow-start::before,
+.market-summary__cards-wrap.has-overflow-end::after {
+  opacity: 1;
+}
+
+/* RTL */
+
+html[dir="rtl"] {
+  .market-summary__cards-wrap::before {
+    background: linear-gradient(
+      to left,
+      var(--market-summary-bg) 0%,
+      color-mix(in oklab, var(--market-summary-bg), transparent 18%) 42%,
+      transparent 100%
+    );
+  }
+
+  .market-summary__cards-wrap::after {
+    background: linear-gradient(
+      to right,
+      var(--market-summary-bg) 0%,
+      color-mix(in oklab, var(--market-summary-bg), transparent 18%) 42%,
+      transparent 100%
+    );
+  }
+}
+/* ==========================================================================
+   Selected Market Return Control
+   ========================================================================== */
+
+.market-summary__selected-market {
+  --icon-size: 0.875rem;
+
+  position: absolute;
+  inset-inline-end: 0.75rem;
+  inset-block-end: 1.25rem;
+  z-index: 5;
+
+  display: inline-grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  gap: 0.375rem;
+
+  max-inline-size: calc(100% - 1.5rem);
+
+  padding: 0.5rem 0.75rem;
+
+  border: 1px solid var(--market-summary-border-hover);
+  border-radius: var(--radius-pill);
+
+  background: color-mix(in oklab, var(--market-summary-bg), white 16%);
+
+  color: var(--market-summary-fg);
+
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(10px);
+
+  cursor: pointer;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transform: translateY(0.375rem);
+
+  @include transition(
+    (opacity, visibility, transform, background-color, border-color),
+    fast
+  );
+
+  &:hover {
+    border-color: var(--color-primary);
+
+    background: color-mix(in oklab, var(--market-summary-bg), white 22%);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.is-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+
+    transform: translateY(0);
+  }
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.market-summary__selected-market-label {
+  color: var(--market-summary-muted);
+
+  font-size: var(--text-xs);
+  line-height: 1;
+}
+
+.market-summary__selected-market-name {
+  min-inline-size: 0;
+  max-inline-size: 9rem;
+
+  color: inherit;
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("bold");
+  line-height: 1;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.market-summary__selected-market-icon {
+  flex: 0 0 auto;
+
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-summary {
+    --market-summary-border: rgb(255 255 255 / 0.5);
+    --market-summary-border-hover: rgb(255 255 255 / 0.8);
+  }
+
+  .market-summary__selected-market {
+    border-width: 2px;
+
+    background: var(--market-summary-bg);
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .market-summary__cards {
+    scroll-behavior: auto;
+  }
+
+  .market-summary__cards-wrap::before,
+  .market-summary__cards-wrap::after,
+  .market-summary__selected-market {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .market-summary {
+    --market-summary-clock-width: 100%;
+    --market-summary-bridge-space: 3rem;
+  }
+
+  .market-summary__container {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .market-summary__cards {
+    grid-auto-columns: minmax(15rem, 18rem);
+  }
+}
+
+@include respond-down(md) {
+  .market-summary {
+    --market-summary-gap: 1rem;
+  }
+
+  .market-summary__cards-wrap::before,
+  .market-summary__cards-wrap::after {
+    inline-size: 2rem;
+  }
+}
+
+@include respond-down(sm) {
+  .market-summary {
+    --market-summary-container-space: 1rem;
+    --market-summary-bridge-space: 2.5rem;
+  }
+
+  .market-summary__cards {
+    grid-auto-columns: minmax(14.5rem, 85vw);
+    gap: 0.75rem;
+  }
+
+  .market-summary__selected-market {
+    inset-inline-end: 0.5rem;
+    inset-block-end: 1rem;
+
+    padding: 0.45rem 0.625rem;
+  }
+
+  .market-summary__selected-market-label {
+    display: none;
+  }
+
+  .market-summary__selected-market-name {
+    max-inline-size: 7rem;
   }
 }
