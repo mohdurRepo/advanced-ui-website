@@ -78,7 +78,7 @@
     --page-glow-bottom-origin: left bottom;
 
     --page-glow-top-position: right -9rem top -7rem;
-    --page-glow-bottom-position: left -9rem bottom 10rem;
+    --page-glow-bottom-position: left -9rem bottom 0;
   }
 
   @include respond-down(md) {

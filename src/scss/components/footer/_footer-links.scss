@@ -1,70 +1,220 @@
 @use "../../abstracts" as *;
 
-.site-footer-links {
-  min-block-size: 100%;
+/* ==========================================================================
+   Site Footer Links
+   ========================================================================== */
 
+.site-footer-links {
   display: grid;
   align-content: start;
-  gap: 2rem;
+  gap: 1.5rem;
 
-  padding: clamp(8rem, 10vw, 10rem) clamp(2rem, 3.5vw, 3.25rem)
-    clamp(2rem, 3.5vw, 3.25rem);
+  min-inline-size: 0;
+  min-block-size: 100%;
+
+  padding: clamp(3rem, 6vw, 5rem) clamp(2rem, 3.5vw, 3.25rem);
 
   border-inline-start: 1px solid var(--footer-border);
+}
 
-  &__title {
-    margin: 0;
+/* ==========================================================================
+   Title
+   ========================================================================== */
 
+.site-footer-links__title {
+  margin: 0;
+
+  color: var(--footer-heading);
+
+  font-size: var(--text-lg);
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   List
+   ========================================================================== */
+
+.site-footer-links__list {
+  display: grid;
+  gap: 0.875rem;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Link
+   ========================================================================== */
+
+.site-footer-links__link {
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  padding-block: 0.125rem;
+
+  border-radius: var(--radius-sm);
+
+  color: var(--footer-text);
+
+  font-size: var(--text-base);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-normal);
+
+  text-decoration: none;
+  text-wrap: pretty;
+
+  @include transition((color, transform), fast);
+
+  &::after {
+    content: "";
+
+    position: absolute;
+
+    inset-inline-start: 0;
+    inset-block-end: -0.2rem;
+
+    inline-size: 100%;
+    block-size: 0.125rem;
+
+    border-radius: var(--radius-pill);
+
+    background: var(--footer-accent);
+
+    transform: scaleX(0);
+    transform-origin: inline-start center;
+
+    @include transition(transform, fast);
+  }
+
+  &:hover {
     color: var(--footer-heading);
 
-    font-size: var(--text-lg);
-    font-weight: 800;
-    line-height: var(--line-height-tight);
+    transform: translateX(0.125rem);
+
+    &::after {
+      transform: scaleX(1);
+    }
   }
 
-  &__list {
-    display: grid;
-    gap: 1rem;
-
-    margin: 0;
-    padding: 0;
-
-    list-style: none;
+  &:focus {
+    outline: none;
   }
 
-  &__link {
-    color: var(--footer-text);
-    text-decoration: none;
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
 
-    font-size: var(--text-base);
-    font-weight: 600;
-    line-height: var(--line-height-tight);
+/* ==========================================================================
+   RTL
+   ========================================================================== */
 
-    transition: color var(--transition-fast);
+html[dir="rtl"] {
+  .site-footer-links__link {
+    &::after {
+      transform-origin: inline-end center;
+    }
 
     &:hover {
-      color: var(--footer-heading);
-    }
-
-    &:focus-visible {
-      @include focus-ring;
+      transform: translateX(-0.125rem);
     }
   }
+}
 
-  @include respond-down(lg) {
-    padding: 2rem clamp(2rem, 3.5vw, 3.25rem);
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .site-footer-links {
+    padding: 2.25rem var(--footer-space);
+
     border-inline-start: 0;
-  }
 
-  @include respond-down(md) {
+    &:not(:last-child) {
+      border-inline-end: 1px solid var(--footer-border);
+    }
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .site-footer-links {
+    padding: 2rem var(--footer-space);
+
+    border-inline-end: 0;
     border-block-end: 1px solid var(--footer-border);
 
     &:last-child {
       border-block-end: 0;
     }
   }
+}
 
-  @include respond-down(sm) {
-    padding: 2rem 1.25rem;
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .site-footer-links {
+    gap: 1.25rem;
+
+    padding: 1.75rem var(--footer-space);
+  }
+
+  .site-footer-links__list {
+    gap: 0.75rem;
+  }
+
+  .site-footer-links__link {
+    font-size: var(--text-sm);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .site-footer-links {
+    border-color: var(--footer-border-strong);
+  }
+
+  .site-footer-links__link {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+
+    &::after {
+      display: none;
+    }
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .site-footer-links__link,
+  .site-footer-links__link::after {
+    transition: none;
+  }
+
+  .site-footer-links__link:hover {
+    transform: none;
   }
 }

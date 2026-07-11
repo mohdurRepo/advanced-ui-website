@@ -1,127 +1,306 @@
 @use "../../abstracts" as *;
 
+/* ==========================================================================
+   Home Event Slider
+   ========================================================================== */
+
 .home-event-slider {
+  --home-event-slider-bg: var(--color-surface);
+  --home-event-slider-fg: #ffffff;
+  --home-event-slider-muted: rgb(255 255 255 / 0.84);
+  --home-event-slider-border: var(--color-border);
+
+  --home-event-slider-min-height: clamp(18rem, 24vw, 24rem);
+  --home-event-slider-content-padding: clamp(1rem, 2vw, 1.5rem);
+
   position: relative;
 
   min-inline-size: 0;
   min-block-size: 100%;
+  block-size: 100%;
 
   overflow: hidden;
 
+  border: 1px solid var(--home-event-slider-border);
   border-radius: var(--radius-lg);
-  background: var(--color-surface);
+
+  background: var(--home-event-slider-bg);
+  color: var(--home-event-slider-fg);
+
   box-shadow: var(--shadow-md);
+}
 
-  &__wrapper {
-    min-block-size: 100%;
+/* ==========================================================================
+   Swiper Structure
+   ========================================================================== */
+
+.home-event-slider__wrapper {
+  min-block-size: 100%;
+}
+
+.home-event-slider__slide {
+  block-size: auto;
+  min-block-size: 100%;
+}
+
+/* ==========================================================================
+   Card
+   ========================================================================== */
+
+.home-event-slider__card {
+  position: relative;
+
+  display: flex;
+  align-items: flex-end;
+
+  min-block-size: var(--home-event-slider-min-height);
+  block-size: 100%;
+
+  overflow: hidden;
+
+  background: var(--color-dark);
+  color: var(--home-event-slider-fg);
+}
+
+/* ==========================================================================
+   Image
+   ========================================================================== */
+
+.home-event-slider__image {
+  position: absolute;
+  inset: 0;
+
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  object-fit: cover;
+  object-position: center;
+
+  transform: scale(1);
+
+  @include transition(transform, slow);
+}
+
+/* ==========================================================================
+   Overlay
+   ========================================================================== */
+
+.home-event-slider__overlay {
+  position: relative;
+  z-index: 1;
+
+  inline-size: 100%;
+
+  padding: var(--home-event-slider-content-padding) clamp(3.5rem, 6vw, 5rem)
+    clamp(3rem, 5vw, 4rem);
+
+  background: linear-gradient(
+    to top,
+    rgb(0 0 0 / 0.84) 0%,
+    rgb(0 0 0 / 0.58) 42%,
+    rgb(0 0 0 / 0.14) 78%,
+    transparent 100%
+  );
+}
+
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+
+.home-event-slider__title {
+  max-inline-size: 36rem;
+
+  margin: 0;
+
+  color: var(--home-event-slider-fg);
+
+  font-size: clamp(var(--text-xl), 1rem + 1.2vw, var(--text-3xl));
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+.home-event-slider__text {
+  max-inline-size: 34rem;
+
+  margin-block-start: 0.5rem;
+
+  color: var(--home-event-slider-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Navigation
+   ========================================================================== */
+
+.home-event-slider__navigation {
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+
+  border: 1px solid rgb(255 255 255 / 0.34);
+  border-radius: var(--radius-pill);
+
+  background: rgb(0 0 0 / 0.38);
+  color: #ffffff;
+
+  box-shadow: var(--shadow-sm);
+
+  backdrop-filter: blur(0.5rem);
+
+  @include transition((background-color, border-color, color, transform), fast);
+
+  &::after {
+    font-size: 0.875rem;
+    font-weight: font-weight("heavy");
   }
 
-  &__slide {
-    block-size: auto;
-  }
+  &:hover {
+    border-color: rgb(255 255 255 / 0.68);
 
-  &__card {
-    position: relative;
-
-    min-block-size: clamp(10rem, 20vw, 18rem);
-
-    display: flex;
-    align-items: flex-end;
-
-    overflow: hidden;
-
+    background: rgb(0 0 0 / 0.62);
     color: #ffffff;
   }
 
-  &__image {
-    position: absolute;
-    inset: 0;
-
-    inline-size: 100%;
-    block-size: 100%;
-
-    object-fit: cover;
+  &:focus {
+    outline: none;
   }
 
-  &__overlay {
-    position: relative;
-    z-index: 1;
-
-    inline-size: 100%;
-    padding: clamp(1rem, 2vw, 1.5rem);
-
-    background: linear-gradient(
-      to block-start,
-      rgb(0 0 0 / 0.72),
-      rgb(0 0 0 / 0.12),
-      transparent
-    );
+  &:focus-visible {
+    @include focus-ring;
   }
 
-  &__title {
-    margin: 0;
-
-    color: #ffffff;
-    font-size: var(--text-xl);
-    font-weight: 800;
-    line-height: var(--line-height-tight);
+  &:active {
+    transform: scale(0.96);
   }
+}
 
-  &__text {
-    margin-block-start: 0.375rem;
+.home-event-slider__navigation--previous {
+  inset-inline-start: 0.875rem;
+  inset-inline-end: auto;
+}
 
-    color: rgb(255 255 255 / 0.86);
-    font-size: var(--text-sm);
-    line-height: var(--line-height-normal);
-  }
+.home-event-slider__navigation--next {
+  inset-inline-start: auto;
+  inset-inline-end: 0.875rem;
+}
 
-  .swiper-button-prev,
-  .swiper-button-next {
-    inline-size: 2.25rem;
-    block-size: 2.25rem;
+/* ==========================================================================
+   Pagination
+   ========================================================================== */
 
-    border-radius: var(--radius-pill);
+.home-event-slider__pagination {
+  position: absolute;
 
-    color: grey;
+  inset-inline: 0;
+  inset-block-end: 1.25rem;
+  z-index: 3;
+}
 
-    box-shadow: var(--shadow-sm);
-    backdrop-filter: blur(8px);
-
-    &::after {
-      font-size: 0.875rem;
-      font-weight: 800;
-    }
-  }
-
-  .swiper-button-prev {
-    inset-inline-start: 0.75rem;
-    inset-inline-end: auto;
-  }
-
-  .swiper-button-next {
-    inset-inline-start: auto;
-    inset-inline-end: 0.75rem;
-  }
-
-  .swiper-pagination {
-    position: absolute;
-    inset-inline: 0;
-    inset-block-end: 1rem;
-    z-index: 3;
-  }
-
+.home-event-slider {
   .swiper-pagination-bullet {
-    background: rgb(255 255 255 / 0.75);
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+
+    background: rgb(255 255 255 / 0.62);
+
     opacity: 1;
+
+    @include transition((inline-size, background-color), fast);
   }
 
   .swiper-pagination-bullet-active {
-    background: var(--color-primary);
+    inline-size: 1.5rem;
+
+    border-radius: var(--radius-pill);
+
+    background: #ffffff;
+  }
+}
+
+/* ==========================================================================
+   Hover
+   ========================================================================== */
+
+.home-event-slider:hover {
+  .home-event-slider__image {
+    transform: scale(1.025);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .home-event-slider {
+    --home-event-slider-min-height: 20rem;
   }
 
-  @include respond-down(sm) {
-    &__card {
-      min-block-size: 18rem;
-    }
+  .home-event-slider__overlay {
+    padding: 1.25rem 3.5rem 3.25rem;
+  }
+
+  .home-event-slider__title {
+    font-size: var(--text-xl);
+  }
+
+  .home-event-slider__text {
+    font-size: var(--text-xs);
+  }
+
+  .home-event-slider__navigation {
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+  }
+
+  .home-event-slider__navigation--previous {
+    inset-inline-start: 0.625rem;
+  }
+
+  .home-event-slider__navigation--next {
+    inset-inline-end: 0.625rem;
+  }
+
+  .home-event-slider__pagination {
+    inset-block-end: 1rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .home-event-slider {
+    border-width: 2px;
+  }
+
+  .home-event-slider__navigation {
+    border-width: 2px;
+    border-color: #ffffff;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .home-event-slider__image,
+  .home-event-slider__navigation,
+  .home-event-slider .swiper-pagination-bullet {
+    transition: none;
+  }
+
+  .home-event-slider:hover .home-event-slider__image,
+  .home-event-slider__navigation:active {
+    transform: none;
   }
 }

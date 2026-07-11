@@ -5,188 +5,438 @@
    ========================================================================== */
 
 .app-download {
-  background: var(--color-bg);
-  color: var(--color-text);
+  --app-download-bg: var(--color-bg);
+  --app-download-fg: var(--color-text);
 
-  &__container {
-    inline-size: min(100% - 2rem, 1320px);
-    margin-inline: auto;
+  --app-download-surface-bg: #cbdbf9;
+
+  --app-download-panel-bg: #001f2e;
+  --app-download-panel-fg: #ffffff;
+  --app-download-panel-muted: rgb(255 255 255 / 0.68);
+
+  --app-download-border: color-mix(
+    in oklab,
+    var(--color-primary),
+    transparent 70%
+  );
+
+  --app-download-radius: var(--radius-xl);
+  --app-download-panel-radius: var(--radius-lg);
+  --app-download-shadow: var(--shadow-md);
+
+  /*
+   * Gradient geometry.
+   * CSS gradients do not support logical start/end directions,
+   * so these physical values are overridden for RTL.
+   */
+  --app-download-gradient-angle: 135deg;
+  --app-download-glow-x: 16%;
+  --app-download-glow-y: 18%;
+
+  background: var(--app-download-bg);
+  color: var(--app-download-fg);
+}
+
+/* ==========================================================================
+   Surface
+   ========================================================================== */
+
+.app-download__surface {
+  padding: clamp(0.875rem, 2vw, 1.5rem);
+
+  background: linear-gradient(
+    var(--app-download-gradient-angle),
+    color-mix(in oklab, var(--app-download-surface-bg), #ffffff 18%),
+    var(--app-download-surface-bg)
+  );
+
+  box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   Panel
+   ========================================================================== */
+
+.app-download__panel {
+  position: relative;
+  isolation: isolate;
+
+  display: grid;
+  grid-template-columns:
+    minmax(0, 0.9fr)
+    minmax(0, 1.1fr);
+
+  align-items: stretch;
+
+  min-inline-size: 0;
+  min-block-size: clamp(24rem, 42vw, 36rem);
+
+  overflow: hidden;
+
+  border-radius: var(--app-download-panel-radius);
+
+  background:
+    radial-gradient(
+      circle at var(--app-download-glow-x) var(--app-download-glow-y),
+      rgb(0 69 227 / 0.22),
+      transparent 34%
+    ),
+    linear-gradient(
+      var(--app-download-gradient-angle),
+      #001f2e 0%,
+      #072f43 58%,
+      #0a4055 100%
+    );
+
+  color: var(--app-download-panel-fg);
+
+  box-shadow: var(--app-download-shadow);
+}
+
+/* ==========================================================================
+   Decorative Glow
+   ========================================================================== */
+
+.app-download__panel::before {
+  content: "";
+
+  position: absolute;
+
+  inset-inline-start: -10rem;
+  inset-block-end: -12rem;
+  z-index: 0;
+
+  inline-size: 28rem;
+  block-size: 28rem;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle at center,
+    color-mix(in oklab, var(--color-primary), transparent 36%) 0%,
+    color-mix(in oklab, var(--color-primary), transparent 76%) 42%,
+    transparent 72%
+  );
+
+  filter: blur(1.5rem);
+
+  opacity: 0.8;
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.app-download__content {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+
+  min-inline-size: 0;
+
+  padding: clamp(2rem, 5vw, 4rem);
+}
+
+/* ==========================================================================
+   Logo
+   ========================================================================== */
+
+.app-download__logo {
+  display: block;
+
+  inline-size: clamp(9rem, 15vw, 13rem);
+  block-size: auto;
+
+  margin-block-end: clamp(1.75rem, 3vw, 2.5rem);
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.app-download__title {
+  max-inline-size: 32rem;
+
+  margin: 0;
+
+  color: var(--app-download-panel-fg);
+
+  font-size: clamp(var(--text-2xl), 1.25rem + 1.8vw, var(--text-4xl));
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.app-download__text {
+  max-inline-size: 30rem;
+
+  margin: clamp(1rem, 2vw, 1.5rem) 0 0;
+
+  color: var(--app-download-panel-muted);
+
+  font-size: clamp(var(--text-base), 0.95rem + 0.45vw, var(--text-lg));
+  font-weight: font-weight("regular");
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Store Links
+   ========================================================================== */
+
+.app-download__stores {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.875rem;
+
+  margin-block-start: clamp(2rem, 5vw, 4rem);
+}
+
+.app-download__store-link {
+  display: inline-flex;
+
+  border-radius: var(--radius-sm);
+
+  text-decoration: none;
+
+  @include transition((opacity, transform, box-shadow), fast);
+
+  &:hover {
+    opacity: 0.92;
+
+    transform: translateY(-0.125rem);
   }
 
-  &__surface {
-    padding: clamp(1rem, 2vw, 1.5rem);
-
-    background: #cbdbf9;
+  &:focus {
+    outline: none;
   }
 
-  &__panel {
-    position: relative;
-    isolation: isolate;
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
 
-    min-block-size: clamp(24rem, 42vw, 36rem);
+.app-download__store-image {
+  display: block;
 
-    display: grid;
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-    align-items: stretch;
+  inline-size: auto;
+  block-size: clamp(2.25rem, 2.8vw, 2.75rem);
+}
 
-    overflow: hidden;
+/* ==========================================================================
+   Media
+   ========================================================================== */
 
-    background: #001f2e;
-    color: #ffffff;
+.app-download__media {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Mockup
+   ========================================================================== */
+
+.app-download__mockup {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  object-fit: cover;
+  object-position: center right;
+
+  transform: scale(1);
+
+  @include transition(transform, slow);
+}
+
+/* ==========================================================================
+   Hover
+   ========================================================================== */
+
+.app-download__panel:hover {
+  .app-download__mockup {
+    transform: scale(1.02);
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .app-download {
+    --app-download-gradient-angle: 225deg;
+    --app-download-glow-x: 84%;
   }
 
-  &__content {
-    position: relative;
-    z-index: 2;
+  .app-download__panel::before {
+    inset-inline-start: auto;
+    inset-inline-end: -10rem;
+  }
 
-    display: flex;
-    flex-direction: column;
+  .app-download__content {
+    align-items: flex-start;
+
+    text-align: start;
+  }
+
+  .app-download__media {
+    justify-content: flex-start;
+  }
+
+  .app-download__mockup {
+    object-position: center left;
+  }
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .app-download__panel {
+    grid-template-columns: minmax(0, 1fr);
+
+    min-block-size: auto;
+  }
+
+  .app-download__content {
+    align-items: center;
+
+    padding-block-end: 2rem;
+
+    text-align: center;
+  }
+
+  .app-download__text {
+    max-inline-size: 36rem;
+  }
+
+  .app-download__stores {
     justify-content: center;
 
-    padding: clamp(2rem, 5vw, 4rem);
+    margin-block-start: 2rem;
   }
 
-  &__logo {
-    inline-size: clamp(9rem, 15vw, 13rem);
-    block-size: auto;
+  .app-download__media {
+    min-block-size: 22rem;
 
-    margin-block-end: clamp(1.75rem, 3vw, 2.5rem);
+    justify-content: center;
   }
 
-  &__title {
-    margin: 0;
-
-    color: #ffffff;
-
-    font-size: clamp(1.75rem, 3vw, 3rem);
-    font-weight: 500;
-    line-height: 1.2;
+  .app-download__mockup {
+    object-position: center;
   }
 
-  &__text {
-    max-inline-size: 29rem;
-    margin: clamp(1rem, 2vw, 1.5rem) 0 0;
-
-    color: rgb(255 255 255 / 0.62);
-
-    font-size: clamp(1rem, 1.6vw, 1.5rem);
-    font-weight: 400;
-    line-height: 1.45;
-  }
-
-  &__stores {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.875rem;
-
-    margin-block-start: clamp(3rem, 6vw, 5.5rem);
-  }
-
-  &__store-link {
-    display: inline-flex;
-
-    transition:
-      transform var(--transition-fast),
-      opacity var(--transition-fast);
-
-    &:hover {
-      opacity: 0.9;
-      transform: translateY(-0.125rem);
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-    }
-  }
-
-  &__store-image {
-    block-size: clamp(2rem, 2.6vw, 2.625rem);
-    inline-size: auto;
-
-    display: block;
-  }
-
-  &__media {
-    position: relative;
-    z-index: 1;
-
-    min-inline-size: 0;
-
-    display: flex;
-    align-items: stretch;
-    justify-content: flex-end;
-  }
-
-  &__mockup {
-    inline-size: 100%;
-    block-size: 100%;
-
-    display: block;
-
-    object-fit: cover;
-    object-position: center right;
-  }
-
-  @include respond-down(lg) {
-    &__panel {
-      grid-template-columns: 1fr;
-      min-block-size: auto;
-    }
-
-    &__content {
+  html[dir="rtl"] {
+    .app-download__content {
       align-items: center;
+
       text-align: center;
-      padding-block-end: 2rem;
     }
 
-    &__text {
-      max-inline-size: 34rem;
-    }
-
-    &__stores {
-      justify-content: center;
-      margin-block-start: 2rem;
-    }
-
-    &__media {
-      min-block-size: 22rem;
+    .app-download__media {
       justify-content: center;
     }
 
-    &__mockup {
+    .app-download__mockup {
       object-position: center;
     }
   }
+}
 
-  @include respond-down(sm) {
-    padding-block: 2.5rem;
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
 
-    &__container {
-      inline-size: min(100% - 1rem, 1320px);
-    }
+@include respond-down(sm) {
+  .app-download__surface {
+    padding: 0.75rem;
 
-    &__surface {
-      padding: 0.75rem;
-    }
+    border-radius: var(--radius-lg);
+  }
 
-    &__content {
-      padding: 1.5rem;
-    }
+  .app-download__panel {
+    border-radius: var(--radius-md);
+  }
 
-    &__title {
-      font-size: var(--text-2xl);
-    }
+  .app-download__content {
+    padding: 1.5rem;
+  }
 
-    &__text {
-      font-size: var(--text-base);
-    }
+  .app-download__logo {
+    inline-size: 9rem;
 
-    &__store-image {
-      block-size: 2rem;
-    }
+    margin-block-end: 1.5rem;
+  }
 
-    &__media {
-      min-block-size: 16rem;
-    }
+  .app-download__title {
+    font-size: var(--text-2xl);
+  }
+
+  .app-download__text {
+    font-size: var(--text-sm);
+  }
+
+  .app-download__store-image {
+    block-size: 2.125rem;
+  }
+
+  .app-download__media {
+    min-block-size: 16rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .app-download__surface,
+  .app-download__panel {
+    border-width: 2px;
+  }
+
+  .app-download__panel::before {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .app-download__store-link,
+  .app-download__mockup {
+    transition: none;
+  }
+
+  .app-download__store-link:hover,
+  .app-download__panel:hover .app-download__mockup {
+    transform: none;
   }
 }

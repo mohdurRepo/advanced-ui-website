@@ -5,64 +5,155 @@
    ========================================================================== */
 
 .home-highlights {
+  --home-highlights-bg: var(--color-bg);
+  --home-highlights-fg: var(--color-text);
+  --home-highlights-gap: clamp(1rem, 2vw, 1.5rem);
+
   padding-block: clamp(3rem, 6vw, 5rem);
 
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: var(--home-highlights-bg);
+  color: var(--home-highlights-fg);
+}
 
-  &__container {
-    inline-size: min(100% - 2rem, 1320px);
-    margin-inline: auto;
+/* ==========================================================================
+   Grid
+   ========================================================================== */
+
+.home-highlights__grid {
+  display: grid;
+
+  /*
+   * Default:
+   * Event slider | Video | Countdown
+   */
+  grid-template-columns:
+    minmax(0, 1.45fr)
+    minmax(15rem, 0.95fr)
+    minmax(15rem, 0.85fr);
+
+  align-items: stretch;
+  gap: var(--home-highlights-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Direct Children
+   ========================================================================== */
+
+.home-highlights__events,
+.home-video-card,
+.home-countdown-card {
+  min-inline-size: 0;
+  min-block-size: 100%;
+}
+
+/* ==========================================================================
+   Optional Components
+   ========================================================================== */
+
+/*
+ * Slider + one optional component.
+ *
+ * Applies when either the video or countdown has been commented out.
+ */
+
+.home-highlights__grid:has(> :nth-child(2):last-child) {
+  grid-template-columns:
+    minmax(0, 1.7fr)
+    minmax(18rem, 0.8fr);
+}
+
+/*
+ * Slider only.
+ *
+ * Applies when both optional components have been commented out.
+ */
+
+.home-highlights__grid:has(> :first-child:last-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ==========================================================================
+   Equal Height Chain
+   ========================================================================== */
+
+.home-highlights__events,
+.home-event-slider,
+.home-video-card,
+.home-countdown-card {
+  block-size: 100%;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .home-highlights__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  &__grid {
-    min-inline-size: 0;
+  /*
+   * Slider spans the first row.
+   * Video and countdown sit beside one another below it.
+   */
 
-    display: grid;
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-    gap: clamp(1rem, 2vw, 1.5rem);
-    align-items: stretch;
+  .home-highlights__events {
+    grid-column: 1 / -1;
   }
 
-  &__side,
-  &__media-grid {
-    min-inline-size: 0;
-    min-block-size: 100%;
+  /*
+   * When only one optional component remains,
+   * use one column rather than leaving an empty grid cell.
+   */
+
+  .home-highlights__grid:has(> :nth-child(2):last-child) {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  &__media-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 7fr) minmax(14rem, 5fr);
-    gap: clamp(1rem, 2vw, 1.5rem);
-    align-items: stretch;
+  .home-highlights__grid:has(> :nth-child(2):last-child)
+    .home-highlights__events {
+    grid-column: auto;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .home-highlights__grid,
+  .home-highlights__grid:has(> :nth-child(2):last-child),
+  .home-highlights__grid:has(> :first-child:last-child) {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  @include respond-down(lg) {
-    &__grid {
-      grid-template-columns: 1fr;
-    }
-
-    &__media-grid {
-      grid-template-columns: minmax(0, 1fr) minmax(14rem, 0.7fr);
-    }
+  .home-highlights__events {
+    grid-column: auto;
   }
+}
 
-  @include respond-down(md) {
-    &__media-grid {
-      grid-template-columns: 1fr;
-    }
-  }
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
 
-  @include respond-down(sm) {
+@include respond-down(sm) {
+  .home-highlights {
+    --home-highlights-gap: 1rem;
+
     padding-block: 2.5rem;
+  }
+}
 
-    &__container {
-      inline-size: min(100% - 1rem, 1320px);
-    }
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
 
-    &__grid,
-    &__media-grid {
-      gap: 1rem;
-    }
+html[data-contrast="high"] {
+  .home-event-slider,
+  .home-video-card,
+  .home-countdown-card {
+    border-width: 2px;
   }
 }

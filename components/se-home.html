@@ -5354,44 +5354,63 @@
           </div>
         </div>
       </section>
-      <section class="home-highlights" aria-label="Featured highlights">
-        <div class="home-highlights__container">
+      <section class="home-highlights" aria-labelledby="home-highlights-title">
+        <div class="container">
+          <h2 id="home-highlights-title" class="visually-hidden">
+            Featured highlights
+          </h2>
+
           <div class="home-highlights__grid">
-            <div class="home-highlights__side">
+            <!-- =================================================================
+           Featured Event Slider
+      ================================================================== -->
+
+            <section
+              class="home-highlights__events"
+              aria-label="Featured events"
+            >
               <div class="home-event-slider swiper" data-home-event-slider>
                 <div class="home-event-slider__wrapper swiper-wrapper">
+                  <!-- Slide 1 -->
+
                   <div class="home-event-slider__slide swiper-slide">
                     <article class="home-event-slider__card">
                       <img
                         class="home-event-slider__image"
                         src="assets/images/swiper1.png"
-                        alt="CMF 2025 Event"
+                        alt=""
                         loading="lazy"
+                        decoding="async"
                       />
 
                       <div class="home-event-slider__overlay">
                         <h3 class="home-event-slider__title">CMF 2025</h3>
+
                         <p class="home-event-slider__text">
-                          Be part of the largest market conference
+                          Be part of the largest market conference.
                         </p>
                       </div>
                     </article>
                   </div>
+
+                  <!-- Slide 2 -->
 
                   <div class="home-event-slider__slide swiper-slide">
                     <article class="home-event-slider__card">
                       <img
                         class="home-event-slider__image"
                         src="assets/images/swiper1.png"
-                        alt="CMF 2026"
+                        alt=""
                         loading="lazy"
+                        decoding="async"
                       />
 
                       <div class="home-event-slider__overlay">
                         <h3 class="home-event-slider__title">CMF 2026</h3>
+
                         <p class="home-event-slider__text">
                           Join leading investors, issuers, and market
-                          participants
+                          participants.
                         </p>
                       </div>
                     </article>
@@ -5399,303 +5418,423 @@
                 </div>
 
                 <button
-                  class="swiper-button-prev"
+                  class="home-event-slider__navigation home-event-slider__navigation--previous swiper-button-prev"
                   type="button"
-                  aria-label="Previous event"
+                  aria-label="Previous featured event"
                 ></button>
 
                 <button
-                  class="swiper-button-next"
+                  class="home-event-slider__navigation home-event-slider__navigation--next swiper-button-next"
                   type="button"
-                  aria-label="Next event"
+                  aria-label="Next featured event"
                 ></button>
 
-                <div class="swiper-pagination"></div>
+                <div
+                  class="home-event-slider__pagination swiper-pagination"
+                  aria-hidden="true"
+                ></div>
               </div>
-            </div>
+            </section>
 
-            <div class="home-highlights__media-grid">
-              <article class="home-video-card">
-                <div
-                  class="home-video-card__wrapper"
-                  data-home-video
-                  data-video-url="assets/videos/STG-18-Feb.mp4"
-                >
-                  <img
-                    class="home-video-card__thumbnail"
-                    src="assets/images/video.png"
-                    alt="Video preview"
-                    loading="lazy"
-                  />
+            <!-- =================================================================
+           Optional Featured Video
+           Comment out this complete article when no video is available.
+      ================================================================== -->
 
-                  <button
-                    class="home-video-card__play has-icon icon-play"
-                    type="button"
-                    aria-label="Play video"
-                    data-home-video-play
-                  ></button>
-                </div>
-              </article>
-
-              <section
-                class="home-countdown-card"
-                aria-label="Upcoming activities"
+            <article class="home-video-card">
+              <div
+                class="home-video-card__wrapper"
+                data-home-video
+                data-video-url="assets/videos/STG-18-Feb.mp4"
               >
-                <div
-                  class="home-countdown-card__swiper swiper"
-                  data-home-countdown-slider
-                >
-                  <div class="swiper-wrapper">
-                    <div class="home-countdown-card__slide swiper-slide">
-                      <article
-                        class="home-countdown-card__body home-countdown-card--ipo"
-                      >
-                        <h3 class="home-countdown-card__header">IPO</h3>
+                <img
+                  class="home-video-card__thumbnail"
+                  src="assets/images/video.png"
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
 
-                        <div class="home-countdown-card__list">
-                          <div class="home-countdown-card__item">
-                            <div class="home-countdown-card__counter">
-                              <strong class="home-countdown-card__days"
-                                >05</strong
-                              >
-                              <span class="home-countdown-card__label">
-                                Days Left
-                              </span>
-                            </div>
+                <button
+                  class="home-video-card__play has-icon icon-play"
+                  type="button"
+                  aria-label="Play featured market video"
+                  data-home-video-play
+                ></button>
+              </div>
+            </article>
 
-                            <div class="home-countdown-card__content">
-                              <div class="home-countdown-card__meta">
-                                <span>1446/08/07</span>
-                                <span class="home-countdown-card__separator"
-                                  >|</span
-                                >
-                                <span>06/02/2025</span>
-                              </div>
+            <!-- =================================================================
+           Optional Upcoming Activities
+           Comment out this complete section when unavailable.
+      ================================================================== -->
 
-                              <div class="home-countdown-card__company">
-                                <img
-                                  class="home-countdown-card__logo"
-                                  src="assets/img/ipo-logo.svg"
-                                  alt=""
-                                  loading="lazy"
-                                />
-                                <span class="home-countdown-card__name">
-                                  Zahr AlKhuzama Aluminum Co.
-                                </span>
-                              </div>
-                            </div>
+            <section
+              class="home-countdown-card"
+              aria-labelledby="upcoming-activities-title"
+            >
+              <h2 id="upcoming-activities-title" class="visually-hidden">
+                Upcoming activities
+              </h2>
+
+              <div
+                class="home-countdown-card__swiper swiper"
+                data-home-countdown-slider
+              >
+                <div class="home-countdown-card__wrapper swiper-wrapper">
+                  <!-- ===========================================================
+                 IPO
+            ============================================================ -->
+
+                  <div class="home-countdown-card__slide swiper-slide">
+                    <article
+                      class="home-countdown-card__body home-countdown-card__body--ipo"
+                    >
+                      <header class="home-countdown-card__header">
+                        <h3 class="home-countdown-card__title">IPO</h3>
+                      </header>
+
+                      <div class="home-countdown-card__list">
+                        <!-- IPO Item 1 -->
+
+                        <article class="home-countdown-card__item">
+                          <div class="home-countdown-card__counter">
+                            <strong class="home-countdown-card__days">
+                              05
+                            </strong>
+
+                            <span class="home-countdown-card__label">
+                              Days left
+                            </span>
                           </div>
 
-                          <div class="home-countdown-card__item">
-                            <div class="home-countdown-card__counter">
-                              <strong class="home-countdown-card__days"
-                                >04</strong
+                          <div class="home-countdown-card__content">
+                            <div class="home-countdown-card__meta">
+                              <time datetime="1446-08-07"> 1446/08/07 </time>
+
+                              <span
+                                class="home-countdown-card__separator"
+                                aria-hidden="true"
                               >
-                              <span class="home-countdown-card__label">
-                                Days Left
+                                |
                               </span>
+
+                              <time datetime="2025-02-06"> 06/02/2025 </time>
                             </div>
 
-                            <div class="home-countdown-card__content">
-                              <div class="home-countdown-card__meta">
-                                <span>1446/08/09</span>
-                                <span class="home-countdown-card__separator"
-                                  >|</span
-                                >
-                                <span>08/02/2025</span>
-                              </div>
+                            <div class="home-countdown-card__company">
+                              <img
+                                class="home-countdown-card__logo"
+                                src="assets/img/ipo-logo.svg"
+                                alt=""
+                                loading="lazy"
+                                decoding="async"
+                              />
 
-                              <div class="home-countdown-card__company">
-                                <img
-                                  class="home-countdown-card__logo"
-                                  src="assets/img/ipo-logo.svg"
-                                  alt=""
-                                  loading="lazy"
-                                />
-                                <span class="home-countdown-card__name">
-                                  Al Waha Steel Industries
-                                </span>
-                              </div>
+                              <h4 class="home-countdown-card__name">
+                                Zahr AlKhuzama Aluminum Co.
+                              </h4>
                             </div>
                           </div>
+                        </article>
 
-                          <div class="home-countdown-card__item">
-                            <div class="home-countdown-card__counter">
-                              <strong class="home-countdown-card__days"
-                                >03</strong
+                        <!-- IPO Item 2 -->
+
+                        <article class="home-countdown-card__item">
+                          <div class="home-countdown-card__counter">
+                            <strong class="home-countdown-card__days">
+                              04
+                            </strong>
+
+                            <span class="home-countdown-card__label">
+                              Days left
+                            </span>
+                          </div>
+
+                          <div class="home-countdown-card__content">
+                            <div class="home-countdown-card__meta">
+                              <time datetime="1446-08-09"> 1446/08/09 </time>
+
+                              <span
+                                class="home-countdown-card__separator"
+                                aria-hidden="true"
                               >
-                              <span class="home-countdown-card__label">
-                                Days Left
+                                |
                               </span>
+
+                              <time datetime="2025-02-08"> 08/02/2025 </time>
                             </div>
 
-                            <div class="home-countdown-card__content">
-                              <div class="home-countdown-card__meta">
-                                <span>1446/08/10</span>
-                                <span class="home-countdown-card__separator"
-                                  >|</span
-                                >
-                                <span>09/02/2025</span>
-                              </div>
+                            <div class="home-countdown-card__company">
+                              <img
+                                class="home-countdown-card__logo"
+                                src="assets/img/ipo-logo.svg"
+                                alt=""
+                                loading="lazy"
+                                decoding="async"
+                              />
 
-                              <div class="home-countdown-card__company">
-                                <img
-                                  class="home-countdown-card__logo"
-                                  src="assets/img/ipo-logo.svg"
-                                  alt=""
-                                  loading="lazy"
-                                />
-                                <span class="home-countdown-card__name">
-                                  United Mining Co.
-                                </span>
-                              </div>
+                              <h4 class="home-countdown-card__name">
+                                Al Waha Steel Industries
+                              </h4>
                             </div>
                           </div>
-                        </div>
+                        </article>
 
-                        <div class="home-countdown-card__footer">
-                          <a
-                            class="btn btn-sm btn-outline-primary btn-radius home-countdown-card__action"
-                            href="#"
-                          >
-                            View All
-                          </a>
-                        </div>
-                      </article>
-                    </div>
+                        <!-- IPO Item 3 -->
 
-                    <div class="home-countdown-card__slide swiper-slide">
-                      <article
-                        class="home-countdown-card__body home-countdown-card--listing"
-                      >
-                        <h3 class="home-countdown-card__header">Listing</h3>
+                        <article class="home-countdown-card__item">
+                          <div class="home-countdown-card__counter">
+                            <strong class="home-countdown-card__days">
+                              03
+                            </strong>
 
-                        <div class="home-countdown-card__list">
-                          <div class="home-countdown-card__item">
-                            <div class="home-countdown-card__counter">
-                              <strong class="home-countdown-card__days"
-                                >10</strong
+                            <span class="home-countdown-card__label">
+                              Days left
+                            </span>
+                          </div>
+
+                          <div class="home-countdown-card__content">
+                            <div class="home-countdown-card__meta">
+                              <time datetime="1446-08-10"> 1446/08/10 </time>
+
+                              <span
+                                class="home-countdown-card__separator"
+                                aria-hidden="true"
                               >
-                              <span class="home-countdown-card__label">
-                                Days Left
+                                |
                               </span>
+
+                              <time datetime="2025-02-09"> 09/02/2025 </time>
                             </div>
 
-                            <div class="home-countdown-card__content">
-                              <div class="home-countdown-card__meta">
-                                <span>1446/09/12</span>
-                                <span class="home-countdown-card__separator"
-                                  >|</span
-                                >
-                                <span>10/03/2025</span>
-                              </div>
+                            <div class="home-countdown-card__company">
+                              <img
+                                class="home-countdown-card__logo"
+                                src="assets/img/ipo-logo.svg"
+                                alt=""
+                                loading="lazy"
+                                decoding="async"
+                              />
 
-                              <div class="home-countdown-card__company">
-                                <img
-                                  class="home-countdown-card__logo"
-                                  src="assets/img/listing-logo.svg"
-                                  alt=""
-                                  loading="lazy"
-                                />
-                                <span class="home-countdown-card__name">
-                                  AlNour Building Materials
-                                </span>
-                              </div>
+                              <h4 class="home-countdown-card__name">
+                                United Mining Co.
+                              </h4>
                             </div>
                           </div>
-                        </div>
+                        </article>
+                      </div>
 
-                        <div class="home-countdown-card__footer">
-                          <a
-                            class="btn btn-sm btn-outline-primary btn-radius home-countdown-card__action"
-                            href="#"
-                          >
-                            View All
-                          </a>
-                        </div>
-                      </article>
-                    </div>
+                      <footer class="home-countdown-card__footer">
+                        <a
+                          class="btn btn-sm btn-outline-primary btn-rounded btn-arrow home-countdown-card__action"
+                          href="#"
+                        >
+                          <span>View all IPOs</span>
 
-                    <div class="home-countdown-card__slide swiper-slide">
-                      <article
-                        class="home-countdown-card__body home-countdown-card--cmf"
-                      >
-                        <h3 class="home-countdown-card__header">CMF</h3>
-
-                        <div class="home-countdown-card__list">
-                          <div class="home-countdown-card__item">
-                            <div class="home-countdown-card__counter">
-                              <strong class="home-countdown-card__days"
-                                >15</strong
-                              >
-                              <span class="home-countdown-card__label">
-                                Days Left
-                              </span>
-                            </div>
-
-                            <div class="home-countdown-card__content">
-                              <div class="home-countdown-card__meta">
-                                <span>1446/10/04</span>
-                                <span class="home-countdown-card__separator"
-                                  >|</span
-                                >
-                                <span>05/04/2025</span>
-                              </div>
-
-                              <div class="home-countdown-card__company">
-                                <img
-                                  class="home-countdown-card__logo"
-                                  src="assets/img/cmf-logo.svg"
-                                  alt=""
-                                  loading="lazy"
-                                />
-                                <span class="home-countdown-card__name">
-                                  Gulf Finance Corp.
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="home-countdown-card__footer">
-                          <a
-                            class="btn btn-sm btn-outline-primary btn-radius home-countdown-card__action"
-                            href="#"
-                          >
-                            View All
-                          </a>
-                        </div>
-                      </article>
-                    </div>
+                          <span
+                            class="has-icon icon-chevron-right icon-flip-rtl"
+                            aria-hidden="true"
+                          ></span>
+                        </a>
+                      </footer>
+                    </article>
                   </div>
 
-                  <div class="swiper-pagination"></div>
+                  <!-- ===========================================================
+                 Listing
+            ============================================================ -->
+
+                  <div class="home-countdown-card__slide swiper-slide">
+                    <article
+                      class="home-countdown-card__body home-countdown-card__body--listing"
+                    >
+                      <header class="home-countdown-card__header">
+                        <h3 class="home-countdown-card__title">Listing</h3>
+                      </header>
+
+                      <div class="home-countdown-card__list">
+                        <article class="home-countdown-card__item">
+                          <div class="home-countdown-card__counter">
+                            <strong class="home-countdown-card__days">
+                              10
+                            </strong>
+
+                            <span class="home-countdown-card__label">
+                              Days left
+                            </span>
+                          </div>
+
+                          <div class="home-countdown-card__content">
+                            <div class="home-countdown-card__meta">
+                              <time datetime="1446-09-12"> 1446/09/12 </time>
+
+                              <span
+                                class="home-countdown-card__separator"
+                                aria-hidden="true"
+                              >
+                                |
+                              </span>
+
+                              <time datetime="2025-03-10"> 10/03/2025 </time>
+                            </div>
+
+                            <div class="home-countdown-card__company">
+                              <img
+                                class="home-countdown-card__logo"
+                                src="assets/img/listing-logo.svg"
+                                alt=""
+                                loading="lazy"
+                                decoding="async"
+                              />
+
+                              <h4 class="home-countdown-card__name">
+                                AlNour Building Materials
+                              </h4>
+                            </div>
+                          </div>
+                        </article>
+                      </div>
+
+                      <footer class="home-countdown-card__footer">
+                        <a
+                          class="btn btn-sm btn-outline-primary btn-rounded btn-arrow home-countdown-card__action"
+                          href="#"
+                        >
+                          <span>View all listings</span>
+
+                          <span
+                            class="has-icon icon-chevron-right icon-flip-rtl"
+                            aria-hidden="true"
+                          ></span>
+                        </a>
+                      </footer>
+                    </article>
+                  </div>
+
+                  <!-- ===========================================================
+                 CMF
+            ============================================================ -->
+
+                  <div class="home-countdown-card__slide swiper-slide">
+                    <article
+                      class="home-countdown-card__body home-countdown-card__body--cmf"
+                    >
+                      <header class="home-countdown-card__header">
+                        <h3 class="home-countdown-card__title">CMF</h3>
+                      </header>
+
+                      <div class="home-countdown-card__list">
+                        <article class="home-countdown-card__item">
+                          <div class="home-countdown-card__counter">
+                            <strong class="home-countdown-card__days">
+                              15
+                            </strong>
+
+                            <span class="home-countdown-card__label">
+                              Days left
+                            </span>
+                          </div>
+
+                          <div class="home-countdown-card__content">
+                            <div class="home-countdown-card__meta">
+                              <time datetime="1446-10-04"> 1446/10/04 </time>
+
+                              <span
+                                class="home-countdown-card__separator"
+                                aria-hidden="true"
+                              >
+                                |
+                              </span>
+
+                              <time datetime="2025-04-05"> 05/04/2025 </time>
+                            </div>
+
+                            <div class="home-countdown-card__company">
+                              <img
+                                class="home-countdown-card__logo"
+                                src="assets/img/cmf-logo.svg"
+                                alt=""
+                                loading="lazy"
+                                decoding="async"
+                              />
+
+                              <h4 class="home-countdown-card__name">
+                                Gulf Finance Corp.
+                              </h4>
+                            </div>
+                          </div>
+                        </article>
+                      </div>
+
+                      <footer class="home-countdown-card__footer">
+                        <a
+                          class="btn btn-sm btn-outline-primary btn-rounded btn-arrow home-countdown-card__action"
+                          href="#"
+                        >
+                          <span>View all CMF activities</span>
+
+                          <span
+                            class="has-icon icon-chevron-right icon-flip-rtl"
+                            aria-hidden="true"
+                          ></span>
+                        </a>
+                      </footer>
+                    </article>
+                  </div>
                 </div>
-              </section>
-            </div>
+
+                <div
+                  class="home-countdown-card__pagination swiper-pagination"
+                  aria-hidden="true"
+                ></div>
+              </div>
+            </section>
           </div>
         </div>
       </section>
-      <section class="audience-pathways">
-        <div class="audience-pathways__container">
+      <section
+        class="audience-pathways"
+        aria-labelledby="audience-pathways-title"
+      >
+        <div class="container">
+          <!-- =================================================================
+         Section Heading
+    ================================================================== -->
+
           <h2
-            class="section-heading section-heading--lg section-heading--center audience-pathways__heading"
+            id="audience-pathways-title"
+            class="section-heading section-heading--lg section-heading--center section-heading--decorated audience-pathways__heading"
           >
             <span
               class="section-heading__icon has-icon icon-arrow-up-right"
               aria-hidden="true"
             ></span>
-            <span class="section-heading__text">What Are You Looking For</span>
+
+            <span class="section-heading__text">
+              What Are You Looking For
+            </span>
           </h2>
 
+          <!-- =================================================================
+         Audience Pathways
+    ================================================================== -->
+
           <div class="audience-pathways__layout tabs audience-pathways-nav">
+            <!-- ===============================================================
+           Navigation
+      ================================================================= -->
+
             <aside
               class="audience-pathways__aside"
-              aria-label="Audience pathways"
+              aria-labelledby="audience-pathways-aside-title"
             >
-              <h3 class="audience-pathways__title">
-                Smart Investing,<br />
-                Seamless Growth
+              <h3
+                id="audience-pathways-aside-title"
+                class="audience-pathways__title"
+              >
+                Smart Investing,
+                <span>Seamless Growth</span>
               </h3>
 
               <div
@@ -5705,388 +5844,541 @@
               >
                 <button
                   class="tab-link active"
+                  id="audience-pathways-tab-investing"
                   type="button"
                   role="tab"
                   aria-selected="true"
-                  data-tab-target="audience-pathways-investing"
+                  aria-controls="audience-pathways-panel-investing"
+                  tabindex="0"
+                  data-tab-target="audience-pathways-panel-investing"
                 >
                   <span
                     class="audience-pathways-nav__icon has-icon icon-check"
                     aria-hidden="true"
                   ></span>
+
                   <span>Investing</span>
                 </button>
 
                 <button
                   class="tab-link"
+                  id="audience-pathways-tab-issuing"
                   type="button"
                   role="tab"
                   aria-selected="false"
-                  data-tab-target="audience-pathways-issuing"
+                  aria-controls="audience-pathways-panel-issuing"
+                  tabindex="-1"
+                  data-tab-target="audience-pathways-panel-issuing"
                 >
                   <span
                     class="audience-pathways-nav__icon has-icon icon-check"
                     aria-hidden="true"
                   ></span>
+
                   <span>Issuing</span>
                 </button>
 
                 <button
                   class="tab-link"
+                  id="audience-pathways-tab-qfi"
                   type="button"
                   role="tab"
                   aria-selected="false"
-                  data-tab-target="audience-pathways-qfi"
+                  aria-controls="audience-pathways-panel-qfi"
+                  tabindex="-1"
+                  data-tab-target="audience-pathways-panel-qfi"
                 >
                   <span
                     class="audience-pathways-nav__icon has-icon icon-check"
                     aria-hidden="true"
                   ></span>
+
                   <span>Qualified Foreign Investor</span>
                 </button>
 
                 <button
                   class="tab-link"
+                  id="audience-pathways-tab-membership"
                   type="button"
                   role="tab"
                   aria-selected="false"
-                  data-tab-target="audience-pathways-membership"
+                  aria-controls="audience-pathways-panel-membership"
+                  tabindex="-1"
+                  data-tab-target="audience-pathways-panel-membership"
                 >
                   <span
                     class="audience-pathways-nav__icon has-icon icon-check"
                     aria-hidden="true"
                   ></span>
+
                   <span>Membership</span>
                 </button>
               </div>
             </aside>
 
+            <!-- ===============================================================
+           Tab Content
+      ================================================================= -->
+
             <div class="tabs-content audience-pathways__content">
+              <!-- =============================================================
+             Investing
+        ============================================================== -->
+
               <div
                 class="tab-pane active"
-                id="audience-pathways-investing"
+                id="audience-pathways-panel-investing"
                 role="tabpanel"
+                aria-labelledby="audience-pathways-tab-investing"
+                aria-hidden="false"
+                tabindex="0"
               >
                 <div class="audience-pathways__cards">
-                  <a class="audience-pathways-card" href="#"
-                    ><div class="audience-pathways-card__media">
+                  <a class="audience-pathways-card" href="#">
+                    <div class="audience-pathways-card__media">
                       <img
                         class="audience-pathways-card__image"
                         src="assets/images/investing-img1.jpg"
                         alt=""
                         loading="lazy"
-                      /><span
+                        decoding="async"
+                      />
+
+                      <span
                         class="audience-pathways-card__arrow has-icon icon-arrow-up-right"
                         aria-hidden="true"
                       ></span>
+
                       <div class="audience-pathways-card__overlay">
                         <h3 class="audience-pathways-card__title">
                           Start investing
                         </h3>
                       </div>
                     </div>
+
                     <p class="audience-pathways-card__text">
                       Explore how to begin investing, understand market access,
                       and make informed decisions.
-                    </p></a
-                  >
-                  <a class="audience-pathways-card" href="#"
-                    ><div class="audience-pathways-card__media">
+                    </p>
+                  </a>
+
+                  <a class="audience-pathways-card" href="#">
+                    <div class="audience-pathways-card__media">
                       <img
                         class="audience-pathways-card__image"
                         src="assets/images/video.png"
                         alt=""
                         loading="lazy"
-                      /><span
+                        decoding="async"
+                      />
+
+                      <span
                         class="audience-pathways-card__arrow has-icon icon-arrow-up-right"
                         aria-hidden="true"
                       ></span>
+
                       <div class="audience-pathways-card__overlay">
                         <h3 class="audience-pathways-card__title">
                           Market data
                         </h3>
                       </div>
                     </div>
+
                     <p class="audience-pathways-card__text">
                       Access prices, indices, announcements, and trading
                       information in one place.
-                    </p></a
-                  >
-                  <a class="audience-pathways-card" href="#"
-                    ><div class="audience-pathways-card__media">
+                    </p>
+                  </a>
+
+                  <a class="audience-pathways-card" href="#">
+                    <div class="audience-pathways-card__media">
                       <img
                         class="audience-pathways-card__image"
                         src="assets/images/swiper1.png"
                         alt=""
                         loading="lazy"
-                      /><span
+                        decoding="async"
+                      />
+
+                      <span
                         class="audience-pathways-card__arrow has-icon icon-arrow-up-right"
                         aria-hidden="true"
                       ></span>
+
                       <div class="audience-pathways-card__overlay">
                         <h3 class="audience-pathways-card__title">
                           Investor education
                         </h3>
                       </div>
                     </div>
+
                     <p class="audience-pathways-card__text">
                       Learn the basics of investing, risk awareness, and capital
                       market opportunities.
-                    </p></a
-                  >
+                    </p>
+                  </a>
                 </div>
               </div>
 
+              <!-- =============================================================
+             Issuing
+        ============================================================== -->
+
               <div
                 class="tab-pane"
-                id="audience-pathways-issuing"
+                id="audience-pathways-panel-issuing"
                 role="tabpanel"
+                aria-labelledby="audience-pathways-tab-issuing"
+                aria-hidden="true"
+                tabindex="0"
+                hidden
               >
                 <div class="audience-pathways__cards">
-                  <a class="audience-pathways-card" href="#"
-                    ><div class="audience-pathways-card__media">
+                  <a class="audience-pathways-card" href="#">
+                    <div class="audience-pathways-card__media">
                       <img
                         class="audience-pathways-card__image"
                         src="assets/images/investing-img1.jpg"
                         alt=""
                         loading="lazy"
-                      /><span
+                        decoding="async"
+                      />
+
+                      <span
                         class="audience-pathways-card__arrow has-icon icon-arrow-up-right"
                         aria-hidden="true"
                       ></span>
+
                       <div class="audience-pathways-card__overlay">
                         <h3 class="audience-pathways-card__title">
                           Becoming an issuer
                         </h3>
                       </div>
                     </div>
+
                     <p class="audience-pathways-card__text">
                       Discover listing requirements, issuer obligations, and
                       available market opportunities.
-                    </p></a
-                  >
-                  <a class="audience-pathways-card" href="#"
-                    ><div class="audience-pathways-card__media">
+                    </p>
+                  </a>
+
+                  <a class="audience-pathways-card" href="#">
+                    <div class="audience-pathways-card__media">
                       <img
                         class="audience-pathways-card__image"
                         src="assets/images/video.png"
                         alt=""
                         loading="lazy"
-                      /><span
+                        decoding="async"
+                      />
+
+                      <span
                         class="audience-pathways-card__arrow has-icon icon-arrow-up-right"
                         aria-hidden="true"
                       ></span>
+
                       <div class="audience-pathways-card__overlay">
                         <h3 class="audience-pathways-card__title">
                           Listing journey
                         </h3>
                       </div>
                     </div>
+
                     <p class="audience-pathways-card__text">
                       Understand the process from preparation to admission and
                       post-listing communication.
-                    </p></a
-                  >
-                  <a class="audience-pathways-card" href="#"
-                    ><div class="audience-pathways-card__media">
+                    </p>
+                  </a>
+
+                  <a class="audience-pathways-card" href="#">
+                    <div class="audience-pathways-card__media">
                       <img
                         class="audience-pathways-card__image"
                         src="assets/images/swiper1.png"
                         alt=""
                         loading="lazy"
-                      /><span
+                        decoding="async"
+                      />
+
+                      <span
                         class="audience-pathways-card__arrow has-icon icon-arrow-up-right"
                         aria-hidden="true"
                       ></span>
+
                       <div class="audience-pathways-card__overlay">
                         <h3 class="audience-pathways-card__title">
                           Issuer services
                         </h3>
                       </div>
                     </div>
+
                     <p class="audience-pathways-card__text">
                       Access tools, guidance, and services designed to support
                       listed companies.
-                    </p></a
-                  >
+                    </p>
+                  </a>
                 </div>
               </div>
 
-              <div class="tab-pane" id="audience-pathways-qfi" role="tabpanel">
+              <!-- =============================================================
+             Qualified Foreign Investor
+        ============================================================== -->
+
+              <div
+                class="tab-pane"
+                id="audience-pathways-panel-qfi"
+                role="tabpanel"
+                aria-labelledby="audience-pathways-tab-qfi"
+                aria-hidden="true"
+                tabindex="0"
+                hidden
+              >
                 <div class="audience-pathways__cards">
-                  <a class="audience-pathways-card" href="#"
-                    ><div class="audience-pathways-card__media">
+                  <a class="audience-pathways-card" href="#">
+                    <div class="audience-pathways-card__media">
                       <img
                         class="audience-pathways-card__image"
                         src="assets/images/investing-img1.jpg"
                         alt=""
                         loading="lazy"
-                      /><span
+                        decoding="async"
+                      />
+
+                      <span
                         class="audience-pathways-card__arrow has-icon icon-arrow-up-right"
                         aria-hidden="true"
                       ></span>
+
                       <div class="audience-pathways-card__overlay">
                         <h3 class="audience-pathways-card__title">
                           International investors
                         </h3>
                       </div>
                     </div>
+
                     <p class="audience-pathways-card__text">
                       Learn how qualified foreign investors can access Saudi
                       capital markets.
-                    </p></a
-                  >
-                  <a class="audience-pathways-card" href="#"
-                    ><div class="audience-pathways-card__media">
+                    </p>
+                  </a>
+
+                  <a class="audience-pathways-card" href="#">
+                    <div class="audience-pathways-card__media">
                       <img
                         class="audience-pathways-card__image"
                         src="assets/images/video.png"
                         alt=""
                         loading="lazy"
-                      /><span
+                        decoding="async"
+                      />
+
+                      <span
                         class="audience-pathways-card__arrow has-icon icon-arrow-up-right"
                         aria-hidden="true"
                       ></span>
+
                       <div class="audience-pathways-card__overlay">
                         <h3 class="audience-pathways-card__title">
                           QFI eligibility
                         </h3>
                       </div>
                     </div>
+
                     <p class="audience-pathways-card__text">
                       Review eligibility requirements, investor categories, and
                       participation rules.
-                    </p></a
-                  >
-                  <a class="audience-pathways-card" href="#"
-                    ><div class="audience-pathways-card__media">
+                    </p>
+                  </a>
+
+                  <a class="audience-pathways-card" href="#">
+                    <div class="audience-pathways-card__media">
                       <img
                         class="audience-pathways-card__image"
                         src="assets/images/swiper1.png"
                         alt=""
                         loading="lazy"
-                      /><span
+                        decoding="async"
+                      />
+
+                      <span
                         class="audience-pathways-card__arrow has-icon icon-arrow-up-right"
                         aria-hidden="true"
                       ></span>
+
                       <div class="audience-pathways-card__overlay">
                         <h3 class="audience-pathways-card__title">
                           Market access
                         </h3>
                       </div>
                     </div>
+
                     <p class="audience-pathways-card__text">
                       Explore market connectivity, trading access, custody, and
                       investment information.
-                    </p></a
-                  >
+                    </p>
+                  </a>
                 </div>
               </div>
 
+              <!-- =============================================================
+             Membership
+        ============================================================== -->
+
               <div
                 class="tab-pane"
-                id="audience-pathways-membership"
+                id="audience-pathways-panel-membership"
                 role="tabpanel"
+                aria-labelledby="audience-pathways-tab-membership"
+                aria-hidden="true"
+                tabindex="0"
+                hidden
               >
                 <div class="audience-pathways__cards">
-                  <a class="audience-pathways-card" href="#"
-                    ><div class="audience-pathways-card__media">
+                  <a class="audience-pathways-card" href="#">
+                    <div class="audience-pathways-card__media">
                       <img
                         class="audience-pathways-card__image"
                         src="assets/images/investing-img1.jpg"
                         alt=""
                         loading="lazy"
-                      /><span
+                        decoding="async"
+                      />
+
+                      <span
                         class="audience-pathways-card__arrow has-icon icon-arrow-up-right"
                         aria-hidden="true"
                       ></span>
+
                       <div class="audience-pathways-card__overlay">
                         <h3 class="audience-pathways-card__title">
                           Become a member
                         </h3>
                       </div>
                     </div>
+
                     <p class="audience-pathways-card__text">
                       Find out how institutions can become members and connect
                       to exchange services.
-                    </p></a
-                  >
-                  <a class="audience-pathways-card" href="#"
-                    ><div class="audience-pathways-card__media">
+                    </p>
+                  </a>
+
+                  <a class="audience-pathways-card" href="#">
+                    <div class="audience-pathways-card__media">
                       <img
                         class="audience-pathways-card__image"
                         src="assets/images/video.png"
                         alt=""
                         loading="lazy"
-                      /><span
+                        decoding="async"
+                      />
+
+                      <span
                         class="audience-pathways-card__arrow has-icon icon-arrow-up-right"
                         aria-hidden="true"
                       ></span>
+
                       <div class="audience-pathways-card__overlay">
                         <h3 class="audience-pathways-card__title">
                           Member services
                         </h3>
                       </div>
                     </div>
+
                     <p class="audience-pathways-card__text">
                       Access operational resources, technical guidance, and
                       service information.
-                    </p></a
-                  >
-                  <a class="audience-pathways-card" href="#"
-                    ><div class="audience-pathways-card__media">
+                    </p>
+                  </a>
+
+                  <a class="audience-pathways-card" href="#">
+                    <div class="audience-pathways-card__media">
                       <img
                         class="audience-pathways-card__image"
                         src="assets/images/swiper1.png"
                         alt=""
                         loading="lazy"
-                      /><span
+                        decoding="async"
+                      />
+
+                      <span
                         class="audience-pathways-card__arrow has-icon icon-arrow-up-right"
                         aria-hidden="true"
                       ></span>
+
                       <div class="audience-pathways-card__overlay">
                         <h3 class="audience-pathways-card__title">
                           Rules and guidance
                         </h3>
                       </div>
                     </div>
+
                     <p class="audience-pathways-card__text">
                       Review member rules, policies, forms, and market
                       participation requirements.
-                    </p></a
-                  >
+                    </p>
+                  </a>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </section>
-      <section class="feature-overview">
-        <div class="feature-overview__container">
+      <section
+        class="feature-overview section"
+        aria-labelledby="feature-overview-section-title"
+      >
+        <div class="container">
+          <!-- ==========================================================
+         Section Heading
+    =========================================================== -->
+
+          <h2
+            id="feature-overview-section-title"
+            class="section-heading section-heading--center section-heading--decorated section-heading--lg"
+          >
+            <span
+              class="section-heading__icon has-icon icon-chart-bar"
+              aria-hidden="true"
+            ></span>
+
+            <span class="section-heading__text"> See Our Performance </span>
+          </h2>
+
+          <!-- ==========================================================
+         Intro
+    =========================================================== -->
+
           <div class="feature-overview__header">
             <div class="feature-overview__intro">
               <p class="feature-overview__eyebrow">Saudi Exchange</p>
 
-              <h2 class="feature-overview__title">
+              <h3 class="feature-overview__title">
                 The Largest Financial Market in the MENA Region
-              </h2>
+              </h3>
             </div>
 
             <div class="feature-overview__content">
-              <h3 class="feature-overview__subheading">
+              <h4 class="feature-overview__subheading">
                 Connecting Investors to Opportunity
-              </h3>
+              </h4>
 
               <p class="feature-overview__description">
                 Saudi Exchange is one of the world's fastest-growing exchanges,
-                connecting investors, issuers and market participants through a
+                connecting investors, issuers, and market participants through a
                 transparent, technology-driven marketplace supporting Vision
                 2030.
               </p>
             </div>
           </div>
 
-          <div class="feature-overview__grid">
+          <!-- ==========================================================
+         Statistics
+    =========================================================== -->
+
+          <div
+            class="feature-overview__grid"
+            aria-label="Saudi Exchange performance statistics"
+          >
             <!-- Card 01 -->
 
             <article class="feature-overview-card">
@@ -6205,45 +6497,69 @@
           </div>
         </div>
       </section>
-      <section class="app-download">
-        <div class="app-download__container">
+      <section class="app-download" aria-labelledby="app-download-title">
+        <div class="container">
           <div class="app-download__surface">
             <div class="app-download__panel">
+              <!-- =============================================================
+             Content
+        ============================================================== -->
+
               <div class="app-download__content">
                 <img
                   class="app-download__logo"
                   src="assets/images/app-download/logo-saudi-exchange.svg"
                   alt="Saudi Exchange"
                   loading="lazy"
+                  decoding="async"
                 />
 
-                <h2 class="app-download__title">STG mobile application</h2>
+                <h2 id="app-download-title" class="app-download__title">
+                  STG Mobile Application
+                </h2>
 
                 <p class="app-download__text">
                   Download our STG mobile app and stay connected with the latest
-                  news and happenings on the Exchange.
+                  news, market updates, and developments from the Exchange.
                 </p>
 
-                <div class="app-download__stores" aria-label="Download app">
-                  <a class="app-download__store-link" href="#">
+                <div
+                  class="app-download__stores"
+                  aria-label="Download the STG mobile application"
+                >
+                  <a
+                    class="app-download__store-link"
+                    href="#"
+                    aria-label="Download the STG mobile application from Google Play"
+                  >
                     <img
                       class="app-download__store-image"
                       src="assets/images/app-download/google-play.png"
                       alt="Get it on Google Play"
                       loading="lazy"
+                      decoding="async"
                     />
                   </a>
 
-                  <a class="app-download__store-link" href="#">
+                  <a
+                    class="app-download__store-link"
+                    href="#"
+                    aria-label="Download the STG mobile application from the App Store"
+                  >
                     <img
                       class="app-download__store-image"
                       src="assets/images/app-download/app-store.png"
                       alt="Download on the App Store"
                       loading="lazy"
+                      decoding="async"
                     />
                   </a>
                 </div>
               </div>
+
+              <!-- =============================================================
+             Application Mockup
+        ============================================================== -->
 
               <div class="app-download__media" aria-hidden="true">
                 <img
@@ -6251,44 +6567,58 @@
                   src="assets/images/app-download/app-mockup.png"
                   alt=""
                   loading="lazy"
+                  decoding="async"
                 />
               </div>
             </div>
           </div>
         </div>
       </section>
-      <section class="group-ecosystem">
-        <div class="group-ecosystem__container">
+      <section class="group-ecosystem" aria-labelledby="group-ecosystem-title">
+        <div class="container">
           <div class="group-ecosystem__surface">
-            <!-- Parent Company -->
+            <!-- ===============================================================
+           Parent Company
+      ================================================================= -->
 
             <div class="group-ecosystem__parent">
+              <h2 id="group-ecosystem-title" class="visually-hidden">
+                Saudi Tadawul Group Ecosystem
+              </h2>
+
               <img
                 class="group-ecosystem__parent-logo"
                 src="assets/images/group-ecosystem/stg-logo.svg"
                 alt="Saudi Tadawul Group"
                 loading="lazy"
+                decoding="async"
               />
 
               <p class="group-ecosystem__parent-text">
-                The parent company for the Saudi Exchange and other subsidiaries
-                Edaa, Muqassa, Wamid and DirectFN.
+                The parent company of Saudi Exchange and its subsidiaries Edaa,
+                Muqassa, and Wamid.
               </p>
 
-              <a href="#" class="btn btn-link group-ecosystem__parent-link">
-                Visit website
+              <a
+                class="btn btn-link btn-arrow group-ecosystem__parent-link"
+                href="#"
+                aria-label="Visit the Saudi Tadawul Group website"
+              >
+                <span>Visit website</span>
 
                 <span
-                  class="has-icon icon-arrow-up-right"
+                  class="has-icon icon-arrow-up-right icon-flip-rtl"
                   aria-hidden="true"
                 ></span>
               </a>
             </div>
 
-            <!-- Subsidiaries -->
+            <!-- ===============================================================
+           Subsidiaries
+      ================================================================= -->
 
             <div class="group-ecosystem__grid">
-              <!-- Card -->
+              <!-- Edaa -->
 
               <article class="group-company-card">
                 <img
@@ -6296,23 +6626,28 @@
                   src="assets/images/group-ecosystem/edaa.svg"
                   alt="Edaa"
                   loading="lazy"
+                  decoding="async"
                 />
 
                 <p class="group-company-card__text">
-                  The Securities Depository Center for the Saudi market.
+                  The Securities Depository Center for the Saudi capital market.
                 </p>
 
-                <a href="#" class="btn btn-link group-company-card__link">
-                  Visit website
+                <a
+                  class="btn btn-link btn-arrow group-company-card__link"
+                  href="#"
+                  aria-label="Visit the Edaa website"
+                >
+                  <span>Visit website</span>
 
                   <span
-                    class="has-icon icon-arrow-up-right"
+                    class="has-icon icon-arrow-up-right icon-flip-rtl"
                     aria-hidden="true"
                   ></span>
                 </a>
               </article>
 
-              <!-- Card -->
+              <!-- Muqassa -->
 
               <article class="group-company-card">
                 <img
@@ -6320,23 +6655,28 @@
                   src="assets/images/group-ecosystem/muqassa.svg"
                   alt="Muqassa"
                   loading="lazy"
+                  decoding="async"
                 />
 
                 <p class="group-company-card__text">
-                  The Securities Clearing Center for the Saudi market.
+                  The Securities Clearing Center for the Saudi capital market.
                 </p>
 
-                <a href="#" class="btn btn-link group-company-card__link">
-                  Visit website
+                <a
+                  class="btn btn-link btn-arrow group-company-card__link"
+                  href="#"
+                  aria-label="Visit the Muqassa website"
+                >
+                  <span>Visit website</span>
 
                   <span
-                    class="has-icon icon-arrow-up-right"
+                    class="has-icon icon-arrow-up-right icon-flip-rtl"
                     aria-hidden="true"
                   ></span>
                 </a>
               </article>
 
-              <!-- Card -->
+              <!-- Wamid -->
 
               <article class="group-company-card">
                 <img
@@ -6344,43 +6684,23 @@
                   src="assets/images/group-ecosystem/wamid.svg"
                   alt="Wamid"
                   loading="lazy"
+                  decoding="async"
                 />
 
                 <p class="group-company-card__text">
-                  Innovation-focused solutions for the Saudi capital market and
-                  beyond.
+                  Innovation-focused solutions supporting the Saudi capital
+                  market and its wider financial ecosystem.
                 </p>
 
-                <a href="#" class="btn btn-link group-company-card__link">
-                  Visit website
+                <a
+                  class="btn btn-link btn-arrow group-company-card__link"
+                  href="#"
+                  aria-label="Visit the Wamid website"
+                >
+                  <span>Visit website</span>
 
                   <span
-                    class="has-icon icon-arrow-up-right"
-                    aria-hidden="true"
-                  ></span>
-                </a>
-              </article>
-
-              <!-- Card -->
-
-              <article class="group-company-card">
-                <img
-                  class="group-company-card__logo"
-                  src="assets/images/group-ecosystem/directfn.svg"
-                  alt="DirectFN"
-                  loading="lazy"
-                />
-
-                <p class="group-company-card__text">
-                  DirectFN has a global footprint of over 530 professionals
-                  distributed across 13 countries.
-                </p>
-
-                <a href="#" class="btn btn-link group-company-card__link">
-                  Visit website
-
-                  <span
-                    class="has-icon icon-arrow-up-right"
+                    class="has-icon icon-arrow-up-right icon-flip-rtl"
                     aria-hidden="true"
                   ></span>
                 </a>
@@ -6390,58 +6710,89 @@
         </div>
       </section>
     </main>
-    <footer class="site-footer">
-      <div class="site-footer__container">
+    <footer class="site-footer" aria-labelledby="site-footer-title">
+      <div class="container">
         <div class="site-footer__surface">
+          <h2 id="site-footer-title" class="visually-hidden">
+            Saudi Exchange footer
+          </h2>
+
           <div class="site-footer__main">
-            <section class="site-footer__brand">
+            <!-- =============================================================
+             Brand and Contact
+        ============================================================== -->
+
+            <section
+              class="site-footer__brand"
+              aria-labelledby="site-footer-contact-title"
+            >
               <div class="site-footer-brand">
-                <img
-                  class="site-footer-brand__logo"
-                  src="assets/images/footer/saudi-exchange-logo.svg"
-                  alt="Saudi Exchange"
-                  loading="lazy"
-                />
+                <a
+                  class="site-footer-brand__home"
+                  href="#"
+                  aria-label="Saudi Exchange home"
+                >
+                  <img
+                    class="site-footer-brand__logo"
+                    src="assets/images/footer/saudi-exchange-logo.svg"
+                    alt="Saudi Exchange"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </a>
 
                 <div class="site-footer-brand__section">
-                  <h2 class="site-footer-brand__title">Contact us</h2>
+                  <h3
+                    id="site-footer-contact-title"
+                    class="site-footer-brand__title"
+                  >
+                    Contact us
+                  </h3>
 
                   <p class="site-footer-brand__text">
-                    For further information, please get in touch with us:
+                    For further information, please get in touch with us.
                   </p>
 
-                  <ul class="site-footer-brand__list">
-                    <li>
-                      <a
-                        class="site-footer-brand__link"
-                        href="mailto:csc@saudiexchange.sa"
-                      >
-                        <span
-                          class="site-footer-brand__icon has-icon icon-mail"
-                          aria-hidden="true"
-                        ></span>
-                        <span>csc@saudiexchange.sa</span>
-                      </a>
-                    </li>
+                  <address class="site-footer-brand__address">
+                    <ul class="site-footer-brand__list">
+                      <li>
+                        <a
+                          class="site-footer-brand__link"
+                          href="mailto:csc@saudiexchange.sa"
+                        >
+                          <span
+                            class="site-footer-brand__icon has-icon icon-inbox-email"
+                            aria-hidden="true"
+                          ></span>
 
-                    <li>
-                      <a
-                        class="site-footer-brand__link"
-                        href="tel:+966920001919"
-                      >
-                        <span
-                          class="site-footer-brand__icon has-icon icon-phone"
-                          aria-hidden="true"
-                        ></span>
-                        <span>(+966) 92000 1919</span>
-                      </a>
-                    </li>
-                  </ul>
+                          <span>csc@saudiexchange.sa</span>
+                        </a>
+                      </li>
 
-                  <a class="btn btn-link site-footer-brand__cta" href="#">
-                    Contact us
+                      <li>
+                        <a
+                          class="site-footer-brand__link"
+                          href="tel:+966920001919"
+                        >
+                          <span
+                            class="site-footer-brand__icon has-icon icon-telephone-handle"
+                            aria-hidden="true"
+                          ></span>
+
+                          <span dir="ltr">(+966) 92000 1919</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </address>
+
+                  <a
+                    class="btn btn-link btn-arrow site-footer-brand__cta"
+                    href="#"
+                  >
+                    <span>Contact us</span>
+
                     <span
-                      class="has-icon icon-chevron-right"
+                      class="has-icon icon-chevron-right icon-flip-rtl"
                       aria-hidden="true"
                     ></span>
                   </a>
@@ -6449,84 +6800,130 @@
               </div>
             </section>
 
+            <!-- =============================================================
+             Footer Navigation
+        ============================================================== -->
+
             <nav class="site-footer__navigation" aria-label="Footer navigation">
-              <div class="site-footer-links">
-                <h2 class="site-footer-links__title">Utility Pages</h2>
+              <section
+                class="site-footer-links"
+                aria-labelledby="site-footer-utility-title"
+              >
+                <h3
+                  id="site-footer-utility-title"
+                  class="site-footer-links__title"
+                >
+                  Utility Pages
+                </h3>
 
                 <ul class="site-footer-links__list">
                   <li>
-                    <a class="site-footer-links__link" href="#">Sitemap</a>
+                    <a class="site-footer-links__link" href="#"> Sitemap </a>
                   </li>
+
                   <li>
-                    <a class="site-footer-links__link" href="#">Legal Notice</a>
+                    <a class="site-footer-links__link" href="#">
+                      Legal Notice
+                    </a>
                   </li>
+
                   <li>
-                    <a class="site-footer-links__link" href="#">Contact Us</a>
+                    <a class="site-footer-links__link" href="#"> Contact Us </a>
                   </li>
+
                   <li>
-                    <a class="site-footer-links__link" href="#"
-                      >Privacy Policy</a
-                    >
+                    <a class="site-footer-links__link" href="#">
+                      Privacy Policy
+                    </a>
                   </li>
                 </ul>
-              </div>
+              </section>
 
-              <div class="site-footer-links">
-                <h2 class="site-footer-links__title">Other Pages</h2>
+              <section
+                class="site-footer-links"
+                aria-labelledby="site-footer-other-title"
+              >
+                <h3
+                  id="site-footer-other-title"
+                  class="site-footer-links__title"
+                >
+                  Other Pages
+                </h3>
 
                 <ul class="site-footer-links__list">
                   <li>
-                    <a class="site-footer-links__link" href="#"
-                      >Website Survey</a
-                    >
+                    <a class="site-footer-links__link" href="#">
+                      Website Survey
+                    </a>
                   </li>
+
                   <li>
-                    <a class="site-footer-links__link" href="#"
-                      >Helpful Links</a
-                    >
+                    <a class="site-footer-links__link" href="#">
+                      Helpful Links
+                    </a>
                   </li>
+
                   <li>
-                    <a class="site-footer-links__link" href="#"
-                      >Acceptable User Policy</a
-                    >
+                    <a class="site-footer-links__link" href="#">
+                      Acceptable Use Policy
+                    </a>
                   </li>
+
                   <li>
-                    <a class="site-footer-links__link" href="#">Careers</a>
+                    <a class="site-footer-links__link" href="#"> Careers </a>
                   </li>
                 </ul>
-              </div>
+              </section>
             </nav>
 
-            <section class="site-footer__social">
-              <h2 class="site-footer-social__title">Social Media</h2>
+            <!-- =============================================================
+             Social Media
+        ============================================================== -->
 
-              <ul class="site-footer-social" aria-label="Social media links">
+            <section
+              class="site-footer__social"
+              aria-labelledby="site-footer-social-title"
+            >
+              <h3
+                id="site-footer-social-title"
+                class="site-footer-social__title"
+              >
+                Follow Saudi Exchange
+              </h3>
+
+              <ul
+                class="site-footer-social"
+                aria-label="Saudi Exchange social media accounts"
+              >
                 <li>
                   <a
-                    class="site-footer-social__link has-icon icon-facebook"
+                    class="site-footer-social__link has-icon icon-brand-facebook"
                     href="#"
-                    aria-label="Facebook"
+                    aria-label="Follow Saudi Exchange on Facebook"
                   ></a>
                 </li>
+
                 <li>
                   <a
-                    class="site-footer-social__link has-icon icon-x"
+                    class="site-footer-social__link has-icon icon-brand-x"
                     href="#"
-                    aria-label="X"
+                    aria-label="Follow Saudi Exchange on X"
                   ></a>
                 </li>
+
                 <li>
                   <a
-                    class="site-footer-social__link has-icon icon-linkedin"
+                    class="site-footer-social__link has-icon icon-brand-linkedin"
                     href="#"
-                    aria-label="LinkedIn"
+                    aria-label="Follow Saudi Exchange on LinkedIn"
                   ></a>
                 </li>
+
                 <li>
                   <a
-                    class="site-footer-social__link has-icon icon-instagram"
+                    class="site-footer-social__link has-icon icon-brand-instagram"
                     href="#"
-                    aria-label="Instagram"
+                    aria-label="Follow Saudi Exchange on Instagram"
                   ></a>
                 </li>
               </ul>
@@ -6536,9 +6933,11 @@
       </div>
 
       <div class="site-footer-bottom">
-        <div class="site-footer-bottom__container">
+        <div class="container site-footer-bottom__container">
           <p class="site-footer-bottom__text">
-            Copyright © 2025 Saudi Tadawul Group
+            Copyright ©
+            <time datetime="2026">2026</time>
+            Saudi Tadawul Group
           </p>
         </div>
       </div>

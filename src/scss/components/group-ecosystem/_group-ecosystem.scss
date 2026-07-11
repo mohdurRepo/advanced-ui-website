@@ -5,80 +5,188 @@
    ========================================================================== */
 
 .group-ecosystem {
-  background: var(--color-bg);
-  color: var(--color-text);
+  --group-ecosystem-bg: var(--color-bg);
+  --group-ecosystem-fg: var(--color-text);
 
-  &__container {
-    inline-size: min(100% - 2rem, 1320px);
-    margin-inline: auto;
+  /*
+   * Shared fixed surface color.
+   * This intentionally stays the same in light and dark themes,
+   * matching the app download section.
+   */
+  --group-ecosystem-surface-bg: #cbdbf9;
+  --group-ecosystem-surface-fg: #15253d;
+  --group-ecosystem-surface-muted: #52647d;
+
+  --group-ecosystem-gap: clamp(1.5rem, 3vw, 3rem);
+  --group-ecosystem-parent-space: clamp(3rem, 6vw, 5rem);
+
+  background: var(--group-ecosystem-bg);
+  color: var(--group-ecosystem-fg);
+}
+
+/* ==========================================================================
+   Surface
+   ========================================================================== */
+
+.group-ecosystem__surface {
+  padding: clamp(2rem, 3vw, 3rem);
+
+  background: var(--group-ecosystem-surface-bg);
+  color: var(--group-ecosystem-surface-fg);
+}
+
+/* ==========================================================================
+   Parent Company
+   ========================================================================== */
+
+.group-ecosystem__parent {
+  display: grid;
+  justify-items: center;
+  gap: 1.25rem;
+
+  max-inline-size: 46rem;
+
+  margin-inline: auto;
+  margin-block-end: var(--group-ecosystem-parent-space);
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Parent Logo
+   ========================================================================== */
+
+.group-ecosystem__parent-logo {
+  display: block;
+
+  inline-size: clamp(8rem, 14vw, 12rem);
+  block-size: auto;
+
+  object-fit: contain;
+}
+
+/* ==========================================================================
+   Parent Description
+   ========================================================================== */
+
+.group-ecosystem__parent-text {
+  max-inline-size: 42rem;
+
+  margin: 0;
+
+  color: var(--group-ecosystem-surface-fg);
+
+  font-size: clamp(var(--text-lg), 1rem + 0.6vw, var(--text-xl));
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: auto;
+}
+
+/* ==========================================================================
+   Parent Action
+   ========================================================================== */
+
+.group-ecosystem__parent-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  margin-block-start: 0.25rem;
+
+  color: var(--color-primary);
+
+  white-space: nowrap;
+
+  .has-icon {
+    --icon-size: 0.875rem;
+  }
+}
+
+/* ==========================================================================
+   Subsidiaries Grid
+   ========================================================================== */
+
+.group-ecosystem__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  align-items: stretch;
+  gap: var(--group-ecosystem-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .group-ecosystem {
+    --group-ecosystem-parent-space: 3rem;
   }
 
-  &__surface {
-    padding: clamp(2rem, 3vw, 3rem);
-
-    background: #cbdbf9;
+  .group-ecosystem__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  &__parent {
-    max-inline-size: 44rem;
-    margin-inline: auto;
-    margin-block-end: clamp(3rem, 6vw, 5rem);
+  /*
+   * Keep the final card visually balanced when there are three subsidiaries.
+   */
+  .group-ecosystem__grid > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
 
-    text-align: center;
+    inline-size: min(100%, 28rem);
+    justify-self: center;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .group-ecosystem {
+    --group-ecosystem-gap: 2rem;
+    --group-ecosystem-parent-space: 2.5rem;
   }
 
-  &__parent-logo {
-    inline-size: clamp(8rem, 14vw, 12rem);
-    block-size: auto;
-
-    margin-inline: auto;
-    margin-block-end: 1.25rem;
-
-    display: block;
+  .group-ecosystem__surface {
+    padding: 1.5rem 1rem;
   }
 
-  &__parent-text {
-    max-inline-size: 42rem;
-    margin: 0 auto;
-
-    color: var(--color-heading);
-
-    font-size: clamp(1.125rem, 1.6vw, 1.5rem);
-    font-weight: 700;
-    line-height: 1.45;
+  .group-ecosystem__parent {
+    gap: 1rem;
   }
 
-  &__parent-link {
-    margin-block-start: 1.25rem;
+  .group-ecosystem__parent-text {
+    font-size: var(--text-base);
   }
 
-  &__grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: clamp(1.5rem, 3vw, 3rem);
-    align-items: start;
+  .group-ecosystem__grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  @include respond-down(lg) {
-    &__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+  .group-ecosystem__grid > :last-child:nth-child(odd) {
+    grid-column: auto;
+
+    inline-size: 100%;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .group-ecosystem__surface {
+    outline: 2px solid var(--color-border-strong);
+    outline-offset: -2px;
   }
 
-  @include respond-down(sm) {
-    padding-block: 2.5rem;
-
-    &__container {
-      inline-size: min(100% - 1rem, 1320px);
-    }
-
-    &__parent {
-      margin-block-end: 2.5rem;
-    }
-
-    &__grid {
-      grid-template-columns: 1fr;
-      gap: 2rem;
-    }
+  .group-ecosystem__parent-link {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
   }
 }

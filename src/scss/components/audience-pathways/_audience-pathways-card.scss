@@ -5,145 +5,320 @@
    ========================================================================== */
 
 .audience-pathways-card {
-  display: grid;
-  gap: 0.875rem;
+  --audience-card-bg: transparent;
+  --audience-card-fg: var(--color-text);
+  --audience-card-muted: var(--color-text-muted);
+  --audience-card-border: var(--color-border);
 
-  color: var(--color-text);
+  --audience-card-radius: var(--radius-lg);
+  --audience-card-shadow: var(--shadow-sm);
+
+  --audience-card-overlay-start: color-mix(
+    in oklab,
+    var(--color-primary),
+    #001f33 42%
+  );
+
+  --audience-card-overlay-middle: color-mix(
+    in oklab,
+    var(--color-primary),
+    transparent 25%
+  );
+
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 1rem;
+
+  min-inline-size: 0;
+
+  color: var(--audience-card-fg);
+
   text-decoration: none;
 
-  &:hover {
-    .audience-pathways-card__image {
-      transform: scale(1.05);
-    }
-
-    .audience-pathways-card__arrow {
-      transform: translate(0.2rem, -0.2rem);
-    }
+  &:focus {
+    outline: none;
   }
 
   &:focus-visible {
     @include focus-ring;
   }
+}
 
-  &__media {
-    position: relative;
+/* ==========================================================================
+   Media
+   ========================================================================== */
 
-    aspect-ratio: 4 / 5;
+.audience-pathways-card__media {
+  position: relative;
 
-    overflow: hidden;
+  aspect-ratio: 4 / 5;
 
-    background: var(--color-surface-alt);
-  }
+  overflow: hidden;
 
-  &__image {
-    inline-size: 100%;
-    block-size: 100%;
+  border: 1px solid var(--audience-card-border);
+  border-radius: var(--audience-card-radius);
 
-    display: block;
-    object-fit: cover;
+  background: var(--color-surface-alt);
 
-    transition: transform var(--transition-normal);
-  }
+  box-shadow: var(--audience-card-shadow);
 
-  &__overlay {
-    position: absolute;
-    inset: 0;
+  isolation: isolate;
 
-    display: flex;
-    align-items: flex-end;
+  @include transition((border-color, box-shadow, transform), normal);
+}
 
-    padding: 0.875rem;
+/* ==========================================================================
+   Image
+   ========================================================================== */
 
-    background: linear-gradient(
-      to top,
-      rgb(0 38 128 / 0.96) 0%,
-      rgb(0 69 227 / 0.78) 26%,
-      rgb(0 69 227 / 0.34) 48%,
-      transparent 72%
+.audience-pathways-card__image {
+  position: absolute;
+  inset: 0;
+
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  object-fit: cover;
+  object-position: center;
+
+  transform: scale(1);
+
+  @include transition(transform, slow);
+}
+
+/* ==========================================================================
+   Overlay
+   ========================================================================== */
+
+.audience-pathways-card__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  display: flex;
+  align-items: flex-end;
+
+  padding: clamp(1rem, 2vw, 1.25rem);
+
+  background: linear-gradient(
+    to top,
+    var(--audience-card-overlay-start) 0%,
+    color-mix(in oklab, var(--audience-card-overlay-start), transparent 18%) 28%,
+    var(--audience-card-overlay-middle) 52%,
+    transparent 78%
+  );
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Card Title
+   ========================================================================== */
+
+.audience-pathways-card__title {
+  max-inline-size: 18rem;
+
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: clamp(var(--text-base), 0.95rem + 0.5vw, var(--text-xl));
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+
+  text-shadow: 0 0.25rem 1rem rgb(0 0 0 / 0.3);
+}
+
+/* ==========================================================================
+   Arrow
+   ========================================================================== */
+
+.audience-pathways-card__arrow {
+  --icon-size: 1rem;
+
+  position: absolute;
+
+  inset-block-start: 0.875rem;
+  inset-inline-end: 0.875rem;
+  z-index: 2;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+
+  border: 1px solid rgb(255 255 255 / 0.42);
+  border-radius: var(--radius-pill);
+
+  background: rgb(0 0 0 / 0.26);
+  color: #ffffff;
+
+  box-shadow: var(--shadow-sm);
+
+  backdrop-filter: blur(0.5rem);
+
+  pointer-events: none;
+
+  @include transition((background-color, border-color, color, transform), fast);
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.audience-pathways-card__text {
+  margin: 0;
+
+  color: var(--audience-card-muted);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Hover
+   ========================================================================== */
+
+.audience-pathways-card:hover {
+  .audience-pathways-card__media {
+    border-color: color-mix(
+      in oklab,
+      var(--color-primary),
+      var(--audience-card-border) 45%
     );
+
+    box-shadow: var(--shadow-md);
+
+    transform: translateY(-0.1875rem);
   }
 
-  &__title {
-    inline-size: 100%;
-    max-inline-size: none;
-    margin: 0;
-
-    color: #ffffff;
-
-    font-size: clamp(1rem, 1.25vw, 1.25rem);
-    font-weight: 500;
-    line-height: 1.18;
-
-    text-shadow: 0 0.25rem 0.875rem rgb(0 0 0 / 0.25);
+  .audience-pathways-card__image {
+    transform: scale(1.045);
   }
 
-  &__arrow {
-    position: absolute;
-    z-index: 2;
+  .audience-pathways-card__arrow {
+    border-color: var(--color-primary);
+
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+
+    transform: translate(0.18rem, -0.18rem);
+  }
+
+  .audience-pathways-card__text {
+    color: var(--color-heading);
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .audience-pathways-card:hover {
+    .audience-pathways-card__arrow {
+      transform: translate(-0.18rem, -0.18rem);
+    }
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .audience-pathways-card__media {
+    aspect-ratio: 16 / 10;
+  }
+
+  .audience-pathways-card__title {
+    max-inline-size: 22rem;
+
+    font-size: var(--text-xl);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .audience-pathways-card {
+    gap: 0.75rem;
+  }
+
+  .audience-pathways-card__media {
+    aspect-ratio: 3 / 2;
+  }
+
+  .audience-pathways-card__overlay {
+    padding: 1rem;
+  }
+
+  .audience-pathways-card__title {
+    font-size: var(--text-lg);
+  }
+
+  .audience-pathways-card__arrow {
+    --icon-size: 0.875rem;
+
+    inline-size: 2rem;
+    block-size: 2rem;
 
     inset-block-start: 0.75rem;
     inset-inline-end: 0.75rem;
+  }
 
-    --icon-size: 1.25rem;
+  .audience-pathways-card__text {
+    font-size: var(--text-xs);
+  }
+}
 
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .audience-pathways-card__media {
+    border-width: 2px;
+  }
+
+  .audience-pathways-card__arrow {
+    border-width: 2px;
+
+    background: #000000;
     color: #ffffff;
-
-    transition: transform var(--transition-fast);
   }
 
-  &__text {
-    margin: 0;
-
+  .audience-pathways-card__text {
     color: var(--color-text);
+  }
+}
 
-    font-size: var(--text-sm);
-    font-weight: 600;
-    line-height: var(--line-height-normal);
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .audience-pathways-card__media,
+  .audience-pathways-card__image,
+  .audience-pathways-card__arrow {
+    transition: none;
   }
 
-  [dir="rtl"] & {
-    &:hover {
-      .audience-pathways-card__arrow {
-        transform: translate(-0.2rem, -0.2rem);
-      }
-    }
-  }
-
-  @include respond-down(md) {
-    &__media {
-      aspect-ratio: 16 / 9;
-    }
-
-    &__title {
-      font-size: var(--text-xl);
-    }
-  }
-
-  @include respond-down(sm) {
-    &__media {
-      aspect-ratio: 3 / 2;
-    }
-
-    &__title {
-      font-size: var(--text-lg);
-    }
-
-    &__text {
-      font-size: var(--text-xs);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    &__image,
-    &__arrow {
-      transition: none;
-    }
-
-    &:hover {
-      .audience-pathways-card__image,
-      .audience-pathways-card__arrow {
-        transform: none;
-      }
+  .audience-pathways-card:hover {
+    .audience-pathways-card__media,
+    .audience-pathways-card__image,
+    .audience-pathways-card__arrow {
+      transform: none;
     }
   }
 }

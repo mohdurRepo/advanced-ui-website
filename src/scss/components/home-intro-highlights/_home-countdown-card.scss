@@ -1,203 +1,434 @@
 @use "../../abstracts" as *;
 
+/* ==========================================================================
+   Home Countdown Card
+   ========================================================================== */
+
 .home-countdown-card {
+  --home-countdown-bg: var(--color-surface);
+  --home-countdown-fg: var(--color-text);
+  --home-countdown-heading: var(--color-heading);
+  --home-countdown-muted: var(--color-text-muted);
+  --home-countdown-border: var(--color-border);
+  --home-countdown-accent: var(--color-primary);
+
+  position: relative;
+
   min-inline-size: 0;
   min-block-size: 100%;
+  block-size: 100%;
 
   overflow: hidden;
 
+  border: 1px solid var(--home-countdown-border);
   border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
 
-  &__swiper {
-    block-size: 100%;
+  background: var(--home-countdown-bg);
+  color: var(--home-countdown-fg);
+
+  box-shadow: var(--shadow-md);
+}
+
+/* ==========================================================================
+   Swiper Structure
+   ========================================================================== */
+
+.home-countdown-card__swiper {
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 100%;
+  block-size: 100%;
+}
+
+.home-countdown-card__wrapper {
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+.home-countdown-card__slide {
+  block-size: auto;
+  min-block-size: 100%;
+}
+
+/* ==========================================================================
+   Card Body
+   ========================================================================== */
+
+.home-countdown-card__body {
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 100%;
+  block-size: 100%;
+
+  padding: clamp(1rem, 2vw, 1.5rem);
+
+  background: var(--home-countdown-bg);
+  color: var(--home-countdown-fg);
+}
+
+/* ==========================================================================
+   Variants
+   ========================================================================== */
+
+.home-countdown-card__body--ipo,
+.home-countdown-card--ipo {
+  --home-countdown-accent: var(--color-primary);
+}
+
+.home-countdown-card__body--listing,
+.home-countdown-card--listing {
+  --home-countdown-accent: var(--color-success);
+}
+
+.home-countdown-card__body--cmf,
+.home-countdown-card--cmf {
+  --home-countdown-accent: var(--color-warning);
+}
+
+/*
+ * Both the old modifier placement and the improved body modifier placement
+ * are supported until the final HTML is applied.
+ */
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.home-countdown-card__header {
+  flex: 0 0 auto;
+
+  margin-block-end: 1rem;
+  padding-block-end: 0.875rem;
+
+  border-block-end: 1px solid var(--home-countdown-border);
+}
+
+.home-countdown-card__title,
+.home-countdown-card__header:not(:has(.home-countdown-card__title)) {
+  margin: 0;
+
+  color: var(--home-countdown-heading);
+
+  font-size: var(--text-lg);
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   List
+   ========================================================================== */
+
+.home-countdown-card__list {
+  flex: 1 1 auto;
+
+  display: grid;
+  align-content: start;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+.home-countdown-card__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.875rem;
+
+  min-inline-size: 0;
+
+  padding-block: 0.875rem;
+
+  border-block-end: 1px solid var(--home-countdown-border);
+
+  &:first-child {
+    padding-block-start: 0;
   }
 
-  &__slide {
+  &:last-child {
+    padding-block-end: 0;
+    border-block-end: 0;
+  }
+}
+
+/* ==========================================================================
+   Counter
+   ========================================================================== */
+
+.home-countdown-card__counter {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+
+  min-inline-size: 3.75rem;
+
+  padding-inline-end: 0.875rem;
+
+  border-inline-end: 1px solid var(--home-countdown-border);
+}
+
+.home-countdown-card__days {
+  color: var(--home-countdown-accent);
+
+  font-size: var(--text-xl);
+  font-weight: font-weight("heavy");
+  line-height: 1;
+
+  font-variant-numeric: tabular-nums;
+}
+
+.home-countdown-card__label {
+  margin-block-start: 0.25rem;
+
+  color: var(--home-countdown-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-tight);
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.home-countdown-card__content {
+  min-inline-size: 0;
+}
+
+.home-countdown-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+
+  color: var(--home-countdown-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-tight);
+
+  font-variant-numeric: tabular-nums;
+}
+
+.home-countdown-card__meta time {
+  white-space: nowrap;
+}
+
+.home-countdown-card__separator {
+  opacity: 0.5;
+}
+
+/* ==========================================================================
+   Company
+   ========================================================================== */
+
+.home-countdown-card__company {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+
+  min-inline-size: 0;
+
+  margin-block-start: 0.5rem;
+}
+
+.home-countdown-card__logo {
+  inline-size: 1.875rem;
+  block-size: 1.875rem;
+
+  flex: 0 0 auto;
+
+  padding: 0.125rem;
+
+  border: 1px solid var(--home-countdown-border);
+  border-radius: var(--radius-sm);
+
+  background: #ffffff;
+
+  object-fit: contain;
+}
+
+.home-countdown-card__name {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--home-countdown-heading);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  overflow: hidden;
+  overflow-wrap: anywhere;
+
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.home-countdown-card__footer {
+  flex: 0 0 auto;
+
+  margin-block-start: auto;
+  padding-block-start: 1.25rem;
+}
+
+.home-countdown-card__action {
+  inline-size: 100%;
+
+  justify-content: center;
+}
+
+/* ==========================================================================
+   Pagination
+   ========================================================================== */
+
+.home-countdown-card__pagination,
+.home-countdown-card .swiper-pagination {
+  position: static;
+
+  flex: 0 0 auto;
+
+  margin-block-start: 0.875rem;
+  padding-block-end: 0.25rem;
+}
+
+.home-countdown-card {
+  .swiper-pagination-bullet {
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+
+    background: var(--home-countdown-border);
+
+    opacity: 1;
+
+    @include transition((inline-size, background-color), fast);
+  }
+
+  .swiper-pagination-bullet-active {
+    inline-size: 1.25rem;
+
+    border-radius: var(--radius-pill);
+
+    background: var(--home-countdown-accent);
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .home-countdown-card__body {
+    min-block-size: 24rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .home-countdown-card {
     block-size: auto;
   }
 
-  &__body {
-    min-block-size: clamp(14rem, 22vw, 20rem);
-
-    display: flex;
-    flex-direction: column;
+  .home-countdown-card__body {
+    min-block-size: 23rem;
 
     padding: 1rem;
   }
 
-  &__header {
-    margin: 0 0 0.875rem;
-
-    color: var(--color-heading);
-    font-size: var(--text-lg);
-    font-weight: 800;
-    line-height: var(--line-height-tight);
-  }
-
-  &__list {
-    flex: 1 1 auto;
-
-    display: grid;
-    align-content: start;
-    gap: 0.625rem;
-
-    min-block-size: 0;
-  }
-
-  &__item {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+  .home-countdown-card__item {
     gap: 0.75rem;
-    align-items: center;
 
-    padding-block-end: 0.625rem;
-
-    border-block-end: 1px solid var(--color-border);
-
-    &:last-child {
-      padding-block-end: 0;
-      border-block-end: 0;
-    }
+    padding-block: 0.75rem;
   }
 
-  &__counter {
-    min-inline-size: 3.5rem;
+  .home-countdown-card__counter {
+    min-inline-size: 3.25rem;
 
-    display: grid;
-    justify-items: center;
-
-    padding-inline-end: 0.75rem;
-
-    border-inline-end: 1px solid var(--color-border);
+    padding-inline-end: 0.625rem;
   }
 
-  &__days {
-    color: var(--color-primary);
-
-    font-size: var(--text-xl);
-    font-weight: 800;
-    line-height: 1;
-
-    font-variant-numeric: tabular-nums;
+  .home-countdown-card__days {
+    font-size: var(--text-lg);
   }
 
-  &__label {
-    margin-block-start: 0.25rem;
-
-    color: var(--color-text-muted);
-    font-size: var(--text-xs);
-    font-weight: 600;
-    line-height: var(--line-height-tight);
-    text-align: center;
-  }
-
-  &__content {
-    min-inline-size: 0;
-  }
-
-  &__meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.375rem;
-
-    color: var(--color-text-muted);
-    font-size: var(--text-xs);
-    line-height: var(--line-height-tight);
-  }
-
-  &__separator {
-    opacity: 0.5;
-  }
-
-  &__company {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-
-    margin-block-start: 0.375rem;
-  }
-
-  &__logo {
+  .home-countdown-card__logo {
     inline-size: 1.75rem;
     block-size: 1.75rem;
+  }
+}
 
-    flex: 0 0 auto;
+/* ==========================================================================
+   Very Small Screens
+   ========================================================================== */
 
-    object-fit: contain;
+@media (max-width: 360px) {
+  .home-countdown-card__item {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  &__name {
+  .home-countdown-card__counter {
+    grid-template-columns: auto auto;
+    justify-content: start;
+    justify-items: start;
+    align-items: baseline;
+    gap: 0.5rem;
+
     min-inline-size: 0;
 
-    color: var(--color-heading);
-    font-size: var(--text-xs);
-    font-weight: 700;
-    line-height: var(--line-height-normal);
+    padding-inline-end: 0;
+    padding-block-end: 0.625rem;
 
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--home-countdown-border);
   }
 
-  &__footer {
-    margin-block-start: auto;
-    padding-block-start: 1rem;
+  .home-countdown-card__label {
+    margin-block-start: 0;
+
+    text-align: start;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .home-countdown-card {
+    border-width: 2px;
   }
 
-  &__action {
-    inline-size: 100%;
+  .home-countdown-card__header,
+  .home-countdown-card__item,
+  .home-countdown-card__counter,
+  .home-countdown-card__logo {
+    border-width: 2px;
   }
+}
 
-  .swiper-pagination {
-    position: static;
-    margin-block-start: 0.75rem;
-  }
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
 
-  .swiper-pagination-bullet {
-    background: var(--color-border-strong);
-    opacity: 1;
-  }
-
-  .swiper-pagination-bullet-active {
-    background: var(--color-primary);
-  }
-
-  &--ipo {
-    .home-countdown-card__days {
-      color: var(--color-primary);
-    }
-  }
-
-  &--listing {
-    .home-countdown-card__days {
-      color: var(--color-success);
-    }
-  }
-
-  &--cmf {
-    .home-countdown-card__days {
-      color: var(--color-warning);
-    }
-  }
-
-  @include respond-down(sm) {
-    &__body {
-      min-block-size: auto;
-    }
-
-    &__counter {
-      min-inline-size: 3.25rem;
-      padding-inline-end: 0.625rem;
-    }
-
-    &__days {
-      font-size: var(--text-lg);
-    }
+html[data-motion="reduce"] {
+  .home-countdown-card .swiper-pagination-bullet {
+    transition: none;
   }
 }

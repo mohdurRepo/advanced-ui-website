@@ -59,9 +59,6 @@
 
   inline-size: 0;
 
-  border-start-start-radius: var(--radius-md);
-  border-start-end-radius: var(--radius-md);
-
   background: var(--market-bridge-bg);
 
   transform: translate3d(0, 0, 0);
@@ -76,11 +73,11 @@
 
 html[data-contrast="high"] {
   .market-bridge__bar {
-    outline: 2px solid var(--color-border-strong);
-    outline-offset: -2px;
+    border-left: 2px solid var(--color-border-strong);
+    border-right: 2px solid var(--color-border-strong);
+    border-bottom: 2px solid var(--color-border-strong);
   }
 }
-
 /* ==========================================================================
    Reduced Motion
    ========================================================================== */
@@ -107,10 +104,5 @@ html[data-motion="reduce"] {
     --market-bridge-height: 2.5rem;
     --market-bridge-offset: 0.75rem;
     --market-bridge-container-space: 1rem;
-  }
-
-  .market-bridge__bar {
-    border-start-start-radius: var(--radius-sm);
-    border-start-end-radius: var(--radius-sm);
   }
 }

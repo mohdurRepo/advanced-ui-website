@@ -1,88 +1,295 @@
 @use "../../abstracts" as *;
 
+/* ==========================================================================
+   Site Footer Brand
+   ========================================================================== */
+
 .site-footer-brand {
   display: grid;
+  align-content: start;
   gap: clamp(2rem, 4vw, 3rem);
 
-  &__logo {
-    inline-size: clamp(10rem, 14vw, 13rem);
-    block-size: auto;
+  min-inline-size: 0;
+}
 
-    display: block;
+/* ==========================================================================
+   Home Link
+   ========================================================================== */
+
+.site-footer-brand__home {
+  display: inline-flex;
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  border-radius: var(--radius-sm);
+
+  text-decoration: none;
+
+  &:focus {
+    outline: none;
   }
 
-  &__section {
-    display: grid;
-    gap: 1rem;
+  &:focus-visible {
+    @include focus-ring;
   }
+}
 
-  &__title {
-    margin: 0;
+/* ==========================================================================
+   Logo
+   ========================================================================== */
 
+.site-footer-brand__logo {
+  display: block;
+
+  inline-size: clamp(10rem, 14vw, 13rem);
+  block-size: auto;
+
+  max-inline-size: 100%;
+}
+
+/* ==========================================================================
+   Contact Section
+   ========================================================================== */
+
+.site-footer-brand__section {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.site-footer-brand__title {
+  margin: 0;
+
+  color: var(--footer-heading);
+
+  font-size: var(--text-lg);
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.site-footer-brand__text {
+  max-inline-size: 19rem;
+
+  margin: 0;
+
+  color: var(--footer-text);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Address
+   ========================================================================== */
+
+.site-footer-brand__address {
+  margin: 0;
+
+  font-style: normal;
+}
+
+/* ==========================================================================
+   Contact List
+   ========================================================================== */
+
+.site-footer-brand__list {
+  display: grid;
+  gap: 0.625rem;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Contact Link
+   ========================================================================== */
+
+.site-footer-brand__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  border-radius: var(--radius-sm);
+
+  color: var(--footer-text);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-normal);
+
+  text-decoration: none;
+
+  overflow-wrap: anywhere;
+
+  @include transition((color, transform), fast);
+
+  &:hover {
     color: var(--footer-heading);
 
-    font-size: var(--text-lg);
-    font-weight: 800;
-    line-height: var(--line-height-tight);
+    transform: translateX(0.125rem);
   }
 
-  &__text {
-    max-inline-size: 17rem;
-    margin: 0;
-
-    color: var(--footer-text);
-
-    font-size: var(--text-sm);
-    font-weight: 500;
-    line-height: 1.55;
+  &:focus {
+    outline: none;
   }
 
-  &__list {
-    display: grid;
-    gap: 0.5rem;
-
-    margin: 0;
-    padding: 0;
-
-    list-style: none;
+  &:focus-visible {
+    @include focus-ring;
   }
+}
 
-  &__link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.625rem;
+/* ==========================================================================
+   Contact Icon
+   ========================================================================== */
 
-    color: var(--footer-text);
-    text-decoration: none;
+.site-footer-brand__icon {
+  --icon-size: 1rem;
 
-    font-size: var(--text-sm);
-    font-weight: 600;
+  flex: 0 0 auto;
 
-    transition: color var(--transition-fast);
+  color: var(--footer-accent);
+}
 
-    &:hover {
-      color: var(--footer-heading);
-    }
+/* ==========================================================================
+   Contact CTA
+   ========================================================================== */
 
-    &:focus-visible {
-      @include focus-ring;
-    }
-  }
+.site-footer-brand__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
 
-  &__icon {
-    --icon-size: 1rem;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  margin-block-start: 0.25rem;
+  padding-inline: 0;
+
+  color: var(--footer-accent);
+
+  white-space: nowrap;
+
+  .has-icon {
+    --icon-size: 0.875rem;
 
     flex: 0 0 auto;
 
-    color: var(--footer-muted);
+    @include transition(transform, fast);
   }
 
-  &__cta {
-    justify-content: flex-start;
+  &:hover {
+    .has-icon {
+      transform: translateX(0.15rem);
+    }
+  }
+}
 
-    width: fit-content;
-    padding-inline: 0;
+/* ==========================================================================
+   RTL
+   ========================================================================== */
 
-    color: var(--footer-accent);
+html[dir="rtl"] {
+  .site-footer-brand__link:hover {
+    transform: translateX(-0.125rem);
+  }
+
+  .site-footer-brand__cta:hover {
+    .has-icon {
+      transform: translateX(-0.15rem);
+    }
+  }
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .site-footer-brand {
+    grid-template-columns:
+      minmax(10rem, auto)
+      minmax(0, 1fr);
+
+    align-items: start;
+    gap: 2rem;
+  }
+
+  .site-footer-brand__text {
+    max-inline-size: 32rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .site-footer-brand {
+    grid-template-columns: minmax(0, 1fr);
+
+    gap: 1.5rem;
+  }
+
+  .site-footer-brand__logo {
+    inline-size: 10rem;
+  }
+
+  .site-footer-brand__text {
+    max-inline-size: none;
+  }
+
+  .site-footer-brand__link {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .site-footer-brand__link,
+  .site-footer-brand__cta {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .site-footer-brand__link,
+  .site-footer-brand__cta .has-icon {
+    transition: none;
+  }
+
+  .site-footer-brand__link:hover,
+  .site-footer-brand__cta:hover .has-icon {
+    transform: none;
   }
 }

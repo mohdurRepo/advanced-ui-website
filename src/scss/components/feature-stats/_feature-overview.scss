@@ -5,103 +5,234 @@
    ========================================================================== */
 
 .feature-overview {
-  padding-block: clamp(3rem, 6vw, 5rem);
+  --feature-overview-bg: var(--color-bg);
+  --feature-overview-fg: var(--color-text);
+  --feature-overview-heading: var(--color-heading);
+  --feature-overview-muted: var(--color-text-muted);
 
-  background: var(--color-bg);
-  color: var(--color-text);
+  --feature-overview-heading-space: clamp(2rem, 4vw, 3rem);
+  --feature-overview-header-gap: clamp(2rem, 5vw, 5rem);
+  --feature-overview-grid-gap: clamp(1rem, 2vw, 1.5rem);
 
-  &__container {
-    width: min(100% - 2rem, 1320px);
-    margin-inline: auto;
+  background: var(--feature-overview-bg);
+  color: var(--feature-overview-fg);
+}
+
+/* ==========================================================================
+   Shared Section Heading
+   ========================================================================== */
+
+.feature-overview > .container > .section-heading {
+  --section-heading-color: var(--feature-overview-heading);
+  --section-heading-muted: var(--feature-overview-muted);
+  --section-heading-accent: var(--color-primary);
+
+  margin-block-end: var(--feature-overview-heading-space);
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.feature-overview__header {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 0.85fr)
+    minmax(0, 1.15fr);
+
+  align-items: start;
+  gap: var(--feature-overview-header-gap);
+
+  min-inline-size: 0;
+
+  margin-block-end: clamp(2rem, 4vw, 3rem);
+}
+
+/* ==========================================================================
+   Intro
+   ========================================================================== */
+
+.feature-overview__intro {
+  display: grid;
+  align-content: start;
+  gap: 0.875rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Eyebrow
+   ========================================================================== */
+
+.feature-overview__eyebrow {
+  margin: 0;
+
+  color: var(--color-primary);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ==========================================================================
+   Main Marketing Title
+   ========================================================================== */
+
+.feature-overview__title {
+  max-inline-size: 34rem;
+
+  margin: 0;
+
+  color: var(--feature-overview-heading);
+
+  font-size: clamp(var(--text-2xl), 1.3rem + 1.6vw, var(--text-4xl));
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Supporting Content
+   ========================================================================== */
+
+.feature-overview__content {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+
+  min-inline-size: 0;
+
+  padding-block-start: 0.25rem;
+}
+
+.feature-overview__subheading {
+  max-inline-size: 32rem;
+
+  margin: 0;
+
+  color: var(--feature-overview-heading);
+
+  font-size: clamp(var(--text-lg), 1rem + 0.8vw, var(--text-2xl));
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+.feature-overview__description {
+  max-inline-size: 42rem;
+
+  margin: 0;
+
+  color: var(--feature-overview-muted);
+
+  font-size: clamp(var(--text-base), 0.95rem + 0.35vw, var(--text-lg));
+  font-weight: font-weight("regular");
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Statistics Grid
+   ========================================================================== */
+
+.feature-overview__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  align-items: stretch;
+  gap: var(--feature-overview-grid-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .feature-overview {
+    --feature-overview-header-gap: 1.5rem;
   }
 
-  &__header {
-    display: grid;
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-    gap: clamp(2rem, 5vw, 5rem);
-    align-items: start;
-
-    margin-block-end: clamp(2rem, 4vw, 3rem);
+  .feature-overview__header {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  &__eyebrow {
-    margin: 0 0 0.75rem;
-
-    color: var(--color-text-muted);
-
-    font-size: var(--text-xs);
-    font-weight: 700;
-    line-height: var(--line-height-tight);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+  .feature-overview__title,
+  .feature-overview__subheading,
+  .feature-overview__description {
+    max-inline-size: none;
   }
 
-  &__title {
-    margin: 0;
+  .feature-overview__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 
-    color: var(--color-heading);
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
 
-    font-size: clamp(2rem, 3vw, 3rem);
-    font-weight: 800;
-    line-height: var(--line-height-tight);
+@include respond-down(md) {
+  .feature-overview {
+    --feature-overview-heading-space: 1.75rem;
   }
 
-  &__intro {
-    display: grid;
-    gap: 1.5rem;
+  .feature-overview__header {
+    margin-block-end: 2rem;
   }
 
-  &__heading {
-    margin: 0;
+  .feature-overview__content {
+    padding-block-start: 0;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .feature-overview {
+    --feature-overview-heading-space: 1.5rem;
+    --feature-overview-header-gap: 1.25rem;
+    --feature-overview-grid-gap: 1rem;
   }
 
-  &__description {
-    max-inline-size: 42rem;
-    margin: 0;
-
-    color: var(--color-text-muted);
-
-    font-size: clamp(1rem, 1.4vw, 1.25rem);
-    font-weight: 400;
-    line-height: 1.55;
+  .feature-overview__intro {
+    gap: 0.75rem;
   }
 
-  &__subheading {
-    margin: 0 0 1rem;
-
-    color: var(--color-heading);
-
-    font-size: clamp(1.25rem, 2vw, 1.75rem);
-    font-weight: 700;
-    line-height: var(--line-height-tight);
+  .feature-overview__title {
+    font-size: var(--text-2xl);
   }
 
-  &__grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: clamp(1rem, 2vw, 1.5rem);
+  .feature-overview__subheading {
+    font-size: var(--text-lg);
   }
 
-  @include respond-down(lg) {
-    &__header {
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-    }
-
-    &__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+  .feature-overview__description {
+    font-size: var(--text-sm);
   }
 
-  @include respond-down(sm) {
-    padding-block: 2.5rem;
+  .feature-overview__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 
-    &__container {
-      width: min(100% - 1rem, 1320px);
-    }
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
 
-    &__grid {
-      grid-template-columns: 1fr;
-    }
+html[data-contrast="high"] {
+  .feature-overview__eyebrow {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
   }
 }

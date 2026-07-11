@@ -1,88 +1,273 @@
 @use "../../abstracts" as *;
 
 /* ==========================================================================
-   Audience Pathways Nav
+   Audience Pathways Navigation
    ========================================================================== */
 
 .audience-pathways-nav {
   --tabs-content-space: 0;
 
+  --audience-nav-gap: 0.875rem;
+  --audience-nav-link-gap: 0.75rem;
+
+  --audience-nav-icon-size: 2rem;
+  --audience-nav-icon-glyph-size: 1rem;
+
+  --audience-nav-active-color: var(--color-primary);
+  --audience-nav-active-bg: color-mix(
+    in oklab,
+    var(--color-primary),
+    transparent 88%
+  );
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Desktop Navigation
+   ========================================================================== */
+
+.audience-pathways-nav {
   .tabs-nav {
     display: grid;
-    gap: 0.875rem;
+    gap: var(--audience-nav-gap);
 
-    border-block-end: 0;
-  }
+    min-inline-size: 0;
 
-  .tab-link {
-    min-block-size: auto;
-
-    justify-content: flex-start;
-    gap: 0.625rem;
-
+    margin: 0;
     padding: 0;
 
+    border-block-end: 0;
+
+    overflow: visible;
+  }
+}
+
+/* ==========================================================================
+   Tab Link
+   ========================================================================== */
+
+.audience-pathways-nav {
+  .tab-link {
+    position: relative;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--audience-nav-link-gap);
+
+    inline-size: fit-content;
+    max-inline-size: 100%;
+    min-block-size: 3.25rem;
+
+    padding: 0.5rem 0.875rem;
+
     border: 0;
+    border-radius: var(--radius-pill);
 
     background: transparent;
     color: var(--color-text-muted);
 
+    font: inherit;
     font-size: var(--text-lg);
-    font-weight: 700;
+    font-weight: font-weight("bold");
     line-height: var(--line-height-tight);
 
+    white-space: normal;
     text-align: start;
 
-    &:hover {
-      color: var(--color-primary);
+    cursor: pointer;
+
+    @include transition((background-color, color, box-shadow), fast);
+
+    &:hover:not(:disabled):not(.is-disabled) {
+      background: var(--audience-nav-active-bg);
+      color: var(--audience-nav-active-color);
+    }
+
+    &:focus {
+      outline: none;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
     }
 
     &.active,
     &[aria-selected="true"] {
-      color: var(--color-primary);
-      text-decoration: underline;
-      text-underline-offset: 0.25rem;
+      background: var(--audience-nav-active-bg);
+      color: var(--audience-nav-active-color);
+    }
+
+    &:disabled,
+    &.is-disabled,
+    &[aria-disabled="true"] {
+      color: var(--color-on-disabled);
+
+      cursor: not-allowed;
+      pointer-events: none;
     }
   }
+}
 
-  &__icon {
-    --icon-size: 1.5rem;
+/* ==========================================================================
+   Tab Icon
+   ========================================================================== */
 
-    flex: 0 0 auto;
+.audience-pathways-nav__icon {
+  --icon-size: var(--audience-nav-icon-glyph-size);
 
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  flex: 0 0 auto;
 
-    inline-size: 1.5rem;
-    block-size: 1.5rem;
+  display: inline-grid;
+  place-items: center;
 
-    border-radius: var(--radius-pill);
+  inline-size: var(--audience-nav-icon-size);
+  block-size: var(--audience-nav-icon-size);
 
-    background: var(--color-text-muted);
-    color: var(--color-bg);
+  border: 1px solid color-mix(in oklab, var(--color-primary), transparent 68%);
+  border-radius: var(--radius-pill);
 
-    transition:
-      background-color var(--transition-fast),
-      color var(--transition-fast);
+  background: var(--audience-nav-active-bg);
+  color: var(--audience-nav-active-color);
 
-    .tab-link:hover &,
-    .tab-link.active &,
-    .tab-link[aria-selected="true"] & {
-      background: var(--color-primary);
-      color: var(--color-on-primary);
-    }
+  @include transition((background-color, border-color, color, transform), fast);
+
+  .tab-link:hover &,
+  .tab-link.active &,
+  .tab-link[aria-selected="true"] & {
+    border-color: var(--color-primary);
+
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+
+    transform: scale(1.04);
+  }
+}
+
+/* ==========================================================================
+   Tablet and Below — Horizontal Scrolling
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .audience-pathways-nav {
+    --audience-nav-gap: 0.875rem;
+    --audience-nav-link-gap: 0.75rem;
+
+    --audience-nav-icon-size: 2rem;
+    --audience-nav-icon-glyph-size: 1rem;
   }
 
-  @include respond-down(lg) {
+  .audience-pathways-nav {
     .tabs-nav {
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem 1.25rem;
+      align-items: center;
+      gap: var(--audience-nav-gap);
+
+      inline-size: 100%;
+      max-inline-size: 100%;
+
+      margin-inline: -0.25rem;
+      padding-inline: 0.25rem;
+      padding-block-end: 0.5rem;
+
+      overflow-x: auto;
+      overflow-y: hidden;
+
+      overscroll-behavior-inline: contain;
+      scroll-snap-type: inline proximity;
+
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+
+      touch-action: pan-x pan-y;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
     }
 
     .tab-link {
+      flex: 0 0 auto;
+
+      inline-size: auto;
+      min-block-size: 3rem;
+
+      padding: 0.5rem 0.875rem;
+
       font-size: var(--text-base);
+
+      white-space: nowrap;
+
+      scroll-snap-align: start;
+    }
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .audience-pathways-nav {
+    --audience-nav-gap: 0.75rem;
+    --audience-nav-link-gap: 0.625rem;
+
+    --audience-nav-icon-size: 1.875rem;
+    --audience-nav-icon-glyph-size: 0.9375rem;
+  }
+
+  .audience-pathways-nav {
+    .tabs-nav {
+      padding-block-end: 0.375rem;
+    }
+
+    .tab-link {
+      min-block-size: 2.875rem;
+
+      padding: 0.4375rem 0.75rem;
+
+      font-size: var(--text-base);
+    }
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .audience-pathways-nav {
+    .tab-link {
+      border: 2px solid transparent;
+
+      &.active,
+      &[aria-selected="true"] {
+        border-color: currentColor;
+      }
+    }
+  }
+
+  .audience-pathways-nav__icon {
+    border-width: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .audience-pathways-nav {
+    .tab-link,
+    .audience-pathways-nav__icon {
+      transition: none;
+    }
+
+    .tab-link:hover .audience-pathways-nav__icon,
+    .tab-link.active .audience-pathways-nav__icon,
+    .tab-link[aria-selected="true"] .audience-pathways-nav__icon {
+      transform: none;
     }
   }
 }

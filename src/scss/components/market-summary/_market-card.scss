@@ -10,7 +10,6 @@
   --market-card-color: var(--market-summary-fg);
   --market-card-muted: var(--market-summary-muted);
 
-  --market-card-hover-bg: var(--market-summary-surface);
   --market-card-hover-border: var(--market-summary-border-hover);
 
   --market-card-active-bg: var(--market-summary-surface-active);
@@ -28,7 +27,6 @@
   padding: 1rem;
 
   border: 1px solid var(--market-card-border);
-  border-radius: var(--radius-lg);
 
   background: var(--market-card-bg);
   color: var(--market-card-color);
@@ -44,7 +42,6 @@
 
   &:hover:not(:disabled):not(.is-disabled) {
     border-color: var(--market-card-hover-border);
-    background: var(--market-card-hover-bg);
   }
 
   &:focus {
@@ -242,13 +239,6 @@
 html[data-contrast="high"] {
   .market-card {
     border-width: 2px;
-  }
-
-  .market-card.is-active,
-  .market-card[aria-selected="true"] {
-    box-shadow:
-      0 0 0 2px var(--market-summary-bg),
-      0 0 0 4px var(--color-primary);
   }
 }
 
