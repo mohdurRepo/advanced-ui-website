@@ -17,8 +17,8 @@
 .company-market-overview__grid {
   display: grid;
   grid-template-columns:
-    minmax(0, 1.58fr)
-    minmax(20rem, 0.82fr);
+    minmax(0, 1.5fr)
+    minmax(18rem, 0.9fr);
 
   align-items: start;
   gap: var(--market-overview-gap);
