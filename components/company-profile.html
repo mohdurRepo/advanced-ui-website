@@ -2079,16 +2079,2254 @@
        Company Performance
   ================================================================== -->
 
-      <section class="company-performance">
-        <!-- Performance and announcements -->
+      <!-- =================================================================
+     Company Performance and Updates
+================================================================== -->
+
+      <section
+        class="company-market-overview"
+        aria-label="Company performance and market updates"
+      >
+        <div class="container">
+          <div class="company-market-overview__grid">
+            <!-- =============================================================
+           Performance
+      ============================================================== -->
+
+            <div class="company-market-overview__primary">
+              <section
+                class="performance-chart"
+                data-chart
+                data-chart-company-name="${requestScope.companyDetailsInfo.companyName}"
+                data-chart-company-symbol="${requestScope.companyDetailsInfo.companySymbol}"
+                data-chart-page-name="CompanyProfileMainMarket"
+                data-chart-token="<%=getJWTTokenUrl%>"
+                data-chart-change="${requestScope.lastTradeChange}"
+                data-chart-x-label="<fmt:message key='tasi.chart.label.date' />"
+                data-chart-y-label="<fmt:message key='tasi.chart.label.price' />"
+                aria-labelledby="performance-chart-title"
+              >
+                <!-- =========================================================
+               Chart Toolbar
+          ========================================================== -->
+
+                <header class="performance-chart__header chart-toolbar">
+                  <div class="chart-toolbar__top">
+                    <div class="chart-toolbar__heading">
+                      <span
+                        class="chart-toolbar__title-icon has-icon icon-tadawul"
+                        aria-hidden="true"
+                      ></span>
+
+                      <h2
+                        id="performance-chart-title"
+                        class="chart-toolbar__title"
+                      >
+                        Performance
+                      </h2>
+                    </div>
+
+                    <a
+                      class="btn btn-primary btn-sm chart-toolbar__historical"
+                      href="#"
+                    >
+                      <span>View Historical</span>
+
+                      <span
+                        class="has-icon icon-chevron-right icon-flip-rtl"
+                        aria-hidden="true"
+                      ></span>
+                    </a>
+                  </div>
+
+                  <div class="chart-toolbar__bottom">
+                    <!-- Range selector -->
+
+                    <div
+                      class="chart-toolbar__ranges"
+                      role="tablist"
+                      aria-label="Chart range selector"
+                    >
+                      <button
+                        class="chart-range is-active"
+                        type="button"
+                        role="tab"
+                        aria-selected="true"
+                        tabindex="0"
+                        data-range="1D"
+                      >
+                        1D
+                      </button>
+
+                      <button
+                        class="chart-range"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        tabindex="-1"
+                        data-range="1W"
+                      >
+                        1W
+                      </button>
+
+                      <button
+                        class="chart-range"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        tabindex="-1"
+                        data-range="1M"
+                      >
+                        1M
+                      </button>
+
+                      <button
+                        class="chart-range"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        tabindex="-1"
+                        data-range="3M"
+                      >
+                        3M
+                      </button>
+
+                      <button
+                        class="chart-range"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        tabindex="-1"
+                        data-range="6M"
+                      >
+                        6M
+                      </button>
+
+                      <button
+                        class="chart-range"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        tabindex="-1"
+                        data-range="1Y"
+                      >
+                        1Y
+                      </button>
+
+                      <button
+                        class="chart-range"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        tabindex="-1"
+                        data-range="5Y"
+                      >
+                        5Y
+                      </button>
+
+                      <button
+                        class="chart-range"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        tabindex="-1"
+                        data-range="ALL"
+                      >
+                        Inception
+                      </button>
+                    </div>
+
+                    <!-- Chart actions -->
+
+                    <div
+                      class="chart-toolbar__actions"
+                      aria-label="Chart actions"
+                    >
+                      <button
+                        class="chart-btn chart-btn--compare"
+                        type="button"
+                        data-chart-compare
+                      >
+                        <span>Compare</span>
+
+                        <span
+                          class="has-icon icon-add-plus"
+                          aria-hidden="true"
+                        ></span>
+                      </button>
+
+                      <div class="chart-export">
+                        <button
+                          id="exportBtn"
+                          class="chart-btn chart-export__trigger"
+                          type="button"
+                          aria-haspopup="menu"
+                          aria-expanded="false"
+                          aria-controls="exportMenu"
+                        >
+                          <span>Export</span>
+
+                          <span
+                            class="has-icon icon-menu-dots-vertical"
+                            aria-hidden="true"
+                          ></span>
+                        </button>
+
+                        <ul
+                          id="exportMenu"
+                          class="chart-export-menu"
+                          role="menu"
+                          aria-label="Export chart"
+                          hidden
+                        >
+                          <li role="none">
+                            <button
+                              type="button"
+                              role="menuitem"
+                              data-export-action="fullscreen"
+                            >
+                              <span
+                                class="has-icon icon-external-link"
+                                aria-hidden="true"
+                              ></span>
+
+                              <span>View Full Screen</span>
+                            </button>
+                          </li>
+
+                          <li role="none">
+                            <button
+                              type="button"
+                              role="menuitem"
+                              data-export-action="print"
+                            >
+                              <span
+                                class="has-icon icon-file-download"
+                                aria-hidden="true"
+                              ></span>
+
+                              <span>Print Chart</span>
+                            </button>
+                          </li>
+
+                          <li
+                            class="chart-export-menu__separator"
+                            role="separator"
+                          ></li>
+
+                          <li role="none">
+                            <button
+                              type="button"
+                              role="menuitem"
+                              data-export-action="png"
+                            >
+                              <span
+                                class="has-icon icon-file-download"
+                                aria-hidden="true"
+                              ></span>
+
+                              <span>Download PNG</span>
+                            </button>
+                          </li>
+
+                          <li role="none">
+                            <button
+                              type="button"
+                              role="menuitem"
+                              data-export-action="jpeg"
+                            >
+                              <span
+                                class="has-icon icon-file-download"
+                                aria-hidden="true"
+                              ></span>
+
+                              <span>Download JPEG</span>
+                            </button>
+                          </li>
+
+                          <li role="none">
+                            <button
+                              type="button"
+                              role="menuitem"
+                              data-export-action="pdf"
+                            >
+                              <span
+                                class="has-icon icon-pdf-file"
+                                aria-hidden="true"
+                              ></span>
+
+                              <span>Download PDF</span>
+                            </button>
+                          </li>
+
+                          <li role="none">
+                            <button
+                              type="button"
+                              role="menuitem"
+                              data-export-action="svg"
+                            >
+                              <span
+                                class="has-icon icon-file-download"
+                                aria-hidden="true"
+                              ></span>
+
+                              <span>Download SVG</span>
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </header>
+
+                <!-- =========================================================
+               Chart Surface
+          ========================================================== -->
+
+                <div class="performance-chart__body">
+                  <div class="chart-surface">
+                    <div
+                      id="drawGraph"
+                      class="chart-canvas"
+                      role="img"
+                      aria-label="Company price performance chart"
+                    ></div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- ===========================================================
+             Chart Notes
+             
+             These notes intentionally live outside the chart card.
+        ============================================================ -->
+
+              <aside class="chart-notes" aria-label="Chart information">
+                <ul class="chart-notes__list">
+                  <li class="chart-notes__item">
+                    <span
+                      class="chart-notes__status has-icon icon-check"
+                      aria-hidden="true"
+                    ></span>
+
+                    <span class="chart-notes__text">
+                      Prices are delayed by a minimum of five minutes.
+                    </span>
+                  </li>
+
+                  <li class="chart-notes__item">
+                    <span
+                      class="chart-notes__status has-icon icon-check"
+                      aria-hidden="true"
+                    ></span>
+
+                    <span class="chart-notes__text">
+                      Historical prices and traded volume are adjusted for
+                      corporate actions.
+                    </span>
+
+                    <span
+                      class="tooltip tooltip-end chart-notes__tooltip"
+                      data-tooltip="Historical prices and traded volume may be adjusted to reflect dividends, bonus shares and capital changes."
+                    >
+                      <button
+                        class="chart-notes__info has-icon icon-info-warning"
+                        type="button"
+                        aria-label="More information about historical adjustments"
+                      ></button>
+                    </span>
+                  </li>
+
+                  <li class="chart-notes__item">
+                    <span
+                      class="chart-notes__status has-icon icon-check"
+                      aria-hidden="true"
+                    ></span>
+
+                    <span class="chart-notes__text"> MO: Market Order </span>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+
+            <!-- =============================================================
+           Announcements and Corporate Actions
+
+           This aside is optional. When removed, the chart occupies the
+           full available width.
+      ============================================================== -->
+
+            <aside
+              class="company-market-overview__secondary company-updates"
+              aria-labelledby="company-updates-title"
+            >
+              <!-- Heading -->
+
+              <div class="company-updates__heading">
+                <span
+                  class="company-updates__heading-icon has-icon icon-tadawul"
+                  aria-hidden="true"
+                ></span>
+
+                <h2 id="company-updates-title" class="company-updates__title">
+                  Announcements &amp; Corporate Actions
+                </h2>
+              </div>
+
+              <!-- Primary tabs -->
+
+              <div class="tabs company-updates__tabs" data-tabs>
+                <div
+                  class="tabs-nav company-updates__nav"
+                  role="tablist"
+                  aria-label="Company updates"
+                >
+                  <button
+                    class="tab-link company-updates__tab active"
+                    id="announcements-tab"
+                    type="button"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="announcements-panel"
+                    tabindex="0"
+                    data-tab-target="announcements-panel"
+                  >
+                    Announcements
+                  </button>
+
+                  <button
+                    class="tab-link company-updates__tab"
+                    id="corporate-actions-tab"
+                    type="button"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="corporate-actions-panel"
+                    tabindex="-1"
+                    data-tab-target="corporate-actions-panel"
+                  >
+                    Corporate Actions
+                  </button>
+                </div>
+
+                <div class="tabs-content company-updates__content">
+                  <!-- =======================================================
+                 Announcements
+            ======================================================== -->
+
+                  <section
+                    class="tab-pane company-updates__panel active"
+                    id="announcements-panel"
+                    role="tabpanel"
+                    aria-labelledby="announcements-tab"
+                    tabindex="0"
+                  >
+                    <ol class="company-updates__list">
+                      <li class="company-update-item">
+                        <article>
+                          <a class="company-update-item__link" href="#">
+                            <h3 class="company-update-item__title">
+                              Seera Group Holding announces its annual financial
+                              results for the period ending on 2024-12-31
+                            </h3>
+
+                            <div class="company-update-item__meta">
+                              <span class="company-update-item__code">
+                                9524
+                              </span>
+
+                              <span class="company-update-item__symbol">
+                                AICTEC
+                              </span>
+
+                              <span
+                                class="company-update-item__change price-down"
+                              >
+                                <data value="-0.02">-0.02</data>
+
+                                <span
+                                  class="has-icon icon-triangle-down"
+                                  aria-hidden="true"
+                                ></span>
+
+                                <span dir="ltr">(-0.49%)</span>
+                              </span>
+
+                              <time
+                                class="company-update-item__hijri-date"
+                                datetime="2025-02-06"
+                              >
+                                1446/08/07
+                              </time>
+
+                              <time
+                                class="company-update-item__date"
+                                datetime="2025-02-06T08:18:32"
+                              >
+                                06/02/2025 08:18:32
+                              </time>
+                            </div>
+                          </a>
+                        </article>
+                      </li>
+
+                      <li class="company-update-item">
+                        <article>
+                          <a class="company-update-item__link" href="#">
+                            <h3 class="company-update-item__title">
+                              Albilad Capital announces the rebalancing process
+                              for the Albilad MSCI Saudi Growth ETF shares
+                              basket
+                            </h3>
+
+                            <div class="company-update-item__meta">
+                              <span class="company-update-item__code">
+                                9524
+                              </span>
+
+                              <span class="company-update-item__symbol">
+                                AICTEC
+                              </span>
+
+                              <span
+                                class="company-update-item__change price-down"
+                              >
+                                <data value="-0.02">-0.02</data>
+
+                                <span
+                                  class="has-icon icon-triangle-down"
+                                  aria-hidden="true"
+                                ></span>
+
+                                <span dir="ltr">(-0.49%)</span>
+                              </span>
+
+                              <time
+                                class="company-update-item__hijri-date"
+                                datetime="2025-02-06"
+                              >
+                                1446/08/07
+                              </time>
+
+                              <time
+                                class="company-update-item__date"
+                                datetime="2025-02-06T08:18:32"
+                              >
+                                06/02/2025 08:18:32
+                              </time>
+                            </div>
+                          </a>
+                        </article>
+                      </li>
+
+                      <li class="company-update-item">
+                        <article>
+                          <a class="company-update-item__link" href="#">
+                            <h3 class="company-update-item__title">
+                              The Board of Directors of Lana Company invites
+                              shareholders to attend the Extraordinary General
+                              Assembly meeting through modern technology
+                            </h3>
+
+                            <div class="company-update-item__meta">
+                              <span class="company-update-item__code">
+                                9524
+                              </span>
+
+                              <span class="company-update-item__symbol">
+                                AICTEC
+                              </span>
+
+                              <span
+                                class="company-update-item__change price-down"
+                              >
+                                <data value="-0.02">-0.02</data>
+
+                                <span
+                                  class="has-icon icon-triangle-down"
+                                  aria-hidden="true"
+                                ></span>
+
+                                <span dir="ltr">(-0.49%)</span>
+                              </span>
+
+                              <time
+                                class="company-update-item__hijri-date"
+                                datetime="2025-02-06"
+                              >
+                                1446/08/07
+                              </time>
+
+                              <time
+                                class="company-update-item__date"
+                                datetime="2025-02-06T08:18:32"
+                              >
+                                06/02/2025 08:18:32
+                              </time>
+                            </div>
+                          </a>
+                        </article>
+                      </li>
+                    </ol>
+                  </section>
+
+                  <!-- =======================================================
+                 Corporate Actions
+            ======================================================== -->
+
+                  <section
+                    class="tab-pane company-updates__panel"
+                    id="corporate-actions-panel"
+                    role="tabpanel"
+                    aria-labelledby="corporate-actions-tab"
+                    tabindex="0"
+                    hidden
+                  >
+                    <!-- Corporate-action period tabs -->
+
+                    <div class="tabs company-updates__period-tabs" data-tabs>
+                      <div
+                        class="tabs-nav company-updates__period-nav"
+                        role="tablist"
+                        aria-label="Corporate action period"
+                      >
+                        <button
+                          class="tab-link company-updates__period-tab active"
+                          id="corporate-upcoming-tab"
+                          type="button"
+                          role="tab"
+                          aria-selected="true"
+                          aria-controls="corporate-upcoming-panel"
+                          tabindex="0"
+                          data-tab-target="corporate-upcoming-panel"
+                        >
+                          Upcoming Events
+                        </button>
+
+                        <button
+                          class="tab-link company-updates__period-tab"
+                          id="corporate-past-tab"
+                          type="button"
+                          role="tab"
+                          aria-selected="false"
+                          aria-controls="corporate-past-panel"
+                          tabindex="-1"
+                          data-tab-target="corporate-past-panel"
+                        >
+                          Past Events
+                        </button>
+                      </div>
+
+                      <div class="tabs-content company-updates__period-content">
+                        <!-- Upcoming events -->
+
+                        <section
+                          class="tab-pane company-updates__period-panel active"
+                          id="corporate-upcoming-panel"
+                          role="tabpanel"
+                          aria-labelledby="corporate-upcoming-tab"
+                          tabindex="0"
+                        >
+                          <ol
+                            class="company-updates__list company-updates__list--actions"
+                          >
+                            <li
+                              class="company-update-item company-update-item--action"
+                            >
+                              <article>
+                                <a class="company-update-item__link" href="#">
+                                  <div class="company-update-item__header">
+                                    <div class="company-update-item__identity">
+                                      <span class="company-update-item__code">
+                                        2222
+                                      </span>
+
+                                      <h3 class="company-update-item__company">
+                                        Saudi Aramco
+                                      </h3>
+                                    </div>
+
+                                    <span
+                                      class="company-update-item__change price-up"
+                                    >
+                                      <span
+                                        class="has-icon icon-triangle-up"
+                                        aria-hidden="true"
+                                      ></span>
+
+                                      <data value="0.20">0.20</data>
+
+                                      <span dir="ltr">(0.72%)</span>
+                                    </span>
+                                  </div>
+
+                                  <p class="company-update-item__type">
+                                    Bonus Shares
+                                  </p>
+
+                                  <dl class="company-update-item__details">
+                                    <div>
+                                      <dt>Eligibility Date</dt>
+
+                                      <dd>
+                                        <time datetime="2024-11-20">
+                                          20 Nov 2024
+                                        </time>
+                                      </dd>
+                                    </div>
+
+                                    <div>
+                                      <dt>New Capital</dt>
+
+                                      <dd>75,000,000,000</dd>
+                                    </div>
+                                  </dl>
+                                </a>
+                              </article>
+                            </li>
+
+                            <li
+                              class="company-update-item company-update-item--action"
+                            >
+                              <article>
+                                <a class="company-update-item__link" href="#">
+                                  <div class="company-update-item__header">
+                                    <div class="company-update-item__identity">
+                                      <span class="company-update-item__code">
+                                        2222
+                                      </span>
+
+                                      <h3 class="company-update-item__company">
+                                        Saudi Aramco
+                                      </h3>
+                                    </div>
+
+                                    <span
+                                      class="company-update-item__change price-up"
+                                    >
+                                      <span
+                                        class="has-icon icon-triangle-up"
+                                        aria-hidden="true"
+                                      ></span>
+
+                                      <data value="0.20">0.20</data>
+
+                                      <span dir="ltr">(0.72%)</span>
+                                    </span>
+                                  </div>
+
+                                  <p class="company-update-item__type">
+                                    Bonus Shares
+                                  </p>
+
+                                  <dl class="company-update-item__details">
+                                    <div>
+                                      <dt>Eligibility Date</dt>
+
+                                      <dd>
+                                        <time datetime="2024-11-20">
+                                          20 Nov 2024
+                                        </time>
+                                      </dd>
+                                    </div>
+
+                                    <div>
+                                      <dt>New Capital</dt>
+
+                                      <dd>75,000,000,000</dd>
+                                    </div>
+                                  </dl>
+                                </a>
+                              </article>
+                            </li>
+
+                            <li
+                              class="company-update-item company-update-item--action"
+                            >
+                              <article>
+                                <a class="company-update-item__link" href="#">
+                                  <div class="company-update-item__header">
+                                    <div class="company-update-item__identity">
+                                      <span class="company-update-item__code">
+                                        2222
+                                      </span>
+
+                                      <h3 class="company-update-item__company">
+                                        Saudi Aramco
+                                      </h3>
+                                    </div>
+
+                                    <span
+                                      class="company-update-item__change price-up"
+                                    >
+                                      <span
+                                        class="has-icon icon-triangle-up"
+                                        aria-hidden="true"
+                                      ></span>
+
+                                      <data value="0.20">0.20</data>
+
+                                      <span dir="ltr">(0.72%)</span>
+                                    </span>
+                                  </div>
+
+                                  <p class="company-update-item__type">
+                                    Bonus Shares
+                                  </p>
+
+                                  <dl class="company-update-item__details">
+                                    <div>
+                                      <dt>Eligibility Date</dt>
+
+                                      <dd>
+                                        <time datetime="2024-11-20">
+                                          20 Nov 2024
+                                        </time>
+                                      </dd>
+                                    </div>
+
+                                    <div>
+                                      <dt>New Capital</dt>
+
+                                      <dd>75,000,000,000</dd>
+                                    </div>
+                                  </dl>
+                                </a>
+                              </article>
+                            </li>
+                          </ol>
+                        </section>
+
+                        <!-- Past events -->
+
+                        <section
+                          class="tab-pane company-updates__period-panel"
+                          id="corporate-past-panel"
+                          role="tabpanel"
+                          aria-labelledby="corporate-past-tab"
+                          tabindex="0"
+                          hidden
+                        >
+                          <ol
+                            class="company-updates__list company-updates__list--actions"
+                          >
+                            <li
+                              class="company-update-item company-update-item--action"
+                            >
+                              <article>
+                                <a class="company-update-item__link" href="#">
+                                  <div class="company-update-item__header">
+                                    <div class="company-update-item__identity">
+                                      <span class="company-update-item__code">
+                                        2222
+                                      </span>
+
+                                      <h3 class="company-update-item__company">
+                                        Saudi Aramco
+                                      </h3>
+                                    </div>
+
+                                    <span
+                                      class="company-update-item__change price-up"
+                                    >
+                                      <span
+                                        class="has-icon icon-triangle-up"
+                                        aria-hidden="true"
+                                      ></span>
+
+                                      <data value="0.20">0.20</data>
+
+                                      <span dir="ltr">(0.72%)</span>
+                                    </span>
+                                  </div>
+
+                                  <p class="company-update-item__type">
+                                    Bonus Shares
+                                  </p>
+
+                                  <dl class="company-update-item__details">
+                                    <div>
+                                      <dt>Eligibility Date</dt>
+
+                                      <dd>
+                                        <time datetime="2024-09-12">
+                                          12 Sep 2024
+                                        </time>
+                                      </dd>
+                                    </div>
+
+                                    <div>
+                                      <dt>New Capital</dt>
+
+                                      <dd>75,000,000,000</dd>
+                                    </div>
+                                  </dl>
+                                </a>
+                              </article>
+                            </li>
+                          </ol>
+                        </section>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+
+              <!-- ===========================================================
+             Shared View-All Action
+
+             One footer for both primary update tabs.
+        ============================================================ -->
+
+              <div class="company-updates__footer">
+                <a
+                  class="btn btn-outline-primary btn-sm company-updates__view-all"
+                  href="#"
+                >
+                  <span>View All</span>
+
+                  <span
+                    class="has-icon icon-chevron-right icon-flip-rtl"
+                    aria-hidden="true"
+                  ></span>
+                </a>
+              </div>
+            </aside>
+          </div>
+        </div>
       </section>
 
       <!-- =================================================================
        Company Financial Information
   ================================================================== -->
 
-      <section class="company-financials">
-        <!-- Financial navigation and content -->
+      <!-- =================================================================
+     Financial Information
+================================================================== -->
+
+      <section
+        class="financial-information"
+        aria-labelledby="financial-information-title"
+      >
+        <div class="container">
+          <!-- =============================================================
+         Section Heading
+    ============================================================== -->
+
+          <header class="financial-information__header">
+            <h2
+              id="financial-information-title"
+              class="section-heading section-heading--lg financial-information__heading"
+            >
+              <span
+                class="section-heading__icon has-icon icon-analytics-steps"
+                aria-hidden="true"
+              ></span>
+
+              <span class="section-heading__text"> Financial Information </span>
+            </h2>
+          </header>
+
+          <!-- =============================================================
+         Financial Navigation
+    ============================================================== -->
+
+          <div
+            class="financial-navigation financial-navigation--no-side"
+            data-financial-navigation
+          >
+            <!-- ===========================================================
+           Primary Navigation
+      ============================================================ -->
+
+            <nav
+              class="financial-primary-tabs"
+              aria-label="Financial information categories"
+            >
+              <div
+                class="financial-primary-tabs__list"
+                role="tablist"
+                aria-orientation="horizontal"
+              >
+                <button
+                  class="financial-primary-tabs__item financial-primary-tabs__item--active"
+                  id="financial-primary-dividends"
+                  type="button"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="financial-content-dividends"
+                  tabindex="0"
+                  onclick="selectPrimary('dividends', this)"
+                >
+                  Dividends
+                </button>
+
+                <button
+                  class="financial-primary-tabs__item"
+                  id="financial-primary-financials"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="financial-secondary-financials"
+                  tabindex="-1"
+                  onclick="selectPrimary('financials', this)"
+                >
+                  Financials
+                </button>
+
+                <button
+                  class="financial-primary-tabs__item"
+                  id="financial-primary-shareholding"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="financial-secondary-shareholding"
+                  tabindex="-1"
+                  onclick="selectPrimary('shareholding', this)"
+                >
+                  Shareholding
+                </button>
+
+                <button
+                  class="financial-primary-tabs__item"
+                  id="financial-primary-options"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="financial-content-options"
+                  tabindex="-1"
+                  onclick="selectPrimary('options', this)"
+                >
+                  Options
+                </button>
+
+                <button
+                  class="financial-primary-tabs__item"
+                  id="financial-primary-profile"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="financial-secondary-profile"
+                  tabindex="-1"
+                  onclick="selectPrimary('profile', this)"
+                >
+                  Company Profile
+                </button>
+              </div>
+            </nav>
+
+            <!-- ===========================================================
+           Secondary Navigation
+      ============================================================ -->
+
+            <div class="financial-secondary-tabs" id="secondaryTabs">
+              <!-- Financials secondary navigation -->
+
+              <nav
+                class="financial-secondary-tabs__list is-hidden"
+                id="financial-secondary-financials"
+                data-secondary-group="financials"
+                aria-label="Financial categories"
+              >
+                <button
+                  class="financial-secondary-tabs__item financial-secondary-tabs__item--active"
+                  type="button"
+                  onclick="selectSecondary('fin-information', this)"
+                >
+                  Information
+                </button>
+
+                <button
+                  class="financial-secondary-tabs__item"
+                  type="button"
+                  onclick="selectSecondary('fin-financials', this)"
+                >
+                  Financial Reports
+                </button>
+              </nav>
+
+              <!-- Shareholding secondary navigation -->
+
+              <nav
+                class="financial-secondary-tabs__list is-hidden"
+                id="financial-secondary-shareholding"
+                data-secondary-group="shareholding"
+                aria-label="Shareholding categories"
+              >
+                <button
+                  class="financial-secondary-tabs__item financial-secondary-tabs__item--active"
+                  type="button"
+                  onclick="
+                    selectSecondary('shareholding-boardOfDirectors', this)
+                  "
+                >
+                  Board of Directors
+                </button>
+
+                <button
+                  class="financial-secondary-tabs__item"
+                  type="button"
+                  onclick="
+                    selectSecondary('shareholding-foreign-ownership', this)
+                  "
+                >
+                  Foreign Ownership
+                </button>
+
+                <button
+                  class="financial-secondary-tabs__item"
+                  type="button"
+                  onclick="
+                    selectSecondary(
+                      'shareholdings-substantial-shareholders',
+                      this,
+                    )
+                  "
+                >
+                  Substantial Shareholders
+                </button>
+              </nav>
+
+              <!-- Company profile secondary navigation -->
+
+              <nav
+                class="financial-secondary-tabs__list is-hidden"
+                id="financial-secondary-profile"
+                data-secondary-group="profile"
+                aria-label="Company profile categories"
+              >
+                <button
+                  class="financial-secondary-tabs__item financial-secondary-tabs__item--active"
+                  type="button"
+                  onclick="selectSecondary('profile-inforamtion', this)"
+                >
+                  Company Information
+                </button>
+
+                <button
+                  class="financial-secondary-tabs__item"
+                  type="button"
+                  onclick="selectSecondary('profile-equity', this)"
+                >
+                  Equity Profile
+                </button>
+
+                <button
+                  class="financial-secondary-tabs__item"
+                  type="button"
+                  onclick="selectSecondary('profile-leadership', this)"
+                >
+                  Leadership
+                </button>
+
+                <button
+                  class="financial-secondary-tabs__item"
+                  type="button"
+                  onclick="selectSecondary('profile-invistor-relation', this)"
+                >
+                  Investor Relations
+                </button>
+
+                <button
+                  class="financial-secondary-tabs__item"
+                  type="button"
+                  onclick="selectSecondary('profile-subsidiaries', this)"
+                >
+                  Subsidiaries
+                </button>
+              </nav>
+            </div>
+
+            <!-- ===========================================================
+           Main Layout
+      ============================================================ -->
+
+            <div class="financial-navigation__layout">
+              <!-- =========================================================
+             Contextual Side Navigation
+
+             Displayed only for financial information/report groups.
+        ========================================================== -->
+
+              <aside
+                class="financial-side-nav"
+                id="sideNav"
+                aria-label="Financial content periods and reports"
+              >
+                <!-- Information periods -->
+
+                <div
+                  class="financial-side-nav__list is-hidden"
+                  data-side-group="fin-information"
+                >
+                  <button
+                    class="financial-side-nav__item financial-side-nav__item--active"
+                    type="button"
+                    data-content-key="info-annually"
+                    onclick="selectSide('info-annually', this)"
+                  >
+                    Annually
+                  </button>
+
+                  <button
+                    class="financial-side-nav__item"
+                    type="button"
+                    data-content-key="info-quarterly"
+                    onclick="selectSide('info-quarterly', this)"
+                  >
+                    Quarterly
+                  </button>
+                </div>
+
+                <!-- Financial reports -->
+
+                <div
+                  class="financial-side-nav__list is-hidden"
+                  data-side-group="fin-financials"
+                >
+                  <button
+                    class="financial-side-nav__item financial-side-nav__item--active"
+                    type="button"
+                    data-content-key="fin-statements"
+                    onclick="selectSide('fin-statements', this)"
+                  >
+                    Financial Statements
+                  </button>
+
+                  <button
+                    class="financial-side-nav__item"
+                    type="button"
+                    data-content-key="fin-xbrl"
+                    onclick="selectSide('fin-xbrl', this)"
+                  >
+                    XBRL
+                  </button>
+
+                  <button
+                    class="financial-side-nav__item"
+                    type="button"
+                    data-content-key="fin-board-report"
+                    onclick="selectSide('fin-board-report', this)"
+                  >
+                    Board Report
+                  </button>
+
+                  <button
+                    class="financial-side-nav__item"
+                    type="button"
+                    data-content-key="fin-esg-report"
+                    onclick="selectSide('fin-esg-report', this)"
+                  >
+                    ESG Report
+                  </button>
+                </div>
+              </aside>
+
+              <!-- =========================================================
+             Financial Content
+        ========================================================== -->
+
+              <div class="financial-content" aria-live="polite">
+                <!-- =======================================================
+               Dividends
+          ======================================================== -->
+
+                <section
+                  class="financial-content__panel"
+                  id="financial-content-dividends"
+                  data-content="dividends"
+                  aria-labelledby="financial-primary-dividends"
+                >
+                  <header class="financial-panel-header">
+                    <div class="financial-panel-header__content">
+                      <p class="financial-panel-header__eyebrow">
+                        Distribution History
+                      </p>
+
+                      <h3 class="financial-panel-header__title">Dividends</h3>
+
+                      <p class="financial-panel-header__description">
+                        Historical cash distributions and dividend yield
+                        information.
+                      </p>
+                    </div>
+
+                    <div class="financial-panel-header__actions">
+                      <button
+                        class="btn btn-outline-primary btn-sm"
+                        type="button"
+                      >
+                        <span>Download</span>
+
+                        <span
+                          class="has-icon icon-file-download"
+                          aria-hidden="true"
+                        ></span>
+                      </button>
+                    </div>
+                  </header>
+
+                  <div class="financial-table-wrap">
+                    <table class="financial-table">
+                      <caption class="visually-hidden">
+                        Al Rajhi Bank dividend history
+                      </caption>
+
+                      <thead>
+                        <tr>
+                          <th scope="col">Year</th>
+                          <th scope="col">Announcement Date</th>
+                          <th scope="col">Eligibility Date</th>
+                          <th scope="col">Distribution Date</th>
+                          <th scope="col">Dividend per Share</th>
+                          <th scope="col">Yield</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        <tr>
+                          <th scope="row">2024</th>
+                          <td>
+                            <time datetime="2024-03-20">20 Mar 2024</time>
+                          </td>
+                          <td>
+                            <time datetime="2024-04-03">03 Apr 2024</time>
+                          </td>
+                          <td>
+                            <time datetime="2024-04-17">17 Apr 2024</time>
+                          </td>
+                          <td>
+                            <span class="financial-value">
+                              <span
+                                class="financial-value__currency has-icon icon-riyal"
+                                aria-hidden="true"
+                              ></span>
+
+                              <data value="2.10">2.10</data>
+                            </span>
+                          </td>
+                          <td>
+                            <data value="3.2">3.20%</data>
+                          </td>
+                        </tr>
+
+                        <tr>
+                          <th scope="row">2023</th>
+                          <td>
+                            <time datetime="2023-03-22">22 Mar 2023</time>
+                          </td>
+                          <td>
+                            <time datetime="2023-04-05">05 Apr 2023</time>
+                          </td>
+                          <td>
+                            <time datetime="2023-04-19">19 Apr 2023</time>
+                          </td>
+                          <td>
+                            <span class="financial-value">
+                              <span
+                                class="financial-value__currency has-icon icon-riyal"
+                                aria-hidden="true"
+                              ></span>
+
+                              <data value="1.85">1.85</data>
+                            </span>
+                          </td>
+                          <td>
+                            <data value="2.9">2.90%</data>
+                          </td>
+                        </tr>
+
+                        <tr>
+                          <th scope="row">2022</th>
+                          <td>
+                            <time datetime="2022-03-17">17 Mar 2022</time>
+                          </td>
+                          <td>
+                            <time datetime="2022-03-31">31 Mar 2022</time>
+                          </td>
+                          <td>
+                            <time datetime="2022-04-14">14 Apr 2022</time>
+                          </td>
+                          <td>
+                            <span class="financial-value">
+                              <span
+                                class="financial-value__currency has-icon icon-riyal"
+                                aria-hidden="true"
+                              ></span>
+
+                              <data value="1.40">1.40</data>
+                            </span>
+                          </td>
+                          <td>
+                            <data value="2.4">2.40%</data>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                <!-- =======================================================
+               Financial Information — Annual
+          ======================================================== -->
+
+                <section
+                  class="financial-content__panel is-hidden"
+                  data-content="info-annually"
+                  data-loaded="false"
+                  aria-label="Annual financial information"
+                >
+                  <div class="financial-content__async" data-financial-async>
+                    <div
+                      class="financial-loader"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      <span
+                        class="financial-loader__spinner"
+                        aria-hidden="true"
+                      ></span>
+
+                      <span class="financial-loader__text">
+                        Loading annual financial information
+                      </span>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- =======================================================
+               Financial Information — Quarterly
+          ======================================================== -->
+
+                <section
+                  class="financial-content__panel is-hidden"
+                  data-content="info-quarterly"
+                  data-loaded="false"
+                  aria-label="Quarterly financial information"
+                >
+                  <div class="financial-content__async" data-financial-async>
+                    <div
+                      class="financial-loader"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      <span
+                        class="financial-loader__spinner"
+                        aria-hidden="true"
+                      ></span>
+
+                      <span class="financial-loader__text">
+                        Loading quarterly financial information
+                      </span>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- =======================================================
+               Financial Statements
+          ======================================================== -->
+
+                <section
+                  class="financial-content__panel is-hidden"
+                  data-content="fin-statements"
+                  data-loaded="false"
+                  aria-label="Financial statements"
+                >
+                  <div class="financial-content__async" data-financial-async>
+                    <div
+                      class="financial-loader"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      <span
+                        class="financial-loader__spinner"
+                        aria-hidden="true"
+                      ></span>
+
+                      <span class="financial-loader__text">
+                        Loading financial statements
+                      </span>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- =======================================================
+               XBRL
+          ======================================================== -->
+
+                <section
+                  class="financial-content__panel is-hidden"
+                  data-content="fin-xbrl"
+                  data-loaded="false"
+                  aria-label="XBRL reports"
+                >
+                  <div class="financial-content__async" data-financial-async>
+                    <div
+                      class="financial-loader"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      <span
+                        class="financial-loader__spinner"
+                        aria-hidden="true"
+                      ></span>
+
+                      <span class="financial-loader__text">
+                        Loading XBRL reports
+                      </span>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- =======================================================
+               Board Report
+          ======================================================== -->
+
+                <section
+                  class="financial-content__panel is-hidden"
+                  data-content="fin-board-report"
+                  data-loaded="false"
+                  aria-label="Board reports"
+                >
+                  <div class="financial-content__async" data-financial-async>
+                    <div
+                      class="financial-loader"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      <span
+                        class="financial-loader__spinner"
+                        aria-hidden="true"
+                      ></span>
+
+                      <span class="financial-loader__text">
+                        Loading board reports
+                      </span>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- =======================================================
+               ESG Report
+          ======================================================== -->
+
+                <section
+                  class="financial-content__panel is-hidden"
+                  data-content="fin-esg-report"
+                  data-loaded="false"
+                  aria-label="ESG reports"
+                >
+                  <div class="financial-content__async" data-financial-async>
+                    <div
+                      class="financial-loader"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      <span
+                        class="financial-loader__spinner"
+                        aria-hidden="true"
+                      ></span>
+
+                      <span class="financial-loader__text">
+                        Loading ESG reports
+                      </span>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- =======================================================
+               Board of Directors
+          ======================================================== -->
+
+                <section
+                  class="financial-content__panel is-hidden"
+                  data-content="shareholding-boardOfDirectors"
+                  aria-labelledby="board-of-directors-title"
+                >
+                  <header class="financial-panel-header">
+                    <div class="financial-panel-header__content">
+                      <p class="financial-panel-header__eyebrow">Governance</p>
+
+                      <h3
+                        id="board-of-directors-title"
+                        class="financial-panel-header__title"
+                      >
+                        Board of Directors
+                      </h3>
+
+                      <p class="financial-panel-header__description">
+                        Current board composition and leadership information.
+                      </p>
+                    </div>
+                  </header>
+
+                  <!-- Nested board tabs -->
+
+                  <div class="tabs financial-inner-tabs" data-tabs>
+                    <div
+                      class="tabs-nav financial-inner-tabs__nav"
+                      role="tablist"
+                      aria-label="Board of directors information"
+                    >
+                      <button
+                        class="tab-link financial-inner-tabs__tab active"
+                        id="board-summary-tab"
+                        type="button"
+                        role="tab"
+                        aria-selected="true"
+                        aria-controls="board-summary-panel"
+                        tabindex="0"
+                        data-tab-target="board-summary-panel"
+                      >
+                        Board Summary
+                      </button>
+
+                      <button
+                        class="tab-link financial-inner-tabs__tab"
+                        id="board-members-tab"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="board-members-panel"
+                        tabindex="-1"
+                        data-tab-target="board-members-panel"
+                      >
+                        Board Members
+                      </button>
+
+                      <button
+                        class="tab-link financial-inner-tabs__tab"
+                        id="board-committees-tab"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="board-committees-panel"
+                        tabindex="-1"
+                        data-tab-target="board-committees-panel"
+                      >
+                        Committees
+                      </button>
+                    </div>
+
+                    <div class="tabs-content financial-inner-tabs__content">
+                      <!-- Board summary -->
+
+                      <section
+                        class="tab-pane financial-inner-tabs__panel active"
+                        id="board-summary-panel"
+                        role="tabpanel"
+                        aria-labelledby="board-summary-tab"
+                        tabindex="0"
+                      >
+                        <dl class="financial-summary-grid">
+                          <div class="financial-summary-grid__item">
+                            <dt>Current Session</dt>
+                            <dd>2024–2028</dd>
+                          </div>
+
+                          <div class="financial-summary-grid__item">
+                            <dt>Board Members</dt>
+                            <dd>11</dd>
+                          </div>
+
+                          <div class="financial-summary-grid__item">
+                            <dt>Independent Members</dt>
+                            <dd>6</dd>
+                          </div>
+
+                          <div class="financial-summary-grid__item">
+                            <dt>Executive Members</dt>
+                            <dd>2</dd>
+                          </div>
+
+                          <div class="financial-summary-grid__item">
+                            <dt>Non-Executive Members</dt>
+                            <dd>9</dd>
+                          </div>
+
+                          <div class="financial-summary-grid__item">
+                            <dt>Status</dt>
+                            <dd>Active</dd>
+                          </div>
+                        </dl>
+                      </section>
+
+                      <!-- Board members -->
+
+                      <section
+                        class="tab-pane financial-inner-tabs__panel"
+                        id="board-members-panel"
+                        role="tabpanel"
+                        aria-labelledby="board-members-tab"
+                        tabindex="0"
+                        hidden
+                      >
+                        <ul class="leadership-grid">
+                          <li class="leader-card">
+                            <article class="leader-card__body">
+                              <header class="leader-card__header">
+                                <div>
+                                  <h4 class="leader-card__name">
+                                    Abdullah Al Rajhi
+                                  </h4>
+
+                                  <p class="leader-card__role">Chairman</p>
+                                </div>
+
+                                <span class="badge badge-primary">
+                                  Independent
+                                </span>
+                              </header>
+
+                              <dl class="leader-card__meta">
+                                <div class="leader-card__row">
+                                  <dt>Session</dt>
+                                  <dd>2024–2028</dd>
+                                </div>
+
+                                <div class="leader-card__row">
+                                  <dt>Classification</dt>
+                                  <dd>Board</dd>
+                                </div>
+
+                                <div class="leader-card__row">
+                                  <dt>Qualification</dt>
+                                  <dd>Master of Business Administration</dd>
+                                </div>
+                              </dl>
+                            </article>
+                          </li>
+
+                          <li class="leader-card">
+                            <article class="leader-card__body">
+                              <header class="leader-card__header">
+                                <div>
+                                  <h4 class="leader-card__name">
+                                    Mohammed Al Rajhi
+                                  </h4>
+
+                                  <p class="leader-card__role">Vice Chairman</p>
+                                </div>
+
+                                <span class="badge badge-primary">
+                                  Non-Executive
+                                </span>
+                              </header>
+
+                              <dl class="leader-card__meta">
+                                <div class="leader-card__row">
+                                  <dt>Session</dt>
+                                  <dd>2024–2028</dd>
+                                </div>
+
+                                <div class="leader-card__row">
+                                  <dt>Classification</dt>
+                                  <dd>Board</dd>
+                                </div>
+
+                                <div class="leader-card__row">
+                                  <dt>Qualification</dt>
+                                  <dd>Bachelor of Finance</dd>
+                                </div>
+                              </dl>
+                            </article>
+                          </li>
+                        </ul>
+                      </section>
+
+                      <!-- Committees -->
+
+                      <section
+                        class="tab-pane financial-inner-tabs__panel"
+                        id="board-committees-panel"
+                        role="tabpanel"
+                        aria-labelledby="board-committees-tab"
+                        tabindex="0"
+                        hidden
+                      >
+                        <div class="financial-document-list">
+                          <article class="financial-document-item">
+                            <div class="financial-document-item__content">
+                              <span
+                                class="financial-document-item__icon has-icon icon-list-bullet"
+                                aria-hidden="true"
+                              ></span>
+
+                              <div>
+                                <h4 class="financial-document-item__title">
+                                  Audit Committee
+                                </h4>
+
+                                <p class="financial-document-item__description">
+                                  Oversees financial reporting, internal
+                                  controls and external audit activities.
+                                </p>
+                              </div>
+                            </div>
+                          </article>
+
+                          <article class="financial-document-item">
+                            <div class="financial-document-item__content">
+                              <span
+                                class="financial-document-item__icon has-icon icon-list-bullet"
+                                aria-hidden="true"
+                              ></span>
+
+                              <div>
+                                <h4 class="financial-document-item__title">
+                                  Nomination and Remuneration Committee
+                                </h4>
+
+                                <p class="financial-document-item__description">
+                                  Oversees board appointments, succession and
+                                  remuneration practices.
+                                </p>
+                              </div>
+                            </div>
+                          </article>
+                        </div>
+                      </section>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- =======================================================
+               Foreign Ownership
+          ======================================================== -->
+
+                <section
+                  class="financial-content__panel is-hidden"
+                  data-content="shareholding-foreign-ownership"
+                  data-loaded="false"
+                  aria-label="Foreign ownership"
+                >
+                  <div class="financial-content__async" data-financial-async>
+                    <div
+                      class="financial-loader"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      <span
+                        class="financial-loader__spinner"
+                        aria-hidden="true"
+                      ></span>
+
+                      <span class="financial-loader__text">
+                        Loading foreign ownership information
+                      </span>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- =======================================================
+               Substantial Shareholders
+          ======================================================== -->
+
+                <section
+                  class="financial-content__panel is-hidden"
+                  data-content="shareholdings-substantial-shareholders"
+                  data-loaded="false"
+                  aria-label="Substantial shareholders"
+                >
+                  <div class="financial-content__async" data-financial-async>
+                    <div
+                      class="financial-loader"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      <span
+                        class="financial-loader__spinner"
+                        aria-hidden="true"
+                      ></span>
+
+                      <span class="financial-loader__text">
+                        Loading substantial shareholder information
+                      </span>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- =======================================================
+               Options
+          ======================================================== -->
+
+                <section
+                  class="financial-content__panel is-hidden"
+                  id="financial-content-options"
+                  data-content="options"
+                  aria-labelledby="financial-primary-options"
+                >
+                  <header class="financial-panel-header">
+                    <div class="financial-panel-header__content">
+                      <p class="financial-panel-header__eyebrow">Derivatives</p>
+
+                      <h3 class="financial-panel-header__title">Options</h3>
+
+                      <p class="financial-panel-header__description">
+                        Available option contracts, open interest and implied
+                        volatility information.
+                      </p>
+                    </div>
+                  </header>
+
+                  <div class="financial-empty-state">
+                    <span
+                      class="financial-empty-state__icon has-icon icon-analytics-filter"
+                      aria-hidden="true"
+                    ></span>
+
+                    <h4 class="financial-empty-state__title">
+                      Options data will be available here
+                    </h4>
+
+                    <p class="financial-empty-state__text">
+                      Select a contract or expiry period when the derivatives
+                      feed is connected.
+                    </p>
+                  </div>
+                </section>
+
+                <!-- =======================================================
+               Company Information
+          ======================================================== -->
+
+                <section
+                  class="financial-content__panel is-hidden"
+                  data-content="profile-inforamtion"
+                  aria-labelledby="company-information-title"
+                >
+                  <header class="financial-panel-header">
+                    <div class="financial-panel-header__content">
+                      <p class="financial-panel-header__eyebrow">
+                        Company Profile
+                      </p>
+
+                      <h3
+                        id="company-information-title"
+                        class="financial-panel-header__title"
+                      >
+                        Company Information
+                      </h3>
+                    </div>
+                  </header>
+
+                  <dl class="financial-summary-grid">
+                    <div class="financial-summary-grid__item">
+                      <dt>Company Name</dt>
+                      <dd>Al Rajhi Bank</dd>
+                    </div>
+
+                    <div class="financial-summary-grid__item">
+                      <dt>Trading Name</dt>
+                      <dd>ALRAJHI</dd>
+                    </div>
+
+                    <div class="financial-summary-grid__item">
+                      <dt>Company Code</dt>
+                      <dd>1120</dd>
+                    </div>
+
+                    <div class="financial-summary-grid__item">
+                      <dt>Market</dt>
+                      <dd>Main Market</dd>
+                    </div>
+
+                    <div class="financial-summary-grid__item">
+                      <dt>Industry Group</dt>
+                      <dd>Banks</dd>
+                    </div>
+
+                    <div class="financial-summary-grid__item">
+                      <dt>Established</dt>
+                      <dd>1957</dd>
+                    </div>
+                  </dl>
+
+                  <div class="financial-rich-text">
+                    <h4>Company Overview</h4>
+
+                    <p>
+                      Al Rajhi Bank provides retail, corporate, treasury and
+                      investment banking services through an extensive domestic
+                      and international network.
+                    </p>
+                  </div>
+                </section>
+
+                <!-- =======================================================
+               Equity Profile
+          ======================================================== -->
+
+                <section
+                  class="financial-content__panel is-hidden"
+                  data-content="profile-equity"
+                  aria-labelledby="equity-profile-title"
+                >
+                  <header class="financial-panel-header">
+                    <div class="financial-panel-header__content">
+                      <p class="financial-panel-header__eyebrow">
+                        Capital Structure
+                      </p>
+
+                      <h3
+                        id="equity-profile-title"
+                        class="financial-panel-header__title"
+                      >
+                        Equity Profile
+                      </h3>
+                    </div>
+                  </header>
+
+                  <dl class="financial-summary-grid">
+                    <div class="financial-summary-grid__item">
+                      <dt>Authorised Capital</dt>
+                      <dd>
+                        <span class="financial-value">
+                          <span
+                            class="financial-value__currency has-icon icon-riyal"
+                            aria-hidden="true"
+                          ></span>
+
+                          <span>40,000,000,000</span>
+                        </span>
+                      </dd>
+                    </div>
+
+                    <div class="financial-summary-grid__item">
+                      <dt>Paid-up Capital</dt>
+                      <dd>
+                        <span class="financial-value">
+                          <span
+                            class="financial-value__currency has-icon icon-riyal"
+                            aria-hidden="true"
+                          ></span>
+
+                          <span>40,000,000,000</span>
+                        </span>
+                      </dd>
+                    </div>
+
+                    <div class="financial-summary-grid__item">
+                      <dt>Issued Shares</dt>
+                      <dd>4,000,000,000</dd>
+                    </div>
+
+                    <div class="financial-summary-grid__item">
+                      <dt>Par Value</dt>
+                      <dd>
+                        <span class="financial-value">
+                          <span
+                            class="financial-value__currency has-icon icon-riyal"
+                            aria-hidden="true"
+                          ></span>
+
+                          <span>10.00</span>
+                        </span>
+                      </dd>
+                    </div>
+                  </dl>
+                </section>
+
+                <!-- =======================================================
+               Leadership
+          ======================================================== -->
+
+                <section
+                  class="financial-content__panel is-hidden"
+                  data-content="profile-leadership"
+                  aria-labelledby="leadership-title"
+                >
+                  <header class="financial-panel-header">
+                    <div class="financial-panel-header__content">
+                      <p class="financial-panel-header__eyebrow">Management</p>
+
+                      <h3
+                        id="leadership-title"
+                        class="financial-panel-header__title"
+                      >
+                        Executive Leadership
+                      </h3>
+                    </div>
+                  </header>
+
+                  <ul class="leadership-grid">
+                    <li class="leader-card">
+                      <article class="leader-card__body">
+                        <header class="leader-card__header">
+                          <div>
+                            <h4 class="leader-card__name">Waleed Al Mogbel</h4>
+
+                            <p class="leader-card__role">
+                              Chief Executive Officer
+                            </p>
+                          </div>
+                        </header>
+
+                        <p class="leader-card__description">
+                          Responsible for the bank’s strategic direction,
+                          operational performance and long-term growth.
+                        </p>
+
+                        <button
+                          class="leader-card__toggle"
+                          type="button"
+                          aria-expanded="false"
+                        >
+                          Show more
+                        </button>
+                      </article>
+                    </li>
+                  </ul>
+                </section>
+
+                <!-- =======================================================
+               Investor Relations
+          ======================================================== -->
+
+                <section
+                  class="financial-content__panel is-hidden"
+                  data-content="profile-invistor-relation"
+                  aria-labelledby="investor-relations-title"
+                >
+                  <header class="financial-panel-header">
+                    <div class="financial-panel-header__content">
+                      <p class="financial-panel-header__eyebrow">Contact</p>
+
+                      <h3
+                        id="investor-relations-title"
+                        class="financial-panel-header__title"
+                      >
+                        Investor Relations
+                      </h3>
+                    </div>
+                  </header>
+
+                  <div class="financial-contact-card">
+                    <div class="financial-contact-card__content">
+                      <h4 class="financial-contact-card__title">
+                        Investor Relations Department
+                      </h4>
+
+                      <p class="financial-contact-card__text">
+                        Contact the investor relations team for shareholder and
+                        financial-reporting enquiries.
+                      </p>
+
+                      <address class="financial-contact-card__address">
+                        <a href="mailto:investor.relations@alrajhibank.com.sa">
+                          <span
+                            class="has-icon icon-inbox-email"
+                            aria-hidden="true"
+                          ></span>
+
+                          <span> investor.relations@alrajhibank.com.sa </span>
+                        </a>
+
+                        <a href="tel:+966112116000">
+                          <span
+                            class="has-icon icon-telephone-handle"
+                            aria-hidden="true"
+                          ></span>
+
+                          <span dir="ltr"> +966 11 211 6000 </span>
+                        </a>
+                      </address>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- =======================================================
+               Subsidiaries
+          ======================================================== -->
+
+                <section
+                  class="financial-content__panel is-hidden"
+                  data-content="profile-subsidiaries"
+                  aria-labelledby="subsidiaries-title"
+                >
+                  <header class="financial-panel-header">
+                    <div class="financial-panel-header__content">
+                      <p class="financial-panel-header__eyebrow">
+                        Group Companies
+                      </p>
+
+                      <h3
+                        id="subsidiaries-title"
+                        class="financial-panel-header__title"
+                      >
+                        Subsidiaries
+                      </h3>
+                    </div>
+                  </header>
+
+                  <div class="financial-document-list">
+                    <article class="financial-document-item">
+                      <div class="financial-document-item__content">
+                        <span
+                          class="financial-document-item__icon has-icon icon-panel-dashboard"
+                          aria-hidden="true"
+                        ></span>
+
+                        <div>
+                          <h4 class="financial-document-item__title">
+                            Al Rajhi Capital
+                          </h4>
+
+                          <p class="financial-document-item__description">
+                            Investment banking, brokerage and asset-management
+                            services.
+                          </p>
+                        </div>
+                      </div>
+
+                      <a
+                        class="btn btn-link financial-document-item__action"
+                        href="#"
+                      >
+                        <span>View Details</span>
+
+                        <span
+                          class="has-icon icon-chevron-right icon-flip-rtl"
+                          aria-hidden="true"
+                        ></span>
+                      </a>
+                    </article>
+
+                    <article class="financial-document-item">
+                      <div class="financial-document-item__content">
+                        <span
+                          class="financial-document-item__icon has-icon icon-panel-dashboard"
+                          aria-hidden="true"
+                        ></span>
+
+                        <div>
+                          <h4 class="financial-document-item__title">
+                            Al Rajhi Development Company
+                          </h4>
+
+                          <p class="financial-document-item__description">
+                            Property development and investment activities.
+                          </p>
+                        </div>
+                      </div>
+
+                      <a
+                        class="btn btn-link financial-document-item__action"
+                        href="#"
+                      >
+                        <span>View Details</span>
+
+                        <span
+                          class="has-icon icon-chevron-right icon-flip-rtl"
+                          aria-hidden="true"
+                        ></span>
+                      </a>
+                    </article>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
     </main>
     <footer class="site-footer" aria-labelledby="site-footer-title">

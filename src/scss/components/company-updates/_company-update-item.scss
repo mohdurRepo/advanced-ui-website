@@ -1,0 +1,389 @@
+@use "../../abstracts" as *;
+
+/* ==========================================================================
+   Company Update Item
+   ========================================================================== */
+
+.company-update-item {
+  min-inline-size: 0;
+
+  border-block-end: 1px solid var(--color-border);
+
+  &:last-child {
+    border-block-end: 0;
+  }
+}
+
+.company-update-item > article {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Link
+   ========================================================================== */
+
+.company-update-item__link {
+  display: grid;
+  gap: 0.625rem;
+
+  min-inline-size: 0;
+
+  margin-inline: -0.5rem;
+  padding: 1rem 0.5rem;
+
+  border-radius: var(--radius-md);
+
+  color: inherit;
+  text-decoration: none;
+
+  @include transition((background-color, border-color), fast);
+
+  &:hover {
+    background: color-mix(in oklab, var(--color-primary), transparent 95%);
+
+    .company-update-item__title,
+    .company-update-item__company {
+      color: var(--color-primary);
+    }
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Announcement Title
+   ========================================================================== */
+
+.company-update-item__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("semibold");
+  line-height: 1.35;
+
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+
+  @include transition(color, fast);
+}
+
+/* ==========================================================================
+   Metadata
+   ========================================================================== */
+
+.company-update-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.625rem;
+
+  min-inline-size: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-tight);
+
+  font-variant-numeric: tabular-nums;
+}
+
+.company-update-item__code,
+.company-update-item__symbol,
+.company-update-item__hijri-date,
+.company-update-item__date {
+  white-space: nowrap;
+}
+
+.company-update-item__symbol {
+  color: var(--color-heading);
+
+  font-weight: font-weight("semibold");
+}
+
+.company-update-item__change {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  white-space: nowrap;
+
+  font-weight: font-weight("bold");
+
+  .has-icon {
+    --icon-size: 0.5rem;
+  }
+}
+
+.company-update-item__hijri-date {
+  margin-inline-start: auto;
+}
+
+/* ==========================================================================
+   Corporate Action Card
+   ========================================================================== */
+
+.company-update-item--action {
+  position: relative;
+  isolation: isolate;
+
+  overflow: hidden;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
+
+  box-shadow: var(--shadow-sm);
+
+  &::after {
+    content: "";
+
+    position: absolute;
+
+    inset-inline-end: -1rem;
+    inset-block-end: -1rem;
+    z-index: -1;
+
+    inline-size: 7rem;
+    block-size: 7rem;
+
+    background-image: url("../../assets/images/background-pattern.png");
+    background-repeat: no-repeat;
+    background-position: right bottom;
+    background-size: contain;
+
+    opacity: 0.12;
+
+    pointer-events: none;
+  }
+
+  .company-update-item__link {
+    margin: 0;
+    padding: 0.875rem 1rem;
+
+    border-radius: inherit;
+  }
+}
+
+/* ==========================================================================
+   Corporate Action Header
+   ========================================================================== */
+
+.company-update-item__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  min-inline-size: 0;
+}
+
+.company-update-item__identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Corporate Action Code
+   ========================================================================== */
+
+.company-update-item--action .company-update-item__code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-block-size: 1.75rem;
+
+  padding-inline: 0.5rem;
+
+  border-radius: var(--radius-sm);
+
+  background: color-mix(in oklab, var(--color-primary), transparent 64%);
+
+  color: #ffffff;
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("bold");
+}
+
+/* ==========================================================================
+   Company Name
+   ========================================================================== */
+
+.company-update-item__company {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  overflow-wrap: anywhere;
+
+  @include transition(color, fast);
+}
+
+/* ==========================================================================
+   Type
+   ========================================================================== */
+
+.company-update-item__type {
+  margin: 0;
+
+  color: var(--color-primary);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Details
+   ========================================================================== */
+
+.company-update-item__details {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+
+  min-inline-size: 0;
+
+  margin: 0;
+}
+
+.company-update-item__details > div {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+
+  &:not(:last-child)::after {
+    content: "";
+
+    inline-size: 1px;
+    block-size: 0.875rem;
+
+    margin-inline-start: 0.625rem;
+
+    background: var(--color-border);
+  }
+}
+
+.company-update-item__details dt {
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("medium");
+
+  white-space: nowrap;
+}
+
+.company-update-item__details dd {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("semibold");
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .company-update-item--action::after {
+    background-position: left bottom;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .company-update-item__link {
+    margin-inline: -0.25rem;
+    padding: 0.875rem 0.25rem;
+  }
+
+  .company-update-item__title {
+    font-size: var(--text-xs);
+  }
+
+  .company-update-item__hijri-date {
+    margin-inline-start: 0;
+  }
+
+  .company-update-item__date {
+    flex-basis: 100%;
+  }
+
+  .company-update-item--action .company-update-item__link {
+    padding: 0.875rem;
+  }
+
+  .company-update-item__header {
+    align-items: flex-start;
+  }
+
+  .company-update-item__details {
+    display: grid;
+    gap: 0.375rem;
+  }
+
+  .company-update-item__details > div {
+    &:not(:last-child)::after {
+      display: none;
+    }
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .company-update-item,
+  .company-update-item--action {
+    border-width: 2px;
+  }
+
+  .company-update-item--action::after {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .company-update-item__link,
+  .company-update-item__title,
+  .company-update-item__company {
+    transition: none;
+  }
+}

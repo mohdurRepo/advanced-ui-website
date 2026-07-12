@@ -1,0 +1,206 @@
+@use "../../abstracts" as *;
+
+/* ==========================================================================
+   Performance Chart
+   ========================================================================== */
+
+.performance-chart {
+  --performance-chart-bg: var(--color-surface);
+  --performance-chart-fg: var(--color-text);
+  --performance-chart-border: var(--color-border);
+
+  --performance-chart-radius: var(--radius-xl);
+  --performance-chart-shadow: var(--shadow-md);
+
+  --performance-chart-space: clamp(1rem, 2vw, 1.5rem);
+  --performance-chart-height: clamp(18rem, 25vw, 23rem);
+
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  overflow: visible;
+
+  border: 1px solid var(--performance-chart-border);
+  border-radius: var(--performance-chart-radius);
+
+  background: var(--performance-chart-bg);
+  color: var(--performance-chart-fg);
+
+  box-shadow: var(--performance-chart-shadow);
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.performance-chart__header {
+  flex: 0 0 auto;
+
+  min-inline-size: 0;
+
+  padding: var(--performance-chart-space);
+
+  border-block-end: 1px solid var(--performance-chart-border);
+}
+
+/* ==========================================================================
+   Body
+   ========================================================================== */
+
+.performance-chart__body {
+  flex: 0 0 auto;
+
+  min-inline-size: 0;
+
+  padding: var(--performance-chart-space) var(--performance-chart-space)
+    var(--performance-chart-space);
+}
+
+/* ==========================================================================
+   Chart Surface
+   ========================================================================== */
+
+.chart-surface {
+  position: relative;
+  isolation: isolate;
+
+  display: grid;
+  place-items: stretch;
+
+  min-inline-size: 0;
+  block-size: var(--performance-chart-height);
+
+  overflow: hidden;
+
+  border: 1px solid var(--performance-chart-border);
+  border-radius: var(--radius-lg);
+
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--color-primary), transparent 97%),
+      transparent 32%
+    ),
+    var(--color-surface);
+}
+
+/* ==========================================================================
+   Chart Canvas
+   ========================================================================== */
+
+.chart-canvas {
+  position: relative;
+  z-index: 1;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+.chart-canvas,
+.chart-canvas > div,
+.chart-canvas canvas,
+.chart-canvas svg {
+  max-inline-size: 100%;
+  max-block-size: 100%;
+}
+
+.chart-canvas > div {
+  inline-size: 100% !important;
+  block-size: 100% !important;
+}
+
+/* ==========================================================================
+   Fullscreen
+   ========================================================================== */
+
+.performance-chart:fullscreen {
+  inline-size: 100vw;
+  block-size: 100vh;
+
+  overflow-y: auto;
+
+  border: 0;
+  border-radius: 0;
+
+  background: var(--performance-chart-bg);
+}
+
+.performance-chart:fullscreen .chart-surface {
+  block-size: calc(100vh - 13rem);
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .performance-chart {
+    --performance-chart-height: clamp(19rem, 47vw, 25rem);
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .performance-chart {
+    --performance-chart-space: 1rem;
+    --performance-chart-height: clamp(18rem, 58vw, 23rem);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .performance-chart {
+    --performance-chart-radius: var(--radius-lg);
+    --performance-chart-space: 0.875rem;
+    --performance-chart-height: 18rem;
+  }
+
+  .chart-surface {
+    border-radius: var(--radius-md);
+  }
+}
+
+@media (max-width: 360px) {
+  .performance-chart {
+    --performance-chart-height: 16rem;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .performance-chart {
+    --performance-chart-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .performance-chart,
+  .chart-surface {
+    border-width: 2px;
+
+    box-shadow: none;
+  }
+
+  .chart-surface {
+    background: var(--color-surface);
+  }
+}

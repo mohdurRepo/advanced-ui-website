@@ -81,7 +81,7 @@
 
   color: var(--page-hero-fg, #ffffff);
 
-  font-size: clamp(2rem, 3vw, 3.25rem);
+  font-size: clamp(2rem, 3vw, 2.25rem);
   font-weight: font-weight("heavy");
   line-height: 1.05;
 
@@ -421,7 +421,7 @@
   }
 
   .company-identity__name {
-    font-size: var(--text-2xl);
+    font-size: var(--text-xl);
   }
 
   .company-identity__instrument-row {

@@ -1,0 +1,222 @@
+@use "../../abstracts" as *;
+
+/* ==========================================================================
+   Chart Notes
+   ========================================================================== */
+
+.chart-notes {
+  --chart-notes-fg: var(--color-text);
+  --chart-notes-muted: var(--color-text-muted);
+
+  --chart-notes-icon-fg: var(--color-primary);
+
+  position: relative;
+  z-index: 1;
+
+  display: block;
+
+  min-inline-size: 0;
+
+  margin-block-start: 1rem;
+
+  overflow: visible;
+}
+
+/* ==========================================================================
+   List
+   ========================================================================== */
+
+.chart-notes__list {
+  display: grid;
+  gap: 0.75rem;
+
+  min-inline-size: 0;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Item
+   ========================================================================== */
+
+.chart-notes__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+
+  min-inline-size: 0;
+
+  color: var(--chart-notes-fg);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Text
+   ========================================================================== */
+
+.chart-notes__text {
+  min-inline-size: 0;
+
+  color: var(--chart-notes-muted);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Status Icon
+   ========================================================================== */
+
+.chart-notes__status {
+  --icon-size: 0.6875rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+
+  flex: 0 0 auto;
+
+  margin-block-start: 0.05rem;
+
+  border: 1px solid color-mix(in oklab, var(--color-primary), transparent 74%);
+
+  border-radius: var(--radius-pill);
+
+  color: var(--chart-notes-icon-fg);
+}
+
+/* ==========================================================================
+   Tooltip
+   ========================================================================== */
+
+.chart-notes__tooltip {
+  flex: 0 0 auto;
+
+  margin-inline-start: 0.125rem;
+}
+
+/* ==========================================================================
+   Information Trigger
+   ========================================================================== */
+
+.chart-notes__info {
+  --icon-size: 0.6875rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+
+  padding: 0;
+
+  border: 1px solid color-mix(in oklab, var(--color-primary), transparent 72%);
+
+  border-radius: var(--radius-pill);
+
+  background: color-mix(in oklab, var(--color-primary), transparent 92%);
+
+  color: var(--color-primary);
+
+  cursor: help;
+
+  @include transition((background-color, border-color, color, transform), fast);
+
+  &:hover {
+    border-color: var(--color-primary);
+
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+
+    transform: translateY(-1px);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .chart-notes {
+    padding: 1rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .chart-notes {
+    margin-block-start: 0.875rem;
+    padding: 0.875rem;
+  }
+
+  .chart-notes__list {
+    gap: 0.625rem;
+  }
+
+  .chart-notes__item {
+    gap: 0.5rem;
+
+    font-size: var(--text-xs);
+  }
+
+  .chart-notes__status,
+  .chart-notes__info {
+    inline-size: 1.375rem;
+    block-size: 1.375rem;
+
+    --icon-size: 0.625rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .chart-notes {
+    --chart-notes-fg: var(--color-text);
+    --chart-notes-muted: var(--color-text);
+
+    border-width: 2px;
+  }
+
+  .chart-notes__status,
+  .chart-notes__info {
+    border: 2px solid currentColor;
+
+    background: transparent;
+    color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .chart-notes__info {
+    transition: none;
+  }
+
+  .chart-notes__info:hover {
+    transform: none;
+  }
+}

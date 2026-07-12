@@ -1,0 +1,189 @@
+@use "../../abstracts" as *;
+
+/* ==========================================================================
+   Chart Export
+   ========================================================================== */
+
+.chart-export {
+  position: relative;
+
+  display: inline-flex;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Trigger
+   ========================================================================== */
+
+.chart-export__trigger {
+  &[aria-expanded="true"] {
+    background: var(--color-surface-alt);
+    color: var(--color-primary);
+  }
+}
+
+/* ==========================================================================
+   Menu
+   ========================================================================== */
+
+.chart-export-menu {
+  position: absolute;
+
+  inset-block-start: calc(100% + 0.5rem);
+  inset-inline-end: 0;
+  z-index: var(--z-dropdown);
+
+  display: grid;
+  gap: 0.25rem;
+
+  inline-size: max-content;
+  min-inline-size: 14rem;
+  max-inline-size: min(18rem, calc(100vw - 2rem));
+
+  margin: 0;
+  padding: 0.5rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  box-shadow: var(--shadow-lg);
+
+  list-style: none;
+
+  &[hidden] {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Menu Item
+   ========================================================================== */
+
+.chart-export-menu li {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Menu Button
+   ========================================================================== */
+
+.chart-export-menu button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  inline-size: 100%;
+  min-block-size: 2.5rem;
+
+  padding: 0.625rem 0.75rem;
+
+  border: 0;
+  border-radius: var(--radius-md);
+
+  background: transparent;
+  color: var(--color-text);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  text-align: start;
+
+  cursor: pointer;
+
+  @include transition((background-color, color), fast);
+
+  .has-icon {
+    --icon-size: 1rem;
+
+    flex: 0 0 auto;
+
+    color: var(--color-text-muted);
+  }
+
+  &:hover {
+    background: var(--color-surface-alt);
+    color: var(--color-heading);
+
+    .has-icon {
+      color: var(--color-primary);
+    }
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Separator
+   ========================================================================== */
+
+.chart-export-menu__separator {
+  block-size: 1px;
+
+  margin-block: 0.25rem;
+
+  background: var(--color-border);
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .chart-export-menu {
+    position: fixed;
+
+    inset-inline: 1rem;
+    inset-block-start: auto;
+    inset-block-end: 1rem;
+
+    inline-size: auto;
+    max-inline-size: none;
+
+    padding: 0.625rem;
+
+    border-radius: var(--radius-xl);
+  }
+
+  .chart-export-menu button {
+    min-block-size: 2.75rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .chart-export-menu {
+    border-width: 2px;
+
+    box-shadow: none;
+  }
+
+  .chart-export-menu__separator {
+    block-size: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .chart-export__trigger,
+  .chart-export-menu button {
+    transition: none;
+  }
+}
