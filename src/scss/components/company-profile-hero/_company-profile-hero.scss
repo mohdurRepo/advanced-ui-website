@@ -1,0 +1,209 @@
+@use "../../abstracts" as *;
+
+/* ==========================================================================
+   Company Profile Hero
+   ========================================================================== */
+
+.company-profile-hero {
+  --company-profile-gap: clamp(2rem, 4vw, 4rem);
+  --company-profile-snapshot-width: minmax(22rem, 0.82fr);
+
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.6fr)
+    var(--company-profile-snapshot-width);
+
+  align-items: stretch;
+  gap: var(--company-profile-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Main Content
+   ========================================================================== */
+
+.company-profile-hero__main {
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Snapshot Region
+   ========================================================================== */
+
+.company-profile-hero__aside {
+  min-inline-size: 0;
+  min-block-size: 100%;
+}
+
+/* ==========================================================================
+   Price and Actions
+   ========================================================================== */
+
+.company-profile-hero__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: clamp(1.5rem, 3vw, 3rem);
+
+  min-inline-size: 0;
+
+  margin-block-start: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.company-profile-hero__actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.75rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Action
+   ========================================================================== */
+
+.company-profile-hero__action {
+  min-inline-size: 8.75rem;
+  min-block-size: 2.625rem;
+
+  justify-content: center;
+  gap: 0.5rem;
+
+  white-space: nowrap;
+
+  .has-icon {
+    --icon-size: 0.625rem;
+
+    flex: 0 0 auto;
+
+    @include transition(transform, fast);
+  }
+
+  &:hover {
+    .has-icon {
+      transform: translateX(0.125rem);
+    }
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .company-profile-hero__action:hover {
+    .has-icon {
+      transform: translateX(-0.125rem);
+    }
+  }
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .company-profile-hero {
+    --company-profile-gap: 1.5rem;
+
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .company-profile-hero__aside {
+    min-block-size: auto;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .company-profile-hero__footer {
+    align-items: flex-start;
+  }
+
+  .company-profile-hero__actions {
+    inline-size: 100%;
+  }
+
+  .company-profile-hero__action {
+    flex: 1 1 0;
+
+    min-inline-size: 0;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .company-profile-hero {
+    --company-profile-gap: 1rem;
+  }
+
+  .company-profile-hero__footer {
+    display: grid;
+    gap: 1.25rem;
+
+    margin-block-start: 1.25rem;
+  }
+
+  .company-profile-hero__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 0.5rem;
+
+    inline-size: 100%;
+  }
+
+  .company-profile-hero__action {
+    inline-size: 100%;
+    min-inline-size: 0;
+
+    padding-inline: 0.625rem;
+
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Extra Small Screens
+   ========================================================================== */
+
+@media (max-width: 360px) {
+  .company-profile-hero__action {
+    padding-inline: 0.5rem;
+
+    font-size: 0.6875rem;
+
+    .has-icon {
+      --icon-size: 0.5rem;
+    }
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .company-profile-hero__action .has-icon {
+    transition: none;
+  }
+
+  .company-profile-hero__action:hover .has-icon {
+    transform: none;
+  }
+}

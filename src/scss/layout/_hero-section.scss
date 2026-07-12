@@ -1,0 +1,238 @@
+@use "../abstracts" as *;
+
+/* ==========================================================================
+   Shared Hero Section
+   ========================================================================== */
+
+.hero-section {
+  /*
+   * These values intentionally match .page-breadcrumb.
+   *
+   * The gradient is horizontal so the independently rendered breadcrumb
+   * and hero sections meet without a visible color seam.
+   */
+
+  --page-hero-bg-start: #073fbd;
+  --page-hero-bg-middle: #075ee4;
+  --page-hero-bg-end: #218af4;
+
+  --page-hero-fg: #ffffff;
+  --page-hero-muted: rgb(255 255 255 / 0.72);
+
+  --page-hero-gradient-angle: 90deg;
+
+  /* Layout */
+
+  --hero-section-space-start: clamp(1.5rem, 3vw, 2.5rem);
+  --hero-section-space-end: clamp(2rem, 4vw, 3.5rem);
+  --hero-section-space-inline: clamp(1rem, 2vw, 1.5rem);
+
+  /* Decorative image */
+
+  --hero-section-image: url("../assets/images/background-pattern.png");
+  --hero-section-image-size: min(38rem, 48vw);
+  --hero-section-image-opacity: 0.2;
+
+  --hero-section-image-inline: -3rem;
+  --hero-section-image-block: -5rem;
+
+  /* Accent glow */
+
+  --hero-section-glow-size: 34rem;
+  --hero-section-glow-opacity: 0.2;
+
+  --hero-section-glow-inline: -12rem;
+  --hero-section-glow-block: -14rem;
+
+  position: relative;
+  isolation: isolate;
+
+  min-inline-size: 0;
+
+  padding: 0 var(--hero-section-space-inline) var(--hero-section-space-end);
+
+  overflow: hidden;
+
+  background: linear-gradient(
+    var(--page-hero-gradient-angle),
+    var(--page-hero-bg-start) 0%,
+    var(--page-hero-bg-middle) 58%,
+    var(--page-hero-bg-end) 100%
+  );
+
+  color: var(--page-hero-fg);
+}
+
+/* ==========================================================================
+   Decorative Background Layer
+   ========================================================================== */
+
+.hero-section__background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+
+  overflow: hidden;
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Bottom-End Decorative Image
+   ========================================================================== */
+
+.hero-section__background::after {
+  content: "";
+
+  position: absolute;
+
+  inset-inline-end: var(--hero-section-image-inline);
+  inset-block-end: var(--hero-section-image-block);
+
+  inline-size: var(--hero-section-image-size);
+  aspect-ratio: 1;
+
+  background-image: var(--hero-section-image);
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  background-size: contain;
+
+  opacity: var(--hero-section-image-opacity);
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.hero-section__content {
+  position: relative;
+  z-index: 1;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .hero-section {
+    --page-hero-gradient-angle: 270deg;
+  }
+
+  .hero-section__background::after {
+    background-position: left bottom;
+  }
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .hero-section {
+    --hero-section-space-start: 1.5rem;
+    --hero-section-space-end: 2.75rem;
+
+    --hero-section-image-size: min(32rem, 60vw);
+    --hero-section-image-opacity: 0.16;
+
+    --hero-section-glow-size: 28rem;
+    --hero-section-glow-inline: -10rem;
+    --hero-section-glow-block: -11rem;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .hero-section {
+    --hero-section-space-start: 1.25rem;
+    --hero-section-space-end: 2.5rem;
+
+    --hero-section-image-size: min(26rem, 72vw);
+    --hero-section-image-inline: -4rem;
+    --hero-section-image-block: -3rem;
+
+    --hero-section-glow-size: 24rem;
+    --hero-section-glow-opacity: 0.16;
+    --hero-section-glow-blur: 2rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .hero-section {
+    --hero-section-space-start: 1rem;
+    --hero-section-space-end: 2rem;
+    --hero-section-space-inline: 1rem;
+
+    --hero-section-image-size: 20rem;
+    --hero-section-image-opacity: 0.12;
+    --hero-section-image-inline: -6rem;
+    --hero-section-image-block: -2rem;
+
+    --hero-section-glow-size: 20rem;
+    --hero-section-glow-opacity: 0.14;
+    --hero-section-glow-inline: -8rem;
+    --hero-section-glow-block: -8rem;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .hero-section {
+    --page-hero-bg-start: #002c72;
+    --page-hero-bg-middle: #063f91;
+    --page-hero-bg-end: #0759aa;
+
+    --page-hero-muted: rgb(255 255 255 / 0.72);
+
+    --hero-section-image-opacity: 0.14;
+    --hero-section-glow-opacity: 0.16;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .hero-section {
+    --page-hero-bg-start: #000000;
+    --page-hero-bg-middle: #000000;
+    --page-hero-bg-end: #000000;
+
+    --page-hero-fg: #ffffff;
+    --page-hero-muted: #ffffff;
+
+    background: #000000;
+
+    outline: 2px solid #ffffff;
+    outline-offset: -2px;
+  }
+
+  .hero-section__background {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .hero-section__background::before {
+    filter: none;
+  }
+}

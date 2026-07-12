@@ -1,0 +1,122 @@
+@use "../abstracts" as *;
+
+/* ==========================================================================
+   Price State Utilities
+   ========================================================================== */
+
+/*
+ * Global semantic value states.
+ *
+ * These utilities control only:
+ * - semantic foreground color
+ * - numeric alignment
+ *
+ * Components continue to own their layout, icon size, spacing, and typography.
+ */
+
+.price-up {
+  --price-state-color: var(--color-success);
+
+  color: var(--price-state-color) !important;
+}
+
+.price-down {
+  --price-state-color: var(--color-danger);
+
+  color: var(--price-state-color) !important;
+}
+
+.price-neutral {
+  --price-state-color: var(--color-text-muted);
+
+  color: var(--price-state-color);
+}
+
+/* ==========================================================================
+   Hero Surface
+   ========================================================================== */
+
+/*
+ * The standard semantic colors are designed for regular page surfaces.
+ * Brighter values are required on the fixed blue hero background.
+ */
+
+.hero-section {
+  .price-up {
+    --price-state-color: #59ff9e;
+  }
+
+  .price-down {
+    --price-state-color: #ff7085;
+  }
+
+  .price-neutral {
+    --price-state-color: rgb(255 255 255 / 0.74);
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .price-up {
+    --price-state-color: #4ade80;
+  }
+
+  .price-down {
+    --price-state-color: #fb7185;
+  }
+
+  .price-neutral {
+    --price-state-color: var(--color-text-muted);
+  }
+
+  .hero-section {
+    .price-up {
+      --price-state-color: #59ff9e;
+    }
+
+    .price-down {
+      --price-state-color: #ff8295;
+    }
+
+    .price-neutral {
+      --price-state-color: rgb(255 255 255 / 0.78);
+    }
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .price-up,
+  .price-down,
+  .price-neutral {
+    font-weight: font-weight("bold");
+  }
+
+  .price-up {
+    --price-state-color: currentColor;
+
+    text-decoration-line: underline;
+    text-decoration-style: double;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+  }
+
+  .price-down {
+    --price-state-color: currentColor;
+
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+  }
+
+  .price-neutral {
+    --price-state-color: currentColor;
+  }
+}

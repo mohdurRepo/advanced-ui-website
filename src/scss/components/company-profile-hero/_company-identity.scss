@@ -1,0 +1,578 @@
+@use "../../abstracts" as *;
+
+/* ==========================================================================
+   Company Identity
+   ========================================================================== */
+
+.company-identity {
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.company-identity__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Brand
+   ========================================================================== */
+
+.company-identity__brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Logo
+   ========================================================================== */
+
+.company-identity__logo-wrap {
+  display: grid;
+  place-items: center;
+
+  inline-size: clamp(4rem, 5vw, 5rem);
+  block-size: clamp(4rem, 5vw, 5rem);
+
+  flex: 0 0 auto;
+
+  overflow: hidden;
+
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: var(--radius-lg);
+
+  background: rgb(255 255 255 / 0.1);
+
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
+
+  backdrop-filter: blur(10px);
+}
+
+.company-identity__logo {
+  display: block;
+
+  inline-size: 72%;
+  block-size: 72%;
+
+  object-fit: contain;
+}
+
+/* ==========================================================================
+   Name
+   ========================================================================== */
+
+.company-identity__name {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--page-hero-fg, #ffffff);
+
+  font-size: clamp(2rem, 3vw, 3.25rem);
+  font-weight: font-weight("heavy");
+  line-height: 1.05;
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Instrument Row
+   ========================================================================== */
+
+.company-identity__instrument-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+
+  min-inline-size: 0;
+
+  margin-block-start: 1.25rem;
+}
+
+/* ==========================================================================
+   Instrument
+   ========================================================================== */
+
+.company-identity__instrument {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.625rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Code and Symbol
+   ========================================================================== */
+
+.company-identity__code,
+.company-identity__symbol {
+  display: inline-flex;
+  align-items: center;
+
+  min-block-size: 2.25rem;
+
+  padding-inline: 0.875rem;
+
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: var(--radius-pill);
+
+  background: rgb(255 255 255 / 0.08);
+  color: var(--page-hero-fg, #ffffff);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("bold");
+  line-height: 1;
+
+  white-space: nowrap;
+
+  backdrop-filter: blur(8px);
+}
+
+.company-identity__symbol {
+  letter-spacing: 0.06em;
+}
+
+/* ==========================================================================
+   Utility Actions
+   ========================================================================== */
+
+.company-identity__utilities {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   Utility Button
+   ========================================================================== */
+
+.company-identity__utility {
+  --icon-size: 1rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+
+  padding: 0;
+
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: var(--radius-pill);
+
+  background: rgb(255 255 255 / 0.08);
+  color: var(--page-hero-fg, #ffffff);
+
+  cursor: pointer;
+
+  backdrop-filter: blur(8px);
+
+  @include transition((background-color, border-color, color, transform), fast);
+
+  &:hover {
+    border-color: rgb(255 255 255 / 0.3);
+
+    background: rgb(255 255 255 / 0.16);
+
+    transform: translateY(-1px);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &[aria-pressed="true"] {
+    border-color: var(--color-primary);
+
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+}
+
+/* ==========================================================================
+   Metadata Scroll Region
+   ========================================================================== */
+
+.company-identity__meta-scroll {
+  min-inline-size: 0;
+
+  margin-block-start: 1.25rem;
+}
+
+/* ==========================================================================
+   Metadata
+   ========================================================================== */
+
+.company-identity__meta {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+
+  inline-size: max-content;
+  min-inline-size: 100%;
+
+  margin: 0;
+}
+
+/* ==========================================================================
+   Metadata Item
+   ========================================================================== */
+
+.company-identity__meta-item {
+  position: relative;
+
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+
+  flex: 0 0 auto;
+
+  min-inline-size: 0;
+
+  white-space: nowrap;
+
+  &:not(:last-child)::after {
+    content: "";
+
+    inline-size: 0.2rem;
+    block-size: 0.2rem;
+
+    margin-inline-start: 1rem;
+
+    border-radius: var(--radius-pill);
+
+    background: rgb(255 255 255 / 0.42);
+  }
+}
+
+/* ==========================================================================
+   Metadata Label
+   ========================================================================== */
+
+.company-identity__meta-label {
+  margin: 0;
+
+  color: var(--page-hero-muted, rgb(255 255 255 / 0.72));
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Metadata Value
+   ========================================================================== */
+
+.company-identity__meta-value {
+  margin: 0;
+
+  color: var(--page-hero-fg, #ffffff);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Product Scroll Region
+   ========================================================================== */
+
+.company-identity__products-scroll {
+  min-inline-size: 0;
+
+  margin-block-start: 1.5rem;
+}
+
+/* ==========================================================================
+   Related Instruments
+   ========================================================================== */
+
+.company-identity__products {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.625rem;
+
+  inline-size: max-content;
+  min-inline-size: 100%;
+}
+
+/* ==========================================================================
+   Related Instrument
+   ========================================================================== */
+
+.company-identity__product {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  min-block-size: 2.25rem;
+
+  flex: 0 0 auto;
+
+  padding: 0.5rem 0.875rem;
+
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: var(--radius-pill);
+
+  background: rgb(255 255 255 / 0.06);
+  color: var(--page-hero-fg, #ffffff);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-tight);
+
+  text-decoration: none;
+  white-space: nowrap;
+
+  backdrop-filter: blur(8px);
+
+  @include transition((background-color, border-color, transform), fast);
+
+  &:hover {
+    border-color: rgb(255 255 255 / 0.32);
+
+    background: rgb(255 255 255 / 0.14);
+
+    transform: translateY(-1px);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Related Instrument Icon
+   ========================================================================== */
+
+.company-identity__product-icon {
+  --icon-size: 0.5rem;
+
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .company-identity__header {
+    gap: 1rem;
+  }
+
+  .company-identity__meta {
+    gap: 0.625rem 1rem;
+  }
+
+  .company-identity__meta-item {
+    &:not(:last-child)::after {
+      margin-inline-start: 0.5rem;
+    }
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .company-identity__header {
+    align-items: center;
+  }
+
+  .company-identity__brand {
+    gap: 0.75rem;
+  }
+
+  .company-identity__logo-wrap {
+    inline-size: 3.75rem;
+    block-size: 3.75rem;
+
+    border-radius: var(--radius-md);
+  }
+
+  .company-identity__name {
+    font-size: var(--text-2xl);
+  }
+
+  .company-identity__instrument-row {
+    gap: 0.5rem;
+
+    margin-block-start: 1rem;
+  }
+
+  .company-identity__code,
+  .company-identity__symbol {
+    min-block-size: 2rem;
+
+    padding-inline: 0.75rem;
+
+    font-size: var(--text-xs);
+  }
+
+  .company-identity__utility {
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+  }
+
+  .company-identity__meta-scroll,
+  .company-identity__products-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+
+    touch-action: pan-x;
+
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .company-identity__meta-scroll {
+    margin-block-start: 1rem;
+  }
+
+  .company-identity__meta {
+    gap: 0.75rem 1rem;
+
+    padding-block-end: 0.25rem;
+  }
+
+  .company-identity__meta-item {
+    display: inline-flex;
+    gap: 0.375rem;
+
+    &:not(:last-child)::after {
+      display: block;
+
+      margin-inline-start: 0.5rem;
+    }
+  }
+
+  .company-identity__meta-label,
+  .company-identity__meta-value {
+    font-size: var(--text-xs);
+  }
+
+  .company-identity__products-scroll {
+    margin-block-start: 1.25rem;
+  }
+
+  .company-identity__products {
+    gap: 0.5rem;
+
+    padding-block-end: 0.25rem;
+  }
+
+  .company-identity__product {
+    min-block-size: 2.125rem;
+
+    padding: 0.4375rem 0.75rem;
+
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Extra Small Screens
+   ========================================================================== */
+
+@media (max-width: 360px) {
+  .company-identity__brand {
+    gap: 0.625rem;
+  }
+
+  .company-identity__logo-wrap {
+    inline-size: 3.25rem;
+    block-size: 3.25rem;
+  }
+
+  .company-identity__name {
+    font-size: var(--text-xl);
+  }
+
+  .company-identity__instrument-row {
+    gap: 0.375rem;
+  }
+
+  .company-identity__code,
+  .company-identity__symbol {
+    padding-inline: 0.625rem;
+  }
+
+  .company-identity__utility {
+    inline-size: 2rem;
+    block-size: 2rem;
+
+    --icon-size: 0.875rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .company-identity__logo-wrap,
+  .company-identity__code,
+  .company-identity__symbol,
+  .company-identity__utility,
+  .company-identity__product {
+    border-width: 2px;
+
+    backdrop-filter: none;
+  }
+
+  .company-identity__meta-item::after {
+    background: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .company-identity__utility,
+  .company-identity__product {
+    transition: none;
+  }
+
+  .company-identity__utility:hover,
+  .company-identity__product:hover {
+    transform: none;
+  }
+}

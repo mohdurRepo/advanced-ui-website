@@ -1,0 +1,272 @@
+@use "../../abstracts" as *;
+
+/* ==========================================================================
+   Page Breadcrumb
+   ========================================================================== */
+
+.page-breadcrumb {
+  /*
+   * These tokens intentionally match the hero section.
+   * Both sections remain independent but appear as one continuous surface.
+   */
+
+  --page-hero-bg-start: #073fbd;
+  --page-hero-bg-middle: #075ee4;
+  --page-hero-bg-end: #218af4;
+  --market-summary-bridge-space: 0rem;
+  --page-hero-fg: #ffffff;
+  --page-hero-muted: rgb(255 255 255 / 0.72);
+
+  /*
+   * Use a horizontal gradient.
+   * This prevents a visible seam where the breadcrumb and hero meet.
+   */
+  --page-hero-gradient-angle: 90deg;
+
+  --page-breadcrumb-space-block: clamp(0.875rem, 1.5vw, 1.25rem);
+  --page-breadcrumb-space-inline: clamp(1rem, 2vw, 1.5rem);
+
+  position: relative;
+
+  min-inline-size: 0;
+
+  padding: var(--page-breadcrumb-space-block)
+    var(--page-breadcrumb-space-inline);
+
+  overflow: hidden;
+
+  background: linear-gradient(
+    var(--page-hero-gradient-angle),
+    var(--page-hero-bg-start) 0%,
+    var(--page-hero-bg-middle) 58%,
+    var(--page-hero-bg-end) 100%
+  );
+
+  color: var(--page-hero-fg);
+
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+
+/* ==========================================================================
+   Breadcrumb
+   ========================================================================== */
+
+.breadcrumb {
+  --breadcrumb-fg: var(--page-hero-muted);
+  --breadcrumb-current: var(--page-hero-fg);
+  --breadcrumb-hover: #ffffff;
+
+  --breadcrumb-gap: 0.5rem;
+  --breadcrumb-item-gap: 0.5rem;
+  --breadcrumb-icon-size: 0.375rem;
+
+  min-inline-size: 0;
+
+  color: var(--breadcrumb-fg);
+}
+
+/* ==========================================================================
+   List
+   ========================================================================== */
+
+.breadcrumb__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--breadcrumb-gap);
+
+  min-inline-size: 0;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Item
+   ========================================================================== */
+
+.breadcrumb__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--breadcrumb-item-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Link
+   ========================================================================== */
+
+.breadcrumb__link {
+  display: inline-flex;
+  align-items: center;
+
+  min-inline-size: 0;
+
+  padding-block: 0.125rem;
+
+  border-radius: var(--radius-sm);
+
+  color: var(--breadcrumb-fg);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-tight);
+
+  text-decoration: none;
+
+  @include transition((color, opacity), fast);
+
+  &:hover {
+    color: var(--breadcrumb-hover);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Separator
+   ========================================================================== */
+
+.breadcrumb__separator {
+  --icon-size: var(--breadcrumb-icon-size);
+
+  flex: 0 0 auto;
+
+  color: var(--breadcrumb-fg);
+
+  opacity: 0.55;
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Current Page
+   ========================================================================== */
+
+.breadcrumb__current {
+  min-inline-size: 0;
+
+  color: var(--breadcrumb-current);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-tight);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .page-breadcrumb {
+    --page-hero-gradient-angle: 270deg;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .page-breadcrumb {
+    --page-breadcrumb-space-block: 0.75rem;
+    --page-breadcrumb-space-inline: 1rem;
+  }
+
+  .breadcrumb {
+    --breadcrumb-gap: 0.375rem;
+    --breadcrumb-item-gap: 0.375rem;
+    --breadcrumb-icon-size: 0.3125rem;
+  }
+
+  .breadcrumb__list {
+    flex-wrap: nowrap;
+  }
+
+  .breadcrumb__item {
+    flex: 0 1 auto;
+
+    overflow: hidden;
+
+    &:last-child {
+      flex: 1 1 auto;
+    }
+  }
+
+  .breadcrumb__current {
+    display: block;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .page-breadcrumb {
+    --page-hero-bg-start: #002c72;
+    --page-hero-bg-middle: #063f91;
+    --page-hero-bg-end: #0759aa;
+
+    --page-hero-muted: rgb(255 255 255 / 0.72);
+
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .page-breadcrumb {
+    --page-hero-bg-start: #000000;
+    --page-hero-bg-middle: #000000;
+    --page-hero-bg-end: #000000;
+
+    --page-hero-fg: #ffffff;
+    --page-hero-muted: #ffffff;
+
+    background: #000000;
+
+    box-shadow: none;
+
+    outline: 2px solid #ffffff;
+    outline-offset: -2px;
+  }
+
+  .breadcrumb__separator {
+    opacity: 1;
+  }
+
+  .breadcrumb__link {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .breadcrumb__link {
+    transition: none;
+  }
+}

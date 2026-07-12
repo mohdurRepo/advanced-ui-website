@@ -1,0 +1,514 @@
+@use "../../abstracts" as *;
+
+/* ==========================================================================
+   Market Snapshot
+   ========================================================================== */
+
+.market-snapshot {
+  --snapshot-bg: rgb(255 255 255 / 0.12);
+  --snapshot-border: rgb(255 255 255 / 0.16);
+  --snapshot-divider: rgb(255 255 255 / 0.1);
+
+  --snapshot-fg: #ffffff;
+  --snapshot-muted: rgb(255 255 255 / 0.72);
+
+  --snapshot-tab-fg: rgb(255 255 255 / 0.68);
+  --snapshot-tab-hover: #ffffff;
+  --snapshot-tab-active: #ffffff;
+
+  --snapshot-tab-indicator: color-mix(
+    in oklab,
+    var(--color-primary),
+    #ffffff 45%
+  );
+
+  --snapshot-radius: var(--radius-xl);
+
+  /*
+   * Stable desktop content height.
+   *
+   * Rows no longer stretch to consume this space.
+   * Shorter panels leave clean whitespace at the bottom instead.
+   */
+  --snapshot-row-size: 3.5rem;
+
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 100%;
+
+  /*
+   * Required so tooltip content can escape the card.
+   */
+  overflow: visible;
+
+  border: 1px solid var(--snapshot-border);
+  border-radius: var(--snapshot-radius);
+
+  background: var(--snapshot-bg);
+  color: var(--snapshot-fg);
+
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 1rem 2.5rem rgb(0 31 51 / 0.12);
+
+  backdrop-filter: blur(18px);
+}
+
+/* ==========================================================================
+   Tabs Component
+   ========================================================================== */
+
+.market-snapshot__tabs {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Tabs Navigation
+   ========================================================================== */
+
+.market-snapshot__nav {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 2vw, 1.75rem);
+
+  min-inline-size: 0;
+
+  padding: 0.875rem 1rem 0;
+
+  border: 0;
+  border-block-end: 1px solid rgb(255 255 255 / 0.06);
+
+  border-start-start-radius: calc(var(--snapshot-radius) - 1px);
+  border-start-end-radius: calc(var(--snapshot-radius) - 1px);
+
+  background: rgb(255 255 255 / 0.025);
+}
+
+/* ==========================================================================
+   Tab
+   ========================================================================== */
+
+.market-snapshot__tab {
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-inline-size: 0;
+  min-block-size: 2.75rem;
+
+  padding: 0 0.375rem 0.75rem;
+
+  border: 0;
+
+  background: transparent;
+  color: var(--snapshot-tab-fg);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-tight);
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  @include transition((color, opacity), fast);
+
+  &::after {
+    content: "";
+
+    position: absolute;
+
+    inset-inline: 0.375rem;
+    inset-block-end: -1px;
+
+    block-size: 0.1875rem;
+
+    border-radius: var(--radius-pill);
+
+    background: var(--snapshot-tab-indicator);
+
+    opacity: 0;
+
+    transform: scaleX(0.45);
+    transform-origin: center;
+
+    @include transition((opacity, transform), fast);
+  }
+
+  &:hover:not(.active):not([aria-selected="true"]) {
+    color: var(--snapshot-tab-hover);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.active,
+  &[aria-selected="true"] {
+    color: var(--snapshot-tab-active);
+
+    font-weight: font-weight("bold");
+
+    &::after {
+      opacity: 1;
+
+      transform: scaleX(1);
+    }
+  }
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.market-snapshot__content {
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Panel
+   ========================================================================== */
+
+.market-snapshot__panel {
+  min-inline-size: 0;
+
+  padding: 0.75rem 1rem 1rem;
+
+  &[hidden] {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Grid
+   ========================================================================== */
+
+.market-snapshot__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(var(--snapshot-row-size), auto);
+
+  align-content: start;
+
+  min-inline-size: 0;
+
+  margin: 0;
+}
+
+/* ==========================================================================
+   Item
+   ========================================================================== */
+
+.market-snapshot__item {
+  display: grid;
+  align-content: center;
+  gap: 0.3rem;
+
+  min-inline-size: 0;
+  min-block-size: var(--snapshot-row-size);
+
+  padding: 0.625rem 0.875rem;
+
+  border-block-end: 1px solid var(--snapshot-divider);
+
+  &:nth-child(odd) {
+    border-inline-end: 1px solid var(--snapshot-divider);
+  }
+
+  &:nth-last-child(-n + 2) {
+    border-block-end: 0;
+  }
+}
+
+/* ==========================================================================
+   Label
+   ========================================================================== */
+
+.market-snapshot__label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--snapshot-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-tight);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Value
+   ========================================================================== */
+
+.market-snapshot__value {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--snapshot-fg);
+
+  font-size: var(--text-base);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  font-variant-numeric: tabular-nums;
+
+  data,
+  span {
+    color: inherit;
+  }
+
+  &.price-up,
+  &.price-down,
+  &.price-neutral {
+    font-size: var(--text-md);
+    font-weight: font-weight("heavy");
+  }
+}
+
+/* ==========================================================================
+   Value Icons
+   ========================================================================== */
+
+.market-snapshot__currency,
+.market-snapshot__direction {
+  --icon-size: 0.6875rem;
+
+  flex: 0 0 auto;
+
+  color: inherit;
+}
+
+/* ==========================================================================
+   Tooltip
+   ========================================================================== */
+
+.market-snapshot__tooltip {
+  flex: 0 0 auto;
+}
+
+.market-snapshot__info {
+  --icon-size: 0.625rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 1.375rem;
+  block-size: 1.375rem;
+
+  flex: 0 0 auto;
+
+  padding: 0;
+
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: var(--radius-pill);
+
+  background: rgb(255 255 255 / 0.06);
+  color: rgb(255 255 255 / 0.74);
+
+  cursor: help;
+
+  @include transition((background-color, border-color, color, transform), fast);
+
+  &:hover {
+    border-color: rgb(255 255 255 / 0.34);
+
+    background: rgb(255 255 255 / 0.14);
+    color: #ffffff;
+
+    transform: translateY(-1px);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .market-snapshot {
+    --snapshot-content-size: auto;
+
+    min-block-size: auto;
+  }
+
+  .market-snapshot__content,
+  .market-snapshot__panel {
+    min-block-size: 0;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .market-snapshot {
+    --snapshot-radius: var(--radius-lg);
+    --snapshot-row-size: auto;
+  }
+
+  .market-snapshot__nav {
+    gap: 0.5rem;
+
+    padding: 0.75rem 0.75rem 0;
+  }
+
+  .market-snapshot__tab {
+    flex: 1 1 0;
+
+    min-block-size: 2.5rem;
+
+    padding-inline: 0.25rem;
+
+    font-size: var(--text-xs);
+  }
+
+  .market-snapshot__panel {
+    padding: 0.5rem 0.875rem 0.875rem;
+  }
+
+  .market-snapshot__grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: auto;
+  }
+
+  .market-snapshot__item {
+    min-block-size: 0;
+
+    padding: 0.75rem 0.5rem;
+
+    border-inline-end: 0;
+
+    &:nth-child(odd) {
+      border-inline-end: 0;
+    }
+
+    &:nth-last-child(-n + 2) {
+      border-block-end: 1px solid var(--snapshot-divider);
+    }
+
+    &:last-child {
+      border-block-end: 0;
+    }
+  }
+
+  .market-snapshot__value {
+    font-size: var(--text-sm);
+
+    &.price-up,
+    &.price-down,
+    &.price-neutral {
+      font-size: var(--text-base);
+    }
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .market-snapshot {
+    --snapshot-bg: rgb(255 255 255 / 0.09);
+    --snapshot-border: rgb(255 255 255 / 0.14);
+    --snapshot-divider: rgb(255 255 255 / 0.09);
+
+    --snapshot-muted: rgb(255 255 255 / 0.74);
+
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.06),
+      0 1rem 2.5rem rgb(0 0 0 / 0.14);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-snapshot {
+    --snapshot-bg: #000000;
+    --snapshot-border: #ffffff;
+    --snapshot-divider: #ffffff;
+
+    --snapshot-fg: #ffffff;
+    --snapshot-muted: #ffffff;
+
+    --snapshot-tab-fg: #ffffff;
+    --snapshot-tab-hover: #ffffff;
+    --snapshot-tab-active: #ffffff;
+    --snapshot-tab-indicator: #ffffff;
+
+    border-width: 2px;
+
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .market-snapshot__nav {
+    border-block-end-width: 2px;
+  }
+
+  .market-snapshot__tab::after {
+    block-size: 0.25rem;
+  }
+
+  .market-snapshot__item,
+  .market-snapshot__info {
+    border-width: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .market-snapshot__tab,
+  .market-snapshot__tab::after,
+  .market-snapshot__info {
+    transition: none;
+  }
+
+  .market-snapshot__info:hover {
+    transform: none;
+  }
+}
