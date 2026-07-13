@@ -1,0 +1,284 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Side Navigation
+   ========================================================================== */
+
+.financial-side-nav {
+  position: sticky;
+  inset-block-start: 1.5rem;
+
+  min-inline-size: 0;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
+
+  box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   Side Group
+   ========================================================================== */
+
+.financial-side-nav__list {
+  display: grid;
+  gap: 0.25rem;
+
+  min-inline-size: 0;
+
+  margin: 0;
+  padding: 0.5rem;
+
+  &.is-hidden,
+  &[hidden] {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Side Item
+   ========================================================================== */
+
+.financial-side-nav__item {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 2.75rem;
+
+  padding: 0.625rem 0.875rem;
+
+  border: 0;
+  border-radius: var(--radius-md);
+
+  background: transparent;
+  color: var(--color-text-muted);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-normal);
+
+  text-align: start;
+
+  cursor: pointer;
+
+  @include transition((background-color, color, box-shadow), fast);
+
+  &::before {
+    content: "";
+
+    position: absolute;
+
+    inset-block: 0.625rem;
+    inset-inline-start: 0;
+
+    inline-size: 0.1875rem;
+
+    border-radius: var(--radius-pill);
+
+    background: var(--color-primary);
+
+    opacity: 0;
+
+    transform: scaleY(0.55);
+    transform-origin: center;
+
+    @include transition((opacity, transform), fast);
+  }
+
+  &:hover:not(.financial-side-nav__item--active) {
+    background: var(--color-surface-alt);
+    color: var(--color-heading);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.financial-side-nav__item--active,
+  &[aria-selected="true"] {
+    background: color-mix(in oklab, var(--color-primary), transparent 92%);
+
+    color: var(--color-primary);
+
+    font-weight: font-weight("bold");
+
+    &::before {
+      opacity: 1;
+
+      transform: scaleY(1);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.45;
+
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+/* ==========================================================================
+   Hidden Side Navigation
+   ========================================================================== */
+
+.financial-navigation--no-side {
+  .financial-side-nav {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .financial-side-nav {
+    position: static;
+
+    border: 0;
+    border-block-end: 1px solid var(--color-border);
+    border-radius: 0;
+
+    background: transparent;
+
+    box-shadow: none;
+  }
+
+  .financial-side-nav__list {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+
+    padding: 0;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+
+    touch-action: pan-x;
+
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    &.is-hidden,
+    &[hidden] {
+      display: none !important;
+    }
+  }
+
+  .financial-side-nav__item {
+    inline-size: auto;
+    min-inline-size: max-content;
+    min-block-size: 2.75rem;
+
+    flex: 0 0 auto;
+
+    padding: 0 0.125rem 0.75rem;
+
+    border-radius: 0;
+
+    background: transparent;
+
+    white-space: nowrap;
+
+    &::before {
+      inset-block-start: auto;
+      inset-block-end: -1px;
+      inset-inline: 0;
+
+      inline-size: auto;
+      block-size: 0.1875rem;
+
+      transform: scaleX(0.55);
+      transform-origin: center;
+    }
+
+    &:hover:not(.financial-side-nav__item--active) {
+      background: transparent;
+      color: var(--color-heading);
+    }
+
+    &.financial-side-nav__item--active,
+    &[aria-selected="true"] {
+      background: transparent;
+      color: var(--color-heading);
+
+      &::before {
+        transform: scaleX(1);
+      }
+    }
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-side-nav__list {
+    gap: 1.125rem;
+  }
+
+  .financial-side-nav__item {
+    min-block-size: 2.5rem;
+
+    padding-block-end: 0.625rem;
+
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-side-nav {
+    border-width: 2px;
+
+    box-shadow: none;
+  }
+
+  .financial-side-nav__item::before {
+    inline-size: 0.25rem;
+  }
+
+  @include respond-down(lg) {
+    .financial-side-nav {
+      border-inline: 0;
+      border-block-start: 0;
+    }
+
+    .financial-side-nav__item::before {
+      inline-size: auto;
+      block-size: 0.25rem;
+    }
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-side-nav__item,
+  .financial-side-nav__item::before {
+    transition: none;
+  }
+}

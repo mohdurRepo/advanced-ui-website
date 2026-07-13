@@ -1,0 +1,62 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Company Information
+   ========================================================================== */
+
+.company-information {
+  display: grid;
+  gap: clamp(1.5rem, 2.5vw, 2rem);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Section
+   ========================================================================== */
+
+.company-information__section {
+  display: grid;
+  gap: 1rem;
+}
+
+.company-information__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: clamp(var(--text-lg), 1rem + 0.3vw, var(--text-xl));
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.company-information__description {
+  max-inline-size: 75ch;
+
+  color: var(--color-text);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Grid
+   ========================================================================== */
+
+.company-information__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 2rem;
+}
+
+@include respond-down(md) {
+  .company-information__grid {
+    grid-template-columns: 1fr;
+  }
+}

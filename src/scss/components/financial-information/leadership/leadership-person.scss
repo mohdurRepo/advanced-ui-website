@@ -1,0 +1,186 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Leadership Person
+   ========================================================================== */
+
+.leadership-person {
+  position: relative;
+
+  display: grid;
+  align-content: start;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+  min-block-size: 4.5rem;
+
+  padding: 0.875rem 1rem 0.875rem 1.125rem;
+
+  border-inline-start: 1px solid var(--color-border);
+
+  background: transparent;
+
+  @include transition((border-color, background-color), fast);
+
+  &:hover {
+    border-inline-start-color: var(--color-primary);
+
+    background: color-mix(in oklab, var(--color-primary), transparent 96%);
+  }
+}
+
+/* ==========================================================================
+   Name
+   ========================================================================== */
+
+.leadership-person__name {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-base);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Role
+   ========================================================================== */
+
+.leadership-person__role {
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Optional Metadata
+   ========================================================================== */
+
+.leadership-person__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.75rem;
+
+  margin-block-start: 0.25rem;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Optional Link
+   ========================================================================== */
+
+.leadership-person__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  inline-size: fit-content;
+
+  margin-block-start: 0.375rem;
+
+  color: var(--color-primary);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("semibold");
+
+  text-decoration: none;
+
+  .has-icon {
+    --icon-size: 0.625rem;
+
+    @include transition(transform, fast);
+  }
+
+  &:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+
+    .has-icon {
+      transform: translateX(0.125rem);
+    }
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .leadership-person__link:hover .has-icon {
+    transform: translateX(-0.125rem);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .leadership-person {
+    min-block-size: auto;
+
+    padding: 0.75rem 0.875rem 0.75rem 1rem;
+  }
+
+  .leadership-person__name {
+    font-size: var(--text-sm);
+  }
+
+  .leadership-person__role {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .leadership-person {
+    border-inline-start-width: 3px;
+
+    &:hover {
+      background: transparent;
+    }
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .leadership-person,
+  .leadership-person__link .has-icon {
+    transition: none;
+  }
+
+  .leadership-person__link:hover .has-icon {
+    transform: none;
+  }
+}

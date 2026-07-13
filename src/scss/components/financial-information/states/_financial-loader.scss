@@ -1,0 +1,178 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Loader
+   ========================================================================== */
+
+.financial-loader {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1rem;
+
+  min-inline-size: 0;
+  min-block-size: clamp(18rem, 30vw, 24rem);
+
+  padding: 2rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+
+  background: var(--color-surface-alt);
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Spinner
+   ========================================================================== */
+
+.financial-loader__spinner {
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+
+  border: 0.25rem solid
+    color-mix(in oklab, var(--color-primary), transparent 80%);
+
+  border-block-start-color: var(--color-primary);
+
+  border-radius: var(--radius-pill);
+
+  animation: financial-loader-spin 0.8s linear infinite;
+}
+
+/* ==========================================================================
+   Text
+   ========================================================================== */
+
+.financial-loader__text {
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.financial-loader--compact {
+  min-block-size: 10rem;
+
+  padding: 1.25rem;
+
+  .financial-loader__spinner {
+    inline-size: 2rem;
+    block-size: 2rem;
+
+    border-width: 0.1875rem;
+  }
+
+  .financial-loader__text {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Inline Variant
+   ========================================================================== */
+
+.financial-loader--inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+
+  min-block-size: auto;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  text-align: start;
+
+  .financial-loader__spinner {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+
+    border-width: 0.125rem;
+  }
+}
+
+/* ==========================================================================
+   Animation
+   ========================================================================== */
+
+@keyframes financial-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-loader {
+    min-block-size: 15rem;
+
+    padding: 1.5rem 1rem;
+
+    border-radius: var(--radius-lg);
+  }
+
+  .financial-loader__spinner {
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+  }
+
+  .financial-loader__text {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-loader {
+    background: color-mix(in oklab, var(--color-surface-alt), transparent 8%);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-loader {
+    border-width: 2px;
+
+    background: var(--color-surface);
+  }
+
+  .financial-loader__spinner {
+    border-color: currentColor;
+    border-block-start-color: transparent;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-loader__spinner {
+    animation: none;
+
+    border-color: var(--color-primary);
+  }
+}

@@ -1,0 +1,109 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Information
+   ========================================================================== */
+
+.financial-information {
+  --financial-section-bg: var(--color-bg);
+  --financial-section-fg: var(--color-text);
+
+  --financial-section-space-block-start: clamp(2rem, 4vw, 3rem);
+  --financial-section-space-block-end: clamp(2.5rem, 5vw, 4rem);
+
+  --financial-section-row-gap: clamp(1.5rem, 3vw, 2.25rem);
+
+  position: relative;
+
+  min-inline-size: 0;
+
+  padding-block: var(--financial-section-space-block-start)
+    var(--financial-section-space-block-end);
+
+  background: var(--financial-section-bg);
+  color: var(--financial-section-fg);
+}
+
+/* ==========================================================================
+   Container Safety
+   ========================================================================== */
+
+.financial-information > .container {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
+/*
+ * The visible design starts directly with the main tab navigation.
+ * The section heading remains visually hidden for document structure
+ * and accessibility.
+ */
+
+.financial-information__heading {
+  margin: 0;
+}
+
+/* ==========================================================================
+   Tabs Root
+   ========================================================================== */
+
+.financial-tabs {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Hidden Panels
+   ========================================================================== */
+
+.financial-information {
+  [role="tabpanel"][hidden] {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .financial-information {
+    --financial-section-space-block-start: 1.75rem;
+    --financial-section-space-block-end: 3rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-information {
+    --financial-section-space-block-start: 1.25rem;
+    --financial-section-space-block-end: 2.5rem;
+
+    --financial-section-row-gap: 1.25rem;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-information {
+    --financial-section-bg: var(--color-bg);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-information {
+    --financial-section-fg: var(--color-text);
+  }
+}

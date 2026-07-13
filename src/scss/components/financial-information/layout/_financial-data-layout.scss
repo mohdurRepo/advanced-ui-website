@@ -1,0 +1,67 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Data Layout
+   ========================================================================== */
+
+.financial-data-layout {
+  --financial-data-layout-gap: clamp(1.25rem, 2.75vw, 2rem);
+  --financial-data-layout-aside: clamp(10rem, 14vw, 12rem);
+
+  display: grid;
+  grid-template-columns:
+    minmax(var(--financial-data-layout-aside), auto)
+    minmax(0, 1fr);
+
+  align-items: start;
+  gap: var(--financial-data-layout-gap);
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Aside
+   ========================================================================== */
+
+.financial-data-layout > .tabs-nav {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.financial-data-layout__content {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Period Panel
+   ========================================================================== */
+
+.financial-period-panel {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .financial-data-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-data-layout {
+    --financial-data-layout-gap: 1rem;
+  }
+}

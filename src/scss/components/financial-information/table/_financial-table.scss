@@ -1,0 +1,390 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Table Wrapper
+   ========================================================================== */
+
+.financial-table-wrap {
+  min-inline-size: 0;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+
+  touch-action: pan-x;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ==========================================================================
+   Financial Table
+   ========================================================================== */
+
+/*
+ * Extends the global .table component.
+ * Base borders, cells, hover, striped rows, and responsive behavior
+ * remain owned by the shared table system.
+ */
+
+.financial-table {
+  inline-size: 100%;
+  min-inline-size: 48rem;
+
+  margin: 0;
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Column Alignment
+   ========================================================================== */
+
+.financial-table th[data-type="number"],
+.financial-table td[data-type="number"],
+.financial-table .is-numeric {
+  text-align: end;
+
+  white-space: nowrap;
+}
+
+.financial-table th[data-type="date"],
+.financial-table td[data-type="date"],
+.financial-table .is-date {
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   First Column
+   ========================================================================== */
+
+.financial-table tbody th[scope="row"] {
+  color: var(--color-heading);
+
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-normal);
+
+  text-align: start;
+}
+
+/* ==========================================================================
+   Statement Table
+   ========================================================================== */
+
+.financial-table--statements {
+  min-inline-size: 62rem;
+
+  th:first-child {
+    inline-size: 34%;
+    min-inline-size: 17rem;
+  }
+
+  th:not(:first-child),
+  td:not(:first-child) {
+    text-align: end;
+  }
+}
+
+/* ==========================================================================
+   Statement Section Row
+   ========================================================================== */
+
+.financial-table__section-row {
+  background: color-mix(
+    in oklab,
+    var(--color-primary),
+    var(--color-surface) 92%
+  );
+
+  th,
+  td {
+    color: var(--color-heading);
+
+    font-weight: font-weight("bold");
+  }
+
+  th {
+    position: relative;
+
+    padding-inline-start: 1.25rem;
+  }
+
+  th::before {
+    content: "";
+
+    position: absolute;
+
+    inset-block: 0.65rem;
+    inset-inline-start: 0.5rem;
+
+    inline-size: 0.1875rem;
+
+    border-radius: var(--radius-pill);
+
+    background: var(--color-primary);
+  }
+}
+
+/* ==========================================================================
+   Statement Metadata Row
+   ========================================================================== */
+
+.financial-table__meta-row {
+  background: var(--color-surface-alt);
+
+  th,
+  td {
+    color: var(--color-text-muted);
+
+    font-size: var(--text-xs);
+    font-weight: font-weight("medium");
+  }
+
+  .has-icon {
+    --icon-size: 0.75rem;
+
+    color: var(--color-text-muted);
+  }
+}
+
+/* ==========================================================================
+   Reports Table
+   ========================================================================== */
+
+.financial-table--reports {
+  min-inline-size: 50rem;
+
+  th,
+  td {
+    text-align: center;
+  }
+
+  th:first-child,
+  td:first-child {
+    text-align: start;
+  }
+}
+
+/* ==========================================================================
+   Subsidiaries Table
+   ========================================================================== */
+
+.financial-table--subsidiaries {
+  min-inline-size: 68rem;
+
+  th:first-child {
+    min-inline-size: 15rem;
+  }
+
+  th:nth-child(3),
+  td:nth-child(3) {
+    min-inline-size: 24rem;
+
+    white-space: normal;
+  }
+
+  td {
+    vertical-align: top;
+  }
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.financial-table--compact {
+  th,
+  td {
+    padding-block: 0.625rem;
+    padding-inline: 0.75rem;
+
+    font-size: var(--text-sm);
+  }
+}
+
+/* ==========================================================================
+   Sticky First Column
+   ========================================================================== */
+
+.financial-table--sticky-column {
+  th:first-child,
+  td:first-child {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+
+    background: var(--color-surface);
+  }
+
+  thead th:first-child {
+    z-index: 3;
+  }
+
+  tbody th:first-child {
+    z-index: 2;
+  }
+
+  .financial-table__section-row th:first-child {
+    background: color-mix(
+      in oklab,
+      var(--color-primary),
+      var(--color-surface) 92%
+    );
+  }
+}
+
+/* ==========================================================================
+   Highlighted Row
+   ========================================================================== */
+
+.financial-table tr.is-highlighted {
+  background: color-mix(in oklab, var(--color-primary), transparent 94%);
+}
+
+/* ==========================================================================
+   Total Row
+   ========================================================================== */
+
+.financial-table tr.is-total {
+  border-block-start: 2px solid var(--color-border-strong);
+
+  th,
+  td {
+    color: var(--color-heading);
+
+    font-weight: font-weight("bold");
+  }
+}
+
+/* ==========================================================================
+   Empty Cell
+   ========================================================================== */
+
+.financial-table__empty {
+  color: var(--color-text-muted);
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Interactive Links Inside Cells
+   ========================================================================== */
+
+.financial-table a {
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .financial-table--statements {
+    min-inline-size: 56rem;
+
+    th:first-child {
+      min-inline-size: 15rem;
+    }
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-table {
+    min-inline-size: 42rem;
+  }
+
+  .financial-table--statements {
+    min-inline-size: 52rem;
+  }
+
+  .financial-table--reports {
+    min-inline-size: 44rem;
+  }
+
+  .financial-table--subsidiaries {
+    min-inline-size: 62rem;
+  }
+
+  .financial-table--compact {
+    th,
+    td {
+      padding-inline: 0.625rem;
+
+      font-size: var(--text-xs);
+    }
+  }
+
+  .financial-table__section-row {
+    th {
+      padding-inline-start: 1rem;
+    }
+
+    th::before {
+      inset-inline-start: 0.375rem;
+    }
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-table__section-row {
+    background: color-mix(
+      in oklab,
+      var(--color-primary),
+      var(--color-surface) 86%
+    );
+  }
+
+  .financial-table--sticky-column {
+    th:first-child,
+    td:first-child {
+      background: var(--color-surface);
+    }
+
+    .financial-table__section-row th:first-child {
+      background: color-mix(
+        in oklab,
+        var(--color-primary),
+        var(--color-surface) 86%
+      );
+    }
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-table__section-row {
+    background: var(--color-surface);
+
+    th,
+    td {
+      border-block-start: 2px solid currentColor;
+      border-block-end: 2px solid currentColor;
+    }
+  }
+
+  .financial-table__section-row th::before {
+    inline-size: 0.25rem;
+  }
+
+  .financial-table tr.is-total {
+    border-block-start-width: 3px;
+  }
+}

@@ -1,0 +1,216 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial View
+   ========================================================================== */
+
+.financial-view {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto;
+
+  grid-template-areas:
+    "toolbar toggle"
+    "content content";
+
+  align-items: start;
+  gap: 1rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Toolbar
+   ========================================================================== */
+
+.financial-view__toolbar {
+  grid-area: toolbar;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
+.financial-view__heading {
+  display: grid;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+}
+
+.financial-view__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: clamp(var(--text-lg), 1rem + 0.4vw, var(--text-xl));
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+.financial-view__description {
+  max-inline-size: 44rem;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   View Toggle
+   ========================================================================== */
+
+.financial-view-toggle {
+  grid-area: toggle;
+
+  display: inline-flex;
+  align-items: center;
+
+  padding: 0.1875rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface-alt);
+}
+
+/* ==========================================================================
+   Toggle Button
+   ========================================================================== */
+
+.financial-view-toggle__button {
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+
+  flex: 0 0 auto;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: calc(var(--radius-md) - 0.125rem);
+
+  background: transparent;
+  color: var(--color-text-muted);
+
+  cursor: pointer;
+
+  @include transition((background-color, color, box-shadow), fast);
+
+  .has-icon {
+    --icon-size: 1rem;
+  }
+
+  &:hover:not(.active):not([aria-selected="true"]) {
+    color: var(--color-heading);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.active,
+  &[aria-selected="true"] {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.financial-view__content {
+  grid-area: content;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-view {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+  }
+
+  .financial-view__description {
+    display: none;
+  }
+
+  .financial-view__title {
+    font-size: var(--text-base);
+  }
+
+  .financial-view-toggle__button {
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+
+    .has-icon {
+      --icon-size: 0.875rem;
+    }
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-view-toggle__button {
+    &.active,
+    &[aria-selected="true"] {
+      box-shadow: none;
+    }
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-view-toggle {
+    border-width: 2px;
+  }
+
+  .financial-view-toggle__button {
+    &.active,
+    &[aria-selected="true"] {
+      outline: 2px solid currentColor;
+      outline-offset: -2px;
+
+      box-shadow: none;
+    }
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-view-toggle__button {
+    transition: none;
+  }
+}

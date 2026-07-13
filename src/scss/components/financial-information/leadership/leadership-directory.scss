@@ -1,0 +1,151 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Leadership Directory
+   ========================================================================== */
+
+.leadership-directory {
+  display: grid;
+  gap: clamp(2rem, 4vw, 3rem);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Section
+   ========================================================================== */
+
+.leadership-directory__section {
+  display: grid;
+  gap: 1.25rem;
+
+  min-inline-size: 0;
+
+  padding-block-end: clamp(1.5rem, 3vw, 2rem);
+
+  border-block-end: 1px solid var(--color-border);
+
+  &:last-child {
+    padding-block-end: 0;
+
+    border-block-end: 0;
+  }
+}
+
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
+.leadership-directory__heading {
+  position: relative;
+
+  margin: 0;
+  padding-inline-start: 1rem;
+
+  color: var(--color-heading);
+
+  font-size: clamp(var(--text-lg), 1rem + 0.45vw, var(--text-xl));
+
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+
+  &::before {
+    content: "";
+
+    position: absolute;
+
+    inset-block: 0.1em;
+    inset-inline-start: 0;
+
+    inline-size: 0.25rem;
+
+    border-radius: var(--radius-pill);
+
+    background: var(--color-primary);
+  }
+}
+
+/* ==========================================================================
+   Grid
+   ========================================================================== */
+
+.leadership-directory__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 1.5rem) clamp(1.5rem, 4vw, 3rem);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Single Item
+   ========================================================================== */
+
+.leadership-directory__grid > :only-child {
+  max-inline-size: 30rem;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .leadership-directory {
+    gap: 2rem;
+  }
+
+  .leadership-directory__grid {
+    gap: 1.25rem 2rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .leadership-directory {
+    gap: 1.75rem;
+  }
+
+  .leadership-directory__section {
+    gap: 1rem;
+
+    padding-block-end: 1.5rem;
+  }
+
+  .leadership-directory__heading {
+    padding-inline-start: 0.875rem;
+
+    font-size: var(--text-lg);
+
+    &::before {
+      inline-size: 0.1875rem;
+    }
+  }
+
+  .leadership-directory__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  .leadership-directory__grid > :only-child {
+    max-inline-size: none;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .leadership-directory__section {
+    border-block-end-width: 2px;
+  }
+
+  .leadership-directory__heading::before {
+    inline-size: 0.375rem;
+  }
+}

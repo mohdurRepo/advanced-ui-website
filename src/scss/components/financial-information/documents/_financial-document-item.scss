@@ -1,0 +1,462 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Document Item
+   ========================================================================== */
+
+.financial-document-item {
+  --financial-document-bg: var(--color-surface);
+  --financial-document-fg: var(--color-text);
+  --financial-document-muted: var(--color-text-muted);
+
+  --financial-document-border: var(--color-border);
+  --financial-document-border-hover: color-mix(
+    in oklab,
+    var(--color-primary),
+    var(--color-border) 55%
+  );
+
+  --financial-document-accent: var(--color-primary);
+
+  --financial-document-icon-bg: color-mix(
+    in oklab,
+    var(--financial-document-accent),
+    transparent 92%
+  );
+
+  --financial-document-icon-fg: var(--financial-document-accent);
+
+  --financial-document-radius: var(--radius-xl);
+  --financial-document-shadow: var(--shadow-xs);
+  --financial-document-shadow-hover: var(--shadow-sm);
+
+  position: relative;
+  isolation: isolate;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+
+  min-inline-size: 0;
+
+  padding: 1.25rem;
+
+  overflow: hidden;
+
+  border: 1px solid var(--financial-document-border);
+  border-radius: var(--financial-document-radius);
+
+  background: var(--financial-document-bg);
+  color: var(--financial-document-fg);
+
+  box-shadow: var(--financial-document-shadow);
+
+  @include transition(
+    (background-color, border-color, box-shadow, transform),
+    fast
+  );
+
+  &:hover {
+    border-color: var(--financial-document-border-hover);
+
+    box-shadow: var(--financial-document-shadow-hover);
+
+    transform: translateY(-0.125rem);
+  }
+}
+
+/* ==========================================================================
+   Decorative Accent
+   ========================================================================== */
+
+.financial-document-item::after {
+  content: "";
+
+  position: absolute;
+
+  inset-inline-end: -3rem;
+  inset-block-end: -3rem;
+  z-index: -1;
+
+  inline-size: 10rem;
+  block-size: 10rem;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--financial-document-accent), transparent 88%) 0%,
+    transparent 70%
+  );
+
+  opacity: 0.65;
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.financial-document-item__content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+}
+
+.financial-document-item__content > div {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Icon
+   ========================================================================== */
+
+.financial-document-item__icon {
+  --icon-size: 1.25rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+
+  flex: 0 0 auto;
+
+  border: 1px solid
+    color-mix(in oklab, var(--financial-document-accent), transparent 80%);
+
+  border-radius: var(--radius-lg);
+
+  background: var(--financial-document-icon-bg);
+  color: var(--financial-document-icon-fg);
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.financial-document-item__title {
+  margin: 0 0 0.375rem;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-base);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.financial-document-item__description {
+  max-inline-size: 46rem;
+
+  margin: 0;
+
+  color: var(--financial-document-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Metadata
+   ========================================================================== */
+
+.financial-document-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.75rem;
+
+  margin-block-start: 0.625rem;
+
+  color: var(--financial-document-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-tight);
+}
+
+.financial-document-item__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+
+  white-space: nowrap;
+
+  .has-icon {
+    --icon-size: 0.75rem;
+
+    color: var(--financial-document-accent);
+  }
+}
+
+/* ==========================================================================
+   Action
+   ========================================================================== */
+
+.financial-document-item__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  flex: 0 0 auto;
+
+  min-inline-size: max-content;
+
+  white-space: nowrap;
+
+  .has-icon {
+    --icon-size: 0.75rem;
+
+    flex: 0 0 auto;
+
+    @include transition(transform, fast);
+  }
+
+  &:hover .has-icon {
+    transform: translateY(0.125rem);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Download Variant
+   ========================================================================== */
+
+.financial-document-item--download {
+  --financial-document-accent: var(--color-primary);
+
+  .financial-document-item__action {
+    color: var(--color-primary);
+  }
+}
+
+/* ==========================================================================
+   Link Variant
+   ========================================================================== */
+
+.financial-document-item--link {
+  --financial-document-accent: var(--color-primary);
+
+  align-items: flex-start;
+
+  .financial-document-item__icon {
+    border-radius: var(--radius-pill);
+  }
+
+  .financial-document-item__action {
+    align-self: center;
+  }
+}
+
+/* ==========================================================================
+   Committee Variant
+   ========================================================================== */
+
+.financial-document-item--committee {
+  --financial-document-accent: var(--color-heading);
+
+  padding-inline-start: 1.5rem;
+
+  border-inline-start: 0.25rem solid var(--color-primary);
+
+  .financial-document-item__icon {
+    border-radius: var(--radius-md);
+
+    background: color-mix(in oklab, var(--color-primary), transparent 92%);
+
+    color: var(--color-primary);
+  }
+
+  .financial-document-item__title {
+    font-size: var(--text-lg);
+  }
+}
+
+/* ==========================================================================
+   Important Variant
+   ========================================================================== */
+
+.financial-document-item--important {
+  --financial-document-border: color-mix(
+    in oklab,
+    var(--color-warning),
+    var(--color-border) 50%
+  );
+
+  --financial-document-accent: var(--color-warning);
+}
+
+/* ==========================================================================
+   Disabled State
+   ========================================================================== */
+
+.financial-document-item.is-disabled,
+.financial-document-item[aria-disabled="true"] {
+  opacity: 0.55;
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .financial-document-item::after {
+    inset-inline-start: -3rem;
+    inset-inline-end: auto;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .financial-document-item {
+    gap: 1rem;
+
+    padding: 1.125rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-document-item {
+    flex-direction: column;
+    align-items: stretch;
+
+    gap: 1rem;
+
+    padding: 1rem;
+
+    border-radius: var(--radius-lg);
+  }
+
+  .financial-document-item__content {
+    gap: 0.875rem;
+  }
+
+  .financial-document-item__icon {
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+
+    --icon-size: 1.125rem;
+  }
+
+  .financial-document-item__title {
+    font-size: var(--text-sm);
+  }
+
+  .financial-document-item__description {
+    font-size: var(--text-xs);
+  }
+
+  .financial-document-item__meta {
+    gap: 0.375rem 0.625rem;
+  }
+
+  .financial-document-item__action {
+    inline-size: 100%;
+    min-inline-size: 0;
+
+    justify-content: center;
+  }
+
+  .financial-document-item--link {
+    .financial-document-item__action {
+      align-self: stretch;
+    }
+  }
+
+  .financial-document-item--committee {
+    padding-inline-start: 1rem;
+
+    .financial-document-item__title {
+      font-size: var(--text-base);
+    }
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-document-item {
+    --financial-document-shadow: none;
+    --financial-document-shadow-hover: none;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-document-item {
+    border-width: 2px;
+
+    box-shadow: none;
+  }
+
+  .financial-document-item::after {
+    display: none;
+  }
+
+  .financial-document-item__icon {
+    border-width: 2px;
+
+    background: transparent;
+    color: currentColor;
+  }
+
+  .financial-document-item--committee {
+    border-inline-start-width: 0.375rem;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-document-item,
+  .financial-document-item__action .has-icon {
+    transition: none;
+  }
+
+  .financial-document-item:hover,
+  .financial-document-item__action:hover .has-icon {
+    transform: none;
+  }
+}

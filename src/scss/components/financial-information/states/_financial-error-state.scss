@@ -1,0 +1,166 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Error State
+   ========================================================================== */
+
+.financial-error-state {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.875rem;
+
+  min-inline-size: 0;
+  min-block-size: clamp(16rem, 28vw, 22rem);
+
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+
+  border: 1px solid
+    color-mix(in oklab, var(--color-danger), var(--color-border) 55%);
+
+  border-radius: var(--radius-xl);
+
+  background: color-mix(
+    in oklab,
+    var(--color-danger),
+    var(--color-surface) 96%
+  );
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Icon
+   ========================================================================== */
+
+.financial-error-state__icon {
+  --icon-size: 1.75rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 3.75rem;
+  block-size: 3.75rem;
+
+  border: 1px solid color-mix(in oklab, var(--color-danger), transparent 72%);
+
+  border-radius: var(--radius-pill);
+
+  background: color-mix(in oklab, var(--color-danger), transparent 90%);
+
+  color: var(--color-danger);
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.financial-error-state__title {
+  max-inline-size: 32rem;
+
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-lg);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.financial-error-state__description {
+  max-inline-size: 36rem;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.financial-error-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+
+  margin-block-start: 0.5rem;
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-error-state {
+    min-block-size: 14rem;
+
+    padding: 1.5rem 1rem;
+
+    border-radius: var(--radius-lg);
+  }
+
+  .financial-error-state__icon {
+    inline-size: 3.25rem;
+    block-size: 3.25rem;
+
+    --icon-size: 1.5rem;
+  }
+
+  .financial-error-state__description {
+    font-size: var(--text-xs);
+  }
+
+  .financial-error-state__actions {
+    inline-size: 100%;
+
+    .btn {
+      inline-size: 100%;
+    }
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-error-state {
+    background: color-mix(
+      in oklab,
+      var(--color-danger),
+      var(--color-surface) 92%
+    );
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-error-state {
+    border-width: 2px;
+
+    background: var(--color-surface);
+  }
+
+  .financial-error-state__icon {
+    border-width: 2px;
+
+    background: transparent;
+    color: currentColor;
+  }
+}

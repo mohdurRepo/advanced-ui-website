@@ -1,0 +1,158 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Panel Header
+   ========================================================================== */
+
+.financial-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(1rem, 3vw, 2rem);
+
+  min-inline-size: 0;
+
+  padding-block-end: 1.25rem;
+
+  border-block-end: 1px solid var(--color-border);
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.financial-panel-header__content {
+  display: grid;
+  gap: 0.5rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Eyebrow
+   ========================================================================== */
+
+.financial-panel-header__eyebrow {
+  margin: 0;
+
+  color: var(--color-primary);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.financial-panel-header__title {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: clamp(var(--text-xl), 1rem + 0.75vw, var(--text-2xl));
+
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.financial-panel-header__description {
+  max-inline-size: 48rem;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("regular");
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.financial-panel-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.625rem;
+
+  flex: 0 0 auto;
+
+  .btn {
+    white-space: nowrap;
+  }
+
+  .has-icon {
+    --icon-size: 0.875rem;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .financial-panel-header {
+    align-items: stretch;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-panel-header {
+    display: grid;
+    gap: 1rem;
+
+    padding-block-end: 1rem;
+  }
+
+  .financial-panel-header__title {
+    font-size: var(--text-xl);
+  }
+
+  .financial-panel-header__description {
+    font-size: var(--text-xs);
+  }
+
+  .financial-panel-header__actions {
+    justify-content: flex-start;
+
+    .btn {
+      inline-size: 100%;
+    }
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-panel-header {
+    border-block-end-width: 2px;
+  }
+
+  .financial-panel-header__eyebrow {
+    color: var(--color-heading);
+  }
+}

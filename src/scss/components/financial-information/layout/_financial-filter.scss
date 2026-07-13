@@ -1,0 +1,198 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Filter
+   ========================================================================== */
+
+.financial-filter {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+
+  min-inline-size: 0;
+
+  padding: 1rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface-alt);
+}
+
+/* ==========================================================================
+   Field
+   ========================================================================== */
+
+.financial-filter__field {
+  display: grid;
+  gap: 0.5rem;
+
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Label
+   ========================================================================== */
+
+.financial-filter__label {
+  color: var(--color-heading);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Control
+   ========================================================================== */
+
+.financial-filter__control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 2.75rem;
+
+  padding: 0.625rem 0.875rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  text-align: start;
+
+  cursor: pointer;
+
+  @include transition(
+    (background-color, border-color, color, box-shadow),
+    fast
+  );
+
+  > span:first-child {
+    min-inline-size: 0;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .has-icon {
+    --icon-size: 0.75rem;
+
+    flex: 0 0 auto;
+
+    color: var(--color-text-muted);
+  }
+
+  &:hover {
+    border-color: color-mix(
+      in oklab,
+      var(--color-primary),
+      var(--color-border) 55%
+    );
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Submit
+   ========================================================================== */
+
+.financial-filter > .btn {
+  flex: 0 0 auto;
+
+  min-inline-size: 7.5rem;
+
+  justify-content: center;
+
+  .has-icon {
+    --icon-size: 0.625rem;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .financial-filter {
+    align-items: stretch;
+  }
+
+  .financial-filter > .btn {
+    align-self: flex-end;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-filter {
+    display: grid;
+    gap: 0.875rem;
+
+    padding: 0.875rem;
+  }
+
+  .financial-filter > .btn {
+    inline-size: 100%;
+
+    align-self: auto;
+  }
+
+  .financial-filter__control {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-filter {
+    background: color-mix(in oklab, var(--color-surface-alt), transparent 8%);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-filter,
+  .financial-filter__control {
+    border-width: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-filter__control {
+    transition: none;
+  }
+}

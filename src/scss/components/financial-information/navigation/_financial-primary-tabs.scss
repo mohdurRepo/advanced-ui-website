@@ -1,0 +1,180 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Primary Tabs
+   ========================================================================== */
+
+.financial-tabs--primary {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Navigation
+   ========================================================================== */
+
+.financial-primary-tabs__list {
+  --financial-primary-fg: var(--color-text-muted);
+  --financial-primary-hover: var(--color-heading);
+  --financial-primary-active: var(--color-heading);
+  --financial-primary-indicator: var(--color-primary);
+  --financial-primary-border: var(--color-border);
+
+  display: flex;
+  align-items: stretch;
+  gap: clamp(1.75rem, 4vw, 3.5rem);
+
+  min-inline-size: 0;
+
+  margin: 0;
+  padding: 0;
+
+  border-block-end: 1px solid var(--financial-primary-border);
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+  scroll-snap-type: inline proximity;
+
+  touch-action: pan-x;
+
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Item
+   ========================================================================== */
+
+.financial-primary-tabs__item {
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-inline-size: max-content;
+  min-block-size: 3.25rem;
+
+  flex: 0 0 auto;
+
+  padding: 0 0.125rem 0.875rem;
+
+  border: 0;
+
+  background: transparent;
+  color: var(--financial-primary-fg);
+
+  font: inherit;
+  font-size: clamp(var(--text-base), 0.95rem + 0.25vw, var(--text-lg));
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-tight);
+
+  white-space: nowrap;
+
+  cursor: pointer;
+  scroll-snap-align: start;
+
+  @include transition(color, fast);
+
+  &::after {
+    content: "";
+
+    position: absolute;
+
+    inset-inline: 0;
+    inset-block-end: -1px;
+
+    block-size: 0.1875rem;
+
+    border-radius: var(--radius-pill);
+
+    background: var(--financial-primary-indicator);
+
+    opacity: 0;
+
+    transform: scaleX(0.55);
+    transform-origin: center;
+
+    @include transition((opacity, transform), fast);
+  }
+
+  &:hover:not(.active):not([aria-selected="true"]) {
+    color: var(--financial-primary-hover);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.active,
+  &[aria-selected="true"] {
+    color: var(--financial-primary-active);
+
+    font-weight: font-weight("bold");
+
+    &::after {
+      opacity: 1;
+
+      transform: scaleX(1);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.45;
+
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-primary-tabs__list {
+    gap: 1.5rem;
+  }
+
+  .financial-primary-tabs__item {
+    min-block-size: 3rem;
+
+    padding-block-end: 0.75rem;
+
+    font-size: var(--text-sm);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-primary-tabs__list {
+    border-block-end-width: 2px;
+  }
+
+  .financial-primary-tabs__item::after {
+    block-size: 0.25rem;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-primary-tabs__item,
+  .financial-primary-tabs__item::after {
+    transition: none;
+  }
+}

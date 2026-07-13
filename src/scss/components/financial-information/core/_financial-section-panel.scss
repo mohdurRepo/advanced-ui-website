@@ -1,0 +1,133 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Section Panel
+   ========================================================================== */
+
+.financial-section-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--financial-section-row-gap);
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Financial Subsection Panel
+   ========================================================================== */
+
+.financial-subsection-panel {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 2.5vw, 1.75rem);
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Financial Period Panel
+   ========================================================================== */
+
+.financial-period-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Financial View Panel
+   ========================================================================== */
+
+.financial-view__panel {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Financial Report Panel
+   ========================================================================== */
+
+.financial-report-tabs__panel {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.financial-section-panel__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  min-inline-size: 0;
+
+  margin-block-start: -0.25rem;
+
+  .btn {
+    min-inline-size: 7.5rem;
+
+    justify-content: center;
+  }
+
+  .has-icon {
+    --icon-size: 0.625rem;
+
+    @include transition(transform, fast);
+  }
+
+  .btn:hover .has-icon {
+    transform: translateX(0.125rem);
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .financial-section-panel__footer .btn:hover .has-icon {
+    transform: translateX(-0.125rem);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-section-panel,
+  .financial-subsection-panel {
+    gap: 1.25rem;
+  }
+
+  .financial-period-panel {
+    gap: 0.875rem;
+  }
+
+  .financial-section-panel__footer {
+    .btn {
+      inline-size: 100%;
+    }
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-section-panel__footer .has-icon {
+    transition: none;
+  }
+
+  .financial-section-panel__footer .btn:hover .has-icon {
+    transform: none;
+  }
+}

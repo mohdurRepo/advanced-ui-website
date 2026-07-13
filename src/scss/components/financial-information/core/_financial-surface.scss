@@ -1,0 +1,145 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Surface
+   ========================================================================== */
+
+.financial-surface {
+  --financial-surface-bg: var(--color-surface);
+  --financial-surface-fg: var(--color-text);
+
+  --financial-surface-border: var(--color-border);
+  --financial-surface-radius: var(--radius-xl);
+  --financial-surface-shadow: var(--shadow-sm);
+
+  position: relative;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+
+  overflow: hidden;
+
+  border: 1px solid var(--financial-surface-border);
+  border-radius: var(--financial-surface-radius);
+
+  background: var(--financial-surface-bg);
+  color: var(--financial-surface-fg);
+
+  box-shadow: var(--financial-surface-shadow);
+}
+
+/* ==========================================================================
+   Table Surface
+   ========================================================================== */
+
+.financial-surface--table {
+  /*
+   * Tables already own their internal borders and row backgrounds.
+   * This surface only provides the section background and outer spacing.
+   */
+  padding: clamp(0.75rem, 1.8vw, 1.25rem);
+}
+
+/* ==========================================================================
+   Chart Surface
+   ========================================================================== */
+
+.financial-surface--chart {
+  display: flex;
+  flex-direction: column;
+
+  min-block-size: clamp(22rem, 35vw, 32rem);
+
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+/* ==========================================================================
+   Full-width Children
+   ========================================================================== */
+
+.financial-surface > :first-child {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Flush Variant
+   ========================================================================== */
+
+.financial-surface--flush {
+  padding: 0;
+}
+
+/* ==========================================================================
+   Subtle Variant
+   ========================================================================== */
+
+.financial-surface--subtle {
+  --financial-surface-bg: var(--color-surface-alt);
+  --financial-surface-shadow: none;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .financial-surface--chart {
+    min-block-size: 24rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-surface {
+    padding: 0.875rem;
+
+    border-radius: var(--radius-lg);
+  }
+
+  .financial-surface--table {
+    padding: 0.625rem;
+  }
+
+  .financial-surface--chart {
+    min-block-size: 20rem;
+
+    padding: 0.875rem;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-surface {
+    --financial-surface-bg: color-mix(
+      in oklab,
+      var(--color-surface),
+      var(--color-bg) 12%
+    );
+
+    --financial-surface-shadow: none;
+  }
+
+  .financial-surface--subtle {
+    --financial-surface-bg: var(--color-surface-alt);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-surface {
+    border-width: 2px;
+
+    box-shadow: none;
+  }
+}

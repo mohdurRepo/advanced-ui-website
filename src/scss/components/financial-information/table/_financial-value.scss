@@ -1,0 +1,127 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Value
+   ========================================================================== */
+
+.financial-value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+
+  color: inherit;
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Currency
+   ========================================================================== */
+
+.financial-value__currency {
+  --icon-size: 0.75rem;
+
+  flex: 0 0 auto;
+
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   Amount
+   ========================================================================== */
+
+.financial-value__amount {
+  color: inherit;
+
+  font-weight: inherit;
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Unit
+   ========================================================================== */
+
+.financial-value__unit {
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("medium");
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Change
+   ========================================================================== */
+
+.financial-value__change {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  color: inherit;
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("bold");
+
+  white-space: nowrap;
+
+  .has-icon {
+    --icon-size: 0.5rem;
+  }
+}
+
+/* ==========================================================================
+   Strong Variant
+   ========================================================================== */
+
+.financial-value--strong {
+  color: var(--color-heading);
+
+  font-weight: font-weight("bold");
+}
+
+/* ==========================================================================
+   Block Variant
+   ========================================================================== */
+
+.financial-value--block {
+  display: flex;
+
+  inline-size: 100%;
+
+  justify-content: flex-end;
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-value {
+    gap: 0.25rem;
+  }
+
+  .financial-value__currency {
+    --icon-size: 0.6875rem;
+  }
+
+  .financial-value__unit,
+  .financial-value__change {
+    font-size: 0.6875rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-value__currency,
+  .financial-value__unit {
+    color: currentColor;
+  }
+}
