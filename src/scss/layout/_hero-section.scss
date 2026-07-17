@@ -29,13 +29,13 @@
 
   /* Decorative image */
 
-  --hero-section-image: url("../assets/images/background-pattern.png");
+  --hero-section-image: url("../../assets/images/hero-bg-pattern.png");
   --hero-section-image-size: min(38rem, 48vw);
-  --hero-section-image-opacity: 0.2;
+  --hero-section-image-opacity: 1;
 
   --hero-section-image-inline: -3rem;
   --hero-section-image-block: -5rem;
-
+ 
   /* Accent glow */
 
   --hero-section-glow-size: 34rem;
@@ -137,7 +137,7 @@ html[dir="rtl"] {
     --hero-section-space-end: 2.75rem;
 
     --hero-section-image-size: min(32rem, 60vw);
-    --hero-section-image-opacity: 0.16;
+    --hero-section-image-opacity: 1;
 
     --hero-section-glow-size: 28rem;
     --hero-section-glow-inline: -10rem;
@@ -198,7 +198,7 @@ html[data-theme="dark"] {
 
     --page-hero-muted: rgb(255 255 255 / 0.72);
 
-    --hero-section-image-opacity: 0.14;
+    --hero-section-image-opacity: 1;
     --hero-section-glow-opacity: 0.16;
   }
 }

@@ -12,10 +12,9 @@
   --feature-card-border: var(--color-border);
   --feature-card-accent: var(--color-primary);
 
-  --feature-card-radius: var(--radius-lg);
   --feature-card-shadow: var(--shadow-sm);
 
-  --feature-card-pattern: url("../../assets/images/background-pattern.png");
+  --feature-card-pattern: url("../../../assets/images/financial-bg-pattern.png");
 
   position: relative;
   isolation: isolate;
@@ -25,14 +24,13 @@
   justify-content: flex-end;
 
   min-inline-size: 0;
-  min-block-size: clamp(13rem, 18vw, 16rem);
+  min-block-size: clamp(13rem, 18vw, 20rem);
 
   overflow: hidden;
 
   padding: clamp(1rem, 2vw, 1.5rem);
 
   border: 1px solid var(--feature-card-border);
-  border-radius: var(--feature-card-radius);
 
   background: var(--feature-card-bg);
   color: var(--feature-card-fg);
@@ -49,7 +47,7 @@
    Decorative Glow
    ========================================================================== */
 
-.feature-overview-card::before {
+.feature-overview-card::after {
   content: "";
 
   position: absolute;
@@ -58,21 +56,21 @@
   inset-block-end: -3.5rem;
   z-index: -1;
 
-  inline-size: 12rem;
-  block-size: 12rem;
+  inline-size: 15rem;
+  block-size: 15rem;
 
   border-radius: 50%;
 
   background: radial-gradient(
     circle at center,
-    color-mix(in oklab, var(--feature-card-accent), transparent 8%) 0%,
-    color-mix(in oklab, var(--feature-card-accent), transparent 56%) 34%,
-    transparent 72%
+    color-mix(in oklab, var(--feature-card-accent), transparent 0%) 100%,
+    color-mix(in oklab, var(--feature-card-accent), transparent 0%) 100%,
+    transparent 100%
   );
 
-  opacity: 0.55;
+  opacity: 0.1;
 
-  filter: blur(0.5rem);
+  filter: blur(1.5rem);
 
   pointer-events: none;
 }
@@ -81,7 +79,7 @@
    Decorative Pattern
    ========================================================================== */
 
-.feature-overview-card::after {
+.feature-overview-card::before {
   content: "";
 
   position: absolute;
@@ -98,7 +96,7 @@
   background-position: right bottom;
   background-size: 13rem auto;
 
-  opacity: 0.14;
+  opacity: 0.3;
 
   pointer-events: none;
 }

@@ -8,9 +8,7 @@
   --home-highlights-bg: var(--color-bg);
   --home-highlights-fg: var(--color-text);
   --home-highlights-gap: clamp(1rem, 2vw, 1.5rem);
-
-  padding-block: clamp(3rem, 6vw, 5rem);
-
+  
   background: var(--home-highlights-bg);
   color: var(--home-highlights-fg);
 }

@@ -7,13 +7,14 @@
 .page {
   --page-bg: var(--color-bg);
 
-  --page-pattern-image: url("../assets/images/background-pattern.png");
+  --page-pattern-image: url("../../assets/images/home-background-pattern.png");
   --page-pattern-opacity: 0.14;
   --page-pattern-position-y: 8rem;
-  --page-pattern-size: min(1320px, calc(100% - 2rem));
+  --page-pattern-size: min(992px, calc(100% - 2rem));
 
-  --page-glow-size: 100rem;
+  --page-glow-size: 10rem;
   --page-glow-opacity: 0.18;
+
 
   /*
    * Physical decorative coordinates.
@@ -66,6 +67,7 @@
       var(--page-glow-bottom-position),
       center var(--page-pattern-position-y);
 
+    margin-top: 50px;
     opacity: 1;
   }
 

@@ -22,7 +22,6 @@
   overflow: hidden;
 
   border: 1px solid var(--home-event-slider-border);
-  border-radius: var(--radius-lg);
 
   background: var(--home-event-slider-bg);
   color: var(--home-event-slider-fg);
@@ -144,10 +143,10 @@
   inline-size: 2.5rem;
   block-size: 2.5rem;
 
-  border: 1px solid rgb(255 255 255 / 0.34);
-  border-radius: var(--radius-pill);
+  //border: 1px solid rgb(255 255 255 / 0.34);
+  //border-radius: var(--radius-pill);
 
-  background: rgb(0 0 0 / 0.38);
+  //background: rgb(0 0 0 / 0.38);
   color: #ffffff;
 
   box-shadow: var(--shadow-sm);
@@ -162,10 +161,10 @@
   }
 
   &:hover {
-    border-color: rgb(255 255 255 / 0.68);
+    //border-color: rgb(255 255 255 / 0.68);
 
-    background: rgb(0 0 0 / 0.62);
-    color: #ffffff;
+    //background: rgb(0 0 0 / 0.62);
+    //color: #ffffff;
   }
 
   &:focus {

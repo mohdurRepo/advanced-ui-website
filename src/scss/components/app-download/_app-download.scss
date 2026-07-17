@@ -14,14 +14,7 @@
   --app-download-panel-fg: #ffffff;
   --app-download-panel-muted: rgb(255 255 255 / 0.68);
 
-  --app-download-border: color-mix(
-    in oklab,
-    var(--color-primary),
-    transparent 70%
-  );
 
-  --app-download-radius: var(--radius-xl);
-  --app-download-panel-radius: var(--radius-lg);
   --app-download-shadow: var(--shadow-md);
 
   /*
@@ -72,8 +65,6 @@
   min-block-size: clamp(24rem, 42vw, 36rem);
 
   overflow: hidden;
-
-  border-radius: var(--app-download-panel-radius);
 
   background:
     radial-gradient(
@@ -208,8 +199,6 @@
 .app-download__store-link {
   display: inline-flex;
 
-  border-radius: var(--radius-sm);
-
   text-decoration: none;
 
   @include transition((opacity, transform, box-shadow), fast);
@@ -264,7 +253,7 @@
   inline-size: 100%;
   block-size: 100%;
 
-  object-fit: cover;
+  object-fit: contain;
   object-position: center right;
 
   transform: scale(1);
@@ -376,12 +365,9 @@ html[dir="rtl"] {
   .app-download__surface {
     padding: 0.75rem;
 
-    border-radius: var(--radius-lg);
   }
 
-  .app-download__panel {
-    border-radius: var(--radius-md);
-  }
+ 
 
   .app-download__content {
     padding: 1.5rem;

@@ -29,8 +29,6 @@
 .announcements-calendar__surface {
   padding: var(--announcements-space);
 
-  border-radius: var(--radius-xl);
-
   background: var(--announcements-bg);
   color: var(--announcements-fg);
 }
@@ -110,10 +108,6 @@
   .announcements-calendar {
     --announcements-space: 1rem;
     --announcements-gap: 1rem;
-  }
-
-  .announcements-calendar__surface {
-    border-radius: var(--radius-lg);
   }
 }
 

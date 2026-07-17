@@ -20,8 +20,8 @@
   --footer-accent: var(--color-primary);
   --footer-on-accent: var(--color-on-primary);
 
-  --footer-pattern: url("../../assets/images/background-pattern.png");
-  --footer-pattern-opacity: 0.12;
+  --footer-pattern: url("../../../assets/images/footer-background-pattern.png");
+  --footer-pattern-opacity: 0.6;
 
   --footer-glow-opacity: 0.18;
   --footer-glow-size: 42rem;
@@ -83,7 +83,7 @@
   opacity: var(--footer-pattern-opacity);
 
   pointer-events: none;
-}
+} 
 
 /* ==========================================================================
    Decorative Glow

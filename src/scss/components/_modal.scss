@@ -149,6 +149,7 @@
 .modal-close {
   position: relative;
 
+  /* 1. Kept grid centering for the container */
   display: inline-grid;
   place-items: center;
 
@@ -167,35 +168,33 @@
 
   @include transition((background-color, border-color, color, transform), fast);
 
+  /* 2. Unified layout rules for the X lines */
   &::before,
   &::after {
     content: "";
-    position: absolute;
-
-    inset-block-start: 50%;
-    inset-inline-start: 50%;
+    
+    /* 3. Grid-stack them into the exact center slot instead of absolute positioning */
+    grid-area: 1 / 1;
 
     inline-size: 14px;
     block-size: 2px;
 
     border-radius: var(--radius-pill);
     background: currentColor;
-
-    transform-origin: center;
   }
 
+  /* 4. Removed the conflicting inline translations entirely */
   &::before {
-    transform: translate(-50%, -50%) rotate(45deg);
+    transform: rotate(45deg);
   }
 
   &::after {
-    transform: translate(-50%, -50%) rotate(-45deg);
+    transform: rotate(-45deg);
   }
 
   &:hover:not(:disabled):not(.is-disabled) {
     background: var(--color-bg);
     border-color: var(--color-border-strong);
-    transform: rotate(90deg);
   }
 
   &:focus {

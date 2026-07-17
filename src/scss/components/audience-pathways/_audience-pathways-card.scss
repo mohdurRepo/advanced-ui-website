@@ -16,13 +16,13 @@
   --audience-card-overlay-start: color-mix(
     in oklab,
     var(--color-primary),
-    #001f33 42%
+    #001f33 20%
   );
 
   --audience-card-overlay-middle: color-mix(
     in oklab,
     var(--color-primary),
-    transparent 25%
+    transparent 70%
   );
 
   display: grid;
@@ -56,7 +56,6 @@
   overflow: hidden;
 
   border: 1px solid var(--audience-card-border);
-  border-radius: var(--audience-card-radius);
 
   background: var(--color-surface-alt);
 

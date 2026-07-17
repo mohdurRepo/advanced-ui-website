@@ -10,12 +10,10 @@
   --audience-pathways-heading: var(--color-heading);
   --audience-pathways-muted: var(--color-text-muted);
 
-  --audience-pathways-section-space: clamp(3rem, 6vw, 5rem);
   --audience-pathways-heading-space: clamp(2rem, 4vw, 3rem);
   --audience-pathways-layout-gap: clamp(2rem, 5vw, 4rem);
   --audience-pathways-cards-gap: clamp(1rem, 2vw, 1.5rem);
 
-  padding-block: var(--audience-pathways-section-space);
 
   background: var(--audience-pathways-bg);
   color: var(--audience-pathways-fg);
@@ -177,7 +175,6 @@
 
 @include respond-down(sm) {
   .audience-pathways {
-    --audience-pathways-section-space: 2.5rem;
     --audience-pathways-heading-space: 1.5rem;
     --audience-pathways-layout-gap: 1.5rem;
     --audience-pathways-cards-gap: 1rem;
