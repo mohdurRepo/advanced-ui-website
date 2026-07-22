@@ -1,0 +1,2961 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Buttons | Abu Faisal Design System</title>
+    <link rel="stylesheet" href="/src/scss/main.scss" />
+    <script>
+      (function () {
+        var root = document.documentElement;
+
+        var lang = localStorage.getItem("se-lang") || "en";
+        var themeChoice = localStorage.getItem("se-theme") || "system";
+        var accent = localStorage.getItem("se-accent") || "blue";
+        var fontSize = localStorage.getItem("se-font-size") || "0";
+        var contrast = localStorage.getItem("se-contrast") || "normal";
+        var motion = localStorage.getItem("se-motion") || "normal";
+
+        var systemTheme =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+
+        var resolvedTheme =
+          themeChoice === "system" ? systemTheme : themeChoice;
+
+        root.lang = lang === "ar" ? "ar" : "en";
+        root.dir = lang === "ar" ? "rtl" : "ltr";
+
+        root.setAttribute("data-theme", resolvedTheme);
+        root.setAttribute("data-theme-choice", themeChoice);
+        root.setAttribute("data-accent", accent);
+        root.setAttribute("data-font-size", fontSize);
+        root.setAttribute("data-contrast", contrast);
+        root.setAttribute("data-motion", motion);
+      })();
+    </script>
+    <script type="module" src="/src/js/main.js"></script>
+  </head>
+  <body>
+    <header class="site-header" data-site-header>
+      <div class="site-header__inner">
+        <!-- Brand -->
+
+        <a
+          class="site-header__brand"
+          href="/"
+          aria-label="Saudi Exchange homepage"
+        >
+          <!--DARK-->
+          <img
+            class="site-header__logo site-header__logo--light"
+            src="../src/assets/images/saudi-exchange-logo.png"
+            alt="Saudi Exchange"
+          />
+          <!--DARK-->
+          <img
+            class="site-header__logo site-header__logo--dark"
+            src="../src/assets/images/saudi-exchange-logo.png"
+            alt="Saudi Exchange"
+          />
+        </a>
+
+        <!-- Desktop Navigation -->
+
+        <nav class="site-nav site-header__nav" aria-label="Main navigation">
+          <ul class="site-nav__list">
+            <!-- ================================================================
+             Our Market
+        ================================================================= -->
+
+            <li class="site-nav__item has-mega-menu">
+              <button
+                class="site-nav__trigger"
+                type="button"
+                aria-expanded="false"
+                aria-controls="mega-market"
+              >
+                <span class="site-nav__trigger-text"> Our Market </span>
+
+                <span
+                  class="has-icon icon-chevron-down site-nav__trigger-icon"
+                  aria-hidden="true"
+                ></span>
+              </button>
+
+              <div class="mega-menu" id="mega-market" aria-hidden="true">
+                <div class="mega-menu__container">
+                  <!-- Category rail -->
+
+                  <div class="mega-menu__rail">
+                    <div
+                      class="mega-menu-nav"
+                      role="tablist"
+                      aria-label="Our Market categories"
+                    >
+                      <div class="mega-menu-nav__title">Categories</div>
+
+                      <button
+                        class="mega-menu-nav__item is-active"
+                        id="mega-market-main-tab"
+                        type="button"
+                        role="tab"
+                        aria-selected="true"
+                        aria-controls="mega-market-main-panel"
+                        tabindex="0"
+                      >
+                        <span
+                          class="has-icon icon-chart-bar mega-menu-nav__icon"
+                          aria-hidden="true"
+                        ></span>
+
+                        <span class="mega-menu-nav__body">
+                          <span class="mega-menu-nav__heading">
+                            Main Market
+                          </span>
+
+                          <span class="mega-menu-nav__text">
+                            Prices, indices and trading activity
+                          </span>
+                        </span>
+
+                        <span
+                          class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
+                          aria-hidden="true"
+                        ></span>
+                      </button>
+
+                      <button
+                        class="mega-menu-nav__item"
+                        id="mega-market-products-tab"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="mega-market-products-panel"
+                        tabindex="-1"
+                      >
+                        <span
+                          class="has-icon icon-segment-container mega-menu-nav__icon"
+                          aria-hidden="true"
+                        ></span>
+
+                        <span class="mega-menu-nav__body">
+                          <span class="mega-menu-nav__heading"> Products </span>
+
+                          <span class="mega-menu-nav__text">
+                            Equities, ETFs, REITs, sukuk and bonds
+                          </span>
+                        </span>
+
+                        <span
+                          class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
+                          aria-hidden="true"
+                        ></span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Category content -->
+
+                  <div class="mega-menu__content">
+                    <!-- Main Market panel -->
+
+                    <section
+                      class="mega-menu-panel is-active"
+                      id="mega-market-main-panel"
+                      role="tabpanel"
+                      aria-labelledby="mega-market-main-tab"
+                      aria-hidden="false"
+                    >
+                      <h2 class="mega-menu-panel__title">Main Market</h2>
+
+                      <div class="mega-menu-panel__layout">
+                        <div class="mega-menu-panel__column">
+                          <a class="mega-menu-panel__link" href="#">
+                            Market Summary
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Market Watch
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Trading Calendar
+                          </a>
+
+                          <!-- Third-level flyout -->
+
+                          <div class="mega-menu-flyout">
+                            <button
+                              class="mega-menu-flyout__trigger"
+                              type="button"
+                              aria-expanded="false"
+                            >
+                              <span class="mega-menu-flyout__text">
+                                Indices
+                              </span>
+
+                              <span
+                                class="has-icon icon-chevron-right icon-flip-rtl mega-menu-flyout__icon"
+                                aria-hidden="true"
+                              ></span>
+                            </button>
+
+                            <div class="mega-menu-flyout__menu">
+                              <a class="mega-menu-flyout__link" href="#">
+                                TASI
+                              </a>
+
+                              <a class="mega-menu-flyout__link" href="#">
+                                Nomu Index
+                              </a>
+
+                              <a class="mega-menu-flyout__link" href="#">
+                                Sector Indices
+                              </a>
+
+                              <a class="mega-menu-flyout__link" href="#">
+                                MSCI Tadawul 30
+                              </a>
+                            </div>
+                          </div>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Listed Companies
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            IPO Center
+                          </a>
+                        </div>
+
+                        <div class="mega-menu-panel__column">
+                          <a class="mega-menu-panel__link" href="#">
+                            Top Gainers
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Top Losers
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Most Active
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Announcements
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Historical Data
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Market Statistics
+                          </a>
+                        </div>
+
+                        <div class="mega-menu-panel__feature">
+                          <article class="mega-feature">
+                            <div class="mega-feature__media">
+                              <img
+                                class="mega-feature__image"
+                                src="assets/images/card-background.png"
+                                alt=""
+                                loading="lazy"
+                              />
+                            </div>
+
+                            <div class="mega-feature__body">
+                              <h3 class="mega-feature__title">
+                                Market Statistics
+                              </h3>
+
+                              <p class="mega-feature__text">
+                                Access daily market snapshots and historical
+                                trading data.
+                              </p>
+
+                              <a class="mega-feature__link" href="#">
+                                Explore statistics
+                              </a>
+                            </div>
+                          </article>
+                        </div>
+                      </div>
+                    </section>
+
+                    <!-- Products panel -->
+
+                    <section
+                      class="mega-menu-panel"
+                      id="mega-market-products-panel"
+                      role="tabpanel"
+                      aria-labelledby="mega-market-products-tab"
+                      aria-hidden="true"
+                      hidden
+                    >
+                      <h2 class="mega-menu-panel__title">Products</h2>
+
+                      <div class="mega-menu-panel__layout">
+                        <div class="mega-menu-panel__column">
+                          <a class="mega-menu-panel__link" href="#">
+                            Equities
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#"> ETFs </a>
+
+                          <a class="mega-menu-panel__link" href="#"> REITs </a>
+
+                          <a class="mega-menu-panel__link" href="#"> Funds </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Sukuk &amp; Bonds
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Derivatives
+                          </a>
+                        </div>
+
+                        <div class="mega-menu-panel__column">
+                          <a class="mega-menu-panel__link" href="#">
+                            Product Overview
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Trading Services
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Clearing
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Settlement
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#"> Fees </a>
+
+                          <a class="mega-menu-panel__link" href="#"> Rules </a>
+                        </div>
+
+                        <div class="mega-menu-panel__feature">
+                          <article class="mega-feature">
+                            <div class="mega-feature__body">
+                              <h3 class="mega-feature__title">
+                                Product Center
+                              </h3>
+
+                              <p class="mega-feature__text">
+                                Learn about available investment products and
+                                market services.
+                              </p>
+
+                              <a class="mega-feature__link" href="#">
+                                View products
+                              </a>
+                            </div>
+                          </article>
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </div>
+              </div>
+            </li>
+
+            <!-- ================================================================
+             Data and Reports
+        ================================================================= -->
+
+            <li class="site-nav__item has-mega-menu">
+              <button
+                class="site-nav__trigger"
+                type="button"
+                aria-expanded="false"
+                aria-controls="mega-data"
+              >
+                <span class="site-nav__trigger-text"> Data &amp; Reports </span>
+
+                <span
+                  class="has-icon icon-chevron-down site-nav__trigger-icon"
+                  aria-hidden="true"
+                ></span>
+              </button>
+
+              <div class="mega-menu" id="mega-data" aria-hidden="true">
+                <div class="mega-menu__container">
+                  <div class="mega-menu__rail">
+                    <div
+                      class="mega-menu-nav"
+                      role="tablist"
+                      aria-label="Data and Reports categories"
+                    >
+                      <div class="mega-menu-nav__title">Categories</div>
+
+                      <button
+                        class="mega-menu-nav__item is-active"
+                        id="mega-data-reports-tab"
+                        type="button"
+                        role="tab"
+                        aria-selected="true"
+                        aria-controls="mega-data-reports-panel"
+                        tabindex="0"
+                      >
+                        <span
+                          class="has-icon icon-file-download mega-menu-nav__icon"
+                          aria-hidden="true"
+                        ></span>
+
+                        <span class="mega-menu-nav__body">
+                          <span class="mega-menu-nav__heading"> Reports </span>
+
+                          <span class="mega-menu-nav__text">
+                            Daily, monthly and annual reports
+                          </span>
+                        </span>
+
+                        <span
+                          class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
+                          aria-hidden="true"
+                        ></span>
+                      </button>
+
+                      <button
+                        class="mega-menu-nav__item"
+                        id="mega-data-library-tab"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="mega-data-library-panel"
+                        tabindex="-1"
+                      >
+                        <span
+                          class="has-icon icon-folder-import mega-menu-nav__icon"
+                          aria-hidden="true"
+                        ></span>
+
+                        <span class="mega-menu-nav__body">
+                          <span class="mega-menu-nav__heading">
+                            Data Library
+                          </span>
+
+                          <span class="mega-menu-nav__text">
+                            Downloads, research and historical files
+                          </span>
+                        </span>
+
+                        <span
+                          class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
+                          aria-hidden="true"
+                        ></span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="mega-menu__content">
+                    <!-- Reports panel -->
+
+                    <section
+                      class="mega-menu-panel is-active"
+                      id="mega-data-reports-panel"
+                      role="tabpanel"
+                      aria-labelledby="mega-data-reports-tab"
+                      aria-hidden="false"
+                    >
+                      <h2 class="mega-menu-panel__title">Reports</h2>
+
+                      <div class="mega-menu-panel__layout">
+                        <div class="mega-menu-panel__column">
+                          <a class="mega-menu-panel__link" href="#">
+                            Daily Reports
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Monthly Reports
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Annual Reports
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Financial Statements
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Market Statistics
+                          </a>
+                        </div>
+
+                        <div class="mega-menu-panel__column">
+                          <a class="mega-menu-panel__link" href="#">
+                            Factsheets
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Market Bulletins
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Historical Reports
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Research
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Archive
+                          </a>
+                        </div>
+
+                        <div class="mega-menu-panel__feature">
+                          <article class="mega-feature">
+                            <div class="mega-feature__body">
+                              <h3 class="mega-feature__title">
+                                Latest Reports
+                              </h3>
+
+                              <p class="mega-feature__text">
+                                Review the latest market reports and official
+                                publications.
+                              </p>
+
+                              <a class="mega-feature__link" href="#">
+                                Browse reports
+                              </a>
+                            </div>
+                          </article>
+                        </div>
+                      </div>
+                    </section>
+
+                    <!-- Data Library panel -->
+
+                    <section
+                      class="mega-menu-panel"
+                      id="mega-data-library-panel"
+                      role="tabpanel"
+                      aria-labelledby="mega-data-library-tab"
+                      aria-hidden="true"
+                      hidden
+                    >
+                      <h2 class="mega-menu-panel__title">Data Library</h2>
+
+                      <div class="mega-menu-panel__layout">
+                        <div class="mega-menu-panel__column">
+                          <a class="mega-menu-panel__link" href="#">
+                            Open Data
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Downloads
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Historical Files
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Market Data
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Index Data
+                          </a>
+                        </div>
+
+                        <div class="mega-menu-panel__column">
+                          <a class="mega-menu-panel__link" href="#">
+                            Research
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Factsheets
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Publications
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Data Policies
+                          </a>
+
+                          <a class="mega-menu-panel__link" href="#">
+                            Archive
+                          </a>
+                        </div>
+
+                        <div class="mega-menu-panel__feature">
+                          <article class="mega-feature">
+                            <div class="mega-feature__body">
+                              <h3 class="mega-feature__title">Open Data</h3>
+
+                              <p class="mega-feature__text">
+                                Access downloadable data and historical market
+                                information.
+                              </p>
+
+                              <a class="mega-feature__link" href="#">
+                                Open data library
+                              </a>
+                            </div>
+                          </article>
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </div>
+              </div>
+            </li>
+
+            <!-- Standard desktop links -->
+
+            <li class="site-nav__item">
+              <a class="site-nav__link" href="#">
+                <span class="site-nav__link-text"> Listings </span>
+              </a>
+            </li>
+
+            <li class="site-nav__item">
+              <a class="site-nav__link" href="#">
+                <span class="site-nav__link-text"> Investors </span>
+              </a>
+            </li>
+
+            <li class="site-nav__item">
+              <a class="site-nav__link" href="#">
+                <span class="site-nav__link-text"> Issuers </span>
+              </a>
+            </li>
+
+            <li class="site-nav__item">
+              <a class="site-nav__link" href="#">
+                <span class="site-nav__link-text"> Rules </span>
+              </a>
+            </li>
+
+            <li class="site-nav__item">
+              <a class="site-nav__link" href="#">
+                <span class="site-nav__link-text"> News </span>
+              </a>
+            </li>
+
+            <li class="site-nav__item">
+              <a class="site-nav__link" href="#">
+                <span class="site-nav__link-text"> About </span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <!-- Header actions -->
+
+        <div class="site-header__actions header-actions">
+          <div class="header-actions__desktop">
+            <!--<button
+              class="header-action has-icon icon-search"
+              type="button"
+              data-search-open
+              aria-label="Open search"
+            ></button>-->
+
+            <button
+              class="header-lang-switch"
+              type="button"
+              data-lang-toggle
+              aria-label="Switch language"
+            >
+              <span class="header-lang-switch__current"> EN </span>
+
+              <span
+                class="has-icon icon-globe icon-accent mobile-nav__language-icon"
+                aria-hidden="true"
+              ></span>
+            </button>
+          </div>
+
+          <div class="header-actions__mobile">
+            <button
+              class="header-burger"
+              type="button"
+              data-mobile-nav-open
+              aria-label="Open menu"
+              aria-expanded="false"
+              aria-controls="mobile-nav"
+            >
+              <span class="header-burger__line"></span>
+              <span class="header-burger__line"></span>
+              <span class="header-burger__line"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div
+      class="mobile-nav-overlay"
+      data-mobile-nav-overlay
+      aria-hidden="true"
+    ></div>
+
+    <aside
+      class="mobile-nav"
+      id="mobile-nav"
+      data-mobile-nav
+      aria-hidden="true"
+      aria-label="Mobile navigation"
+    >
+      <div class="mobile-nav__layout">
+        <header class="mobile-nav__header">
+          <a
+            class="mobile-nav__brand"
+            href="/"
+            aria-label="Saudi Exchange homepage"
+          >
+            <img
+              class="mobile-nav__logo mobile-nav__logo--light"
+              src="assets/images/se-logo-dark.png"
+              alt="Saudi Exchange"
+            />
+
+            <img
+              class="mobile-nav__logo mobile-nav__logo--dark"
+              src="assets/images/se-logo-light.png"
+              alt="Saudi Exchange"
+            />
+          </a>
+
+          <button
+            class="mobile-nav__close has-icon icon-close-x"
+            type="button"
+            data-mobile-nav-close
+            aria-label="Close menu"
+          ></button>
+        </header>
+
+        <!-- Language control -->
+
+        <div class="mobile-nav__controls">
+          <button
+            class="mobile-nav__language"
+            type="button"
+            data-lang-toggle
+            aria-label="Switch language"
+          >
+            <span
+              class="has-icon icon-globe icon-accent mobile-nav__language-icon"
+              aria-hidden="true"
+            ></span>
+
+            <span class="mobile-nav__language-text"> العربية </span>
+          </button>
+        </div>
+
+        <nav class="mobile-nav__body" aria-label="Mobile main navigation">
+          <ul class="mobile-nav__menu">
+            <!-- Our Market -->
+
+            <li class="mobile-nav__item has-submenu">
+              <button
+                class="mobile-nav__trigger"
+                type="button"
+                data-mobile-submenu-trigger
+                aria-expanded="false"
+                aria-controls="mobile-menu-market"
+              >
+                <span class="mobile-nav__trigger-text"> Our Market </span>
+
+                <span
+                  class="has-icon icon-chevron-down mobile-nav__trigger-icon"
+                  aria-hidden="true"
+                ></span>
+              </button>
+
+              <div
+                class="mobile-nav__submenu"
+                id="mobile-menu-market"
+                data-mobile-submenu
+                aria-hidden="true"
+                hidden
+              >
+                <ul class="mobile-nav__submenu-list">
+                  <!-- Main Market -->
+
+                  <li class="mobile-nav__submenu-item has-submenu">
+                    <button
+                      class="mobile-nav__subtrigger"
+                      type="button"
+                      data-mobile-submenu-trigger
+                      aria-expanded="false"
+                      aria-controls="mobile-menu-main-market"
+                    >
+                      <span class="mobile-nav__subtrigger-text">
+                        Main Market
+                      </span>
+
+                      <span
+                        class="has-icon icon-chevron-down mobile-nav__subtrigger-icon"
+                        aria-hidden="true"
+                      ></span>
+                    </button>
+
+                    <div
+                      class="mobile-nav__submenu mobile-nav__submenu--nested"
+                      id="mobile-menu-main-market"
+                      data-mobile-submenu
+                      aria-hidden="true"
+                      hidden
+                    >
+                      <ul class="mobile-nav__submenu-list">
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#">
+                            Market Summary
+                          </a>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#">
+                            Market Watch
+                          </a>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#">
+                            Trading Calendar
+                          </a>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item has-submenu">
+                          <button
+                            class="mobile-nav__subtrigger"
+                            type="button"
+                            data-mobile-submenu-trigger
+                            aria-expanded="false"
+                            aria-controls="mobile-menu-indices"
+                          >
+                            <span class="mobile-nav__subtrigger-text">
+                              Indices
+                            </span>
+
+                            <span
+                              class="has-icon icon-chevron-down mobile-nav__subtrigger-icon"
+                              aria-hidden="true"
+                            ></span>
+                          </button>
+
+                          <div
+                            class="mobile-nav__submenu mobile-nav__submenu--nested"
+                            id="mobile-menu-indices"
+                            data-mobile-submenu
+                            aria-hidden="true"
+                            hidden
+                          >
+                            <ul class="mobile-nav__submenu-list">
+                              <li class="mobile-nav__submenu-item">
+                                <a class="mobile-nav__link" href="#">TASI</a>
+                              </li>
+
+                              <li class="mobile-nav__submenu-item">
+                                <a class="mobile-nav__link" href="#">
+                                  Nomu Index
+                                </a>
+                              </li>
+
+                              <li class="mobile-nav__submenu-item">
+                                <a class="mobile-nav__link" href="#">
+                                  Sector Indices
+                                </a>
+                              </li>
+
+                              <li class="mobile-nav__submenu-item">
+                                <a class="mobile-nav__link" href="#">
+                                  MSCI Tadawul 30
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#">
+                            Listed Companies
+                          </a>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#"> IPO Center </a>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#"> Top Gainers </a>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#"> Top Losers </a>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#"> Most Active </a>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#">
+                            Announcements
+                          </a>
+                        </li>
+                      </ul>
+
+                      <!-- Main Market feature -->
+
+                      <div class="mobile-nav__feature">
+                        <article class="mega-feature mega-feature--compact">
+                          <div class="mega-feature__media">
+                            <img
+                              class="mega-feature__image"
+                              src="assets/images/card-background.png"
+                              alt=""
+                              loading="lazy"
+                            />
+                          </div>
+
+                          <div class="mega-feature__body">
+                            <h3 class="mega-feature__title">
+                              Market Statistics
+                            </h3>
+
+                            <p class="mega-feature__text">
+                              Access daily market snapshots and historical
+                              trading data.
+                            </p>
+
+                            <a class="mega-feature__link" href="#">
+                              Explore statistics
+                            </a>
+                          </div>
+                        </article>
+                      </div>
+                    </div>
+                  </li>
+
+                  <!-- Products -->
+
+                  <li class="mobile-nav__submenu-item has-submenu">
+                    <button
+                      class="mobile-nav__subtrigger"
+                      type="button"
+                      data-mobile-submenu-trigger
+                      aria-expanded="false"
+                      aria-controls="mobile-menu-products"
+                    >
+                      <span class="mobile-nav__subtrigger-text">
+                        Products
+                      </span>
+
+                      <span
+                        class="has-icon icon-chevron-down mobile-nav__subtrigger-icon"
+                        aria-hidden="true"
+                      ></span>
+                    </button>
+
+                    <div
+                      class="mobile-nav__submenu mobile-nav__submenu--nested"
+                      id="mobile-menu-products"
+                      data-mobile-submenu
+                      aria-hidden="true"
+                      hidden
+                    >
+                      <ul class="mobile-nav__submenu-list">
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#">Equities</a>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#">ETFs</a>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#">REITs</a>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#">Funds</a>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#">
+                            Sukuk &amp; Bonds
+                          </a>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#"> Derivatives </a>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#">
+                            Trading Services
+                          </a>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#">Clearing</a>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#">Settlement</a>
+                        </li>
+
+                        <li class="mobile-nav__submenu-item">
+                          <a class="mobile-nav__link" href="#">Fees</a>
+                        </li>
+                      </ul>
+
+                      <!-- Products feature -->
+
+                      <div class="mobile-nav__feature">
+                        <article class="mega-feature mega-feature--compact">
+                          <div class="mega-feature__body">
+                            <h3 class="mega-feature__title">Product Center</h3>
+
+                            <p class="mega-feature__text">
+                              Explore available investment products and market
+                              services.
+                            </p>
+
+                            <a class="mega-feature__link" href="#">
+                              View products
+                            </a>
+                          </div>
+                        </article>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </li>
+
+            <!-- Data & Reports -->
+
+            <li class="mobile-nav__item has-submenu">
+              <button
+                class="mobile-nav__trigger"
+                type="button"
+                data-mobile-submenu-trigger
+                aria-expanded="false"
+                aria-controls="mobile-menu-data"
+              >
+                <span class="mobile-nav__trigger-text">
+                  Data &amp; Reports
+                </span>
+
+                <span
+                  class="has-icon icon-chevron-down mobile-nav__trigger-icon"
+                  aria-hidden="true"
+                ></span>
+              </button>
+
+              <div
+                class="mobile-nav__submenu"
+                id="mobile-menu-data"
+                data-mobile-submenu
+                aria-hidden="true"
+                hidden
+              >
+                <ul class="mobile-nav__submenu-list">
+                  <li class="mobile-nav__submenu-item">
+                    <a class="mobile-nav__link" href="#">Daily Reports</a>
+                  </li>
+
+                  <li class="mobile-nav__submenu-item">
+                    <a class="mobile-nav__link" href="#">Monthly Reports</a>
+                  </li>
+
+                  <li class="mobile-nav__submenu-item">
+                    <a class="mobile-nav__link" href="#">Annual Reports</a>
+                  </li>
+
+                  <li class="mobile-nav__submenu-item">
+                    <a class="mobile-nav__link" href="#">
+                      Financial Statements
+                    </a>
+                  </li>
+
+                  <li class="mobile-nav__submenu-item">
+                    <a class="mobile-nav__link" href="#">Statistics</a>
+                  </li>
+
+                  <li class="mobile-nav__submenu-item">
+                    <a class="mobile-nav__link" href="#">Open Data</a>
+                  </li>
+
+                  <li class="mobile-nav__submenu-item">
+                    <a class="mobile-nav__link" href="#">Downloads</a>
+                  </li>
+
+                  <li class="mobile-nav__submenu-item">
+                    <a class="mobile-nav__link" href="#">Research</a>
+                  </li>
+
+                  <li class="mobile-nav__submenu-item">
+                    <a class="mobile-nav__link" href="#">Factsheets</a>
+                  </li>
+
+                  <li class="mobile-nav__submenu-item">
+                    <a class="mobile-nav__link" href="#">Archive</a>
+                  </li>
+                </ul>
+              </div>
+            </li>
+
+            <!-- Main links -->
+
+            <li class="mobile-nav__item">
+              <a class="mobile-nav__link mobile-nav__link--primary" href="#">
+                Listings
+              </a>
+            </li>
+
+            <li class="mobile-nav__item">
+              <a class="mobile-nav__link mobile-nav__link--primary" href="#">
+                Investors
+              </a>
+            </li>
+
+            <li class="mobile-nav__item">
+              <a class="mobile-nav__link mobile-nav__link--primary" href="#">
+                Issuers
+              </a>
+            </li>
+
+            <li class="mobile-nav__item">
+              <a class="mobile-nav__link mobile-nav__link--primary" href="#">
+                Rules
+              </a>
+            </li>
+
+            <li class="mobile-nav__item">
+              <a class="mobile-nav__link mobile-nav__link--primary" href="#">
+                News
+              </a>
+            </li>
+
+            <li class="mobile-nav__item">
+              <a class="mobile-nav__link mobile-nav__link--primary" href="#">
+                About
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <footer class="mobile-nav__footer">
+          <a class="mobile-nav__footer-link" href="#"> Contact Us </a>
+
+          <a class="mobile-nav__footer-link" href="#"> Help Center </a>
+        </footer>
+      </div>
+    </aside>
+    <main id="main-content">
+      <div class="page__background" aria-hidden="true"></div>
+      <section
+        class="market-summary"
+        aria-labelledby="market-summary-title"
+        data-market-summary
+      >
+        <h2 id="market-summary-title" class="visually-hidden">
+          Market summary
+        </h2>
+
+        <div class="market-summary__container">
+          <!-- =====================================================================
+         Market Clock
+    ====================================================================== -->
+
+          <section
+            class="market-summary__clock"
+            aria-label="Saudi Arabia market time"
+            data-market-clock
+          >
+            <!-- Decorative analog clock -->
+
+            <div class="clock-face" aria-hidden="true">
+              <div class="clock-ticks" data-clock-ticks></div>
+
+              <div class="clock-brand">
+                <span
+                  class="has-icon icon-tadawul clock-brand__icon"
+                  aria-hidden="true"
+                ></span>
+              </div>
+
+              <span
+                class="clock-number clock-number--12"
+                style="--clock-angle: 0deg"
+              >
+                12
+              </span>
+
+              <span
+                class="clock-number clock-number--3"
+                style="--clock-angle: 90deg"
+              >
+                3
+              </span>
+
+              <span
+                class="clock-number clock-number--6"
+                style="--clock-angle: 180deg"
+              >
+                6
+              </span>
+
+              <span
+                class="clock-number clock-number--9"
+                style="--clock-angle: 270deg"
+              >
+                9
+              </span>
+
+              <span
+                class="clock-hand clock-hand--hour"
+                data-clock-hour-hand
+              ></span>
+
+              <span
+                class="clock-hand clock-hand--minute"
+                data-clock-minute-hand
+              ></span>
+
+              <span
+                class="clock-hand clock-hand--second"
+                data-clock-second-hand
+              ></span>
+
+              <span class="clock-center"></span>
+            </div>
+
+            <!-- Accessible time information -->
+
+            <div class="clock-info">
+              <div class="clock-info__time-group">
+                <div class="market-summary__location">
+                  <span
+                    class="has-icon icon-location-pin icon-accent market-summary__location-icon"
+                    aria-hidden="true"
+                  ></span>
+
+                  <span
+                    class="market-summary__location-text"
+                    data-market-clock-location
+                  >
+                    Riyadh, Saudi Arabia
+                  </span>
+                </div>
+
+                <time
+                  class="market-summary__time"
+                  data-market-clock-time
+                  datetime=""
+                >
+                  --:--:--
+                </time>
+              </div>
+
+              <div class="clock-info__date-group">
+                <span class="market-summary__day" data-market-clock-day>
+                  —
+                </span>
+
+                <time
+                  class="market-summary__date"
+                  data-market-clock-date
+                  datetime=""
+                >
+                  —
+                </time>
+              </div>
+            </div>
+          </section>
+
+          <!-- =====================================================================
+         Market Cards
+    ====================================================================== -->
+
+          <div class="market-summary__cards-wrap">
+            <div
+              class="market-summary__cards"
+              role="tablist"
+              aria-label="Markets"
+              aria-orientation="horizontal"
+              data-market-tabs
+            >
+              <!-- Main Market -->
+
+              <button
+                class="market-card is-active"
+                id="market-tab-tasi"
+                type="button"
+                role="tab"
+                aria-selected="true"
+                aria-controls="market-panel-tasi"
+                tabindex="0"
+                data-market-card
+                data-market="M"
+              >
+                <span class="market-card__top">
+                  <span
+                    class="market-status market-status--open"
+                    aria-hidden="true"
+                  ></span>
+
+                  <span class="market-card__market"> Main Market </span>
+                </span>
+
+                <span class="market-card__body">
+                  <span class="market-card__main">
+                    <span class="market-card__title"> TASI </span>
+
+                    <span class="market-card__status"> Open </span>
+                  </span>
+
+                  <span class="market-card__divider" aria-hidden="true"></span>
+
+                  <span class="market-card__metrics">
+                    <data class="market-card__value" value="12430.18">
+                      12,430.18
+                    </data>
+
+                    <span
+                      class="market-card__change market-change market-change--up"
+                    >
+                      +84.22 (+0.68%)
+                    </span>
+                  </span>
+                </span>
+
+                <time
+                  class="market-card__timer"
+                  datetime="PT2H14M32S"
+                  data-market-countdown
+                >
+                  Closes in 02:14:32
+                </time>
+              </button>
+
+              <!-- Parallel Market -->
+
+              <button
+                class="market-card"
+                id="market-tab-nomu"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="market-panel-nomu"
+                tabindex="-1"
+                data-market-card
+                data-market="N"
+              >
+                <span class="market-card__top">
+                  <span
+                    class="market-status market-status--auction"
+                    aria-hidden="true"
+                  ></span>
+
+                  <span class="market-card__market"> Parallel Market </span>
+                </span>
+
+                <span class="market-card__body">
+                  <span class="market-card__main">
+                    <span class="market-card__title"> NomuC </span>
+
+                    <span class="market-card__status"> Auction </span>
+                  </span>
+
+                  <span class="market-card__divider" aria-hidden="true"></span>
+
+                  <span class="market-card__metrics">
+                    <data class="market-card__value" value="27918.44">
+                      27,918.44
+                    </data>
+
+                    <span
+                      class="market-card__change market-change market-change--down"
+                    >
+                      −41.10 (−0.15%)
+                    </span>
+                  </span>
+                </span>
+
+                <time
+                  class="market-card__timer"
+                  datetime="PT8M45S"
+                  data-market-countdown
+                >
+                  Auction ends in 00:08:45
+                </time>
+              </button>
+
+              <!-- Sukuk and Bonds -->
+
+              <button
+                class="market-card"
+                id="market-tab-sukuk"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="market-panel-sukuk"
+                tabindex="-1"
+                data-market-card
+                data-market="S"
+              >
+                <span class="market-card__top">
+                  <span
+                    class="market-status market-status--halted"
+                    aria-hidden="true"
+                  ></span>
+
+                  <span class="market-card__market"> Sukuk &amp; Bonds </span>
+                </span>
+
+                <span class="market-card__body">
+                  <span class="market-card__main">
+                    <span class="market-card__title"> Sukuk </span>
+
+                    <span class="market-card__status"> Halted </span>
+                  </span>
+
+                  <span class="market-card__divider" aria-hidden="true"></span>
+
+                  <span class="market-card__metrics">
+                    <data class="market-card__value" value="982.34">
+                      982.34
+                    </data>
+
+                    <span
+                      class="market-card__change market-change market-change--neutral"
+                    >
+                      0.00 (0.00%)
+                    </span>
+                  </span>
+                </span>
+
+                <span class="market-card__timer" data-market-countdown>
+                  Awaiting update
+                </span>
+              </button>
+
+              <!-- Funds -->
+
+              <button
+                class="market-card"
+                id="market-tab-funds"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="market-panel-funds"
+                tabindex="-1"
+                data-market-card
+                data-market="F"
+              >
+                <span class="market-card__top">
+                  <span
+                    class="market-status market-status--closed"
+                    aria-hidden="true"
+                  ></span>
+
+                  <span class="market-card__market"> Funds </span>
+                </span>
+
+                <span class="market-card__body">
+                  <span class="market-card__main">
+                    <span class="market-card__title"> Funds </span>
+
+                    <span class="market-card__status"> Closed </span>
+                  </span>
+
+                  <span class="market-card__divider" aria-hidden="true"></span>
+
+                  <span class="market-card__metrics">
+                    <data class="market-card__value" value="1204.76">
+                      1,204.76
+                    </data>
+
+                    <span
+                      class="market-card__change market-change market-change--up"
+                    >
+                      +3.20 (+0.27%)
+                    </span>
+                  </span>
+                </span>
+
+                <span class="market-card__timer" data-market-countdown>
+                  Opens tomorrow
+                </span>
+              </button>
+
+              <!-- Derivatives -->
+
+              <button
+                class="market-card market-card--compact"
+                id="market-tab-derivatives"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="market-panel-derivatives"
+                tabindex="-1"
+                data-market-card
+                data-market="D"
+              >
+                <span class="market-card__top">
+                  <span
+                    class="market-status market-status--pre-open"
+                    aria-hidden="true"
+                  ></span>
+
+                  <span class="market-card__market"> Derivatives </span>
+                </span>
+
+                <span class="market-card__body">
+                  <span class="market-card__main">
+                    <span class="market-card__title"> MT30 </span>
+
+                    <span class="market-card__status"> Pre-open </span>
+                  </span>
+                </span>
+
+                <time
+                  class="market-card__timer"
+                  datetime="PT22M10S"
+                  data-market-countdown
+                >
+                  Opens in 00:22:10
+                </time>
+              </button>
+            </div>
+
+            <!-- Selected market return control -->
+
+            <button
+              class="market-summary__selected-market"
+              type="button"
+              data-selected-market
+              aria-label="Return to selected market"
+              hidden
+            >
+              <span class="market-summary__selected-market-label">
+                Selected
+              </span>
+
+              <strong
+                class="market-summary__selected-market-name"
+                data-selected-market-name
+              >
+                TASI
+              </strong>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================
+       Breadcrumb
+  ================================================================== -->
+
+      <section class="page-breadcrumb container" aria-label="Page location">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <ol class="breadcrumb__list">
+            <li class="breadcrumb__item">
+              <a class="breadcrumb__link" href="/"> Home </a>
+            </li>
+
+            <li class="breadcrumb__item">
+              <span
+                class="breadcrumb__separator has-icon icon-chevron-right icon-flip-rtl"
+                aria-hidden="true"
+              ></span>
+
+              <span class="breadcrumb__current" aria-current="page">
+                Company Profile Main Market
+              </span>
+            </li>
+          </ol>
+        </nav>
+      </section>
+
+      <!-- =================================================================
+       Hero
+  ================================================================== -->
+
+      <section
+        class="hero-section container"
+        aria-labelledby="company-profile-title"
+      >
+        <div class="hero-section__background" aria-hidden="true"></div>
+
+        <div class="hero-section__content"></div>
+      </section>
+    </main>
+    <footer class="site-footer" aria-labelledby="site-footer-title">
+      <div class="container">
+        <div class="site-footer__surface">
+          <h2 id="site-footer-title" class="visually-hidden">
+            Saudi Exchange footer
+          </h2>
+
+          <div class="site-footer__main">
+            <!-- =============================================================
+             Brand and Contact
+        ============================================================== -->
+
+            <section
+              class="site-footer__brand"
+              aria-labelledby="site-footer-contact-title"
+            >
+              <div class="site-footer-brand">
+                <a
+                  class="site-footer-brand__home"
+                  href="#"
+                  aria-label="Saudi Exchange home"
+                >
+                  <img
+                    class="site-footer-brand__logo"
+                    src="../src/assets/images/saudi-exchange-logo.png"
+                    alt="Saudi Exchange"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </a>
+
+                <div class="site-footer-brand__section">
+                  <h3
+                    id="site-footer-contact-title"
+                    class="site-footer-brand__title"
+                  >
+                    Contact us
+                  </h3>
+
+                  <p class="site-footer-brand__text">
+                    For further information, please get in touch with us.
+                  </p>
+
+                  <address class="site-footer-brand__address">
+                    <ul class="site-footer-brand__list">
+                      <li>
+                        <a
+                          class="site-footer-brand__link"
+                          href="mailto:csc@saudiexchange.sa"
+                        >
+                          <span
+                            class="site-footer-brand__icon has-icon icon-inbox-email"
+                            aria-hidden="true"
+                          ></span>
+
+                          <span>csc@saudiexchange.sa</span>
+                        </a>
+                      </li>
+
+                      <li>
+                        <a
+                          class="site-footer-brand__link"
+                          href="tel:+966920001919"
+                        >
+                          <span
+                            class="site-footer-brand__icon has-icon icon-telephone-handle"
+                            aria-hidden="true"
+                          ></span>
+
+                          <span dir="ltr">(+966) 92000 1919</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </address>
+
+                  <a
+                    class="btn btn-link btn-arrow site-footer-brand__cta"
+                    href="#"
+                  >
+                    <span>Contact us</span>
+
+                    <span
+                      class="has-icon icon-chevron-right icon-flip-rtl"
+                      aria-hidden="true"
+                    ></span>
+                  </a>
+                </div>
+              </div>
+            </section>
+
+            <!-- =============================================================
+             Footer Navigation
+        ============================================================== -->
+
+            <nav class="site-footer__navigation" aria-label="Footer navigation">
+              <section
+                class="site-footer-links"
+                aria-labelledby="site-footer-utility-title"
+              >
+                <h3
+                  id="site-footer-utility-title"
+                  class="site-footer-links__title"
+                >
+                  Utility Pages
+                </h3>
+
+                <ul class="site-footer-links__list">
+                  <li>
+                    <a class="site-footer-links__link" href="#"> Sitemap </a>
+                  </li>
+
+                  <li>
+                    <a class="site-footer-links__link" href="#">
+                      Legal Notice
+                    </a>
+                  </li>
+
+                  <li>
+                    <a class="site-footer-links__link" href="#"> Contact Us </a>
+                  </li>
+
+                  <li>
+                    <a class="site-footer-links__link" href="#">
+                      Privacy Policy
+                    </a>
+                  </li>
+                </ul>
+              </section>
+
+              <section
+                class="site-footer-links"
+                aria-labelledby="site-footer-other-title"
+              >
+                <h3
+                  id="site-footer-other-title"
+                  class="site-footer-links__title"
+                >
+                  Other Pages
+                </h3>
+
+                <ul class="site-footer-links__list">
+                  <li>
+                    <a class="site-footer-links__link" href="#">
+                      Website Survey
+                    </a>
+                  </li>
+
+                  <li>
+                    <a class="site-footer-links__link" href="#">
+                      Helpful Links
+                    </a>
+                  </li>
+
+                  <li>
+                    <a class="site-footer-links__link" href="#">
+                      Acceptable Use Policy
+                    </a>
+                  </li>
+
+                  <li>
+                    <a class="site-footer-links__link" href="#"> Careers </a>
+                  </li>
+                </ul>
+              </section>
+            </nav>
+
+            <!-- =============================================================
+             Social Media
+        ============================================================== -->
+
+            <section
+              class="site-footer__social"
+              aria-labelledby="site-footer-social-title"
+            >
+              <h3
+                id="site-footer-social-title"
+                class="site-footer-social__title"
+              >
+                Follow Saudi Exchange
+              </h3>
+
+              <ul
+                class="site-footer-social"
+                aria-label="Saudi Exchange social media accounts"
+              >
+                <li>
+                  <a
+                    class="site-footer-social__link has-icon icon-brand-facebook"
+                    href="#"
+                    aria-label="Follow Saudi Exchange on Facebook"
+                  ></a>
+                </li>
+
+                <li>
+                  <a
+                    class="site-footer-social__link has-icon icon-brand-x"
+                    href="#"
+                    aria-label="Follow Saudi Exchange on X"
+                  ></a>
+                </li>
+
+                <li>
+                  <a
+                    class="site-footer-social__link has-icon icon-brand-linkedin"
+                    href="#"
+                    aria-label="Follow Saudi Exchange on LinkedIn"
+                  ></a>
+                </li>
+
+                <li>
+                  <a
+                    class="site-footer-social__link has-icon icon-brand-instagram"
+                    href="#"
+                    aria-label="Follow Saudi Exchange on Instagram"
+                  ></a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <div class="site-footer-bottom">
+        <div class="container site-footer-bottom__container">
+          <p class="site-footer-bottom__text">
+            Copyright ©
+            <time datetime="2026">2026</time>
+            Saudi Tadawul Group
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- ======================================================================
+     GLOBAL PAGE TOOLS
+     ====================================================================== -->
+
+    <!-- Global Utility Rail -->
+    <aside class="utility-rail" data-utility-rail aria-label="Website tools">
+      <div class="utility-rail__group">
+        <!-- Search
+         Trigger only. The external search provider can listen for site:search. -->
+        <button
+          class="utility-rail__action"
+          type="button"
+          data-search-trigger
+          aria-label="Open search"
+          title="Search"
+        >
+          <span
+            class="utility-rail__icon has-icon icon-search icon-lg"
+            aria-hidden="true"
+          ></span>
+
+          <span class="utility-rail__label"> Search </span>
+        </button>
+
+        <!-- Watchlist -->
+
+        <!-- ======================================================================
+     WATCHLIST DEMO ACTIONS
+     Temporary: one opens the drawer, one opens the login modal.
+     Later, replace both with one flag-controlled action.
+     ====================================================================== -->
+
+        <div class="utility-rail__group" aria-label="Watchlist demos">
+          <!-- Open Watchlist Drawer -->
+
+          <button
+            class="utility-rail__action"
+            type="button"
+            data-drawer-open="watchlist-drawer"
+            aria-controls="watchlist-drawer"
+            aria-expanded="false"
+            aria-label="Open watchlist drawer"
+            title="Watchlist Drawer"
+          >
+            <span
+              class="utility-rail__icon has-icon icon-bookmark-ribbon icon-lg"
+              aria-hidden="true"
+            ></span>
+
+            <span class="utility-rail__label"> Watchlist Drawer </span>
+
+            <span
+              class="utility-rail__badge"
+              data-watchlist-count
+              aria-label="3 watchlist items"
+            >
+              3
+            </span>
+          </button>
+
+          <!-- Open Login Modal -->
+
+          <button
+            class="utility-rail__action"
+            type="button"
+            data-modal-open="loginModal"
+            aria-controls="loginModal"
+            aria-expanded="false"
+            aria-label="Open watchlist login"
+            title="Watchlist Login"
+          >
+            <span
+              class="utility-rail__icon has-icon icon-user icon-lg"
+              aria-hidden="true"
+            ></span>
+
+            <span class="utility-rail__label"> Watchlist Login </span>
+          </button>
+        </div>
+
+        <!-- Display Preferences -->
+        <button
+          class="utility-rail__action"
+          type="button"
+          data-drawer-open="preferences-drawer"
+          aria-controls="preferences-drawer"
+          aria-expanded="false"
+          aria-label="Open display preferences"
+          title="Display preferences"
+        >
+          <span
+            class="utility-rail__icon has-icon icon-theme-palette icon-lg"
+            aria-hidden="true"
+          ></span>
+
+          <span class="utility-rail__label"> Preferences </span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ======================================================================
+     WATCHLIST DRAWER
+     ====================================================================== -->
+
+    <!-- ======================================================================
+     WATCHLIST DRAWER
+     Authenticated user experience
+     ====================================================================== -->
+
+    <aside
+      id="watchlist-drawer"
+      class="drawer watchlist-drawer"
+      data-drawer="watchlist-drawer"
+      aria-hidden="true"
+    >
+      <div
+        class="drawer-backdrop"
+        data-drawer-close="watchlist-drawer"
+        aria-hidden="true"
+      ></div>
+
+      <div
+        class="drawer-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="watchlist-title"
+        aria-describedby="watchlist-description"
+        tabindex="-1"
+        data-drawer-panel
+      >
+        <!-- ================================================================
+         Header
+         ================================================================ -->
+
+        <header class="drawer-header">
+          <div class="drawer-header__content">
+            <h2 id="watchlist-title" class="drawer-title">Watchlist</h2>
+
+            <p id="watchlist-description" class="drawer-text">
+              Follow the securities that matter to you.
+            </p>
+          </div>
+
+          <button
+            class="drawer-close has-icon icon-close-x"
+            type="button"
+            data-drawer-close="watchlist-drawer"
+            aria-label="Close watchlist"
+          ></button>
+        </header>
+
+        <!-- ================================================================
+         Body
+         ================================================================ -->
+
+        <div class="drawer-body">
+          <div class="watchlist" data-watchlist>
+            <!-- User summary -->
+
+            <section
+              class="watchlist-user"
+              aria-labelledby="watchlist-user-name"
+            >
+              <div
+                class="watchlist-user__avatar has-icon icon-user"
+                aria-hidden="true"
+              ></div>
+
+              <div class="watchlist-user__content">
+                <p class="watchlist-user__label">Signed in as</p>
+
+                <h3
+                  id="watchlist-user-name"
+                  class="watchlist-user__name"
+                  data-watchlist-user-name
+                >
+                  Ahmed Al Saud
+                </h3>
+
+                <p class="watchlist-user__email" data-watchlist-user-email>
+                  ahmed@example.com
+                </p>
+              </div>
+
+              <button
+                class="watchlist-user__logout btn btn-outline-danger btn-sm"
+                type="button"
+                data-auth-logout
+              >
+                <span class="has-icon icon-logout" aria-hidden="true"></span>
+
+                <span>Logout</span>
+              </button>
+            </section>
+
+            <!-- Live status -->
+
+            <div
+              class="watchlist__status"
+              data-watchlist-status
+              role="status"
+              aria-live="polite"
+              hidden
+            ></div>
+
+            <!-- List heading -->
+
+            <div class="watchlist__section-header">
+              <div>
+                <h3 class="watchlist__section-title">Saved securities</h3>
+
+                <p class="watchlist__section-text">
+                  Your selected market instruments.
+                </p>
+              </div>
+
+              <span
+                class="watchlist__section-count"
+                data-watchlist-count
+                aria-label="3 saved securities"
+              >
+                3
+              </span>
+            </div>
+
+            <!-- Saved securities -->
+
+            <ul
+              class="watchlist__list"
+              data-watchlist-list
+              aria-label="Saved securities"
+            >
+              <!-- Saudi Aramco -->
+
+              <li
+                class="watchlist__item"
+                data-watchlist-item
+                data-security-id="2222"
+              >
+                <a
+                  class="watchlist__link"
+                  href="/company-profile.html?symbol=2222"
+                >
+                  <span class="watchlist__identity">
+                    <strong class="watchlist__symbol"> 2222 </strong>
+
+                    <span class="watchlist__name"> Saudi Aramco </span>
+                  </span>
+
+                  <span class="watchlist__market">
+                    <strong class="watchlist__price"> 27.40 </strong>
+
+                    <span class="watchlist__change is-positive">
+                      <span
+                        class="has-icon icon-triangle-up"
+                        aria-hidden="true"
+                      ></span>
+
+                      <span>+0.55%</span>
+                    </span>
+                  </span>
+                </a>
+
+                <button
+                  class="watchlist__remove has-icon icon-close-x"
+                  type="button"
+                  data-watchlist-remove
+                  aria-label="Remove Saudi Aramco from watchlist"
+                  title="Remove from watchlist"
+                ></button>
+              </li>
+
+              <!-- Al Rajhi Bank -->
+
+              <li
+                class="watchlist__item"
+                data-watchlist-item
+                data-security-id="1120"
+              >
+                <a
+                  class="watchlist__link"
+                  href="/company-profile.html?symbol=1120"
+                >
+                  <span class="watchlist__identity">
+                    <strong class="watchlist__symbol"> 1120 </strong>
+
+                    <span class="watchlist__name"> Al Rajhi Bank </span>
+                  </span>
+
+                  <span class="watchlist__market">
+                    <strong class="watchlist__price"> 94.10 </strong>
+
+                    <span class="watchlist__change is-negative">
+                      <span
+                        class="has-icon icon-triangle-down"
+                        aria-hidden="true"
+                      ></span>
+
+                      <span>−0.21%</span>
+                    </span>
+                  </span>
+                </a>
+
+                <button
+                  class="watchlist__remove has-icon icon-close-x"
+                  type="button"
+                  data-watchlist-remove
+                  aria-label="Remove Al Rajhi Bank from watchlist"
+                  title="Remove from watchlist"
+                ></button>
+              </li>
+
+              <!-- SABIC -->
+
+              <li
+                class="watchlist__item"
+                data-watchlist-item
+                data-security-id="2010"
+              >
+                <a
+                  class="watchlist__link"
+                  href="/company-profile.html?symbol=2010"
+                >
+                  <span class="watchlist__identity">
+                    <strong class="watchlist__symbol"> 2010 </strong>
+
+                    <span class="watchlist__name"> SABIC </span>
+                  </span>
+
+                  <span class="watchlist__market">
+                    <strong class="watchlist__price"> 66.70 </strong>
+
+                    <span class="watchlist__change is-positive">
+                      <span
+                        class="has-icon icon-triangle-up"
+                        aria-hidden="true"
+                      ></span>
+
+                      <span>+0.83%</span>
+                    </span>
+                  </span>
+                </a>
+
+                <button
+                  class="watchlist__remove has-icon icon-close-x"
+                  type="button"
+                  data-watchlist-remove
+                  aria-label="Remove SABIC from watchlist"
+                  title="Remove from watchlist"
+                ></button>
+              </li>
+            </ul>
+
+            <!-- Empty state -->
+
+            <div class="watchlist__empty" data-watchlist-empty hidden>
+              <span
+                class="watchlist__empty-icon has-icon icon-bookmark-ribbon icon-2xl"
+                aria-hidden="true"
+              ></span>
+
+              <h3 class="watchlist__empty-title">Your watchlist is empty</h3>
+
+              <p class="watchlist__empty-text">
+                Add securities to monitor them from this panel.
+              </p>
+
+              <a class="btn btn-outline-primary btn-sm" href="/markets.html">
+                Browse securities
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================
+         Footer
+         ================================================================ -->
+
+        <footer class="drawer-footer">
+          <a class="btn btn-primary btn-block" href="/watchlist.html">
+            <span>View all watchlist</span>
+
+            <span
+              class="has-icon icon-chevron-right icon-flip-rtl"
+              aria-hidden="true"
+            ></span>
+          </a>
+        </footer>
+      </div>
+    </aside>
+
+    <!-- ======================================================================
+     LOGIN MODAL
+     Guest Watchlist Experience
+     ====================================================================== -->
+
+    <div
+      id="loginModal"
+      class="modal modal-md modal-rounded modal-no-header modal-no-footer modal-visual"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+      aria-labelledby="loginModalTitle"
+      aria-describedby="loginModalDescription"
+      data-login-modal
+    >
+      <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
+
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-body">
+            <!-- ==============================================================
+             Heading
+             ============================================================== -->
+
+            <div class="d-flex align-start justify-between gap-3 mb-5">
+              <div>
+                <p class="modal-subtitle mb-2">My Watchlist</p>
+
+                <h2 id="loginModalTitle" class="modal-title">
+                  Log in to continue
+                </h2>
+
+                <p id="loginModalDescription" class="modal-subtitle">
+                  Access your saved securities and personalized market tools.
+                </p>
+              </div>
+
+              <button
+                class="modal-close"
+                type="button"
+                data-modal-close
+                aria-label="Close login modal"
+              ></button>
+            </div>
+
+            <!-- ==============================================================
+             Login Form
+             ============================================================== -->
+
+            <form
+              id="loginForm"
+              class="form"
+              action="#"
+              method="post"
+              data-login-form
+              novalidate
+            >
+              <!-- General error -->
+
+              <div
+                class="form-alert form-alert-danger mb-4"
+                role="alert"
+                aria-live="assertive"
+                tabindex="-1"
+                data-login-error
+                hidden
+              >
+                <span
+                  class="form-alert__icon has-icon icon-alert-circle"
+                  aria-hidden="true"
+                ></span>
+
+                <div class="form-alert__content">
+                  <p class="form-alert__title">Unable to log in</p>
+
+                  <p class="form-alert__message">
+                    Check your login details and try again.
+                  </p>
+                </div>
+              </div>
+
+              <!-- User ID or email -->
+
+              <div class="form-group">
+                <label class="form-label" for="loginIdentity">
+                  User ID or email
+
+                  <span class="form-required" aria-hidden="true"> * </span>
+                </label>
+
+                <input
+                  id="loginIdentity"
+                  class="form-control"
+                  name="identity"
+                  type="text"
+                  autocomplete="username"
+                  placeholder="Enter your User ID or email"
+                  aria-describedby="loginIdentityError"
+                  required
+                />
+
+                <p
+                  id="loginIdentityError"
+                  class="form-error"
+                  data-field-error="identity"
+                  hidden
+                >
+                  Enter your User ID or email.
+                </p>
+              </div>
+
+              <!-- Password -->
+
+              <div class="form-group">
+                <div class="d-flex align-center justify-between gap-3">
+                  <label class="form-label" for="loginPassword">
+                    Password
+
+                    <span class="form-required" aria-hidden="true"> * </span>
+                  </label>
+
+                  <a href="/forgot-password.html"> Forgot password? </a>
+                </div>
+
+                <div class="input-group">
+                  <input
+                    id="loginPassword"
+                    class="form-control"
+                    name="password"
+                    type="password"
+                    autocomplete="current-password"
+                    placeholder="Enter your password"
+                    aria-describedby="loginPasswordError"
+                    required
+                  />
+
+                  <button
+                    class="input-group__action has-icon icon-eye"
+                    type="button"
+                    data-password-toggle
+                    aria-controls="loginPassword"
+                    aria-pressed="false"
+                    aria-label="Show password"
+                    title="Show password"
+                  ></button>
+                </div>
+
+                <p
+                  id="loginPasswordError"
+                  class="form-error"
+                  data-field-error="password"
+                  hidden
+                >
+                  Enter your password.
+                </p>
+              </div>
+
+              <!-- Remember me -->
+
+              <div class="form-check mb-5">
+                <input
+                  id="loginRemember"
+                  name="remember"
+                  type="checkbox"
+                  value="1"
+                />
+
+                <label for="loginRemember"> Remember me </label>
+              </div>
+
+              <!-- Submit -->
+
+              <button
+                class="btn btn-light btn-block"
+                type="submit"
+                data-login-submit
+              >
+                <span data-login-submit-label> Log in </span>
+
+                <span
+                  class="has-icon icon-chevron-right icon-flip-rtl"
+                  aria-hidden="true"
+                ></span>
+              </button>
+
+              <!-- Register -->
+
+              <p class="text-center mt-4 mb-0">
+                <span>Don’t have an account?</span>
+
+                <a href="/register.html"> Register now </a>
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ======================================================================
+     DISPLAY PREFERENCES DRAWER
+     Uses the generic drawer contract.
+     ====================================================================== -->
+
+    <aside
+      id="preferences-drawer"
+      class="drawer preferences-drawer"
+      data-drawer="preferences-drawer"
+      aria-hidden="true"
+    >
+      <div
+        class="drawer-backdrop"
+        data-drawer-close="preferences-drawer"
+        aria-hidden="true"
+      ></div>
+
+      <div
+        class="drawer-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="preferences-title"
+        tabindex="-1"
+        data-drawer-panel
+      >
+        <header class="drawer-header">
+          <div class="drawer-header__content">
+            <h2 id="preferences-title" class="drawer-title">
+              Display Settings
+            </h2>
+
+            <p class="drawer-text">Customize your viewing experience.</p>
+          </div>
+
+          <button
+            class="drawer-close has-icon icon-close-x"
+            type="button"
+            data-drawer-close="preferences-drawer"
+            aria-label="Close display settings"
+          ></button>
+        </header>
+
+        <div class="drawer-body">
+          <!-- Theme -->
+          <section
+            class="preferences-group"
+            aria-labelledby="preferences-theme-label"
+          >
+            <h3 id="preferences-theme-label" class="preferences-label">
+              Theme
+            </h3>
+
+            <div class="preferences-options">
+              <button
+                class="btn btn-outline-primary btn-sm"
+                type="button"
+                data-preference="theme"
+                data-preference-set="system"
+                aria-pressed="false"
+              >
+                System
+              </button>
+
+              <button
+                class="btn btn-outline-primary btn-sm"
+                type="button"
+                data-preference="theme"
+                data-preference-set="light"
+                aria-pressed="false"
+              >
+                Light
+              </button>
+
+              <button
+                class="btn btn-outline-primary btn-sm"
+                type="button"
+                data-preference="theme"
+                data-preference-set="dark"
+                aria-pressed="false"
+              >
+                Dark
+              </button>
+            </div>
+          </section>
+
+          <!-- Text size -->
+          <section
+            class="preferences-group"
+            aria-labelledby="preferences-font-label"
+          >
+            <h3 id="preferences-font-label" class="preferences-label">
+              Text Size
+            </h3>
+
+            <div class="preferences-options">
+              <button
+                class="btn btn-outline-primary btn-sm"
+                type="button"
+                data-font-decrease
+                aria-label="Decrease text size"
+              >
+                A−
+              </button>
+
+              <button
+                class="btn btn-outline-primary btn-sm"
+                type="button"
+                data-font-reset
+                aria-label="Reset text size"
+                aria-pressed="false"
+              >
+                A
+              </button>
+
+              <button
+                class="btn btn-outline-primary btn-sm"
+                type="button"
+                data-font-increase
+                aria-label="Increase text size"
+              >
+                A+
+              </button>
+            </div>
+          </section>
+
+          <!-- Accent -->
+          <section
+            class="preferences-group"
+            aria-labelledby="preferences-accent-label"
+          >
+            <h3 id="preferences-accent-label" class="preferences-label">
+              Accent
+            </h3>
+
+            <div class="preferences-options">
+              <button
+                class="btn btn-outline-primary btn-sm"
+                type="button"
+                data-preference="accent"
+                data-preference-set="blue"
+                aria-pressed="false"
+              >
+                Blue
+              </button>
+
+              <button
+                class="btn btn-outline-primary btn-sm"
+                type="button"
+                data-preference="accent"
+                data-preference-set="navy"
+                aria-pressed="false"
+              >
+                Navy
+              </button>
+
+              <button
+                class="btn btn-outline-primary btn-sm"
+                type="button"
+                data-preference="accent"
+                data-preference-set="teal"
+                aria-pressed="false"
+              >
+                Teal
+              </button>
+
+              <button
+                class="btn btn-outline-primary btn-sm"
+                type="button"
+                data-preference="accent"
+                data-preference-set="green"
+                aria-pressed="false"
+              >
+                Green
+              </button>
+
+              <button
+                class="btn btn-outline-primary btn-sm"
+                type="button"
+                data-preference="accent"
+                data-preference-set="grey"
+                aria-pressed="false"
+              >
+                Grey
+              </button>
+            </div>
+          </section>
+
+          <!-- Contrast -->
+          <section
+            class="preferences-group"
+            aria-labelledby="preferences-contrast-label"
+          >
+            <h3 id="preferences-contrast-label" class="preferences-label">
+              Contrast
+            </h3>
+
+            <div class="preferences-options">
+              <button
+                class="btn btn-outline-primary btn-sm"
+                type="button"
+                data-preference="contrast"
+                data-preference-set="normal"
+                aria-pressed="false"
+              >
+                Normal
+              </button>
+
+              <button
+                class="btn btn-outline-primary btn-sm"
+                type="button"
+                data-preference="contrast"
+                data-preference-set="high"
+                aria-pressed="false"
+              >
+                High
+              </button>
+            </div>
+          </section>
+
+          <!-- Motion -->
+          <section
+            class="preferences-group"
+            aria-labelledby="preferences-motion-label"
+          >
+            <h3 id="preferences-motion-label" class="preferences-label">
+              Motion
+            </h3>
+
+            <div class="preferences-options">
+              <button
+                class="btn btn-outline-primary btn-sm"
+                type="button"
+                data-preference="motion"
+                data-preference-set="normal"
+                aria-pressed="false"
+              >
+                Normal
+              </button>
+
+              <button
+                class="btn btn-outline-primary btn-sm"
+                type="button"
+                data-preference="motion"
+                data-preference-set="reduce"
+                aria-pressed="false"
+              >
+                Reduce
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <footer class="drawer-footer">
+          <button
+            class="btn btn-outline-primary btn-block"
+            type="button"
+            data-preferences-reset
+          >
+            Reset display settings
+          </button>
+        </footer>
+      </div>
+    </aside>
+
+    <!-- ======================================================================
+     FEEDBACK TAB
+     ====================================================================== -->
+
+    <button
+      class="feedback-tab"
+      type="button"
+      data-drawer-open="feedback-drawer"
+      aria-controls="feedback-drawer"
+      aria-expanded="false"
+      aria-label="Send website feedback"
+    >
+      <span
+        class="feedback-tab__icon has-icon icon-mailbox-split"
+        aria-hidden="true"
+      ></span>
+
+      <span class="feedback-tab__label"> Feedback </span>
+    </button>
+
+    <!-- ======================================================================
+     FEEDBACK DRAWER
+     ====================================================================== -->
+
+    <aside
+      id="feedback-drawer"
+      class="drawer feedback-drawer"
+      data-drawer="feedback-drawer"
+      aria-hidden="true"
+    >
+      <div
+        class="drawer-backdrop"
+        data-drawer-close="feedback-drawer"
+        aria-hidden="true"
+      ></div>
+
+      <div
+        class="drawer-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="feedback-title"
+        tabindex="-1"
+        data-drawer-panel
+      >
+        <header class="drawer-header">
+          <div class="drawer-header__content">
+            <h2 id="feedback-title" class="drawer-title">
+              Share Your Feedback
+            </h2>
+
+            <p class="drawer-text">Help us improve your website experience.</p>
+          </div>
+
+          <button
+            class="drawer-close has-icon icon-close-x"
+            type="button"
+            data-drawer-close="feedback-drawer"
+            aria-label="Close feedback form"
+          ></button>
+        </header>
+
+        <div class="drawer-body">
+          <form
+            id="feedback-form"
+            class="form feedback-form"
+            data-feedback-form
+            novalidate
+          >
+            <!-- Submission status -->
+            <div
+              class="feedback-form__status"
+              data-feedback-status
+              role="status"
+              aria-live="polite"
+              hidden
+            ></div>
+
+            <!-- Feedback type -->
+            <fieldset class="form-fieldset">
+              <legend class="form-legend">Feedback type</legend>
+
+              <div class="feedback-form__types">
+                <div class="form-check">
+                  <input
+                    id="feedback-suggestion"
+                    type="radio"
+                    name="feedbackType"
+                    value="suggestion"
+                    checked
+                  />
+
+                  <label for="feedback-suggestion"> Suggestion </label>
+                </div>
+
+                <div class="form-check">
+                  <input
+                    id="feedback-issue"
+                    type="radio"
+                    name="feedbackType"
+                    value="issue"
+                  />
+
+                  <label for="feedback-issue"> Report an issue </label>
+                </div>
+
+                <div class="form-check">
+                  <input
+                    id="feedback-compliment"
+                    type="radio"
+                    name="feedbackType"
+                    value="compliment"
+                  />
+
+                  <label for="feedback-compliment"> Compliment </label>
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- Message -->
+            <div class="form-group" data-feedback-message-group>
+              <label class="form-label" for="feedback-message">
+                Your feedback
+
+                <span class="form-required" aria-hidden="true"> * </span>
+              </label>
+
+              <textarea
+                id="feedback-message"
+                class="form-control"
+                name="message"
+                rows="6"
+                maxlength="1000"
+                required
+                aria-describedby="feedback-message-help feedback-message-count feedback-message-error"
+                placeholder="Describe your experience or suggestion."
+              ></textarea>
+
+              <div class="feedback-form__meta">
+                <span id="feedback-message-help" class="form-help">
+                  Please do not include confidential or sensitive information.
+                </span>
+
+                <span
+                  id="feedback-message-count"
+                  class="form-help"
+                  data-feedback-character-count
+                >
+                  0 / 1000
+                </span>
+              </div>
+
+              <p
+                id="feedback-message-error"
+                class="form-error"
+                data-feedback-message-error
+                hidden
+              >
+                Please enter your feedback.
+              </p>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group" data-feedback-email-group>
+              <label class="form-label" for="feedback-email">
+                Email address
+
+                <span class="text-muted"> (optional) </span>
+              </label>
+
+              <input
+                id="feedback-email"
+                class="form-control"
+                name="email"
+                type="email"
+                autocomplete="email"
+                aria-describedby="feedback-email-help feedback-email-error"
+                placeholder="name@example.com"
+              />
+
+              <p id="feedback-email-help" class="form-help">
+                Provide your email only if you would like a response.
+              </p>
+
+              <p
+                id="feedback-email-error"
+                class="form-error"
+                data-feedback-email-error
+                hidden
+              >
+                Please enter a valid email address.
+              </p>
+            </div>
+
+            <!-- Current page -->
+            <div class="form-check">
+              <input
+                id="feedback-include-page"
+                type="checkbox"
+                name="includePage"
+                checked
+              />
+
+              <label for="feedback-include-page">
+                Include the current page address
+              </label>
+            </div>
+
+            <input type="hidden" name="pageUrl" data-feedback-page-url />
+          </form>
+        </div>
+
+        <footer class="drawer-footer">
+          <div class="feedback-form__actions">
+            <button
+              class="btn btn-outline-primary"
+              type="button"
+              data-drawer-close="feedback-drawer"
+            >
+              Cancel
+            </button>
+
+            <button class="btn btn-primary" type="submit" form="feedback-form">
+              Send feedback
+            </button>
+          </div>
+        </footer>
+      </div>
+    </aside>
+
+    <!-- ======================================================================
+     FLOATING CHAT
+     Trigger only. The external provider can listen for site:chat.
+     ====================================================================== -->
+
+    <button
+      class="chat-trigger"
+      type="button"
+      data-chat-trigger
+      aria-label="Open live support chat"
+      title="Live support"
+    >
+      <span
+        class="chat-trigger__icon has-icon icon-headset-support icon-xl"
+        aria-hidden="true"
+      ></span>
+
+      <span
+        class="chat-trigger__status"
+        data-chat-status
+        aria-hidden="true"
+      ></span>
+
+      <span
+        class="chat-trigger__badge"
+        data-chat-count="0"
+        aria-label="No unread chat messages"
+      ></span>
+    </button>
+
+    <!-- ======================================================================
+     SCROLL TO TOP
+     Controlled by JavaScript through the is-visible class.
+     Do not add the native hidden attribute here.
+     ====================================================================== -->
+
+    <button
+      class="scroll-top has-icon icon-chevron-up icon-lg"
+      type="button"
+      data-scroll-top
+      aria-label="Back to top"
+      title="Back to top"
+    ></button>
+  </body>
+</html>

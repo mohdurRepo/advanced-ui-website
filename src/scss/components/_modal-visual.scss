@@ -1,0 +1,347 @@
+@use "../abstracts" as *;
+
+/* ==========================================================================
+   Visual Modal
+   ========================================================================== */
+
+.modal-visual {
+  /*
+   * Branded background
+   *
+   * These values intentionally match .hero-section.
+   */
+
+  --modal-visual-bg-start: #073fbd;
+  --modal-visual-bg-middle: #075ee4;
+  --modal-visual-bg-end: #218af4;
+
+  --modal-visual-gradient-angle: 90deg;
+
+  /*
+   * Typography
+   */
+
+  --modal-visual-color: #ffffff;
+  --modal-visual-muted-color: rgb(255 255 255 / 0.72);
+
+  /*
+   * Borders and surfaces
+   */
+
+  --modal-visual-border-color: rgb(255 255 255 / 0.16);
+  --modal-visual-surface-bg: rgb(255 255 255 / 0.1);
+
+  /*
+   * Decorative image
+   *
+   * Feature-specific modal modules may override this variable.
+   */
+
+  --modal-visual-image: url("../../assets/images/hero-bg-pattern.png");
+  --modal-visual-image-size: min(28rem, 48vw);
+  --modal-visual-image-opacity: 1;
+
+  --modal-visual-image-inline: -3rem;
+  --modal-visual-image-block: -5rem;
+
+  /*
+   * Base modal overrides
+   */
+
+  --modal-bg: transparent;
+  --modal-color: var(--modal-visual-color);
+  --modal-border: transparent;
+
+  --modal-shadow:
+    0 2rem 5rem rgb(0 0 0 / 0.35), 0 0.5rem 1.5rem rgb(0 0 0 / 0.2);
+
+  .modal-content {
+    isolation: isolate;
+
+    background: linear-gradient(
+      var(--modal-visual-gradient-angle),
+      var(--modal-visual-bg-start) 0%,
+      var(--modal-visual-bg-middle) 58%,
+      var(--modal-visual-bg-end) 100%
+    );
+
+    color: var(--modal-visual-color);
+  }
+}
+
+/* ==========================================================================
+   Decorative Background Image
+   ========================================================================== */
+
+.modal-visual {
+  .modal-content::before {
+    content: "";
+
+    position: absolute;
+
+    inset-inline-end: var(--modal-visual-image-inline);
+    inset-block-end: var(--modal-visual-image-block);
+
+    z-index: -1;
+
+    inline-size: var(--modal-visual-image-size);
+    aspect-ratio: 1;
+
+    background-image: var(--modal-visual-image);
+    background-repeat: no-repeat;
+    background-position: right bottom;
+    background-size: contain;
+
+    opacity: var(--modal-visual-image-opacity);
+
+    pointer-events: none;
+  }
+}
+
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+
+.modal-visual {
+  .modal-title {
+    color: var(--modal-visual-color);
+  }
+
+  .modal-subtitle {
+    color: var(--modal-visual-muted-color);
+  }
+
+  .modal-body {
+    color: var(--modal-visual-color);
+
+    scrollbar-color: rgb(255 255 255 / 0.28) transparent;
+
+    &::-webkit-scrollbar-thumb {
+      background: rgb(255 255 255 / 0.24);
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: rgb(255 255 255 / 0.4);
+    }
+  }
+
+  a:not(.btn) {
+    color: var(--modal-visual-color);
+    text-decoration-color: rgb(255 255 255 / 0.5);
+    text-underline-offset: 0.2em;
+
+    &:hover {
+      color: var(--modal-visual-color);
+      text-decoration-color: currentColor;
+    }
+
+    &:focus-visible {
+      outline: 0.1875rem solid rgb(255 255 255 / 0.35);
+      outline-offset: 0.1875rem;
+      border-radius: var(--radius-sm);
+    }
+  }
+}
+
+/* ==========================================================================
+   Header and Footer
+   ========================================================================== */
+
+.modal-visual {
+  .modal-header,
+  .modal-footer {
+    border-color: var(--modal-visual-border-color);
+    background: transparent;
+  }
+}
+
+/* ==========================================================================
+   Close Button
+   ========================================================================== */
+
+.modal-visual {
+  .modal-close {
+    border-color: transparent;
+
+    background: transparent;
+    color: #ffffff;
+
+    &:hover:not(:disabled):not(.is-disabled) {
+      border-color: rgb(255 255 255 / 0.18);
+      background: rgb(255 255 255 / 0.12);
+    }
+
+    &:active:not(:disabled):not(.is-disabled) {
+      background: rgb(255 255 255 / 0.18);
+    }
+
+    &:focus-visible {
+      outline: 0.1875rem solid rgb(255 255 255 / 0.32);
+      outline-offset: 0.1875rem;
+    }
+  }
+}
+
+/* ==========================================================================
+   Form Content
+   ========================================================================== */
+
+.modal-visual {
+  .form-label,
+  .form-legend,
+  .form-check label {
+    color: var(--modal-visual-color);
+  }
+
+  .form-help {
+    color: var(--modal-visual-muted-color);
+  }
+
+  .form-required {
+    color: var(--modal-visual-color);
+  }
+}
+
+/* ==========================================================================
+   Frosted Content Surface
+   ========================================================================== */
+
+.modal-visual__surface {
+  padding: 1.5rem;
+
+  border: 1px solid var(--modal-visual-border-color);
+  border-radius: var(--radius-lg);
+
+  background: var(--modal-visual-surface-bg);
+
+  backdrop-filter: blur(16px);
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .modal-visual {
+    --modal-visual-gradient-angle: 270deg;
+
+    .modal-content::before {
+      background-position: left bottom;
+    }
+  }
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .modal-visual {
+    --modal-visual-image-size: min(24rem, 56vw);
+    --modal-visual-image-inline: -3rem;
+    --modal-visual-image-block: -4rem;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .modal-visual {
+    --modal-visual-image-size: min(22rem, 68vw);
+    --modal-visual-image-inline: -4rem;
+    --modal-visual-image-block: -3rem;
+    --modal-visual-image-opacity: 0.2;
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+      position: relative;
+      z-index: 1;
+    }
+  }
+
+  .modal-visual__surface {
+    padding: 1rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .modal-visual {
+    --modal-visual-image-size: 20rem;
+    --modal-visual-image-opacity: 0.12;
+    --modal-visual-image-inline: -6rem;
+    --modal-visual-image-block: -2rem;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .modal-visual {
+    --modal-visual-bg-start: #002c72;
+    --modal-visual-bg-middle: #063f91;
+    --modal-visual-bg-end: #0759aa;
+
+    --modal-visual-muted-color: rgb(255 255 255 / 0.72);
+
+    --modal-visual-border-color: rgb(255 255 255 / 0.14);
+    --modal-visual-surface-bg: rgb(0 18 48 / 0.24);
+
+    --modal-visual-image-opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .modal-visual {
+    --modal-visual-bg-start: #000000;
+    --modal-visual-bg-middle: #000000;
+    --modal-visual-bg-end: #000000;
+
+    --modal-visual-color: #ffffff;
+    --modal-visual-muted-color: #ffffff;
+
+    --modal-visual-border-color: #ffffff;
+    --modal-visual-surface-bg: #000000;
+
+    .modal-content {
+      border-color: #ffffff;
+
+      background: #000000;
+
+      outline: 2px solid #ffffff;
+      outline-offset: -2px;
+    }
+
+    .modal-content::before {
+      display: none;
+    }
+
+    .modal-close {
+      border-color: #ffffff;
+    }
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .modal-visual {
+    .modal-visual__surface {
+      backdrop-filter: none;
+    }
+  }
+}

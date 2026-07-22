@@ -1,0 +1,284 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Leadership Person
+   ========================================================================== */
+
+/*
+ * Interactive leadership summary card.
+ *
+ * Recommended element:
+ *
+ * <button type="button" class="leadership-person">
+ */
+
+.leadership-person {
+  position: relative;
+
+  display: grid;
+  align-content: start;
+  gap: 0.375rem;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 5rem;
+
+  padding: 1rem 2.75rem 1rem 1.125rem;
+
+  border: 1px solid var(--color-border);
+  border-inline-start: 0.25rem solid var(--color-primary);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+  color: inherit;
+
+  box-shadow: none;
+
+  font: inherit;
+  text-align: start;
+
+  cursor: pointer;
+
+  appearance: none;
+
+  @include transition((background-color, border-color, box-shadow), fast);
+
+  &::after {
+    content: "";
+
+    position: absolute;
+
+    inset-block-start: 50%;
+    inset-inline-end: 1rem;
+
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+
+    border-block-start: 2px solid currentColor;
+    border-inline-end: 2px solid currentColor;
+
+    color: var(--color-primary);
+
+    transform: translateY(-50%) rotate(45deg);
+
+    @include transition(transform, fast);
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      border-color: color-mix(
+        in oklab,
+        var(--color-primary),
+        var(--color-border) 55%
+      );
+
+      background: color-mix(
+        in oklab,
+        var(--color-primary),
+        var(--color-surface) 97%
+      );
+
+      box-shadow: var(--shadow-xs);
+
+      &::after {
+        transform: translateY(-50%) translateX(0.125rem) rotate(45deg);
+      }
+    }
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:active {
+    background: color-mix(
+      in oklab,
+      var(--color-primary),
+      var(--color-surface) 94%
+    );
+  }
+}
+
+/* ==========================================================================
+   Name
+   ========================================================================== */
+
+.leadership-person__name {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-base);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Role
+   ========================================================================== */
+
+.leadership-person__role {
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Metadata
+   ========================================================================== */
+
+.leadership-person__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.75rem;
+
+  margin-block-start: 0.25rem;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-tight);
+}
+
+.leadership-person__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+
+  .has-icon {
+    --icon-size: 0.6875rem;
+
+    color: var(--color-primary);
+  }
+}
+
+/* ==========================================================================
+   Disabled State
+   ========================================================================== */
+
+.leadership-person:disabled,
+.leadership-person.is-disabled,
+.leadership-person[aria-disabled="true"] {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .leadership-person {
+    padding-inline: 1.125rem 2.75rem;
+
+    &::after {
+      transform: translateY(-50%) rotate(-135deg);
+    }
+
+    @media (hover: hover) {
+      &:hover::after {
+        transform: translateY(-50%) translateX(-0.125rem) rotate(-135deg);
+      }
+    }
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .leadership-person {
+    min-block-size: auto;
+
+    padding-block: 0.875rem;
+    padding-inline: 1rem 2.5rem;
+  }
+
+  .leadership-person__name {
+    font-size: var(--text-sm);
+  }
+
+  .leadership-person__role {
+    font-size: var(--text-xs);
+  }
+
+  html[dir="rtl"] & {
+    .leadership-person {
+      padding-inline: 1rem 2.5rem;
+    }
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .leadership-person {
+    box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .leadership-person {
+    border-width: 2px;
+    border-inline-start-width: 0.375rem;
+
+    background: var(--color-surface);
+  }
+
+  .leadership-person::after {
+    color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .leadership-person,
+  .leadership-person::after {
+    transition: none;
+  }
+
+  .leadership-person:hover::after {
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  html[dir="rtl"] .leadership-person:hover::after {
+    transform: translateY(-50%) rotate(-135deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leadership-person,
+  .leadership-person::after {
+    transition: none;
+  }
+}

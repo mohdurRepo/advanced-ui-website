@@ -1,0 +1,127 @@
+/* ==========================================================================
+   Sidebar Layout
+   ========================================================================== */
+
+/**
+ * Creates a responsive layout with a fixed-width sidebar and
+ * a flexible content area.
+ *
+ * Use for:
+ * - dashboard navigation
+ * - account settings
+ * - company profile
+ * - documentation
+ * - filter panels
+ * - administration pages
+ */
+
+.sidebar-layout {
+  display: grid;
+  grid-template-columns:
+    minmax(16rem, 18rem)
+    minmax(0, 1fr);
+  gap: var(--space-8, 2rem);
+  align-items: start;
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Regions
+   ========================================================================== */
+
+.sidebar-layout__sidebar,
+.sidebar-layout__content {
+  min-width: 0;
+}
+
+.sidebar-layout__sidebar {
+  grid-column: 1;
+}
+
+.sidebar-layout__content {
+  grid-column: 2;
+}
+
+/* ==========================================================================
+   Width Variants
+   ========================================================================== */
+
+/**
+ * Compact sidebar.
+ */
+.sidebar-layout--compact {
+  grid-template-columns:
+    minmax(14rem, 16rem)
+    minmax(0, 1fr);
+}
+
+/**
+ * Wide sidebar.
+ */
+.sidebar-layout--wide {
+  grid-template-columns:
+    minmax(18rem, 22rem)
+    minmax(0, 1fr);
+}
+
+/* ==========================================================================
+   Alignment
+   ========================================================================== */
+
+.sidebar-layout--center {
+  align-items: center;
+}
+
+.sidebar-layout--stretch {
+  align-items: stretch;
+}
+
+/* ==========================================================================
+   Reverse Layout
+   ========================================================================== */
+
+.sidebar-layout--reverse {
+  .sidebar-layout__sidebar {
+    grid-column: 2;
+  }
+
+  .sidebar-layout__content {
+    grid-column: 1;
+  }
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 63.9375rem) {
+  .sidebar-layout,
+  .sidebar-layout--compact,
+  .sidebar-layout--wide {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6, 1.5rem);
+  }
+
+  .sidebar-layout__sidebar,
+  .sidebar-layout__content,
+  .sidebar-layout--reverse .sidebar-layout__sidebar,
+  .sidebar-layout--reverse .sidebar-layout__content {
+    grid-column: 1;
+  }
+
+  .sidebar-layout__sidebar,
+  .sidebar-layout--reverse .sidebar-layout__sidebar {
+    grid-row: 1;
+  }
+
+  .sidebar-layout__content,
+  .sidebar-layout--reverse .sidebar-layout__content {
+    grid-row: 2;
+  }
+}
+
+@media (max-width: 35.9375rem) {
+  .sidebar-layout {
+    gap: var(--space-4, 1rem);
+  }
+}

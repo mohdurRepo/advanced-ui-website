@@ -1,0 +1,168 @@
+/* ==========================================================================
+   Split Layout
+   ========================================================================== */
+
+/**
+ * Reusable two-region page layout.
+ *
+ * Suitable for:
+ * - authentication forms with supporting information
+ * - content with a contextual sidebar
+ * - account pages
+ * - contact pages
+ * - article and related-content layouts
+ *
+ * The layout controls structure only.
+ * Components inside each region control their own visual styling.
+ */
+
+.split-layout {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(18rem, 0.5fr);
+  align-items: stretch;
+  gap: var(--space-8, 2rem);
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Regions
+   ========================================================================== */
+
+.split-layout__primary,
+.split-layout__secondary {
+  min-width: 0;
+}
+
+.split-layout__primary {
+  grid-column: 1;
+}
+
+.split-layout__secondary {
+  grid-column: 2;
+}
+
+/* ==========================================================================
+   Column Variants
+   ========================================================================== */
+
+/**
+ * Gives the primary region more width.
+ *
+ * Useful for:
+ * - registration forms
+ * - account forms
+ * - detailed content
+ */
+.split-layout--wide-primary {
+  grid-template-columns:
+    minmax(0, 1.65fr)
+    minmax(18rem, 0.85fr);
+}
+
+/**
+ * Gives both regions equal width.
+ */
+.split-layout--equal {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/**
+ * Uses a smaller supporting region.
+ *
+ * Useful for:
+ * - short help content
+ * - related links
+ * - compact contextual information
+ */
+.split-layout--compact-secondary {
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(16rem, 0.35fr);
+}
+
+/* ==========================================================================
+   Alignment Variants
+   ========================================================================== */
+
+.split-layout--start {
+  align-items: start;
+}
+
+.split-layout--center {
+  align-items: center;
+}
+
+/* ==========================================================================
+   Reversed Layout
+   ========================================================================== */
+
+.split-layout--reverse {
+  .split-layout__primary {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .split-layout__secondary {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+
+/* ==========================================================================
+   Direct Children
+   ========================================================================== */
+
+.split-layout {
+  > .split-layout__primary,
+  > .split-layout__secondary {
+    min-width: 0;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@media (max-width: 63.9375rem) {
+  .split-layout,
+  .split-layout--wide-primary,
+  .split-layout--equal,
+  .split-layout--compact-secondary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .split-layout__primary,
+  .split-layout__secondary,
+  .split-layout--reverse .split-layout__primary,
+  .split-layout--reverse .split-layout__secondary {
+    grid-column: 1;
+  }
+
+  .split-layout__primary,
+  .split-layout--reverse .split-layout__primary {
+    grid-row: 1;
+  }
+
+  .split-layout__secondary,
+  .split-layout--reverse .split-layout__secondary {
+    grid-row: 2;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@media (max-width: 47.9375rem) {
+  .split-layout {
+    gap: var(--space-6, 1.5rem);
+  }
+}
+
+@media (max-width: 35.9375rem) {
+  .split-layout {
+    gap: var(--space-4, 1rem);
+  }
+}

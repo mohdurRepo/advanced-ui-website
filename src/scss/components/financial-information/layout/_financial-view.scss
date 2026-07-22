@@ -1,98 +1,128 @@
 @use "../../../abstracts" as *;
 
 /* ==========================================================================
-   Financial View Layout
+   Financial View Toggle
    ========================================================================== */
 
-.financial-view {
-  display: grid;
-  grid-template-columns:
-    minmax(0, 1fr)
-    auto;
+/*
+ * Compact Table / Chart navigation.
+ *
+ * Layout and placement are controlled by:
+ * layout/_financial-view.scss
+ */
 
-  grid-template-areas:
-    "toolbar toggle"
-    "content content";
+.financial-view-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1875rem;
 
-  align-items: start;
-  gap: 1rem;
+  inline-size: fit-content;
+  max-inline-size: 100%;
 
-  min-inline-size: 0;
-  min-block-size: 0;
+  margin: 0;
+  padding: 0.1875rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface-alt);
 }
 
 /* ==========================================================================
-   Toolbar
+   Toggle Button
    ========================================================================== */
 
-.financial-view__toolbar {
-  grid-area: toolbar;
-
-  min-inline-size: 0;
-}
-
-/* ==========================================================================
-   Heading
-   ========================================================================== */
-
-.financial-view__heading {
-  display: grid;
+.financial-view-toggle__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.375rem;
 
-  min-inline-size: 0;
-}
+  min-inline-size: 2.5rem;
+  min-block-size: 2.5rem;
 
-.financial-view__title {
-  margin: 0;
+  flex: 0 0 auto;
 
-  color: var(--color-heading);
+  padding: 0.5rem 0.75rem;
 
-  font-size: clamp(var(--text-lg), 1rem + 0.4vw, var(--text-xl));
-  font-weight: font-weight("bold");
-  line-height: var(--line-height-tight);
+  border: 0;
+  border-radius: calc(var(--radius-md) - 0.125rem);
 
-  text-wrap: balance;
-}
-
-.financial-view__description {
-  max-inline-size: 46rem;
-
-  margin: 0;
-
+  background: transparent;
   color: var(--color-text-muted);
 
-  font-size: var(--text-sm);
-  line-height: var(--line-height-relaxed);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-tight);
 
-  text-wrap: pretty;
+  text-align: center;
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  @include transition((background-color, color, box-shadow), fast);
+
+  .has-icon {
+    --icon-size: 0.875rem;
+
+    flex: 0 0 auto;
+  }
+
+  &:hover:not(.active):not([aria-selected="true"]):not(:disabled) {
+    color: var(--color-heading);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.active,
+  &[aria-selected="true"] {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+
+    box-shadow: var(--shadow-sm);
+  }
+
+  &:disabled,
+  &[aria-disabled="true"] {
+    opacity: 0.45;
+
+    cursor: not-allowed;
+    pointer-events: none;
+  }
 }
 
 /* ==========================================================================
-   Toggle Placement
+   Icon-only Variant
    ========================================================================== */
 
-.financial-view > .tabs-nav {
-  grid-area: toggle;
+.financial-view-toggle--icon-only {
+  .financial-view-toggle__button {
+    inline-size: 2.5rem;
+    min-inline-size: 2.5rem;
+
+    padding: 0;
+  }
 }
 
 /* ==========================================================================
-   Content
+   Equal-width Variant
    ========================================================================== */
 
-.financial-view > .tabs-content {
-  grid-area: content;
+.financial-view-toggle--equal {
+  display: flex;
 
-  min-inline-size: 0;
-  min-block-size: 0;
-}
+  .financial-view-toggle__button {
+    min-inline-size: 5.5rem;
 
-/* ==========================================================================
-   Panel
-   ========================================================================== */
-
-.financial-view__panel {
-  min-inline-size: 0;
-  min-block-size: 0;
+    flex: 1 1 50%;
+  }
 }
 
 /* ==========================================================================
@@ -100,20 +130,47 @@
    ========================================================================== */
 
 @include respond-down(sm) {
-  .financial-view {
-    grid-template-columns:
-      minmax(0, 1fr)
-      auto;
+  .financial-view-toggle {
+    display: flex;
 
-    gap: 0.75rem;
+    inline-size: 100%;
   }
 
-  .financial-view__description {
-    display: none;
+  .financial-view-toggle__button {
+    min-inline-size: 0;
+    min-block-size: 2.375rem;
+
+    flex: 1 1 50%;
+
+    padding-inline: 0.625rem;
+
+    .has-icon {
+      --icon-size: 0.8125rem;
+    }
   }
 
-  .financial-view__title {
-    font-size: var(--text-base);
+  .financial-view-toggle--icon-only {
+    inline-size: fit-content;
+
+    .financial-view-toggle__button {
+      inline-size: 2.375rem;
+      min-inline-size: 2.375rem;
+
+      flex: 0 0 auto;
+    }
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-view-toggle__button {
+    &.active,
+    &[aria-selected="true"] {
+      box-shadow: none;
+    }
   }
 }
 
@@ -122,7 +179,33 @@
    ========================================================================== */
 
 html[data-contrast="high"] {
-  .financial-view__title {
-    font-weight: font-weight("heavy");
+  .financial-view-toggle {
+    border-width: 2px;
+  }
+
+  .financial-view-toggle__button {
+    &.active,
+    &[aria-selected="true"] {
+      outline: 2px solid currentColor;
+      outline-offset: -2px;
+
+      box-shadow: none;
+    }
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-view-toggle__button {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .financial-view-toggle__button {
+    transition: none;
   }
 }

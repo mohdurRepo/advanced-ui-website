@@ -4,6 +4,15 @@
    Financial Section Panel
    ========================================================================== */
 
+/*
+ * Primary panels:
+ * - Dividends
+ * - Financials
+ * - Shareholding
+ * - Options
+ * - Company Profile
+ */
+
 .financial-section-panel {
   display: flex;
   flex-direction: column;
@@ -17,10 +26,15 @@
    Financial Subsection Panel
    ========================================================================== */
 
+/*
+ * Secondary panels inside Financials:
+ * - Financial Information
+ * - Financial Statements & Reports
+ */
+
 .financial-subsection-panel {
   display: flex;
   flex-direction: column;
-  gap: clamp(1.25rem, 2.5vw, 1.75rem);
 
   min-inline-size: 0;
   min-block-size: 0;
@@ -30,11 +44,24 @@
    Financial Period Panel
    ========================================================================== */
 
-.financial-period-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+/*
+ * Annual and Quarterly panels.
+ */
 
+.financial-period-panel {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Financial Period Comparison Panel
+   ========================================================================== */
+
+/*
+ * Current and Previous panels.
+ */
+
+.financial-period-tabs__panel {
   min-inline-size: 0;
   min-block-size: 0;
 }
@@ -42,6 +69,10 @@
 /* ==========================================================================
    Financial View Panel
    ========================================================================== */
+
+/*
+ * Table and Chart panels.
+ */
 
 .financial-view__panel {
   min-inline-size: 0;
@@ -52,19 +83,45 @@
    Financial Report Panel
    ========================================================================== */
 
+/*
+ * Supports the current report-panel class and the older report-tabs class
+ * while other sections are migrated.
+ */
+
+.financial-report-panel,
 .financial-report-tabs__panel {
   min-inline-size: 0;
   min-block-size: 0;
 }
 
 /* ==========================================================================
-   Footer
+   Active Panel Safety
    ========================================================================== */
+
+.financial-section-panel.active,
+.financial-subsection-panel.active,
+.financial-period-panel.active,
+.financial-period-tabs__panel.active,
+.financial-view__panel.active,
+.financial-report-panel.active,
+.financial-report-tabs__panel.active {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Legacy Section Footer
+   ========================================================================== */
+
+/*
+ * Retained for existing sections that have not yet migrated their action
+ * into .financial-content-shell__footer.
+ */
 
 .financial-section-panel__footer {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  gap: 0.75rem;
 
   min-inline-size: 0;
 
@@ -78,6 +135,8 @@
 
   .has-icon {
     --icon-size: 0.625rem;
+
+    flex: 0 0 auto;
 
     @include transition(transform, fast);
   }
@@ -102,16 +161,13 @@ html[dir="rtl"] {
    ========================================================================== */
 
 @include respond-down(sm) {
-  .financial-section-panel,
-  .financial-subsection-panel {
+  .financial-section-panel {
     gap: 1.25rem;
   }
 
-  .financial-period-panel {
-    gap: 0.875rem;
-  }
-
   .financial-section-panel__footer {
+    align-items: stretch;
+
     .btn {
       inline-size: 100%;
     }
@@ -123,6 +179,16 @@ html[dir="rtl"] {
    ========================================================================== */
 
 html[data-motion="reduce"] {
+  .financial-section-panel__footer .has-icon {
+    transition: none;
+  }
+
+  .financial-section-panel__footer .btn:hover .has-icon {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
   .financial-section-panel__footer .has-icon {
     transition: none;
   }

@@ -1,61 +1,112 @@
-const LANGUAGE_STORAGE_KEY = "se-lang";
-const LANGUAGES = ["en", "ar"];
+const STORAGE_KEY = "se-lang";
+const SUPPORTED_LANGUAGES = ["en", "ar"];
+const DEFAULT_LANGUAGE = "en";
 
-function isValidLanguage(lang) {
-  return LANGUAGES.includes(lang);
+const root = document.documentElement;
+
+function isValidLanguage(language) {
+  return SUPPORTED_LANGUAGES.includes(language);
 }
 
-function getCurrentLanguage() {
-  const bootLang = window.APP_LOCALE?.lang;
-  const savedLang = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+function getStoredLanguage() {
+  const storedLanguage = localStorage.getItem(STORAGE_KEY);
 
-  if (isValidLanguage(bootLang)) return bootLang;
-  if (isValidLanguage(savedLang)) return savedLang;
-
-  return "en";
+  return isValidLanguage(storedLanguage) ? storedLanguage : DEFAULT_LANGUAGE;
 }
 
-function applyLanguage(lang) {
-  const safeLang = isValidLanguage(lang) ? lang : "en";
-  const dir = safeLang === "ar" ? "rtl" : "ltr";
+function getDirection(language) {
+  return language === "ar" ? "rtl" : "ltr";
+}
 
-  document.documentElement.lang = safeLang;
-  document.documentElement.dir = dir;
+function getNextLanguage(language) {
+  return language === "ar" ? "en" : "ar";
+}
 
-  localStorage.setItem(LANGUAGE_STORAGE_KEY, safeLang);
+function getLanguageLabel(language) {
+  return language.toUpperCase();
+}
+
+function syncLanguageButtons(language) {
+  document.querySelectorAll("[data-lang-toggle]").forEach((button) => {
+    const nextLanguage = getNextLanguage(language);
+    const currentLabel = button.querySelector(".header-lang-switch__current");
+
+    if (currentLabel) {
+      currentLabel.textContent = getLanguageLabel(language);
+    }
+
+    button.setAttribute(
+      "aria-label",
+      nextLanguage === "ar"
+        ? "Switch language to Arabic"
+        : "Switch language to English",
+    );
+
+    button.setAttribute("data-current-language", language);
+  });
+}
+
+function applyLanguage(language) {
+  const direction = getDirection(language);
+
+  root.lang = language;
+  root.dir = direction;
 
   window.APP_LOCALE = {
     ...(window.APP_LOCALE || {}),
-    lang: safeLang,
-    dir,
+    lang: language,
+    dir: direction,
   };
 
+  syncLanguageButtons(language);
+}
+
+function emitLanguageChange(language) {
   document.dispatchEvent(
     new CustomEvent("languagechange", {
-      detail: { lang: safeLang, dir },
+      detail: {
+        language,
+        direction: getDirection(language),
+      },
     }),
   );
 }
 
+export function getLanguage() {
+  return getStoredLanguage();
+}
+
+export function setLanguage(language) {
+  if (!isValidLanguage(language)) {
+    console.warn(`Unsupported language: "${language}"`);
+    return false;
+  }
+
+  localStorage.setItem(STORAGE_KEY, language);
+
+  applyLanguage(language);
+  emitLanguageChange(language);
+
+  return true;
+}
+
+export function toggleLanguage() {
+  const currentLanguage = getStoredLanguage();
+  const nextLanguage = getNextLanguage(currentLanguage);
+
+  setLanguage(nextLanguage);
+}
+
+function handleLanguageClick(event) {
+  const trigger = event.target.closest("[data-lang-toggle]");
+
+  if (!trigger) return;
+
+  toggleLanguage();
+}
+
 export function initLanguage() {
-  const currentLang = getCurrentLanguage();
+  applyLanguage(getStoredLanguage());
 
-  // Important: apply same value only, no default reset.
-  document.documentElement.lang = currentLang;
-  document.documentElement.dir = currentLang === "ar" ? "rtl" : "ltr";
-
-  document.addEventListener("click", (event) => {
-    const setButton = event.target.closest("[data-lang-set]");
-    const toggleButton = event.target.closest("[data-lang-toggle]");
-
-    if (setButton) {
-      applyLanguage(setButton.getAttribute("data-lang-set"));
-      return;
-    }
-
-    if (toggleButton) {
-      const nextLang = getCurrentLanguage() === "ar" ? "en" : "ar";
-      applyLanguage(nextLang);
-    }
-  });
+  document.addEventListener("click", handleLanguageClick);
 }

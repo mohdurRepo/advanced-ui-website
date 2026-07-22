@@ -1,6 +1,11 @@
 @use "sass:map";
+@use "sass:list";
 @use "functions" as *;
 @use "breakpoints";
+
+/* ==========================================================================
+   Breakpoints
+   ========================================================================== */
 
 @mixin respond-up($key) {
   @if not map.has-key(breakpoints.$breakpoints, $key) {
@@ -41,14 +46,36 @@
   }
 }
 
-@mixin focus-ring {
-  outline: 0;
-  box-shadow: 0 0 0 0.25rem var(--focus-ring, rgb(0 69 227 / 0.25));
+/* ==========================================================================
+   Transitions
+   ========================================================================== */
+
+@mixin transition($properties: all, $duration: 200ms, $timing-function: ease) {
+  $transition-list: ();
+
+  @each $property in $properties {
+    $transition-list: list.append(
+      $transition-list,
+      #{$property} #{$duration} #{$timing-function},
+      comma
+    );
+  }
+
+  transition: $transition-list;
 }
 
-@mixin transition($properties: all, $speed: normal) {
-  transition: $properties motion($speed);
+/* ==========================================================================
+   Focus Ring
+   ========================================================================== */
+
+@mixin focus-ring($color: var(--color-primary), $offset: 2px, $width: 2px) {
+  outline: $width solid $color;
+  outline-offset: $offset;
 }
+
+/* ==========================================================================
+   Content Utilities
+   ========================================================================== */
 
 @mixin truncate {
   overflow: hidden;
@@ -57,11 +84,15 @@
 }
 
 @mixin line-clamp($lines: 2) {
-  overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: $lines;
+  overflow: hidden;
   -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lines;
 }
+
+/* ==========================================================================
+   Layout Utilities
+   ========================================================================== */
 
 @mixin flex-center {
   display: flex;
@@ -80,14 +111,21 @@
   height: $size;
 }
 
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
 @mixin visually-hidden {
   position: absolute;
+
   width: 1px;
   height: 1px;
   padding: 0;
   margin: -1px;
+
   overflow: hidden;
   border: 0;
+
   clip-path: inset(50%);
   white-space: nowrap;
 }

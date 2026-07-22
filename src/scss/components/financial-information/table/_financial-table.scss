@@ -4,14 +4,33 @@
    Financial Table Wrapper
    ========================================================================== */
 
+/*
+ * Provides safe horizontal scrolling for financial tables.
+ *
+ * The global .table component continues to own:
+ *
+ * - Standard cell borders
+ * - Header backgrounds
+ * - Row striping
+ * - Hover states
+ * - General cell padding
+ * - Global light and dark theme styling
+ */
+
 .financial-table-wrap {
+  --financial-table-edge-size: 1rem;
+
+  position: relative;
+
   min-inline-size: 0;
+  max-inline-size: 100%;
 
   overflow-x: auto;
   overflow-y: hidden;
 
   overscroll-behavior-inline: contain;
   scrollbar-width: thin;
+  scrollbar-gutter: stable;
 
   touch-action: pan-x;
 
@@ -21,12 +40,6 @@
 /* ==========================================================================
    Financial Table
    ========================================================================== */
-
-/*
- * Extends the global .table component.
- * Base borders, cells, hover, striped rows, and responsive behavior
- * remain owned by the shared table system.
- */
 
 .financial-table {
   inline-size: 100%;
@@ -38,7 +51,39 @@
 }
 
 /* ==========================================================================
-   Column Alignment
+   Caption
+   ========================================================================== */
+
+.financial-table__caption {
+  padding: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  text-align: start;
+
+  /*
+   * Use the visually-hidden utility in HTML when the caption should remain
+   * accessible without being visually displayed.
+   */
+}
+
+/* ==========================================================================
+   General Cell Safety
+   ========================================================================== */
+
+.financial-table th,
+.financial-table td {
+  min-inline-size: 0;
+
+  vertical-align: middle;
+}
+
+/* ==========================================================================
+   Numeric Columns
    ========================================================================== */
 
 .financial-table th[data-type="number"],
@@ -49,6 +94,10 @@
   white-space: nowrap;
 }
 
+/* ==========================================================================
+   Date Columns
+   ========================================================================== */
+
 .financial-table th[data-type="date"],
 .financial-table td[data-type="date"],
 .financial-table .is-date {
@@ -56,7 +105,34 @@
 }
 
 /* ==========================================================================
-   First Column
+   Centered Columns
+   ========================================================================== */
+
+.financial-table th[data-align="center"],
+.financial-table td[data-align="center"],
+.financial-table .is-centered {
+  text-align: center;
+}
+
+/* ==========================================================================
+   Text Columns
+   ========================================================================== */
+
+.financial-table__text {
+  display: inline-block;
+
+  min-inline-size: 0;
+  max-inline-size: 100%;
+
+  color: inherit;
+
+  font-weight: font-weight("medium");
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Row Header
    ========================================================================== */
 
 .financial-table tbody th[scope="row"] {
@@ -66,6 +142,35 @@
   line-height: var(--line-height-normal);
 
   text-align: start;
+}
+
+/* ==========================================================================
+   Financial Values
+   ========================================================================== */
+
+.financial-table .financial-value {
+  justify-content: flex-end;
+
+  inline-size: 100%;
+}
+
+/* ==========================================================================
+   Column Width Utilities
+   ========================================================================== */
+
+.financial-table .is-column-narrow {
+  inline-size: 1%;
+  min-inline-size: 7rem;
+
+  white-space: nowrap;
+}
+
+.financial-table .is-column-medium {
+  min-inline-size: 11rem;
+}
+
+.financial-table .is-column-wide {
+  min-inline-size: 18rem;
 }
 
 /* ==========================================================================
@@ -89,6 +194,14 @@
 /* ==========================================================================
    Statement Section Row
    ========================================================================== */
+
+/*
+ * Used for grouped rows such as:
+ *
+ * - Balance Sheet
+ * - Statement of Income
+ * - Cash Flows
+ */
 
 .financial-table__section-row {
   background: color-mix(
@@ -204,8 +317,37 @@
 }
 
 /* ==========================================================================
+   Comfortable Variant
+   ========================================================================== */
+
+.financial-table--comfortable {
+  th,
+  td {
+    padding-block: 1rem;
+  }
+}
+
+/* ==========================================================================
+   Sticky Header
+   ========================================================================== */
+
+.financial-table--sticky-header {
+  thead th {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 4;
+
+    background: var(--color-surface-alt);
+  }
+}
+
+/* ==========================================================================
    Sticky First Column
    ========================================================================== */
+
+/*
+ * Use only where horizontal scrolling makes row labels difficult to track.
+ */
 
 .financial-table--sticky-column {
   th:first-child,
@@ -215,10 +357,14 @@
     z-index: 1;
 
     background: var(--color-surface);
+
+    box-shadow: 1px 0 0 var(--color-border);
   }
 
   thead th:first-child {
-    z-index: 3;
+    z-index: 5;
+
+    background: var(--color-surface-alt);
   }
 
   tbody th:first-child {
@@ -231,6 +377,23 @@
       var(--color-primary),
       var(--color-surface) 92%
     );
+  }
+
+  .financial-table__meta-row th:first-child {
+    background: var(--color-surface-alt);
+  }
+}
+
+/* ==========================================================================
+   RTL Sticky Boundary
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .financial-table--sticky-column {
+    th:first-child,
+    td:first-child {
+      box-shadow: -1px 0 0 var(--color-border);
+    }
   }
 }
 
@@ -258,6 +421,27 @@
 }
 
 /* ==========================================================================
+   Subtotal Row
+   ========================================================================== */
+
+.financial-table tr.is-subtotal {
+  th,
+  td {
+    color: var(--color-heading);
+
+    font-weight: font-weight("semibold");
+  }
+}
+
+/* ==========================================================================
+   Muted Row
+   ========================================================================== */
+
+.financial-table tr.is-muted {
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
    Empty Cell
    ========================================================================== */
 
@@ -268,10 +452,31 @@
 }
 
 /* ==========================================================================
-   Interactive Links Inside Cells
+   Full-width State Row
    ========================================================================== */
 
-.financial-table a {
+.financial-table__state-cell {
+  padding-block: clamp(2rem, 5vw, 4rem);
+
+  color: var(--color-text-muted);
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.financial-table[aria-busy="true"] {
+  opacity: 0.68;
+}
+
+/* ==========================================================================
+   Interactive Content
+   ========================================================================== */
+
+.financial-table a,
+.financial-table button {
   &:focus {
     outline: none;
   }
@@ -301,7 +506,7 @@
 
 @include respond-down(sm) {
   .financial-table {
-    min-inline-size: 42rem;
+    min-inline-size: 44rem;
   }
 
   .financial-table--statements {
@@ -334,6 +539,10 @@
       inset-inline-start: 0.375rem;
     }
   }
+
+  .financial-table__state-cell {
+    padding-block: 2rem;
+  }
 }
 
 /* ==========================================================================
@@ -355,12 +564,20 @@ html[data-theme="dark"] {
       background: var(--color-surface);
     }
 
+    thead th:first-child {
+      background: var(--color-surface-alt);
+    }
+
     .financial-table__section-row th:first-child {
       background: color-mix(
         in oklab,
         var(--color-primary),
         var(--color-surface) 86%
       );
+    }
+
+    .financial-table__meta-row th:first-child {
+      background: var(--color-surface-alt);
     }
   }
 }
@@ -386,5 +603,21 @@ html[data-contrast="high"] {
 
   .financial-table tr.is-total {
     border-block-start-width: 3px;
+  }
+
+  .financial-table--sticky-column {
+    th:first-child,
+    td:first-child {
+      box-shadow: 2px 0 0 currentColor;
+    }
+  }
+
+  html[dir="rtl"] & {
+    .financial-table--sticky-column {
+      th:first-child,
+      td:first-child {
+        box-shadow: -2px 0 0 currentColor;
+      }
+    }
   }
 }

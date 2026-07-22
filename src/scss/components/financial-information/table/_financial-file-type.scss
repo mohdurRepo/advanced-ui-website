@@ -1,0 +1,86 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial File Type
+   ========================================================================== */
+
+/*
+ * Compact label for report formats:
+ *
+ * - PDF
+ * - XBRL
+ * - XLSX
+ * - CSV
+ * - HTML
+ */
+
+.financial-file-type {
+  --financial-file-type-accent: var(--color-text-muted);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+
+  min-inline-size: 2.75rem;
+  min-block-size: 1.625rem;
+
+  padding: 0.25rem 0.5rem;
+
+  border: 1px solid
+    color-mix(in oklab, var(--financial-file-type-accent), transparent 68%);
+
+  border-radius: var(--radius-sm);
+
+  background: color-mix(
+    in oklab,
+    var(--financial-file-type-accent),
+    transparent 94%
+  );
+
+  color: var(--financial-file-type-accent);
+
+  font-size: 0.6875rem;
+  font-weight: font-weight("bold");
+  line-height: 1;
+
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+
+  white-space: nowrap;
+
+  .has-icon {
+    --icon-size: 0.6875rem;
+  }
+}
+
+/* ==========================================================================
+   Formats
+   ========================================================================== */
+
+.financial-file-type--pdf {
+  --financial-file-type-accent: var(--color-danger, var(--color-primary));
+}
+
+.financial-file-type--xbrl {
+  --financial-file-type-accent: var(--color-primary);
+}
+
+.financial-file-type--excel,
+.financial-file-type--xlsx,
+.financial-file-type--csv {
+  --financial-file-type-accent: var(--color-success, var(--color-primary));
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-file-type {
+    border-width: 2px;
+
+    background: transparent;
+    color: currentColor;
+  }
+}

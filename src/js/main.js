@@ -1,45 +1,91 @@
+import { initLanguage } from "./core/language";
+
 import "./components/tabs";
 
-/*import { initTheme } from "./core/theme";
-import { initLanguage } from "./core/language";
-*/
-import { initModals } from "./components/modal";
+import { initGlobal } from "./global";
+
 import { initAccordions } from "./components/accordion";
-import { initToasts } from "./components/toast";
-import { renderDataTable } from "./vendors/datatables/datatable.core";
-import { initDataTables } from "./vendors/datatables/datatable.init";
-import { initIconSprite } from "./components/icons";
+import { initCalendar } from "./components/calendar";
 import { initDropdowns } from "./components/dropdown";
+import { initFeatureOverview } from "./components/feature-overview";
 import { initForms } from "./components/form";
 import { initHeader } from "./components/header";
-import { initMarketSummarySection } from "./components/market-summary";
+import { initIconSprite } from "./components/icons";
 import { initMarketDetails } from "./components/market-details";
-import { initHomeEventSlider } from "./components/intro-section/home-event-slider";
-import { initHomeCountdownSlider } from "./components/intro-section/home-countdown-slider";
-import { initHomeVideoPlayer } from "./components/intro-section/home-video-player";
-import { initCalendar } from "./components/calendar";
-import { initFeatureOverview } from "./components/feature-overview";
-import { initPreferences } from "./core/preferences";
-import { initPreferencesUI } from "./core/preferences-ui";
+import { initMarketSummarySection } from "./components/market-summary";
+import { initModals } from "./components/modal";
+import { initToasts } from "./components/toast";
 
-initPreferences();
-initPreferencesUI();
-initHeader();
+import { initHomeCountdownSlider } from "./components/intro-section/home-countdown-slider";
+import { initHomeEventSlider } from "./components/intro-section/home-event-slider";
+import { initHomeVideoPlayer } from "./components/intro-section/home-video-player";
+
+import { renderDataTable } from "./vendors/datatables/datatable.core";
+import { initDataTables } from "./vendors/datatables/datatable.init";
+
+/* ==========================================================================
+   Public API
+   ========================================================================== */
+
 window.renderDataTable = renderDataTable;
-/*initTheme();
-initLanguage();
-*/
-initModals();
-initAccordions();
-initToasts();
-initDataTables();
-initIconSprite();
-initDropdowns();
-initForms();
-initMarketSummarySection();
-initMarketDetails();
-initHomeEventSlider();
-initHomeCountdownSlider();
-initHomeVideoPlayer();
-initCalendar();
-initFeatureOverview();
+
+/* ==========================================================================
+   Application Initialization
+   ========================================================================== */
+
+function initApp() {
+  /*
+   * Global infrastructure
+   *
+   * Includes drawers, preferences UI, utility rails,
+   * and other site-wide behavior.
+   */
+  initGlobal();
+  initLanguage();
+  /*
+   * Core interface components
+   */
+  initIconSprite();
+  initHeader();
+  initDropdowns();
+  initModals();
+  initAccordions();
+  initToasts();
+  initForms();
+
+  /*
+   * Vendor integrations
+   */
+  initDataTables();
+
+  /*
+   * Market components
+   */
+  initMarketSummarySection();
+  initMarketDetails();
+
+  /*
+   * Homepage introduction components
+   */
+  initHomeEventSlider();
+  initHomeCountdownSlider();
+  initHomeVideoPlayer();
+
+  /*
+   * Page sections
+   */
+  initCalendar();
+  initFeatureOverview();
+}
+
+/* ==========================================================================
+   DOM Ready
+   ========================================================================== */
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp, {
+    once: true,
+  });
+} else {
+  initApp();
+}

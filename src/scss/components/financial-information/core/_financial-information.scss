@@ -1,8 +1,20 @@
 @use "../../../abstracts" as *;
 
 /* ==========================================================================
-   Financial Information
+   Financial Information Section
    ========================================================================== */
+
+/*
+ * Root section for the complete financial-information experience.
+ *
+ * Contains:
+ * - Primary financial navigation
+ * - Dividends
+ * - Financials
+ * - Shareholding
+ * - Options
+ * - Company Profile
+ */
 
 .financial-information {
   --financial-section-bg: var(--color-bg);
@@ -10,12 +22,12 @@
 
   --financial-section-space-block-start: clamp(2rem, 4vw, 3rem);
   --financial-section-space-block-end: clamp(2.5rem, 5vw, 4rem);
-
   --financial-section-row-gap: clamp(1.5rem, 3vw, 2.25rem);
 
   position: relative;
 
   min-inline-size: 0;
+  min-block-size: 0;
 
   padding-block: var(--financial-section-space-block-start)
     var(--financial-section-space-block-end);
@@ -37,9 +49,8 @@
    ========================================================================== */
 
 /*
- * The visible design starts directly with the main tab navigation.
- * The section heading remains visually hidden for document structure
- * and accessibility.
+ * The visible interface begins with the primary financial navigation.
+ * This heading may remain visually hidden for document structure.
  */
 
 .financial-information__heading {
@@ -47,21 +58,35 @@
 }
 
 /* ==========================================================================
-   Tabs Root
+   Tabs Foundation
    ========================================================================== */
 
 .financial-tabs {
   min-inline-size: 0;
+  min-block-size: 0;
 }
 
 /* ==========================================================================
    Hidden Panels
    ========================================================================== */
 
-.financial-information {
-  [role="tabpanel"][hidden] {
-    display: none !important;
-  }
+/*
+ * Explicitly preserve the native hidden state.
+ * This is important because active panels use flex layouts.
+ */
+
+.financial-information [hidden],
+.financial-tabs [role="tabpanel"][hidden] {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Focused Panels
+   ========================================================================== */
+
+.financial-information [role="tabpanel"]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 0.25rem;
 }
 
 /* ==========================================================================
@@ -83,7 +108,6 @@
   .financial-information {
     --financial-section-space-block-start: 1.25rem;
     --financial-section-space-block-end: 2.5rem;
-
     --financial-section-row-gap: 1.25rem;
   }
 }
@@ -95,6 +119,7 @@
 html[data-theme="dark"] {
   .financial-information {
     --financial-section-bg: var(--color-bg);
+    --financial-section-fg: var(--color-text);
   }
 }
 
@@ -105,5 +130,9 @@ html[data-theme="dark"] {
 html[data-contrast="high"] {
   .financial-information {
     --financial-section-fg: var(--color-text);
+  }
+
+  .financial-information [role="tabpanel"]:focus-visible {
+    outline-width: 3px;
   }
 }

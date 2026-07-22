@@ -4,12 +4,23 @@
    Financial Primary Tabs
    ========================================================================== */
 
+/*
+ * Highest navigation level:
+ *
+ * - Dividends
+ * - Financials
+ * - Shareholding
+ * - Options
+ * - Company Profile
+ */
+
 .financial-tabs--primary {
   min-inline-size: 0;
+  min-block-size: 0;
 }
 
 /* ==========================================================================
-   Navigation
+   Navigation List
    ========================================================================== */
 
 .financial-primary-tabs__list {
@@ -47,7 +58,7 @@
 }
 
 /* ==========================================================================
-   Item
+   Navigation Item
    ========================================================================== */
 
 .financial-primary-tabs__item {
@@ -74,6 +85,7 @@
   font-weight: font-weight("semibold");
   line-height: var(--line-height-tight);
 
+  text-align: center;
   white-space: nowrap;
 
   cursor: pointer;
@@ -103,7 +115,7 @@
     @include transition((opacity, transform), fast);
   }
 
-  &:hover:not(.active):not([aria-selected="true"]) {
+  &:hover:not(.active):not([aria-selected="true"]):not(:disabled) {
     color: var(--financial-primary-hover);
   }
 
@@ -128,7 +140,8 @@
     }
   }
 
-  &:disabled {
+  &:disabled,
+  &[aria-disabled="true"] {
     opacity: 0.45;
 
     cursor: not-allowed;
@@ -173,6 +186,13 @@ html[data-contrast="high"] {
    ========================================================================== */
 
 html[data-motion="reduce"] {
+  .financial-primary-tabs__item,
+  .financial-primary-tabs__item::after {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
   .financial-primary-tabs__item,
   .financial-primary-tabs__item::after {
     transition: none;

@@ -5,20 +5,23 @@
    ========================================================================== */
 
 .financial-loader {
+  --financial-loader-min-height: clamp(18rem, 30vw, 24rem);
+  --financial-loader-bg: var(--color-surface-alt);
+
   display: grid;
   place-items: center;
   align-content: center;
   gap: 1rem;
 
   min-inline-size: 0;
-  min-block-size: clamp(18rem, 30vw, 24rem);
+  min-block-size: var(--financial-loader-min-height);
 
   padding: 2rem;
 
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
 
-  background: var(--color-surface-alt);
+  background: var(--financial-loader-bg);
 
   text-align: center;
 }
@@ -35,10 +38,21 @@
     color-mix(in oklab, var(--color-primary), transparent 80%);
 
   border-block-start-color: var(--color-primary);
-
   border-radius: var(--radius-pill);
 
   animation: financial-loader-spin 0.8s linear infinite;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.financial-loader__content {
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+
+  min-inline-size: 0;
 }
 
 /* ==========================================================================
@@ -58,11 +72,28 @@
 }
 
 /* ==========================================================================
+   Supporting Text
+   ========================================================================== */
+
+.financial-loader__description {
+  max-inline-size: 32rem;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
    Compact Variant
    ========================================================================== */
 
 .financial-loader--compact {
-  min-block-size: 10rem;
+  --financial-loader-min-height: 10rem;
 
   padding: 1.25rem;
 
@@ -83,15 +114,17 @@
    ========================================================================== */
 
 .financial-loader--inline {
+  --financial-loader-min-height: auto;
+
   display: inline-flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 0.625rem;
-
-  min-block-size: auto;
 
   padding: 0;
 
   border: 0;
+  border-radius: 0;
 
   background: transparent;
 
@@ -101,8 +134,33 @@
     inline-size: 1.25rem;
     block-size: 1.25rem;
 
+    flex: 0 0 auto;
+
     border-width: 0.125rem;
   }
+
+  .financial-loader__content {
+    justify-items: start;
+  }
+}
+
+/* ==========================================================================
+   Overlay Variant
+   ========================================================================== */
+
+.financial-loader--overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+
+  --financial-loader-min-height: 100%;
+
+  border: 0;
+  border-radius: inherit;
+
+  background: color-mix(in oklab, var(--color-surface), transparent 12%);
+
+  backdrop-filter: blur(2px);
 }
 
 /* ==========================================================================
@@ -121,7 +179,7 @@
 
 @include respond-down(sm) {
   .financial-loader {
-    min-block-size: 15rem;
+    --financial-loader-min-height: 15rem;
 
     padding: 1.5rem 1rem;
 
@@ -136,6 +194,15 @@
   .financial-loader__text {
     font-size: var(--text-xs);
   }
+
+  .financial-loader--compact {
+    --financial-loader-min-height: 9rem;
+  }
+
+  .financial-loader--inline,
+  .financial-loader--overlay {
+    --financial-loader-min-height: auto;
+  }
 }
 
 /* ==========================================================================
@@ -144,7 +211,19 @@
 
 html[data-theme="dark"] {
   .financial-loader {
-    background: color-mix(in oklab, var(--color-surface-alt), transparent 8%);
+    --financial-loader-bg: color-mix(
+      in oklab,
+      var(--color-surface-alt),
+      transparent 8%
+    );
+  }
+
+  .financial-loader--overlay {
+    --financial-loader-bg: color-mix(
+      in oklab,
+      var(--color-surface),
+      transparent 14%
+    );
   }
 }
 
@@ -163,6 +242,12 @@ html[data-contrast="high"] {
     border-color: currentColor;
     border-block-start-color: transparent;
   }
+
+  .financial-loader--overlay {
+    border: 2px solid currentColor;
+
+    backdrop-filter: none;
+  }
 }
 
 /* ==========================================================================
@@ -170,6 +255,14 @@ html[data-contrast="high"] {
    ========================================================================== */
 
 html[data-motion="reduce"] {
+  .financial-loader__spinner {
+    animation: none;
+
+    border-color: var(--color-primary);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
   .financial-loader__spinner {
     animation: none;
 

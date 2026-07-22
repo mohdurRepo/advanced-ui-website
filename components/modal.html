@@ -37,7 +37,7 @@
     </script>
 
     <link rel="stylesheet" href="/src/scss/main.scss" />
-    <title>Dropdown System</title>
+    <title>Modal System</title>
     <script type="module" src="/src/js/main.js"></script>
   </head>
 
@@ -46,16 +46,16 @@
       <div class="container">
         <div class="d-flex justify-between align-center flex-wrap gap-3 mb-8">
           <div>
-            <h1>Dropdown System</h1>
+            <h1>Modal System</h1>
             <p>
-              Advanced dropdowns with search, checkbox options, selected values,
-              actions, RTL, and smart positioning.
+              Reusable modal layouts, sizes, visual variants, RTL, and themes.
             </p>
           </div>
 
           <div class="d-flex gap-2 flex-wrap">
             <button
               class="btn btn-outline-primary btn-sm"
+              type="button"
               data-theme-set="light"
             >
               Light
@@ -63,6 +63,7 @@
 
             <button
               class="btn btn-outline-primary btn-sm"
+              type="button"
               data-theme-set="dark"
             >
               Dark
@@ -70,652 +71,908 @@
 
             <button
               class="btn btn-primary btn-sm btn-rounded"
+              type="button"
               data-theme-toggle
             >
               Toggle Theme
             </button>
 
-            <button class="btn btn-outline-accent btn-sm" data-lang-set="en">
+            <button
+              class="btn btn-outline-accent btn-sm"
+              type="button"
+              data-lang-set="en"
+            >
               English
             </button>
 
-            <button class="btn btn-outline-accent btn-sm" data-lang-set="ar">
+            <button
+              class="btn btn-outline-accent btn-sm"
+              type="button"
+              data-lang-set="ar"
+            >
               العربية
             </button>
           </div>
         </div>
-        <section class="mt-8">
-          <h2 class="mb-4">Modal System</h2>
+
+        <!-- ================================================================
+             Modal Triggers
+             ================================================================ -->
+
+        <section>
+          <h2 class="mb-4">Examples</h2>
 
           <section class="card mb-6">
             <div class="card-header">
-              <h3 class="card-title">Modals With Header</h3>
+              <h3 class="card-title">Default Modals</h3>
             </div>
 
             <div class="card-body d-flex flex-wrap gap-3">
               <button
-                class="btn btn-primary btn-rounded"
-                data-modal-open="modalHeaderSm"
+                class="btn btn-primary"
+                type="button"
+                data-modal-open="modalDefaultSm"
               >
-                Header SM
+                Small
               </button>
               <button
-                class="btn btn-primary btn-rounded"
-                data-modal-open="modalHeaderMd"
+                class="btn btn-primary"
+                type="button"
+                data-modal-open="modalDefaultMd"
               >
-                Header MD
+                Medium
               </button>
               <button
-                class="btn btn-primary btn-rounded"
-                data-modal-open="modalHeaderLg"
+                class="btn btn-primary"
+                type="button"
+                data-modal-open="modalDefaultLg"
               >
-                Header LG
+                Large
               </button>
               <button
-                class="btn btn-primary btn-rounded"
-                data-modal-open="modalHeaderXl"
+                class="btn btn-primary"
+                type="button"
+                data-modal-open="modalDefaultXl"
               >
-                Header XL
+                Extra Large
               </button>
               <button
-                class="btn btn-danger btn-rounded"
-                data-modal-open="modalHeaderFull"
+                class="btn btn-danger"
+                type="button"
+                data-modal-open="modalDefaultFull"
               >
-                Header Full
+                Full Screen
               </button>
             </div>
           </section>
 
           <section class="card mb-6">
             <div class="card-header">
-              <h3 class="card-title">Modals Without Header</h3>
+              <h3 class="card-title">No Header</h3>
             </div>
 
             <div class="card-body d-flex flex-wrap gap-3">
               <button
                 class="btn btn-outline-primary"
+                type="button"
                 data-modal-open="modalNoHeaderSm"
               >
-                No Header SM
+                Small
               </button>
               <button
                 class="btn btn-outline-primary"
+                type="button"
                 data-modal-open="modalNoHeaderMd"
               >
-                No Header MD
+                Medium
               </button>
               <button
                 class="btn btn-outline-primary"
+                type="button"
                 data-modal-open="modalNoHeaderLg"
               >
-                No Header LG
+                Large
               </button>
               <button
                 class="btn btn-outline-primary"
+                type="button"
                 data-modal-open="modalNoHeaderXl"
               >
-                No Header XL
+                Extra Large
               </button>
               <button
-                class="btn btn-danger btn-rounded"
+                class="btn btn-outline-danger"
+                type="button"
                 data-modal-open="modalNoHeaderFull"
               >
-                No Header Full
+                Full Screen
               </button>
             </div>
           </section>
 
           <section class="card mb-6">
             <div class="card-header">
-              <h3 class="card-title">Modals Without Header & Footer</h3>
+              <h3 class="card-title">Clean Modals</h3>
             </div>
 
             <div class="card-body d-flex flex-wrap gap-3">
               <button
                 class="btn btn-outline-accent"
+                type="button"
                 data-modal-open="modalCleanSm"
               >
-                Clean SM
+                Small
               </button>
               <button
                 class="btn btn-outline-accent"
+                type="button"
                 data-modal-open="modalCleanMd"
               >
-                Clean MD
+                Medium
               </button>
               <button
                 class="btn btn-outline-accent"
+                type="button"
                 data-modal-open="modalCleanLg"
               >
-                Clean LG
+                Large
               </button>
               <button
                 class="btn btn-outline-accent"
+                type="button"
                 data-modal-open="modalCleanXl"
               >
-                Clean XL
+                Extra Large
               </button>
               <button
-                class="btn btn-danger btn-rounded"
+                class="btn btn-outline-danger"
+                type="button"
                 data-modal-open="modalCleanFull"
               >
-                Clean Full
+                Full Screen
+              </button>
+            </div>
+          </section>
+
+          <section class="card mb-6">
+            <div class="card-header">
+              <h3 class="card-title">Visual Modals</h3>
+            </div>
+
+            <div class="card-body d-flex flex-wrap gap-3">
+              <button
+                class="btn btn-primary btn-rounded"
+                type="button"
+                data-modal-open="modalVisualDefault"
+              >
+                Visual Default
+              </button>
+              <button
+                class="btn btn-primary btn-rounded"
+                type="button"
+                data-modal-open="modalVisualSurface"
+              >
+                Visual Surface
+              </button>
+              <button
+                class="btn btn-primary btn-rounded"
+                type="button"
+                data-modal-open="modalVisualClean"
+              >
+                Visual Clean
               </button>
             </div>
           </section>
         </section>
 
-        <!-- With Header: SM -->
+        <!-- ================================================================
+             Default Modals
+             ================================================================ -->
+
         <div
           class="modal modal-sm modal-rounded"
-          id="modalHeaderSm"
-          aria-hidden="true"
+          id="modalDefaultSm"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="modalHeaderSmTitle"
+          aria-hidden="true"
+          aria-labelledby="modalDefaultSmTitle"
         >
-          <div class="modal-backdrop" data-modal-close></div>
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
           <div class="modal-dialog">
             <div class="modal-content">
-              <div class="modal-header">
+              <header class="modal-header">
                 <div>
-                  <h3 class="modal-title" id="modalHeaderSmTitle">
+                  <h3 class="modal-title" id="modalDefaultSmTitle">
                     Small Modal
                   </h3>
-                  <div class="modal-subtitle">With header and footer</div>
+                  <p class="modal-subtitle">Compact content</p>
                 </div>
                 <button
                   class="modal-close"
                   type="button"
                   data-modal-close
+                  aria-label="Close modal"
                 ></button>
-              </div>
+              </header>
               <div class="modal-body">
-                <p>This is a small modal with header.</p>
+                <p>Modal content goes here.</p>
               </div>
-              <div class="modal-footer">
-                <button class="btn btn-outline-primary" data-modal-close>
+              <footer class="modal-footer">
+                <button
+                  class="btn btn-outline-primary"
+                  type="button"
+                  data-modal-close
+                >
                   Cancel
                 </button>
-                <button class="btn btn-primary btn-rounded">Confirm</button>
-              </div>
+                <button class="btn btn-primary btn-rounded" type="button">
+                  Confirm
+                </button>
+              </footer>
             </div>
           </div>
         </div>
 
-        <!-- With Header: MD -->
         <div
           class="modal modal-md modal-rounded"
-          id="modalHeaderMd"
-          aria-hidden="true"
+          id="modalDefaultMd"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="modalHeaderMdTitle"
+          aria-hidden="true"
+          aria-labelledby="modalDefaultMdTitle"
         >
-          <div class="modal-backdrop" data-modal-close></div>
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
           <div class="modal-dialog">
             <div class="modal-content">
-              <div class="modal-header">
+              <header class="modal-header">
                 <div>
-                  <h3 class="modal-title" id="modalHeaderMdTitle">
+                  <h3 class="modal-title" id="modalDefaultMdTitle">
                     Medium Modal
                   </h3>
-                  <div class="modal-subtitle">Default modal size</div>
+                  <p class="modal-subtitle">Default size</p>
                 </div>
                 <button
                   class="modal-close"
                   type="button"
                   data-modal-close
+                  aria-label="Close modal"
                 ></button>
-              </div>
+              </header>
               <div class="modal-body">
-                <p>
-                  This is the default modal size. It works in light, dark, LTR,
-                  and RTL.
-                </p>
+                <p>Modal content goes here.</p>
               </div>
-              <div class="modal-footer">
-                <button class="btn btn-outline-primary" data-modal-close>
+              <footer class="modal-footer">
+                <button
+                  class="btn btn-outline-primary"
+                  type="button"
+                  data-modal-close
+                >
                   Cancel
                 </button>
-                <button class="btn btn-primary btn-rounded">Save</button>
-              </div>
+                <button class="btn btn-primary btn-rounded" type="button">
+                  Save
+                </button>
+              </footer>
             </div>
           </div>
         </div>
 
-        <!-- With Header: LG -->
         <div
           class="modal modal-lg modal-rounded modal-height-lg"
-          id="modalHeaderLg"
-          aria-hidden="true"
+          id="modalDefaultLg"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="modalHeaderLgTitle"
+          aria-hidden="true"
+          aria-labelledby="modalDefaultLgTitle"
         >
-          <div class="modal-backdrop" data-modal-close></div>
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
           <div class="modal-dialog">
             <div class="modal-content">
-              <div class="modal-header">
+              <header class="modal-header">
                 <div>
-                  <h3 class="modal-title" id="modalHeaderLgTitle">
+                  <h3 class="modal-title" id="modalDefaultLgTitle">
                     Large Modal
                   </h3>
-                  <div class="modal-subtitle">For richer content</div>
+                  <p class="modal-subtitle">For richer layouts</p>
                 </div>
                 <button
                   class="modal-close"
                   type="button"
                   data-modal-close
+                  aria-label="Close modal"
                 ></button>
-              </div>
+              </header>
               <div class="modal-body">
-                <div class="grid-auto gap-4">
-                  <div class="card">
-                    <div class="card-body">Modal Card 1</div>
-                  </div>
-                  <div class="card">
-                    <div class="card-body">Modal Card 2</div>
-                  </div>
-                  <div class="card">
-                    <div class="card-body">Modal Card 3</div>
-                  </div>
-                </div>
+                <p>Modal content goes here.</p>
               </div>
-              <div class="modal-footer">
-                <button class="btn btn-outline-danger" data-modal-close>
-                  Close
-                </button>
-                <button class="btn btn-primary btn-rounded">Confirm</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- With Header: XL -->
-        <div
-          class="modal modal-xl modal-rounded modal-height-lg"
-          id="modalHeaderXl"
-          aria-hidden="true"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modalHeaderXlTitle"
-        >
-          <div class="modal-backdrop" data-modal-close></div>
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <div>
-                  <h3 class="modal-title" id="modalHeaderXlTitle">
-                    Extra Large Modal
-                  </h3>
-                  <div class="modal-subtitle">For wide content and tables</div>
-                </div>
+              <footer class="modal-footer">
                 <button
-                  class="modal-close"
+                  class="btn btn-outline-primary"
                   type="button"
                   data-modal-close
-                ></button>
-              </div>
-              <div class="modal-body">
-                <div class="row">
-                  <div class="col-12 col-md-6 mb-4">
-                    <div class="card">
-                      <div class="card-body">Left content</div>
-                    </div>
-                  </div>
-                  <div class="col-12 col-md-6 mb-4">
-                    <div class="card">
-                      <div class="card-body">Right content</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button class="btn btn-outline-primary" data-modal-close>
+                >
                   Cancel
                 </button>
-                <button class="btn btn-primary btn-rounded">Save</button>
-              </div>
+                <button class="btn btn-primary btn-rounded" type="button">
+                  Confirm
+                </button>
+              </footer>
             </div>
           </div>
         </div>
 
-        <!-- With Header: Full -->
         <div
-          class="modal modal-full"
-          id="modalHeaderFull"
-          aria-hidden="true"
+          class="modal modal-xl modal-rounded modal-height-lg"
+          id="modalDefaultXl"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="modalHeaderFullTitle"
+          aria-hidden="true"
+          aria-labelledby="modalDefaultXlTitle"
         >
-          <div class="modal-backdrop" data-modal-close></div>
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
           <div class="modal-dialog">
             <div class="modal-content">
-              <div class="modal-header">
+              <header class="modal-header">
                 <div>
-                  <h3 class="modal-title" id="modalHeaderFullTitle">
-                    Full Screen Modal
+                  <h3 class="modal-title" id="modalDefaultXlTitle">
+                    Extra Large Modal
                   </h3>
-                  <div class="modal-subtitle">For complex workflows</div>
+                  <p class="modal-subtitle">For wide content</p>
                 </div>
                 <button
                   class="modal-close"
                   type="button"
                   data-modal-close
+                  aria-label="Close modal"
                 ></button>
-              </div>
+              </header>
               <div class="modal-body">
-                <div class="container">
-                  <p class="mb-4">
-                    This full screen modal can contain complex layouts and
-                    future forms.
-                  </p>
-                  <div class="grid-auto gap-4">
-                    <div class="card">
-                      <div class="card-body">Section 1</div>
-                    </div>
-                    <div class="card">
-                      <div class="card-body">Section 2</div>
-                    </div>
-                    <div class="card">
-                      <div class="card-body">Section 3</div>
-                    </div>
-                  </div>
-                </div>
+                <p>Modal content goes here.</p>
               </div>
-              <div class="modal-footer">
-                <button class="btn btn-outline-danger" data-modal-close>
-                  Exit
+              <footer class="modal-footer">
+                <button
+                  class="btn btn-outline-primary"
+                  type="button"
+                  data-modal-close
+                >
+                  Cancel
                 </button>
-                <button class="btn btn-primary btn-rounded">Complete</button>
-              </div>
+                <button class="btn btn-primary btn-rounded" type="button">
+                  Save
+                </button>
+              </footer>
             </div>
           </div>
         </div>
 
-        <!-- No Header: SM -->
+        <div
+          class="modal modal-full"
+          id="modalDefaultFull"
+          role="dialog"
+          aria-modal="true"
+          aria-hidden="true"
+          aria-labelledby="modalDefaultFullTitle"
+        >
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <header class="modal-header">
+                <div>
+                  <h3 class="modal-title" id="modalDefaultFullTitle">
+                    Full Screen Modal
+                  </h3>
+                  <p class="modal-subtitle">For complex workflows</p>
+                </div>
+                <button
+                  class="modal-close"
+                  type="button"
+                  data-modal-close
+                  aria-label="Close modal"
+                ></button>
+              </header>
+              <div class="modal-body">
+                <div class="container">
+                  <p>Modal content goes here.</p>
+                </div>
+              </div>
+              <footer class="modal-footer">
+                <button
+                  class="btn btn-outline-danger"
+                  type="button"
+                  data-modal-close
+                >
+                  Exit
+                </button>
+                <button class="btn btn-primary btn-rounded" type="button">
+                  Complete
+                </button>
+              </footer>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================
+             No Header Modals
+             ================================================================ -->
+
         <div
           class="modal modal-sm modal-rounded modal-no-header"
           id="modalNoHeaderSm"
-          aria-hidden="true"
           role="dialog"
           aria-modal="true"
-          aria-label="Small modal without header"
+          aria-hidden="true"
+          aria-labelledby="modalNoHeaderSmTitle"
         >
-          <div class="modal-backdrop" data-modal-close></div>
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
           <div class="modal-dialog">
             <div class="modal-content">
-              <button
-                class="modal-close modal-floating-close"
-                type="button"
-                data-modal-close
-              ></button>
               <div class="modal-body">
-                <h3 class="mb-3">No Header Small</h3>
-                <p>This modal has no header.</p>
+                <div class="d-flex align-center justify-between gap-3 mb-3">
+                  <h3 class="modal-title" id="modalNoHeaderSmTitle">
+                    No Header Small
+                  </h3>
+                  <button
+                    class="modal-close"
+                    type="button"
+                    data-modal-close
+                    aria-label="Close modal"
+                  ></button>
+                </div>
+                <p>Modal content goes here.</p>
               </div>
-              <div class="modal-footer">
-                <button class="btn btn-outline-primary" data-modal-close>
+              <footer class="modal-footer">
+                <button
+                  class="btn btn-outline-primary"
+                  type="button"
+                  data-modal-close
+                >
                   Cancel
                 </button>
-                <button class="btn btn-primary btn-rounded">Confirm</button>
-              </div>
+                <button class="btn btn-primary btn-rounded" type="button">
+                  Confirm
+                </button>
+              </footer>
             </div>
           </div>
         </div>
 
-        <!-- No Header: MD -->
         <div
           class="modal modal-md modal-rounded modal-no-header"
           id="modalNoHeaderMd"
-          aria-hidden="true"
           role="dialog"
           aria-modal="true"
-          aria-label="Medium modal without header"
+          aria-hidden="true"
+          aria-labelledby="modalNoHeaderMdTitle"
         >
-          <div class="modal-backdrop" data-modal-close></div>
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
           <div class="modal-dialog">
             <div class="modal-content">
-              <button
-                class="modal-close modal-floating-close"
-                type="button"
-                data-modal-close
-              ></button>
               <div class="modal-body">
-                <h3 class="mb-3">No Header Medium</h3>
-                <p>The close button is floating and direction-safe.</p>
+                <div class="d-flex align-center justify-between gap-3 mb-3">
+                  <h3 class="modal-title" id="modalNoHeaderMdTitle">
+                    No Header Medium
+                  </h3>
+                  <button
+                    class="modal-close"
+                    type="button"
+                    data-modal-close
+                    aria-label="Close modal"
+                  ></button>
+                </div>
+                <p>Modal content goes here.</p>
               </div>
-              <div class="modal-footer">
-                <button class="btn btn-outline-primary" data-modal-close>
+              <footer class="modal-footer">
+                <button
+                  class="btn btn-outline-primary"
+                  type="button"
+                  data-modal-close
+                >
                   Cancel
                 </button>
-                <button class="btn btn-primary btn-rounded">Confirm</button>
-              </div>
+                <button class="btn btn-primary btn-rounded" type="button">
+                  Confirm
+                </button>
+              </footer>
             </div>
           </div>
         </div>
 
-        <!-- No Header: LG -->
         <div
           class="modal modal-lg modal-rounded modal-no-header modal-height-lg"
           id="modalNoHeaderLg"
-          aria-hidden="true"
           role="dialog"
           aria-modal="true"
-          aria-label="Large modal without header"
+          aria-hidden="true"
+          aria-labelledby="modalNoHeaderLgTitle"
         >
-          <div class="modal-backdrop" data-modal-close></div>
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
           <div class="modal-dialog">
             <div class="modal-content">
-              <button
-                class="modal-close modal-floating-close"
-                type="button"
-                data-modal-close
-              ></button>
               <div class="modal-body">
-                <h3 class="mb-3">No Header Large</h3>
-                <div class="grid-auto gap-4">
-                  <div class="card"><div class="card-body">Content 1</div></div>
-                  <div class="card"><div class="card-body">Content 2</div></div>
+                <div class="d-flex align-center justify-between gap-3 mb-3">
+                  <h3 class="modal-title" id="modalNoHeaderLgTitle">
+                    No Header Large
+                  </h3>
+                  <button
+                    class="modal-close"
+                    type="button"
+                    data-modal-close
+                    aria-label="Close modal"
+                  ></button>
                 </div>
+                <p>Modal content goes here.</p>
               </div>
-              <div class="modal-footer">
-                <button class="btn btn-outline-danger" data-modal-close>
-                  Close
+              <footer class="modal-footer">
+                <button
+                  class="btn btn-outline-primary"
+                  type="button"
+                  data-modal-close
+                >
+                  Cancel
                 </button>
-                <button class="btn btn-primary btn-rounded">Confirm</button>
-              </div>
+                <button class="btn btn-primary btn-rounded" type="button">
+                  Confirm
+                </button>
+              </footer>
             </div>
           </div>
         </div>
 
-        <!-- No Header: XL -->
         <div
           class="modal modal-xl modal-rounded modal-no-header modal-height-lg"
           id="modalNoHeaderXl"
-          aria-hidden="true"
           role="dialog"
           aria-modal="true"
-          aria-label="Extra large modal without header"
+          aria-hidden="true"
+          aria-labelledby="modalNoHeaderXlTitle"
         >
-          <div class="modal-backdrop" data-modal-close></div>
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
           <div class="modal-dialog">
             <div class="modal-content">
-              <button
-                class="modal-close modal-floating-close"
-                type="button"
-                data-modal-close
-              ></button>
               <div class="modal-body">
-                <h3 class="mb-3">No Header XL</h3>
-                <p>Wide modal without header.</p>
+                <div class="d-flex align-center justify-between gap-3 mb-3">
+                  <h3 class="modal-title" id="modalNoHeaderXlTitle">
+                    No Header Extra Large
+                  </h3>
+                  <button
+                    class="modal-close"
+                    type="button"
+                    data-modal-close
+                    aria-label="Close modal"
+                  ></button>
+                </div>
+                <p>Modal content goes here.</p>
               </div>
-              <div class="modal-footer">
-                <button class="btn btn-outline-primary" data-modal-close>
+              <footer class="modal-footer">
+                <button
+                  class="btn btn-outline-primary"
+                  type="button"
+                  data-modal-close
+                >
                   Cancel
                 </button>
-                <button class="btn btn-primary btn-rounded">Save</button>
-              </div>
+                <button class="btn btn-primary btn-rounded" type="button">
+                  Save
+                </button>
+              </footer>
             </div>
           </div>
         </div>
 
-        <!-- No Header: Full -->
         <div
           class="modal modal-full modal-no-header"
           id="modalNoHeaderFull"
-          aria-hidden="true"
           role="dialog"
           aria-modal="true"
-          aria-label="Full screen modal without header"
+          aria-hidden="true"
+          aria-labelledby="modalNoHeaderFullTitle"
         >
-          <div class="modal-backdrop" data-modal-close></div>
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
           <div class="modal-dialog">
             <div class="modal-content">
-              <button
-                class="modal-close modal-floating-close"
-                type="button"
-                data-modal-close
-              ></button>
               <div class="modal-body">
                 <div class="container">
-                  <h3 class="mb-3">No Header Full Screen</h3>
-                  <p>Full screen workflow without header.</p>
+                  <div class="d-flex align-center justify-between gap-3 mb-3">
+                    <h3 class="modal-title" id="modalNoHeaderFullTitle">
+                      No Header Full Screen
+                    </h3>
+                    <button
+                      class="modal-close"
+                      type="button"
+                      data-modal-close
+                      aria-label="Close modal"
+                    ></button>
+                  </div>
+                  <p>Modal content goes here.</p>
                 </div>
               </div>
-              <div class="modal-footer">
-                <button class="btn btn-outline-danger" data-modal-close>
+              <footer class="modal-footer">
+                <button
+                  class="btn btn-outline-danger"
+                  type="button"
+                  data-modal-close
+                >
                   Exit
                 </button>
-                <button class="btn btn-primary btn-rounded">Complete</button>
-              </div>
+                <button class="btn btn-primary btn-rounded" type="button">
+                  Complete
+                </button>
+              </footer>
             </div>
           </div>
         </div>
 
-        <!-- Clean SM -->
+        <!-- ================================================================
+             Clean Modals
+             ================================================================ -->
+
         <div
           class="modal modal-sm modal-rounded modal-no-header modal-no-footer"
           id="modalCleanSm"
-          aria-hidden="true"
           role="dialog"
           aria-modal="true"
-          aria-label="Clean small modal"
+          aria-hidden="true"
+          aria-labelledby="modalCleanSmTitle"
         >
-          <div class="modal-backdrop" data-modal-close></div>
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
           <div class="modal-dialog">
             <div class="modal-content">
-              <button
-                class="modal-close modal-floating-close"
-                type="button"
-                data-modal-close
-              ></button>
               <div class="modal-body">
-                <h3 class="mb-3">Clean Small</h3>
-                <p>No header and no footer.</p>
+                <div class="d-flex align-center justify-between gap-3 mb-3">
+                  <h3 class="modal-title" id="modalCleanSmTitle">
+                    Clean Small
+                  </h3>
+                  <button
+                    class="modal-close"
+                    type="button"
+                    data-modal-close
+                    aria-label="Close modal"
+                  ></button>
+                </div>
+                <p>Modal content goes here.</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Clean MD -->
         <div
           class="modal modal-md modal-rounded modal-no-header modal-no-footer"
           id="modalCleanMd"
-          aria-hidden="true"
           role="dialog"
           aria-modal="true"
-          aria-label="Clean medium modal"
+          aria-hidden="true"
+          aria-labelledby="modalCleanMdTitle"
         >
-          <div class="modal-backdrop" data-modal-close></div>
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
           <div class="modal-dialog">
             <div class="modal-content">
-              <button
-                class="modal-close modal-floating-close"
-                type="button"
-                data-modal-close
-              ></button>
               <div class="modal-body">
-                <h3 class="mb-3">Clean Medium</h3>
-                <p>This modal is useful for previews and simple messages.</p>
+                <div class="d-flex align-center justify-between gap-3 mb-3">
+                  <h3 class="modal-title" id="modalCleanMdTitle">
+                    Clean Medium
+                  </h3>
+                  <button
+                    class="modal-close"
+                    type="button"
+                    data-modal-close
+                    aria-label="Close modal"
+                  ></button>
+                </div>
+                <p>Modal content goes here.</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Clean LG -->
         <div
           class="modal modal-lg modal-rounded modal-no-header modal-no-footer"
           id="modalCleanLg"
-          aria-hidden="true"
           role="dialog"
           aria-modal="true"
-          aria-label="Clean large modal"
+          aria-hidden="true"
+          aria-labelledby="modalCleanLgTitle"
         >
-          <div class="modal-backdrop" data-modal-close></div>
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
           <div class="modal-dialog">
             <div class="modal-content">
-              <button
-                class="modal-close modal-floating-close"
-                type="button"
-                data-modal-close
-              ></button>
               <div class="modal-body">
-                <h3 class="mb-3">Clean Large</h3>
-                <p>Large modal with clean layout.</p>
+                <div class="d-flex align-center justify-between gap-3 mb-3">
+                  <h3 class="modal-title" id="modalCleanLgTitle">
+                    Clean Large
+                  </h3>
+                  <button
+                    class="modal-close"
+                    type="button"
+                    data-modal-close
+                    aria-label="Close modal"
+                  ></button>
+                </div>
+                <p>Modal content goes here.</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Clean XL -->
         <div
           class="modal modal-xl modal-rounded modal-no-header modal-no-footer"
           id="modalCleanXl"
-          aria-hidden="true"
           role="dialog"
           aria-modal="true"
-          aria-label="Clean extra large modal"
+          aria-hidden="true"
+          aria-labelledby="modalCleanXlTitle"
         >
-          <div class="modal-backdrop" data-modal-close></div>
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
           <div class="modal-dialog">
             <div class="modal-content">
-              <button
-                class="modal-close modal-floating-close"
-                type="button"
-                data-modal-close
-              ></button>
               <div class="modal-body">
-                <h3 class="mb-3">Clean XL</h3>
-                <p>Extra large modal without header and footer.</p>
+                <div class="d-flex align-center justify-between gap-3 mb-3">
+                  <h3 class="modal-title" id="modalCleanXlTitle">
+                    Clean Extra Large
+                  </h3>
+                  <button
+                    class="modal-close"
+                    type="button"
+                    data-modal-close
+                    aria-label="Close modal"
+                  ></button>
+                </div>
+                <p>Modal content goes here.</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Clean Full -->
         <div
           class="modal modal-full modal-no-header modal-no-footer"
           id="modalCleanFull"
-          aria-hidden="true"
           role="dialog"
           aria-modal="true"
-          aria-label="Clean full screen modal"
+          aria-hidden="true"
+          aria-labelledby="modalCleanFullTitle"
         >
-          <div class="modal-backdrop" data-modal-close></div>
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
           <div class="modal-dialog">
             <div class="modal-content">
-              <button
-                class="modal-close modal-floating-close"
-                type="button"
-                data-modal-close
-              ></button>
               <div class="modal-body">
                 <div class="container">
-                  <h3 class="mb-3">Clean Full Screen</h3>
-                  <p>No header, no footer, full screen content.</p>
+                  <div class="d-flex align-center justify-between gap-3 mb-3">
+                    <h3 class="modal-title" id="modalCleanFullTitle">
+                      Clean Full Screen
+                    </h3>
+                    <button
+                      class="modal-close"
+                      type="button"
+                      data-modal-close
+                      aria-label="Close modal"
+                    ></button>
+                  </div>
+                  <p>Modal content goes here.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================
+             Visual Modals
+             ================================================================ -->
+
+        <div
+          class="modal modal-md modal-rounded modal-visual visual-demo-modal"
+          id="modalVisualDefault"
+          role="dialog"
+          aria-modal="true"
+          aria-hidden="true"
+          aria-labelledby="modalVisualDefaultTitle"
+        >
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <header class="modal-header">
+                <div>
+                  <h3 class="modal-title" id="modalVisualDefaultTitle">
+                    Visual Modal
+                  </h3>
+                  <p class="modal-subtitle">Branded modal extension</p>
+                </div>
+                <button
+                  class="modal-close"
+                  type="button"
+                  data-modal-close
+                  aria-label="Close modal"
+                ></button>
+              </header>
+              <div class="modal-body">
+                <p>Feature-specific content goes here.</p>
+              </div>
+              <footer class="modal-footer">
+                <button
+                  class="btn btn-outline-light"
+                  type="button"
+                  data-modal-close
+                >
+                  Cancel
+                </button>
+                <button class="btn btn-light btn-rounded" type="button">
+                  Continue
+                </button>
+              </footer>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="modal modal-lg modal-rounded modal-visual visual-demo-modal"
+          id="modalVisualSurface"
+          role="dialog"
+          aria-modal="true"
+          aria-hidden="true"
+          aria-labelledby="modalVisualSurfaceTitle"
+        >
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <header class="modal-header">
+                <div>
+                  <h3 class="modal-title" id="modalVisualSurfaceTitle">
+                    Visual Surface
+                  </h3>
+                  <p class="modal-subtitle">Optional frosted content area</p>
+                </div>
+                <button
+                  class="modal-close"
+                  type="button"
+                  data-modal-close
+                  aria-label="Close modal"
+                ></button>
+              </header>
+              <div class="modal-body">
+                <div class="modal-visual__surface">
+                  <p>Feature-specific content goes here.</p>
+                </div>
+              </div>
+              <footer class="modal-footer">
+                <button
+                  class="btn btn-outline-light"
+                  type="button"
+                  data-modal-close
+                >
+                  Cancel
+                </button>
+                <button class="btn btn-light btn-rounded" type="button">
+                  Continue
+                </button>
+              </footer>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="modal modal-md modal-rounded modal-no-header modal-no-footer modal-visual visual-demo-modal"
+          id="modalVisualClean"
+          role="dialog"
+          aria-modal="true"
+          aria-hidden="true"
+          aria-labelledby="modalVisualCleanTitle"
+        >
+          <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-body">
+                <div class="d-flex align-center justify-between gap-3 mb-4">
+                  <h3 class="modal-title" id="modalVisualCleanTitle">
+                    Visual Clean
+                  </h3>
+                  <button
+                    class="modal-close"
+                    type="button"
+                    data-modal-close
+                    aria-label="Close modal"
+                  ></button>
+                </div>
+
+                <div class="modal-visual__surface">
+                  <p>Feature-specific content goes here.</p>
                 </div>
               </div>
             </div>

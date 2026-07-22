@@ -4,6 +4,13 @@
    Financial Tab Content
    ========================================================================== */
 
+/*
+ * Shared containment rules for every level of nested financial tabs.
+ *
+ * This file does not control navigation appearance or page composition.
+ * Those responsibilities belong to navigation/ and layout/.
+ */
+
 .financial-primary-tabs__content,
 .financial-secondary-tabs__content,
 .financial-period-tabs__content,
@@ -31,27 +38,29 @@
 }
 
 /* ==========================================================================
-   Period Content
+   Nested Content
    ========================================================================== */
 
-.financial-period-tabs__content {
-  min-inline-size: 0;
+/*
+ * Period, report, view, and data-layout content live inside an existing
+ * shell or panel. They should not create additional external spacing.
+ */
+
+.financial-period-tabs__content,
+.financial-report-tabs__content,
+.financial-view__content,
+.financial-data-layout__content {
+  margin: 0;
 }
 
 /* ==========================================================================
-   Report Content
+   Direct Tab Children
    ========================================================================== */
 
-.financial-report-tabs__content {
-  margin-block-start: 1.5rem;
-}
-
-/* ==========================================================================
-   View Content
-   ========================================================================== */
-
-.financial-view__content {
+.financial-tabs > .tabs-content,
+.financial-tabs > .tabs-content > .tab-pane {
   min-inline-size: 0;
+  min-block-size: 0;
 }
 
 /* ==========================================================================
@@ -59,16 +68,15 @@
    ========================================================================== */
 
 .financial-information {
+  .tabs,
   .tabs-content,
   .tab-pane {
     min-inline-size: 0;
     min-block-size: 0;
   }
 
-  .tab-pane {
-    &[hidden] {
-      display: none !important;
-    }
+  .tab-pane[hidden] {
+    display: none !important;
   }
 }
 
@@ -83,13 +91,11 @@
 @keyframes financial-panel-enter {
   from {
     opacity: 0;
-
     transform: translateY(0.1875rem);
   }
 
   to {
     opacity: 1;
-
     transform: translateY(0);
   }
 }
@@ -103,8 +109,7 @@
     margin-block-start: 1.25rem;
   }
 
-  .financial-secondary-tabs__content,
-  .financial-report-tabs__content {
+  .financial-secondary-tabs__content {
     margin-block-start: 1rem;
   }
 }
@@ -114,6 +119,12 @@
    ========================================================================== */
 
 html[data-motion="reduce"] {
+  .financial-information .tab-pane.active {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
   .financial-information .tab-pane.active {
     animation: none;
   }

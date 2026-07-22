@@ -1,0 +1,80 @@
+/* ==========================================================================
+   Cover Layout
+   ========================================================================== */
+
+/**
+ * Creates a full-height layout with optional header and footer,
+ * allowing the main content to expand and remain vertically centered
+ * or aligned as needed.
+ *
+ * Use for:
+ * - 404 pages
+ * - maintenance pages
+ * - onboarding
+ * - confirmation screens
+ * - empty states
+ */
+
+.cover-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Regions
+   ========================================================================== */
+
+.cover-layout__header,
+.cover-layout__footer {
+  flex: 0 0 auto;
+}
+
+.cover-layout__content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Alignment Variants
+   ========================================================================== */
+
+.cover-layout--top .cover-layout__content {
+  justify-content: flex-start;
+}
+
+.cover-layout--center .cover-layout__content {
+  justify-content: center;
+}
+
+.cover-layout--bottom .cover-layout__content {
+  justify-content: flex-end;
+}
+
+/* ==========================================================================
+   Padding Variants
+   ========================================================================== */
+
+.cover-layout--sm {
+  padding-block: var(--space-6, 1.5rem);
+}
+
+.cover-layout--md {
+  padding-block: var(--space-8, 2rem);
+}
+
+.cover-layout--lg {
+  padding-block: var(--space-12, 3rem);
+}
+
+/* ==========================================================================
+   Child Safety
+   ========================================================================== */
+
+.cover-layout > * {
+  min-width: 0;
+}

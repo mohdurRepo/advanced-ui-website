@@ -4,6 +4,16 @@
    Financial Value
    ========================================================================== */
 
+/*
+ * Reusable numeric value presentation for:
+ *
+ * - Currency
+ * - Percentages
+ * - Ratios
+ * - Share counts
+ * - Financial changes
+ */
+
 .financial-value {
   display: inline-flex;
   align-items: baseline;
@@ -33,6 +43,8 @@
    ========================================================================== */
 
 .financial-value__amount {
+  min-inline-size: 0;
+
   color: inherit;
 
   font-weight: inherit;
@@ -45,6 +57,8 @@
    ========================================================================== */
 
 .financial-value__unit {
+  flex: 0 0 auto;
+
   color: var(--color-text-muted);
 
   font-size: var(--text-xs);
@@ -62,6 +76,8 @@
   align-items: center;
   gap: 0.25rem;
 
+  flex: 0 0 auto;
+
   color: inherit;
 
   font-size: var(--text-xs);
@@ -75,6 +91,33 @@
 }
 
 /* ==========================================================================
+   Positive Change
+   ========================================================================== */
+
+.financial-value--positive,
+.financial-value__change--positive {
+  color: var(--color-success, var(--color-primary));
+}
+
+/* ==========================================================================
+   Negative Change
+   ========================================================================== */
+
+.financial-value--negative,
+.financial-value__change--negative {
+  color: var(--color-danger, var(--color-text));
+}
+
+/* ==========================================================================
+   Neutral Change
+   ========================================================================== */
+
+.financial-value--neutral,
+.financial-value__change--neutral {
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
    Strong Variant
    ========================================================================== */
 
@@ -85,15 +128,46 @@
 }
 
 /* ==========================================================================
+   Muted Variant
+   ========================================================================== */
+
+.financial-value--muted {
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
    Block Variant
    ========================================================================== */
 
 .financial-value--block {
   display: flex;
+  justify-content: flex-end;
 
   inline-size: 100%;
+}
 
-  justify-content: flex-end;
+/* ==========================================================================
+   Stacked Variant
+   ========================================================================== */
+
+.financial-value--stacked {
+  display: grid;
+  justify-items: end;
+  gap: 0.125rem;
+
+  .financial-value__change {
+    justify-self: end;
+  }
+}
+
+/* ==========================================================================
+   Missing Value
+   ========================================================================== */
+
+.financial-value--empty {
+  color: var(--color-text-muted);
+
+  font-weight: font-weight("regular");
 }
 
 /* ==========================================================================
@@ -123,5 +197,14 @@ html[data-contrast="high"] {
   .financial-value__currency,
   .financial-value__unit {
     color: currentColor;
+  }
+
+  .financial-value--positive,
+  .financial-value--negative {
+    font-weight: font-weight("bold");
+
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.15em;
   }
 }

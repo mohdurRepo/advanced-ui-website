@@ -1,0 +1,87 @@
+/* ==========================================================================
+   Content Layout
+   ========================================================================== */
+
+/**
+ * Constrains content to a readable width.
+ *
+ * Use for:
+ * - articles
+ * - legal pages
+ * - privacy policy
+ * - documentation
+ * - help pages
+ * - blog posts
+ * - confirmation screens
+ * - form pages
+ */
+
+.content-layout {
+  width: 100%;
+  max-width: var(--content-width, 75rem);
+  margin-inline: auto;
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Width Variants
+   ========================================================================== */
+
+/**
+ * Narrow reading width.
+ */
+.content-layout--sm {
+  --content-width: 40rem;
+}
+
+/**
+ * Medium reading width.
+ */
+.content-layout--md {
+  --content-width: 56rem;
+}
+
+/**
+ * Default application width.
+ */
+.content-layout--lg {
+  --content-width: 75rem;
+}
+
+/**
+ * Wide content.
+ */
+.content-layout--xl {
+  --content-width: 90rem;
+}
+
+/**
+ * Full width.
+ */
+.content-layout--full {
+  --content-width: 100%;
+}
+
+/* ==========================================================================
+   Alignment
+   ========================================================================== */
+
+.content-layout--left {
+  margin-inline: 0 auto;
+}
+
+.content-layout--right {
+  margin-inline: auto 0;
+}
+
+.content-layout--center {
+  margin-inline: auto;
+}
+
+/* ==========================================================================
+   Child Safety
+   ========================================================================== */
+
+.content-layout > * {
+  min-width: 0;
+}

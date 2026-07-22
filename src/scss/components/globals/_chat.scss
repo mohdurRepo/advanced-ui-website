@@ -1,0 +1,211 @@
+@use "../../abstracts/mixins" as mix;
+
+/* ==========================================================================
+   Chat Trigger
+   ========================================================================== */
+
+.chat-trigger {
+  --chat-trigger-size: 3.5rem;
+  --chat-trigger-offset-inline: 1.5rem;
+  --chat-trigger-offset-block: 1.5rem;
+  --chat-status-size: 0.75rem;
+
+  position: fixed;
+  z-index: 1020;
+
+  inset-inline-end: var(--chat-trigger-offset-inline);
+  inset-block-end: var(--chat-trigger-offset-block);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: var(--chat-trigger-size);
+  block-size: var(--chat-trigger-size);
+  padding: 0;
+
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-pill);
+
+  background-color: var(--color-primary);
+  box-shadow: var(--shadow-lg);
+  color: var(--color-on-primary);
+
+  cursor: pointer;
+
+  @include mix.transition(
+    (background-color, border-color, box-shadow, color, transform),
+    200ms,
+    ease
+  );
+
+  &:hover {
+    border-color: var(--color-primary-hover);
+    background-color: var(--color-primary-hover);
+    box-shadow: var(--shadow-xl);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:focus {
+    outline: 0;
+  }
+
+  &:focus-visible {
+    @include mix.focus-ring;
+  }
+
+  &[aria-expanded="true"],
+  &.is-active {
+    border-color: var(--color-primary-hover);
+    background-color: var(--color-primary-hover);
+  }
+
+  &:disabled {
+    border-color: var(--color-disabled);
+    background-color: var(--color-disabled);
+    box-shadow: none;
+    color: var(--color-on-disabled);
+
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.chat-trigger__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: inherit;
+
+  pointer-events: none;
+}
+
+.chat-trigger__status {
+  position: absolute;
+
+  inset-block-start: 0.125rem;
+  inset-inline-end: 0.125rem;
+
+  inline-size: var(--chat-status-size);
+  block-size: var(--chat-status-size);
+
+  border: 2px solid var(--color-surface);
+  border-radius: var(--radius-pill);
+
+  background-color: var(--color-success);
+
+  pointer-events: none;
+
+  &[hidden] {
+    display: none;
+  }
+
+  &.is-offline {
+    background-color: var(--color-text-muted);
+  }
+
+  &.is-busy {
+    background-color: var(--color-warning);
+  }
+
+  &.is-unavailable {
+    background-color: var(--color-danger);
+  }
+}
+
+/* ==========================================================================
+   Notification Badge
+   ========================================================================== */
+
+.chat-trigger__badge {
+  position: absolute;
+
+  inset-block-start: -0.25rem;
+  inset-inline-start: -0.25rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-inline-size: 1.25rem;
+  block-size: 1.25rem;
+  padding-inline: 0.25rem;
+
+  border: 2px solid var(--color-surface);
+  border-radius: var(--radius-pill);
+
+  background-color: var(--color-danger);
+  color: var(--color-on-danger);
+
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1;
+
+  pointer-events: none;
+
+  &:empty,
+  &[data-chat-count="0"] {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Open State
+   ========================================================================== */
+
+.chat-trigger.is-open {
+  .chat-trigger__icon {
+    transform: rotate(90deg);
+  }
+}
+
+.chat-trigger__icon {
+  @include mix.transition(transform, 200ms, ease);
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@include mix.respond-down(md) {
+  .chat-trigger {
+    --chat-trigger-size: 3.25rem;
+    --chat-trigger-offset-inline: 1rem;
+    --chat-trigger-offset-block: 1rem;
+  }
+}
+
+@include mix.respond-down(sm) {
+  .chat-trigger {
+    --chat-trigger-size: 3rem;
+    --chat-trigger-offset-inline: 0.75rem;
+    --chat-trigger-offset-block: 0.75rem;
+  }
+
+  .chat-trigger__status {
+    inset-block-start: 0;
+    inset-inline-end: 0;
+  }
+}
+
+/* ==========================================================================
+   Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-trigger,
+  .chat-trigger__icon {
+    transition: none;
+  }
+
+  .chat-trigger:hover,
+  .chat-trigger:active {
+    transform: none;
+  }
+}

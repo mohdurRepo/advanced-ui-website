@@ -4,13 +4,25 @@
    Financial Surface
    ========================================================================== */
 
+/*
+ * Lightweight inner surface.
+ *
+ * Do not use this class as an alternative to .financial-content-shell.
+ * The content shell owns the primary institutional panel boundary.
+ *
+ * Financial surfaces are intended for:
+ * - Charts
+ * - Empty states
+ * - Small summaries
+ * - Legacy inner panels
+ */
+
 .financial-surface {
   --financial-surface-bg: var(--color-surface);
   --financial-surface-fg: var(--color-text);
-
   --financial-surface-border: var(--color-border);
-  --financial-surface-radius: var(--radius-xl);
-  --financial-surface-shadow: var(--shadow-sm);
+  --financial-surface-radius: var(--radius-lg);
+  --financial-surface-shadow: none;
 
   position: relative;
 
@@ -34,11 +46,14 @@
    Table Surface
    ========================================================================== */
 
+/*
+ * Retained for legacy table sections.
+ *
+ * New Financials tables should normally sit directly inside their layout
+ * content and rely on .financial-table-wrap instead.
+ */
+
 .financial-surface--table {
-  /*
-   * Tables already own their internal borders and row backgrounds.
-   * This surface only provides the section background and outer spacing.
-   */
   padding: clamp(0.75rem, 1.8vw, 1.25rem);
 }
 
@@ -56,10 +71,10 @@
 }
 
 /* ==========================================================================
-   Full-width Children
+   Full-Width Children
    ========================================================================== */
 
-.financial-surface > :first-child {
+.financial-surface > * {
   min-inline-size: 0;
 }
 
@@ -81,6 +96,15 @@
 }
 
 /* ==========================================================================
+   Borderless Variant
+   ========================================================================== */
+
+.financial-surface--borderless {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* ==========================================================================
    Tablet
    ========================================================================== */
 
@@ -98,7 +122,7 @@
   .financial-surface {
     padding: 0.875rem;
 
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-md);
   }
 
   .financial-surface--table {
@@ -109,6 +133,10 @@
     min-block-size: 20rem;
 
     padding: 0.875rem;
+  }
+
+  .financial-surface--flush {
+    padding: 0;
   }
 }
 
@@ -139,7 +167,10 @@ html[data-theme="dark"] {
 html[data-contrast="high"] {
   .financial-surface {
     border-width: 2px;
-
     box-shadow: none;
+  }
+
+  .financial-surface--borderless {
+    border-color: currentColor;
   }
 }

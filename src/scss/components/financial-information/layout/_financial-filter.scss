@@ -4,7 +4,22 @@
    Financial Filter
    ========================================================================== */
 
+/*
+ * Reusable toolbar for selecting:
+ *
+ * - Reporting year
+ * - Quarter
+ * - Statement type
+ * - Document period
+ *
+ * This component may appear above a table or report list.
+ */
+
 .financial-filter {
+  --financial-filter-bg: var(--color-surface-alt);
+  --financial-filter-border: var(--color-border);
+  --financial-filter-radius: var(--radius-lg);
+
   display: flex;
   align-items: flex-end;
   gap: 1rem;
@@ -13,10 +28,28 @@
 
   padding: 1rem;
 
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--financial-filter-border);
+  border-radius: var(--financial-filter-radius);
 
-  background: var(--color-surface-alt);
+  background: var(--financial-filter-bg);
+}
+
+/* ==========================================================================
+   Fields Group
+   ========================================================================== */
+
+.financial-filter__fields {
+  display: grid;
+  grid-template-columns: repeat(
+    var(--financial-filter-columns, 1),
+    minmax(0, 1fr)
+  );
+
+  gap: 1rem;
+
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
 }
 
 /* ==========================================================================
@@ -60,7 +93,7 @@
 
   padding: 0.625rem 0.875rem;
 
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--financial-filter-border);
   border-radius: var(--radius-md);
 
   background: var(--color-surface);
@@ -84,6 +117,7 @@
     min-inline-size: 0;
 
     overflow: hidden;
+
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -100,7 +134,7 @@
     border-color: color-mix(
       in oklab,
       var(--color-primary),
-      var(--color-border) 55%
+      var(--financial-filter-border) 55%
     );
   }
 
@@ -111,15 +145,38 @@
   &:focus-visible {
     @include focus-ring;
   }
+
+  &:disabled,
+  &[aria-disabled="true"] {
+    opacity: 0.55;
+
+    cursor: not-allowed;
+  }
 }
 
 /* ==========================================================================
-   Submit
+   Native Controls
    ========================================================================== */
 
-.financial-filter > .btn {
-  flex: 0 0 auto;
+select.financial-filter__control,
+input.financial-filter__control {
+  appearance: none;
+}
 
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.financial-filter__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  flex: 0 0 auto;
+}
+
+.financial-filter > .btn,
+.financial-filter__actions .btn {
   min-inline-size: 7.5rem;
 
   justify-content: center;
@@ -127,6 +184,51 @@
   .has-icon {
     --icon-size: 0.625rem;
   }
+}
+
+/* ==========================================================================
+   Inline Variant
+   ========================================================================== */
+
+.financial-filter--inline {
+  padding: 0;
+
+  border: 0;
+  border-radius: 0;
+
+  background: transparent;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.financial-filter--compact {
+  gap: 0.75rem;
+
+  padding: 0.75rem;
+
+  .financial-filter__fields {
+    gap: 0.75rem;
+  }
+
+  .financial-filter__control {
+    min-block-size: 2.5rem;
+
+    padding-block: 0.5rem;
+  }
+}
+
+/* ==========================================================================
+   Two and Three Column Helpers
+   ========================================================================== */
+
+.financial-filter--two-columns {
+  --financial-filter-columns: 2;
+}
+
+.financial-filter--three-columns {
+  --financial-filter-columns: 3;
 }
 
 /* ==========================================================================
@@ -138,8 +240,13 @@
     align-items: stretch;
   }
 
+  .financial-filter__actions,
   .financial-filter > .btn {
     align-self: flex-end;
+  }
+
+  .financial-filter--three-columns {
+    --financial-filter-columns: 2;
   }
 }
 
@@ -155,14 +262,30 @@
     padding: 0.875rem;
   }
 
-  .financial-filter > .btn {
-    inline-size: 100%;
+  .financial-filter__fields {
+    --financial-filter-columns: 1;
 
-    align-self: auto;
+    gap: 0.875rem;
+  }
+
+  .financial-filter__actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+
+    inline-size: 100%;
+  }
+
+  .financial-filter > .btn,
+  .financial-filter__actions .btn {
+    inline-size: 100%;
   }
 
   .financial-filter__control {
     font-size: var(--text-xs);
+  }
+
+  .financial-filter--inline {
+    padding: 0;
   }
 }
 
@@ -172,7 +295,11 @@
 
 html[data-theme="dark"] {
   .financial-filter {
-    background: color-mix(in oklab, var(--color-surface-alt), transparent 8%);
+    --financial-filter-bg: color-mix(
+      in oklab,
+      var(--color-surface-alt),
+      transparent 8%
+    );
   }
 }
 
@@ -192,6 +319,12 @@ html[data-contrast="high"] {
    ========================================================================== */
 
 html[data-motion="reduce"] {
+  .financial-filter__control {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
   .financial-filter__control {
     transition: none;
   }

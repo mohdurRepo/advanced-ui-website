@@ -1,0 +1,122 @@
+/* ==========================================================================
+   Cluster
+   ========================================================================== */
+
+/**
+ * Creates a flexible horizontal group that wraps when space is limited.
+ *
+ * Use for:
+ * - button groups
+ * - toolbar actions
+ * - filters
+ * - tags
+ * - metadata
+ * - pagination controls
+ * - header actions
+ *
+ * The cluster controls layout and spacing only.
+ */
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cluster-space, var(--space-3, 0.75rem));
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Spacing Variants
+   ========================================================================== */
+
+.cluster--xs {
+  --cluster-space: var(--space-1, 0.25rem);
+}
+
+.cluster--sm {
+  --cluster-space: var(--space-2, 0.5rem);
+}
+
+.cluster--md {
+  --cluster-space: var(--space-3, 0.75rem);
+}
+
+.cluster--lg {
+  --cluster-space: var(--space-4, 1rem);
+}
+
+.cluster--xl {
+  --cluster-space: var(--space-6, 1.5rem);
+}
+
+/* ==========================================================================
+   Horizontal Alignment
+   ========================================================================== */
+
+.cluster--start {
+  justify-content: flex-start;
+}
+
+.cluster--center {
+  justify-content: center;
+}
+
+.cluster--end {
+  justify-content: flex-end;
+}
+
+.cluster--between {
+  justify-content: space-between;
+}
+
+/* ==========================================================================
+   Vertical Alignment
+   ========================================================================== */
+
+.cluster--align-start {
+  align-items: flex-start;
+}
+
+.cluster--align-center {
+  align-items: center;
+}
+
+.cluster--align-end {
+  align-items: flex-end;
+}
+
+.cluster--align-baseline {
+  align-items: baseline;
+}
+
+.cluster--stretch {
+  align-items: stretch;
+}
+
+/* ==========================================================================
+   Wrapping Variants
+   ========================================================================== */
+
+.cluster--nowrap {
+  flex-wrap: nowrap;
+}
+
+.cluster--reverse {
+  flex-direction: row-reverse;
+}
+
+/* ==========================================================================
+   Full-width Variant
+   ========================================================================== */
+
+.cluster--fill {
+  width: 100%;
+}
+
+/* ==========================================================================
+   Child Safety
+   ========================================================================== */
+
+.cluster > * {
+  min-width: 0;
+}
