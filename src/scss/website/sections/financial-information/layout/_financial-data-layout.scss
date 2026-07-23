@@ -1,0 +1,245 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Data Layout
+   ========================================================================== */
+
+/*
+ * Shared two-column layout used by:
+ *
+ * - Annual / Quarterly
+ * - Financial Statements
+ * - XBRL
+ * - Board Reports
+ * - ESG Reports
+ *
+ * The first direct .tabs-nav child acts as the aside navigation.
+ * The first direct .tabs-content child acts as the primary content region.
+ */
+
+.financial-data-layout {
+  --financial-data-layout-aside-size: clamp(11rem, 15vw, 13.5rem);
+  --financial-data-layout-gap: 0;
+  --financial-data-layout-border: var(--color-border);
+  --financial-data-layout-aside-bg: color-mix(
+    in oklab,
+    var(--color-surface),
+    var(--color-bg) 24%
+  );
+
+  display: grid;
+  grid-template-columns:
+    minmax(var(--financial-data-layout-aside-size), auto)
+    minmax(0, 1fr);
+
+  align-items: stretch;
+  gap: var(--financial-data-layout-gap);
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Aside Navigation
+   ========================================================================== */
+
+.financial-data-layout > .tabs-nav,
+.financial-data-layout__aside {
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  padding: clamp(1rem, 2vw, 1.25rem);
+
+  border-inline-end: 1px solid var(--financial-data-layout-border);
+
+  background: var(--financial-data-layout-aside-bg);
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.financial-data-layout > .tabs-content,
+.financial-data-layout__content {
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  padding: clamp(1rem, 2.25vw, 1.5rem);
+}
+
+/* ==========================================================================
+   Content Panels
+   ========================================================================== */
+
+.financial-data-layout > .tabs-content > .tab-pane,
+.financial-data-layout__content > .tab-pane {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Flush Content Variant
+   ========================================================================== */
+
+/*
+ * Use when the content area contains a full-width table that should align
+ * directly with the shell boundary.
+ */
+
+.financial-data-layout--flush-content {
+  > .tabs-content,
+  > .financial-data-layout__content {
+    padding: 0;
+  }
+}
+
+/* ==========================================================================
+   Compact Aside Variant
+   ========================================================================== */
+
+.financial-data-layout--compact {
+  --financial-data-layout-aside-size: clamp(9.5rem, 13vw, 11rem);
+
+  > .tabs-nav,
+  > .financial-data-layout__aside {
+    padding: 1rem;
+  }
+}
+
+/* ==========================================================================
+   Wide Aside Variant
+   ========================================================================== */
+
+.financial-data-layout--wide {
+  --financial-data-layout-aside-size: clamp(13rem, 18vw, 16rem);
+}
+
+/* ==========================================================================
+   Content Width Safety
+   ========================================================================== */
+
+.financial-data-layout {
+  table,
+  .table-responsive,
+  .financial-table-wrap,
+  .financial-view,
+  .financial-view__content,
+  .financial-surface {
+    min-inline-size: 0;
+  }
+}
+
+/* ==========================================================================
+   Nested Data Layout
+   ========================================================================== */
+
+/*
+ * Nested Current / Previous layouts should not create a second visual aside
+ * surface unless the HTML explicitly uses another .financial-data-layout.
+ */
+
+.financial-data-layout .financial-data-layout {
+  --financial-data-layout-aside-bg: transparent;
+
+  border: 0;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .financial-data-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .financial-data-layout > .tabs-nav,
+  .financial-data-layout__aside {
+    padding: 1rem;
+
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--financial-data-layout-border);
+  }
+
+  .financial-data-layout > .tabs-content,
+  .financial-data-layout__content {
+    padding: 1.25rem;
+  }
+
+  .financial-data-layout--flush-content {
+    > .tabs-content,
+    > .financial-data-layout__content {
+      padding: 0;
+    }
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-data-layout {
+    --financial-data-layout-aside-size: 100%;
+  }
+
+  .financial-data-layout > .tabs-nav,
+  .financial-data-layout__aside {
+    padding: 0.75rem;
+  }
+
+  .financial-data-layout > .tabs-content,
+  .financial-data-layout__content {
+    padding: 0.875rem;
+  }
+
+  .financial-data-layout--flush-content {
+    > .tabs-content,
+    > .financial-data-layout__content {
+      padding: 0;
+    }
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .financial-data-layout > .tabs-nav,
+  .financial-data-layout__aside {
+    border-inline-end: 1px solid var(--financial-data-layout-border);
+  }
+
+  @include respond-down(lg) {
+    .financial-data-layout > .tabs-nav,
+    .financial-data-layout__aside {
+      border-inline-end: 0;
+    }
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-data-layout {
+    --financial-data-layout-aside-bg: color-mix(
+      in oklab,
+      var(--color-surface),
+      var(--color-bg) 18%
+    );
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-data-layout > .tabs-nav,
+  .financial-data-layout__aside {
+    border-width: 2px;
+  }
+}

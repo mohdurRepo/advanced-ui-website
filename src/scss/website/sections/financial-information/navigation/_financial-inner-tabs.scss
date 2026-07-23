@@ -1,0 +1,186 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Inner Tabs
+   ========================================================================== */
+
+.financial-inner-tabs {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Navigation
+   ========================================================================== */
+
+.financial-inner-tabs__nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+
+  min-inline-size: 0;
+
+  margin-block-end: 1.5rem;
+
+  border: 0;
+  border-block-end: 1px solid var(--color-border);
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+
+  touch-action: pan-x;
+
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Tab
+   ========================================================================== */
+
+.financial-inner-tabs__tab {
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-inline-size: max-content;
+  min-block-size: 2.75rem;
+
+  flex: 0 0 auto;
+
+  padding: 0 0.125rem 0.75rem;
+
+  border: 0;
+
+  background: transparent;
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-tight);
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  @include transition(color, fast);
+
+  &::after {
+    content: "";
+
+    position: absolute;
+
+    inset-inline: 0;
+    inset-block-end: -1px;
+
+    block-size: 0.1875rem;
+
+    border-radius: var(--radius-pill);
+
+    background: var(--color-primary);
+
+    opacity: 0;
+
+    transform: scaleX(0.55);
+    transform-origin: center;
+
+    @include transition((opacity, transform), fast);
+  }
+
+  &:hover:not(.active):not([aria-selected="true"]) {
+    color: var(--color-heading);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.active,
+  &[aria-selected="true"] {
+    color: var(--color-heading);
+
+    font-weight: font-weight("bold");
+
+    &::after {
+      opacity: 1;
+
+      transform: scaleX(1);
+    }
+  }
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.financial-inner-tabs__content {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Panel
+   ========================================================================== */
+
+.financial-inner-tabs__panel {
+  min-inline-size: 0;
+
+  &[hidden] {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-inner-tabs__nav {
+    gap: 1.25rem;
+
+    margin-block-end: 1.25rem;
+  }
+
+  .financial-inner-tabs__tab {
+    min-block-size: 2.5rem;
+
+    padding-block-end: 0.625rem;
+
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-inner-tabs__nav {
+    border-block-end-width: 2px;
+  }
+
+  .financial-inner-tabs__tab::after {
+    block-size: 0.25rem;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-inner-tabs__tab,
+  .financial-inner-tabs__tab::after {
+    transition: none;
+  }
+}

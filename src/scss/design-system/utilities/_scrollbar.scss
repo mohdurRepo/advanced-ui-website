@@ -1,0 +1,40 @@
+/* ==========================================================================
+   Custom Scrollbar
+   ========================================================================== */
+
+.custom-scrollbar {
+  --scrollbar-thumb: var(--color-primary);
+  --scrollbar-thumb-hover: var(--color-primary-hover);
+  --scrollbar-track: transparent;
+
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+@supports (color: color-mix(in oklab, black, white)) {
+  .custom-scrollbar {
+    --scrollbar-thumb: color-mix(
+      in oklab,
+      var(--color-primary),
+      transparent 35%
+    );
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+  background: var(--scrollbar-thumb);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}

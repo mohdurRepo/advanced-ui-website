@@ -1,0 +1,78 @@
+/* ==========================================================================
+   Contextual Tooltip Overrides
+   ========================================================================== */
+
+/*
+ * The generic tooltip component belongs to the design system.
+ *
+ * This file changes only the tooltip's semantic colors when it appears
+ * on fixed branded website surfaces.
+ */
+
+/* ==========================================================================
+   Light Tooltip on Dark Surfaces
+   ========================================================================== */
+
+.surface-hero .tooltip,
+.hero-section .tooltip,
+.surface-insights .tooltip,
+.surface-market .tooltip {
+  --tooltip-bg: #ffffff;
+  --tooltip-color: #001f33;
+
+  --tooltip-border-color: rgb(0 31 51 / 0.16);
+}
+
+/*
+ * The base tooltip currently uses --color-border for its pseudo-element
+ * borders. These contextual rules preserve a visible light tooltip arrow
+ * without changing the generic component API.
+ */
+
+.surface-hero .tooltip::after,
+.hero-section .tooltip::after,
+.surface-insights .tooltip::after,
+.surface-market .tooltip::after {
+  border-color: var(--tooltip-border-color, rgb(0 31 51 / 0.16));
+}
+
+.surface-hero .tooltip::before,
+.hero-section .tooltip::before,
+.surface-insights .tooltip::before,
+.surface-market .tooltip::before {
+  border-color: var(--tooltip-border-color, rgb(0 31 51 / 0.16));
+}
+
+/* ==========================================================================
+   Tooltip Links and Emphasis
+   ========================================================================== */
+
+.surface-hero .tooltip::after,
+.hero-section .tooltip::after,
+.surface-insights .tooltip::after,
+.surface-market .tooltip::after {
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .surface-hero .tooltip,
+  .hero-section .tooltip,
+  .surface-insights .tooltip,
+  .surface-market .tooltip {
+    --tooltip-bg: #ffffff;
+    --tooltip-color: #000000;
+    --tooltip-border-color: #000000;
+  }
+
+  .surface-hero .tooltip::after,
+  .hero-section .tooltip::after,
+  .surface-insights .tooltip::after,
+  .surface-market .tooltip::after {
+    border-width: 2px;
+    box-shadow: none;
+  }
+}

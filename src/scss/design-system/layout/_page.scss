@@ -1,0 +1,138 @@
+@use "../abstracts" as *;
+
+/* ==========================================================================
+   Page Layout
+   ========================================================================== */
+
+.page {
+  --page-bg: var(--color-bg);
+
+  --page-pattern-image: url("../../assets/images/home-background-pattern.png");
+  --page-pattern-opacity: 0.14;
+  --page-pattern-position-y: 8rem;
+  --page-pattern-size: min(992px, calc(100% - 2rem));
+
+  --page-glow-size: 10rem;
+  --page-glow-opacity: 0.18;
+
+  /*
+   * Physical decorative coordinates.
+   * These are overridden in RTL without changing the component structure.
+   */
+  --page-glow-top-origin: left top;
+  --page-glow-bottom-origin: right bottom;
+
+  --page-glow-top-position: left -7rem top -7rem;
+  --page-glow-bottom-position: right -9rem bottom 0;
+
+  position: relative;
+  isolation: isolate;
+
+  overflow-x: clip;
+  overflow-y: visible;
+
+  background: var(--page-bg);
+  color: var(--color-text);
+
+  &__background {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+
+    pointer-events: none;
+
+    background:
+      radial-gradient(
+        circle at var(--page-glow-top-origin),
+        rgb(from var(--color-primary) r g b / var(--page-glow-opacity)) 0%,
+        transparent 45%
+      ),
+      radial-gradient(
+        circle at var(--page-glow-bottom-origin),
+        rgb(from var(--color-primary) r g b / var(--page-glow-opacity)) 0%,
+        transparent 45%
+      ),
+      var(--page-pattern-image);
+
+    background-repeat: no-repeat, no-repeat, no-repeat;
+
+    background-size:
+      var(--page-glow-size) var(--page-glow-size),
+      var(--page-glow-size) var(--page-glow-size),
+      var(--page-pattern-size) auto;
+
+    background-position:
+      var(--page-glow-top-position),
+      var(--page-glow-bottom-position),
+      center var(--page-pattern-position-y);
+
+    margin-top: 50px;
+    opacity: 1;
+  }
+
+  /*
+   * Mirror only the decorative glow geometry.
+   * No z-index, pseudo-element, or content-layer changes.
+   */
+  [dir="rtl"] & {
+    --page-glow-top-origin: right top;
+    --page-glow-bottom-origin: left bottom;
+
+    --page-glow-top-position: right -9rem top -7rem;
+    --page-glow-bottom-position: left -9rem bottom 0;
+  }
+
+  @include respond-down(md) {
+    --page-pattern-opacity: 0.08;
+    --page-pattern-size: min(1320px, calc(100% - 1rem));
+
+    --page-glow-size: 36rem;
+    --page-glow-opacity: 0.14;
+
+    &__background {
+      opacity: 0.9;
+    }
+  }
+
+  @include respond-down(sm) {
+    --page-glow-size: 24rem;
+    --page-glow-opacity: 0.12;
+
+    --page-glow-top-origin: left top;
+    --page-glow-bottom-origin: right bottom;
+
+    --page-glow-top-position: left -7rem top -5rem;
+    --page-glow-bottom-position: right -7rem bottom 8rem;
+
+    &__background {
+      background:
+        radial-gradient(
+          circle at var(--page-glow-top-origin),
+          rgb(from var(--color-primary) r g b / var(--page-glow-opacity)) 0%,
+          transparent 42%
+        ),
+        radial-gradient(
+          circle at var(--page-glow-bottom-origin),
+          rgb(from var(--color-primary) r g b / var(--page-glow-opacity)) 0%,
+          transparent 42%
+        );
+
+      background-repeat: no-repeat, no-repeat;
+
+      background-size:
+        var(--page-glow-size) var(--page-glow-size),
+        var(--page-glow-size) var(--page-glow-size);
+
+      background-position:
+        var(--page-glow-top-position), var(--page-glow-bottom-position);
+    }
+
+    [dir="rtl"] & {
+      --page-glow-top-origin: right top;
+      --page-glow-bottom-origin: left bottom;
+
+      --page-glow-top-position: right -7rem top -5rem;
+      --page-glow-bottom-position: left -7rem bottom 8rem;
+    }
+  }
+}

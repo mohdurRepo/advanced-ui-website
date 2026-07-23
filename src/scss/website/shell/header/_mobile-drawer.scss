@@ -1,0 +1,754 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Mobile Navigation Overlay
+   ========================================================================== */
+
+.mobile-nav-overlay {
+  position: fixed;
+  z-index: var(--z-overlay);
+
+  inset: 0;
+
+  background: var(--color-overlay);
+
+  opacity: 0;
+  visibility: hidden;
+
+  pointer-events: none;
+
+  @include ds.transition((opacity, visibility), var(--transition-normal));
+}
+
+.mobile-nav-overlay.is-open,
+.mobile-nav-overlay[aria-hidden="false"] {
+  opacity: 1;
+  visibility: visible;
+
+  pointer-events: auto;
+}
+
+/* ==========================================================================
+   Mobile Navigation Drawer
+   ========================================================================== */
+
+.mobile-nav {
+  --mobile-nav-width: 25rem;
+
+  position: fixed;
+  z-index: var(--z-modal);
+
+  inset-block: 0;
+  inset-inline-end: 0;
+
+  inline-size: min(100%, var(--mobile-nav-width));
+  block-size: 100vh;
+  block-size: 100dvh;
+
+  border-inline-start: 1px solid var(--color-border);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  box-shadow: var(--shadow-xl);
+
+  visibility: hidden;
+
+  pointer-events: none;
+
+  transform: translateX(100%);
+
+  @include ds.transition((transform, visibility), var(--transition-normal));
+}
+
+.mobile-nav.is-open,
+.mobile-nav[aria-hidden="false"] {
+  visibility: visible;
+
+  pointer-events: auto;
+
+  transform: translateX(0);
+}
+
+/* ==========================================================================
+   RTL Drawer Direction
+   ========================================================================== */
+
+/*
+ * inset-inline-end automatically places the drawer on the left in RTL.
+ * Only the physical off-screen transform needs to be reversed.
+ */
+
+html[dir="rtl"] .mobile-nav {
+  transform: translateX(-100%);
+}
+
+html[dir="rtl"] .mobile-nav.is-open,
+html[dir="rtl"] .mobile-nav[aria-hidden="false"] {
+  transform: translateX(0);
+}
+
+/* ==========================================================================
+   Desktop Visibility
+   ========================================================================== */
+
+@include ds.respond-up("lg") {
+  .mobile-nav,
+  .mobile-nav-overlay {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Drawer Layout
+   ========================================================================== */
+
+.mobile-nav__layout {
+  display: flex;
+  flex-direction: column;
+
+  block-size: 100%;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Drawer Header
+   ========================================================================== */
+
+.mobile-nav__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  flex: 0 0 auto;
+
+  min-block-size: var(--app-header-height);
+  padding-inline: 1rem;
+
+  border-block-end: 1px solid var(--color-border);
+
+  background: var(--color-surface);
+}
+
+/* ==========================================================================
+   Mobile Brand
+   ========================================================================== */
+
+.mobile-nav__brand {
+  display: inline-flex;
+  align-items: center;
+
+  min-inline-size: 0;
+
+  border-radius: var(--radius-sm);
+
+  color: inherit;
+  text-decoration: none;
+}
+
+.mobile-nav__brand:focus {
+  outline: none;
+}
+
+.mobile-nav__brand:focus-visible {
+  @include ds.focus-ring;
+}
+
+.mobile-nav__logo {
+  display: block;
+
+  inline-size: auto;
+  max-inline-size: 9rem;
+  max-block-size: 2.25rem;
+
+  object-fit: contain;
+}
+
+/* ==========================================================================
+   Theme-aware Mobile Logos
+   ========================================================================== */
+
+.mobile-nav__logo--dark {
+  display: none;
+}
+
+html[data-theme="dark"] .mobile-nav__logo--light {
+  display: none;
+}
+
+html[data-theme="dark"] .mobile-nav__logo--dark {
+  display: block;
+}
+
+/* ==========================================================================
+   Close Button
+   ========================================================================== */
+
+.mobile-nav__close {
+  --icon-size: 1rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  padding: 0;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+
+  cursor: pointer;
+
+  @include ds.transition(
+    (background-color, border-color, color, transform),
+    var(--transition-fast)
+  );
+}
+
+.mobile-nav__close:hover:not(:disabled):not(.is-disabled) {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg);
+  color: var(--color-primary);
+}
+
+.mobile-nav__close:focus {
+  outline: none;
+}
+
+.mobile-nav__close:focus-visible {
+  @include ds.focus-ring;
+}
+
+.mobile-nav__close:active:not(:disabled):not(.is-disabled) {
+  transform: scale(0.96);
+}
+
+.mobile-nav__close:disabled,
+.mobile-nav__close.is-disabled {
+  border-color: var(--color-disabled);
+  background: var(--color-disabled);
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Primary Controls
+   ========================================================================== */
+
+.mobile-nav__controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+
+  flex: 0 0 auto;
+
+  padding: 1rem;
+
+  border-block-end: 1px solid var(--color-border);
+
+  background: var(--color-surface);
+}
+
+/* ==========================================================================
+   Search and Language Controls
+   ========================================================================== */
+
+.mobile-nav__search,
+.mobile-nav__language {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+
+  min-inline-size: 0;
+  min-block-size: 2.75rem;
+  padding-inline: 0.875rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
+
+  text-align: start;
+
+  cursor: pointer;
+  user-select: none;
+
+  @include ds.transition(
+    (background-color, border-color, color, box-shadow),
+    var(--transition-fast)
+  );
+}
+
+.mobile-nav__search:hover:not(:disabled):not(.is-disabled),
+.mobile-nav__language:hover:not(:disabled):not(.is-disabled) {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+}
+
+.mobile-nav__search:focus,
+.mobile-nav__language:focus {
+  outline: none;
+}
+
+.mobile-nav__search:focus-visible,
+.mobile-nav__language:focus-visible {
+  @include ds.focus-ring;
+}
+
+.mobile-nav__search:disabled,
+.mobile-nav__search.is-disabled,
+.mobile-nav__language:disabled,
+.mobile-nav__language.is-disabled {
+  border-color: var(--color-disabled);
+  background: var(--color-disabled);
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Search Control
+   ========================================================================== */
+
+.mobile-nav__search {
+  justify-content: flex-start;
+}
+
+.mobile-nav__search.has-icon {
+  --icon-size: 1rem;
+}
+
+/* ==========================================================================
+   Language Control
+   ========================================================================== */
+
+.mobile-nav__language {
+  justify-content: center;
+
+  white-space: nowrap;
+}
+
+.mobile-nav__language-icon {
+  --icon-size: 1rem;
+
+  flex: 0 0 auto;
+
+  pointer-events: none;
+}
+
+.mobile-nav__language-text {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Navigation Body
+   ========================================================================== */
+
+.mobile-nav__body {
+  flex: 1 1 auto;
+
+  min-block-size: 0;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-nav__body::-webkit-scrollbar {
+  inline-size: 0.5rem;
+}
+
+.mobile-nav__body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mobile-nav__body::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+  background: var(--color-border-strong);
+}
+
+.mobile-nav__body::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   Navigation Lists
+   ========================================================================== */
+
+.mobile-nav__menu,
+.mobile-nav__submenu-list {
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.mobile-nav__item,
+.mobile-nav__submenu-item {
+  border-block-end: 1px solid var(--color-border);
+}
+
+/* ==========================================================================
+   Navigation Links and Triggers
+   ========================================================================== */
+
+.mobile-nav__trigger,
+.mobile-nav__subtrigger,
+.mobile-nav__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 3.25rem;
+  padding-inline: 1rem;
+
+  border: 0;
+  border-radius: 0;
+
+  background: transparent;
+  color: var(--color-text);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  text-align: start;
+  text-decoration: none;
+
+  cursor: pointer;
+  user-select: none;
+
+  @include ds.transition(
+    (background-color, color, box-shadow),
+    var(--transition-fast)
+  );
+}
+
+.mobile-nav__trigger:hover:not(:disabled):not(.is-disabled),
+.mobile-nav__subtrigger:hover:not(:disabled):not(.is-disabled),
+.mobile-nav__link:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+}
+
+.mobile-nav__trigger:focus,
+.mobile-nav__subtrigger:focus,
+.mobile-nav__link:focus {
+  outline: none;
+}
+
+.mobile-nav__trigger:focus-visible,
+.mobile-nav__subtrigger:focus-visible,
+.mobile-nav__link:focus-visible {
+  position: relative;
+  z-index: 1;
+
+  @include ds.focus-ring;
+}
+
+.mobile-nav__trigger:disabled,
+.mobile-nav__trigger.is-disabled,
+.mobile-nav__subtrigger:disabled,
+.mobile-nav__subtrigger.is-disabled {
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.mobile-nav__link--primary {
+  min-block-size: 3.5rem;
+}
+
+/* ==========================================================================
+   Navigation Text
+   ========================================================================== */
+
+.mobile-nav__trigger-text,
+.mobile-nav__subtrigger-text {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Navigation Icons
+   ========================================================================== */
+
+.mobile-nav__trigger-icon,
+.mobile-nav__subtrigger-icon {
+  --icon-size: 0.75rem;
+
+  flex: 0 0 auto;
+
+  pointer-events: none;
+
+  @include ds.transition(transform, var(--transition-fast));
+}
+
+/* ==========================================================================
+   Expanded Navigation State
+   ========================================================================== */
+
+.mobile-nav__trigger[aria-expanded="true"],
+.mobile-nav__subtrigger[aria-expanded="true"] {
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+}
+
+.mobile-nav__trigger[aria-expanded="true"] .mobile-nav__trigger-icon,
+.mobile-nav__subtrigger[aria-expanded="true"] .mobile-nav__subtrigger-icon {
+  transform: rotate(180deg);
+}
+
+/* ==========================================================================
+   Nested Submenus
+   ========================================================================== */
+
+.mobile-nav__submenu {
+  overflow: hidden;
+
+  border-block-start: 1px solid var(--color-border);
+
+  background: var(--color-surface-alt);
+}
+
+@supports (background: color-mix(in oklab, white, black)) {
+  .mobile-nav__submenu {
+    background: color-mix(in oklab, var(--color-surface-alt), transparent 15%);
+  }
+}
+
+.mobile-nav__submenu[hidden] {
+  display: none;
+}
+
+.mobile-nav__submenu.is-open,
+.mobile-nav__submenu[aria-hidden="false"] {
+  display: block;
+}
+
+/* ==========================================================================
+   Nested Indentation
+   ========================================================================== */
+
+/*
+ * Logical padding automatically applies to the correct side in RTL.
+ * No duplicate RTL rules are required.
+ */
+
+.mobile-nav__submenu .mobile-nav__link,
+.mobile-nav__submenu .mobile-nav__subtrigger {
+  padding-inline-start: 1.75rem;
+}
+
+.mobile-nav__submenu--nested .mobile-nav__link,
+.mobile-nav__submenu--nested .mobile-nav__subtrigger {
+  padding-inline-start: 2.5rem;
+}
+
+.mobile-nav__submenu--nested .mobile-nav__submenu--nested .mobile-nav__link,
+.mobile-nav__submenu--nested
+  .mobile-nav__submenu--nested
+  .mobile-nav__subtrigger {
+  padding-inline-start: 3.25rem;
+}
+
+/* ==========================================================================
+   Mobile Feature
+   ========================================================================== */
+
+.mobile-nav__feature {
+  padding: 1rem;
+
+  border-block-start: 1px solid var(--color-border);
+}
+
+.mobile-nav__feature .mega-feature {
+  block-size: auto;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.mobile-nav__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  flex: 0 0 auto;
+
+  padding: 1rem;
+
+  border-block-start: 1px solid var(--color-border);
+
+  background: var(--color-surface);
+}
+
+.mobile-nav__footer-link {
+  border-radius: var(--radius-sm);
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  text-decoration: none;
+
+  @include ds.transition(color, var(--transition-fast));
+}
+
+.mobile-nav__footer-link:hover {
+  color: var(--color-primary);
+}
+
+.mobile-nav__footer-link:focus {
+  outline: none;
+}
+
+.mobile-nav__footer-link:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Scroll Lock
+   ========================================================================== */
+
+html.has-mobile-nav-open,
+body.is-mobile-nav-open {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* ==========================================================================
+   Small Screens
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .mobile-nav {
+    --mobile-nav-width: 100%;
+  }
+
+  .mobile-nav__header {
+    min-block-size: 4rem;
+  }
+
+  .mobile-nav__controls {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-nav__language {
+    justify-content: flex-start;
+  }
+
+  .mobile-nav__footer {
+    flex-wrap: wrap;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .mobile-nav,
+html[data-contrast="high"] .mobile-nav__header,
+html[data-contrast="high"] .mobile-nav__controls,
+html[data-contrast="high"] .mobile-nav__footer {
+  border-color: var(--color-border-strong);
+}
+
+html[data-contrast="high"] .mobile-nav {
+  border-inline-start-width: 2px;
+  box-shadow: none;
+}
+
+html[data-contrast="high"] .mobile-nav__close,
+html[data-contrast="high"] .mobile-nav__search,
+html[data-contrast="high"] .mobile-nav__language {
+  border-width: 2px;
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-nav-overlay,
+  .mobile-nav,
+  .mobile-nav__close,
+  .mobile-nav__search,
+  .mobile-nav__language,
+  .mobile-nav__trigger,
+  .mobile-nav__subtrigger,
+  .mobile-nav__link,
+  .mobile-nav__trigger-icon,
+  .mobile-nav__subtrigger-icon,
+  .mobile-nav__footer-link {
+    transition: none;
+  }
+
+  .mobile-nav,
+  html[dir="rtl"] .mobile-nav {
+    transform: none;
+  }
+
+  .mobile-nav:not(.is-open)[aria-hidden="true"] {
+    visibility: hidden;
+  }
+}
+
+html[data-motion="reduce"] .mobile-nav-overlay,
+html[data-motion="reduce"] .mobile-nav,
+html[data-motion="reduce"] .mobile-nav__close,
+html[data-motion="reduce"] .mobile-nav__search,
+html[data-motion="reduce"] .mobile-nav__language,
+html[data-motion="reduce"] .mobile-nav__trigger,
+html[data-motion="reduce"] .mobile-nav__subtrigger,
+html[data-motion="reduce"] .mobile-nav__link,
+html[data-motion="reduce"] .mobile-nav__trigger-icon,
+html[data-motion="reduce"] .mobile-nav__subtrigger-icon,
+html[data-motion="reduce"] .mobile-nav__footer-link {
+  transition: none;
+}
+
+html[data-motion="reduce"] .mobile-nav,
+html[data-motion="reduce"][dir="rtl"] .mobile-nav {
+  transform: none;
+}
+
+html[data-motion="reduce"] .mobile-nav:not(.is-open)[aria-hidden="true"] {
+  visibility: hidden;
+}

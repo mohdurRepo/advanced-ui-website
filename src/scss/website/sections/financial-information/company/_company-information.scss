@@ -1,0 +1,194 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Company Information
+   ========================================================================== */
+
+/*
+ * Composition wrapper for company profile content.
+ *
+ * Use:
+ *
+ * - .financial-panel-header for section headings
+ * - .financial-rich-text for backend-rendered prose
+ * - .company-facts for structured company metadata
+ */
+
+.company-information {
+  --company-information-gap: clamp(1.5rem, 3vw, 2.5rem);
+
+  display: grid;
+  gap: var(--company-information-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Section
+   ========================================================================== */
+
+.company-information__section {
+  display: grid;
+  gap: 1rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Divided Sections
+   ========================================================================== */
+
+.company-information--divided {
+  .company-information__section {
+    padding-block-end: clamp(1.5rem, 3vw, 2rem);
+
+    border-block-end: 1px solid var(--color-border);
+  }
+
+  .company-information__section:last-child {
+    padding-block-end: 0;
+
+    border-block-end: 0;
+  }
+}
+
+/* ==========================================================================
+   Section Heading
+   ========================================================================== */
+
+/*
+ * Compatibility heading for smaller subsections.
+ *
+ * Prefer .financial-panel-header when the section includes a description,
+ * metadata, or actions.
+ */
+
+.company-information__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: clamp(var(--text-lg), 1rem + 0.3vw, var(--text-xl));
+
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.company-information__description {
+  max-inline-size: 75ch;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.company-information__content {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Grid
+   ========================================================================== */
+
+.company-information__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem 2rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Sidebar Layout
+   ========================================================================== */
+
+.company-information__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.34fr);
+  align-items: start;
+  gap: clamp(1.5rem, 4vw, 3rem);
+
+  min-inline-size: 0;
+}
+
+.company-information__main,
+.company-information__aside {
+  min-inline-size: 0;
+}
+
+.company-information__aside {
+  display: grid;
+  gap: 1rem;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.company-information--compact {
+  --company-information-gap: 1.5rem;
+
+  .company-information__section {
+    gap: 0.75rem;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .company-information__grid,
+  .company-information__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .company-information {
+    --company-information-gap: 1.5rem;
+  }
+
+  .company-information__section {
+    gap: 0.875rem;
+  }
+
+  .company-information__title {
+    font-size: var(--text-lg);
+  }
+
+  .company-information__description {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .company-information--divided {
+    .company-information__section {
+      border-block-end-width: 2px;
+    }
+  }
+}

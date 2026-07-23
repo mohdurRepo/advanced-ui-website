@@ -1,0 +1,208 @@
+@use "../../../design-system/abstracts/" as *;
+
+/* ==========================================================================
+   Chart Range Selector
+   ========================================================================== */
+
+.chart-toolbar__ranges {
+  --chart-range-bg: var(--color-surface-alt);
+  --chart-range-border: var(--color-border);
+
+  --chart-range-fg: var(--color-text-muted);
+  --chart-range-hover-bg: color-mix(
+    in oklab,
+    var(--color-primary),
+    transparent 92%
+  );
+  --chart-range-hover-fg: var(--color-heading);
+
+  --chart-range-active-bg: var(--color-primary);
+  --chart-range-active-fg: var(--color-on-primary);
+  --chart-range-active-border: var(--color-primary);
+
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  min-inline-size: 0;
+
+  padding: 0.25rem;
+
+  border: 1px solid var(--chart-range-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--chart-range-bg);
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  overscroll-behavior-inline: contain;
+
+  scrollbar-width: none;
+
+  touch-action: pan-x;
+
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Range Button
+   ========================================================================== */
+
+.chart-range {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-inline-size: 2.75rem;
+  min-block-size: 2rem;
+
+  flex: 0 0 auto;
+
+  padding: 0.375rem 0.75rem;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+
+  background: transparent;
+  color: var(--chart-range-fg);
+
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-tight);
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  @include transition(
+    (background-color, border-color, color, box-shadow),
+    fast
+  );
+
+  &:hover:not(.is-active):not([aria-selected="true"]) {
+    background: var(--chart-range-hover-bg);
+    color: var(--chart-range-hover-fg);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.is-active,
+  &[aria-selected="true"] {
+    border-color: var(--chart-range-active-border);
+
+    background: var(--chart-range-active-bg);
+    color: var(--chart-range-active-fg);
+
+    box-shadow:
+      0 0.25rem 0.75rem rgb(0 0 0 / 0.1),
+      inset 0 1px 0 rgb(255 255 255 / 0.14);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .chart-toolbar__ranges {
+    inline-size: 100%;
+  }
+
+  .chart-range {
+    min-inline-size: 2.625rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .chart-toolbar__ranges {
+    gap: 0.1875rem;
+
+    padding: 0.1875rem;
+  }
+
+  .chart-range {
+    min-inline-size: 2.5rem;
+    min-block-size: 1.875rem;
+
+    padding-inline: 0.625rem;
+
+    font-size: 0.6875rem;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .chart-toolbar__ranges {
+    --chart-range-bg: color-mix(
+      in oklab,
+      var(--color-surface-alt),
+      transparent 10%
+    );
+  }
+
+  .chart-range {
+    &.is-active,
+    &[aria-selected="true"] {
+      box-shadow:
+        0 0.25rem 0.75rem rgb(0 0 0 / 0.18),
+        inset 0 1px 0 rgb(255 255 255 / 0.1);
+    }
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .chart-toolbar__ranges {
+    border-width: 2px;
+  }
+
+  .chart-range {
+    border-width: 2px;
+
+    &.is-active,
+    &[aria-selected="true"] {
+      box-shadow: none;
+
+      font-weight: font-weight("heavy");
+    }
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .chart-range {
+    transition: none;
+  }
+}

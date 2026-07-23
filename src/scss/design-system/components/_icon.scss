@@ -1,0 +1,292 @@
+/* ==========================================================================
+   Icon Registry
+   ========================================================================== */
+
+$icons: (
+  "check": "check",
+  "search": "search",
+  "sun": "sun",
+  "chevron-up": "chevron-up",
+  "chevron-down": "chevron-down",
+  "chevron-right": "chevron-right",
+  "chevron-left": "chevron-left",
+  "location-pin": "location-pin",
+  "globe": "globe",
+  "calendar-add": "calendar-add",
+  "tadawul": "tadawul-icon",
+  "tadawul-outline": "tadawul-icon-outline",
+  "external-link": "external-link",
+  "star-outline": "star-outline",
+  "star-filled": "star-filled",
+  "triangle-up": "triangle-up",
+  "triangle-down": "triangle-down",
+  "arrow-up-right": "arrow-up-right",
+  "info-warning": "info-warning",
+  "riyal": "riyal-symbol",
+  "riyal-parentheses": "riyal-parentheses",
+  "trend-up": "trend-up",
+  "analytics-filter": "analytics-filter",
+  "share": "share",
+  "file-download": "file-download",
+  "copy": "copy",
+  "close-x": "close-x",
+  "pdf-file": "pdf-file",
+  "filter-funnel": "filter-funnel",
+  "sync-refresh": "sync-refresh",
+  "list-bullet": "list-bullet",
+  "chart-bar": "chart-bar",
+  "segment-container": "segment-container",
+  "card-list-view": "card-list-view",
+  "grid-bento-view": "grid-bento-view",
+  "telephone-support": "telephone-support",
+  "scanner-fax": "scanner-fax",
+  "inbox-email": "inbox-email",
+  "alert-bell": "alert-bell",
+  "history-clock": "history-clock",
+  "headset-support": "headset-support",
+  "brand-whatsapp": "brand-whatsapp",
+  "mailbox-split": "mailbox-split",
+  "bookmark-ribbon": "bookmark-ribbon",
+  "calendar-scheduler": "calendar-scheduler",
+  "telephone-handle": "telephone-handle",
+  "at-sign": "at-sign",
+  "add-plus": "add-plus",
+  "edit-pencil": "edit-pencil",
+  "logout-door": "logout-door",
+  "trash-delete": "trash-delete",
+  "folder-import": "folder-import",
+  "edaa": "edaa-icon",
+  "muqassa": "muqassa-icon",
+  "chevron-down-bold": "chevron-down-bold",
+  "chevron-right-bold": "chevron-right-bold",
+  "chevron-left-bold": "chevron-left-bold",
+  "chevron-up-bold": "chevron-up-bold",
+  "menu-dots-vertical": "menu-dots-vertical",
+  "minus-line": "minus-line",
+  "brand-facebook": "brand-facebook",
+  "brand-linkedin": "brand-linkedin",
+  "brand-instagram": "brand-instagram",
+  "brand-x": "brand-x",
+  "brand-youtube": "brand-youtube",
+  "theme-palette": "theme-palette",
+  "panel-dashboard": "panel-dashboard",
+  "network-radar": "network-radar",
+  "analytics-steps": "analytics-steps",
+);
+
+/* ==========================================================================
+   Base Icon
+   ========================================================================== */
+
+.has-icon {
+  --icon-size: 1em;
+  --icon-gap: 0.5rem;
+  --icon-animation: none;
+  --icon-scale-x: 1;
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--icon-gap);
+
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.has-icon::before {
+  content: "";
+
+  flex: 0 0 auto;
+
+  inline-size: var(--icon-size);
+  block-size: var(--icon-size);
+
+  background-color: currentColor;
+
+  mask: var(--icon-svg) center / contain no-repeat;
+  -webkit-mask: var(--icon-svg) center / contain no-repeat;
+
+  transform: scaleX(var(--icon-scale-x));
+  animation: var(--icon-animation);
+
+  transition:
+    transform var(--transition-normal),
+    opacity var(--transition-normal);
+}
+
+/* ==========================================================================
+   Registered Icons
+   ========================================================================== */
+
+@each $name, $file in $icons {
+  .icon-#{$name} {
+    --icon-svg: url("../../../assets/icons/#{$file}.svg");
+  }
+}
+
+/* ==========================================================================
+   Sizes
+   ========================================================================== */
+
+.icon-xs {
+  --icon-size: 0.75rem;
+}
+
+.icon-sm {
+  --icon-size: 1rem;
+}
+
+.icon-md {
+  --icon-size: 1.25rem;
+}
+
+.icon-lg {
+  --icon-size: 1.5rem;
+}
+
+.icon-xl {
+  --icon-size: 2rem;
+}
+
+.icon-2xl {
+  --icon-size: 3rem;
+}
+
+/* ==========================================================================
+   Position
+   ========================================================================== */
+
+.icon-end,
+.btn-icon-end {
+  flex-direction: row-reverse;
+}
+
+/* ==========================================================================
+   Direction
+   ========================================================================== */
+
+html[dir="rtl"] .icon-flip-rtl {
+  --icon-scale-x: -1;
+}
+
+/* ==========================================================================
+   Animation
+   ========================================================================== */
+
+.icon-spin {
+  --icon-animation: icon-spin 1s linear infinite;
+}
+
+.icon-pulse {
+  --icon-animation: icon-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes icon-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+@keyframes icon-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ==========================================================================
+   Icon List
+   ========================================================================== */
+
+.icon-list {
+  display: grid;
+  gap: 0.75rem;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.icon-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+}
+
+.icon-list li.has-icon::before {
+  margin-block-start: 0.2em;
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Inline SVG
+   ========================================================================== */
+
+.svg-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+
+  inline-size: var(--icon-size, 1em);
+  block-size: var(--icon-size, 1em);
+
+  color: currentColor;
+  fill: currentColor;
+  stroke: currentColor;
+
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.svg-icon svg {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+/* ==========================================================================
+   Colors
+   ========================================================================== */
+
+.icon-accent {
+  color: var(--color-primary);
+}
+
+.icon-muted {
+  color: var(--color-text-muted);
+}
+
+.icon-heading {
+  color: var(--color-heading);
+}
+
+.icon-success {
+  color: var(--color-success);
+}
+
+.icon-info {
+  color: var(--color-info);
+}
+
+.icon-warning {
+  color: var(--color-warning);
+}
+
+.icon-danger {
+  color: var(--color-danger);
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .has-icon::before {
+    animation: none;
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] .has-icon::before {
+  animation: none;
+  transition: none;
+}

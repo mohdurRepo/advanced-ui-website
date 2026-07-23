@@ -1,0 +1,356 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Mega Menu Flyout
+   ========================================================================== */
+
+.mega-menu-flyout {
+  position: relative;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Flyout Trigger
+   ========================================================================== */
+
+.mega-menu-flyout__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 2.5rem;
+  padding: 0.625rem 0.75rem;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+
+  background: transparent;
+  color: var(--color-text);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  text-align: start;
+
+  cursor: pointer;
+  user-select: none;
+
+  @include ds.transition(
+    (background-color, border-color, color, box-shadow),
+    var(--transition-fast)
+  );
+}
+
+.mega-menu-flyout__trigger:hover:not(:disabled):not(.is-disabled) {
+  border-color: var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+}
+
+@supports (background: color-mix(in oklab, white, black)) {
+  .mega-menu-flyout__trigger:hover:not(:disabled):not(.is-disabled) {
+    border-color: color-mix(in oklab, var(--color-primary), transparent 82%);
+
+    background: color-mix(in oklab, var(--color-primary), transparent 94%);
+  }
+}
+
+.mega-menu-flyout__trigger:focus {
+  outline: none;
+}
+
+.mega-menu-flyout__trigger:focus-visible {
+  @include ds.focus-ring;
+}
+
+.mega-menu-flyout__trigger:disabled,
+.mega-menu-flyout__trigger.is-disabled {
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Trigger Text
+   ========================================================================== */
+
+.mega-menu-flyout__text {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Trigger Icon
+   ========================================================================== */
+
+/*
+ * The HTML already applies .icon-flip-rtl.
+ * This component must not apply another scaleX() transformation.
+ */
+
+.mega-menu-flyout__icon {
+  --icon-size: 0.75rem;
+
+  flex: 0 0 auto;
+
+  pointer-events: none;
+
+  @include ds.transition(transform, var(--transition-fast));
+}
+
+/* ==========================================================================
+   Flyout Menu
+   ========================================================================== */
+
+/*
+ * Logical positioning handles the normal writing direction automatically:
+ *
+ * LTR: inline-start is left, so the menu opens toward the right.
+ * RTL: inline-start is right, so the menu opens toward the left.
+ */
+
+.mega-menu-flyout__menu {
+  position: absolute;
+  z-index: calc(var(--z-dropdown) + 1);
+
+  inset-block-start: 0;
+  inset-inline-start: calc(100% + 0.5rem);
+
+  display: grid;
+  gap: 0.25rem;
+
+  min-inline-size: 14rem;
+  max-inline-size: min(20rem, calc(100vw - 2rem));
+  padding: 0.5rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  box-shadow: var(--shadow-lg);
+
+  opacity: 0;
+  visibility: hidden;
+
+  pointer-events: none;
+
+  transform: translateX(0.25rem);
+
+  @include ds.transition(
+    (opacity, visibility, transform),
+    var(--transition-fast)
+  );
+}
+
+/* ==========================================================================
+   RTL Entrance Direction
+   ========================================================================== */
+
+/*
+ * Only the entrance movement changes in RTL.
+ * The logical inset above already handles the opening side.
+ */
+
+html[dir="rtl"] .mega-menu-flyout__menu {
+  transform: translateX(-0.25rem);
+}
+
+/* ==========================================================================
+   Open State
+   ========================================================================== */
+
+.mega-menu-flyout:hover > .mega-menu-flyout__menu,
+.mega-menu-flyout:focus-within > .mega-menu-flyout__menu,
+.mega-menu-flyout.is-open > .mega-menu-flyout__menu,
+.mega-menu-flyout__trigger[aria-expanded="true"] + .mega-menu-flyout__menu,
+.mega-menu-flyout__menu[aria-hidden="false"] {
+  opacity: 1;
+  visibility: visible;
+
+  pointer-events: auto;
+
+  transform: translateX(0);
+}
+
+/* ==========================================================================
+   Open Trigger State
+   ========================================================================== */
+
+.mega-menu-flyout:hover > .mega-menu-flyout__trigger,
+.mega-menu-flyout:focus-within > .mega-menu-flyout__trigger,
+.mega-menu-flyout.is-open > .mega-menu-flyout__trigger,
+.mega-menu-flyout__trigger[aria-expanded="true"] {
+  border-color: var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+}
+
+@supports (background: color-mix(in oklab, white, black)) {
+  .mega-menu-flyout:hover > .mega-menu-flyout__trigger,
+  .mega-menu-flyout:focus-within > .mega-menu-flyout__trigger,
+  .mega-menu-flyout.is-open > .mega-menu-flyout__trigger,
+  .mega-menu-flyout__trigger[aria-expanded="true"] {
+    border-color: color-mix(in oklab, var(--color-primary), transparent 82%);
+
+    background: color-mix(in oklab, var(--color-primary), transparent 94%);
+  }
+}
+
+/* ==========================================================================
+   Collision Direction
+   ========================================================================== */
+
+/*
+ * Header JavaScript will add .opens-start when the normal inline direction
+ * does not have enough viewport space.
+ */
+
+.mega-menu-flyout.opens-start > .mega-menu-flyout__menu {
+  inset-inline-start: auto;
+  inset-inline-end: calc(100% + 0.5rem);
+
+  transform: translateX(-0.25rem);
+}
+
+html[dir="rtl"] .mega-menu-flyout.opens-start > .mega-menu-flyout__menu {
+  transform: translateX(0.25rem);
+}
+
+.mega-menu-flyout.opens-start:hover > .mega-menu-flyout__menu,
+.mega-menu-flyout.opens-start:focus-within > .mega-menu-flyout__menu,
+.mega-menu-flyout.opens-start.is-open > .mega-menu-flyout__menu,
+.mega-menu-flyout.opens-start
+  > .mega-menu-flyout__trigger[aria-expanded="true"]
+  + .mega-menu-flyout__menu {
+  transform: translateX(0);
+}
+
+/* ==========================================================================
+   Flyout Links
+   ========================================================================== */
+
+.mega-menu-flyout__link {
+  display: block;
+
+  min-inline-size: 0;
+  padding: 0.625rem 0.75rem;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+
+  background: transparent;
+  color: var(--color-text);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  text-align: start;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+
+  @include ds.transition(
+    (background-color, border-color, color, box-shadow),
+    var(--transition-fast)
+  );
+}
+
+.mega-menu-flyout__link:hover {
+  border-color: var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+}
+
+@supports (background: color-mix(in oklab, white, black)) {
+  .mega-menu-flyout__link:hover {
+    border-color: color-mix(in oklab, var(--color-primary), transparent 84%);
+
+    background: color-mix(in oklab, var(--color-primary), transparent 94%);
+  }
+}
+
+.mega-menu-flyout__link:focus {
+  outline: none;
+}
+
+.mega-menu-flyout__link:focus-visible {
+  @include ds.focus-ring;
+}
+
+.mega-menu-flyout__link[aria-current="page"] {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+
+  font-weight: ds.font-weight("bold");
+}
+
+@supports (background: color-mix(in oklab, white, black)) {
+  .mega-menu-flyout__link[aria-current="page"] {
+    background: color-mix(in oklab, var(--color-primary), transparent 90%);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .mega-menu-flyout__menu {
+  border-width: 2px;
+  box-shadow: none;
+}
+
+html[data-contrast="high"] .mega-menu-flyout__trigger[aria-expanded="true"],
+html[data-contrast="high"] .mega-menu-flyout__link[aria-current="page"] {
+  border-color: currentColor;
+  border-width: 2px;
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .mega-menu-flyout__trigger,
+  .mega-menu-flyout__icon,
+  .mega-menu-flyout__menu,
+  .mega-menu-flyout__link {
+    transition: none;
+  }
+
+  .mega-menu-flyout__menu,
+  html[dir="rtl"] .mega-menu-flyout__menu,
+  .mega-menu-flyout.opens-start > .mega-menu-flyout__menu,
+  html[dir="rtl"] .mega-menu-flyout.opens-start > .mega-menu-flyout__menu {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] .mega-menu-flyout__trigger,
+html[data-motion="reduce"] .mega-menu-flyout__icon,
+html[data-motion="reduce"] .mega-menu-flyout__menu,
+html[data-motion="reduce"] .mega-menu-flyout__link {
+  transition: none;
+}
+
+html[data-motion="reduce"] .mega-menu-flyout__menu,
+html[data-motion="reduce"]
+  .mega-menu-flyout.opens-start
+  > .mega-menu-flyout__menu {
+  transform: none;
+}

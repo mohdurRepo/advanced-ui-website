@@ -1,0 +1,7 @@
+@use "../abstracts" as ds;
+
+@each $key, $value in ds.$shadows {
+  .shadow-#{$key} {
+    box-shadow: $value !important;
+  }
+}

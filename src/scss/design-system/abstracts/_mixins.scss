@@ -1,0 +1,166 @@
+@use "sass:list";
+@use "sass:map";
+@use "breakpoints";
+@use "maps";
+
+/* ==========================================================================
+   Private Helpers
+   ========================================================================== */
+
+@function _breakpoint($key) {
+  @if not map.has-key(breakpoints.$breakpoints, $key) {
+    @error "Unknown breakpoint `#{$key}`.";
+  }
+
+  @return map.get(breakpoints.$breakpoints, $key);
+}
+
+/* ==========================================================================
+   Breakpoints
+   ========================================================================== */
+
+@mixin respond-up($key) {
+  $value: _breakpoint($key);
+
+  @media (min-width: $value) {
+    @content;
+  }
+}
+
+@mixin respond-down($key) {
+  $value: _breakpoint($key);
+
+  @if $value == 0 {
+    @error "Breakpoint `#{$key}` cannot be used with respond-down().";
+  }
+
+  @media (max-width: ($value - 0.02px)) {
+    @content;
+  }
+}
+
+@mixin respond-between($min, $max) {
+  $min-value: _breakpoint($min);
+  $max-value: _breakpoint($max);
+
+  @if $min-value >= $max-value {
+    @error "The minimum breakpoint must be smaller than the maximum breakpoint.";
+  }
+
+  @media (min-width: $min-value) and (max-width: ($max-value - 0.02px)) {
+    @content;
+  }
+}
+
+/* ==========================================================================
+   Transitions
+   ========================================================================== */
+
+/**
+ * Generates transitions for one or more properties.
+ *
+ * The second argument may be:
+ * - A motion token: "fast", "normal", or "slow"
+ * - A custom CSS duration such as 250ms
+ *
+ * Token-based transitions use CSS custom properties so that runtime
+ * reduced-motion preferences can disable them.
+ */
+
+@mixin transition($properties: all, $motion: "normal", $timing-function: ease) {
+  $transitions: ();
+
+  @if map.has-key(maps.$motions, $motion) {
+    @each $property in $properties {
+      $transitions: list.append(
+        $transitions,
+        #{$property} var(--transition-#{$motion}),
+        comma
+      );
+    }
+  } @else {
+    @each $property in $properties {
+      $transitions: list.append(
+        $transitions,
+        #{$property} #{$motion} #{$timing-function},
+        comma
+      );
+    }
+  }
+
+  transition: $transitions;
+}
+
+/* ==========================================================================
+   Focus
+   ========================================================================== */
+
+@mixin focus-ring(
+  $color: var(--focus-ring, var(--color-primary)),
+  $offset: 2px,
+  $width: var(--focus-ring-width, 2px)
+) {
+  outline: $width solid $color;
+  outline-offset: $offset;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin line-clamp($lines: 2) {
+  display: -webkit-box;
+  overflow: hidden;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lines;
+
+  line-clamp: $lines;
+}
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin square($size) {
+  width: $size;
+  height: $size;
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+@mixin visually-hidden {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+
+  overflow: hidden;
+  border: 0;
+
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -1,0 +1,277 @@
+@use "../../../design-system/abstracts/" as *;
+
+/* ==========================================================================
+   Market Card
+   ========================================================================== */
+
+.market-card {
+  --market-card-bg: transparent;
+  --market-card-border: var(--market-summary-border);
+  --market-card-color: var(--market-summary-fg);
+  --market-card-muted: var(--market-summary-muted);
+
+  --market-card-hover-border: var(--market-summary-border-hover);
+
+  --market-card-active-bg: var(--market-summary-surface-active);
+  --market-card-active-border: var(--color-primary);
+
+  position: relative;
+
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.75rem;
+
+  min-inline-size: 0;
+  min-block-size: 9.25rem;
+
+  padding: 1rem;
+
+  border: 1px solid var(--market-card-border);
+
+  background: var(--market-card-bg);
+  color: var(--market-card-color);
+
+  cursor: pointer;
+  scroll-snap-align: start;
+  text-align: start;
+
+  @include transition(
+    (background-color, border-color, box-shadow, color, transform),
+    fast
+  );
+
+  &:hover:not(:disabled):not(.is-disabled) {
+    border-color: var(--market-card-hover-border);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:active:not(:disabled):not(.is-disabled) {
+    transform: translateY(1px);
+  }
+
+  &.is-active,
+  &[aria-selected="true"] {
+    border-color: var(--market-card-active-border);
+    background: var(--market-card-active-bg);
+    box-shadow: var(--shadow-md);
+  }
+
+  &:disabled,
+  &.is-disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+/* ==========================================================================
+   Top Row
+   ========================================================================== */
+
+.market-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  min-inline-size: 0;
+
+  color: var(--market-card-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+.market-card__market {
+  min-inline-size: 0;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Main Body
+   ========================================================================== */
+
+.market-card__body {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto
+    minmax(6rem, 7.5rem);
+
+  align-items: center;
+  gap: 0.75rem;
+
+  min-inline-size: 0;
+}
+
+.market-card__main {
+  display: grid;
+  gap: 0.25rem;
+
+  min-inline-size: 0;
+}
+
+.market-card__title {
+  min-inline-size: 0;
+
+  color: var(--market-card-color);
+
+  font-size: var(--text-base);
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.market-card__status {
+  color: color-mix(in oklab, var(--market-card-color), transparent 18%);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.market-card__divider {
+  inline-size: 1px;
+  block-size: 100%;
+  min-block-size: 3rem;
+
+  background: var(--market-card-border);
+}
+
+/* ==========================================================================
+   Metrics
+   ========================================================================== */
+
+.market-card__metrics {
+  display: grid;
+  gap: 0.25rem;
+
+  min-inline-size: 0;
+
+  text-align: end;
+}
+
+.market-card__value {
+  min-inline-size: 0;
+
+  color: var(--market-card-color);
+
+  font-size: var(--text-xl);
+  font-weight: font-weight("heavy");
+  line-height: 1.1;
+
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.market-card__change {
+  min-inline-size: 0;
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Timer
+   ========================================================================== */
+
+.market-card__timer {
+  min-inline-size: 0;
+
+  color: var(--market-card-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+  text-align: center;
+
+  font-variant-numeric: tabular-nums;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.market-card--compact {
+  .market-card__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .market-card__divider,
+  .market-card__metrics {
+    display: none;
+  }
+
+  .market-card__main {
+    justify-items: center;
+    text-align: center;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-card {
+    border-width: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .market-card {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .market-card {
+    min-block-size: 8.5rem;
+    padding: 0.875rem;
+  }
+
+  .market-card__body {
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto
+      minmax(5.75rem, 7rem);
+
+    gap: 0.625rem;
+  }
+
+  .market-card__value {
+    font-size: var(--text-lg);
+  }
+}

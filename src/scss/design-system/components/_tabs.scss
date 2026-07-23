@@ -1,0 +1,222 @@
+@use "../abstracts" as ds;
+
+/* ==========================================================================
+   Tabs
+   ========================================================================== */
+
+.tabs {
+  --tabs-gap: 0.5rem;
+  --tabs-nav-border: var(--color-border);
+  --tabs-content-space: 1.5rem;
+
+  --tab-bg: transparent;
+  --tab-color: var(--color-text-muted);
+  --tab-border: transparent;
+
+  --tab-hover-bg: transparent;
+  --tab-hover-color: var(--color-text);
+
+  --tab-active-bg: transparent;
+  --tab-active-color: var(--color-primary);
+  --tab-active-border: var(--color-primary);
+
+  inline-size: 100%;
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Navigation
+   ========================================================================== */
+
+.tabs-nav {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--tabs-gap);
+
+  border-block-end: 1px solid var(--tabs-nav-border);
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabs-nav::-webkit-scrollbar {
+  display: none;
+}
+
+/* ==========================================================================
+   Tab
+   ========================================================================== */
+
+.tab-link {
+  appearance: none;
+
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  min-block-size: 2.75rem;
+  padding: 0.75rem 1rem;
+
+  border: 0;
+  border-block-end: 2px solid var(--tab-border);
+
+  background: var(--tab-bg);
+  color: var(--tab-color);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
+
+  cursor: pointer;
+  white-space: nowrap;
+
+  @include ds.transition(
+    (background-color, color, border-color, outline-color),
+    "fast"
+  );
+}
+
+.tab-link:hover:not(:disabled):not(.is-disabled) {
+  background: var(--tab-hover-bg);
+  color: var(--tab-hover-color);
+}
+
+.tab-link:focus-visible {
+  @include ds.focus-ring;
+}
+
+.tab-link.active,
+.tab-link.is-active,
+.tab-link[aria-selected="true"] {
+  border-color: var(--tab-active-border);
+  background: var(--tab-active-bg);
+  color: var(--tab-active-color);
+}
+
+.tab-link:disabled,
+.tab-link.is-disabled,
+.tab-link[aria-disabled="true"] {
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.tabs-content {
+  padding-block-start: var(--tabs-content-space);
+}
+
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active,
+.tab-pane.is-active,
+.tab-pane[data-active="true"] {
+  display: block;
+}
+
+/* ==========================================================================
+   Pill Variant
+   ========================================================================== */
+
+.tabs--pill {
+  --tabs-gap: 0.5rem;
+  --tabs-nav-border: transparent;
+  --tabs-content-space: 1rem;
+
+  --tab-bg: transparent;
+  --tab-color: var(--color-text-muted);
+  --tab-border: transparent;
+
+  --tab-hover-bg: var(--color-surface-alt);
+  --tab-hover-color: var(--color-heading);
+
+  --tab-active-bg: var(--color-light);
+  --tab-active-color: var(--color-on-light);
+  --tab-active-border: transparent;
+}
+
+.tabs--pill .tabs-nav {
+  padding-block: 0.5rem;
+  border-block-end: 0;
+}
+
+.tabs--pill .tab-link {
+  min-block-size: 2.5rem;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+
+  font-size: var(--text-xs);
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.tabs--compact {
+  --tabs-content-space: 1rem;
+}
+
+.tabs--compact .tab-link {
+  min-block-size: 2.25rem;
+  padding: 0.5rem 0.875rem;
+
+  font-size: var(--text-xs);
+}
+
+/* ==========================================================================
+   Full-width Variant
+   ========================================================================== */
+
+.tabs--full .tab-link {
+  flex: 1 1 0;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .tabs--full .tab-link {
+    flex: 0 0 auto;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .tabs-nav {
+    scroll-behavior: auto;
+  }
+
+  .tab-link {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .tabs-nav {
+    scroll-behavior: auto;
+  }
+
+  .tab-link {
+    transition: none;
+  }
+}

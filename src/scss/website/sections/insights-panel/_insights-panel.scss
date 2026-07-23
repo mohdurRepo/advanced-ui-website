@@ -1,0 +1,88 @@
+@use "../../../design-system/abstracts/" as *;
+
+/* ==========================================================================
+   Insights Panel
+   ========================================================================== */
+
+.insights-panel {
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 100%;
+
+  padding: 1.5rem;
+
+  border: 1px solid var(--surface-border);
+  background: var(--surface-bg);
+  color: var(--surface-fg);
+
+  box-shadow: var(--shadow-md);
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Tabs Region
+   ========================================================================== */
+
+.insights-panel__tabs {
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/*
+ * The reusable tab component may scroll horizontally,
+ * but vertical wheel and touch gestures must continue to the page.
+ */
+
+.insights-panel {
+  .tabs-nav {
+    max-inline-size: 100%;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    overscroll-behavior-inline: auto;
+    touch-action: pan-x pan-y;
+
+    scrollbar-width: none;
+
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .tabs-content,
+  .tab-pane {
+    min-inline-size: 0;
+  }
+
+  .tab-pane[hidden] {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .insights-panel {
+    padding: 1rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .insights-panel {
+    border-width: 2px;
+  }
+}

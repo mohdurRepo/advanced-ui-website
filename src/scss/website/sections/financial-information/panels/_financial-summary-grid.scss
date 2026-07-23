@@ -1,0 +1,336 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Summary Grid
+   ========================================================================== */
+
+/*
+ * Definition-list grid for key institutional metrics.
+ *
+ * Suitable for:
+ *
+ * - Capital
+ * - Number of shares
+ * - Market
+ * - Fiscal year
+ * - Registration details
+ * - Contact or company metadata
+ */
+
+.financial-summary-grid {
+  --financial-summary-columns: 3;
+  --financial-summary-border: var(--color-border);
+  --financial-summary-bg: var(--color-surface);
+  --financial-summary-divider-size: 1px;
+
+  display: grid;
+  grid-template-columns: repeat(
+    var(--financial-summary-columns),
+    minmax(0, 1fr)
+  );
+
+  gap: var(--financial-summary-divider-size);
+
+  min-inline-size: 0;
+
+  margin: 0;
+
+  overflow: hidden;
+
+  border: 1px solid var(--financial-summary-border);
+  border-radius: var(--radius-xl);
+
+  background: var(--financial-summary-border);
+
+  box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   Item
+   ========================================================================== */
+
+.financial-summary-grid__item {
+  display: grid;
+  align-content: center;
+  gap: 0.5rem;
+
+  min-inline-size: 0;
+  min-block-size: 7rem;
+
+  padding: clamp(1rem, 2vw, 1.5rem);
+
+  background: var(--financial-summary-bg);
+}
+
+/* ==========================================================================
+   Label
+   ========================================================================== */
+
+.financial-summary-grid__item dt,
+.financial-summary-grid__label {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-tight);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Value
+   ========================================================================== */
+
+.financial-summary-grid__item dd,
+.financial-summary-grid__value {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: clamp(var(--text-base), 0.95rem + 0.3vw, var(--text-lg));
+
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Supporting Text
+   ========================================================================== */
+
+.financial-summary-grid__support {
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Icon
+   ========================================================================== */
+
+.financial-summary-grid__icon {
+  --icon-size: 1rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 2rem;
+  block-size: 2rem;
+
+  margin-block-end: 0.125rem;
+
+  border-radius: var(--radius-md);
+
+  background: color-mix(in oklab, var(--color-primary), transparent 91%);
+
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Link
+   ========================================================================== */
+
+a.financial-summary-grid__value {
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  color: var(--color-primary);
+
+  text-decoration: none;
+
+  @include transition(color, fast);
+
+  &:hover {
+    color: var(--color-primary-hover);
+
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Column Variants
+   ========================================================================== */
+
+.financial-summary-grid--two {
+  --financial-summary-columns: 2;
+}
+
+.financial-summary-grid--three {
+  --financial-summary-columns: 3;
+}
+
+.financial-summary-grid--four {
+  --financial-summary-columns: 4;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.financial-summary-grid--compact {
+  border-radius: var(--radius-lg);
+
+  .financial-summary-grid__item {
+    min-block-size: 5.75rem;
+
+    padding: 1rem;
+  }
+
+  .financial-summary-grid__item dd,
+  .financial-summary-grid__value {
+    font-size: var(--text-base);
+  }
+}
+
+/* ==========================================================================
+   Borderless Variant
+   ========================================================================== */
+
+.financial-summary-grid--borderless {
+  gap: 0;
+
+  overflow: visible;
+
+  border: 0;
+  border-radius: 0;
+
+  background: transparent;
+
+  box-shadow: none;
+
+  .financial-summary-grid__item {
+    padding-block: 0.5rem;
+
+    background: transparent;
+  }
+}
+
+/* ==========================================================================
+   Hover
+   ========================================================================== */
+
+@media (hover: hover) {
+  .financial-summary-grid__item {
+    @include transition(background-color, fast);
+
+    &:hover {
+      background: color-mix(
+        in oklab,
+        var(--color-primary),
+        var(--financial-summary-bg) 96%
+      );
+    }
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .financial-summary-grid,
+  .financial-summary-grid--three,
+  .financial-summary-grid--four {
+    --financial-summary-columns: 2;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-summary-grid,
+  .financial-summary-grid--two,
+  .financial-summary-grid--three,
+  .financial-summary-grid--four {
+    --financial-summary-columns: 1;
+
+    border-radius: var(--radius-lg);
+  }
+
+  .financial-summary-grid__item {
+    min-block-size: auto;
+
+    padding: 1rem;
+  }
+
+  .financial-summary-grid__item dd,
+  .financial-summary-grid__value {
+    font-size: var(--text-base);
+  }
+
+  .financial-summary-grid--borderless {
+    border-radius: 0;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-summary-grid {
+    box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-summary-grid {
+    --financial-summary-divider-size: 2px;
+
+    border-width: 2px;
+
+    box-shadow: none;
+  }
+
+  .financial-summary-grid__icon {
+    border: 2px solid currentColor;
+
+    background: transparent;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-summary-grid__item,
+  a.financial-summary-grid__value {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .financial-summary-grid__item,
+  a.financial-summary-grid__value {
+    transition: none;
+  }
+}

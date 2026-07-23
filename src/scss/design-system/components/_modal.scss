@@ -1,0 +1,472 @@
+@use "../abstracts" as ds;
+
+/* ==========================================================================
+   Modal
+   ========================================================================== */
+
+.modal {
+  --modal-width: 35rem;
+  --modal-max-height: 80vh;
+  --modal-padding: 1rem;
+  --modal-radius: var(--radius-xl);
+
+  --modal-bg: var(--color-surface);
+  --modal-color: var(--color-text);
+  --modal-heading-color: var(--color-heading);
+  --modal-muted-color: var(--color-text-muted);
+
+  --modal-border: var(--color-border);
+  --modal-divider-color: var(--color-border);
+  --modal-backdrop-bg: var(--color-overlay);
+  --modal-shadow: 0 1.5rem 5rem rgb(0 0 0 / 0.35);
+
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  padding: var(--modal-padding);
+}
+
+.modal.is-open {
+  display: flex;
+}
+
+/* ==========================================================================
+   Backdrop
+   ========================================================================== */
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+
+  background: var(--modal-backdrop-bg);
+}
+
+/* ==========================================================================
+   Dialog
+   ========================================================================== */
+
+.modal-dialog {
+  position: relative;
+  z-index: 1;
+
+  inline-size: min(
+    calc(100vw - var(--modal-padding) - var(--modal-padding)),
+    var(--modal-width)
+  );
+
+  max-inline-size: 100%;
+  max-block-size: var(--modal-max-height);
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.modal-content {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  inline-size: 100%;
+  max-block-size: var(--modal-max-height);
+
+  border: 1px solid var(--modal-border);
+  border-radius: var(--modal-radius);
+
+  background: var(--modal-bg);
+  color: var(--modal-color);
+
+  box-shadow: var(--modal-shadow);
+
+  overflow: hidden;
+
+  opacity: 0;
+  transform: translateY(1rem) scale(0.985);
+
+  @include ds.transition(
+    (transform, opacity, background-color, border-color, color),
+    "normal"
+  );
+}
+
+.modal.is-open .modal-content {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.modal-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+
+  padding: 1.25rem 1.5rem;
+
+  border-block-end: 1px solid var(--modal-divider-color);
+}
+
+.modal-header > :first-child {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+
+.modal-title {
+  margin: 0;
+
+  color: var(--modal-heading-color);
+  font-size: var(--text-xl);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  overflow-wrap: anywhere;
+}
+
+.modal-subtitle {
+  margin-block-start: 0.25rem;
+
+  color: var(--modal-muted-color);
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Body
+   ========================================================================== */
+
+.modal-body {
+  flex: 1 1 auto;
+
+  min-block-size: 0;
+  padding: 1.5rem;
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  scrollbar-color: var(--color-border-strong) transparent;
+  scrollbar-width: thin;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 0.375rem;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+  background: var(--color-border-strong);
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.modal-footer {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+
+  padding: 1.25rem 1.5rem;
+
+  border-block-start: 1px solid var(--modal-divider-color);
+}
+
+.modal-footer-start {
+  justify-content: flex-start;
+}
+
+.modal-footer-center {
+  justify-content: center;
+}
+
+.modal-footer-between {
+  justify-content: space-between;
+}
+
+/* ==========================================================================
+   Close Button
+   ========================================================================== */
+
+.modal-close {
+  position: relative;
+
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  padding: 0;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+
+  cursor: pointer;
+
+  @include ds.transition(
+    (background-color, border-color, color, transform),
+    "fast"
+  );
+}
+
+.modal-close::before,
+.modal-close::after {
+  content: "";
+
+  grid-area: 1 / 1;
+
+  inline-size: 0.875rem;
+  block-size: 0.125rem;
+
+  border-radius: var(--radius-pill);
+  background: currentColor;
+}
+
+.modal-close::before {
+  transform: rotate(45deg);
+}
+
+.modal-close::after {
+  transform: rotate(-45deg);
+}
+
+.modal-close:hover:not(:disabled):not(.is-disabled) {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg);
+}
+
+.modal-close:active:not(:disabled):not(.is-disabled) {
+  transform: scale(0.96);
+}
+
+.modal-close:focus-visible {
+  @include ds.focus-ring;
+}
+
+.modal-close:disabled,
+.modal-close.is-disabled,
+.modal-close[aria-disabled="true"] {
+  border-color: var(--color-disabled);
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Widths
+   ========================================================================== */
+
+.modal-sm {
+  --modal-width: 22.5rem;
+}
+
+.modal-md {
+  --modal-width: 35rem;
+}
+
+.modal-lg {
+  --modal-width: 52.5rem;
+}
+
+.modal-xl {
+  --modal-width: 70rem;
+}
+
+/* ==========================================================================
+   Heights
+   ========================================================================== */
+
+.modal-height-sm {
+  --modal-max-height: 60vh;
+}
+
+.modal-height-md {
+  --modal-max-height: 80vh;
+}
+
+.modal-height-lg {
+  --modal-max-height: 90vh;
+}
+
+/* ==========================================================================
+   Full Screen
+   ========================================================================== */
+
+.modal-full {
+  --modal-width: 100%;
+  --modal-max-height: 100vh;
+  --modal-padding: 0;
+  --modal-radius: 0;
+}
+
+.modal-full .modal-dialog,
+.modal-full .modal-content {
+  inline-size: 100%;
+  block-size: 100vh;
+  block-size: 100dvh;
+
+  max-block-size: 100vh;
+  max-block-size: 100dvh;
+}
+
+/* ==========================================================================
+   Shape
+   ========================================================================== */
+
+.modal-square {
+  --modal-radius: var(--radius-none);
+}
+
+.modal-rounded {
+  --modal-radius: var(--radius-xl);
+}
+
+/* ==========================================================================
+   Optional Regions
+   ========================================================================== */
+
+.modal-no-header .modal-header {
+  display: none;
+}
+
+.modal-no-header .modal-body {
+  padding-block-start: 1.5rem;
+}
+
+.modal-no-footer .modal-footer {
+  display: none;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .modal {
+    --modal-padding: 0;
+
+    align-items: flex-end;
+  }
+
+  .modal-dialog {
+    inline-size: 100%;
+    max-inline-size: 100%;
+    max-block-size: 90vh;
+    max-block-size: 90dvh;
+  }
+
+  .modal-content {
+    max-block-size: 90vh;
+    max-block-size: 90dvh;
+
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+
+    transform: translateY(1.5rem);
+  }
+
+  .modal.is-open .modal-content {
+    transform: translateY(0);
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 1rem;
+  }
+
+  .modal-no-header .modal-body {
+    padding-block-start: 1rem;
+  }
+
+  .modal-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+
+  .modal-footer .btn {
+    inline-size: 100%;
+  }
+
+  .modal-footer-start,
+  .modal-footer-center,
+  .modal-footer-between {
+    justify-content: flex-start;
+  }
+
+  .modal-full .modal-dialog,
+  .modal-full .modal-content {
+    max-block-size: 100vh;
+    max-block-size: 100dvh;
+  }
+
+  .modal-full .modal-content {
+    border-radius: 0;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .modal-content {
+  border-width: 2px;
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-content,
+  .modal-close {
+    transition: none;
+  }
+
+  .modal-content,
+  .modal.is-open .modal-content {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .modal-content,
+  .modal-close {
+    transition: none;
+  }
+
+  .modal-content,
+  .modal.is-open .modal-content {
+    transform: none;
+  }
+}

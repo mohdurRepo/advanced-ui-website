@@ -1,0 +1,140 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Document Empty State
+   ========================================================================== */
+
+.financial-document-empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+
+  min-inline-size: 0;
+
+  padding: clamp(2rem, 6vw, 4rem) 1.25rem;
+
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: color-mix(in oklab, var(--color-surface-alt), transparent 30%);
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Icon
+   ========================================================================== */
+
+.financial-document-empty__icon {
+  --icon-size: 1.25rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 3rem;
+  block-size: 3rem;
+
+  border-radius: var(--radius-pill);
+
+  background: color-mix(in oklab, var(--color-primary), transparent 91%);
+
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.financial-document-empty__content {
+  display: grid;
+  justify-items: center;
+  gap: 0.375rem;
+
+  max-inline-size: 32rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.financial-document-empty__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-base);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.financial-document-empty__description {
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.financial-document-empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.625rem;
+
+  margin-block-start: 0.25rem;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.financial-document-empty--compact {
+  gap: 0.5rem;
+
+  padding: 1.5rem 1rem;
+
+  .financial-document-empty__icon {
+    --icon-size: 1rem;
+
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+  }
+
+  .financial-document-empty__description {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-document-empty {
+    border-width: 2px;
+
+    background: transparent;
+  }
+
+  .financial-document-empty__icon {
+    border: 2px solid currentColor;
+
+    background: transparent;
+    color: currentColor;
+  }
+}

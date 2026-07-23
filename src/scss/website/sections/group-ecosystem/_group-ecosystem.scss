@@ -1,0 +1,192 @@
+@use "../../../design-system/abstracts" as *;
+
+/* ==========================================================================
+   Group Ecosystem
+   ========================================================================== */
+
+.group-ecosystem {
+  --group-ecosystem-bg: var(--color-bg);
+  --group-ecosystem-fg: var(--color-text);
+
+  /*
+   * Shared fixed surface color.
+   * This intentionally stays the same in light and dark themes,
+   * matching the app download section.
+   */
+  --group-ecosystem-surface-bg: #cbdbf9;
+  --group-ecosystem-surface-fg: #15253d;
+  --group-ecosystem-surface-muted: #52647d;
+
+  --group-ecosystem-gap: clamp(1.5rem, 3vw, 3rem);
+  --group-ecosystem-parent-space: clamp(2rem, 3vw, 2rem);
+
+  background: var(--group-ecosystem-bg);
+  color: var(--group-ecosystem-fg);
+}
+
+/* ==========================================================================
+   Surface
+   ========================================================================== */
+
+.group-ecosystem__surface {
+  padding: clamp(2rem, 3vw, 3rem);
+
+  background: var(--group-ecosystem-surface-bg);
+  color: var(--group-ecosystem-surface-fg);
+}
+
+/* ==========================================================================
+   Parent Company
+   ========================================================================== */
+
+.group-ecosystem__parent {
+  display: grid;
+  justify-items: center;
+  gap: 1.25rem;
+
+  max-inline-size: 46rem;
+
+  margin-inline: auto;
+  margin-block-end: var(--group-ecosystem-parent-space);
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Parent Logo
+   ========================================================================== */
+
+.group-ecosystem__parent-logo {
+  display: block;
+
+  inline-size: clamp(8rem, 14vw, 12rem);
+  block-size: auto;
+
+  object-fit: contain;
+}
+
+/* ==========================================================================
+   Parent Description
+   ========================================================================== */
+
+.group-ecosystem__parent-text {
+  max-inline-size: 42rem;
+
+  margin: 0;
+
+  color: var(--group-ecosystem-surface-fg);
+
+  font-size: clamp(var(--text-lg), 1rem + 0.6vw, var(--text-xl));
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: auto;
+}
+
+/* ==========================================================================
+   Parent Action
+   ========================================================================== */
+
+.group-ecosystem__parent-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  margin-block-start: 0.25rem;
+
+  color: var(--color-primary);
+
+  white-space: nowrap;
+
+  .has-icon {
+    --icon-size: 0.875rem;
+  }
+}
+
+/* ==========================================================================
+   Subsidiaries Grid
+   ========================================================================== */
+
+.group-ecosystem__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  align-items: stretch;
+  gap: var(--group-ecosystem-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .group-ecosystem {
+    --group-ecosystem-parent-space: 3rem;
+  }
+
+  .group-ecosystem__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /*
+   * Keep the final card visually balanced when there are three subsidiaries.
+   */
+  .group-ecosystem__grid > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+
+    inline-size: min(100%, 28rem);
+    justify-self: center;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .group-ecosystem {
+    --group-ecosystem-gap: 2rem;
+    --group-ecosystem-parent-space: 2.5rem;
+  }
+
+  .group-ecosystem__surface {
+    padding: 1.5rem 1rem;
+  }
+
+  .group-ecosystem__parent {
+    gap: 1rem;
+  }
+
+  .group-ecosystem__parent-text {
+    font-size: var(--text-base);
+  }
+
+  .group-ecosystem__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .group-ecosystem__grid > :last-child:nth-child(odd) {
+    grid-column: auto;
+
+    inline-size: 100%;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .group-ecosystem__surface {
+    outline: 2px solid var(--color-border-strong);
+    outline-offset: -2px;
+  }
+
+  .group-ecosystem__parent-link {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+}

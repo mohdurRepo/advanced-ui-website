@@ -1,0 +1,289 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Empty State
+   ========================================================================== */
+
+.financial-empty-state {
+  --financial-state-min-height: clamp(18rem, 32vw, 26rem);
+  --financial-state-bg: var(--color-surface-alt);
+  --financial-state-border: var(--color-border);
+  --financial-state-accent: var(--color-primary);
+
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.875rem;
+
+  min-inline-size: 0;
+  min-block-size: var(--financial-state-min-height);
+
+  padding: clamp(1.5rem, 4vw, 3rem);
+
+  border: 1px solid var(--financial-state-border);
+  border-radius: var(--radius-xl);
+
+  background: var(--financial-state-bg);
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Icon
+   ========================================================================== */
+
+.financial-empty-state__icon {
+  --icon-size: 2rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 4rem;
+  block-size: 4rem;
+
+  border: 1px solid
+    color-mix(in oklab, var(--financial-state-accent), transparent 78%);
+
+  border-radius: var(--radius-pill);
+
+  background: color-mix(
+    in oklab,
+    var(--financial-state-accent),
+    transparent 92%
+  );
+
+  color: var(--financial-state-accent);
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.financial-empty-state__content {
+  display: grid;
+  justify-items: center;
+  gap: 0.375rem;
+
+  max-inline-size: 36rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.financial-empty-state__title {
+  max-inline-size: 32rem;
+
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: clamp(var(--text-lg), 1rem + 0.4vw, var(--text-xl));
+
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.financial-empty-state__description {
+  max-inline-size: 36rem;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.financial-empty-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+
+  margin-block-start: 0.5rem;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.financial-empty-state--compact {
+  --financial-state-min-height: 10rem;
+
+  gap: 0.625rem;
+
+  padding: 1.5rem 1rem;
+
+  border-radius: var(--radius-lg);
+
+  .financial-empty-state__icon {
+    --icon-size: 1.25rem;
+
+    inline-size: 3rem;
+    block-size: 3rem;
+  }
+
+  .financial-empty-state__title {
+    font-size: var(--text-base);
+  }
+
+  .financial-empty-state__description {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Inline Variant
+   ========================================================================== */
+
+.financial-empty-state--inline {
+  --financial-state-min-height: auto;
+
+  display: flex;
+  justify-content: flex-start;
+  gap: 0.75rem;
+
+  padding: 1rem;
+
+  border-radius: var(--radius-md);
+
+  text-align: start;
+
+  .financial-empty-state__icon {
+    --icon-size: 0.875rem;
+
+    inline-size: 2rem;
+    block-size: 2rem;
+
+    flex: 0 0 auto;
+  }
+
+  .financial-empty-state__content {
+    justify-items: start;
+  }
+
+  .financial-empty-state__title {
+    font-size: var(--text-sm);
+  }
+
+  .financial-empty-state__description {
+    font-size: var(--text-xs);
+  }
+
+  .financial-empty-state__actions {
+    justify-content: flex-start;
+  }
+}
+
+/* ==========================================================================
+   Borderless Variant
+   ========================================================================== */
+
+.financial-empty-state--borderless {
+  border: 0;
+  border-radius: 0;
+
+  background: transparent;
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-empty-state {
+    --financial-state-min-height: 16rem;
+
+    padding: 1.5rem 1rem;
+
+    border-radius: var(--radius-lg);
+  }
+
+  .financial-empty-state__icon {
+    --icon-size: 1.75rem;
+
+    inline-size: 3.5rem;
+    block-size: 3.5rem;
+  }
+
+  .financial-empty-state__title {
+    font-size: var(--text-lg);
+  }
+
+  .financial-empty-state__description {
+    font-size: var(--text-xs);
+  }
+
+  .financial-empty-state__actions {
+    inline-size: 100%;
+
+    .btn {
+      flex: 1 1 auto;
+    }
+  }
+
+  .financial-empty-state--compact {
+    --financial-state-min-height: 9rem;
+  }
+
+  .financial-empty-state--inline {
+    --financial-state-min-height: auto;
+
+    align-items: flex-start;
+
+    padding: 0.875rem;
+
+    .financial-empty-state__actions {
+      inline-size: auto;
+    }
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-empty-state {
+    --financial-state-bg: color-mix(
+      in oklab,
+      var(--color-surface-alt),
+      transparent 8%
+    );
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-empty-state {
+    border-width: 2px;
+
+    background: var(--color-surface);
+  }
+
+  .financial-empty-state__icon {
+    border-width: 2px;
+
+    background: transparent;
+    color: currentColor;
+  }
+}

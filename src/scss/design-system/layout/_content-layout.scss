@@ -1,0 +1,63 @@
+/* ==========================================================================
+   Content Layout
+   ========================================================================== */
+
+/**
+ * Constrains content to an intentional readable width.
+ */
+
+.content-layout {
+  width: 100%;
+  max-width: var(--content-width, 75rem);
+  min-width: 0;
+
+  margin-inline: auto;
+}
+
+/* ==========================================================================
+   Width
+   ========================================================================== */
+
+.content-layout--sm {
+  --content-width: 40rem;
+}
+
+.content-layout--md {
+  --content-width: 56rem;
+}
+
+.content-layout--lg {
+  --content-width: 75rem;
+}
+
+.content-layout--xl {
+  --content-width: 90rem;
+}
+
+.content-layout--full {
+  --content-width: 100%;
+}
+
+/* ==========================================================================
+   Alignment
+   ========================================================================== */
+
+.content-layout--left {
+  margin-inline: 0 auto;
+}
+
+.content-layout--right {
+  margin-inline: auto 0;
+}
+
+.content-layout--center {
+  margin-inline: auto;
+}
+
+/* ==========================================================================
+   Child Safety
+   ========================================================================== */
+
+.content-layout > * {
+  min-width: 0;
+}

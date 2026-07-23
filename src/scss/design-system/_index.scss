@@ -1,0 +1,21 @@
+/* ==========================================================================
+   Design System
+   ========================================================================== */
+
+/* Configuration, tokens, functions, breakpoints, and mixins */
+@forward "abstracts";
+
+/* Fonts, reset, root properties, and typography */
+@forward "base";
+
+/* Light, dark, accent, and contrast themes */
+@forward "themes";
+
+/* Reusable layout primitives */
+@forward "layout";
+
+/* Reusable UI components */
+@forward "components";
+
+/* Single-purpose utility classes */
+@forward "utilities";

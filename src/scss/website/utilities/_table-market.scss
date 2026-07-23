@@ -1,0 +1,238 @@
+@use "../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Market Table Context
+   ========================================================================== */
+
+/*
+ * Extends the generic design-system table for market-data presentation.
+ *
+ * The base table component continues to own:
+ * - table structure
+ * - responsive overflow
+ * - borders
+ * - row interaction
+ * - sticky behavior
+ */
+
+.table-market {
+  --table-cell-padding: 0.875rem 1rem;
+
+  font-variant-numeric: tabular-nums;
+}
+
+.table-market th,
+.table-market td {
+  vertical-align: middle;
+}
+
+/* ==========================================================================
+   Security Column
+   ========================================================================== */
+
+.table-market__security {
+  min-inline-size: 10rem;
+}
+
+.table-market__security-link {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+
+  min-inline-size: 0;
+
+  color: var(--color-heading);
+  text-decoration: none;
+}
+
+.table-market__security-link:hover {
+  color: var(--color-primary);
+}
+
+.table-market__symbol {
+  color: inherit;
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+.table-market__name {
+  max-inline-size: 18rem;
+
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+
+  @include ds.truncate;
+}
+
+/* ==========================================================================
+   Numeric Columns
+   ========================================================================== */
+
+.table-market__number,
+.table-market__price,
+.table-market__change,
+.table-market__volume {
+  text-align: end;
+  white-space: nowrap;
+}
+
+.table-market__price {
+  color: var(--color-heading);
+  font-weight: ds.font-weight("bold");
+}
+
+.table-market__change {
+  font-weight: ds.font-weight("semibold");
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.table-market__actions {
+  inline-size: 1%;
+  text-align: end;
+  white-space: nowrap;
+}
+
+.table-market__action-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* ==========================================================================
+   Selected Row
+   ========================================================================== */
+
+.table-market tbody tr.is-selected {
+  background: var(--color-surface-alt);
+}
+
+@supports (background: color-mix(in oklab, white, black)) {
+  .table-market tbody tr.is-selected {
+    background: color-mix(
+      in oklab,
+      var(--color-primary),
+      var(--color-surface) 92%
+    );
+  }
+}
+
+/* ==========================================================================
+   Updating State
+   ========================================================================== */
+
+.table-market td.is-updating {
+  position: relative;
+}
+
+.table-market td.is-updating::after {
+  content: "";
+
+  position: absolute;
+
+  inset-inline: 0.5rem;
+  inset-block-end: 0.25rem;
+
+  block-size: 2px;
+
+  border-radius: var(--radius-pill);
+
+  background: currentColor;
+
+  opacity: 0.45;
+
+  animation: table-market-update 1s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   Market Surface
+   ========================================================================== */
+
+.surface-market .table-market,
+.surface-insights .table-market {
+  --table-bg: transparent;
+  --table-color: var(--color-text);
+  --table-border: var(--color-border);
+  --table-head-bg: var(--color-surface-alt);
+  --table-head-color: var(--color-heading);
+  --table-row-hover-bg: rgb(255 255 255 / 0.06);
+
+  background: transparent;
+}
+
+.surface-market .table-market tbody tr,
+.surface-insights .table-market tbody tr {
+  background: transparent;
+}
+
+.surface-market .table-market tbody tr:hover,
+.surface-insights .table-market tbody tr:hover {
+  background: rgb(255 255 255 / 0.06);
+}
+
+.surface-market .table-market__security-link,
+.surface-insights .table-market__security-link,
+.surface-market .table-market__price,
+.surface-insights .table-market__price {
+  color: var(--color-heading);
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .table-market {
+    --table-cell-padding: 0.75rem;
+  }
+
+  .table-market__security {
+    min-inline-size: 8rem;
+  }
+
+  .table-market__name {
+    max-inline-size: 10rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .table-market tbody tr.is-selected {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+}
+
+html[data-contrast="high"] .table-market td.is-updating::after {
+  block-size: 3px;
+  opacity: 1;
+}
+
+/* ==========================================================================
+   Motion
+   ========================================================================== */
+
+@keyframes table-market-update {
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .table-market td.is-updating::after {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+html[data-motion="reduce"] .table-market td.is-updating::after {
+  animation: none;
+  opacity: 1;
+}

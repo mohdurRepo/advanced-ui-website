@@ -1,0 +1,76 @@
+@use "../abstracts" as ds;
+
+:root,
+html[data-theme="light"] {
+  color-scheme: light;
+
+  /* Backgrounds and surfaces */
+  --color-bg: #{ds.brand("off-white")};
+  --color-surface: #{ds.brand("white")};
+  --color-surface-alt: #eef2f5;
+
+  /* Text */
+  --color-text: #{ds.brand("navy")};
+  --color-heading: #{ds.brand("navy")};
+  --color-text-muted: #64707a;
+
+  /* Primary */
+  --color-primary: #{ds.brand("blue")};
+  --color-primary-hover: #0038bb;
+  --color-on-primary: #{ds.brand("white")};
+
+  /* Secondary */
+  --color-secondary: #{ds.brand("cool-grey")};
+  --color-secondary-hover: #8f9ba3;
+  --color-on-secondary: #{ds.brand("navy")};
+
+  /* Accent */
+  --color-accent: #{ds.brand("teal")};
+  --color-accent-hover: #00a889;
+  --color-on-accent: #{ds.brand("navy")};
+
+  /* Status */
+  --color-success: #15803d;
+  --color-success-hover: #166534;
+  --color-on-success: #{ds.brand("white")};
+
+  --color-info: #0369a1;
+  --color-info-hover: #075985;
+  --color-on-info: #{ds.brand("white")};
+
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+  --color-on-warning: #{ds.brand("navy")};
+
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-on-danger: #{ds.brand("white")};
+
+  /* Neutral actions */
+  --color-light: #{ds.brand("white")};
+  --color-light-hover: #f3f4f6;
+  --color-on-light: #{ds.brand("navy")};
+
+  --color-dark: #{ds.brand("navy")};
+  --color-dark-hover: #001524;
+  --color-on-dark: #{ds.brand("white")};
+
+  /* Borders */
+  --color-border: #d7dde3;
+  --color-border-strong: #b7c1c9;
+
+  /* Links */
+  --color-link: var(--color-primary);
+  --color-link-hover: var(--color-primary-hover);
+
+  /* Overlay */
+  --color-overlay: rgb(0 0 0 / 0.55);
+
+  /* Disabled */
+  --color-disabled: #cbd5e1;
+  --color-on-disabled: #64748b;
+
+  /* Focus */
+  --focus-ring: var(--color-primary);
+  --color-warning-text: #92400e;
+}

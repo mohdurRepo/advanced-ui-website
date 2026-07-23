@@ -1,0 +1,217 @@
+@use "../abstracts" as ds;
+
+/* ==========================================================================
+   Card
+   ========================================================================== */
+
+.card {
+  --card-bg: var(--color-surface);
+  --card-color: var(--color-text);
+  --card-border: var(--color-border);
+  --card-radius: var(--radius-lg);
+  --card-shadow: var(--shadow-sm);
+
+  --card-padding: 1.5rem;
+  --card-header-padding: 1.25rem 1.5rem;
+  --card-footer-padding: 1.25rem 1.5rem;
+
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+
+  background: var(--card-bg);
+  color: var(--card-color);
+
+  box-shadow: var(--card-shadow);
+
+  @include ds.transition(
+    (background-color, border-color, box-shadow, transform),
+    "normal"
+  );
+}
+
+/* ==========================================================================
+   Regions
+   ========================================================================== */
+
+.card-header,
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  min-width: 0;
+}
+
+.card-header {
+  padding: var(--card-header-padding);
+  border-block-end: 1px solid var(--card-border);
+}
+
+.card-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: var(--card-padding);
+}
+
+.card-footer {
+  padding: var(--card-footer-padding);
+  border-block-start: 1px solid var(--card-border);
+}
+
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+
+.card-title {
+  margin: 0;
+
+  color: var(--color-heading);
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  overflow-wrap: anywhere;
+}
+
+.card-subtitle {
+  margin-block-start: 0.25rem;
+
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+.card-text {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Variants
+   ========================================================================== */
+
+.card-flat {
+  --card-shadow: none;
+}
+
+.card-elevated {
+  --card-shadow: var(--shadow-md);
+}
+
+.card-bordered {
+  border-width: 2px;
+}
+
+.card-rounded {
+  --card-radius: var(--radius-xl);
+}
+
+.card-square {
+  --card-radius: var(--radius-none);
+}
+
+.card-hover:hover {
+  --card-shadow: var(--shadow-lg);
+
+  transform: translateY(-0.1875rem);
+}
+
+/* ==========================================================================
+   Media
+   ========================================================================== */
+
+.card-media {
+  display: block;
+
+  inline-size: 100%;
+  block-size: auto;
+}
+
+.card-media :where(img, picture, video) {
+  display: block;
+
+  inline-size: 100%;
+  block-size: auto;
+}
+
+.card-media-top {
+  overflow: hidden;
+
+  border-start-start-radius: var(--card-radius);
+  border-start-end-radius: var(--card-radius);
+}
+
+.card-media-bottom {
+  overflow: hidden;
+
+  border-end-start-radius: var(--card-radius);
+  border-end-end-radius: var(--card-radius);
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .card {
+    --card-padding: 1rem;
+    --card-header-padding: 1rem;
+    --card-footer-padding: 1rem;
+  }
+
+  .card-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .card-actions {
+    inline-size: 100%;
+  }
+
+  .card-actions .btn {
+    inline-size: 100%;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+
+  .card-hover:hover {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .card {
+    transition: none;
+  }
+
+  .card-hover:hover {
+    transform: none;
+  }
+}

@@ -1,0 +1,524 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Document Item
+   ========================================================================== */
+
+/*
+ * Reusable document card for:
+ *
+ * - Financial statements
+ * - Annual reports
+ * - Governance documents
+ * - Regulatory filings
+ * - Policies and charters
+ */
+
+.financial-document-item {
+  --financial-document-bg: var(--color-surface);
+  --financial-document-fg: var(--color-text);
+  --financial-document-muted: var(--color-text-muted);
+  --financial-document-border: var(--color-border);
+  --financial-document-accent: var(--color-primary);
+
+  --financial-document-icon-bg: color-mix(
+    in oklab,
+    var(--financial-document-accent),
+    transparent 92%
+  );
+
+  --financial-document-radius: var(--radius-lg);
+
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+
+  min-inline-size: 0;
+
+  padding: 1.125rem 1.25rem;
+
+  border: 1px solid var(--financial-document-border);
+  border-radius: var(--financial-document-radius);
+
+  background: var(--financial-document-bg);
+  color: var(--financial-document-fg);
+
+  box-shadow: var(--shadow-xs);
+
+  @include transition((background-color, border-color, box-shadow), fast);
+
+  @media (hover: hover) {
+    &:hover:not(.is-disabled):not([aria-disabled="true"]) {
+      border-color: color-mix(
+        in oklab,
+        var(--financial-document-accent),
+        var(--financial-document-border) 58%
+      );
+
+      box-shadow: var(--shadow-sm);
+    }
+  }
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.financial-document-item__content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+}
+
+.financial-document-item__body {
+  display: grid;
+  gap: 0.375rem;
+
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+}
+
+/*
+ * Compatibility with existing markup that uses an unnamed wrapper.
+ */
+
+.financial-document-item__content > div {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Icon
+   ========================================================================== */
+
+.financial-document-item__icon {
+  --icon-size: 1.125rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 2.625rem;
+  block-size: 2.625rem;
+
+  flex: 0 0 auto;
+
+  border: 1px solid
+    color-mix(in oklab, var(--financial-document-accent), transparent 78%);
+
+  border-radius: var(--radius-md);
+
+  background: var(--financial-document-icon-bg);
+  color: var(--financial-document-accent);
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.financial-document-item__title {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-base);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.financial-document-item__description {
+  max-inline-size: 46rem;
+
+  margin: 0;
+
+  color: var(--financial-document-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Metadata
+   ========================================================================== */
+
+.financial-document-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.75rem;
+
+  margin-block-start: 0.25rem;
+
+  color: var(--financial-document-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-normal);
+}
+
+.financial-document-item__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+
+  white-space: nowrap;
+
+  .has-icon {
+    --icon-size: 0.75rem;
+
+    flex: 0 0 auto;
+
+    color: var(--financial-document-accent);
+  }
+
+  & + &::before {
+    content: "";
+
+    inline-size: 0.25rem;
+    block-size: 0.25rem;
+
+    margin-inline-end: 0.375rem;
+
+    border-radius: 50%;
+
+    background: currentColor;
+
+    opacity: 0.5;
+  }
+}
+
+/* ==========================================================================
+   File Information
+   ========================================================================== */
+
+.financial-document-item__file {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+
+  min-inline-size: 0;
+
+  margin-block-start: 0.25rem;
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.financial-document-item__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+
+  flex: 0 0 auto;
+
+  min-inline-size: 0;
+}
+
+.financial-document-item__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+
+  min-inline-size: max-content;
+
+  color: var(--financial-document-accent);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-tight);
+
+  text-decoration: none;
+  white-space: nowrap;
+
+  .has-icon {
+    --icon-size: 0.75rem;
+
+    flex: 0 0 auto;
+  }
+
+  &:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Full-card Link
+   ========================================================================== */
+
+.financial-document-item__overlay-link {
+  position: absolute;
+  inset: 0;
+
+  border-radius: inherit;
+
+  &::after {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    border-radius: inherit;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible::after {
+    @include focus-ring;
+  }
+}
+
+/*
+ * Keep explicit actions above an optional full-card link.
+ */
+
+.financial-document-item__actions,
+.financial-document-item__action {
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.financial-document-item--compact {
+  gap: 1rem;
+
+  padding: 0.875rem 1rem;
+
+  border-radius: var(--radius-md);
+
+  .financial-document-item__icon {
+    --icon-size: 1rem;
+
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+  }
+
+  .financial-document-item__title {
+    font-size: var(--text-sm);
+  }
+
+  .financial-document-item__description {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Borderless Variant
+   ========================================================================== */
+
+.financial-document-item--borderless {
+  padding-inline: 0;
+
+  border-inline: 0;
+  border-radius: 0;
+
+  box-shadow: none;
+
+  &:hover {
+    box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   Download Variant
+   ========================================================================== */
+
+.financial-document-item--download {
+  --financial-document-accent: var(--color-primary);
+}
+
+/* ==========================================================================
+   External-link Variant
+   ========================================================================== */
+
+.financial-document-item--external {
+  .financial-document-item__action .has-icon {
+    --icon-size: 0.6875rem;
+  }
+}
+
+/* ==========================================================================
+   Important Variant
+   ========================================================================== */
+
+.financial-document-item--important {
+  --financial-document-accent: var(--color-warning, var(--color-primary));
+
+  --financial-document-border: color-mix(
+    in oklab,
+    var(--financial-document-accent),
+    var(--color-border) 55%
+  );
+}
+
+/* ==========================================================================
+   Disabled / Unavailable State
+   ========================================================================== */
+
+.financial-document-item.is-disabled,
+.financial-document-item[aria-disabled="true"] {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+}
+
+.financial-document-item.is-disabled a,
+.financial-document-item.is-disabled button,
+.financial-document-item[aria-disabled="true"] a,
+.financial-document-item[aria-disabled="true"] button {
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.financial-document-item[aria-busy="true"] {
+  pointer-events: none;
+
+  .financial-document-item__content,
+  .financial-document-item__actions {
+    opacity: 0.6;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-document-item {
+    display: grid;
+    gap: 1rem;
+
+    padding: 1rem;
+
+    border-radius: var(--radius-lg);
+  }
+
+  .financial-document-item__content {
+    gap: 0.75rem;
+  }
+
+  .financial-document-item__icon {
+    --icon-size: 1rem;
+
+    inline-size: 2.375rem;
+    block-size: 2.375rem;
+  }
+
+  .financial-document-item__title {
+    font-size: var(--text-sm);
+  }
+
+  .financial-document-item__description {
+    font-size: var(--text-xs);
+  }
+
+  .financial-document-item__meta {
+    gap: 0.375rem 0.625rem;
+  }
+
+  .financial-document-item__actions {
+    justify-content: flex-start;
+
+    inline-size: 100%;
+  }
+
+  .financial-document-item__action {
+    min-block-size: 2.5rem;
+
+    flex: 1 1 auto;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-document-item {
+    box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-document-item {
+    border-width: 2px;
+
+    box-shadow: none;
+  }
+
+  .financial-document-item__icon {
+    border-width: 2px;
+
+    background: transparent;
+    color: currentColor;
+  }
+
+  .financial-document-item__action {
+    color: currentColor;
+
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-document-item {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .financial-document-item {
+    transition: none;
+  }
+}

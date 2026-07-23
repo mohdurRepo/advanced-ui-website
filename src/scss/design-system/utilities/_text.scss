@@ -1,0 +1,213 @@
+@use "../abstracts" as ds;
+
+/* ==========================================================================
+   Alignment
+   ========================================================================== */
+
+.text-start {
+  text-align: start !important;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.text-end {
+  text-align: end !important;
+}
+
+.text-justify {
+  text-align: justify !important;
+}
+
+/* ==========================================================================
+   Colors
+   ========================================================================== */
+
+.text-primary {
+  color: var(--color-primary) !important;
+}
+
+.text-secondary {
+  color: var(--color-secondary) !important;
+}
+
+.text-accent {
+  color: var(--color-accent) !important;
+}
+
+.text-success {
+  color: var(--color-success) !important;
+}
+
+.text-info {
+  color: var(--color-info) !important;
+}
+
+.text-warning {
+  color: var(--color-warning) !important;
+}
+
+.text-danger {
+  color: var(--color-danger) !important;
+}
+
+.text-muted {
+  color: var(--color-text-muted) !important;
+}
+
+.text-body {
+  color: var(--color-text) !important;
+}
+
+.text-heading {
+  color: var(--color-heading) !important;
+}
+
+.text-white {
+  color: #ffffff !important;
+}
+
+.text-black {
+  color: #000000 !important;
+}
+
+/* ==========================================================================
+   Font Weight
+   ========================================================================== */
+
+@each $key, $value in ds.$font-weights {
+  .fw-#{$key} {
+    font-weight: $value !important;
+  }
+}
+
+/* ==========================================================================
+   Font Style
+   ========================================================================== */
+
+.fst-normal {
+  font-style: normal !important;
+}
+
+.fst-italic {
+  font-style: italic !important;
+}
+
+/* ==========================================================================
+   Transformation
+   ========================================================================== */
+
+.text-uppercase {
+  text-transform: uppercase !important;
+}
+
+.text-lowercase {
+  text-transform: lowercase !important;
+}
+
+.text-capitalize {
+  text-transform: capitalize !important;
+}
+
+/* ==========================================================================
+   Decoration
+   ========================================================================== */
+
+.text-decoration-none {
+  text-decoration: none !important;
+}
+
+.text-underline {
+  text-decoration: underline !important;
+}
+
+.text-line-through {
+  text-decoration: line-through !important;
+}
+
+/* ==========================================================================
+   Wrapping
+   ========================================================================== */
+
+.text-wrap {
+  white-space: normal !important;
+}
+
+.text-nowrap {
+  white-space: nowrap !important;
+}
+
+.text-break {
+  overflow-wrap: anywhere !important;
+}
+
+/* ==========================================================================
+   Line Height
+   ========================================================================== */
+
+.lh-1 {
+  line-height: 1 !important;
+}
+
+.lh-tight {
+  line-height: var(--line-height-tight) !important;
+}
+
+.lh-base {
+  line-height: var(--line-height-normal) !important;
+}
+
+.lh-relaxed {
+  line-height: var(--line-height-relaxed) !important;
+}
+
+.lh-xl {
+  line-height: 2 !important;
+}
+
+/* ==========================================================================
+   Letter Spacing
+   ========================================================================== */
+
+.tracking-tight {
+  letter-spacing: -0.02em !important;
+}
+
+.tracking-normal {
+  letter-spacing: 0 !important;
+}
+
+.tracking-wide {
+  letter-spacing: 0.05em !important;
+}
+
+.tracking-wider {
+  letter-spacing: 0.1em !important;
+}
+
+/* ==========================================================================
+   Overflow
+   ========================================================================== */
+
+.text-truncate {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* ==========================================================================
+   Selection
+   ========================================================================== */
+
+.user-select-none {
+  user-select: none !important;
+}
+
+.user-select-all {
+  user-select: all !important;
+}
+
+.user-select-auto {
+  user-select: auto !important;
+}

@@ -1,0 +1,238 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Mega Menu
+   ========================================================================== */
+
+.mega-menu {
+  position: absolute;
+  z-index: var(--z-dropdown);
+
+  inset-block-start: 100%;
+  inset-inline: 0;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  opacity: 0;
+  visibility: hidden;
+
+  pointer-events: none;
+
+  transform: translateY(0.5rem);
+
+  @include ds.transition(
+    (opacity, visibility, transform),
+    var(--transition-fast)
+  );
+}
+
+/* ==========================================================================
+   Hover Bridge
+   ========================================================================== */
+
+/*
+ * This invisible bridge closes the small gap between the Header and the menu.
+ * It prevents the menu from closing while the pointer moves into the panel.
+ */
+
+.mega-menu::before {
+  content: "";
+
+  position: absolute;
+
+  inset-inline: 0;
+  inset-block-start: -0.75rem;
+
+  block-size: 0.75rem;
+
+  pointer-events: auto;
+}
+
+/* ==========================================================================
+   Open State
+   ========================================================================== */
+
+.site-nav__item.is-open > .mega-menu,
+.site-nav__trigger[aria-expanded="true"] + .mega-menu,
+.mega-menu[aria-hidden="false"] {
+  opacity: 1;
+  visibility: visible;
+
+  pointer-events: auto;
+
+  transform: translateY(0);
+}
+
+/* ==========================================================================
+   Container
+   ========================================================================== */
+
+.mega-menu__container {
+  display: grid;
+  grid-template-columns:
+    minmax(14rem, 18rem)
+    minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(1rem, 2vw, 2rem);
+
+  inline-size: min(100% - 2rem, 82.5rem);
+  max-inline-size: 100%;
+  min-inline-size: 0;
+
+  max-block-size: calc(100vh - var(--app-header-height) - 1rem);
+
+  margin-inline: auto;
+  padding: clamp(1rem, 2vw, 1.5rem);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  box-shadow: var(--shadow-lg);
+
+  overflow-x: visible;
+  overflow-y: auto;
+
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+/* ==========================================================================
+   Scrollbar
+   ========================================================================== */
+
+.mega-menu__container::-webkit-scrollbar {
+  inline-size: 0.5rem;
+}
+
+.mega-menu__container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mega-menu__container::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+  background: var(--color-border-strong);
+}
+
+.mega-menu__container::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   Structural Areas
+   ========================================================================== */
+
+.mega-menu__rail,
+.mega-menu__content {
+  min-inline-size: 0;
+}
+
+.mega-menu__rail {
+  padding-inline-end: clamp(0.75rem, 1.5vw, 1.25rem);
+
+  border-inline-end: 1px solid var(--color-border);
+}
+
+.mega-menu__content {
+  overflow: visible;
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+.mega-menu:focus {
+  outline: none;
+}
+
+.mega-menu:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Large Desktop
+   ========================================================================== */
+
+@include ds.respond-up("xl") {
+  .mega-menu__container {
+    grid-template-columns:
+      minmax(15rem, 19rem)
+      minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   Constrained Desktop
+   ========================================================================== */
+
+@media (min-width: 62rem) and (max-width: 73.75rem) {
+  .mega-menu__container {
+    grid-template-columns:
+      minmax(12rem, 15rem)
+      minmax(0, 1fr);
+    gap: 1rem;
+
+    padding: 1rem;
+  }
+
+  .mega-menu__rail {
+    padding-inline-end: 0.75rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile and Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .mega-menu {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .mega-menu__container {
+  border-width: 2px;
+  box-shadow: none;
+}
+
+html[data-contrast="high"] .mega-menu__rail {
+  border-inline-end-width: 2px;
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .mega-menu {
+    transition: none;
+    transform: none;
+  }
+
+  .site-nav__item.is-open > .mega-menu,
+  .site-nav__trigger[aria-expanded="true"] + .mega-menu,
+  .mega-menu[aria-hidden="false"] {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] .mega-menu {
+  transition: none;
+  transform: none;
+}
+
+html[data-motion="reduce"] .site-nav__item.is-open > .mega-menu,
+html[data-motion="reduce"]
+  .site-nav__trigger[aria-expanded="true"]
+  + .mega-menu,
+html[data-motion="reduce"] .mega-menu[aria-hidden="false"] {
+  transform: none;
+}

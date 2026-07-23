@@ -1,0 +1,270 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Panel Header
+   ========================================================================== */
+
+/*
+ * Header for an inner financial panel or subsection.
+ *
+ * Use .financial-content-header for the main content-shell heading.
+ * This component should not be used as the page-level heading.
+ */
+
+.financial-panel-header {
+  --financial-panel-header-gap: clamp(1rem, 3vw, 2rem);
+  --financial-panel-header-divider: var(--color-border);
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--financial-panel-header-gap);
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  padding-block-end: 1rem;
+
+  border-block-end: 1px solid var(--financial-panel-header-divider);
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.financial-panel-header__content {
+  display: grid;
+  gap: 0.375rem;
+
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Eyebrow
+   ========================================================================== */
+
+.financial-panel-header__eyebrow {
+  margin: 0;
+
+  color: var(--color-primary);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.financial-panel-header__title {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: clamp(var(--text-lg), 1rem + 0.45vw, var(--text-xl));
+
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.0125em;
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.financial-panel-header__description {
+  max-inline-size: 48rem;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("regular");
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Metadata
+   ========================================================================== */
+
+.financial-panel-header__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.75rem;
+
+  margin-block-start: 0.125rem;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-normal);
+}
+
+.financial-panel-header__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+
+  & + &::before {
+    content: "";
+
+    inline-size: 0.25rem;
+    block-size: 0.25rem;
+
+    margin-inline-end: 0.375rem;
+
+    border-radius: 50%;
+
+    background: currentColor;
+
+    opacity: 0.55;
+  }
+}
+
+.financial-panel-header__meta-value {
+  color: var(--color-heading);
+
+  font-weight: font-weight("semibold");
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.financial-panel-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.625rem;
+
+  flex: 0 0 auto;
+
+  min-inline-size: 0;
+
+  .btn {
+    white-space: nowrap;
+  }
+
+  .has-icon {
+    --icon-size: 0.875rem;
+  }
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.financial-panel-header--compact {
+  --financial-panel-header-gap: 1rem;
+
+  padding-block-end: 0.75rem;
+
+  .financial-panel-header__title {
+    font-size: var(--text-lg);
+  }
+
+  .financial-panel-header__description {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Without Divider
+   ========================================================================== */
+
+.financial-panel-header--borderless {
+  padding-block-end: 0;
+
+  border-block-end: 0;
+}
+
+/* ==========================================================================
+   Stacked Variant
+   ========================================================================== */
+
+.financial-panel-header--stacked {
+  display: grid;
+
+  .financial-panel-header__actions {
+    justify-content: flex-start;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-panel-header {
+    display: grid;
+    gap: 0.875rem;
+
+    padding-block-end: 0.875rem;
+  }
+
+  .financial-panel-header__title {
+    font-size: var(--text-lg);
+  }
+
+  .financial-panel-header__description {
+    font-size: var(--text-xs);
+  }
+
+  .financial-panel-header__actions {
+    justify-content: flex-start;
+
+    inline-size: 100%;
+  }
+
+  .financial-panel-header__actions .btn {
+    flex: 1 1 auto;
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .financial-panel-header__eyebrow {
+    letter-spacing: 0;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-panel-header {
+    border-block-end-width: 2px;
+  }
+
+  .financial-panel-header__eyebrow {
+    color: var(--color-heading);
+  }
+
+  .financial-panel-header__title {
+    font-weight: font-weight("heavy");
+  }
+}

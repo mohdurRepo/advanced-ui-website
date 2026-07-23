@@ -1,0 +1,113 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Site Footer Bottom
+   ========================================================================== */
+
+.site-footer-bottom {
+  --footer-bottom-bg: var(--footer-accent);
+  --footer-bottom-color: var(--footer-on-accent, var(--color-on-primary));
+
+  --footer-bottom-border: rgb(255 255 255 / 0.18);
+
+  background: var(--footer-bottom-bg);
+  color: var(--footer-bottom-color);
+
+  border-block-start: 1px solid var(--footer-bottom-border);
+}
+
+/* ==========================================================================
+   Accent-aware Border
+   ========================================================================== */
+
+@supports (color: color-mix(in oklab, white, black)) {
+  .site-footer-bottom {
+    --footer-bottom-border: color-mix(
+      in oklab,
+      var(--footer-bottom-bg),
+      #ffffff 18%
+    );
+  }
+}
+
+/* ==========================================================================
+   Container
+   ========================================================================== */
+
+.site-footer-bottom__container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-block-size: 4rem;
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Copyright Text
+   ========================================================================== */
+
+.site-footer-bottom__text {
+  margin: 0;
+
+  color: inherit;
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Copyright Year
+   ========================================================================== */
+
+.site-footer-bottom__text time {
+  color: inherit;
+
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .site-footer-bottom__container {
+    min-block-size: 3.5rem;
+    padding-block: 0.75rem;
+  }
+
+  .site-footer-bottom__text {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .site-footer-bottom {
+  --footer-bottom-bg: #000000;
+  --footer-bottom-color: #ffffff;
+  --footer-bottom-border: #ffffff;
+
+  border-block-start-width: 2px;
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .site-footer-bottom {
+    --footer-bottom-bg: #ffffff;
+    --footer-bottom-color: #000000;
+    --footer-bottom-border: #000000;
+
+    border-block-start-width: 1px;
+  }
+}

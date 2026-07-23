@@ -1,0 +1,127 @@
+@use "../../../design-system/abstracts" as *;
+
+/* ==========================================================================
+   Announcements and Calendar
+   ========================================================================== */
+
+.announcements-calendar {
+  --announcements-bg: #cbdbf9;
+  --announcements-fg: #15253d;
+  --announcements-muted: #52647d;
+
+  --announcements-panel-bg: #16334a;
+  --announcements-panel-fg: #ffffff;
+  --announcements-panel-muted: #b6c7d7;
+
+  --announcements-line: rgb(255 255 255 / 0.12);
+  --announcements-hover: rgb(255 255 255 / 0.06);
+
+  --announcements-space: clamp(1.25rem, 3vw, 2rem);
+  --announcements-gap: clamp(1rem, 2vw, 1.5rem);
+
+  color: var(--announcements-fg);
+}
+
+/* ==========================================================================
+   Surface
+   ========================================================================== */
+
+.announcements-calendar__surface {
+  padding: var(--announcements-space);
+
+  background: var(--announcements-bg);
+  color: var(--announcements-fg);
+}
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+.announcements-calendar__grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.55fr)
+    minmax(20rem, 0.95fr);
+
+  align-items: stretch;
+  gap: var(--announcements-gap);
+
+  min-inline-size: 0;
+}
+
+.announcements-calendar__column {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 1rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Section Headings
+   ========================================================================== */
+
+.announcements-calendar {
+  .section-heading {
+    --section-heading-color: var(--announcements-fg);
+    --section-heading-muted: var(--announcements-muted);
+    --section-heading-accent: var(--color-primary);
+  }
+}
+
+/* ==========================================================================
+   Fixed Dark Surface
+   ========================================================================== */
+
+.surface-insights {
+  --surface-bg: var(--announcements-panel-bg);
+  --surface-fg: var(--announcements-panel-fg);
+  --surface-muted: var(--announcements-panel-muted);
+  --surface-border: var(--announcements-line);
+  --surface-hover: var(--announcements-hover);
+
+  background: var(--surface-bg);
+  color: var(--surface-fg);
+
+  /*
+   * This surface intentionally remains dark in both themes.
+   * Descendant headings must therefore inherit its own foreground token.
+   */
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .announcements-calendar__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .announcements-calendar {
+    --announcements-space: 1rem;
+    --announcements-gap: 1rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .announcements-calendar__surface {
+    outline: 2px solid var(--color-border-strong);
+    outline-offset: -2px;
+  }
+
+  .surface-insights {
+    --surface-border: rgb(255 255 255 / 0.45);
+  }
+}

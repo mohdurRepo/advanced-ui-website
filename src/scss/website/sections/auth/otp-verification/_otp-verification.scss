@@ -1,0 +1,82 @@
+.auth-otp-group {
+  align-items: center;
+  text-align: center;
+
+  .form-label {
+    align-self: stretch;
+    text-align: start;
+  }
+
+  .form-help,
+  .form-error {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.otp--verification {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(3.5rem, 4.5rem));
+  gap: 0.75rem;
+  justify-content: center;
+  width: 100%;
+
+  .otp-input {
+    width: 100%;
+    max-width: none;
+    aspect-ratio: 1;
+    padding: 0;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1;
+    text-align: center;
+    caret-color: var(--color-primary);
+
+    &:focus {
+      transform: translateY(-1px);
+    }
+
+    &:not(:placeholder-shown) {
+      border-color: var(--color-primary);
+    }
+  }
+
+  &.is-invalid {
+    .otp-input {
+      border-color: var(--color-danger);
+    }
+
+    .otp-input:focus {
+      box-shadow: 0 0 0 3px var(--color-danger-focus-ring);
+    }
+  }
+
+  &.is-complete {
+    .otp-input {
+      border-color: var(--color-primary);
+    }
+  }
+}
+
+@media (max-width: 29.99rem) {
+  .otp--verification {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+
+    .otp-input {
+      font-size: 1.5rem;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .otp--verification {
+    .otp-input {
+      transition: none;
+
+      &:focus {
+        transform: none;
+      }
+    }
+  }
+}

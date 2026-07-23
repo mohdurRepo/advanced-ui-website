@@ -1,0 +1,323 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Disclaimer
+   ========================================================================== */
+
+/*
+ * Informational or regulatory message displayed beside financial data.
+ *
+ * This is a semantic notice panel, not a layout component.
+ */
+
+.financial-disclaimer {
+  --financial-disclaimer-fg: var(--color-text-muted);
+  --financial-disclaimer-accent: var(--color-primary);
+  --financial-disclaimer-bg: var(--color-surface-alt);
+  --financial-disclaimer-border: var(--color-border);
+
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+
+  min-inline-size: 0;
+
+  padding: 0.875rem 1rem;
+
+  border: 1px solid var(--financial-disclaimer-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--financial-disclaimer-bg);
+  color: var(--financial-disclaimer-fg);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Icon
+   ========================================================================== */
+
+.financial-disclaimer__icon {
+  --icon-size: 0.6875rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+
+  flex: 0 0 auto;
+
+  margin-block-start: 0.05rem;
+
+  border: 1px solid
+    color-mix(in oklab, var(--financial-disclaimer-accent), transparent 76%);
+
+  border-radius: var(--radius-pill);
+
+  background: color-mix(
+    in oklab,
+    var(--financial-disclaimer-accent),
+    transparent 90%
+  );
+
+  color: var(--financial-disclaimer-accent);
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.financial-disclaimer__content {
+  display: grid;
+  gap: 0.25rem;
+
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.financial-disclaimer__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: inherit;
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Text
+   ========================================================================== */
+
+.financial-disclaimer__text {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: inherit;
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Link
+   ========================================================================== */
+
+.financial-disclaimer__link {
+  color: var(--financial-disclaimer-accent);
+
+  font-weight: font-weight("semibold");
+
+  text-underline-offset: 0.2em;
+
+  &:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Information Trigger
+   ========================================================================== */
+
+.financial-disclaimer__info {
+  --icon-size: 0.6875rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+
+  flex: 0 0 auto;
+
+  padding: 0;
+
+  border: 1px solid
+    color-mix(in oklab, var(--financial-disclaimer-accent), transparent 72%);
+
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface);
+  color: var(--financial-disclaimer-accent);
+
+  cursor: help;
+
+  @include transition((background-color, border-color, color, transform), fast);
+
+  &:hover {
+    border-color: var(--financial-disclaimer-accent);
+
+    background: var(--financial-disclaimer-accent);
+    color: var(--color-on-primary);
+
+    transform: translateY(-1px);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Neutral Variant
+   ========================================================================== */
+
+.financial-disclaimer--neutral {
+  --financial-disclaimer-accent: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   Warning Variant
+   ========================================================================== */
+
+.financial-disclaimer--warning {
+  --financial-disclaimer-accent: var(--color-warning, var(--color-primary));
+
+  --financial-disclaimer-bg: color-mix(
+    in oklab,
+    var(--financial-disclaimer-accent),
+    var(--color-surface) 94%
+  );
+
+  --financial-disclaimer-border: color-mix(
+    in oklab,
+    var(--financial-disclaimer-accent),
+    var(--color-border) 68%
+  );
+}
+
+/* ==========================================================================
+   Critical Variant
+   ========================================================================== */
+
+.financial-disclaimer--critical {
+  --financial-disclaimer-accent: var(--color-danger, var(--color-primary));
+
+  --financial-disclaimer-bg: color-mix(
+    in oklab,
+    var(--financial-disclaimer-accent),
+    var(--color-surface) 95%
+  );
+
+  --financial-disclaimer-border: color-mix(
+    in oklab,
+    var(--financial-disclaimer-accent),
+    var(--color-border) 68%
+  );
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.financial-disclaimer--compact {
+  gap: 0.5rem;
+
+  padding: 0.75rem 0.875rem;
+
+  font-size: var(--text-xs);
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-disclaimer {
+    gap: 0.5rem;
+
+    padding: 0.75rem 0.875rem;
+
+    font-size: var(--text-xs);
+  }
+
+  .financial-disclaimer__icon,
+  .financial-disclaimer__info {
+    --icon-size: 0.625rem;
+
+    inline-size: 1.375rem;
+    block-size: 1.375rem;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-disclaimer {
+    --financial-disclaimer-bg: color-mix(
+      in oklab,
+      var(--color-surface-alt),
+      transparent 8%
+    );
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-disclaimer {
+    --financial-disclaimer-fg: var(--color-text);
+
+    border-width: 2px;
+  }
+
+  .financial-disclaimer__icon,
+  .financial-disclaimer__info {
+    border-width: 2px;
+
+    background: transparent;
+    color: currentColor;
+  }
+
+  .financial-disclaimer__link {
+    color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-disclaimer__info {
+    transition: none;
+  }
+
+  .financial-disclaimer__info:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .financial-disclaimer__info {
+    transition: none;
+  }
+
+  .financial-disclaimer__info:hover {
+    transform: none;
+  }
+}

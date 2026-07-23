@@ -18,7 +18,6 @@ const SELECTORS = {
   mobileOpen: "[data-mobile-nav-open]",
   mobileClose: "[data-mobile-nav-close]",
   mobileSubmenuTrigger: "[data-mobile-submenu-trigger]",
-  mobileSubmenu: "[data-mobile-submenu]",
   mobileLink: ".mobile-nav__link",
 
   /* Shared */
@@ -32,7 +31,16 @@ const SELECTORS = {
   ].join(","),
 };
 
+const CLASSES = {
+  open: "is-open",
+  menuOpen: "is-menu-open",
+  mobileMenuOpen: "is-mobile-menu-open",
+  htmlMobileOpen: "has-mobile-nav-open",
+  bodyMobileOpen: "is-mobile-nav-open",
+};
+
 const DESKTOP_QUERY = "(min-width: 992px)";
+
 const OPEN_DELAY = 80;
 const CLOSE_DELAY = 220;
 
@@ -47,6 +55,10 @@ let initialized = false;
 /* ==========================================================================
    General Helpers
    ========================================================================== */
+
+function getHeader() {
+  return document.querySelector(SELECTORS.header);
+}
 
 function isDesktop() {
   return desktopMediaQuery.matches;
@@ -64,54 +76,56 @@ function getFocusableElements(container) {
   if (!container) return [];
 
   return Array.from(container.querySelectorAll(SELECTORS.focusable)).filter(
-    (element) =>
-      !element.hidden &&
-      !element.hasAttribute("disabled") &&
-      element.getAttribute("aria-hidden") !== "true" &&
-      element.offsetParent !== null,
+    (element) => {
+      return (
+        !element.hidden &&
+        !element.hasAttribute("disabled") &&
+        element.getAttribute("aria-hidden") !== "true" &&
+        element.offsetParent !== null
+      );
+    },
   );
 }
 
+function focusElement(element) {
+  if (!(element instanceof HTMLElement)) return;
+
+  element.focus({
+    preventScroll: true,
+  });
+}
+
 /* ==========================================================================
-   Desktop Mega Menu
+   Desktop Mega Menu Helpers
    ========================================================================== */
 
 function getDesktopTrigger(item) {
-  return item?.querySelector(SELECTORS.desktopNavTrigger);
+  return item?.querySelector(`:scope > ${SELECTORS.desktopNavTrigger}`);
 }
 
 function getMegaMenu(item) {
-  return item?.querySelector(SELECTORS.megaMenu);
+  return item?.querySelector(`:scope > ${SELECTORS.megaMenu}`);
 }
 
-function closeDesktopItem(item, { restoreFocus = false } = {}) {
-  if (!item) return;
+function getMegaCategories(container) {
+  if (!container) return [];
 
-  const trigger = getDesktopTrigger(item);
-  const megaMenu = getMegaMenu(item);
-
-  item.classList.remove("is-open");
-  trigger?.setAttribute("aria-expanded", "false");
-  megaMenu?.setAttribute("aria-hidden", "true");
-
-  if (restoreFocus) {
-    trigger?.focus();
-  }
-
-  if (activeDesktopItem === item) {
-    activeDesktopItem = null;
-  }
+  return Array.from(container.querySelectorAll(SELECTORS.megaCategory));
 }
 
-function closeAllDesktopMenus(options = {}) {
-  clearDesktopTimers();
+function getMegaPanels(container) {
+  if (!container) return [];
 
-  document
-    .querySelectorAll(`${SELECTORS.desktopNavItem}.is-open`)
-    .forEach((item) => closeDesktopItem(item, options));
-
-  activeDesktopItem = null;
+  return Array.from(container.querySelectorAll(SELECTORS.megaPanel));
 }
+
+function setHeaderDesktopState(isOpen) {
+  getHeader()?.classList.toggle(CLASSES.menuOpen, isOpen);
+}
+
+/* ==========================================================================
+   Mega Menu Panels
+   ========================================================================== */
 
 function activateMegaPanel(category, { focus = false } = {}) {
   if (!category) return;
@@ -121,11 +135,8 @@ function activateMegaPanel(category, { focus = false } = {}) {
 
   if (!megaMenu || !targetId) return;
 
-  const categories = Array.from(
-    megaMenu.querySelectorAll(SELECTORS.megaCategory),
-  );
-
-  const panels = Array.from(megaMenu.querySelectorAll(SELECTORS.megaPanel));
+  const categories = getMegaCategories(megaMenu);
+  const panels = getMegaPanels(megaMenu);
 
   categories.forEach((item) => {
     const isActive = item === category;
@@ -144,22 +155,47 @@ function activateMegaPanel(category, { focus = false } = {}) {
   });
 
   if (focus) {
-    category.focus();
+    focusElement(category);
   }
 }
 
-function activateInitialMegaPanel(item) {
-  const categories = Array.from(item.querySelectorAll(SELECTORS.megaCategory));
+function getDefaultMegaCategory(item) {
+  const categories = getMegaCategories(item);
 
-  if (!categories.length) return;
+  if (!categories.length) return null;
 
-  const selectedCategory =
-    categories.find(
-      (category) => category.getAttribute("aria-selected") === "true",
-    ) || categories[0];
-
-  activateMegaPanel(selectedCategory);
+  /*
+   * A category may explicitly declare itself as the default:
+   *
+   * data-mega-default
+   *
+   * Otherwise, the first category is always the default.
+   */
+  return (
+    categories.find((category) => category.hasAttribute("data-mega-default")) ||
+    categories[0]
+  );
 }
+
+function activateInitialMegaPanel(item) {
+  const defaultCategory = getDefaultMegaCategory(item);
+
+  if (!defaultCategory) return;
+
+  activateMegaPanel(defaultCategory);
+}
+
+function initializeMegaPanels(item) {
+  const defaultCategory = getDefaultMegaCategory(item);
+
+  if (!defaultCategory) return;
+
+  activateMegaPanel(defaultCategory);
+}
+
+/* ==========================================================================
+   Desktop Menu State
+   ========================================================================== */
 
 function openDesktopItem(item) {
   if (!item || !isDesktop()) return;
@@ -173,24 +209,80 @@ function openDesktopItem(item) {
   const trigger = getDesktopTrigger(item);
   const megaMenu = getMegaMenu(item);
 
+  if (!trigger || !megaMenu) return;
+
+  /*
+   * Restore the default panel before displaying the menu.
+   * This prevents the last hovered category from remaining active when the
+   * user returns to the top-level navigation item.
+   */
+  activateInitialMegaPanel(item);
+
   activeDesktopItem = item;
 
-  item.classList.add("is-open");
-  trigger?.setAttribute("aria-expanded", "true");
-  megaMenu?.setAttribute("aria-hidden", "false");
+  item.classList.add(CLASSES.open);
+  trigger.setAttribute("aria-expanded", "true");
+  megaMenu.setAttribute("aria-hidden", "false");
 
+  setHeaderDesktopState(true);
+}
+
+function closeDesktopItem(item, { restoreFocus = false } = {}) {
+  if (!item) return;
+
+  const trigger = getDesktopTrigger(item);
+  const megaMenu = getMegaMenu(item);
+
+  item.classList.remove(CLASSES.open);
+  trigger?.setAttribute("aria-expanded", "false");
+  megaMenu?.setAttribute("aria-hidden", "true");
+
+  /*
+   * Reset while closed so both visual state and ARIA state are ready for the
+   * next opening.
+   */
   activateInitialMegaPanel(item);
+
+  if (restoreFocus) {
+    focusElement(trigger);
+  }
+
+  if (activeDesktopItem === item) {
+    activeDesktopItem = null;
+  }
+
+  if (!activeDesktopItem) {
+    setHeaderDesktopState(false);
+  }
+}
+
+function closeAllDesktopMenus(options = {}) {
+  clearDesktopTimers();
+
+  document
+    .querySelectorAll(`${SELECTORS.desktopNavItem}.${CLASSES.open}`)
+    .forEach((item) => {
+      closeDesktopItem(item, options);
+    });
+
+  activeDesktopItem = null;
+  setHeaderDesktopState(false);
 }
 
 function toggleDesktopItem(item) {
   if (!item || !isDesktop()) return;
 
-  if (item.classList.contains("is-open")) {
+  if (item.classList.contains(CLASSES.open)) {
     closeDesktopItem(item);
-  } else {
-    openDesktopItem(item);
+    return;
   }
+
+  openDesktopItem(item);
 }
+
+/* ==========================================================================
+   Desktop Hover Scheduling
+   ========================================================================== */
 
 function scheduleDesktopOpen(item) {
   clearDesktopTimers();
@@ -204,23 +296,26 @@ function scheduleDesktopClose(item) {
   window.clearTimeout(openTimer);
   window.clearTimeout(closeTimer);
 
+  openTimer = null;
+
   closeTimer = window.setTimeout(() => {
     closeDesktopItem(item);
   }, CLOSE_DELAY);
 }
+
+/* ==========================================================================
+   Mega Menu Keyboard Navigation
+   ========================================================================== */
 
 function handleMegaCategoryKeyboard(event, category) {
   const megaMenu = category.closest(SELECTORS.megaMenu);
 
   if (!megaMenu) return;
 
-  const categories = Array.from(
-    megaMenu.querySelectorAll(SELECTORS.megaCategory),
-  );
-
+  const categories = getMegaCategories(megaMenu);
   const currentIndex = categories.indexOf(category);
 
-  if (currentIndex < 0) return;
+  if (currentIndex < 0 || !categories.length) return;
 
   let nextIndex = currentIndex;
 
@@ -247,107 +342,146 @@ function handleMegaCategoryKeyboard(event, category) {
       activateMegaPanel(category);
       return;
 
+    case "Escape": {
+      event.preventDefault();
+
+      const desktopItem = category.closest(SELECTORS.desktopNavItem);
+
+      closeDesktopItem(desktopItem, {
+        restoreFocus: true,
+      });
+
+      return;
+    }
+
     default:
       return;
   }
 
   event.preventDefault();
-  activateMegaPanel(categories[nextIndex], { focus: true });
-}
 
-function initializeDesktopMenus() {
-  document.querySelectorAll(SELECTORS.desktopNavItem).forEach((item) => {
-    const trigger = getDesktopTrigger(item);
-    const megaMenu = getMegaMenu(item);
-
-    trigger?.setAttribute("aria-expanded", "false");
-    megaMenu?.setAttribute("aria-hidden", "true");
-
-    item.addEventListener("pointerenter", (event) => {
-      if (event.pointerType === "touch") return;
-
-      scheduleDesktopOpen(item);
-    });
-
-    item.addEventListener("pointerleave", (event) => {
-      if (event.pointerType === "touch") return;
-
-      scheduleDesktopClose(item);
-    });
-
-    trigger?.addEventListener("click", (event) => {
-      if (!isDesktop()) return;
-
-      event.preventDefault();
-      toggleDesktopItem(item);
-    });
-
-    trigger?.addEventListener("keydown", (event) => {
-      if (!isDesktop()) return;
-
-      switch (event.key) {
-        case "ArrowDown": {
-          event.preventDefault();
-          openDesktopItem(item);
-
-          const activeCategory = item.querySelector(
-            `${SELECTORS.megaCategory}.is-active`,
-          );
-
-          activeCategory?.focus();
-          break;
-        }
-
-        case "Escape":
-          event.preventDefault();
-          closeDesktopItem(item, { restoreFocus: true });
-          break;
-
-        default:
-          break;
-      }
-    });
-
-    item.addEventListener("focusout", (event) => {
-      if (!item.contains(event.relatedTarget)) {
-        scheduleDesktopClose(item);
-      }
-    });
-  });
-
-  document.addEventListener("pointerover", (event) => {
-    if (!isDesktop()) return;
-
-    const category = event.target.closest(SELECTORS.megaCategory);
-
-    if (category) {
-      activateMegaPanel(category);
-    }
-  });
-
-  document.addEventListener("focusin", (event) => {
-    if (!isDesktop()) return;
-
-    const category = event.target.closest(SELECTORS.megaCategory);
-
-    if (category) {
-      activateMegaPanel(category);
-    }
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if (!isDesktop()) return;
-
-    const category = event.target.closest(SELECTORS.megaCategory);
-
-    if (category) {
-      handleMegaCategoryKeyboard(event, category);
-    }
+  activateMegaPanel(categories[nextIndex], {
+    focus: true,
   });
 }
 
 /* ==========================================================================
-   Mobile Navigation
+   Desktop Initialization
+   ========================================================================== */
+
+function initializeDesktopItem(item) {
+  const trigger = getDesktopTrigger(item);
+  const megaMenu = getMegaMenu(item);
+
+  if (!trigger || !megaMenu) return;
+
+  item.classList.remove(CLASSES.open);
+
+  trigger.setAttribute("aria-expanded", "false");
+  megaMenu.setAttribute("aria-hidden", "true");
+
+  initializeMegaPanels(item);
+
+  item.addEventListener("pointerenter", (event) => {
+    if (event.pointerType === "touch") return;
+
+    scheduleDesktopOpen(item);
+  });
+
+  item.addEventListener("pointerleave", (event) => {
+    if (event.pointerType === "touch") return;
+
+    scheduleDesktopClose(item);
+  });
+
+  trigger.addEventListener("click", (event) => {
+    if (!isDesktop()) return;
+
+    event.preventDefault();
+    toggleDesktopItem(item);
+  });
+
+  trigger.addEventListener("keydown", (event) => {
+    if (!isDesktop()) return;
+
+    switch (event.key) {
+      case "ArrowDown": {
+        event.preventDefault();
+
+        openDesktopItem(item);
+
+        const activeCategory = item.querySelector(
+          `${SELECTORS.megaCategory}.is-active`,
+        );
+
+        focusElement(activeCategory);
+        break;
+      }
+
+      case "Escape":
+        event.preventDefault();
+
+        closeDesktopItem(item, {
+          restoreFocus: true,
+        });
+        break;
+
+      default:
+        break;
+    }
+  });
+
+  item.addEventListener("focusout", (event) => {
+    if (!item.contains(event.relatedTarget)) {
+      scheduleDesktopClose(item);
+    }
+  });
+}
+
+function handleMegaCategoryPointer(event) {
+  if (!isDesktop()) return;
+
+  const category = event.target.closest(SELECTORS.megaCategory);
+
+  if (!category) return;
+
+  activateMegaPanel(category);
+}
+
+function handleMegaCategoryFocus(event) {
+  if (!isDesktop()) return;
+
+  const category = event.target.closest(SELECTORS.megaCategory);
+
+  if (!category) return;
+
+  activateMegaPanel(category);
+}
+
+function handleMegaCategoryKeydown(event) {
+  if (!isDesktop()) return;
+
+  const category = event.target.closest(SELECTORS.megaCategory);
+
+  if (!category) return;
+
+  handleMegaCategoryKeyboard(event, category);
+}
+
+function initializeDesktopMenus() {
+  document
+    .querySelectorAll(SELECTORS.desktopNavItem)
+    .forEach(initializeDesktopItem);
+
+  document.addEventListener("pointerover", handleMegaCategoryPointer);
+
+  document.addEventListener("focusin", handleMegaCategoryFocus);
+
+  document.addEventListener("keydown", handleMegaCategoryKeydown);
+}
+
+/* ==========================================================================
+   Mobile Navigation Helpers
    ========================================================================== */
 
 function getMobileNav() {
@@ -363,31 +497,54 @@ function getMobileOpenButton() {
 }
 
 function isMobileNavOpen() {
-  return getMobileNav()?.classList.contains("is-open") ?? false;
+  return getMobileNav()?.classList.contains(CLASSES.open) ?? false;
 }
 
 function setMobileScrollLock(locked) {
-  document.documentElement.classList.toggle("has-mobile-nav-open", locked);
-  document.body.classList.toggle("is-mobile-nav-open", locked);
+  document.documentElement.classList.toggle(CLASSES.htmlMobileOpen, locked);
+
+  document.body.classList.toggle(CLASSES.bodyMobileOpen, locked);
+
+  getHeader()?.classList.toggle(CLASSES.mobileMenuOpen, locked);
+}
+
+/* ==========================================================================
+   Mobile Submenus
+   ========================================================================== */
+
+function getMobileSubmenu(trigger) {
+  if (!trigger) return null;
+
+  const targetId = trigger.getAttribute("aria-controls");
+
+  if (!targetId) return null;
+
+  return document.getElementById(targetId);
 }
 
 function setMobileSubmenu(trigger, open) {
   if (!trigger) return;
 
-  const targetId = trigger.getAttribute("aria-controls");
-
-  if (!targetId) return;
-
-  const submenu = document.getElementById(targetId);
+  const submenu = getMobileSubmenu(trigger);
 
   if (!submenu) return;
 
   trigger.setAttribute("aria-expanded", String(open));
-  trigger.classList.toggle("is-open", open);
+  trigger.classList.toggle(CLASSES.open, open);
 
-  submenu.classList.toggle("is-open", open);
+  submenu.classList.toggle(CLASSES.open, open);
   submenu.hidden = !open;
   submenu.setAttribute("aria-hidden", String(!open));
+}
+
+function closeNestedSubmenus(container) {
+  if (!container) return;
+
+  container
+    .querySelectorAll(SELECTORS.mobileSubmenuTrigger)
+    .forEach((trigger) => {
+      setMobileSubmenu(trigger, false);
+    });
 }
 
 function closeSiblingSubmenus(trigger) {
@@ -401,15 +558,24 @@ function closeSiblingSubmenus(trigger) {
     );
 
     if (siblingTrigger && siblingTrigger !== trigger) {
+      const siblingSubmenu = getMobileSubmenu(siblingTrigger);
+
+      closeNestedSubmenus(siblingSubmenu);
       setMobileSubmenu(siblingTrigger, false);
     }
   });
 }
 
 function toggleMobileSubmenu(trigger) {
+  const submenu = getMobileSubmenu(trigger);
+
+  if (!submenu) return;
+
   const isOpen = trigger.getAttribute("aria-expanded") === "true";
 
-  if (!isOpen) {
+  if (isOpen) {
+    closeNestedSubmenus(submenu);
+  } else {
     closeSiblingSubmenus(trigger);
   }
 
@@ -426,17 +592,24 @@ function resetMobileSubmenus() {
   });
 }
 
-function openMobileNav() {
+/* ==========================================================================
+   Mobile Drawer State
+   ========================================================================== */
+
+function openMobileNav(trigger = null) {
   const nav = getMobileNav();
   const overlay = getMobileOverlay();
-  const openButton = getMobileOpenButton();
+  const openButton = trigger || getMobileOpenButton();
 
   if (!nav || !overlay || isDesktop()) return;
 
-  lastFocusedElement = document.activeElement;
+  lastFocusedElement =
+    document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : openButton;
 
-  nav.classList.add("is-open");
-  overlay.classList.add("is-open");
+  nav.classList.add(CLASSES.open);
+  overlay.classList.add(CLASSES.open);
 
   nav.setAttribute("aria-hidden", "false");
   overlay.setAttribute("aria-hidden", "false");
@@ -446,7 +619,8 @@ function openMobileNav() {
 
   window.requestAnimationFrame(() => {
     const closeButton = nav.querySelector(SELECTORS.mobileClose);
-    closeButton?.focus();
+
+    focusElement(closeButton || nav);
   });
 }
 
@@ -457,8 +631,8 @@ function closeMobileNav({ restoreFocus = true } = {}) {
 
   if (!nav || !overlay) return;
 
-  nav.classList.remove("is-open");
-  overlay.classList.remove("is-open");
+  nav.classList.remove(CLASSES.open);
+  overlay.classList.remove(CLASSES.open);
 
   nav.setAttribute("aria-hidden", "true");
   overlay.setAttribute("aria-hidden", "true");
@@ -473,20 +647,27 @@ function closeMobileNav({ restoreFocus = true } = {}) {
         ? lastFocusedElement
         : openButton;
 
-    focusTarget?.focus();
+    focusElement(focusTarget);
   }
 
   lastFocusedElement = null;
 }
 
+/* ==========================================================================
+   Mobile Focus Trap
+   ========================================================================== */
+
 function trapMobileFocus(event) {
-  if (event.key !== "Tab" || !isMobileNavOpen()) return;
+  if (event.key !== "Tab" || !isMobileNavOpen()) {
+    return;
+  }
 
   const nav = getMobileNav();
   const focusableElements = getFocusableElements(nav);
 
   if (!focusableElements.length) {
     event.preventDefault();
+    focusElement(nav);
     return;
   }
 
@@ -495,15 +676,19 @@ function trapMobileFocus(event) {
 
   if (event.shiftKey && document.activeElement === firstElement) {
     event.preventDefault();
-    lastElement.focus();
+    focusElement(lastElement);
     return;
   }
 
   if (!event.shiftKey && document.activeElement === lastElement) {
     event.preventDefault();
-    firstElement.focus();
+    focusElement(firstElement);
   }
 }
+
+/* ==========================================================================
+   Mobile Initialization
+   ========================================================================== */
 
 function initializeMobileSubmenus() {
   const nav = getMobileNav();
@@ -511,57 +696,69 @@ function initializeMobileSubmenus() {
   if (!nav) return;
 
   nav.querySelectorAll(SELECTORS.mobileSubmenuTrigger).forEach((trigger) => {
-    const targetId = trigger.getAttribute("aria-controls");
-    const submenu = targetId ? document.getElementById(targetId) : null;
-
-    trigger.setAttribute("aria-expanded", "false");
-
-    if (submenu) {
-      submenu.hidden = true;
-      submenu.setAttribute("aria-hidden", "true");
-    }
+    setMobileSubmenu(trigger, false);
   });
 }
 
-function initializeMobileNavigation() {
+function initializeMobileNavigationState() {
+  const nav = getMobileNav();
+  const overlay = getMobileOverlay();
+  const openButton = getMobileOpenButton();
+
+  nav?.classList.remove(CLASSES.open);
+  overlay?.classList.remove(CLASSES.open);
+
+  nav?.setAttribute("aria-hidden", "true");
+  overlay?.setAttribute("aria-hidden", "true");
+  openButton?.setAttribute("aria-expanded", "false");
+
+  setMobileScrollLock(false);
   initializeMobileSubmenus();
+}
 
-  document.addEventListener("click", (event) => {
-    const openButton = event.target.closest(SELECTORS.mobileOpen);
+function handleMobileNavigationClick(event) {
+  const openButton = event.target.closest(SELECTORS.mobileOpen);
 
-    if (openButton) {
-      openMobileNav();
-      return;
-    }
+  if (openButton) {
+    openMobileNav(openButton);
+    return;
+  }
 
-    const closeButton = event.target.closest(SELECTORS.mobileClose);
+  const closeButton = event.target.closest(SELECTORS.mobileClose);
 
-    if (closeButton) {
-      closeMobileNav();
-      return;
-    }
+  if (closeButton) {
+    closeMobileNav();
+    return;
+  }
 
-    const overlay = event.target.closest(SELECTORS.mobileOverlay);
+  const overlay = event.target.closest(SELECTORS.mobileOverlay);
 
-    if (overlay) {
-      closeMobileNav();
-      return;
-    }
+  if (overlay) {
+    closeMobileNav();
+    return;
+  }
 
-    const submenuTrigger = event.target.closest(SELECTORS.mobileSubmenuTrigger);
+  const submenuTrigger = event.target.closest(SELECTORS.mobileSubmenuTrigger);
 
-    if (submenuTrigger) {
-      event.preventDefault();
-      toggleMobileSubmenu(submenuTrigger);
-      return;
-    }
+  if (submenuTrigger) {
+    event.preventDefault();
+    toggleMobileSubmenu(submenuTrigger);
+    return;
+  }
 
-    const mobileLink = event.target.closest(SELECTORS.mobileLink);
+  const mobileLink = event.target.closest(SELECTORS.mobileLink);
 
-    if (mobileLink) {
-      closeMobileNav({ restoreFocus: false });
-    }
-  });
+  if (mobileLink) {
+    closeMobileNav({
+      restoreFocus: false,
+    });
+  }
+}
+
+function initializeMobileNavigation() {
+  initializeMobileNavigationState();
+
+  document.addEventListener("click", handleMobileNavigationClick);
 
   document.addEventListener("keydown", trapMobileFocus);
 }
@@ -581,12 +778,17 @@ function handleGlobalKeyboard(event) {
 
   if (activeDesktopItem) {
     event.preventDefault();
-    closeDesktopItem(activeDesktopItem, { restoreFocus: true });
+
+    closeDesktopItem(activeDesktopItem, {
+      restoreFocus: true,
+    });
   }
 }
 
 function handleOutsideClick(event) {
-  if (!isDesktop() || !activeDesktopItem) return;
+  if (!isDesktop() || !activeDesktopItem) {
+    return;
+  }
 
   if (!activeDesktopItem.contains(event.target)) {
     closeAllDesktopMenus();
@@ -598,10 +800,40 @@ function handleViewportChange(event) {
   closeAllDesktopMenus();
 
   if (event.matches) {
-    closeMobileNav({ restoreFocus: false });
+    closeMobileNav({
+      restoreFocus: false,
+    });
   } else {
     resetMobileSubmenus();
   }
+}
+
+/* ==========================================================================
+   Sticky Header State
+   ========================================================================== */
+
+function initializeHeaderScrollState(header) {
+  let isTicking = false;
+
+  function updateHeaderState() {
+    header.classList.toggle("is-scrolled", window.scrollY > 0);
+
+    isTicking = false;
+  }
+
+  function handleScroll() {
+    if (isTicking) return;
+
+    isTicking = true;
+
+    window.requestAnimationFrame(updateHeaderState);
+  }
+
+  updateHeaderState();
+
+  window.addEventListener("scroll", handleScroll, {
+    passive: true,
+  });
 }
 
 /* ==========================================================================
@@ -611,7 +843,7 @@ function handleViewportChange(event) {
 export function initHeader() {
   if (initialized) return;
 
-  const header = document.querySelector(SELECTORS.header);
+  const header = getHeader();
 
   if (!header) return;
 
@@ -619,8 +851,10 @@ export function initHeader() {
 
   initializeDesktopMenus();
   initializeMobileNavigation();
+  initializeHeaderScrollState(header);
 
   document.addEventListener("keydown", handleGlobalKeyboard);
+
   document.addEventListener("click", handleOutsideClick);
 
   desktopMediaQuery.addEventListener("change", handleViewportChange);

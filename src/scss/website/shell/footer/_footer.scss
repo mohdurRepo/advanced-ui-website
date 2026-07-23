@@ -1,0 +1,368 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Site Footer
+   ========================================================================== */
+
+.site-footer {
+  --footer-page-bg: var(--color-bg);
+
+  /*
+   * Fixed branded surface.
+   * These colors intentionally remain dark in both themes.
+   */
+  --footer-bg: #001f2e;
+  --footer-bg-alt: #073548;
+
+  --footer-text: rgb(255 255 255 / 0.76);
+  --footer-heading: #ffffff;
+  --footer-muted: rgb(255 255 255 / 0.56);
+
+  --footer-border: rgb(255 255 255 / 0.1);
+  --footer-border-strong: rgb(255 255 255 / 0.18);
+
+  --footer-accent: var(--color-primary);
+  --footer-on-accent: var(--color-on-primary);
+
+  --footer-pattern: url("../../../../assets/images/footer-background-pattern.png");
+  --footer-pattern-opacity: 0.6;
+
+  --footer-glow-size: 42rem;
+  --footer-glow-opacity: 0.18;
+  --footer-glow-blur: 3rem;
+  --footer-glow-inline: -14rem;
+  --footer-glow-block: -16rem;
+
+  --footer-space: clamp(2rem, 3.5vw, 3.25rem);
+  --footer-shadow: var(--shadow-lg);
+
+  --footer-gradient-angle: 135deg;
+
+  background: var(--footer-page-bg);
+  color: var(--footer-text);
+}
+
+/* ==========================================================================
+   Branded Surface
+   ========================================================================== */
+
+.site-footer__surface {
+  /*
+   * Local semantic environment.
+   * Generic components placed inside the Footer inherit readable colors.
+   */
+  --color-surface: var(--footer-bg);
+  --color-surface-alt: var(--footer-bg-alt);
+  --color-text: var(--footer-text);
+  --color-heading: var(--footer-heading);
+  --color-text-muted: var(--footer-muted);
+  --color-border: var(--footer-border);
+  --color-border-strong: var(--footer-border-strong);
+
+  position: relative;
+  isolation: isolate;
+
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  border: 1px solid var(--footer-border);
+
+  background: linear-gradient(
+    var(--footer-gradient-angle),
+    var(--footer-bg) 0%,
+    var(--footer-bg-alt) 100%
+  );
+
+  color: var(--footer-text);
+
+  box-shadow: var(--footer-shadow);
+}
+
+/* ==========================================================================
+   Decorative Pattern
+   ========================================================================== */
+
+.site-footer__surface::before {
+  content: "";
+
+  position: absolute;
+  z-index: -2;
+
+  inset: 0;
+
+  background-image: var(--footer-pattern);
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: min(60rem, 72vw) auto;
+
+  opacity: var(--footer-pattern-opacity);
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Decorative Glow
+   ========================================================================== */
+
+.site-footer__surface::after {
+  content: "";
+
+  position: absolute;
+  z-index: -1;
+
+  inset-inline-end: var(--footer-glow-inline);
+  inset-block-end: var(--footer-glow-block);
+
+  inline-size: var(--footer-glow-size);
+  block-size: var(--footer-glow-size);
+
+  border-radius: var(--radius-pill);
+
+  /*
+   * Safe fallback for browsers without color-mix().
+   */
+  background: radial-gradient(
+    circle at center,
+    rgb(0 69 227 / var(--footer-glow-opacity)) 0%,
+    rgb(0 69 227 / 0.1) 30%,
+    rgb(0 69 227 / 0.045) 52%,
+    transparent 74%
+  );
+
+  filter: blur(var(--footer-glow-blur));
+
+  pointer-events: none;
+}
+
+/*
+ * Accent-aware enhancement.
+ */
+
+@supports (color: color-mix(in srgb, white, black)) {
+  .site-footer__surface::after {
+    background: radial-gradient(
+      circle at center,
+      color-mix(in srgb, var(--footer-accent) 18%, transparent) 0%,
+      color-mix(in srgb, var(--footer-accent) 11%, transparent) 30%,
+      color-mix(in srgb, var(--footer-accent) 5%, transparent) 52%,
+      transparent 74%
+    );
+  }
+}
+
+/* ==========================================================================
+   Main Layout
+   ========================================================================== */
+
+.site-footer__main {
+  display: grid;
+  grid-template-columns:
+    minmax(18rem, 0.9fr)
+    minmax(0, 1.9fr);
+
+  grid-template-areas:
+    "brand navigation"
+    "social navigation";
+
+  min-inline-size: 0;
+  min-block-size: clamp(28rem, 44vw, 38rem);
+}
+
+/* ==========================================================================
+   Brand Area
+   ========================================================================== */
+
+.site-footer__brand {
+  grid-area: brand;
+
+  min-inline-size: 0;
+  padding: var(--footer-space);
+
+  border-inline-end: 1px solid var(--footer-border);
+}
+
+/* ==========================================================================
+   Navigation Area
+   ========================================================================== */
+
+.site-footer__navigation {
+  grid-area: navigation;
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Social Area
+   ========================================================================== */
+
+.site-footer__social {
+  grid-area: social;
+
+  min-inline-size: 0;
+  padding: 0 var(--footer-space) var(--footer-space);
+
+  border-inline-end: 1px solid var(--footer-border);
+}
+
+/* ==========================================================================
+   Local Typography
+   ========================================================================== */
+
+.site-footer__surface h1,
+.site-footer__surface h2,
+.site-footer__surface h3,
+.site-footer__surface h4,
+.site-footer__surface h5,
+.site-footer__surface h6 {
+  color: var(--footer-heading);
+}
+
+.site-footer__surface p {
+  color: var(--footer-text);
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .site-footer {
+  --footer-gradient-angle: 225deg;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .site-footer {
+    --footer-space: clamp(1.75rem, 3vw, 2.5rem);
+
+    --footer-glow-size: 34rem;
+    --footer-glow-inline: -12rem;
+    --footer-glow-block: -12rem;
+  }
+
+  .site-footer__main {
+    grid-template-columns: minmax(0, 1fr);
+
+    grid-template-areas:
+      "brand"
+      "navigation"
+      "social";
+
+    min-block-size: auto;
+  }
+
+  .site-footer__brand {
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--footer-border);
+  }
+
+  .site-footer__navigation {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    border-block-end: 1px solid var(--footer-border);
+  }
+
+  .site-footer__social {
+    padding: var(--footer-space);
+
+    border-inline-end: 0;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .site-footer__navigation {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .site-footer {
+    --footer-space: 1.5rem;
+
+    --footer-pattern-opacity: 0.08;
+
+    --footer-glow-size: 24rem;
+    --footer-glow-inline: -9rem;
+    --footer-glow-block: -9rem;
+    --footer-glow-blur: 2rem;
+  }
+
+  .site-footer__brand,
+  .site-footer__social {
+    padding: var(--footer-space);
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+/*
+ * The branded colors remain unchanged.
+ * Only the surrounding presentation is adjusted.
+ */
+
+html[data-theme="dark"] .site-footer {
+  --footer-shadow: none;
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .site-footer {
+  --footer-bg: #000000;
+  --footer-bg-alt: #000000;
+
+  --footer-text: #ffffff;
+  --footer-heading: #ffffff;
+  --footer-muted: #ffffff;
+
+  --footer-border: #ffffff;
+  --footer-border-strong: #ffffff;
+
+  --footer-shadow: none;
+}
+
+html[data-contrast="high"] .site-footer__surface {
+  border-width: 2px;
+}
+
+html[data-contrast="high"] .site-footer__surface::before,
+html[data-contrast="high"] .site-footer__surface::after {
+  display: none;
+}
+
+html[data-contrast="high"] .site-footer__brand,
+html[data-contrast="high"] .site-footer__navigation,
+html[data-contrast="high"] .site-footer__social {
+  border-color: var(--footer-border-strong);
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .site-footer__surface::after {
+    filter: none;
+  }
+}
+
+html[data-motion="reduce"] .site-footer__surface::after {
+  filter: none;
+}

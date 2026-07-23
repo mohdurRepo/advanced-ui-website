@@ -1,0 +1,792 @@
+@use "../abstracts" as ds;
+
+/* ==========================================================================
+   Form Configuration
+   ========================================================================== */
+
+:where(.form, .form-inline, .form-horizontal) {
+  --form-control-height: 2.75rem;
+  --form-control-padding-x: 0.875rem;
+  --form-control-radius: var(--radius-md);
+  --form-control-border: var(--color-border);
+  --form-control-bg: var(--color-surface);
+  --form-control-color: var(--color-text);
+  --form-control-placeholder: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   Form Layout
+   ========================================================================== */
+
+.form {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.form-row {
+  display: grid;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Labels and Supporting Text
+   ========================================================================== */
+
+.form-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  margin: 0;
+
+  color: var(--color-heading);
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+}
+
+.form-required {
+  color: var(--color-danger);
+}
+
+.form-help,
+.form-error,
+.form-success {
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+}
+
+.form-help {
+  color: var(--color-text-muted);
+}
+
+.form-error {
+  color: var(--color-danger);
+}
+
+.form-success {
+  color: var(--color-success);
+}
+
+/* ==========================================================================
+   Controls
+   ========================================================================== */
+
+.form-control,
+.form-select {
+  inline-size: 100%;
+  min-block-size: var(--form-control-height);
+
+  padding: 0.625rem var(--form-control-padding-x);
+
+  border: 1px solid var(--form-control-border);
+  border-radius: var(--form-control-radius);
+
+  background: var(--form-control-bg);
+  color: var(--form-control-color);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+
+  @include ds.transition(
+    (border-color, background-color, color, outline-color),
+    "fast"
+  );
+}
+
+.form-control::placeholder,
+.form-select::placeholder {
+  color: var(--form-control-placeholder);
+  opacity: 1;
+}
+
+.form-control:hover:not(:disabled):not([readonly]),
+.form-select:hover:not(:disabled):not([readonly]) {
+  border-color: var(--color-border-strong);
+}
+
+.form-control:focus-visible,
+.form-select:focus-visible {
+  border-color: var(--color-primary);
+
+  @include ds.focus-ring;
+}
+
+.form-control:disabled,
+.form-control[readonly],
+.form-select:disabled,
+.form-select[readonly] {
+  border-color: var(--color-disabled);
+  background: var(--color-surface-alt);
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+textarea.form-control {
+  min-block-size: 7rem;
+  resize: vertical;
+}
+
+/* ==========================================================================
+   Select
+   ========================================================================== */
+
+.form-select-wrap {
+  position: relative;
+  color: var(--form-control-color);
+}
+
+.form-select-wrap::after {
+  content: "";
+
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: 1rem;
+
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+
+  border-inline-end: 2px solid currentColor;
+  border-block-end: 2px solid currentColor;
+
+  pointer-events: none;
+  transform: translateY(-65%) rotate(45deg);
+}
+
+.form-select-wrap:has(.form-select:disabled)::after {
+  color: var(--color-on-disabled);
+}
+
+.form-select {
+  appearance: none;
+
+  padding-inline-end: 2.5rem;
+  cursor: pointer;
+}
+
+.form-select:disabled {
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Control Sizes
+   ========================================================================== */
+
+.form-control-sm,
+.form-select-sm {
+  --form-control-height: 2.25rem;
+
+  min-block-size: var(--form-control-height);
+  padding: 0.375rem 0.625rem;
+
+  font-size: var(--text-xs);
+}
+
+.form-control-lg,
+.form-select-lg {
+  --form-control-height: 3.25rem;
+
+  min-block-size: var(--form-control-height);
+  padding: 0.75rem 1rem;
+
+  font-size: var(--text-base);
+}
+
+/* ==========================================================================
+   Shape
+   ========================================================================== */
+
+.form-sharp {
+  --form-control-radius: var(--radius-none);
+}
+
+.form-rounded,
+.form-pill {
+  --form-control-radius: var(--radius-pill);
+}
+
+/* ==========================================================================
+   Input Group
+   ========================================================================== */
+
+.input-group {
+  display: flex;
+  align-items: stretch;
+
+  inline-size: 100%;
+  min-width: 0;
+}
+
+.input-group > .form-control,
+.input-group > .form-select {
+  position: relative;
+  z-index: 1;
+
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.input-group > .form-control:focus-visible,
+.input-group > .form-select:focus-visible {
+  z-index: 2;
+}
+
+.input-group > :not(:first-child) {
+  margin-inline-start: -1px;
+
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+
+.input-group > :not(:last-child) {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.input-group-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-block-size: var(--form-control-height, 2.75rem);
+  padding: 0.625rem 0.875rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--form-control-radius, var(--radius-md));
+
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Field With Icon or Action
+   ========================================================================== */
+
+.form-field {
+  position: relative;
+}
+
+.form-field-icon-start .form-control {
+  padding-inline-start: 2.75rem;
+}
+
+.form-field-icon-start .form-field-icon {
+  inset-inline-start: 0.875rem;
+}
+
+.form-field-icon-end .form-control {
+  padding-inline-end: 2.75rem;
+}
+
+.form-field-icon-end .form-field-icon,
+.form-field-icon-end .form-field-action {
+  inset-inline-end: 0.875rem;
+}
+
+.form-field-icon,
+.form-field-action {
+  position: absolute;
+  inset-block-start: 50%;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--color-text-muted);
+  line-height: 1;
+
+  transform: translateY(-50%);
+}
+
+.form-field-icon {
+  pointer-events: none;
+}
+
+.form-field-action {
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+
+  cursor: pointer;
+
+  @include ds.transition(color, "fast");
+}
+
+.form-field-action:hover,
+.form-field-action.is-active {
+  color: var(--color-primary);
+}
+
+.form-field-action:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Checkbox and Radio
+   ========================================================================== */
+
+.form-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+
+  color: var(--color-text);
+  font-size: var(--text-sm);
+}
+
+.form-check input {
+  flex: 0 0 auto;
+
+  inline-size: 1rem;
+  block-size: 1rem;
+  margin-block-start: 0.15em;
+
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.form-check input:focus-visible {
+  @include ds.focus-ring;
+}
+
+.form-check label {
+  cursor: pointer;
+}
+
+.form-check input:disabled {
+  cursor: not-allowed;
+}
+
+.form-check input:disabled + label {
+  color: var(--color-on-disabled);
+  cursor: not-allowed;
+}
+
+.form-check-inline {
+  display: inline-flex;
+  margin-inline-end: 1rem;
+}
+
+/* ==========================================================================
+   Switch
+   ========================================================================== */
+
+.form-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.form-switch input {
+  appearance: none;
+
+  position: relative;
+
+  flex: 0 0 auto;
+
+  inline-size: 2.5rem;
+  block-size: 1.35rem;
+
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-border-strong);
+
+  cursor: pointer;
+
+  @include ds.transition(background-color, "fast");
+}
+
+.form-switch input::before {
+  content: "";
+
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 0.2rem;
+
+  inline-size: 0.95rem;
+  block-size: 0.95rem;
+
+  border-radius: 50%;
+  background: var(--color-light);
+
+  transform: translateY(-50%);
+
+  @include ds.transition(inset-inline-start, "fast");
+}
+
+.form-switch input:checked {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+}
+
+.form-switch input:checked::before {
+  inset-inline-start: calc(100% - 1.15rem);
+}
+
+.form-switch input:focus-visible {
+  @include ds.focus-ring;
+}
+
+.form-switch input:disabled {
+  border-color: var(--color-disabled);
+  background: var(--color-disabled);
+
+  cursor: not-allowed;
+}
+
+.form-switch input:disabled::before {
+  background: var(--color-on-disabled);
+}
+
+/* ==========================================================================
+   Floating Label
+   ========================================================================== */
+
+.form-floating {
+  position: relative;
+}
+
+.form-floating .form-control {
+  padding-block: 1.25rem 0.4rem;
+}
+
+.form-floating .form-control::placeholder {
+  color: transparent;
+}
+
+.form-floating .form-control:focus + label,
+.form-floating .form-control:not(:placeholder-shown) + label {
+  color: var(--color-primary);
+  transform: translateY(-0.55rem) scale(0.85);
+}
+
+.form-floating label {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 0.875rem;
+
+  color: var(--color-text-muted);
+
+  pointer-events: none;
+
+  transform: translateY(-50%);
+  transform-origin: left center;
+
+  @include ds.transition((transform, color), "fast");
+}
+
+html[dir="rtl"] .form-floating label {
+  transform-origin: right center;
+}
+
+/* ==========================================================================
+   File Upload
+   ========================================================================== */
+
+.form-file {
+  position: relative;
+
+  display: grid;
+  gap: 0.5rem;
+}
+
+.form-file-input {
+  @include ds.visually-hidden;
+}
+
+.form-file-label,
+.form-dropzone {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  min-block-size: var(--form-control-height, 2.75rem);
+  padding: 0.875rem;
+
+  border: 1px dashed var(--color-border);
+  border-radius: var(--form-control-radius, var(--radius-md));
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  cursor: pointer;
+
+  @include ds.transition(
+    (border-color, background-color, outline-color),
+    "fast"
+  );
+}
+
+.form-file-label {
+  justify-content: space-between;
+}
+
+.form-file-input:focus-visible + .form-file-label {
+  @include ds.focus-ring;
+}
+
+.form-file-label:hover,
+.form-dropzone:hover,
+.form-dropzone.is-dragover {
+  border-color: var(--color-primary);
+  background: var(--color-surface-alt);
+}
+
+.form-dropzone:focus-visible {
+  @include ds.focus-ring;
+}
+
+.form-dropzone {
+  justify-content: center;
+
+  min-block-size: 9rem;
+
+  text-align: center;
+}
+
+.form-dropzone-content {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+}
+
+.form-dropzone-icon {
+  color: var(--color-primary);
+}
+
+.form-file-name {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* ==========================================================================
+   OTP
+   ========================================================================== */
+
+.otp {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+}
+
+.otp-input {
+  inline-size: 3rem;
+  block-size: 3rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--form-control-radius, var(--radius-md));
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  font: inherit;
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("bold");
+  text-align: center;
+}
+
+.otp-input:focus-visible {
+  border-color: var(--color-primary);
+
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Validation
+   ========================================================================== */
+
+.form-control.is-valid,
+.form-select.is-valid {
+  border-color: var(--color-success);
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: var(--color-danger);
+}
+
+.form-control.is-valid:focus-visible,
+.form-select.is-valid:focus-visible {
+  outline-color: var(--color-success);
+}
+
+.form-control.is-invalid:focus-visible,
+.form-select.is-invalid:focus-visible {
+  outline-color: var(--color-danger);
+}
+
+/* ==========================================================================
+   Form Sections
+   ========================================================================== */
+
+.form-section {
+  display: grid;
+  gap: 1rem;
+
+  padding-block: 1rem;
+}
+
+.form-section:not(:last-child) {
+  border-block-end: 1px solid var(--color-border);
+}
+
+.form-section-title {
+  margin: 0;
+
+  color: var(--color-heading);
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("bold");
+}
+
+.form-section-text {
+  margin: 0;
+
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* ==========================================================================
+   Fieldset
+   ========================================================================== */
+
+.form-fieldset {
+  min-inline-size: 0;
+  padding: 1rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
+}
+
+.form-legend {
+  padding-inline: 0.5rem;
+
+  color: var(--color-heading);
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+}
+
+/* ==========================================================================
+   Horizontal Form
+   ========================================================================== */
+
+.form-horizontal .form-group {
+  display: grid;
+  grid-template-columns: minmax(10rem, 14rem) minmax(0, 1fr);
+  align-items: start;
+  gap: 1rem;
+}
+
+.form-horizontal .form-label {
+  padding-block-start: 0.7rem;
+}
+
+.form-horizontal :is(.form-help, .form-error, .form-success) {
+  grid-column: 2;
+}
+
+/* ==========================================================================
+   Inline Form
+   ========================================================================== */
+
+.form-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.form-inline .form-group {
+  min-inline-size: 14rem;
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.form-actions-start {
+  justify-content: flex-start;
+}
+
+.form-actions-between {
+  justify-content: space-between;
+}
+
+/* ==========================================================================
+   Disabled Region
+   ========================================================================== */
+
+.form-disabled {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .form-horizontal .form-group {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .form-horizontal .form-label {
+    padding-block-start: 0;
+  }
+
+  .form-horizontal :is(.form-help, .form-error, .form-success) {
+    grid-column: auto;
+  }
+
+  .form-inline {
+    align-items: stretch;
+  }
+
+  .form-inline .form-group,
+  .form-inline .btn {
+    inline-size: 100%;
+  }
+
+  .form-actions,
+  .form-actions-between {
+    justify-content: stretch;
+  }
+
+  .form-actions .btn,
+  .form-actions-between .btn {
+    flex: 1 1 auto;
+  }
+
+  .otp-input {
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+  }
+
+  .form-dropzone {
+    min-block-size: 7rem;
+  }
+}

@@ -1,0 +1,157 @@
+@use "../../../design-system/abstracts/" as *;
+
+/* ==========================================================================
+   Instrument Price
+   ========================================================================== */
+
+.instrument-price {
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+
+  min-inline-size: 0;
+
+  color: var(--page-hero-fg, #ffffff);
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Current Price
+   ========================================================================== */
+
+.instrument-price__current {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  color: inherit;
+}
+
+/* ==========================================================================
+   Currency
+   ========================================================================== */
+
+.instrument-price__currency {
+  --icon-size: 2.35rem;
+
+  flex: 0 0 auto;
+
+  color: rgb(255 255 255 / 0.82);
+}
+
+/* ==========================================================================
+   Value
+   ========================================================================== */
+
+.instrument-price__value {
+  min-inline-size: 0;
+
+  color: inherit;
+
+  font-size: clamp(2.25rem, 4vw, 3.75rem);
+  font-weight: font-weight("heavy");
+  line-height: 0.95;
+
+  letter-spacing: -0.04em;
+}
+
+/* ==========================================================================
+   Price Change
+   ========================================================================== */
+
+.instrument-price__change {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  font-size: var(--text-base);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Change Icon
+   ========================================================================== */
+
+.instrument-price__change-icon {
+  --icon-size: 0.55rem;
+
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   Change Value
+   ========================================================================== */
+
+.instrument-price__change-value,
+.instrument-price__change-percentage {
+  color: inherit;
+}
+
+/* ==========================================================================
+   Percentage
+   ========================================================================== */
+
+.instrument-price__change-percentage {
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .instrument-price__value {
+    font-size: var(--text-4xl);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .instrument-price {
+    gap: 0.375rem;
+  }
+
+  .instrument-price__currency {
+    --icon-size: 1.125rem;
+  }
+
+  .instrument-price__value {
+    font-size: var(--text-3xl);
+  }
+
+  .instrument-price__change {
+    gap: 0.3rem;
+
+    font-size: var(--text-sm);
+  }
+
+  .instrument-price__change-icon {
+    --icon-size: 0.45rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .instrument-price__currency {
+    color: currentColor;
+  }
+
+  .instrument-price__change {
+    font-weight: font-weight("heavy");
+  }
+}

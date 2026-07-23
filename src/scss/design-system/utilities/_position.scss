@@ -1,0 +1,47 @@
+/* ==========================================================================
+   Position
+   ========================================================================== */
+
+.position-static {
+  position: static !important;
+}
+
+.position-relative {
+  position: relative !important;
+}
+
+.position-absolute {
+  position: absolute !important;
+}
+
+.position-fixed {
+  position: fixed !important;
+}
+
+.position-sticky {
+  position: sticky !important;
+}
+
+/* ==========================================================================
+   Insets
+   ========================================================================== */
+
+.inset-0 {
+  inset: 0 !important;
+}
+
+.top-0 {
+  inset-block-start: 0 !important;
+}
+
+.bottom-0 {
+  inset-block-end: 0 !important;
+}
+
+.start-0 {
+  inset-inline-start: 0 !important;
+}
+
+.end-0 {
+  inset-inline-end: 0 !important;
+}

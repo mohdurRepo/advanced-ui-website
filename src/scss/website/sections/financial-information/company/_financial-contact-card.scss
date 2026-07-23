@@ -1,0 +1,547 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Contact Card
+   ========================================================================== */
+
+/*
+ * Company-specific contact surface for:
+ *
+ * - Investor relations
+ * - Shareholder services
+ * - Registered office details
+ * - Company enquiries
+ */
+
+.financial-contact-card {
+  --financial-contact-bg: var(--color-surface);
+  --financial-contact-color: var(--color-text);
+  --financial-contact-muted: var(--color-text-muted);
+  --financial-contact-border: var(--color-border);
+  --financial-contact-accent: var(--color-primary);
+
+  --financial-contact-icon-bg: color-mix(
+    in oklab,
+    var(--financial-contact-accent),
+    transparent 92%
+  );
+
+  --financial-contact-icon-border: color-mix(
+    in oklab,
+    var(--financial-contact-accent),
+    transparent 78%
+  );
+
+  position: relative;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(1.25rem, 3vw, 2rem);
+
+  min-inline-size: 0;
+
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+
+  border: 1px solid var(--financial-contact-border);
+  border-radius: var(--radius-xl);
+
+  background: var(--financial-contact-bg);
+  color: var(--financial-contact-color);
+
+  box-shadow: var(--shadow-sm);
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Accent
+   ========================================================================== */
+
+.financial-contact-card::before {
+  content: "";
+
+  position: absolute;
+
+  inset-block: 0;
+  inset-inline-start: 0;
+
+  inline-size: 0.25rem;
+
+  background: var(--financial-contact-accent);
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.financial-contact-card__content {
+  display: grid;
+  gap: 0.625rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.financial-contact-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Icon
+   ========================================================================== */
+
+.financial-contact-card__icon {
+  --icon-size: 1rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+
+  flex: 0 0 auto;
+
+  border: 1px solid var(--financial-contact-icon-border);
+  border-radius: var(--radius-md);
+
+  background: var(--financial-contact-icon-bg);
+  color: var(--financial-contact-accent);
+}
+
+/* ==========================================================================
+   Heading Group
+   ========================================================================== */
+
+.financial-contact-card__heading {
+  display: grid;
+  gap: 0.25rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Eyebrow
+   ========================================================================== */
+
+.financial-contact-card__eyebrow {
+  margin: 0;
+
+  color: var(--financial-contact-accent);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.financial-contact-card__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-lg);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Text
+   ========================================================================== */
+
+.financial-contact-card__text {
+  max-inline-size: 52rem;
+
+  margin: 0;
+
+  color: var(--financial-contact-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Address
+   ========================================================================== */
+
+.financial-contact-card__address {
+  display: grid;
+  gap: 0.625rem;
+
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: inherit;
+
+  font-style: normal;
+}
+
+/* ==========================================================================
+   Contact List
+   ========================================================================== */
+
+.financial-contact-card__list {
+  display: grid;
+  gap: 0.625rem;
+
+  min-inline-size: 0;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.financial-contact-card__list-item {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Contact Link
+   ========================================================================== */
+
+.financial-contact-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-normal);
+
+  text-decoration: none;
+
+  overflow-wrap: anywhere;
+
+  @include transition(color, fast);
+
+  .has-icon {
+    --icon-size: 0.875rem;
+
+    display: inline-grid;
+    place-items: center;
+
+    inline-size: 1.875rem;
+    block-size: 1.875rem;
+
+    flex: 0 0 auto;
+
+    border-radius: var(--radius-pill);
+
+    background: var(--financial-contact-icon-bg);
+    color: var(--financial-contact-accent);
+  }
+
+  &:hover {
+    color: var(--financial-contact-accent);
+
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Link Label
+   ========================================================================== */
+
+.financial-contact-card__link-label {
+  min-inline-size: 0;
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Metadata
+   ========================================================================== */
+
+.financial-contact-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.75rem;
+
+  margin: 0;
+
+  color: var(--financial-contact-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+}
+
+.financial-contact-card__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+
+  .has-icon {
+    --icon-size: 0.6875rem;
+
+    color: var(--financial-contact-accent);
+  }
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.financial-contact-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.625rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Aside
+   ========================================================================== */
+
+.financial-contact-card__aside {
+  display: grid;
+  justify-items: end;
+  gap: 0.75rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.financial-contact-card--compact {
+  gap: 1rem;
+
+  padding: 1rem;
+
+  border-radius: var(--radius-lg);
+
+  .financial-contact-card__title {
+    font-size: var(--text-base);
+  }
+
+  .financial-contact-card__text,
+  .financial-contact-card__link {
+    font-size: var(--text-xs);
+  }
+
+  .financial-contact-card__icon {
+    --icon-size: 0.875rem;
+
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+  }
+}
+
+/* ==========================================================================
+   Borderless Variant
+   ========================================================================== */
+
+.financial-contact-card--borderless {
+  padding-inline: 0;
+
+  border-inline: 0;
+  border-radius: 0;
+
+  box-shadow: none;
+
+  &::before {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Highlighted Variant
+   ========================================================================== */
+
+.financial-contact-card--highlighted {
+  --financial-contact-border: color-mix(
+    in oklab,
+    var(--financial-contact-accent),
+    var(--color-border) 58%
+  );
+
+  background: color-mix(
+    in oklab,
+    var(--financial-contact-accent),
+    var(--color-surface) 97%
+  );
+}
+
+/* ==========================================================================
+   Single-column Variant
+   ========================================================================== */
+
+.financial-contact-card--stacked {
+  grid-template-columns: minmax(0, 1fr);
+
+  .financial-contact-card__aside,
+  .financial-contact-card__actions {
+    justify-items: start;
+    justify-content: flex-start;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .financial-contact-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .financial-contact-card__aside {
+    justify-items: start;
+  }
+
+  .financial-contact-card__actions {
+    justify-content: flex-start;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-contact-card {
+    gap: 1rem;
+
+    padding: 1rem;
+
+    border-radius: var(--radius-lg);
+  }
+
+  .financial-contact-card::before {
+    inline-size: 0.1875rem;
+  }
+
+  .financial-contact-card__header {
+    gap: 0.75rem;
+  }
+
+  .financial-contact-card__icon {
+    --icon-size: 0.875rem;
+
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+  }
+
+  .financial-contact-card__title {
+    font-size: var(--text-base);
+  }
+
+  .financial-contact-card__text,
+  .financial-contact-card__link {
+    font-size: var(--text-xs);
+  }
+
+  .financial-contact-card__link {
+    align-items: flex-start;
+  }
+
+  .financial-contact-card__actions {
+    inline-size: 100%;
+
+    .btn {
+      flex: 1 1 auto;
+    }
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-contact-card {
+    box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-contact-card {
+    border-width: 2px;
+
+    box-shadow: none;
+  }
+
+  .financial-contact-card::before {
+    inline-size: 0.375rem;
+
+    background: currentColor;
+  }
+
+  .financial-contact-card__icon,
+  .financial-contact-card__link .has-icon {
+    border: 2px solid currentColor;
+
+    background: transparent;
+    color: currentColor;
+  }
+
+  .financial-contact-card__link {
+    color: currentColor;
+
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-contact-card__link {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .financial-contact-card__link {
+    transition: none;
+  }
+}

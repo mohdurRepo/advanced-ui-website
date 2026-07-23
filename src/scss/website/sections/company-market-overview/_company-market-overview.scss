@@ -1,0 +1,80 @@
+@use "../../../design-system/abstracts" as *;
+
+/* ==========================================================================
+   Company Market Overview
+   ========================================================================== */
+
+.company-market-overview {
+  --market-overview-gap: clamp(1.5rem, 3vw, 2.5rem);
+
+  color: var(--color-text);
+}
+
+/* ==========================================================================
+   Grid
+   ========================================================================== */
+
+.company-market-overview__grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.5fr)
+    minmax(18rem, 0.9fr);
+
+  align-items: start;
+  gap: var(--market-overview-gap);
+
+  min-inline-size: 0;
+}
+
+/*
+ * When the secondary panel is removed, the chart region fills the full width.
+ */
+
+.company-market-overview__grid > :only-child {
+  grid-column: 1 / -1;
+}
+
+/* ==========================================================================
+   Primary Region
+   ========================================================================== */
+
+.company-market-overview__primary {
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Secondary Region
+   ========================================================================== */
+
+.company-market-overview__secondary {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .company-market-overview {
+    --market-overview-gap: 2rem;
+  }
+
+  .company-market-overview__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .company-market-overview {
+    --market-overview-gap: 1.5rem;
+  }
+}

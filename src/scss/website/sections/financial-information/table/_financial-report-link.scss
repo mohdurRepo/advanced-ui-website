@@ -1,0 +1,176 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Report Link
+   ========================================================================== */
+
+/*
+ * Link to a financial report or downloadable filing.
+ */
+
+.financial-report-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+  max-inline-size: 100%;
+
+  color: var(--color-primary);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-tight);
+
+  text-decoration: none;
+
+  @include transition(color, fast);
+
+  .has-icon {
+    --icon-size: 0.875rem;
+
+    flex: 0 0 auto;
+  }
+
+  &:hover {
+    color: var(--color-primary-hover);
+
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Label
+   ========================================================================== */
+
+.financial-report-link__label {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Metadata
+   ========================================================================== */
+
+.financial-report-link__meta {
+  flex: 0 0 auto;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("medium");
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Block Variant
+   ========================================================================== */
+
+.financial-report-link--block {
+  justify-content: flex-start;
+
+  inline-size: 100%;
+
+  text-align: start;
+}
+
+/* ==========================================================================
+   Icon-only Variant
+   ========================================================================== */
+
+.financial-report-link--icon {
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+
+  padding: 0;
+
+  border-radius: var(--radius-md);
+}
+
+/* ==========================================================================
+   Download Variant
+   ========================================================================== */
+
+.financial-report-link--download {
+  .has-icon {
+    --icon-size: 0.8125rem;
+  }
+}
+
+/* ==========================================================================
+   Disabled / Missing File
+   ========================================================================== */
+
+.financial-report-link.is-disabled,
+.financial-report-link[aria-disabled="true"] {
+  color: var(--color-text-muted);
+
+  opacity: 0.55;
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-report-link {
+    font-size: var(--text-xs);
+
+    .has-icon {
+      --icon-size: 0.75rem;
+    }
+  }
+
+  .financial-report-link__meta {
+    font-size: 0.6875rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-report-link {
+    color: var(--color-heading);
+
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-report-link {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .financial-report-link {
+    transition: none;
+  }
+}

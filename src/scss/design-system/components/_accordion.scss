@@ -1,0 +1,199 @@
+@use "../abstracts" as ds;
+
+/* ==========================================================================
+   Accordion
+   ========================================================================== */
+
+.accordion {
+  display: grid;
+  gap: 0.75rem;
+}
+
+/* ==========================================================================
+   Item
+   ========================================================================== */
+
+.accordion-item {
+  overflow: hidden;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* ==========================================================================
+   Trigger
+   ========================================================================== */
+
+.accordion-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  inline-size: 100%;
+  padding: 1rem 1.25rem;
+
+  border: 0;
+
+  background: transparent;
+  color: var(--color-heading);
+
+  font: inherit;
+  font-size: var(--text-base);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-align: start;
+  cursor: pointer;
+
+  @include ds.transition((background-color, color, outline-color), "fast");
+}
+
+.accordion-trigger:hover:not(:disabled):not(.is-disabled) {
+  background: var(--color-surface-alt);
+}
+
+.accordion-trigger:focus-visible {
+  @include ds.focus-ring;
+}
+
+.accordion-trigger:disabled,
+.accordion-trigger.is-disabled,
+.accordion-trigger[aria-disabled="true"] {
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Icon
+   ========================================================================== */
+
+.accordion-icon {
+  --icon-size: 1rem;
+
+  flex: 0 0 auto;
+
+  @include ds.transition(transform, "fast");
+}
+
+.accordion-item.is-open .accordion-icon,
+.accordion-trigger[aria-expanded="true"] .accordion-icon {
+  transform: rotate(180deg);
+}
+
+/* ==========================================================================
+   Panel
+   ========================================================================== */
+
+.accordion-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+
+  visibility: hidden;
+  opacity: 0;
+
+  @include ds.transition((grid-template-rows, opacity, visibility), "normal");
+}
+
+.accordion-panel-inner {
+  overflow: hidden;
+
+  padding: 0 1.25rem;
+
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  @include ds.transition(padding-block-end, "normal");
+}
+
+/* ==========================================================================
+   Open State
+   ========================================================================== */
+
+.accordion-item.is-open .accordion-panel {
+  grid-template-rows: 1fr;
+
+  visibility: visible;
+  opacity: 1;
+}
+
+.accordion-item.is-open .accordion-panel-inner {
+  padding-block-end: 1.25rem;
+}
+
+/* ==========================================================================
+   ARIA-controlled State
+   ========================================================================== */
+
+.accordion-item:has(.accordion-trigger[aria-expanded="true"]) .accordion-panel {
+  grid-template-rows: 1fr;
+
+  visibility: visible;
+  opacity: 1;
+}
+
+.accordion-item:has(.accordion-trigger[aria-expanded="true"])
+  .accordion-panel-inner {
+  padding-block-end: 1.25rem;
+}
+
+/* ==========================================================================
+   Variants
+   ========================================================================== */
+
+.accordion-flush {
+  gap: 0;
+}
+
+.accordion-flush .accordion-item {
+  border-radius: 0;
+  border-inline: 0;
+}
+
+.accordion-bordered .accordion-item {
+  border-width: 2px;
+}
+
+.accordion-elevated .accordion-item {
+  box-shadow: var(--shadow-sm);
+}
+
+.accordion-separated {
+  gap: 1rem;
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .accordion-item {
+  border-width: 2px;
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .accordion-trigger,
+  .accordion-icon,
+  .accordion-panel,
+  .accordion-panel-inner {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .accordion-trigger,
+  .accordion-icon,
+  .accordion-panel,
+  .accordion-panel-inner {
+    transition: none;
+  }
+}

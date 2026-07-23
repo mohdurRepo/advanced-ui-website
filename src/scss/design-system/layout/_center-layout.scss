@@ -1,0 +1,63 @@
+/* ==========================================================================
+   Center Layout
+   ========================================================================== */
+
+/**
+ * Horizontally centers a constrained content region.
+ * Vertical alignment can be controlled with modifiers.
+ */
+
+.center-layout {
+  display: flex;
+  justify-content: center;
+
+  width: 100%;
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.center-layout__content {
+  width: 100%;
+  max-width: var(--center-layout-width, 40rem);
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Vertical Alignment
+   ========================================================================== */
+
+.center-layout--middle {
+  align-items: center;
+  min-height: 100%;
+}
+
+.center-layout--top {
+  align-items: flex-start;
+}
+
+.center-layout--bottom {
+  align-items: flex-end;
+}
+
+/* ==========================================================================
+   Width
+   ========================================================================== */
+
+.center-layout--sm {
+  --center-layout-width: 28rem;
+}
+
+.center-layout--md {
+  --center-layout-width: 40rem;
+}
+
+.center-layout--lg {
+  --center-layout-width: 56rem;
+}
+
+.center-layout--xl {
+  --center-layout-width: 72rem;
+}

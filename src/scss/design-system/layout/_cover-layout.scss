@@ -1,0 +1,75 @@
+/* ==========================================================================
+   Cover Layout
+   ========================================================================== */
+
+/**
+ * Creates a full-viewport layout with optional header and footer regions.
+ * The main content expands to occupy the remaining space.
+ */
+
+.cover-layout {
+  display: flex;
+  flex-direction: column;
+
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Regions
+   ========================================================================== */
+
+.cover-layout__header,
+.cover-layout__footer {
+  flex: 0 0 auto;
+}
+
+.cover-layout__content {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Alignment
+   ========================================================================== */
+
+.cover-layout--top .cover-layout__content {
+  justify-content: flex-start;
+}
+
+.cover-layout--center .cover-layout__content {
+  justify-content: center;
+}
+
+.cover-layout--bottom .cover-layout__content {
+  justify-content: flex-end;
+}
+
+/* ==========================================================================
+   Spacing
+   ========================================================================== */
+
+.cover-layout--sm {
+  padding-block: var(--space-6, 1.5rem);
+}
+
+.cover-layout--md {
+  padding-block: var(--space-8, 2rem);
+}
+
+.cover-layout--lg {
+  padding-block: var(--space-12, 3rem);
+}
+
+/* ==========================================================================
+   Child Safety
+   ========================================================================== */
+
+.cover-layout > * {
+  min-width: 0;
+}

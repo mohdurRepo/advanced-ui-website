@@ -1,0 +1,56 @@
+@use "../abstracts" as ds;
+
+/* ==========================================================================
+   Range Slider
+   ========================================================================== */
+
+.range-slider {
+  display: grid;
+  gap: 0.75rem;
+
+  min-width: 0;
+}
+
+.range-slider-input {
+  inline-size: 100%;
+  margin: 0;
+
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.range-slider-input:focus-visible {
+  @include ds.focus-ring;
+}
+
+.range-slider-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ==========================================================================
+   Labels
+   ========================================================================== */
+
+.range-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+}
+
+.range-slider-labels > :last-child {
+  text-align: end;
+}
+
+/* ==========================================================================
+   Value
+   ========================================================================== */
+
+.range-slider-value {
+  color: var(--color-heading);
+  font-weight: ds.font-weight("bold");
+}

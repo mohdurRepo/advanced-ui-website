@@ -1,0 +1,147 @@
+@use "../../../design-system/abstracts/" as *;
+
+/* ==========================================================================
+   Group Company Card
+   ========================================================================== */
+
+.group-company-card {
+  --group-card-fg: #15253d;
+  --group-card-muted: #52647d;
+  --group-card-accent: var(--color-primary);
+
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  justify-items: center;
+  gap: 1rem;
+
+  min-inline-size: 0;
+  min-block-size: 100%;
+
+  text-align: center;
+
+  color: var(--group-card-fg);
+}
+
+/* ==========================================================================
+   Logo
+   ========================================================================== */
+
+.group-company-card__logo {
+  display: block;
+
+  inline-size: clamp(7rem, 12vw, 10rem);
+  block-size: 2.5rem;
+
+  object-fit: contain;
+  object-position: center;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.group-company-card__text {
+  max-inline-size: 18rem;
+
+  margin: 0 auto;
+
+  color: var(--group-card-fg);
+
+  font-size: var(--text-base);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Link
+   ========================================================================== */
+
+.group-company-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  margin-block-start: 0.25rem;
+
+  color: var(--group-card-accent);
+
+  white-space: nowrap;
+
+  .has-icon {
+    --icon-size: 0.875rem;
+
+    flex: 0 0 auto;
+
+    @include transition(transform, fast);
+  }
+
+  &:hover {
+    .has-icon {
+      transform: translate(0.15rem, -0.15rem);
+    }
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .group-company-card__link:hover {
+    .has-icon {
+      transform: translate(-0.15rem, -0.15rem);
+    }
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .group-company-card {
+    gap: 0.875rem;
+  }
+
+  .group-company-card__text {
+    max-inline-size: 22rem;
+
+    font-size: var(--text-sm);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .group-company-card__link {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .group-company-card__link .has-icon {
+    transition: none;
+  }
+
+  .group-company-card__link:hover .has-icon {
+    transform: none;
+  }
+}

@@ -1,0 +1,57 @@
+@use "../abstracts" as ds;
+
+/* ==========================================================================
+   Container
+   ========================================================================== */
+
+.container,
+.container-sm,
+.container-md,
+.container-lg,
+.container-xl,
+.container-xxl,
+.container-fluid {
+  width: min(100% - var(--container-padding, 2rem), var(--container-max, 100%));
+
+  margin-inline: auto;
+}
+
+.container {
+  --container-max: #{ds.$container-xxl};
+}
+
+.container-sm {
+  --container-max: #{ds.$container-sm};
+}
+
+.container-md {
+  --container-max: #{ds.$container-md};
+}
+
+.container-lg {
+  --container-max: #{ds.$container-lg};
+}
+
+.container-xl {
+  --container-max: #{ds.$container-xl};
+}
+
+.container-xxl {
+  --container-max: #{ds.$container-xxl};
+}
+
+.container-fluid {
+  --container-max: 100%;
+}
+
+@include ds.respond-down("sm") {
+  .container,
+  .container-sm,
+  .container-md,
+  .container-lg,
+  .container-xl,
+  .container-xxl,
+  .container-fluid {
+    --container-padding: 1rem;
+  }
+}

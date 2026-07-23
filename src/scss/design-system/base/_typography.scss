@@ -1,0 +1,178 @@
+/* ==========================================================================
+   Typography Tokens
+   ========================================================================== */
+
+:root {
+  /* Font sizes */
+  --text-xs: calc(
+    clamp(0.75rem, 0.72rem + 0.15vw, 0.8125rem) * var(--font-scale)
+  );
+
+  --text-sm: calc(
+    clamp(0.875rem, 0.84rem + 0.2vw, 0.9375rem) * var(--font-scale)
+  );
+
+  --text-base: calc(
+    clamp(1rem, 0.95rem + 0.25vw, 1.0625rem) * var(--font-scale)
+  );
+
+  --text-lg: calc(
+    clamp(1.125rem, 1.05rem + 0.35vw, 1.25rem) * var(--font-scale)
+  );
+
+  --text-xl: calc(clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem) * var(--font-scale));
+
+  --text-2xl: calc(clamp(1.5rem, 1.25rem + 1vw, 2rem) * var(--font-scale));
+
+  --text-3xl: calc(
+    clamp(1.875rem, 1.45rem + 1.6vw, 2.75rem) * var(--font-scale)
+  );
+
+  --text-4xl: calc(clamp(2.25rem, 1.7rem + 2.2vw, 3.5rem) * var(--font-scale));
+
+  /* Line heights */
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+}
+
+/* ==========================================================================
+   Body
+   ========================================================================== */
+
+body {
+  color: var(--color-text);
+
+  font-size: var(--text-base);
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Headings
+   ========================================================================== */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--color-heading);
+
+  font-weight: 800;
+  line-height: var(--line-height-tight);
+
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--text-4xl);
+}
+
+h2 {
+  font-size: var(--text-3xl);
+}
+
+h3 {
+  font-size: var(--text-2xl);
+}
+
+h4 {
+  font-size: var(--text-xl);
+}
+
+h5 {
+  font-size: var(--text-lg);
+}
+
+h6 {
+  font-size: var(--text-base);
+}
+
+/* ==========================================================================
+   Paragraphs
+   ========================================================================== */
+
+p {
+  color: inherit;
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   Inline Text
+   ========================================================================== */
+
+small {
+  font-size: var(--text-sm);
+}
+
+strong,
+b {
+  font-weight: 800;
+}
+
+em,
+i {
+  font-style: italic;
+}
+
+/* ==========================================================================
+   Links
+   ========================================================================== */
+
+a {
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 0.08em;
+}
+
+a:hover {
+  text-decoration-thickness: 0.12em;
+}
+
+/* ==========================================================================
+   Code
+   ========================================================================== */
+
+code,
+kbd,
+samp,
+pre {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+}
+
+code,
+kbd,
+samp {
+  font-size: 0.9em;
+}
+
+pre {
+  max-inline-size: 100%;
+  overflow-x: auto;
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+
+  tab-size: 2;
+}
+
+/* ==========================================================================
+   Numeric Content
+   ========================================================================== */
+
+.numeric,
+[data-numeric] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Text Selection
+   ========================================================================== */
+
+::selection {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}

@@ -1,0 +1,259 @@
+@use "../abstracts" as ds;
+
+$button-variants: (
+  "primary",
+  "secondary",
+  "accent",
+  "success",
+  "info",
+  "warning",
+  "danger",
+  "light",
+  "dark"
+);
+
+/* ==========================================================================
+   Button
+   ========================================================================== */
+
+.btn {
+  --btn-bg: transparent;
+  --btn-color: var(--color-text);
+  --btn-border-color: transparent;
+
+  --btn-hover-bg: var(--color-surface-alt);
+  --btn-hover-color: var(--color-text);
+  --btn-hover-border-color: transparent;
+
+  --btn-gap: 0.5rem;
+  --btn-icon-shift: 0.25rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--btn-gap);
+
+  min-height: 2.75rem;
+  padding: 0.625rem 1.25rem;
+
+  border: 1px solid var(--btn-border-color);
+  border-radius: var(--radius-sm);
+
+  background: var(--btn-bg);
+  color: var(--btn-color);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("semibold");
+  line-height: 1;
+
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+
+  @include ds.transition(
+    (background-color, color, border-color, box-shadow, transform),
+    "normal"
+  );
+}
+
+.btn:hover:not(:disabled):not(.is-disabled) {
+  border-color: var(--btn-hover-border-color);
+  background: var(--btn-hover-bg);
+  color: var(--btn-hover-color);
+}
+
+.btn:focus-visible {
+  @include ds.focus-ring;
+}
+
+.btn:active:not(:disabled):not(.is-disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled,
+.btn.is-disabled,
+.btn[aria-disabled="true"] {
+  border-color: var(--color-disabled);
+  background: var(--color-disabled);
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Shapes
+   ========================================================================== */
+
+.btn-radius {
+  border-radius: var(--radius-md);
+}
+
+.btn-rounded,
+.btn-pill {
+  border-radius: var(--radius-pill);
+}
+
+.btn-square {
+  border-radius: var(--radius-none);
+}
+
+/* ==========================================================================
+   Solid Variants
+   ========================================================================== */
+
+@each $variant in $button-variants {
+  .btn-#{$variant} {
+    --btn-bg: var(--color-#{$variant});
+    --btn-color: var(--color-on-#{$variant});
+    --btn-border-color: var(--color-#{$variant});
+
+    --btn-hover-bg: var(--color-#{$variant}-hover);
+    --btn-hover-color: var(--color-on-#{$variant});
+    --btn-hover-border-color: var(--color-#{$variant}-hover);
+  }
+}
+
+/* ==========================================================================
+   Outline Variants
+   ========================================================================== */
+
+@each $variant in $button-variants {
+  .btn-outline-#{$variant} {
+    --btn-color: var(--color-#{$variant});
+    --btn-border-color: var(--color-#{$variant});
+
+    --btn-hover-bg: var(--color-#{$variant});
+    --btn-hover-color: var(--color-on-#{$variant});
+    --btn-hover-border-color: var(--color-#{$variant});
+  }
+}
+
+/* ==========================================================================
+   Ghost
+   ========================================================================== */
+
+.btn-ghost {
+  --btn-color: var(--color-text);
+
+  --btn-hover-bg: var(--color-surface-alt);
+  --btn-hover-color: var(--color-text);
+}
+
+/* ==========================================================================
+   Sizes
+   ========================================================================== */
+
+.btn-sm {
+  min-height: 2.25rem;
+  padding: 0.5rem 1rem;
+
+  font-size: var(--text-xs);
+}
+
+.btn-lg {
+  min-height: 3.25rem;
+  padding: 0.75rem 1.5rem;
+
+  font-size: var(--text-base);
+}
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+.btn-block {
+  inline-size: 100%;
+}
+
+/* ==========================================================================
+   Icon-only Button
+   ========================================================================== */
+
+.btn-icon {
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  min-height: 0;
+  padding: 0;
+}
+
+.btn-icon.btn-sm {
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+}
+
+.btn-icon.btn-lg {
+  inline-size: 3.25rem;
+  block-size: 3.25rem;
+}
+
+/* ==========================================================================
+   Loading
+   ========================================================================== */
+
+.btn-loading,
+.btn[aria-busy="true"] {
+  cursor: wait;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.btn-loading .has-icon::before,
+.btn[aria-busy="true"] .has-icon::before {
+  animation: icon-spin 1s linear infinite;
+}
+
+/* ==========================================================================
+   Directional Icon
+   ========================================================================== */
+
+.btn-arrow .has-icon,
+.btn-arrow .svg-icon {
+  transition: transform var(--transition-normal);
+}
+
+.btn-arrow:hover:not(:disabled):not(.is-disabled) .has-icon,
+.btn-arrow:hover:not(:disabled):not(.is-disabled) .svg-icon {
+  transform: translateX(var(--btn-icon-shift));
+}
+
+html[dir="rtl"] .btn-arrow:hover:not(:disabled):not(.is-disabled) .has-icon,
+html[dir="rtl"] .btn-arrow:hover:not(:disabled):not(.is-disabled) .svg-icon {
+  transform: translateX(calc(0rem - var(--btn-icon-shift)));
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .btn-arrow .has-icon,
+  .btn-arrow .svg-icon {
+    transition: none;
+  }
+
+  .btn:active:not(:disabled):not(.is-disabled),
+  .btn-arrow:hover .has-icon,
+  .btn-arrow:hover .svg-icon {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .btn,
+  .btn-arrow .has-icon,
+  .btn-arrow .svg-icon {
+    transition: none;
+  }
+
+  .btn:active:not(:disabled):not(.is-disabled),
+  .btn-arrow:hover .has-icon,
+  .btn-arrow:hover .svg-icon {
+    transform: none;
+  }
+}

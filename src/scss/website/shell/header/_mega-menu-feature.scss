@@ -1,0 +1,263 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Mega Menu Feature
+   ========================================================================== */
+
+.mega-feature {
+  --mega-feature-bg: var(--color-primary);
+  --mega-feature-color: var(--color-on-primary);
+  --mega-feature-border: transparent;
+  --mega-feature-radius: var(--radius-lg);
+  --mega-feature-padding: 1rem;
+
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+
+  min-inline-size: 0;
+  block-size: 100%;
+  padding: var(--mega-feature-padding);
+
+  border: 1px solid var(--mega-feature-border);
+  border-radius: var(--mega-feature-radius);
+
+  background: var(--mega-feature-bg);
+  color: var(--mega-feature-color);
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Media
+   ========================================================================== */
+
+.mega-feature__media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: 100%;
+  max-inline-size: 18rem;
+  aspect-ratio: 16 / 9;
+
+  margin-inline: auto;
+
+  border-radius: var(--radius-md);
+
+  background: rgb(255 255 255 / 0.1);
+
+  overflow: hidden;
+}
+
+@supports (background: color-mix(in oklab, white, black)) {
+  .mega-feature__media {
+    background: color-mix(in oklab, var(--mega-feature-color), transparent 90%);
+  }
+}
+
+/* ==========================================================================
+   Feature Image
+   ========================================================================== */
+
+.mega-feature__image {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  object-fit: cover;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.mega-feature__body {
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.mega-feature__title {
+  margin: 0;
+
+  color: inherit;
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.mega-feature__text {
+  margin: 0;
+
+  color: inherit;
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  opacity: 0.86;
+}
+
+/* ==========================================================================
+   Feature Link
+   ========================================================================== */
+
+.mega-feature__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  border-radius: var(--radius-sm);
+
+  color: inherit;
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  text-decoration-line: underline;
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.2em;
+
+  @include ds.transition((opacity, transform), var(--transition-fast));
+}
+
+.mega-feature__link:hover {
+  opacity: 0.82;
+}
+
+.mega-feature__link:focus {
+  outline: none;
+}
+
+.mega-feature__link:focus-visible {
+  @include ds.focus-ring(currentColor);
+}
+
+/* ==========================================================================
+   Link Icon
+   ========================================================================== */
+
+.mega-feature__link .has-icon,
+.mega-feature__link .svg-icon {
+  --icon-size: 0.875rem;
+
+  flex: 0 0 auto;
+
+  @include ds.transition(transform, var(--transition-fast));
+}
+
+.mega-feature__link:hover .has-icon,
+.mega-feature__link:hover .svg-icon {
+  transform: translateX(0.2rem);
+}
+
+html[dir="rtl"] .mega-feature__link:hover .has-icon,
+html[dir="rtl"] .mega-feature__link:hover .svg-icon {
+  transform: translateX(-0.2rem);
+}
+
+/* ==========================================================================
+   Surface Variant
+   ========================================================================== */
+
+.mega-feature--surface {
+  --mega-feature-bg: var(--color-surface-alt);
+  --mega-feature-color: var(--color-text);
+  --mega-feature-border: var(--color-border);
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.mega-feature--compact {
+  --mega-feature-padding: 0.875rem;
+
+  gap: 0.75rem;
+}
+
+.mega-feature--compact .mega-feature__title {
+  font-size: var(--text-base);
+}
+
+/* ==========================================================================
+   Constrained Desktop
+   ========================================================================== */
+
+@media (min-width: 62rem) and (max-width: 73.75rem) {
+  .mega-feature {
+    grid-template-columns:
+      minmax(10rem, 14rem)
+      minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .mega-feature__media {
+    margin-inline: 0;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .mega-feature {
+  --mega-feature-bg: #000000;
+  --mega-feature-color: #ffffff;
+  --mega-feature-border: #ffffff;
+
+  border-width: 2px;
+}
+
+html[data-contrast="high"] .mega-feature--surface {
+  --mega-feature-bg: var(--color-bg);
+  --mega-feature-color: var(--color-text);
+  --mega-feature-border: var(--color-border);
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .mega-feature__link,
+  .mega-feature__link .has-icon,
+  .mega-feature__link .svg-icon {
+    transition: none;
+  }
+
+  .mega-feature__link:hover .has-icon,
+  .mega-feature__link:hover .svg-icon {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] .mega-feature__link,
+html[data-motion="reduce"] .mega-feature__link .has-icon,
+html[data-motion="reduce"] .mega-feature__link .svg-icon {
+  transition: none;
+}
+
+html[data-motion="reduce"] .mega-feature__link:hover .has-icon,
+html[data-motion="reduce"] .mega-feature__link:hover .svg-icon {
+  transform: none;
+}

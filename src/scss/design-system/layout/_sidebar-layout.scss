@@ -1,0 +1,113 @@
+@use "../abstracts" as ds;
+
+/* ==========================================================================
+   Sidebar Layout
+   ========================================================================== */
+
+/**
+ * Creates a fixed-width sidebar and a flexible content region.
+ */
+
+.sidebar-layout {
+  display: grid;
+  grid-template-columns:
+    minmax(16rem, 18rem)
+    minmax(0, 1fr);
+
+  align-items: start;
+  gap: var(--space-8, 2rem);
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Regions
+   ========================================================================== */
+
+.sidebar-layout__sidebar,
+.sidebar-layout__content {
+  min-width: 0;
+}
+
+.sidebar-layout__sidebar {
+  grid-column: 1;
+}
+
+.sidebar-layout__content {
+  grid-column: 2;
+}
+
+/* ==========================================================================
+   Width
+   ========================================================================== */
+
+.sidebar-layout--compact {
+  grid-template-columns:
+    minmax(14rem, 16rem)
+    minmax(0, 1fr);
+}
+
+.sidebar-layout--wide {
+  grid-template-columns:
+    minmax(18rem, 22rem)
+    minmax(0, 1fr);
+}
+
+/* ==========================================================================
+   Alignment
+   ========================================================================== */
+
+.sidebar-layout--center {
+  align-items: center;
+}
+
+.sidebar-layout--stretch {
+  align-items: stretch;
+}
+
+/* ==========================================================================
+   Reverse
+   ========================================================================== */
+
+.sidebar-layout--reverse .sidebar-layout__sidebar {
+  grid-column: 2;
+}
+
+.sidebar-layout--reverse .sidebar-layout__content {
+  grid-column: 1;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .sidebar-layout,
+  .sidebar-layout--compact,
+  .sidebar-layout--wide {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6, 1.5rem);
+  }
+
+  .sidebar-layout__sidebar,
+  .sidebar-layout__content,
+  .sidebar-layout--reverse .sidebar-layout__sidebar,
+  .sidebar-layout--reverse .sidebar-layout__content {
+    grid-column: 1;
+  }
+
+  .sidebar-layout__sidebar,
+  .sidebar-layout--reverse .sidebar-layout__sidebar {
+    grid-row: 1;
+  }
+
+  .sidebar-layout__content,
+  .sidebar-layout--reverse .sidebar-layout__content {
+    grid-row: 2;
+  }
+}
+
+@include ds.respond-down("sm") {
+  .sidebar-layout {
+    gap: var(--space-4, 1rem);
+  }
+}

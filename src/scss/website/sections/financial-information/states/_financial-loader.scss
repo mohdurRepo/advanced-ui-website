@@ -1,0 +1,271 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Loader
+   ========================================================================== */
+
+.financial-loader {
+  --financial-loader-min-height: clamp(18rem, 30vw, 24rem);
+  --financial-loader-bg: var(--color-surface-alt);
+
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1rem;
+
+  min-inline-size: 0;
+  min-block-size: var(--financial-loader-min-height);
+
+  padding: 2rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+
+  background: var(--financial-loader-bg);
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Spinner
+   ========================================================================== */
+
+.financial-loader__spinner {
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+
+  border: 0.25rem solid
+    color-mix(in oklab, var(--color-primary), transparent 80%);
+
+  border-block-start-color: var(--color-primary);
+  border-radius: var(--radius-pill);
+
+  animation: financial-loader-spin 0.8s linear infinite;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.financial-loader__content {
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Text
+   ========================================================================== */
+
+.financial-loader__text {
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Supporting Text
+   ========================================================================== */
+
+.financial-loader__description {
+  max-inline-size: 32rem;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.financial-loader--compact {
+  --financial-loader-min-height: 10rem;
+
+  padding: 1.25rem;
+
+  .financial-loader__spinner {
+    inline-size: 2rem;
+    block-size: 2rem;
+
+    border-width: 0.1875rem;
+  }
+
+  .financial-loader__text {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Inline Variant
+   ========================================================================== */
+
+.financial-loader--inline {
+  --financial-loader-min-height: auto;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.625rem;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 0;
+
+  background: transparent;
+
+  text-align: start;
+
+  .financial-loader__spinner {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+
+    flex: 0 0 auto;
+
+    border-width: 0.125rem;
+  }
+
+  .financial-loader__content {
+    justify-items: start;
+  }
+}
+
+/* ==========================================================================
+   Overlay Variant
+   ========================================================================== */
+
+.financial-loader--overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+
+  --financial-loader-min-height: 100%;
+
+  border: 0;
+  border-radius: inherit;
+
+  background: color-mix(in oklab, var(--color-surface), transparent 12%);
+
+  backdrop-filter: blur(2px);
+}
+
+/* ==========================================================================
+   Animation
+   ========================================================================== */
+
+@keyframes financial-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-loader {
+    --financial-loader-min-height: 15rem;
+
+    padding: 1.5rem 1rem;
+
+    border-radius: var(--radius-lg);
+  }
+
+  .financial-loader__spinner {
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+  }
+
+  .financial-loader__text {
+    font-size: var(--text-xs);
+  }
+
+  .financial-loader--compact {
+    --financial-loader-min-height: 9rem;
+  }
+
+  .financial-loader--inline,
+  .financial-loader--overlay {
+    --financial-loader-min-height: auto;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-loader {
+    --financial-loader-bg: color-mix(
+      in oklab,
+      var(--color-surface-alt),
+      transparent 8%
+    );
+  }
+
+  .financial-loader--overlay {
+    --financial-loader-bg: color-mix(
+      in oklab,
+      var(--color-surface),
+      transparent 14%
+    );
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-loader {
+    border-width: 2px;
+
+    background: var(--color-surface);
+  }
+
+  .financial-loader__spinner {
+    border-color: currentColor;
+    border-block-start-color: transparent;
+  }
+
+  .financial-loader--overlay {
+    border: 2px solid currentColor;
+
+    backdrop-filter: none;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-loader__spinner {
+    animation: none;
+
+    border-color: var(--color-primary);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .financial-loader__spinner {
+    animation: none;
+
+    border-color: var(--color-primary);
+  }
+}

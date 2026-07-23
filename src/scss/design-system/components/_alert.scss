@@ -1,0 +1,161 @@
+@use "../abstracts" as ds;
+
+/* ==========================================================================
+   Alert
+   ========================================================================== */
+
+.alert {
+  --alert-bg: var(--color-surface);
+  --alert-color: var(--color-text);
+  --alert-border: var(--color-border);
+  --alert-icon-color: currentColor;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+
+  padding: 1rem 1.25rem;
+
+  border: 1px solid var(--alert-border);
+  border-radius: var(--radius-md);
+
+  background: var(--alert-bg);
+  color: var(--alert-color);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Regions
+   ========================================================================== */
+
+.alert-icon {
+  --icon-size: 1.25rem;
+
+  flex: 0 0 auto;
+  color: var(--alert-icon-color);
+}
+
+.alert-content {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.alert-title {
+  margin: 0 0 0.25rem;
+
+  color: inherit;
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+.alert-text {
+  margin: 0;
+  color: inherit;
+}
+
+.alert-close {
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   Variants
+   ========================================================================== */
+
+.alert-primary {
+  --alert-bg: color-mix(in oklab, var(--color-primary), transparent 88%);
+
+  --alert-color: var(--color-primary);
+
+  --alert-border: color-mix(in oklab, var(--color-primary), transparent 60%);
+
+  --alert-icon-color: var(--color-primary);
+}
+
+.alert-success {
+  --alert-bg: color-mix(in oklab, var(--color-success), transparent 88%);
+
+  --alert-color: var(--color-success);
+
+  --alert-border: color-mix(in oklab, var(--color-success), transparent 60%);
+
+  --alert-icon-color: var(--color-success);
+}
+
+.alert-info {
+  --alert-bg: color-mix(in oklab, var(--color-info), transparent 88%);
+
+  --alert-color: var(--color-info);
+
+  --alert-border: color-mix(in oklab, var(--color-info), transparent 60%);
+
+  --alert-icon-color: var(--color-info);
+}
+
+.alert-warning {
+  --alert-bg: color-mix(in oklab, var(--color-warning), transparent 84%);
+
+  --alert-color: var(--color-warning-text, #92400e);
+
+  --alert-border: color-mix(in oklab, var(--color-warning), transparent 55%);
+
+  --alert-icon-color: var(--color-warning-text, #92400e);
+}
+
+.alert-danger {
+  --alert-bg: color-mix(in oklab, var(--color-danger), transparent 88%);
+
+  --alert-color: var(--color-danger);
+
+  --alert-border: color-mix(in oklab, var(--color-danger), transparent 60%);
+
+  --alert-icon-color: var(--color-danger);
+}
+
+/* ==========================================================================
+   Sizes
+   ========================================================================== */
+
+.alert-sm {
+  padding: 0.75rem 1rem;
+  font-size: var(--text-xs);
+}
+
+.alert-sm .alert-icon {
+  --icon-size: 1rem;
+}
+
+/* ==========================================================================
+   Layout Variants
+   ========================================================================== */
+
+.alert-banner {
+  border-radius: var(--radius-none);
+}
+
+.alert-dismissible {
+  align-items: flex-start;
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .alert {
+  border-width: 2px;
+}
+
+html[data-contrast="high"] {
+  .alert-primary,
+  .alert-success,
+  .alert-info,
+  .alert-warning,
+  .alert-danger {
+    --alert-bg: var(--color-surface);
+    --alert-color: var(--color-text);
+    --alert-border: var(--color-border);
+    --alert-icon-color: currentColor;
+  }
+}

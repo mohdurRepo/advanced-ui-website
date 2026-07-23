@@ -1,0 +1,411 @@
+/* ==========================================================================
+   Watchlist Details
+   ========================================================================== */
+
+.watchlist-details {
+  position: relative;
+  padding-block: var(--space-8, 2rem) var(--space-12, 3rem);
+
+  /**
+   * The generic tabs component remains responsible for tab behaviour.
+   * This feature file only controls the Watchlist page composition.
+   */
+  .watchlist-tabs {
+    min-width: 0;
+  }
+}
+
+/* ==========================================================================
+   Watchlist Navigation Header
+   ========================================================================== */
+
+.watchlist-tabs__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-6, 1.5rem);
+  margin-block-end: var(--space-6, 1.5rem);
+  border-block-end: 1px solid var(--border-color, #dfe3e8);
+}
+
+.watchlist-tabs__navigation {
+  display: flex;
+  align-items: flex-end;
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Watchlist Tabs
+   ========================================================================== */
+
+.watchlist-tabs__nav {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-1, 0.25rem);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab-link {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2, 0.5rem);
+    min-height: 3.25rem;
+    margin: 0;
+    padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--text-secondary, #5c6670);
+    font: inherit;
+    font-size: var(--font-size-sm, 0.875rem);
+    font-weight: var(--font-weight-semibold, 600);
+    line-height: 1.25;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      color 160ms ease,
+      background-color 160ms ease;
+
+    &::after {
+      position: absolute;
+      inset-inline: var(--space-3, 0.75rem);
+      inset-block-end: -1px;
+      height: 3px;
+      border-radius: 999px 999px 0 0;
+      background: transparent;
+      content: "";
+      transition: background-color 160ms ease;
+    }
+
+    &:hover {
+      background: var(--surface-subtle, #f6f8fa);
+      color: var(--text-primary, #1d252d);
+    }
+
+    &:focus-visible {
+      z-index: 1;
+      outline: 2px solid var(--focus-ring-color, #006caa);
+      outline-offset: -2px;
+    }
+
+    &.active,
+    &[aria-selected="true"] {
+      color: var(--color-primary, #006caa);
+
+      &::after {
+        background: currentColor;
+      }
+
+      .watchlist-tab__count {
+        border-color: var(--color-primary, #006caa);
+        background: var(--color-primary, #006caa);
+        color: var(--color-on-primary, #ffffff);
+      }
+    }
+  }
+}
+
+.tab-link__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   Tab Count
+   ========================================================================== */
+
+.watchlist-tab__count {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding-inline: 0.375rem;
+  border: 1px solid var(--border-color-strong, #c5cbd1);
+  border-radius: 999px;
+  background: var(--surface-muted, #eef1f4);
+  color: var(--text-secondary, #5c6670);
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: var(--font-weight-bold, 700);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+/* ==========================================================================
+   Active Watchlist Actions
+   ========================================================================== */
+
+.watchlist-tabs__active-actions {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-height: 3.25rem;
+  margin-inline-start: var(--space-1, 0.25rem);
+  padding-inline: var(--space-1, 0.25rem);
+  padding-block-end: 1px;
+
+  > [data-dropdown-trigger] {
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--text-secondary, #5c6670);
+
+    &:hover {
+      background: var(--surface-subtle, #f6f8fa);
+      color: var(--text-primary, #1d252d);
+    }
+  }
+
+  .dropdown__menu {
+    z-index: var(--z-index-dropdown, 1000);
+    min-width: 13rem;
+  }
+}
+
+/* ==========================================================================
+   Tabs Content
+   ========================================================================== */
+
+.watchlist-tabs {
+  > .tabs-content {
+    min-width: 0;
+  }
+
+  .tab-pane {
+    min-width: 0;
+
+    &[hidden] {
+      display: none;
+    }
+
+    &.active:not([hidden]) {
+      display: block;
+    }
+  }
+}
+
+/* ==========================================================================
+   Watchlist Content Layout
+   ========================================================================== */
+
+.watchlist-details__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.72fr);
+  align-items: stretch;
+  gap: var(--space-6, 1.5rem);
+  min-width: 0;
+
+  > .card {
+    display: flex;
+    min-width: 0;
+    height: 100%;
+    flex-direction: column;
+  }
+
+  > .watchlist-securities {
+    min-width: 0;
+  }
+
+  > .watchlist-announcements {
+    min-width: 0;
+  }
+}
+
+/* ==========================================================================
+   Card Structure Alignment
+   ========================================================================== */
+
+.watchlist-securities,
+.watchlist-announcements {
+  overflow: visible;
+
+  > .card-header {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4, 1rem);
+  }
+
+  > .card-body {
+    min-width: 0;
+  }
+
+  .card-header__content {
+    min-width: 0;
+  }
+
+  .card-title {
+    margin: 0;
+  }
+
+  .card-eyebrow {
+    margin: 0 0 var(--space-1, 0.25rem);
+  }
+
+  .card-subtitle {
+    margin: var(--space-2, 0.5rem) 0 0;
+  }
+
+  [data-watchlist-security-count],
+  [data-watchlist-announcement-count] {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
+.watchlist-securities {
+  > .card-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+  }
+}
+
+.watchlist-announcements {
+  > .card-body {
+    flex: 1 1 auto;
+  }
+
+  > .card-footer {
+    flex: 0 0 auto;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .watchlist-tabs__nav {
+    .tab-link,
+    .tab-link::after {
+      transition: none;
+    }
+  }
+
+  .watchlist-tab__count {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 74.9375rem) {
+  .watchlist-details__layout {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.62fr);
+    gap: var(--space-5, 1.25rem);
+  }
+}
+
+@media (max-width: 63.9375rem) {
+  .watchlist-details__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .watchlist-announcements {
+    height: auto;
+  }
+}
+
+@media (max-width: 47.9375rem) {
+  .watchlist-details {
+    padding-block: var(--space-6, 1.5rem) var(--space-10, 2.5rem);
+  }
+
+  .watchlist-tabs__header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: var(--space-4, 1rem);
+    border-block-end: 0;
+
+    > .btn {
+      align-self: flex-start;
+    }
+  }
+
+  .watchlist-tabs__navigation {
+    width: 100%;
+    border-block-end: 1px solid var(--border-color, #dfe3e8);
+  }
+
+  .watchlist-tabs__nav {
+    flex: 1 1 auto;
+  }
+
+  .watchlist-tabs__active-actions {
+    margin-inline-start: auto;
+  }
+
+  .watchlist-details__layout {
+    gap: var(--space-4, 1rem);
+  }
+
+  .watchlist-securities,
+  .watchlist-announcements {
+    > .card-header {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+}
+
+@media (max-width: 35.9375rem) {
+  .watchlist-tabs__header {
+    > .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .watchlist-tabs__nav {
+    .tab-link {
+      min-height: 3rem;
+      padding-inline: var(--space-3, 0.75rem);
+    }
+  }
+
+  .watchlist-tabs__active-actions {
+    min-height: 3rem;
+  }
+
+  .watchlist-details__layout {
+    gap: var(--space-3, 0.75rem);
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+[dir="rtl"] {
+  .watchlist-tabs__nav {
+    direction: rtl;
+  }
+
+  .watchlist-tabs__active-actions {
+    .dropdown__menu {
+      inset-inline-start: 0;
+      inset-inline-end: auto;
+    }
+  }
+}

@@ -1,0 +1,442 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Content Shell
+   ========================================================================== */
+
+/*
+ * Reusable content surface for financial datasets.
+ *
+ * Used by:
+ * - Dividends
+ * - Financial Information
+ * - Financial Statements & Reports
+ * - Shareholding
+ * - Company Profile
+ */
+
+.financial-content-shell {
+  --financial-shell-bg: var(--color-surface);
+  --financial-shell-border: var(--color-border);
+  --financial-shell-radius: var(--radius-xl);
+  --financial-shell-shadow: var(--shadow-sm);
+
+  position: relative;
+  isolation: isolate;
+
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  overflow: hidden;
+
+  border: 1px solid var(--financial-shell-border);
+  border-radius: var(--financial-shell-radius);
+
+  background: var(--financial-shell-bg);
+  color: var(--color-text);
+
+  box-shadow: var(--financial-shell-shadow);
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.financial-content-shell__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+
+  min-inline-size: 0;
+
+  padding: clamp(1.125rem, 2vw, 1.5rem);
+
+  border-block-end: 1px solid var(--financial-shell-border);
+
+  background: var(--financial-shell-bg);
+}
+
+/* ==========================================================================
+   Shared Content Header
+   ========================================================================== */
+
+.financial-content-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(1rem, 3vw, 2.5rem);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.financial-content-header__main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+}
+
+.financial-content-header__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: clamp(var(--text-lg), 2vw, var(--text-xl));
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.015em;
+}
+
+.financial-content-header__description {
+  max-inline-size: 48rem;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   Optional Header Metadata
+   ========================================================================== */
+
+.financial-content-header__meta {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+
+  min-inline-size: 7rem;
+
+  text-align: end;
+}
+
+.financial-content-header__meta-label {
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-normal);
+}
+
+.financial-content-header__meta-value {
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Body
+   ========================================================================== */
+
+.financial-content-shell__body {
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  padding: clamp(1rem, 2vw, 1.5rem);
+
+  background: var(--financial-shell-bg);
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.financial-content-shell__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+
+  min-inline-size: 0;
+
+  padding: clamp(0.875rem, 1.5vw, 1.125rem) clamp(1rem, 2vw, 1.5rem);
+
+  border-block-start: 1px solid var(--financial-shell-border);
+
+  background: color-mix(
+    in oklab,
+    var(--financial-shell-bg),
+    var(--color-bg) 22%
+  );
+}
+
+/* ==========================================================================
+   Footer Note
+   ========================================================================== */
+
+.financial-content-shell__note {
+  flex: 1 1 auto;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   Footer Action
+   ========================================================================== */
+
+.financial-content-shell__action {
+  flex: 0 0 auto;
+
+  min-inline-size: 7.5rem;
+
+  justify-content: center;
+
+  .has-icon {
+    --icon-size: 0.625rem;
+
+    flex: 0 0 auto;
+
+    @include transition(transform, fast);
+  }
+
+  &:hover .has-icon {
+    transform: translateX(0.125rem);
+  }
+}
+
+/* ==========================================================================
+   Dividends Variant
+   ========================================================================== */
+
+.financial-content-shell--dividends {
+  /*
+   * The table provides its own visible hierarchy.
+   * An additional shell header is not required.
+   */
+
+  .financial-content-shell__body {
+    padding: 1.25rem;
+  }
+}
+
+/* ==========================================================================
+   Financial Data Variant
+   ========================================================================== */
+
+.financial-content-shell--data {
+  /*
+   * Annual / Quarterly navigation and the statement content live inside
+   * one uninterrupted institutional surface.
+   */
+
+  .financial-content-shell__body {
+    padding: 0;
+  }
+
+  .financial-content-shell__footer {
+    justify-content: flex-start;
+  }
+}
+
+/* ==========================================================================
+   Reports Variant
+   ========================================================================== */
+
+.financial-content-shell--reports {
+  /*
+   * Statements, XBRL, Board Reports, and ESG Reports reuse the same
+   * side-navigation layout as Annual / Quarterly.
+   */
+
+  .financial-content-shell__body {
+    padding: 0;
+  }
+
+  .financial-content-shell__footer {
+    justify-content: flex-start;
+  }
+}
+
+/* ==========================================================================
+   Single Content Variant
+   ========================================================================== */
+
+/*
+ * Use for sections that do not require local navigation.
+ */
+
+.financial-content-shell--single {
+  .financial-content-shell__body {
+    padding: clamp(1rem, 2vw, 1.5rem);
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .financial-content-header__meta {
+    align-items: flex-start;
+
+    text-align: start;
+  }
+
+  .financial-content-shell__action:hover .has-icon {
+    transform: translateX(-0.125rem);
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .financial-content-header {
+    gap: 1rem;
+  }
+
+  .financial-content-header__description {
+    max-inline-size: 40rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-content-shell {
+    border-radius: var(--radius-lg);
+  }
+
+  .financial-content-shell__header {
+    padding: 1rem;
+  }
+
+  .financial-content-header {
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+
+  .financial-content-header__title {
+    font-size: var(--text-lg);
+  }
+
+  .financial-content-header__description {
+    font-size: var(--text-xs);
+  }
+
+  .financial-content-header__meta {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+
+    inline-size: 100%;
+    min-inline-size: 0;
+
+    text-align: start;
+  }
+
+  .financial-content-shell__body {
+    padding: 0.75rem;
+  }
+
+  .financial-content-shell__footer {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0.75rem;
+
+    padding: 0.875rem;
+  }
+
+  .financial-content-shell__note {
+    inline-size: 100%;
+  }
+
+  .financial-content-shell__action {
+    inline-size: 100%;
+  }
+
+  .financial-content-shell--dividends {
+    .financial-content-shell__body {
+      padding: 0.75rem;
+    }
+  }
+
+  .financial-content-shell--data,
+  .financial-content-shell--reports {
+    .financial-content-shell__body {
+      padding: 0;
+    }
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-content-shell {
+    --financial-shell-shadow: none;
+  }
+
+  .financial-content-shell__footer {
+    background: color-mix(
+      in oklab,
+      var(--financial-shell-bg),
+      var(--color-bg) 12%
+    );
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-content-shell {
+    border-width: 2px;
+
+    box-shadow: none;
+  }
+
+  .financial-content-shell__header,
+  .financial-content-shell__footer {
+    border-width: 2px;
+  }
+
+  .financial-content-header__description,
+  .financial-content-header__meta-label,
+  .financial-content-shell__note {
+    color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-content-shell__action .has-icon {
+    transition: none;
+  }
+
+  .financial-content-shell__action:hover .has-icon {
+    transform: none;
+  }
+}

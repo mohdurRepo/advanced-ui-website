@@ -1,0 +1,46 @@
+@use "sass:map";
+@use "maps";
+
+@function _get-token($tokens, $key, $token-type) {
+  @if not map.has-key($tokens, $key) {
+    @error "Unknown #{$token-type} token `#{$key}`.";
+  }
+
+  @return map.get($tokens, $key);
+}
+
+@function brand($key) {
+  @return _get-token(maps.$brand-colors, $key, "brand color");
+}
+
+@function space($key) {
+  @return _get-token(maps.$spaces, $key, "spacing");
+}
+
+@function radius($key) {
+  @return _get-token(maps.$radii, $key, "radius");
+}
+
+@function shadow($key) {
+  @return _get-token(maps.$shadows, $key, "shadow");
+}
+
+@function font-weight($key) {
+  @return _get-token(maps.$font-weights, $key, "font weight");
+}
+
+@function font-size($key) {
+  @return _get-token(maps.$font-sizes, $key, "font size");
+}
+
+@function line-height($key) {
+  @return _get-token(maps.$line-heights, $key, "line height");
+}
+
+@function z($key) {
+  @return _get-token(maps.$z-indexes, $key, "z-index");
+}
+
+@function motion($key) {
+  @return _get-token(maps.$motions, $key, "motion");
+}

@@ -1,0 +1,75 @@
+@use "../abstracts" as ds;
+
+/* ==========================================================================
+   High-Contrast Light Theme
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  --color-bg: #{ds.brand("white")};
+  --color-surface: #{ds.brand("white")};
+  --color-surface-alt: #f3f4f6;
+
+  --color-text: #{ds.brand("black")};
+  --color-heading: #{ds.brand("black")};
+  --color-text-muted: #111827;
+
+  --color-primary: #0000ee;
+  --color-primary-hover: #0000aa;
+  --color-on-primary: #{ds.brand("white")};
+
+  --color-secondary: #{ds.brand("black")};
+  --color-secondary-hover: #262626;
+  --color-on-secondary: #{ds.brand("white")};
+
+  --color-accent: #006b57;
+  --color-accent-hover: #004f41;
+  --color-on-accent: #{ds.brand("white")};
+
+  --color-border: #{ds.brand("black")};
+  --color-border-strong: #{ds.brand("black")};
+
+  --color-link: #0000ee;
+  --color-link-hover: #0000aa;
+
+  --color-disabled: #d1d5db;
+  --color-on-disabled: #111827;
+
+  --focus-ring: #{ds.brand("black")};
+}
+
+/* ==========================================================================
+   High-Contrast Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"][data-contrast="high"] {
+  --color-bg: #{ds.brand("black")};
+  --color-surface: #050505;
+  --color-surface-alt: #111111;
+
+  --color-text: #{ds.brand("white")};
+  --color-heading: #{ds.brand("white")};
+  --color-text-muted: #f3f4f6;
+
+  --color-primary: #93c5fd;
+  --color-primary-hover: #bfdbfe;
+  --color-on-primary: #{ds.brand("black")};
+
+  --color-secondary: #{ds.brand("white")};
+  --color-secondary-hover: #e5e7eb;
+  --color-on-secondary: #{ds.brand("black")};
+
+  --color-accent: #5eead4;
+  --color-accent-hover: #99f6e4;
+  --color-on-accent: #{ds.brand("black")};
+
+  --color-border: #{ds.brand("white")};
+  --color-border-strong: #{ds.brand("white")};
+
+  --color-link: #93c5fd;
+  --color-link-hover: #bfdbfe;
+
+  --color-disabled: #374151;
+  --color-on-disabled: #{ds.brand("white")};
+
+  --focus-ring: #{ds.brand("white")};
+}

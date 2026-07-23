@@ -1,0 +1,54 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Navigation Layout
+   ========================================================================== */
+
+.financial-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Main Layout
+   ========================================================================== */
+
+.financial-navigation__layout {
+  display: grid;
+
+  /*
+   * Side navigation
+   * Content
+   */
+
+  grid-template-columns:
+    minmax(15rem, 17rem)
+    minmax(0, 1fr);
+
+  gap: 2rem;
+
+  align-items: start;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Without Side Navigation
+   ========================================================================== */
+
+.financial-navigation--no-side .financial-navigation__layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .financial-navigation__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

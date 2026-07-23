@@ -1,0 +1,191 @@
+@use "../abstracts" as ds;
+
+/* ==========================================================================
+   Root Tokens
+   ========================================================================== */
+
+:root {
+  /* Typography */
+  --font-sans:
+    "SEFont", system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
+
+  /* Accessibility */
+  --font-scale: 1;
+  --focus-ring-width: 2px;
+
+  /* Radius */
+  --radius-none: #{ds.radius("none")};
+  --radius-sm: #{ds.radius("sm")};
+  --radius-md: #{ds.radius("md")};
+  --radius-lg: #{ds.radius("lg")};
+  --radius-xl: #{ds.radius("xl")};
+  --radius-2xl: #{ds.radius("2xl")};
+  --radius-pill: #{ds.radius("pill")};
+
+  /* Motion */
+  --transition-fast: #{ds.motion("fast")};
+  --transition-normal: #{ds.motion("normal")};
+  --transition-slow: #{ds.motion("slow")};
+
+  /* Shadows */
+  --shadow-sm: #{ds.shadow("sm")};
+  --shadow-md: #{ds.shadow("md")};
+  --shadow-lg: #{ds.shadow("lg")};
+  --shadow-xl: #{ds.shadow("xl")};
+
+  /* Layering */
+  --z-base: #{ds.z("base")};
+  --z-dropdown: #{ds.z("dropdown")};
+  --z-sticky: #{ds.z("sticky")};
+  --z-fixed: #{ds.z("fixed")};
+  --z-overlay: #{ds.z("overlay")};
+  --z-modal: #{ds.z("modal")};
+  --z-popover: #{ds.z("popover")};
+  --z-tooltip: #{ds.z("tooltip")};
+  --z-toast: #{ds.z("toast")};
+}
+
+/* ==========================================================================
+   Text-size Preference
+   ========================================================================== */
+
+html[data-font-size="-2"] {
+  --font-scale: 0.9;
+}
+
+html[data-font-size="-1"] {
+  --font-scale: 0.95;
+}
+
+html[data-font-size="0"] {
+  --font-scale: 1;
+}
+
+html[data-font-size="1"] {
+  --font-scale: 1.06;
+}
+
+html[data-font-size="2"] {
+  --font-scale: 1.12;
+}
+
+/* ==========================================================================
+   Document
+   ========================================================================== */
+
+html,
+body {
+  min-height: 100%;
+}
+
+html {
+  background: var(--color-bg);
+  color: var(--color-text);
+
+  font-family: var(--font-sans);
+
+  scroll-behavior: smooth;
+}
+
+/*
+ * Do not apply --font-scale to the html font-size.
+ *
+ * Typography tokens consume --font-scale directly. Applying it here would
+ * also resize rem-based spacing, controls, drawers, and layout measurements.
+ */
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  background: var(--color-bg);
+  color: var(--color-text);
+
+  font-family: inherit;
+  font-size: var(--text-base);
+  line-height: var(--line-height-normal);
+
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   Direction
+   ========================================================================== */
+
+html[dir="rtl"] {
+  direction: rtl;
+}
+
+/* ==========================================================================
+   Color Scheme
+   ========================================================================== */
+
+:root,
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  --transition-fast: 0ms;
+  --transition-normal: 0ms;
+  --transition-slow: 0ms;
+
+  scroll-behavior: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0ms;
+    --transition-normal: 0ms;
+    --transition-slow: 0ms;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  --focus-ring-width: 4px;
+}
+
+/* ==========================================================================
+   Selection
+   ========================================================================== */
+
+::selection {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* ==========================================================================
+   Instant Theme Updates
+   ========================================================================== */
+
+/*
+ * Theme and accent changes update many CSS custom properties simultaneously.
+ * The JavaScript preference controller adds this class briefly while applying
+ * the new values, preventing the entire interface from animating at once.
+ */
+
+html.is-theme-switching,
+html.is-theme-switching *,
+html.is-theme-switching *::before,
+html.is-theme-switching *::after {
+  transition: none !important;
+  animation: none !important;
+  scroll-behavior: auto !important;
+}

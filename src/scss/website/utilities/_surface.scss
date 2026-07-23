@@ -1,0 +1,227 @@
+/* ==========================================================================
+   Website Contextual Surfaces
+   ========================================================================== */
+
+/*
+ * Generic surfaces such as .surface, .surface-alt, .surface-light,
+ * .surface-dark, and .surface-brand belong to the design system.
+ *
+ * This file contains only website-specific contextual surfaces.
+ *
+ * Each contextual surface creates a local semantic color environment.
+ * Components placed inside it continue using:
+ *
+ * --color-surface
+ * --color-surface-alt
+ * --color-text
+ * --color-heading
+ * --color-text-muted
+ * --color-border
+ * --color-border-strong
+ */
+
+/* ==========================================================================
+   Hero Surface
+   ========================================================================== */
+
+.surface-hero {
+  --color-surface: #0045e3;
+  --color-surface-alt: #0038bb;
+
+  --color-text: #ffffff;
+  --color-heading: #ffffff;
+  --color-text-muted: rgb(255 255 255 / 0.78);
+
+  --color-border: rgb(255 255 255 / 0.16);
+  --color-border-strong: rgb(255 255 255 / 0.28);
+
+  --color-link: #ffffff;
+  --color-link-hover: #59ff9e;
+
+  --surface-background: linear-gradient(
+    90deg,
+    #073fbd 0%,
+    #075ee4 58%,
+    #218af4 100%
+  );
+
+  background: var(--surface-background);
+  color: var(--color-text);
+}
+
+/* ==========================================================================
+   Insights Surface
+   ========================================================================== */
+
+.surface-insights {
+  --color-surface: #00243a;
+  --color-surface-alt: #0a3148;
+
+  --color-text: #ffffff;
+  --color-heading: #ffffff;
+  --color-text-muted: rgb(255 255 255 / 0.72);
+
+  --color-border: rgb(255 255 255 / 0.1);
+  --color-border-strong: rgb(255 255 255 / 0.18);
+
+  --color-link: #ffffff;
+  --color-link-hover: #59ff9e;
+
+  --surface-background: #00243a;
+
+  background: var(--surface-background);
+  color: var(--color-text);
+}
+
+/* ==========================================================================
+   Market Surface
+   ========================================================================== */
+
+.surface-market {
+  --color-surface: #254456;
+  --color-surface-alt: #1f4a60;
+
+  --color-text: #ffffff;
+  --color-heading: #ffffff;
+  --color-text-muted: #b8c8d4;
+
+  --color-border: rgb(255 255 255 / 0.12);
+  --color-border-strong: rgb(255 255 255 / 0.22);
+
+  --color-link: #ffffff;
+  --color-link-hover: #59ff9e;
+
+  --surface-background: #254456;
+
+  background: var(--surface-background);
+  color: var(--color-text);
+}
+
+/* ==========================================================================
+   Local Typography
+   ========================================================================== */
+
+.surface-hero h1,
+.surface-hero h2,
+.surface-hero h3,
+.surface-hero h4,
+.surface-hero h5,
+.surface-hero h6,
+.surface-insights h1,
+.surface-insights h2,
+.surface-insights h3,
+.surface-insights h4,
+.surface-insights h5,
+.surface-insights h6,
+.surface-market h1,
+.surface-market h2,
+.surface-market h3,
+.surface-market h4,
+.surface-market h5,
+.surface-market h6 {
+  color: var(--color-heading);
+}
+
+.surface-hero p,
+.surface-insights p,
+.surface-market p {
+  color: var(--color-text-muted);
+}
+
+.surface-hero a:not(.btn),
+.surface-insights a:not(.btn),
+.surface-market a:not(.btn) {
+  color: var(--color-link);
+}
+
+.surface-hero a:not(.btn):hover,
+.surface-insights a:not(.btn):hover,
+.surface-market a:not(.btn):hover {
+  color: var(--color-link-hover);
+}
+
+/* ==========================================================================
+   Surface-aware Forms
+   ========================================================================== */
+
+.surface-hero .form-label,
+.surface-hero .form-legend,
+.surface-insights .form-label,
+.surface-insights .form-legend,
+.surface-market .form-label,
+.surface-market .form-legend {
+  color: var(--color-heading);
+}
+
+.surface-hero .form-help,
+.surface-insights .form-help,
+.surface-market .form-help {
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+/*
+ * These branded sections intentionally remain dark in both themes.
+ * Only small tonal adjustments are applied for the dark page context.
+ */
+
+html[data-theme="dark"] .surface-hero {
+  --color-surface: #063f91;
+  --color-surface-alt: #002c72;
+
+  --surface-background: linear-gradient(
+    90deg,
+    #002c72 0%,
+    #063f91 58%,
+    #0759aa 100%
+  );
+}
+
+html[data-theme="dark"] .surface-insights {
+  --color-surface: #00243a;
+  --color-surface-alt: #0a3148;
+  --surface-background: #00243a;
+}
+
+html[data-theme="dark"] .surface-market {
+  --color-surface: #102f45;
+  --color-surface-alt: #0b2233;
+
+  --color-text: #f5f6f7;
+  --color-heading: #ffffff;
+  --color-text-muted: #b7c7d4;
+
+  --color-border: #35556d;
+  --color-border-strong: #4b6f88;
+
+  --surface-background: #102f45;
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .surface-hero,
+html[data-contrast="high"] .surface-insights,
+html[data-contrast="high"] .surface-market {
+  --color-surface: #000000;
+  --color-surface-alt: #111111;
+
+  --color-text: #ffffff;
+  --color-heading: #ffffff;
+  --color-text-muted: #ffffff;
+
+  --color-border: #ffffff;
+  --color-border-strong: #ffffff;
+
+  --color-link: #ffffff;
+  --color-link-hover: #ffffff;
+
+  --surface-background: #000000;
+
+  background: #000000;
+  color: #ffffff;
+}

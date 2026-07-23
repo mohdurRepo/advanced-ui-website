@@ -1,0 +1,190 @@
+@use "../../../design-system/abstracts/" as *;
+
+/* ==========================================================================
+   Watchlist States
+   ========================================================================== */
+
+.watchlist-state {
+  --watchlist-state-gap: 1rem;
+  --watchlist-state-padding: 2.5rem;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: var(--watchlist-state-gap);
+
+  inline-size: 100%;
+  min-block-size: 18rem;
+
+  padding: var(--watchlist-state-padding);
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Icon
+   ========================================================================== */
+
+.watchlist-state__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--color-text-muted);
+
+  line-height: 1;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.watchlist-state__title {
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size: var(--text-lg);
+  font-weight: font-weight("semibold");
+  line-height: 1.35;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.watchlist-state__description {
+  max-inline-size: 34rem;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   Loading
+   ========================================================================== */
+
+.watchlist-state--loading {
+  .watchlist-state__icon {
+    color: var(--color-primary);
+  }
+}
+
+/* ==========================================================================
+   Empty
+   ========================================================================== */
+
+.watchlist-state--empty {
+  justify-content: center;
+}
+
+/* ==========================================================================
+   No Results
+   ========================================================================== */
+
+.watchlist-state--no-results {
+  justify-content: center;
+}
+
+/* ==========================================================================
+   Compact
+   ========================================================================== */
+
+.watchlist-state--compact {
+  min-block-size: 14rem;
+
+  padding-block: 2rem;
+}
+
+/* ==========================================================================
+   Action
+   ========================================================================== */
+
+.watchlist-state {
+  .btn {
+    margin-block-start: 0.5rem;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .watchlist-state {
+    --watchlist-state-padding: 2rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .watchlist-state {
+    --watchlist-state-gap: 0.875rem;
+    --watchlist-state-padding: 1.5rem;
+
+    min-block-size: 14rem;
+  }
+
+  .watchlist-state__title {
+    font-size: var(--text-base);
+  }
+
+  .watchlist-state__description {
+    font-size: var(--text-sm);
+  }
+
+  .watchlist-state {
+    .btn {
+      inline-size: 100%;
+      justify-content: center;
+    }
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .watchlist-state__icon {
+    color: var(--color-text-muted);
+  }
+
+  .watchlist-state--loading {
+    .watchlist-state__icon {
+      color: var(--color-primary);
+    }
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .watchlist-state__title {
+    font-weight: font-weight("bold");
+  }
+
+  .watchlist-state__icon {
+    color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .watchlist-state__icon.icon-spin {
+    animation: none;
+  }
+}

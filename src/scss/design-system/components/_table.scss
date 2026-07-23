@@ -1,0 +1,227 @@
+@use "../abstracts" as ds;
+
+/* ==========================================================================
+   Responsive Wrapper
+   ========================================================================== */
+
+.table-responsive {
+  inline-size: 100%;
+  max-inline-size: 100%;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ==========================================================================
+   Table
+   ========================================================================== */
+
+.table {
+  --table-bg: var(--color-surface);
+  --table-color: var(--color-text);
+  --table-border: var(--color-border);
+
+  --table-head-bg: var(--color-surface-alt);
+  --table-head-color: var(--color-heading);
+
+  --table-row-hover-bg: var(--color-surface-alt);
+  --table-cell-padding: 0.875rem 1rem;
+
+  inline-size: 100%;
+
+  border-collapse: collapse;
+  border-spacing: 0;
+
+  background: var(--table-bg);
+  color: var(--table-color);
+
+  font-size: var(--text-sm);
+}
+
+.table th,
+.table td {
+  padding: var(--table-cell-padding);
+
+  border-block-end: 1px solid var(--table-border);
+
+  color: inherit;
+  text-align: start;
+  vertical-align: middle;
+}
+
+.table thead th {
+  background: var(--table-head-bg);
+  color: var(--table-head-color);
+
+  font-weight: ds.font-weight("bold");
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  @include ds.transition(background-color, "fast");
+}
+
+.table a {
+  color: inherit;
+  text-underline-offset: 0.2em;
+}
+
+.table a:hover {
+  color: var(--color-primary);
+}
+
+.table .numeric,
+.table .table-cell-numeric {
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+/* ==========================================================================
+   Variants
+   ========================================================================== */
+
+.table-striped tbody tr:nth-child(even) {
+  background: var(--color-surface-alt);
+}
+
+.table-hover tbody tr:hover {
+  background: var(--table-row-hover-bg);
+}
+
+.table-bordered {
+  border: 1px solid var(--table-border);
+}
+
+.table-bordered th,
+.table-bordered td {
+  border: 1px solid var(--table-border);
+}
+
+.table-compact {
+  --table-cell-padding: 0.5rem 0.75rem;
+}
+
+.table-nowrap th,
+.table-nowrap td {
+  white-space: nowrap;
+}
+
+.table-clickable tbody tr {
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   Sticky Header
+   ========================================================================== */
+
+.table-sticky-head thead th {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
+
+  background: var(--table-head-bg);
+}
+
+/* ==========================================================================
+   Sticky First Column
+   ========================================================================== */
+
+.table-fixed-column th:first-child,
+.table-fixed-column td:first-child {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 1;
+
+  background: var(--table-bg);
+}
+
+.table-fixed-column thead th:first-child {
+  z-index: 3;
+  background: var(--table-head-bg);
+}
+
+.table-fixed-column.table-striped tbody tr:nth-child(even) td:first-child {
+  background: var(--color-surface-alt);
+}
+
+.table-fixed-column.table-hover tbody tr:hover td:first-child {
+  background: var(--table-row-hover-bg);
+}
+
+/* ==========================================================================
+   States
+   ========================================================================== */
+
+.table-empty td,
+.table-loading td {
+  padding: 2rem;
+
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.table-total-row td {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+
+  font-weight: ds.font-weight("bold");
+}
+
+/* ==========================================================================
+   Contextual Surface
+   ========================================================================== */
+
+.surface .table {
+  --table-bg: var(--color-surface);
+  --table-color: var(--color-text);
+  --table-border: var(--color-border);
+
+  --table-head-bg: var(--color-surface-alt);
+  --table-head-color: var(--color-heading);
+
+  --table-row-hover-bg: var(--color-surface-alt);
+}
+
+@supports (color: color-mix(in oklab, black, white)) {
+  .surface .table {
+    --table-row-hover-bg: color-mix(
+      in oklab,
+      var(--color-primary),
+      transparent 92%
+    );
+  }
+}
+
+.surface .table a {
+  color: var(--color-heading);
+  font-weight: ds.font-weight("bold");
+}
+
+.surface .table a:hover {
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .table th,
+html[data-contrast="high"] .table td {
+  border-color: var(--color-border-strong);
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .table tbody tr {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] .table tbody tr {
+  transition: none;
+}

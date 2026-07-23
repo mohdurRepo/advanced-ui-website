@@ -1,0 +1,440 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Investor Relations
+   ========================================================================== */
+
+.investor-relations {
+  --investor-relations-bg: var(--color-surface);
+  --investor-relations-border: var(--color-border);
+  --investor-relations-accent: var(--color-primary);
+
+  --investor-relations-icon-bg: color-mix(
+    in oklab,
+    var(--investor-relations-accent),
+    transparent 92%
+  );
+
+  --investor-relations-icon-border: color-mix(
+    in oklab,
+    var(--investor-relations-accent),
+    transparent 78%
+  );
+
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2rem);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Information Grid
+   ========================================================================== */
+
+.investor-relations__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+
+  min-inline-size: 0;
+
+  margin: 0;
+
+  overflow: hidden;
+
+  border: 1px solid var(--investor-relations-border);
+  border-radius: var(--radius-xl);
+
+  background: var(--investor-relations-border);
+
+  box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   Information Item
+   ========================================================================== */
+
+.investor-relations__item {
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.36fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 1.25rem;
+
+  min-inline-size: 0;
+  min-block-size: 8rem;
+
+  padding: clamp(1.25rem, 2.5vw, 1.75rem);
+
+  background: var(--investor-relations-bg);
+}
+
+/* ==========================================================================
+   Label
+   ========================================================================== */
+
+.investor-relations__label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Label Icon
+   ========================================================================== */
+
+.investor-relations__label-icon {
+  --icon-size: 0.875rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+
+  flex: 0 0 auto;
+
+  border: 1px solid var(--investor-relations-icon-border);
+  border-radius: var(--radius-md);
+
+  background: var(--investor-relations-icon-bg);
+  color: var(--investor-relations-accent);
+}
+
+/* ==========================================================================
+   Value
+   ========================================================================== */
+
+.investor-relations__value {
+  display: grid;
+  align-content: start;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Primary Value
+   ========================================================================== */
+
+.investor-relations__primary-value {
+  color: var(--color-heading);
+
+  font-size: var(--text-base);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Secondary Value
+   ========================================================================== */
+
+.investor-relations__secondary-value {
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Contact List
+   ========================================================================== */
+
+.investor-relations__contact-list {
+  display: grid;
+  gap: 0.625rem;
+
+  min-inline-size: 0;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Contact Link
+   ========================================================================== */
+
+.investor-relations__link,
+.investor-relations__website {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-normal);
+
+  text-decoration: none;
+  overflow-wrap: anywhere;
+
+  @include transition(color, fast);
+
+  &:hover {
+    color: var(--investor-relations-accent);
+
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Contact Icon
+   ========================================================================== */
+
+.investor-relations__contact-icon {
+  --icon-size: 0.8125rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+
+  flex: 0 0 auto;
+
+  border-radius: var(--radius-pill);
+
+  background: var(--investor-relations-icon-bg);
+  color: var(--investor-relations-accent);
+}
+
+/* ==========================================================================
+   Address
+   ========================================================================== */
+
+.investor-relations__address {
+  display: grid;
+  gap: 0.25rem;
+
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-style: normal;
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   Website Icon
+   ========================================================================== */
+
+.investor-relations__website .has-icon {
+  --icon-size: 0.75rem;
+
+  flex: 0 0 auto;
+
+  @include transition(transform, fast);
+}
+
+@media (hover: hover) {
+  .investor-relations__website:hover .has-icon {
+    transform: translate(0.125rem, -0.125rem);
+  }
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.investor-relations--compact {
+  .investor-relations__grid {
+    border-radius: var(--radius-lg);
+  }
+
+  .investor-relations__item {
+    min-block-size: auto;
+
+    padding: 1rem;
+  }
+
+  .investor-relations__label-icon {
+    inline-size: 2rem;
+    block-size: 2rem;
+  }
+}
+
+/* ==========================================================================
+   Single Column Variant
+   ========================================================================== */
+
+.investor-relations--single-column {
+  .investor-relations__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .investor-relations__website:hover .has-icon {
+    transform: translate(-0.125rem, -0.125rem);
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .investor-relations__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .investor-relations__item {
+    min-block-size: auto;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .investor-relations {
+    gap: 1.25rem;
+  }
+
+  .investor-relations__grid {
+    border-radius: var(--radius-lg);
+  }
+
+  .investor-relations__item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.875rem;
+
+    padding: 1rem;
+  }
+
+  .investor-relations__label {
+    gap: 0.625rem;
+
+    font-size: var(--text-xs);
+  }
+
+  .investor-relations__label-icon {
+    --icon-size: 0.75rem;
+
+    inline-size: 2rem;
+    block-size: 2rem;
+  }
+
+  .investor-relations__primary-value {
+    font-size: var(--text-sm);
+  }
+
+  .investor-relations__value,
+  .investor-relations__link,
+  .investor-relations__website {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .investor-relations__grid {
+    box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .investor-relations__grid {
+    gap: 2px;
+
+    border-width: 2px;
+
+    box-shadow: none;
+  }
+
+  .investor-relations__label-icon,
+  .investor-relations__contact-icon {
+    border: 2px solid currentColor;
+
+    background: transparent;
+    color: currentColor;
+  }
+
+  .investor-relations__link,
+  .investor-relations__website {
+    color: currentColor;
+
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .investor-relations__link,
+  .investor-relations__website,
+  .investor-relations__website .has-icon {
+    transition: none;
+  }
+
+  .investor-relations__website:hover .has-icon {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .investor-relations__link,
+  .investor-relations__website,
+  .investor-relations__website .has-icon {
+    transition: none;
+  }
+
+  .investor-relations__website:hover .has-icon {
+    transform: none;
+  }
+}

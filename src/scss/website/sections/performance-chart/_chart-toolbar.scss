@@ -1,0 +1,271 @@
+@use "../../../design-system/abstracts/" as *;
+
+/* ==========================================================================
+   Chart Toolbar
+   ========================================================================== */
+
+.chart-toolbar {
+  --chart-toolbar-gap: 1rem;
+  --chart-toolbar-row-gap: 1rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--chart-toolbar-row-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Top Row
+   ========================================================================== */
+
+.chart-toolbar__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--chart-toolbar-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
+.chart-toolbar__heading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+}
+
+.chart-toolbar__title-icon {
+  --icon-size: 2rem;
+
+  flex: 0 0 auto;
+
+  color: var(--color-primary);
+}
+
+.chart-toolbar__title {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: clamp(var(--text-xl), 1rem + 0.8vw, var(--text-2xl));
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Historical Link
+   ========================================================================== */
+
+.chart-toolbar__historical {
+  flex: 0 0 auto;
+
+  .has-icon {
+    --icon-size: 0.625rem;
+
+    @include transition(transform, fast);
+  }
+
+  &:hover .has-icon {
+    transform: translateX(0.125rem);
+  }
+}
+
+/* ==========================================================================
+   Bottom Row
+   ========================================================================== */
+
+.chart-toolbar__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--chart-toolbar-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.chart-toolbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   Chart Button
+   ========================================================================== */
+
+.chart-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  min-block-size: 2.375rem;
+
+  padding-inline: 0.875rem;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+
+  background: transparent;
+  color: var(--color-text-muted);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-tight);
+
+  text-decoration: none;
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  @include transition((background-color, border-color, color), fast);
+
+  &:hover {
+    background: var(--color-surface-alt);
+    color: var(--color-primary);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .has-icon {
+    --icon-size: 0.8125rem;
+
+    flex: 0 0 auto;
+  }
+}
+
+/* ==========================================================================
+   Compare
+   ========================================================================== */
+
+.chart-btn--compare {
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .chart-toolbar__historical:hover .has-icon {
+    transform: translateX(-0.125rem);
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .chart-toolbar__top {
+    align-items: flex-start;
+  }
+
+  .chart-toolbar__bottom {
+    display: grid;
+    gap: 0.875rem;
+  }
+
+  .chart-toolbar__actions {
+    justify-content: flex-end;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .chart-toolbar {
+    --chart-toolbar-gap: 0.75rem;
+    --chart-toolbar-row-gap: 0.875rem;
+  }
+
+  .chart-toolbar__top {
+    align-items: center;
+  }
+
+  .chart-toolbar__title-icon {
+    --icon-size: 1.5rem;
+  }
+
+  .chart-toolbar__title {
+    font-size: var(--text-lg);
+  }
+
+  .chart-toolbar__historical {
+    padding-inline: 0.625rem;
+
+    font-size: var(--text-xs);
+  }
+
+  .chart-toolbar__actions {
+    justify-content: flex-start;
+  }
+
+  .chart-btn {
+    min-block-size: 2.25rem;
+
+    padding-inline: 0.75rem;
+
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .chart-btn {
+    border-color: currentColor;
+    border-width: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .chart-btn,
+  .chart-toolbar__historical .has-icon {
+    transition: none;
+  }
+
+  .chart-toolbar__historical:hover .has-icon {
+    transform: none;
+  }
+}

@@ -1,0 +1,249 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Contact Card
+   ========================================================================== */
+
+.financial-contact-card {
+  --financial-contact-bg: color-mix(
+    in oklab,
+    var(--color-primary),
+    var(--color-surface) 96%
+  );
+
+  --financial-contact-border: color-mix(
+    in oklab,
+    var(--color-primary),
+    var(--color-border) 72%
+  );
+
+  position: relative;
+  isolation: isolate;
+
+  max-inline-size: 44rem;
+
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  border: 1px solid var(--financial-contact-border);
+  border-radius: var(--radius-xl);
+
+  background: var(--financial-contact-bg);
+
+  box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   Decoration
+   ========================================================================== */
+
+.financial-contact-card::after {
+  content: "";
+
+  position: absolute;
+
+  inset-inline-end: -3rem;
+  inset-block-end: -3rem;
+  z-index: -1;
+
+  inline-size: 12rem;
+  block-size: 12rem;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--color-primary), transparent 78%) 0%,
+    transparent 70%
+  );
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.financial-contact-card__content {
+  display: grid;
+  gap: 1rem;
+
+  min-inline-size: 0;
+
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.financial-contact-card__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-xl);
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Text
+   ========================================================================== */
+
+.financial-contact-card__text {
+  max-inline-size: 36rem;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Address
+   ========================================================================== */
+
+.financial-contact-card__address {
+  display: grid;
+  gap: 0.625rem;
+
+  margin: 0;
+
+  font-style: normal;
+}
+
+/* ==========================================================================
+   Contact Link
+   ========================================================================== */
+
+.financial-contact-card__address a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-normal);
+
+  text-decoration: none;
+  overflow-wrap: anywhere;
+
+  @include transition(color, fast);
+
+  .has-icon {
+    --icon-size: 1rem;
+
+    flex: 0 0 auto;
+
+    color: var(--color-primary);
+  }
+
+  &:hover {
+    color: var(--color-primary);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .financial-contact-card::after {
+    inset-inline-start: -3rem;
+    inset-inline-end: auto;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-contact-card {
+    border-radius: var(--radius-lg);
+  }
+
+  .financial-contact-card__content {
+    padding: 1.25rem;
+  }
+
+  .financial-contact-card__title {
+    font-size: var(--text-lg);
+  }
+
+  .financial-contact-card__address a {
+    align-items: flex-start;
+
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-contact-card {
+    --financial-contact-bg: color-mix(
+      in oklab,
+      var(--color-primary),
+      var(--color-surface) 92%
+    );
+
+    box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-contact-card {
+    border-width: 2px;
+
+    background: var(--color-surface);
+
+    box-shadow: none;
+  }
+
+  .financial-contact-card::after {
+    display: none;
+  }
+
+  .financial-contact-card__address a {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-contact-card__address a {
+    transition: none;
+  }
+}

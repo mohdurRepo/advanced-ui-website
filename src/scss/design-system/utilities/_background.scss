@@ -1,0 +1,50 @@
+.bg-body {
+  background-color: var(--color-bg) !important;
+}
+
+.bg-surface {
+  background-color: var(--color-surface) !important;
+}
+
+.bg-surface-alt {
+  background-color: var(--color-surface-alt) !important;
+}
+
+.bg-primary {
+  background-color: var(--color-primary) !important;
+  color: var(--color-on-primary) !important;
+}
+
+.bg-secondary {
+  background-color: var(--color-secondary) !important;
+  color: var(--color-on-secondary) !important;
+}
+
+.bg-accent {
+  background-color: var(--color-accent) !important;
+  color: var(--color-on-accent) !important;
+}
+
+.bg-success {
+  background-color: var(--color-success) !important;
+  color: var(--color-on-success) !important;
+}
+
+.bg-info {
+  background-color: var(--color-info) !important;
+  color: var(--color-on-info) !important;
+}
+
+.bg-warning {
+  background-color: var(--color-warning) !important;
+  color: var(--color-on-warning) !important;
+}
+
+.bg-danger {
+  background-color: var(--color-danger) !important;
+  color: var(--color-on-danger) !important;
+}
+
+.bg-transparent {
+  background-color: transparent !important;
+}

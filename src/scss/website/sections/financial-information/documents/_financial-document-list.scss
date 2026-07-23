@@ -1,0 +1,126 @@
+@use "../../../abstracts" as *;
+
+/* ==========================================================================
+   Financial Document List
+   ========================================================================== */
+
+.financial-document-list {
+  --financial-document-list-gap: 1rem;
+  --financial-document-list-columns: 1;
+
+  display: grid;
+  grid-template-columns: repeat(
+    var(--financial-document-list-columns),
+    minmax(0, 1fr)
+  );
+
+  gap: var(--financial-document-list-gap);
+
+  min-inline-size: 0;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Direct Items
+   ========================================================================== */
+
+.financial-document-list > li {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.financial-document-list--compact {
+  --financial-document-list-gap: 0.75rem;
+}
+
+/* ==========================================================================
+   Grid Variants
+   ========================================================================== */
+
+.financial-document-list--grid,
+.financial-document-list--two-columns {
+  --financial-document-list-columns: 2;
+}
+
+.financial-document-list--three-columns {
+  --financial-document-list-columns: 3;
+}
+
+/* ==========================================================================
+   Equal-height Variant
+   ========================================================================== */
+
+.financial-document-list--equal-height {
+  align-items: stretch;
+
+  > li,
+  .financial-document-item {
+    block-size: 100%;
+  }
+}
+
+/* ==========================================================================
+   Divided Variant
+   ========================================================================== */
+
+/*
+ * Useful for dense filing or disclosure lists where individual cards would
+ * create too much visual weight.
+ */
+
+.financial-document-list--divided {
+  --financial-document-list-gap: 0;
+
+  border-block-start: 1px solid var(--color-border);
+
+  .financial-document-item {
+    border: 0;
+    border-block-end: 1px solid var(--color-border);
+    border-radius: 0;
+
+    box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .financial-document-list--grid,
+  .financial-document-list--two-columns,
+  .financial-document-list--three-columns {
+    --financial-document-list-columns: 1;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-document-list {
+    --financial-document-list-gap: 0.75rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-document-list--divided {
+    border-block-start-width: 2px;
+
+    .financial-document-item {
+      border-block-end-width: 2px;
+    }
+  }
+}

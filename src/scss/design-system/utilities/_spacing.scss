@@ -1,0 +1,97 @@
+@use "../abstracts" as ds;
+
+/* ==========================================================================
+   Spacing Tokens
+   ========================================================================== */
+
+:root {
+  @each $key, $value in ds.$spaces {
+    --space-#{$key}: #{$value};
+  }
+}
+
+/* ==========================================================================
+   Margin
+   ========================================================================== */
+
+@each $key, $value in ds.$spaces {
+  .m-#{$key} {
+    margin: $value !important;
+  }
+
+  .mt-#{$key} {
+    margin-block-start: $value !important;
+  }
+
+  .mb-#{$key} {
+    margin-block-end: $value !important;
+  }
+
+  .ms-#{$key} {
+    margin-inline-start: $value !important;
+  }
+
+  .me-#{$key} {
+    margin-inline-end: $value !important;
+  }
+
+  .mx-#{$key} {
+    margin-inline: $value !important;
+  }
+
+  .my-#{$key} {
+    margin-block: $value !important;
+  }
+}
+
+/* ==========================================================================
+   Padding
+   ========================================================================== */
+
+@each $key, $value in ds.$spaces {
+  .p-#{$key} {
+    padding: $value !important;
+  }
+
+  .pt-#{$key} {
+    padding-block-start: $value !important;
+  }
+
+  .pb-#{$key} {
+    padding-block-end: $value !important;
+  }
+
+  .ps-#{$key} {
+    padding-inline-start: $value !important;
+  }
+
+  .pe-#{$key} {
+    padding-inline-end: $value !important;
+  }
+
+  .px-#{$key} {
+    padding-inline: $value !important;
+  }
+
+  .py-#{$key} {
+    padding-block: $value !important;
+  }
+}
+
+/* ==========================================================================
+   Gap
+   ========================================================================== */
+
+@each $key, $value in ds.$spaces {
+  .gap-#{$key} {
+    gap: $value !important;
+  }
+
+  .row-gap-#{$key} {
+    row-gap: $value !important;
+  }
+
+  .column-gap-#{$key} {
+    column-gap: $value !important;
+  }
+}

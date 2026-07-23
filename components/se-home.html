@@ -6943,15 +6943,16 @@
      GLOBAL PAGE TOOLS
      ====================================================================== -->
 
-    <!-- Global Utility Rail -->
+    <!-- Utility Rail -->
+
     <aside class="utility-rail" data-utility-rail aria-label="Website tools">
       <div class="utility-rail__group">
-        <!-- Search
-         Trigger only. The external search provider can listen for site:search. -->
+        <!-- Search -->
+
         <button
           class="utility-rail__action"
           type="button"
-          data-search-trigger
+          data-search-toggle
           aria-label="Open search"
           title="Search"
         >
@@ -6963,63 +6964,56 @@
           <span class="utility-rail__label"> Search </span>
         </button>
 
-        <!-- Watchlist -->
+        <!-- Authenticated Watchlist -->
 
-        <!-- ======================================================================
-     WATCHLIST DEMO ACTIONS
-     Temporary: one opens the drawer, one opens the login modal.
-     Later, replace both with one flag-controlled action.
-     ====================================================================== -->
+        <button
+          class="utility-rail__action"
+          type="button"
+          data-drawer-open="watchlist-drawer"
+          data-authenticated-only
+          aria-controls="watchlist-drawer"
+          aria-expanded="false"
+          aria-label="Open watchlist"
+          title="Watchlist"
+        >
+          <span
+            class="utility-rail__icon has-icon icon-bookmark-ribbon icon-lg"
+            aria-hidden="true"
+          ></span>
 
-        <div class="utility-rail__group" aria-label="Watchlist demos">
-          <!-- Open Watchlist Drawer -->
+          <span class="utility-rail__label"> Watchlist </span>
 
-          <button
-            class="utility-rail__action"
-            type="button"
-            data-drawer-open="watchlist-drawer"
-            aria-controls="watchlist-drawer"
-            aria-expanded="false"
-            aria-label="Open watchlist drawer"
-            title="Watchlist Drawer"
+          <span
+            class="utility-rail__badge"
+            data-watchlist-count
+            aria-label="3 watchlist items"
           >
-            <span
-              class="utility-rail__icon has-icon icon-bookmark-ribbon icon-lg"
-              aria-hidden="true"
-            ></span>
+            3
+          </span>
+        </button>
 
-            <span class="utility-rail__label"> Watchlist Drawer </span>
+        <!-- Guest Watchlist Login -->
 
-            <span
-              class="utility-rail__badge"
-              data-watchlist-count
-              aria-label="3 watchlist items"
-            >
-              3
-            </span>
-          </button>
+        <button
+          class="utility-rail__action"
+          type="button"
+          data-modal-open="loginModal"
+          data-guest-only
+          aria-controls="loginModal"
+          aria-expanded="false"
+          aria-label="Log in to use watchlist"
+          title="Log in to use watchlist"
+        >
+          <span
+            class="utility-rail__icon has-icon icon-panel-dashboard icon-lg"
+            aria-hidden="true"
+          ></span>
 
-          <!-- Open Login Modal -->
+          <span class="utility-rail__label"> Watchlist login </span>
+        </button>
 
-          <button
-            class="utility-rail__action"
-            type="button"
-            data-modal-open="loginModal"
-            aria-controls="loginModal"
-            aria-expanded="false"
-            aria-label="Open watchlist login"
-            title="Watchlist Login"
-          >
-            <span
-              class="utility-rail__icon has-icon icon-user icon-lg"
-              aria-hidden="true"
-            ></span>
+        <!-- Preferences -->
 
-            <span class="utility-rail__label"> Watchlist Login </span>
-          </button>
-        </div>
-
-        <!-- Display Preferences -->
         <button
           class="utility-rail__action"
           type="button"
@@ -7041,11 +7035,7 @@
 
     <!-- ======================================================================
      WATCHLIST DRAWER
-     ====================================================================== -->
-
-    <!-- ======================================================================
-     WATCHLIST DRAWER
-     Authenticated user experience
+     Authenticated-user experience
      ====================================================================== -->
 
     <aside
@@ -7069,10 +7059,6 @@
         tabindex="-1"
         data-drawer-panel
       >
-        <!-- ================================================================
-         Header
-         ================================================================ -->
-
         <header class="drawer-header">
           <div class="drawer-header__content">
             <h2 id="watchlist-title" class="drawer-title">Watchlist</h2>
@@ -7090,20 +7076,16 @@
           ></button>
         </header>
 
-        <!-- ================================================================
-         Body
-         ================================================================ -->
-
         <div class="drawer-body">
           <div class="watchlist" data-watchlist>
-            <!-- User summary -->
+            <!-- User Summary -->
 
             <section
               class="watchlist-user"
               aria-labelledby="watchlist-user-name"
             >
               <div
-                class="watchlist-user__avatar has-icon icon-user"
+                class="watchlist-user__avatar has-icon icon-panel-dashboard"
                 aria-hidden="true"
               ></div>
 
@@ -7124,17 +7106,15 @@
               </div>
 
               <button
-                class="watchlist-user__logout btn btn-outline-danger btn-sm"
+                class="watchlist-user__logout btn btn-outline-danger btn-sm has-icon icon-logout-door"
                 type="button"
                 data-auth-logout
               >
-                <span class="has-icon icon-logout" aria-hidden="true"></span>
-
-                <span>Logout</span>
+                Logout
               </button>
             </section>
 
-            <!-- Live status -->
+            <!-- Live Status -->
 
             <div
               class="watchlist__status"
@@ -7144,7 +7124,7 @@
               hidden
             ></div>
 
-            <!-- List heading -->
+            <!-- List Heading -->
 
             <div class="watchlist__section-header">
               <div>
@@ -7164,7 +7144,7 @@
               </span>
             </div>
 
-            <!-- Saved securities -->
+            <!-- Saved Securities -->
 
             <ul
               class="watchlist__list"
@@ -7292,7 +7272,7 @@
               </li>
             </ul>
 
-            <!-- Empty state -->
+            <!-- Empty State -->
 
             <div class="watchlist__empty" data-watchlist-empty hidden>
               <span
@@ -7313,13 +7293,9 @@
           </div>
         </div>
 
-        <!-- ================================================================
-         Footer
-         ================================================================ -->
-
         <footer class="drawer-footer">
           <a class="btn btn-primary btn-block" href="/watchlist.html">
-            <span>View all watchlist</span>
+            <span>View full watchlist</span>
 
             <span
               class="has-icon icon-chevron-right icon-flip-rtl"
@@ -7331,8 +7307,8 @@
     </aside>
 
     <!-- ======================================================================
-     LOGIN MODAL
-     Guest Watchlist Experience
+     WATCHLIST LOGIN MODAL
+     Guest-user experience
      ====================================================================== -->
 
     <div
@@ -7350,13 +7326,11 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-body">
-            <!-- ==============================================================
-             Heading
-             ============================================================== -->
+            <!-- Heading -->
 
-            <div class="d-flex align-start justify-between gap-3 mb-5">
+            <div class="modal-login-heading">
               <div>
-                <p class="modal-subtitle mb-2">My Watchlist</p>
+                <p class="modal-subtitle">My Watchlist</p>
 
                 <h2 id="loginModalTitle" class="modal-title">
                   Log in to continue
@@ -7375,9 +7349,7 @@
               ></button>
             </div>
 
-            <!-- ==============================================================
-             Login Form
-             ============================================================== -->
+            <!-- Login Form -->
 
             <form
               id="loginForm"
@@ -7387,10 +7359,10 @@
               data-login-form
               novalidate
             >
-              <!-- General error -->
+              <!-- General Error -->
 
               <div
-                class="form-alert form-alert-danger mb-4"
+                class="alert alert-danger"
                 role="alert"
                 aria-live="assertive"
                 tabindex="-1"
@@ -7398,20 +7370,20 @@
                 hidden
               >
                 <span
-                  class="form-alert__icon has-icon icon-alert-circle"
+                  class="alert-icon has-icon icon-info-warning"
                   aria-hidden="true"
                 ></span>
 
-                <div class="form-alert__content">
-                  <p class="form-alert__title">Unable to log in</p>
+                <div class="alert-content">
+                  <p class="alert-title">Unable to log in</p>
 
-                  <p class="form-alert__message">
+                  <p class="alert-text">
                     Check your login details and try again.
                   </p>
                 </div>
               </div>
 
-              <!-- User ID or email -->
+              <!-- Identity -->
 
               <div class="form-group">
                 <label class="form-label" for="loginIdentity">
@@ -7444,7 +7416,7 @@
               <!-- Password -->
 
               <div class="form-group">
-                <div class="d-flex align-center justify-between gap-3">
+                <div class="form-label-row">
                   <label class="form-label" for="loginPassword">
                     Password
 
@@ -7454,7 +7426,7 @@
                   <a href="/forgot-password.html"> Forgot password? </a>
                 </div>
 
-                <div class="input-group">
+                <div class="form-field form-field-icon-end">
                   <input
                     id="loginPassword"
                     class="form-control"
@@ -7467,7 +7439,7 @@
                   />
 
                   <button
-                    class="input-group__action has-icon icon-eye"
+                    class="form-field-action has-icon icon-eye"
                     type="button"
                     data-password-toggle
                     aria-controls="loginPassword"
@@ -7487,9 +7459,9 @@
                 </p>
               </div>
 
-              <!-- Remember me -->
+              <!-- Remember Me -->
 
-              <div class="form-check mb-5">
+              <div class="form-check">
                 <input
                   id="loginRemember"
                   name="remember"
@@ -7517,7 +7489,7 @@
 
               <!-- Register -->
 
-              <p class="text-center mt-4 mb-0">
+              <p class="auth-alternative">
                 <span>Don’t have an account?</span>
 
                 <a href="/register.html"> Register now </a>
@@ -7527,9 +7499,9 @@
         </div>
       </div>
     </div>
+
     <!-- ======================================================================
      DISPLAY PREFERENCES DRAWER
-     Uses the generic drawer contract.
      ====================================================================== -->
 
     <aside
@@ -7549,250 +7521,319 @@
         role="dialog"
         aria-modal="true"
         aria-labelledby="preferences-title"
+        aria-describedby="preferences-description"
         tabindex="-1"
         data-drawer-panel
       >
         <header class="drawer-header">
           <div class="drawer-header__content">
             <h2 id="preferences-title" class="drawer-title">
-              Display Settings
+              Display preferences
             </h2>
 
-            <p class="drawer-text">Customize your viewing experience.</p>
+            <p id="preferences-description" class="drawer-text">
+              Personalize the website’s appearance and accessibility.
+            </p>
           </div>
 
           <button
             class="drawer-close has-icon icon-close-x"
             type="button"
             data-drawer-close="preferences-drawer"
-            aria-label="Close display settings"
+            aria-label="Close display preferences"
           ></button>
         </header>
 
-        <div class="drawer-body">
+        <div class="drawer-body preferences-body">
           <!-- Theme -->
-          <section
-            class="preferences-group"
-            aria-labelledby="preferences-theme-label"
-          >
-            <h3 id="preferences-theme-label" class="preferences-label">
-              Theme
-            </h3>
 
-            <div class="preferences-options">
+          <fieldset class="preferences-group">
+            <legend class="preferences-label">Theme</legend>
+
+            <p class="preferences-help">
+              Choose how the website selects its color theme.
+            </p>
+
+            <div
+              class="preferences-choice-grid"
+              role="group"
+              aria-label="Theme options"
+            >
               <button
-                class="btn btn-outline-primary btn-sm"
+                class="preferences-choice"
                 type="button"
                 data-preference="theme"
                 data-preference-set="system"
                 aria-pressed="false"
               >
-                System
+                <span
+                  class="preferences-choice__icon has-icon icon-theme-palette"
+                  aria-hidden="true"
+                ></span>
+
+                <span class="preferences-choice__content">
+                  <strong>System</strong>
+                  <small>Use your device setting</small>
+                </span>
+
+                <span
+                  class="preferences-choice__check has-icon icon-check"
+                  aria-hidden="true"
+                ></span>
               </button>
 
               <button
-                class="btn btn-outline-primary btn-sm"
+                class="preferences-choice"
                 type="button"
                 data-preference="theme"
                 data-preference-set="light"
                 aria-pressed="false"
               >
-                Light
+                <span
+                  class="preferences-choice__icon has-icon icon-sun"
+                  aria-hidden="true"
+                ></span>
+
+                <span class="preferences-choice__content">
+                  <strong>Light</strong>
+                  <small>Use light surfaces</small>
+                </span>
+
+                <span
+                  class="preferences-choice__check has-icon icon-check"
+                  aria-hidden="true"
+                ></span>
               </button>
 
               <button
-                class="btn btn-outline-primary btn-sm"
+                class="preferences-choice"
                 type="button"
                 data-preference="theme"
                 data-preference-set="dark"
                 aria-pressed="false"
               >
-                Dark
+                <span
+                  class="preferences-choice__icon has-icon icon-panel-dashboard"
+                  aria-hidden="true"
+                ></span>
+
+                <span class="preferences-choice__content">
+                  <strong>Dark</strong>
+                  <small>Use dark surfaces</small>
+                </span>
+
+                <span
+                  class="preferences-choice__check has-icon icon-check"
+                  aria-hidden="true"
+                ></span>
               </button>
             </div>
-          </section>
+          </fieldset>
 
-          <!-- Text size -->
-          <section
-            class="preferences-group"
-            aria-labelledby="preferences-font-label"
-          >
-            <h3 id="preferences-font-label" class="preferences-label">
-              Text Size
-            </h3>
+          <!-- Text Size -->
 
-            <div class="preferences-options">
+          <fieldset class="preferences-group">
+            <legend class="preferences-label">Text size</legend>
+
+            <p class="preferences-help">
+              Adjust text without changing the size of page layouts.
+            </p>
+
+            <div
+              class="preferences-text-size"
+              role="group"
+              aria-label="Text-size controls"
+            >
               <button
-                class="btn btn-outline-primary btn-sm"
+                class="preferences-text-size__button"
                 type="button"
                 data-font-decrease
                 aria-label="Decrease text size"
               >
-                A−
+                <span
+                  class="has-icon icon-minus-line"
+                  aria-hidden="true"
+                ></span>
+
+                <span aria-hidden="true">A</span>
               </button>
 
               <button
-                class="btn btn-outline-primary btn-sm"
+                class="preferences-text-size__reset"
                 type="button"
                 data-font-reset
-                aria-label="Reset text size"
+                aria-label="Reset text size to default"
                 aria-pressed="false"
               >
-                A
+                <span class="preferences-text-size__sample" aria-hidden="true">
+                  Aa
+                </span>
+
+                <span class="preferences-text-size__label"> Default </span>
               </button>
 
               <button
-                class="btn btn-outline-primary btn-sm"
+                class="preferences-text-size__button"
                 type="button"
                 data-font-increase
                 aria-label="Increase text size"
               >
-                A+
+                <span aria-hidden="true">A</span>
+
+                <span class="has-icon icon-add-plus" aria-hidden="true"></span>
               </button>
             </div>
-          </section>
 
-          <!-- Accent -->
-          <section
-            class="preferences-group"
-            aria-labelledby="preferences-accent-label"
-          >
-            <h3 id="preferences-accent-label" class="preferences-label">
-              Accent
-            </h3>
+            <p
+              class="preferences-current-value"
+              data-font-size-status
+              role="status"
+              aria-live="polite"
+            >
+              Default text size
+            </p>
+          </fieldset>
 
-            <div class="preferences-options">
+          <!-- Accent Color -->
+
+          <fieldset class="preferences-group">
+            <legend class="preferences-label">Accent color</legend>
+
+            <p class="preferences-help">
+              Select the color used for actions, links, and focus indicators.
+            </p>
+
+            <div
+              class="preferences-accents"
+              role="group"
+              aria-label="Accent-color options"
+            >
+              <div class="preferences-accent-option">
+                <button
+                  class="preferences-accent preferences-accent--blue"
+                  type="button"
+                  data-preference="accent"
+                  data-preference-set="blue"
+                  aria-label="Use blue accent"
+                  aria-pressed="false"
+                >
+                  <span class="has-icon icon-check" aria-hidden="true"></span>
+                </button>
+
+                <span class="preferences-accent-option__label"> Blue </span>
+              </div>
+
+              <div class="preferences-accent-option">
+                <button
+                  class="preferences-accent preferences-accent--navy"
+                  type="button"
+                  data-preference="accent"
+                  data-preference-set="navy"
+                  aria-label="Use navy accent"
+                  aria-pressed="false"
+                >
+                  <span class="has-icon icon-check" aria-hidden="true"></span>
+                </button>
+
+                <span class="preferences-accent-option__label"> Navy </span>
+              </div>
+
+              <div class="preferences-accent-option">
+                <button
+                  class="preferences-accent preferences-accent--teal"
+                  type="button"
+                  data-preference="accent"
+                  data-preference-set="teal"
+                  aria-label="Use teal accent"
+                  aria-pressed="false"
+                >
+                  <span class="has-icon icon-check" aria-hidden="true"></span>
+                </button>
+
+                <span class="preferences-accent-option__label"> Teal </span>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- Accessibility -->
+
+          <fieldset class="preferences-group">
+            <legend class="preferences-label">Accessibility</legend>
+
+            <p class="preferences-help">
+              Increase visual distinction or reduce non-essential motion.
+            </p>
+
+            <div class="preferences-toggle-list">
               <button
-                class="btn btn-outline-primary btn-sm"
+                class="preferences-toggle-option"
                 type="button"
-                data-preference="accent"
-                data-preference-set="blue"
+                data-preference-toggle="contrast"
+                data-preference-on="high"
+                data-preference-off="normal"
                 aria-pressed="false"
               >
-                Blue
+                <span
+                  class="preferences-toggle-option__icon has-icon icon-analytics-filter"
+                  aria-hidden="true"
+                ></span>
+
+                <span class="preferences-toggle-option__content">
+                  <strong>High contrast</strong>
+
+                  <small>
+                    Strengthen text, borders, and focus indicators.
+                  </small>
+                </span>
+
+                <span
+                  class="preferences-toggle-option__control"
+                  aria-hidden="true"
+                ></span>
               </button>
 
               <button
-                class="btn btn-outline-primary btn-sm"
+                class="preferences-toggle-option"
                 type="button"
-                data-preference="accent"
-                data-preference-set="navy"
+                data-preference-toggle="motion"
+                data-preference-on="reduce"
+                data-preference-off="normal"
                 aria-pressed="false"
               >
-                Navy
-              </button>
+                <span
+                  class="preferences-toggle-option__icon has-icon icon-sync-refresh"
+                  aria-hidden="true"
+                ></span>
 
-              <button
-                class="btn btn-outline-primary btn-sm"
-                type="button"
-                data-preference="accent"
-                data-preference-set="teal"
-                aria-pressed="false"
-              >
-                Teal
-              </button>
+                <span class="preferences-toggle-option__content">
+                  <strong>Reduce motion</strong>
 
-              <button
-                class="btn btn-outline-primary btn-sm"
-                type="button"
-                data-preference="accent"
-                data-preference-set="green"
-                aria-pressed="false"
-              >
-                Green
-              </button>
+                  <small> Minimize animations and smooth scrolling. </small>
+                </span>
 
-              <button
-                class="btn btn-outline-primary btn-sm"
-                type="button"
-                data-preference="accent"
-                data-preference-set="grey"
-                aria-pressed="false"
-              >
-                Grey
+                <span
+                  class="preferences-toggle-option__control"
+                  aria-hidden="true"
+                ></span>
               </button>
             </div>
-          </section>
-
-          <!-- Contrast -->
-          <section
-            class="preferences-group"
-            aria-labelledby="preferences-contrast-label"
-          >
-            <h3 id="preferences-contrast-label" class="preferences-label">
-              Contrast
-            </h3>
-
-            <div class="preferences-options">
-              <button
-                class="btn btn-outline-primary btn-sm"
-                type="button"
-                data-preference="contrast"
-                data-preference-set="normal"
-                aria-pressed="false"
-              >
-                Normal
-              </button>
-
-              <button
-                class="btn btn-outline-primary btn-sm"
-                type="button"
-                data-preference="contrast"
-                data-preference-set="high"
-                aria-pressed="false"
-              >
-                High
-              </button>
-            </div>
-          </section>
-
-          <!-- Motion -->
-          <section
-            class="preferences-group"
-            aria-labelledby="preferences-motion-label"
-          >
-            <h3 id="preferences-motion-label" class="preferences-label">
-              Motion
-            </h3>
-
-            <div class="preferences-options">
-              <button
-                class="btn btn-outline-primary btn-sm"
-                type="button"
-                data-preference="motion"
-                data-preference-set="normal"
-                aria-pressed="false"
-              >
-                Normal
-              </button>
-
-              <button
-                class="btn btn-outline-primary btn-sm"
-                type="button"
-                data-preference="motion"
-                data-preference-set="reduce"
-                aria-pressed="false"
-              >
-                Reduce
-              </button>
-            </div>
-          </section>
+          </fieldset>
         </div>
 
-        <footer class="drawer-footer">
+        <footer class="drawer-footer preferences-footer">
           <button
-            class="btn btn-outline-primary btn-block"
+            class="btn btn-outline-primary btn-block has-icon icon-sync-refresh"
             type="button"
             data-preferences-reset
           >
-            Reset display settings
+            Reset display preferences
           </button>
         </footer>
       </div>
     </aside>
 
     <!-- ======================================================================
-     FEEDBACK TAB
+     FEEDBACK CONTROL
      ====================================================================== -->
 
     <button
@@ -7832,16 +7873,19 @@
         role="dialog"
         aria-modal="true"
         aria-labelledby="feedback-title"
+        aria-describedby="feedback-description"
         tabindex="-1"
         data-drawer-panel
       >
         <header class="drawer-header">
           <div class="drawer-header__content">
             <h2 id="feedback-title" class="drawer-title">
-              Share Your Feedback
+              Share your feedback
             </h2>
 
-            <p class="drawer-text">Help us improve your website experience.</p>
+            <p id="feedback-description" class="drawer-text">
+              Help us improve your website experience.
+            </p>
           </div>
 
           <button
@@ -7859,7 +7903,8 @@
             data-feedback-form
             novalidate
           >
-            <!-- Submission status -->
+            <!-- Submission Status -->
+
             <div
               class="feedback-form__status"
               data-feedback-status
@@ -7868,7 +7913,8 @@
               hidden
             ></div>
 
-            <!-- Feedback type -->
+            <!-- Feedback Type -->
+
             <fieldset class="form-fieldset">
               <legend class="form-legend">Feedback type</legend>
 
@@ -7910,6 +7956,7 @@
             </fieldset>
 
             <!-- Message -->
+
             <div class="form-group" data-feedback-message-group>
               <label class="form-label" for="feedback-message">
                 Your feedback
@@ -7924,13 +7971,17 @@
                 rows="6"
                 maxlength="1000"
                 required
-                aria-describedby="feedback-message-help feedback-message-count feedback-message-error"
+                aria-describedby="
+              feedback-message-help
+              feedback-message-count
+              feedback-message-error
+            "
                 placeholder="Describe your experience or suggestion."
               ></textarea>
 
               <div class="feedback-form__meta">
                 <span id="feedback-message-help" class="form-help">
-                  Please do not include confidential or sensitive information.
+                  Do not include confidential or sensitive information.
                 </span>
 
                 <span
@@ -7948,11 +7999,12 @@
                 data-feedback-message-error
                 hidden
               >
-                Please enter your feedback.
+                Enter your feedback.
               </p>
             </div>
 
             <!-- Email -->
+
             <div class="form-group" data-feedback-email-group>
               <label class="form-label" for="feedback-email">
                 Email address
@@ -7966,7 +8018,10 @@
                 name="email"
                 type="email"
                 autocomplete="email"
-                aria-describedby="feedback-email-help feedback-email-error"
+                aria-describedby="
+              feedback-email-help
+              feedback-email-error
+            "
                 placeholder="name@example.com"
               />
 
@@ -7980,11 +8035,12 @@
                 data-feedback-email-error
                 hidden
               >
-                Please enter a valid email address.
+                Enter a valid email address.
               </p>
             </div>
 
-            <!-- Current page -->
+            <!-- Current Page -->
+
             <div class="form-check">
               <input
                 id="feedback-include-page"
@@ -8022,14 +8078,14 @@
 
     <!-- ======================================================================
      FLOATING CHAT
-     Trigger only. The external provider can listen for site:chat.
      ====================================================================== -->
 
     <button
       class="chat-trigger"
       type="button"
-      data-chat-trigger
+      data-chat-toggle
       aria-label="Open live support chat"
+      aria-expanded="false"
       title="Live support"
     >
       <span
@@ -8052,14 +8108,13 @@
 
     <!-- ======================================================================
      SCROLL TO TOP
-     Controlled by JavaScript through the is-visible class.
-     Do not add the native hidden attribute here.
      ====================================================================== -->
 
     <button
       class="scroll-top has-icon icon-chevron-up icon-lg"
       type="button"
       data-scroll-top
+      data-scroll-threshold="400"
       aria-label="Back to top"
       title="Back to top"
     ></button>

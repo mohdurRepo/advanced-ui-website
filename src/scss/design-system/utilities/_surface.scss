@@ -1,0 +1,97 @@
+/* ==========================================================================
+   Default Surface
+   ========================================================================== */
+
+.surface {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.surface-bg {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.surface-alt {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+}
+
+/* ==========================================================================
+   Light Surface
+   ========================================================================== */
+
+.surface-light {
+  --color-surface: var(--color-light);
+  --color-surface-alt: var(--color-light-hover);
+
+  --color-text: var(--color-on-light);
+  --color-heading: var(--color-on-light);
+  --color-text-muted: #64707a;
+
+  --color-border: #d7dde3;
+  --color-border-strong: #b7c1c9;
+
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* ==========================================================================
+   Dark Surface
+   ========================================================================== */
+
+.surface-dark {
+  --color-surface: var(--color-dark);
+  --color-surface-alt: var(--color-dark-hover);
+
+  --color-text: var(--color-on-dark);
+  --color-heading: var(--color-on-dark);
+  --color-text-muted: rgb(255 255 255 / 0.72);
+
+  --color-border: rgb(255 255 255 / 0.12);
+  --color-border-strong: rgb(255 255 255 / 0.22);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* ==========================================================================
+   Brand Surface
+   ========================================================================== */
+
+.surface-brand {
+  --color-surface: var(--color-primary);
+  --color-surface-alt: var(--color-primary-hover);
+
+  --color-text: var(--color-on-primary);
+  --color-heading: var(--color-on-primary);
+  --color-text-muted: var(--color-on-primary);
+
+  --color-border: var(--color-on-primary);
+  --color-border-strong: var(--color-on-primary);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+@supports (color: color-mix(in srgb, black, white)) {
+  .surface-brand {
+    --color-text-muted: color-mix(
+      in srgb,
+      var(--color-on-primary) 76%,
+      transparent
+    );
+
+    --color-border: color-mix(
+      in srgb,
+      var(--color-on-primary) 18%,
+      transparent
+    );
+
+    --color-border-strong: color-mix(
+      in srgb,
+      var(--color-on-primary) 30%,
+      transparent
+    );
+  }
+}

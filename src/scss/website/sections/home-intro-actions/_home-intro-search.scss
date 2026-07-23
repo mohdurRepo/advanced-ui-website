@@ -1,0 +1,203 @@
+@use "../../../design-system/abstracts" as *;
+
+/* ==========================================================================
+   Home Search
+   ========================================================================== */
+
+.home-search {
+  --home-search-bg: var(--color-surface);
+  --home-search-fg: var(--color-text);
+  --home-search-muted: var(--color-text-muted);
+  --home-search-border: var(--color-border);
+  --home-search-border-focus: var(--color-primary);
+
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  inline-size: min(100%, 34rem);
+  min-block-size: 3rem;
+
+  border: 1px solid var(--home-search-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--home-search-bg);
+  color: var(--home-search-fg);
+
+  box-shadow: var(--shadow-sm);
+
+  @include transition((border-color, box-shadow, background-color), fast);
+
+  &:focus-within {
+    border-color: var(--home-search-border-focus);
+
+    box-shadow:
+      var(--shadow-sm),
+      0 0 0 0.25rem var(--focus-ring);
+  }
+}
+
+/* ==========================================================================
+   Search Icon
+   ========================================================================== */
+
+.home-search__icon {
+  --icon-size: 1rem;
+
+  position: absolute;
+  inset-inline-start: 1rem;
+
+  flex: 0 0 auto;
+
+  color: var(--home-search-muted);
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Input
+   ========================================================================== */
+
+.home-search__input {
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 3rem;
+
+  padding: 0.625rem 3rem 0.625rem 2.75rem;
+
+  border: 0;
+  border-radius: inherit;
+
+  background: transparent;
+  color: var(--home-search-fg);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  &::placeholder {
+    color: var(--home-search-muted);
+
+    opacity: 1;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &::-webkit-search-cancel-button {
+    cursor: pointer;
+  }
+}
+
+/* ==========================================================================
+   Submit Button
+   ========================================================================== */
+
+.home-search__submit {
+  --icon-size: 0.875rem;
+
+  position: absolute;
+  inset-inline-end: 0.375rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: var(--radius-pill);
+
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+
+  cursor: pointer;
+
+  @include transition((background-color, box-shadow, transform), fast);
+
+  &:hover {
+    background: var(--color-primary-hover);
+
+    transform: translateX(1px);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:active {
+    transform: translateX(0) scale(0.97);
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .home-search__submit:hover {
+    transform: translateX(-1px);
+  }
+
+  .home-search__submit:active {
+    transform: translateX(0) scale(0.97);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .home-search {
+    min-block-size: 2.75rem;
+  }
+
+  .home-search__input {
+    min-block-size: 2.75rem;
+
+    padding-inline: 2.5rem 2.75rem;
+
+    font-size: var(--text-xs);
+  }
+
+  .home-search__submit {
+    inline-size: 2rem;
+    block-size: 2rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .home-search {
+    border-width: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .home-search,
+  .home-search__submit {
+    transition: none;
+  }
+
+  .home-search__submit:hover,
+  .home-search__submit:active {
+    transform: none;
+  }
+}

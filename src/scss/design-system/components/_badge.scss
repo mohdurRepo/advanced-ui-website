@@ -1,0 +1,130 @@
+@use "../abstracts" as ds;
+
+$badge-variants: (
+  "primary",
+  "secondary",
+  "accent",
+  "success",
+  "info",
+  "warning",
+  "danger",
+  "light",
+  "dark"
+);
+
+/* ==========================================================================
+   Badge
+   ========================================================================== */
+
+.badge {
+  --badge-bg: transparent;
+  --badge-color: var(--color-text);
+  --badge-border: transparent;
+  --badge-radius: var(--radius-none);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+
+  min-block-size: 1.5rem;
+  max-inline-size: 100%;
+  padding: 0.25rem 0.625rem;
+
+  border: 1px solid var(--badge-border);
+  border-radius: var(--badge-radius);
+
+  background: var(--badge-bg);
+  color: var(--badge-color);
+
+  font-size: var(--text-base);
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
+
+  overflow-wrap: anywhere;
+  white-space: nowrap;
+
+  @include ds.transition((background-color, border-color, color), "fast");
+}
+
+/* ==========================================================================
+   Shape
+   ========================================================================== */
+
+.badge-rounded {
+  --badge-radius: var(--radius-pill);
+}
+
+.badge-square {
+  --badge-radius: var(--radius-none);
+}
+
+/* ==========================================================================
+   Solid Variants
+   ========================================================================== */
+
+@each $variant in $badge-variants {
+  .badge-#{$variant} {
+    --badge-bg: var(--color-#{$variant});
+    --badge-color: var(--color-on-#{$variant});
+  }
+}
+
+/* ==========================================================================
+   Outline Variants
+   ========================================================================== */
+
+@each $variant in $badge-variants {
+  .badge-outline-#{$variant} {
+    --badge-color: var(--color-#{$variant});
+    --badge-border: var(--color-#{$variant});
+  }
+}
+
+/*
+ * The regular warning color is intended primarily as a surface color.
+ * Use a darker foreground for an outlined badge on a light surface.
+ */
+
+.badge-outline-warning {
+  --badge-color: var(--color-warning-text, #92400e);
+}
+
+/* ==========================================================================
+   Sizes
+   ========================================================================== */
+
+.badge-sm {
+  min-block-size: 1.25rem;
+  padding: 0.125rem 0.5rem;
+
+  font-size: 0.6875rem;
+}
+
+.badge-lg {
+  min-block-size: 1.875rem;
+  padding: 0.375rem 0.875rem;
+
+  font-size: var(--text-sm);
+}
+
+/* ==========================================================================
+   Icon Support
+   ========================================================================== */
+
+.badge .has-icon,
+.badge .svg-icon {
+  --icon-size: 0.875em;
+
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   States
+   ========================================================================== */
+
+.badge-disabled,
+.badge[aria-disabled="true"] {
+  opacity: 0.6;
+  pointer-events: none;
+}

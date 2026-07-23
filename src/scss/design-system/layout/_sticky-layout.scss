@@ -1,0 +1,114 @@
+@use "../abstracts" as ds;
+
+/* ==========================================================================
+   Sticky Layout
+   ========================================================================== */
+
+/**
+ * Creates a content region with a sticky supporting region.
+ */
+
+.sticky-layout {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(18rem, 22rem);
+
+  align-items: start;
+  gap: var(--space-8, 2rem);
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Regions
+   ========================================================================== */
+
+.sticky-layout__content,
+.sticky-layout__aside {
+  min-width: 0;
+}
+
+.sticky-layout__content {
+  grid-column: 1;
+}
+
+.sticky-layout__aside {
+  grid-column: 2;
+}
+
+/* ==========================================================================
+   Sticky Region
+   ========================================================================== */
+
+.sticky-layout__sticky {
+  position: sticky;
+  top: var(--sticky-offset, 2rem);
+}
+
+/* ==========================================================================
+   Width
+   ========================================================================== */
+
+.sticky-layout--compact {
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(16rem, 18rem);
+}
+
+.sticky-layout--wide {
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(20rem, 26rem);
+}
+
+/* ==========================================================================
+   Reverse
+   ========================================================================== */
+
+.sticky-layout--reverse .sticky-layout__content {
+  grid-column: 2;
+}
+
+.sticky-layout--reverse .sticky-layout__aside {
+  grid-column: 1;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .sticky-layout,
+  .sticky-layout--compact,
+  .sticky-layout--wide {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6, 1.5rem);
+  }
+
+  .sticky-layout__content,
+  .sticky-layout__aside,
+  .sticky-layout--reverse .sticky-layout__content,
+  .sticky-layout--reverse .sticky-layout__aside {
+    grid-column: 1;
+  }
+
+  .sticky-layout__content,
+  .sticky-layout--reverse .sticky-layout__content {
+    grid-row: 1;
+  }
+
+  .sticky-layout__aside,
+  .sticky-layout--reverse .sticky-layout__aside {
+    grid-row: 2;
+  }
+
+  .sticky-layout__sticky {
+    position: static;
+  }
+}
+
+@include ds.respond-down("sm") {
+  .sticky-layout {
+    gap: var(--space-4, 1rem);
+  }
+}

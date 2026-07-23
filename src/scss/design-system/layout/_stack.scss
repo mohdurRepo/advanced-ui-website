@@ -1,0 +1,92 @@
+/* ==========================================================================
+   Stack
+   ========================================================================== */
+
+/**
+ * Creates consistent vertical spacing between direct children.
+ * The child components remain responsible for their appearance.
+ */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+
+  gap: var(--stack-space, var(--space-6, 1.5rem));
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Spacing
+   ========================================================================== */
+
+.stack--xs {
+  --stack-space: var(--space-2, 0.5rem);
+}
+
+.stack--sm {
+  --stack-space: var(--space-3, 0.75rem);
+}
+
+.stack--md {
+  --stack-space: var(--space-4, 1rem);
+}
+
+.stack--lg {
+  --stack-space: var(--space-6, 1.5rem);
+}
+
+.stack--xl {
+  --stack-space: var(--space-8, 2rem);
+}
+
+.stack--2xl {
+  --stack-space: var(--space-12, 3rem);
+}
+
+/* ==========================================================================
+   Alignment
+   ========================================================================== */
+
+.stack--start {
+  align-items: flex-start;
+}
+
+.stack--center {
+  align-items: center;
+}
+
+.stack--end {
+  align-items: flex-end;
+}
+
+.stack--stretch {
+  align-items: stretch;
+}
+
+/* ==========================================================================
+   Distribution
+   ========================================================================== */
+
+.stack--between {
+  justify-content: space-between;
+}
+
+.stack--center-content {
+  justify-content: center;
+}
+
+/* ==========================================================================
+   Sizing
+   ========================================================================== */
+
+.stack--fill {
+  min-height: 100%;
+}
+
+/* ==========================================================================
+   Child Safety
+   ========================================================================== */
+
+.stack > * {
+  min-width: 0;
+}

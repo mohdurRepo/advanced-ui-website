@@ -1,0 +1,320 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Site Footer Brand
+   ========================================================================== */
+
+.site-footer-brand {
+  display: grid;
+  align-content: start;
+  gap: clamp(2rem, 4vw, 3rem);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Home Link
+   ========================================================================== */
+
+.site-footer-brand__home {
+  display: inline-flex;
+  align-items: center;
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  border-radius: var(--radius-sm);
+
+  color: var(--footer-heading);
+  text-decoration: none;
+}
+
+.site-footer-brand__home:focus {
+  outline: none;
+}
+
+.site-footer-brand__home:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Logo
+   ========================================================================== */
+
+.site-footer-brand__logo {
+  display: block;
+
+  inline-size: clamp(10rem, 14vw, 13rem);
+  block-size: auto;
+  max-inline-size: 100%;
+
+  object-fit: contain;
+}
+
+/* ==========================================================================
+   Contact Section
+   ========================================================================== */
+
+.site-footer-brand__section {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.site-footer-brand__title {
+  margin: 0;
+
+  color: var(--footer-heading);
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.site-footer-brand__text {
+  max-inline-size: 19rem;
+  margin: 0;
+
+  color: var(--footer-text);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Address
+   ========================================================================== */
+
+.site-footer-brand__address {
+  margin: 0;
+
+  color: inherit;
+
+  font-style: normal;
+}
+
+/* ==========================================================================
+   Contact List
+   ========================================================================== */
+
+.site-footer-brand__list {
+  display: grid;
+  gap: 0.625rem;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Contact Link
+   ========================================================================== */
+
+.site-footer-brand__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  border-radius: var(--radius-sm);
+
+  color: var(--footer-text);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("semibold");
+  line-height: var(--line-height-normal);
+
+  text-decoration: none;
+  overflow-wrap: anywhere;
+
+  @include ds.transition((color, transform), var(--transition-fast));
+}
+
+.site-footer-brand__link:hover {
+  color: var(--footer-heading);
+
+  transform: translateX(0.125rem);
+}
+
+.site-footer-brand__link:focus {
+  outline: none;
+}
+
+.site-footer-brand__link:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Contact Icon
+   ========================================================================== */
+
+.site-footer-brand__icon {
+  --icon-size: 1rem;
+
+  flex: 0 0 auto;
+
+  color: var(--footer-accent);
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Contact CTA
+   ========================================================================== */
+
+.site-footer-brand__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  min-block-size: auto;
+  margin-block-start: 0.25rem;
+  padding: 0;
+
+  border-color: transparent;
+  border-radius: var(--radius-sm);
+
+  background: transparent;
+  color: var(--footer-accent);
+
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.site-footer-brand__cta:hover:not(:disabled):not(.is-disabled) {
+  border-color: transparent;
+  background: transparent;
+  color: var(--footer-heading);
+}
+
+.site-footer-brand__cta:focus {
+  outline: none;
+}
+
+.site-footer-brand__cta:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   CTA Icon
+   ========================================================================== */
+
+/*
+ * The design-system .btn-arrow component owns the arrow movement.
+ * This file defines only the Footer-specific icon size.
+ */
+
+.site-footer-brand__cta .has-icon,
+.site-footer-brand__cta .svg-icon {
+  --icon-size: 0.875rem;
+
+  flex: 0 0 auto;
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .site-footer-brand__link:hover {
+  transform: translateX(-0.125rem);
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .site-footer-brand {
+    grid-template-columns:
+      minmax(10rem, auto)
+      minmax(0, 1fr);
+    align-items: start;
+    gap: 2rem;
+  }
+
+  .site-footer-brand__text {
+    max-inline-size: 32rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .site-footer-brand {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  .site-footer-brand__logo {
+    inline-size: 10rem;
+  }
+
+  .site-footer-brand__text {
+    max-inline-size: none;
+  }
+
+  .site-footer-brand__link {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .site-footer-brand__link,
+html[data-contrast="high"] .site-footer-brand__cta {
+  color: var(--footer-heading);
+
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .site-footer-brand__link {
+    transition: none;
+  }
+
+  .site-footer-brand__link:hover {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] .site-footer-brand__link {
+  transition: none;
+}
+
+html[data-motion="reduce"] .site-footer-brand__link:hover {
+  transform: none;
+}

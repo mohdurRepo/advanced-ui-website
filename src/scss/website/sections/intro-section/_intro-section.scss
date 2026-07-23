@@ -1,0 +1,35 @@
+@use "../../../design-system/abstracts" as *;
+
+.intro-section {
+  --intro-bg: var(--color-bg);
+  --intro-padding-block: 0;
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  padding-block: var(--intro-padding-block);
+  background: var(--intro-bg);
+
+  &__content {
+    position: relative;
+    z-index: 1;
+  }
+
+  &__container {
+    width: min(100% - 2rem, 1320px);
+    margin-inline: auto;
+  }
+
+  @include respond-down(md) {
+    --intro-padding-block: 0 3rem;
+  }
+
+  @include respond-down(sm) {
+    --intro-padding-block: 0 2rem;
+
+    &__container {
+      width: min(100% - 1rem, 1320px);
+    }
+  }
+}

@@ -1,7 +1,8 @@
-@use "abstracts";
-@use "base";
-@use "themes";
-@use "layout";
-@use "utilities";
-@use "components";
+// Third-party styles
 @use "vendors";
+
+// Reusable design-system styles
+@use "design-system";
+
+// Website-specific styles
+@use "website";

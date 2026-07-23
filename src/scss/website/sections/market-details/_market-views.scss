@@ -1,0 +1,195 @@
+@use "../../../design-system/abstracts/" as *;
+
+/* ==========================================================================
+   Market Views
+   ========================================================================== */
+
+.market-views {
+  display: flex;
+  justify-content: center;
+
+  padding: var(--market-panel-space-sm) var(--market-panel-space);
+
+  border-block-end: 1px solid var(--market-panel-line);
+
+  background: var(--market-details-bg, #334c5c);
+}
+
+/* ==========================================================================
+   Tab List
+   ========================================================================== */
+
+.market-views__list {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  max-inline-size: 100%;
+
+  padding: 0.375rem;
+
+  border: 1px solid var(--market-panel-line);
+  border-radius: var(--radius-pill);
+
+  background: rgb(255 255 255 / 0.08);
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline proximity;
+
+  scrollbar-width: none;
+
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Tab
+   ========================================================================== */
+
+.market-views__tab {
+  flex: 0 0 auto;
+
+  min-block-size: 2.5rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.625rem 1.25rem;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+
+  background: transparent;
+  color: rgb(255 255 255 / 0.78);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: font-weight("heavy");
+  line-height: 1;
+
+  white-space: nowrap;
+  cursor: pointer;
+
+  scroll-snap-align: start;
+
+  @include transition(
+    (background-color, border-color, color, box-shadow),
+    fast
+  );
+
+  &:hover:not(:disabled):not(.is-disabled) {
+    background: rgb(255 255 255 / 0.1);
+    color: var(--market-details-fg, #ffffff);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.is-active,
+  &[aria-selected="true"] {
+    border-color: var(--color-primary);
+
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+
+    box-shadow: var(--shadow-sm);
+  }
+
+  &:disabled,
+  &.is-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+/* ==========================================================================
+   View Panels
+   ========================================================================== */
+
+.market-view-panel {
+  min-inline-size: 0;
+
+  &[hidden] {
+    display: none !important;
+  }
+
+  &.is-active {
+    display: block;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(md) {
+  .market-views {
+    justify-content: flex-start;
+
+    padding: var(--market-panel-space-sm) var(--market-panel-space-sm);
+  }
+
+  .market-views__list {
+    inline-size: 100%;
+
+    border-radius: var(--radius-md);
+  }
+
+  .market-views__tab {
+    flex: 1 0 auto;
+
+    min-inline-size: 6.5rem;
+
+    padding-inline: 0.875rem;
+
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Small Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .market-views__tab {
+    min-inline-size: 5.75rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-views__list {
+    border-width: 2px;
+  }
+
+  .market-views__tab.is-active,
+  .market-views__tab[aria-selected="true"] {
+    border-width: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .market-views__tab {
+    transition: none;
+  }
+}

@@ -1,0 +1,205 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Mega Menu Panel
+   ========================================================================== */
+
+.mega-menu-panel {
+  display: none;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Active Panel
+   ========================================================================== */
+
+.mega-menu-panel.is-active,
+.mega-menu-panel[aria-hidden="false"] {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+}
+
+.mega-menu-panel[hidden] {
+  display: none;
+}
+
+/* ==========================================================================
+   Panel Title
+   ========================================================================== */
+
+.mega-menu-panel__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Panel Layout
+   ========================================================================== */
+
+.mega-menu-panel__layout {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr)
+    minmax(14rem, 20rem);
+  align-items: start;
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Panel Regions
+   ========================================================================== */
+
+.mega-menu-panel__column,
+.mega-menu-panel__feature {
+  min-inline-size: 0;
+}
+
+.mega-menu-panel__column {
+  display: grid;
+  align-content: start;
+  gap: 0.25rem;
+}
+
+.mega-menu-panel__feature {
+  align-self: stretch;
+
+  block-size: 100%;
+}
+
+/* ==========================================================================
+   Content Links
+   ========================================================================== */
+
+.mega-menu-panel__link {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  min-inline-size: 0;
+  min-block-size: 2.5rem;
+  padding: 0.625rem 0.75rem;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+
+  background: transparent;
+  color: var(--color-text);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  text-align: start;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+
+  @include ds.transition(
+    (background-color, border-color, color, box-shadow),
+    var(--transition-fast)
+  );
+}
+
+/* ==========================================================================
+   Link Hover
+   ========================================================================== */
+
+.mega-menu-panel__link:hover {
+  border-color: var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+}
+
+@supports (background: color-mix(in oklab, white, black)) {
+  .mega-menu-panel__link:hover {
+    border-color: color-mix(in oklab, var(--color-primary), transparent 82%);
+
+    background: color-mix(in oklab, var(--color-primary), transparent 94%);
+  }
+}
+
+/* ==========================================================================
+   Link Focus
+   ========================================================================== */
+
+.mega-menu-panel__link:focus {
+  outline: none;
+}
+
+.mega-menu-panel__link:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Current Page
+   ========================================================================== */
+
+.mega-menu-panel__link[aria-current="page"] {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+
+  font-weight: ds.font-weight("bold");
+}
+
+@supports (background: color-mix(in oklab, white, black)) {
+  .mega-menu-panel__link[aria-current="page"] {
+    border-color: color-mix(in oklab, var(--color-primary), transparent 72%);
+
+    background: color-mix(in oklab, var(--color-primary), transparent 90%);
+  }
+}
+
+/* ==========================================================================
+   Constrained Desktop
+   ========================================================================== */
+
+@media (min-width: 62rem) and (max-width: 73.75rem) {
+  .mega-menu-panel__layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mega-menu-panel__feature {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .mega-menu-panel__link:hover,
+html[data-contrast="high"] .mega-menu-panel__link[aria-current="page"] {
+  border-color: currentColor;
+  border-width: 2px;
+}
+
+html[data-contrast="high"] .mega-menu-panel__link[aria-current="page"] {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .mega-menu-panel__link {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] .mega-menu-panel__link {
+  transition: none;
+}

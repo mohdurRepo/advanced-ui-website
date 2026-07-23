@@ -1,0 +1,252 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Site Footer Links
+   ========================================================================== */
+
+.site-footer-links {
+  display: grid;
+  align-content: start;
+  gap: 1.5rem;
+
+  min-inline-size: 0;
+  min-block-size: 100%;
+
+  padding: clamp(3rem, 6vw, 5rem) clamp(2rem, 3.5vw, 3.25rem);
+}
+
+/*
+ * Add a divider only between adjacent link groups.
+ * This avoids overlapping the main Brand/Navigation divider.
+ */
+
+.site-footer-links + .site-footer-links {
+  border-inline-start: 1px solid var(--footer-border);
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.site-footer-links__title {
+  margin: 0;
+
+  color: var(--footer-heading);
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   List
+   ========================================================================== */
+
+.site-footer-links__list {
+  display: grid;
+  align-content: start;
+  gap: 0.875rem;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Link
+   ========================================================================== */
+
+.site-footer-links__link {
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  padding-block: 0.125rem;
+
+  border-radius: var(--radius-sm);
+
+  color: var(--footer-text);
+
+  font-size: var(--text-base);
+  font-weight: ds.font-weight("semibold");
+  line-height: var(--line-height-normal);
+
+  text-decoration: none;
+  text-wrap: pretty;
+
+  @include ds.transition((color, transform), var(--transition-fast));
+}
+
+/* ==========================================================================
+   Underline Indicator
+   ========================================================================== */
+
+.site-footer-links__link::after {
+  content: "";
+
+  position: absolute;
+
+  inset-inline-start: 0;
+  inset-block-end: -0.2rem;
+
+  inline-size: 100%;
+  block-size: 0.125rem;
+
+  border-radius: var(--radius-pill);
+
+  background: var(--footer-accent);
+
+  transform: scaleX(0);
+  transform-origin: left center;
+
+  @include ds.transition(transform, var(--transition-fast));
+}
+
+/* ==========================================================================
+   Link States
+   ========================================================================== */
+
+.site-footer-links__link:hover {
+  color: var(--footer-heading);
+
+  transform: translateX(0.125rem);
+}
+
+.site-footer-links__link:hover::after {
+  transform: scaleX(1);
+}
+
+.site-footer-links__link:focus {
+  outline: none;
+}
+
+.site-footer-links__link:focus-visible {
+  @include ds.focus-ring;
+}
+
+.site-footer-links__link[aria-current="page"] {
+  color: var(--footer-heading);
+}
+
+.site-footer-links__link[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .site-footer-links__link::after {
+  transform-origin: right center;
+}
+
+html[dir="rtl"] .site-footer-links__link:hover {
+  transform: translateX(-0.125rem);
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .site-footer-links {
+    padding: 2.25rem var(--footer-space);
+  }
+
+  .site-footer-links + .site-footer-links {
+    border-inline-start: 1px solid var(--footer-border);
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .site-footer-links {
+    min-block-size: auto;
+
+    padding: 2rem var(--footer-space);
+  }
+
+  /*
+   * Navigation becomes one column, so the divider changes from inline
+   * to block direction.
+   */
+
+  .site-footer-links + .site-footer-links {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--footer-border);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .site-footer-links {
+    gap: 1.25rem;
+
+    padding: 1.75rem var(--footer-space);
+  }
+
+  .site-footer-links__list {
+    gap: 0.75rem;
+  }
+
+  .site-footer-links__link {
+    font-size: var(--text-sm);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .site-footer-links + .site-footer-links {
+  border-color: var(--footer-border-strong);
+  border-width: 2px;
+}
+
+html[data-contrast="high"] .site-footer-links__link {
+  color: var(--footer-heading);
+
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
+}
+
+html[data-contrast="high"] .site-footer-links__link::after {
+  display: none;
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .site-footer-links__link,
+  .site-footer-links__link::after {
+    transition: none;
+  }
+
+  .site-footer-links__link:hover {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] .site-footer-links__link,
+html[data-motion="reduce"] .site-footer-links__link::after {
+  transition: none;
+}
+
+html[data-motion="reduce"] .site-footer-links__link:hover {
+  transform: none;
+}
