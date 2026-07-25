@@ -1,0 +1,411 @@
+@use "../../../../design-system/abstracts" as *;
+
+/* ==========================================================================
+   Financial Charts
+   ========================================================================== */
+
+.financial-chart-surface {
+  --financial-chart-bg: var(--color-surface);
+  --financial-chart-fg: var(--color-text);
+  --financial-chart-muted: var(--color-text-muted);
+  --financial-chart-border: var(--color-border);
+
+  --financial-chart-radius: var(--radius-lg);
+  --financial-chart-shadow: none;
+
+  --financial-chart-height: clamp(20rem, 32vw, 28rem);
+  --financial-chart-space: clamp(0.875rem, 2vw, 1.25rem);
+
+  position: relative;
+  isolation: isolate;
+
+  display: grid;
+  place-items: stretch;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--financial-chart-height);
+
+  padding: var(--financial-chart-space);
+
+  overflow: hidden;
+
+  border: 1px solid var(--financial-chart-border);
+  border-radius: var(--financial-chart-radius);
+
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--color-primary), transparent 97%),
+      transparent 38%
+    ),
+    var(--financial-chart-bg);
+
+  color: var(--financial-chart-fg);
+
+  box-shadow: var(--financial-chart-shadow);
+}
+
+/* ==========================================================================
+   Chart Canvas
+   ========================================================================== */
+
+.financial-chart__canvas {
+  position: relative;
+  z-index: 1;
+
+  inline-size: 100%;
+  block-size: 100%;
+  min-inline-size: 0;
+  min-block-size: calc(
+    var(--financial-chart-height) - (var(--financial-chart-space) * 2)
+  );
+}
+
+/* ==========================================================================
+   Renderer Safety
+   ========================================================================== */
+
+.financial-chart__canvas,
+.financial-chart__canvas > div,
+.financial-chart__canvas canvas,
+.financial-chart__canvas svg {
+  max-inline-size: 100%;
+  max-block-size: 100%;
+}
+
+.financial-chart__canvas > div {
+  inline-size: 100% !important;
+  block-size: 100% !important;
+}
+
+.financial-chart__canvas canvas,
+.financial-chart__canvas svg {
+  display: block;
+
+  inline-size: 100% !important;
+  block-size: 100% !important;
+}
+
+/* ==========================================================================
+   Chart Header
+   ========================================================================== */
+
+.financial-chart__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+
+  min-inline-size: 0;
+
+  margin-block-end: 1rem;
+}
+
+/* ==========================================================================
+   Chart Heading
+   ========================================================================== */
+
+.financial-chart__heading {
+  display: grid;
+  gap: 0.25rem;
+
+  min-inline-size: 0;
+}
+
+.financial-chart__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-base);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+.financial-chart__description {
+  margin: 0;
+
+  color: var(--financial-chart-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("regular");
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Chart Legend
+   ========================================================================== */
+
+.financial-chart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem 1rem;
+
+  min-inline-size: 0;
+
+  margin: 0 0 1rem;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Legend Item
+   ========================================================================== */
+
+.financial-chart__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+
+  color: var(--financial-chart-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Legend Marker
+   ========================================================================== */
+
+.financial-chart__legend-marker {
+  inline-size: 0.625rem;
+  block-size: 0.625rem;
+
+  flex: 0 0 auto;
+
+  border-radius: var(--radius-pill);
+
+  background: var(--financial-chart-series-color, var(--color-primary));
+}
+
+/* ==========================================================================
+   Chart Status
+   ========================================================================== */
+
+.financial-chart__status {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+
+  display: grid;
+  place-items: center;
+
+  padding: 1.5rem;
+
+  background: color-mix(in oklab, var(--financial-chart-bg), transparent 4%);
+
+  color: var(--financial-chart-muted);
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Hidden Status
+   ========================================================================== */
+
+.financial-chart__status[hidden] {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Status Content
+   ========================================================================== */
+
+.financial-chart__status-content {
+  display: grid;
+  justify-items: center;
+  gap: 0.625rem;
+
+  max-inline-size: 24rem;
+}
+
+.financial-chart__status-title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-base);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+.financial-chart__status-text {
+  margin: 0;
+
+  color: var(--financial-chart-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.financial-chart-surface.is-loading {
+  .financial-chart__canvas {
+    opacity: 0.35;
+  }
+}
+
+/* ==========================================================================
+   Ready State
+   ========================================================================== */
+
+.financial-chart-surface.is-ready {
+  .financial-chart__canvas {
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
+.financial-chart-surface.is-empty {
+  .financial-chart__canvas {
+    visibility: hidden;
+  }
+}
+
+/* ==========================================================================
+   Fullscreen
+   ========================================================================== */
+
+.financial-chart-surface:fullscreen {
+  inline-size: 100vw;
+  block-size: 100vh;
+  min-block-size: 100vh;
+
+  padding: clamp(1rem, 3vw, 2rem);
+
+  overflow: auto;
+
+  border: 0;
+  border-radius: 0;
+
+  background: var(--financial-chart-bg);
+}
+
+.financial-chart-surface:fullscreen .financial-chart__canvas {
+  min-block-size: calc(100vh - 4rem);
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .financial-chart-surface {
+    --financial-chart-height: clamp(20rem, 56vw, 25rem);
+    --financial-chart-space: 1rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-chart-surface {
+    --financial-chart-height: 18rem;
+    --financial-chart-space: 0.75rem;
+    --financial-chart-radius: var(--radius-md);
+  }
+
+  .financial-chart__header {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .financial-chart__legend {
+    gap: 0.5rem 0.75rem;
+
+    margin-block-end: 0.75rem;
+  }
+
+  .financial-chart__status {
+    padding: 1rem;
+  }
+
+  .financial-chart__status-text {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Extra Small Screens
+   ========================================================================== */
+
+@media (max-width: 360px) {
+  .financial-chart-surface {
+    --financial-chart-height: 16rem;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-chart-surface {
+    --financial-chart-shadow: none;
+
+    background:
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--color-primary), transparent 94%),
+        transparent 42%
+      ),
+      var(--financial-chart-bg);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-chart-surface {
+    border-width: 2px;
+
+    background: var(--financial-chart-bg);
+
+    box-shadow: none;
+  }
+
+  .financial-chart__description,
+  .financial-chart__legend-item,
+  .financial-chart__status,
+  .financial-chart__status-text {
+    color: currentColor;
+  }
+
+  .financial-chart__legend-marker {
+    border: 2px solid currentColor;
+
+    background: transparent;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .financial-chart__canvas {
+    transition: none;
+  }
+}

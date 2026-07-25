@@ -1,0 +1,500 @@
+@use "../../../../design-system/abstracts" as *;
+
+/* ==========================================================================
+   Financial Layout
+   ========================================================================== */
+
+/*
+ * This file owns composition only:
+ *
+ * - Aside navigation and content layouts
+ * - Financial table/chart view positioning
+ * - Report panel composition
+ * - Shared stack and grid utilities used by later financial panels
+ *
+ * Navigation appearance remains in _financial-navigation.scss.
+ */
+
+/* ==========================================================================
+   Data Layout
+   ========================================================================== */
+
+.financial-data-layout {
+  --financial-data-aside-width: 16rem;
+  --financial-data-aside-bg: color-mix(
+    in oklab,
+    var(--color-surface-alt),
+    transparent 30%
+  );
+
+  display: grid;
+  grid-template-columns:
+    minmax(14rem, var(--financial-data-aside-width))
+    minmax(0, 1fr);
+
+  align-items: stretch;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Reports Layout
+   ========================================================================== */
+
+.financial-data-layout[data-layout="reports"] {
+  --financial-data-aside-width: 17rem;
+}
+
+/* ==========================================================================
+   Aside Region
+   ========================================================================== */
+
+.financial-data-layout__aside {
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  padding: clamp(1rem, 2vw, 1.5rem);
+
+  border-inline-end: 1px solid var(--color-border);
+
+  background: var(--financial-data-aside-bg);
+}
+
+/* ==========================================================================
+   Main Content Region
+   ========================================================================== */
+
+.financial-data-layout__content {
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+/* ==========================================================================
+   Period Panel
+   ========================================================================== */
+
+.financial-period-panel {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Period Content
+   ========================================================================== */
+
+.financial-period-tabs__content {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Period Comparison Panel
+   ========================================================================== */
+
+.financial-period-tabs__panel {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Financial View
+   ========================================================================== */
+
+/*
+ * Table/chart view layout:
+ *
+ * ┌──────────────────────────────┬──────────────┐
+ * │ Heading and description      │ View toggle  │
+ * ├──────────────────────────────┴──────────────┤
+ * │ Table or chart content                      │
+ * └─────────────────────────────────────────────┘
+ */
+
+.financial-view {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto;
+
+  grid-template-areas:
+    "toolbar toggle"
+    "content content";
+
+  align-items: start;
+  gap: 1rem;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Financial View Toolbar
+   ========================================================================== */
+
+.financial-view__toolbar {
+  grid-area: toolbar;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Financial View Heading
+   ========================================================================== */
+
+.financial-view__heading {
+  display: grid;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Financial View Title
+   ========================================================================== */
+
+.financial-view__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: clamp(var(--text-lg), 1rem + 0.4vw, var(--text-xl));
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Financial View Description
+   ========================================================================== */
+
+.financial-view__description {
+  max-inline-size: 44rem;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  font-weight: font-weight("regular");
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   View Toggle Placement
+   ========================================================================== */
+
+.financial-view > .financial-view-toggle {
+  grid-area: toggle;
+}
+
+/* ==========================================================================
+   View Content
+   ========================================================================== */
+
+.financial-view__content {
+  grid-area: content;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   View Panel
+   ========================================================================== */
+
+.financial-view__panel {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Report Panel
+   ========================================================================== */
+
+.financial-report-panel {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2vw, 1.5rem);
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Report Content
+   ========================================================================== */
+
+.financial-report-panel__content {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Shared Stack Layout
+   ========================================================================== */
+
+/*
+ * Used by later Shareholding and Company Profile panels when multiple
+ * independent content groups must be presented vertically.
+ */
+
+.financial-layout-stack {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2.5vw, 1.5rem);
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Compact Stack
+   ========================================================================== */
+
+.financial-layout-stack--compact {
+  gap: 0.875rem;
+}
+
+/* ==========================================================================
+   Spacious Stack
+   ========================================================================== */
+
+.financial-layout-stack--spacious {
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+/* ==========================================================================
+   Shared Grid Layout
+   ========================================================================== */
+
+.financial-layout-grid {
+  --financial-layout-grid-gap: clamp(1rem, 2.5vw, 1.5rem);
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  align-items: stretch;
+  gap: var(--financial-layout-grid-gap);
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Three-Column Grid
+   ========================================================================== */
+
+.financial-layout-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* ==========================================================================
+   Wide Primary Grid
+   ========================================================================== */
+
+.financial-layout-grid--wide-primary {
+  grid-template-columns:
+    minmax(0, 1.4fr)
+    minmax(16rem, 0.8fr);
+}
+
+/* ==========================================================================
+   Full-Width Single Child
+   ========================================================================== */
+
+.financial-layout-grid > :only-child {
+  grid-column: 1 / -1;
+}
+
+/* ==========================================================================
+   Layout Children
+   ========================================================================== */
+
+.financial-layout-grid > *,
+.financial-layout-stack > * {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Split Layout
+   ========================================================================== */
+
+/*
+ * Used where a compact navigation or summary region sits beside detailed
+ * content without requiring a complete financial-data-layout.
+ */
+
+.financial-split-layout {
+  --financial-split-width: 15rem;
+  --financial-split-gap: clamp(1rem, 3vw, 2rem);
+
+  display: grid;
+  grid-template-columns:
+    minmax(12rem, var(--financial-split-width))
+    minmax(0, 1fr);
+
+  align-items: start;
+  gap: var(--financial-split-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Split Layout Regions
+   ========================================================================== */
+
+.financial-split-layout__aside,
+.financial-split-layout__content {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .financial-data-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .financial-data-layout__aside {
+    padding: 1rem 1.25rem 0;
+
+    border-inline-end: 0;
+
+    background: transparent;
+  }
+
+  .financial-data-layout__content {
+    padding: 1.25rem;
+  }
+
+  .financial-layout-grid--three {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .financial-split-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .financial-data-layout__content {
+    padding: 1rem;
+  }
+
+  .financial-view {
+    gap: 0.875rem;
+  }
+
+  .financial-layout-grid,
+  .financial-layout-grid--three,
+  .financial-layout-grid--wide-primary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .financial-data-layout__aside {
+    padding: 0.875rem 0.875rem 0;
+  }
+
+  .financial-data-layout__content {
+    padding: 0.875rem;
+  }
+
+  .financial-view {
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto;
+
+    gap: 0.75rem;
+  }
+
+  .financial-view__title {
+    font-size: var(--text-base);
+  }
+
+  .financial-view__description {
+    display: none;
+  }
+
+  .financial-report-panel {
+    gap: 1rem;
+  }
+
+  .financial-layout-grid {
+    --financial-layout-grid-gap: 1rem;
+  }
+
+  .financial-layout-stack {
+    gap: 1rem;
+  }
+}
+
+/* ==========================================================================
+   Extra Small Screens
+   ========================================================================== */
+
+@media (max-width: 360px) {
+  .financial-view {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "toolbar"
+      "toggle"
+      "content";
+  }
+
+  .financial-view > .financial-view-toggle {
+    justify-self: start;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .financial-data-layout {
+    --financial-data-aside-bg: color-mix(
+      in oklab,
+      var(--color-surface-alt),
+      transparent 18%
+    );
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .financial-data-layout__aside {
+    border-inline-end-width: 2px;
+  }
+
+  .financial-view__description {
+    color: currentColor;
+  }
+
+  @include respond-down(lg) {
+    .financial-data-layout__aside {
+      border-inline-end: 0;
+    }
+  }
+}
