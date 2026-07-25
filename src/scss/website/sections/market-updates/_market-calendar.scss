@@ -1,0 +1,662 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Market Calendar
+   ========================================================================== */
+
+.market-calendar {
+  --market-calendar-bg: var(--color-surface);
+  --market-calendar-bg-hover: var(--color-surface-alt);
+
+  --market-calendar-fg: var(--color-text);
+  --market-calendar-heading: var(--color-heading);
+  --market-calendar-muted: var(--color-text-muted);
+
+  --market-calendar-border: var(--color-border);
+  --market-calendar-border-strong: var(--color-border-strong);
+
+  --market-calendar-accent: var(--color-primary);
+  --market-calendar-on-accent: var(--color-on-primary);
+
+  --market-calendar-space: clamp(1.125rem, 2vw, 1.5rem);
+  --market-calendar-gap: 0.375rem;
+
+  --market-calendar-day-size: clamp(1.75rem, 7vw, 2.5rem);
+
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 32rem;
+
+  padding: var(--market-calendar-space);
+
+  border: 1px solid var(--market-calendar-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--market-calendar-bg);
+  color: var(--market-calendar-fg);
+
+  box-shadow: var(--shadow-md);
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.market-calendar__header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+
+  flex: 0 0 auto;
+
+  min-inline-size: 0;
+
+  padding-block-end: 1rem;
+
+  border-block-end: 1px solid var(--market-calendar-border);
+}
+
+/* ==========================================================================
+   Navigation
+   ========================================================================== */
+
+.market-calendar__navigation {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+}
+
+.market-calendar__nav-button {
+  --icon-size: 0.875rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+
+  flex: 0 0 auto;
+
+  padding: 0;
+
+  border: 1px solid var(--market-calendar-border);
+  border-radius: var(--radius-md);
+
+  background: transparent;
+  color: var(--market-calendar-fg);
+
+  font: inherit;
+
+  cursor: pointer;
+
+  @include ds.transition(
+    (background-color, border-color, color, transform),
+    fast
+  );
+
+  &:hover:not(:disabled) {
+    border-color: var(--market-calendar-border-strong);
+
+    background: var(--market-calendar-bg-hover);
+    color: var(--market-calendar-heading);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include ds.focus-ring;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+/* ==========================================================================
+   Month and Year Controls
+   ========================================================================== */
+
+.market-calendar__controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+
+  min-inline-size: 0;
+}
+
+.market-calendar__select {
+  min-inline-size: 0;
+  min-block-size: 2.5rem;
+
+  padding-block: 0.5rem;
+  padding-inline: 0.75rem 2rem;
+
+  border: 1px solid var(--market-calendar-border);
+  border-radius: var(--radius-md);
+
+  background-color: var(--market-calendar-bg-hover);
+  color: var(--market-calendar-fg);
+
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  cursor: pointer;
+
+  color-scheme: dark;
+
+  @include ds.transition((background-color, border-color, box-shadow), fast);
+
+  &:hover {
+    border-color: var(--market-calendar-border-strong);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    border-color: var(--market-calendar-accent);
+
+    @include ds.focus-ring;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  option {
+    background: var(--market-calendar-bg);
+    color: var(--market-calendar-fg);
+  }
+}
+
+.market-calendar__select[data-calendar-month] {
+  flex: 1 1 9rem;
+
+  max-inline-size: 11rem;
+}
+
+.market-calendar__select[data-calendar-year] {
+  flex: 0 1 6.5rem;
+
+  max-inline-size: 7rem;
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Weekdays
+   ========================================================================== */
+
+.market-calendar__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--market-calendar-gap);
+
+  margin-block-start: 1rem;
+  margin-block-end: 0.5rem;
+
+  min-inline-size: 0;
+}
+
+.market-calendar__weekday {
+  min-inline-size: 0;
+
+  padding-block: 0.25rem;
+
+  color: var(--market-calendar-muted);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
+  text-align: center;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Calendar Grid
+   ========================================================================== */
+
+.market-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  justify-items: center;
+  gap: var(--market-calendar-gap);
+
+  min-inline-size: 0;
+}
+/* ==========================================================================
+   Day
+   ========================================================================== */
+
+.market-calendar__day {
+  position: relative;
+  isolation: isolate;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: var(--market-calendar-day-size);
+  block-size: var(--market-calendar-day-size);
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  padding: 0.25rem;
+
+  border: 1px solid transparent;
+  border-radius: 50%;
+
+  background: transparent;
+  color: var(--market-calendar-fg);
+
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("semibold");
+  line-height: 1;
+
+  font-variant-numeric: tabular-nums;
+
+  cursor: pointer;
+
+  @include ds.transition(
+    (background-color, border-color, box-shadow, color, transform),
+    fast
+  );
+
+  &:hover:not(:disabled):not(.market-calendar__day--empty) {
+    border-color: var(--market-calendar-border);
+
+    background: var(--market-calendar-bg-hover);
+    color: var(--market-calendar-heading);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include ds.focus-ring;
+  }
+
+  &:active:not(:disabled):not(.market-calendar__day--empty) {
+    transform: scale(0.94);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+/* ==========================================================================
+   Empty and Outside Days
+   ========================================================================== */
+
+.market-calendar__day--empty {
+  border-color: transparent;
+
+  background: transparent;
+
+  cursor: default;
+  pointer-events: none;
+}
+
+.market-calendar__day--outside {
+  color: color-mix(in oklab, var(--market-calendar-muted), transparent 42%);
+}
+
+/* ==========================================================================
+   Today
+   ========================================================================== */
+
+.market-calendar__day--today {
+  border-color: var(--market-calendar-accent);
+
+  color: var(--market-calendar-heading);
+
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklab, var(--market-calendar-accent), transparent 28%);
+}
+
+/* ==========================================================================
+   Selected Date
+   ========================================================================== */
+
+.market-calendar__day--selected {
+  border-color: var(--market-calendar-accent);
+
+  background: var(--market-calendar-accent);
+  color: var(--market-calendar-on-accent);
+
+  box-shadow: var(--shadow-sm);
+
+  &:hover:not(:disabled) {
+    border-color: var(--market-calendar-accent);
+
+    background: var(--market-calendar-accent);
+    color: var(--market-calendar-on-accent);
+  }
+}
+
+.market-calendar__day--today.market-calendar__day--selected {
+  box-shadow:
+    var(--shadow-sm),
+    0 0 0 2px
+      color-mix(in oklab, var(--market-calendar-accent), transparent 58%);
+}
+
+/* ==========================================================================
+   Event Indicator
+   ========================================================================== */
+
+.market-calendar__event-dot {
+  position: absolute;
+
+  inset-inline-start: 50%;
+  inset-block-end: 0.25rem;
+
+  inline-size: 0.25rem;
+  block-size: 0.25rem;
+
+  border-radius: var(--radius-pill);
+
+  background: var(--market-calendar-accent);
+
+  transform: translateX(-50%);
+
+  pointer-events: none;
+}
+
+.market-calendar__day--selected .market-calendar__event-dot {
+  background: var(--market-calendar-on-accent);
+
+  box-shadow: 0 0 0 1px
+    color-mix(in oklab, var(--market-calendar-on-accent), transparent 45%);
+}
+
+/* ==========================================================================
+   Events Region
+   ========================================================================== */
+
+.market-calendar__events {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  margin-block-start: 1rem;
+  padding-block-start: 1rem;
+
+  border-block-start: 1px solid var(--market-calendar-border);
+}
+
+.market-calendar__events-title {
+  margin: 0 0 0.75rem;
+
+  color: var(--market-calendar-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("heavy");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Event List
+   ========================================================================== */
+
+.market-calendar__event-list {
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+
+  min-inline-size: 0;
+
+  &[aria-busy="true"] {
+    opacity: 0.65;
+  }
+}
+
+/* ==========================================================================
+   Event
+   ========================================================================== */
+
+.market-calendar__event {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+
+  min-inline-size: 0;
+
+  padding: 0.75rem;
+
+  border: 1px solid var(--market-calendar-border);
+  border-radius: var(--radius-md);
+
+  background: color-mix(
+    in oklab,
+    var(--market-calendar-bg-hover),
+    transparent 16%
+  );
+
+  color: var(--market-calendar-fg);
+
+  @include ds.transition((background-color, border-color), fast);
+
+  &:hover {
+    border-color: var(--market-calendar-border-strong);
+
+    background: var(--market-calendar-bg-hover);
+  }
+}
+
+.market-calendar__event-content {
+  display: grid;
+  gap: 0.25rem;
+
+  min-inline-size: 0;
+}
+
+.market-calendar__event-title {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--market-calendar-heading);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  overflow-wrap: anywhere;
+}
+
+.market-calendar__event-meta {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--market-calendar-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+}
+
+.market-calendar__event-icon {
+  --icon-size: 1rem;
+
+  flex: 0 0 auto;
+
+  color: var(--market-calendar-accent);
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.market-calendar__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+
+  flex: 0 0 auto;
+
+  margin-block-start: 1rem;
+  padding-block-start: 1rem;
+
+  border-block-start: 1px solid var(--market-calendar-border);
+}
+
+.market-calendar__actions .btn {
+  max-inline-size: 100%;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down(lg) {
+  .market-calendar {
+    inline-size: min(100%, 42rem);
+    min-block-size: auto;
+
+    justify-self: center;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down(sm) {
+  .market-calendar {
+    --market-calendar-space: 1rem;
+    --market-calendar-gap: 0.25rem;
+
+    --market-calendar-day-size: clamp(1.75rem, 8vw, 2.25rem);
+
+    min-block-size: auto;
+
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .market-calendar__header {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.625rem;
+  }
+
+  .market-calendar__controls {
+    grid-row: 1;
+
+    justify-content: stretch;
+  }
+
+  .market-calendar__navigation {
+    grid-row: 2;
+
+    justify-content: flex-end;
+  }
+
+  .market-calendar__select[data-calendar-month] {
+    max-inline-size: none;
+  }
+
+  .market-calendar__select[data-calendar-year] {
+    max-inline-size: none;
+  }
+
+  .market-calendar__day {
+    min-block-size: 2.25rem;
+  }
+
+  .market-calendar__event {
+    padding: 0.625rem;
+  }
+
+  .market-calendar__actions {
+    align-items: stretch;
+    justify-content: stretch;
+
+    margin-block-start: 0.75rem;
+    padding-block-start: 0.875rem;
+  }
+
+  .market-calendar__actions .btn {
+    inline-size: 100%;
+
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-calendar {
+    border-width: 2px;
+    box-shadow: none;
+  }
+
+  .market-calendar__header,
+  .market-calendar__events,
+  .market-calendar__actions {
+    border-width: 2px;
+  }
+
+  .market-calendar__nav-button,
+  .market-calendar__select,
+  .market-calendar__event {
+    border-width: 2px;
+  }
+
+  .market-calendar__day--today,
+  .market-calendar__day--selected {
+    border-width: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .market-calendar__nav-button,
+  .market-calendar__select,
+  .market-calendar__day,
+  .market-calendar__event {
+    transition: none;
+  }
+
+  .market-calendar__nav-button:active,
+  .market-calendar__day:active {
+    transform: none;
+  }
+}

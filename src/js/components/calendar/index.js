@@ -1,5 +1,5 @@
-import { initCalendarCards } from "./calendar-card";
+import { initMarketCalendar } from "./calendar-card";
 
 export function initCalendar() {
-  initCalendarCards();
+  initMarketCalendar();
 }

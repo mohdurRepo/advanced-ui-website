@@ -1,17 +1,25 @@
-@use "../../../design-system/abstracts/" as *;
+@use "../../../design-system/abstracts" as ds;
 
 /* ==========================================================================
    Audience Pathways Card
    ========================================================================== */
 
 .audience-pathways-card {
-  --audience-card-bg: transparent;
   --audience-card-fg: var(--color-text);
   --audience-card-muted: var(--color-text-muted);
+
   --audience-card-border: var(--color-border);
+  --audience-card-border-hover: color-mix(
+    in oklab,
+    var(--color-primary),
+    var(--color-border) 45%
+  );
 
   --audience-card-radius: var(--radius-lg);
   --audience-card-shadow: var(--shadow-sm);
+  --audience-card-shadow-hover: var(--shadow-md);
+
+  --audience-card-arrow-translate: 0.18rem;
 
   --audience-card-overlay-start: color-mix(
     in oklab,
@@ -26,10 +34,12 @@
   );
 
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: start;
   gap: 1rem;
 
   min-inline-size: 0;
+  block-size: 100%;
 
   color: var(--audience-card-fg);
 
@@ -40,7 +50,9 @@
   }
 
   &:focus-visible {
-    @include focus-ring;
+    border-radius: var(--audience-card-radius);
+
+    @include ds.focus-ring;
   }
 }
 
@@ -50,20 +62,24 @@
 
 .audience-pathways-card__media {
   position: relative;
+  isolation: isolate;
 
   aspect-ratio: 4 / 5;
 
-  overflow: hidden;
+  min-inline-size: 0;
 
   border: 1px solid var(--audience-card-border);
+  border-radius: var(--audience-card-radius);
 
   background: var(--color-surface-alt);
 
   box-shadow: var(--audience-card-shadow);
 
-  isolation: isolate;
+  overflow: hidden;
 
-  @include transition((border-color, box-shadow, transform), normal);
+  transform: translateY(0);
+
+  @include ds.transition((border-color, box-shadow, transform), normal);
 }
 
 /* ==========================================================================
@@ -73,6 +89,7 @@
 .audience-pathways-card__image {
   position: absolute;
   inset: 0;
+  z-index: 0;
 
   display: block;
 
@@ -84,7 +101,7 @@
 
   transform: scale(1);
 
-  @include transition(transform, slow);
+  @include ds.transition(transform, slow);
 }
 
 /* ==========================================================================
@@ -104,16 +121,16 @@
   background: linear-gradient(
     to top,
     var(--audience-card-overlay-start) 0%,
-    color-mix(in oklab, var(--audience-card-overlay-start), transparent 18%) 28%,
-    var(--audience-card-overlay-middle) 52%,
-    transparent 78%
+    color-mix(in oklab, var(--audience-card-overlay-start), transparent 18%) 30%,
+    var(--audience-card-overlay-middle) 56%,
+    transparent 82%
   );
 
   pointer-events: none;
 }
 
 /* ==========================================================================
-   Card Title
+   Title
    ========================================================================== */
 
 .audience-pathways-card__title {
@@ -124,12 +141,13 @@
   color: #ffffff;
 
   font-size: clamp(var(--text-base), 0.95rem + 0.5vw, var(--text-xl));
-  font-weight: font-weight("bold");
+
+  font-weight: ds.font-weight("heavy");
   line-height: var(--line-height-tight);
 
-  text-wrap: balance;
+  text-shadow: 0 0.25rem 1rem rgb(0 0 0 / 0.38);
 
-  text-shadow: 0 0.25rem 1rem rgb(0 0 0 / 0.3);
+  text-wrap: balance;
 }
 
 /* ==========================================================================
@@ -148,13 +166,13 @@
   display: inline-grid;
   place-items: center;
 
-  inline-size: 2.25rem;
-  block-size: 2.25rem;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
 
-  border: 1px solid rgb(255 255 255 / 0.42);
+  border: 1px solid rgb(255 255 255 / 0.48);
   border-radius: var(--radius-pill);
 
-  background: rgb(0 0 0 / 0.26);
+  background: rgb(0 0 0 / 0.36);
   color: #ffffff;
 
   box-shadow: var(--shadow-sm);
@@ -163,7 +181,10 @@
 
   pointer-events: none;
 
-  @include transition((background-color, border-color, color, transform), fast);
+  @include ds.transition(
+    (background-color, border-color, box-shadow, color, transform),
+    fast
+  );
 }
 
 /* ==========================================================================
@@ -171,30 +192,31 @@
    ========================================================================== */
 
 .audience-pathways-card__text {
+  min-inline-size: 0;
+
   margin: 0;
 
   color: var(--audience-card-muted);
 
   font-size: var(--text-sm);
-  font-weight: font-weight("medium");
+  font-weight: ds.font-weight("medium");
   line-height: var(--line-height-relaxed);
 
   text-wrap: pretty;
+
+  @include ds.transition(color, fast);
 }
 
 /* ==========================================================================
-   Hover
+   Interaction
    ========================================================================== */
 
-.audience-pathways-card:hover {
+.audience-pathways-card:hover,
+.audience-pathways-card:focus-visible {
   .audience-pathways-card__media {
-    border-color: color-mix(
-      in oklab,
-      var(--color-primary),
-      var(--audience-card-border) 45%
-    );
+    border-color: var(--audience-card-border-hover);
 
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--audience-card-shadow-hover);
 
     transform: translateY(-0.1875rem);
   }
@@ -209,7 +231,12 @@
     background: var(--color-primary);
     color: var(--color-on-primary);
 
-    transform: translate(0.18rem, -0.18rem);
+    box-shadow: var(--shadow-md);
+
+    transform: translate(
+      var(--audience-card-arrow-translate),
+      calc(var(--audience-card-arrow-translate) * -1)
+    );
   }
 
   .audience-pathways-card__text {
@@ -218,14 +245,12 @@
 }
 
 /* ==========================================================================
-   RTL
+   Bidirectional Layout
    ========================================================================== */
 
 html[dir="rtl"] {
-  .audience-pathways-card:hover {
-    .audience-pathways-card__arrow {
-      transform: translate(-0.18rem, -0.18rem);
-    }
+  .audience-pathways-card {
+    --audience-card-arrow-translate: -0.18rem;
   }
 }
 
@@ -233,7 +258,7 @@ html[dir="rtl"] {
    Tablet
    ========================================================================== */
 
-@include respond-down(md) {
+@include ds.respond-down(md) {
   .audience-pathways-card__media {
     aspect-ratio: 16 / 10;
   }
@@ -249,13 +274,15 @@ html[dir="rtl"] {
    Mobile
    ========================================================================== */
 
-@include respond-down(sm) {
+@include ds.respond-down(sm) {
   .audience-pathways-card {
     gap: 0.75rem;
   }
 
   .audience-pathways-card__media {
     aspect-ratio: 3 / 2;
+
+    border-radius: var(--radius-md);
   }
 
   .audience-pathways-card__overlay {
@@ -269,11 +296,11 @@ html[dir="rtl"] {
   .audience-pathways-card__arrow {
     --icon-size: 0.875rem;
 
-    inline-size: 2rem;
-    block-size: 2rem;
-
     inset-block-start: 0.75rem;
     inset-inline-end: 0.75rem;
+
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
   }
 
   .audience-pathways-card__text {
@@ -290,8 +317,18 @@ html[data-contrast="high"] {
     border-width: 2px;
   }
 
+  .audience-pathways-card__overlay {
+    background: linear-gradient(
+      to top,
+      #000000 0%,
+      rgb(0 0 0 / 0.82) 58%,
+      transparent 100%
+    );
+  }
+
   .audience-pathways-card__arrow {
     border-width: 2px;
+    border-color: #ffffff;
 
     background: #000000;
     color: #ffffff;
@@ -309,11 +346,13 @@ html[data-contrast="high"] {
 html[data-motion="reduce"] {
   .audience-pathways-card__media,
   .audience-pathways-card__image,
-  .audience-pathways-card__arrow {
+  .audience-pathways-card__arrow,
+  .audience-pathways-card__text {
     transition: none;
   }
 
-  .audience-pathways-card:hover {
+  .audience-pathways-card:hover,
+  .audience-pathways-card:focus-visible {
     .audience-pathways-card__media,
     .audience-pathways-card__image,
     .audience-pathways-card__arrow {

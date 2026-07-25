@@ -1,0 +1,515 @@
+@use "../../../design-system/abstracts" as *;
+
+/* ==========================================================================
+   Mobile Application Promotion
+   ========================================================================== */
+
+.mobile-app-promo {
+  --mobile-app-bg: var(--color-bg);
+  --mobile-app-fg: var(--color-text);
+
+  --mobile-app-surface-bg: color-mix(
+    in oklab,
+    var(--color-primary),
+    var(--color-surface) 82%
+  );
+
+  --mobile-app-surface-border: color-mix(
+    in oklab,
+    var(--color-primary),
+    var(--color-border) 72%
+  );
+
+  --mobile-app-panel-bg-start: #001f2e;
+  --mobile-app-panel-bg-middle: #072f43;
+  --mobile-app-panel-bg-end: #0a4055;
+
+  --mobile-app-panel-fg: #ffffff;
+  --mobile-app-panel-muted: rgb(255 255 255 / 0.72);
+  --mobile-app-panel-border: rgb(255 255 255 / 0.12);
+
+  --mobile-app-gradient-angle: 135deg;
+  --mobile-app-glow-x: 16%;
+  --mobile-app-glow-y: 18%;
+  --mobile-app-mockup-position: center right;
+
+  --mobile-app-surface-radius: var(--radius-xl);
+  --mobile-app-panel-radius: var(--radius-lg);
+
+  background: var(--mobile-app-bg);
+  color: var(--mobile-app-fg);
+}
+
+/* ==========================================================================
+   Container
+   ========================================================================== */
+
+.mobile-app-promo__container {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Outer Surface
+   ========================================================================== */
+
+.mobile-app-promo__surface {
+  min-inline-size: 0;
+
+  padding: clamp(0.75rem, 2vw, 1.5rem);
+
+  border: 1px solid var(--mobile-app-surface-border);
+  border-radius: var(--mobile-app-surface-radius);
+
+  background: linear-gradient(
+    var(--mobile-app-gradient-angle),
+    color-mix(in oklab, var(--mobile-app-surface-bg), #ffffff 18%) 0%,
+    var(--mobile-app-surface-bg) 100%
+  );
+
+  box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   Promotional Panel
+   ========================================================================== */
+
+.mobile-app-promo__panel {
+  position: relative;
+  isolation: isolate;
+
+  display: grid;
+  grid-template-columns:
+    minmax(0, 0.9fr)
+    minmax(0, 1.1fr);
+
+  align-items: stretch;
+
+  min-inline-size: 0;
+  min-block-size: clamp(27rem, 40vw, 35rem);
+
+  overflow: hidden;
+
+  border: 1px solid var(--mobile-app-panel-border);
+  border-radius: var(--mobile-app-panel-radius);
+
+  background:
+    radial-gradient(
+      circle at var(--mobile-app-glow-x) var(--mobile-app-glow-y),
+      rgb(0 91 255 / 0.24) 0%,
+      transparent 34%
+    ),
+    linear-gradient(
+      var(--mobile-app-gradient-angle),
+      var(--mobile-app-panel-bg-start) 0%,
+      var(--mobile-app-panel-bg-middle) 58%,
+      var(--mobile-app-panel-bg-end) 100%
+    );
+
+  color: var(--mobile-app-panel-fg);
+
+  box-shadow: var(--shadow-md);
+
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   Decorative Glow
+   ========================================================================== */
+
+.mobile-app-promo__panel::before {
+  content: "";
+
+  position: absolute;
+
+  inset-inline-start: -10rem;
+  inset-block-end: -12rem;
+  z-index: 0;
+
+  inline-size: 29rem;
+  block-size: 29rem;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle at center,
+    color-mix(in oklab, var(--color-primary), transparent 30%) 0%,
+    color-mix(in oklab, var(--color-primary), transparent 76%) 44%,
+    transparent 72%
+  );
+
+  opacity: 0.72;
+
+  filter: blur(1.5rem);
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.mobile-app-promo__content {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+
+  min-inline-size: 0;
+
+  padding: clamp(2rem, 5vw, 4.5rem);
+
+  text-align: start;
+}
+
+/* ==========================================================================
+   Logo
+   ========================================================================== */
+
+.mobile-app-promo__logo {
+  display: block;
+
+  inline-size: clamp(9rem, 14vw, 13rem);
+  block-size: auto;
+  max-block-size: 4.5rem;
+
+  margin-block-end: clamp(1.75rem, 3vw, 2.5rem);
+
+  object-fit: contain;
+  object-position: center;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.mobile-app-promo__title {
+  max-inline-size: 34rem;
+
+  margin: 0;
+
+  color: var(--mobile-app-panel-fg);
+
+  font-size: clamp(var(--text-2xl), 1.25rem + 1.7vw, var(--text-4xl));
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.mobile-app-promo__description {
+  max-inline-size: 32rem;
+
+  margin: clamp(1rem, 2vw, 1.5rem) 0 0;
+
+  color: var(--mobile-app-panel-muted);
+
+  font-size: clamp(var(--text-base), 0.95rem + 0.4vw, var(--text-lg));
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Application Stores
+   ========================================================================== */
+
+.mobile-app-promo__stores {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.875rem;
+
+  max-inline-size: 100%;
+
+  margin-block-start: clamp(2rem, 4vw, 3.5rem);
+}
+
+/* ==========================================================================
+   Store Link
+   ========================================================================== */
+
+.mobile-app-promo__store-link {
+  display: inline-flex;
+
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+
+  color: inherit;
+  text-decoration: none;
+
+  box-shadow: var(--shadow-sm);
+
+  @include transition((border-color, box-shadow, opacity, transform), fast);
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Store Image
+   ========================================================================== */
+
+.mobile-app-promo__store-image {
+  display: block;
+
+  inline-size: auto;
+  block-size: clamp(2.5rem, 3vw, 3rem);
+  max-inline-size: 100%;
+
+  object-fit: contain;
+}
+
+/* ==========================================================================
+   Media
+   ========================================================================== */
+
+.mobile-app-promo__media {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Application Mockup
+   ========================================================================== */
+
+.mobile-app-promo__mockup {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  object-fit: contain;
+  object-position: var(--mobile-app-mockup-position);
+
+  transform: scale(1);
+
+  transform-origin: center;
+
+  @include transition(transform, slow);
+}
+
+/* ==========================================================================
+   Hover-capable Devices
+   ========================================================================== */
+
+@media (hover: hover) and (pointer: fine) {
+  .mobile-app-promo__store-link:hover {
+    border-color: rgb(255 255 255 / 0.28);
+
+    box-shadow: var(--shadow-md);
+
+    opacity: 0.94;
+
+    transform: translateY(-0.125rem);
+  }
+
+  .mobile-app-promo__panel:hover {
+    .mobile-app-promo__mockup {
+      transform: scale(1.02);
+    }
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .mobile-app-promo {
+    --mobile-app-gradient-angle: 225deg;
+    --mobile-app-glow-x: 84%;
+    --mobile-app-mockup-position: center left;
+  }
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .mobile-app-promo {
+    --mobile-app-mockup-position: center;
+  }
+
+  .mobile-app-promo__panel {
+    grid-template-columns: minmax(0, 1fr);
+
+    min-block-size: 0;
+  }
+
+  .mobile-app-promo__content {
+    align-items: center;
+
+    padding-block-end: 2rem;
+
+    text-align: center;
+  }
+
+  .mobile-app-promo__title,
+  .mobile-app-promo__description {
+    max-inline-size: 38rem;
+  }
+
+  .mobile-app-promo__stores {
+    justify-content: center;
+
+    margin-block-start: 2rem;
+  }
+
+  .mobile-app-promo__media {
+    justify-content: center;
+
+    min-block-size: 22rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .mobile-app-promo__surface {
+    padding: 0.625rem;
+
+    border-radius: var(--radius-lg);
+  }
+
+  .mobile-app-promo__panel {
+    border-radius: var(--radius-md);
+  }
+
+  .mobile-app-promo__content {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .mobile-app-promo__logo {
+    inline-size: 9rem;
+
+    margin-block-end: 1.5rem;
+  }
+
+  .mobile-app-promo__title {
+    font-size: var(--text-2xl);
+  }
+
+  .mobile-app-promo__description {
+    font-size: var(--text-sm);
+  }
+
+  .mobile-app-promo__stores {
+    gap: 0.625rem;
+
+    margin-block-start: 1.5rem;
+  }
+
+  .mobile-app-promo__store-image {
+    block-size: 2.375rem;
+  }
+
+  .mobile-app-promo__media {
+    min-block-size: 16rem;
+  }
+}
+
+/* ==========================================================================
+   Very Small Screens
+   ========================================================================== */
+
+@media (max-width: 360px) {
+  .mobile-app-promo__stores {
+    display: grid;
+    justify-items: center;
+  }
+
+  .mobile-app-promo__store-link {
+    max-inline-size: 10rem;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .mobile-app-promo {
+    --mobile-app-surface-bg: color-mix(
+      in oklab,
+      var(--color-primary),
+      var(--color-surface) 88%
+    );
+
+    --mobile-app-surface-border: color-mix(
+      in oklab,
+      var(--color-primary),
+      var(--color-border) 62%
+    );
+  }
+
+  .mobile-app-promo__surface {
+    background: linear-gradient(
+      var(--mobile-app-gradient-angle),
+      color-mix(in oklab, var(--mobile-app-surface-bg), #ffffff 4%) 0%,
+      var(--mobile-app-surface-bg) 100%
+    );
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .mobile-app-promo__surface,
+  .mobile-app-promo__panel {
+    border-width: 2px;
+  }
+
+  .mobile-app-promo__panel::before {
+    display: none;
+  }
+
+  .mobile-app-promo__store-link {
+    border-color: #ffffff;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .mobile-app-promo__store-link,
+  .mobile-app-promo__mockup {
+    transition: none;
+  }
+
+  .mobile-app-promo__store-link:hover,
+  .mobile-app-promo__panel:hover .mobile-app-promo__mockup {
+    transform: none;
+  }
+}

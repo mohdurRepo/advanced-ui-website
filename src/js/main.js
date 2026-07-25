@@ -7,18 +7,15 @@ import { initGlobal } from "./global";
 import { initAccordions } from "./components/accordion";
 import { initCalendar } from "./components/calendar";
 import { initDropdowns } from "./components/dropdown";
-import { initFeatureOverview } from "./components/feature-overview";
 import { initForms } from "./components/form";
 import { initHeader } from "./components/header";
 import { initIconSprite } from "./components/icons";
-import { initMarketDetails } from "./components/market-details";
-import { initMarketSummarySection } from "./components/market-summary";
 import { initModals } from "./components/modal";
 import { initToasts } from "./components/toast";
+import { initHomeSpotlight } from "./components/home-spotlight";
+import { initExchangePerformance } from "./components/exchange-performance";
 
-import { initHomeCountdownSlider } from "./components/intro-section/home-countdown-slider";
-import { initHomeEventSlider } from "./components/intro-section/home-event-slider";
-import { initHomeVideoPlayer } from "./components/intro-section/home-video-player";
+import { initMarketOverview } from "./components/market-overview";
 
 import { renderDataTable } from "./vendors/datatables/datatable.core";
 import { initDataTables } from "./vendors/datatables/datatable.init";
@@ -52,7 +49,6 @@ function initApp() {
   initAccordions();
   initToasts();
   initForms();
-
   /*
    * Vendor integrations
    */
@@ -61,21 +57,18 @@ function initApp() {
   /*
    * Market components
    */
-  initMarketSummarySection();
-  initMarketDetails();
+  initMarketOverview();
 
   /*
    * Homepage introduction components
    */
-  initHomeEventSlider();
-  initHomeCountdownSlider();
-  initHomeVideoPlayer();
+  initHomeSpotlight();
 
   /*
    * Page sections
    */
   initCalendar();
-  initFeatureOverview();
+  initExchangePerformance();
 }
 
 /* ==========================================================================

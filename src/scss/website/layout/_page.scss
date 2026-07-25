@@ -7,26 +7,29 @@
 .page {
   --page-bg: var(--color-bg);
 
-  --page-pattern-image: url("../../assets/images/home-background-pattern.png");
-  --page-pattern-opacity: 0.14;
-  --page-pattern-position-y: 8rem;
-  --page-pattern-size: min(992px, calc(100% - 2rem));
+  --page-pattern-image: url("../../../assets/images/home-background-pattern.png");
 
-  --page-glow-size: 10rem;
-  --page-glow-opacity: 0.18;
+  --page-pattern-position-y: 8rem;
+  --page-pattern-size: min(62rem, calc(100% - 2rem));
 
   /*
-   * Physical decorative coordinates.
-   * These are overridden in RTL without changing the component structure.
+   * Explicit radial-gradient radius.
+   * The visible glow extends this distance inward from each page corner.
    */
-  --page-glow-top-origin: left top;
-  --page-glow-bottom-origin: right bottom;
+  --page-glow-radius: 28rem;
+  --page-glow-opacity: 0.2;
+  --page-glow-mid-opacity: 0.07;
 
-  --page-glow-top-position: left -7rem top -7rem;
-  --page-glow-bottom-position: right -9rem bottom 0;
+  --page-glow-top-x: 0%;
+  --page-glow-top-y: 0%;
+
+  --page-glow-bottom-x: 100%;
+  --page-glow-bottom-y: 100%;
 
   position: relative;
   isolation: isolate;
+
+  min-inline-size: 0;
 
   overflow-x: clip;
   overflow-y: visible;
@@ -34,105 +37,149 @@
   background: var(--page-bg);
   color: var(--color-text);
 
+  /* ==========================================================================
+     Decorative Background
+     ========================================================================== */
+
   &__background {
     position: absolute;
     inset: 0;
     z-index: 1;
 
+    min-inline-size: 0;
+
     pointer-events: none;
 
+    /*
+     * Layer order:
+     * 1. Top-start corner glow
+     * 2. Bottom-end corner glow
+     * 3. Central home-page pattern
+     */
     background:
       radial-gradient(
-        circle at var(--page-glow-top-origin),
+        circle var(--page-glow-radius) at var(--page-glow-top-x)
+          var(--page-glow-top-y),
         rgb(from var(--color-primary) r g b / var(--page-glow-opacity)) 0%,
-        transparent 45%
+        rgb(from var(--color-primary) r g b / var(--page-glow-mid-opacity)) 42%,
+        transparent 100%
       ),
       radial-gradient(
-        circle at var(--page-glow-bottom-origin),
+        circle var(--page-glow-radius) at var(--page-glow-bottom-x)
+          var(--page-glow-bottom-y),
         rgb(from var(--color-primary) r g b / var(--page-glow-opacity)) 0%,
-        transparent 45%
+        rgb(from var(--color-primary) r g b / var(--page-glow-mid-opacity)) 42%,
+        transparent 100%
       ),
       var(--page-pattern-image);
 
     background-repeat: no-repeat, no-repeat, no-repeat;
 
+    /*
+     * Each glow uses the full page as its coordinate system.
+     * The explicit radius above controls its actual visual size.
+     */
     background-size:
-      var(--page-glow-size) var(--page-glow-size),
-      var(--page-glow-size) var(--page-glow-size),
+      100% 100%,
+      100% 100%,
       var(--page-pattern-size) auto;
 
     background-position:
-      var(--page-glow-top-position),
-      var(--page-glow-bottom-position),
+      center,
+      center,
       center var(--page-pattern-position-y);
 
-    margin-top: 50px;
     opacity: 1;
   }
 
-  /*
-   * Mirror only the decorative glow geometry.
-   * No z-index, pseudo-element, or content-layer changes.
-   */
-  [dir="rtl"] & {
-    --page-glow-top-origin: right top;
-    --page-glow-bottom-origin: left bottom;
+  /* ==========================================================================
+     RTL Decorative Geometry
+     ========================================================================== */
 
-    --page-glow-top-position: right -9rem top -7rem;
-    --page-glow-bottom-position: left -9rem bottom 0;
+  [dir="rtl"] & {
+    --page-glow-top-x: 100%;
+    --page-glow-bottom-x: 0%;
   }
+
+  /* ==========================================================================
+     Tablet
+     ========================================================================== */
 
   @include respond-down(md) {
-    --page-pattern-opacity: 0.08;
-    --page-pattern-size: min(1320px, calc(100% - 1rem));
+    --page-pattern-size: min(82.5rem, calc(100% - 1rem));
 
-    --page-glow-size: 36rem;
-    --page-glow-opacity: 0.14;
-
-    &__background {
-      opacity: 0.9;
-    }
+    --page-glow-radius: 23rem;
+    --page-glow-opacity: 0.16;
+    --page-glow-mid-opacity: 0.055;
   }
 
+  /* ==========================================================================
+     Mobile
+     ========================================================================== */
+
   @include respond-down(sm) {
-    --page-glow-size: 24rem;
-    --page-glow-opacity: 0.12;
+    --page-glow-radius: 17rem;
+    --page-glow-opacity: 0.14;
+    --page-glow-mid-opacity: 0.045;
 
-    --page-glow-top-origin: left top;
-    --page-glow-bottom-origin: right bottom;
-
-    --page-glow-top-position: left -7rem top -5rem;
-    --page-glow-bottom-position: right -7rem bottom 8rem;
-
+    /*
+     * Mobile retains only the lightweight corner glows.
+     */
     &__background {
       background:
         radial-gradient(
-          circle at var(--page-glow-top-origin),
+          circle var(--page-glow-radius) at var(--page-glow-top-x)
+            var(--page-glow-top-y),
           rgb(from var(--color-primary) r g b / var(--page-glow-opacity)) 0%,
-          transparent 42%
+          rgb(from var(--color-primary) r g b / var(--page-glow-mid-opacity))
+            42%,
+          transparent 100%
         ),
         radial-gradient(
-          circle at var(--page-glow-bottom-origin),
+          circle var(--page-glow-radius) at var(--page-glow-bottom-x)
+            var(--page-glow-bottom-y),
           rgb(from var(--color-primary) r g b / var(--page-glow-opacity)) 0%,
-          transparent 42%
+          rgb(from var(--color-primary) r g b / var(--page-glow-mid-opacity))
+            42%,
+          transparent 100%
         );
 
       background-repeat: no-repeat, no-repeat;
-
       background-size:
-        var(--page-glow-size) var(--page-glow-size),
-        var(--page-glow-size) var(--page-glow-size);
-
-      background-position:
-        var(--page-glow-top-position), var(--page-glow-bottom-position);
+        100% 100%,
+        100% 100%;
+      background-position: center, center;
     }
+  }
+}
 
-    [dir="rtl"] & {
-      --page-glow-top-origin: right top;
-      --page-glow-bottom-origin: left bottom;
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
 
-      --page-glow-top-position: right -7rem top -5rem;
-      --page-glow-bottom-position: left -7rem bottom 8rem;
-    }
+html[data-theme="dark"] {
+  .page {
+    --page-glow-opacity: 0.22;
+    --page-glow-mid-opacity: 0.085;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .page__background {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .page__background {
+    display: none;
   }
 }

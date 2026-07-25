@@ -6,32 +6,27 @@
 
 .page-breadcrumb {
   /*
-   * These tokens intentionally match the hero section.
-   * Both sections remain independent but appear as one continuous surface.
+   * These fixed colors intentionally match .hero-section.
+   * The masthead remains dark in both light and dark themes.
    */
 
-  --page-hero-bg-start: #073fbd;
-  --page-hero-bg-middle: #075ee4;
-  --page-hero-bg-end: #218af4;
-  --market-summary-bridge-space: 0rem;
+  --page-hero-bg-start: #002c72;
+  --page-hero-bg-middle: #063f91;
+  --page-hero-bg-end: #0759aa;
+
   --page-hero-fg: #ffffff;
-  --page-hero-muted: rgb(255 255 255 / 0.72);
+  --page-hero-muted: rgb(255 255 255 / 0.74);
 
-  /*
-   * Use a horizontal gradient.
-   * This prevents a visible seam where the breadcrumb and hero meet.
-   */
   --page-hero-gradient-angle: 90deg;
 
   --page-breadcrumb-space-block: clamp(0.875rem, 1.5vw, 1.25rem);
-  --page-breadcrumb-space-inline: clamp(1rem, 2vw, 1.5rem);
 
   position: relative;
 
+  inline-size: 100%;
   min-inline-size: 0;
 
-  padding: var(--page-breadcrumb-space-block)
-    var(--page-breadcrumb-space-inline);
+  padding-block: var(--page-breadcrumb-space-block);
 
   overflow: hidden;
 
@@ -43,6 +38,7 @@
   );
 
   color: var(--page-hero-fg);
+  color-scheme: dark;
 
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
 }
@@ -143,7 +139,7 @@
 
   color: var(--breadcrumb-fg);
 
-  opacity: 0.55;
+  opacity: 0.6;
 
   pointer-events: none;
 }
@@ -181,7 +177,6 @@ html[dir="rtl"] {
 @include respond-down(sm) {
   .page-breadcrumb {
     --page-breadcrumb-space-block: 0.75rem;
-    --page-breadcrumb-space-inline: 1rem;
   }
 
   .breadcrumb {
@@ -192,12 +187,20 @@ html[dir="rtl"] {
 
   .breadcrumb__list {
     flex-wrap: nowrap;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .breadcrumb__item {
-    flex: 0 1 auto;
-
-    overflow: hidden;
+    flex: 0 0 auto;
 
     &:last-child {
       flex: 1 1 auto;
@@ -210,22 +213,6 @@ html[dir="rtl"] {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-}
-
-/* ==========================================================================
-   Dark Theme
-   ========================================================================== */
-
-html[data-theme="dark"] {
-  .page-breadcrumb {
-    --page-hero-bg-start: #002c72;
-    --page-hero-bg-middle: #063f91;
-    --page-hero-bg-end: #0759aa;
-
-    --page-hero-muted: rgb(255 255 255 / 0.72);
-
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
   }
 }
 
@@ -244,10 +231,7 @@ html[data-contrast="high"] {
 
     background: #000000;
 
-    box-shadow: none;
-
-    outline: 2px solid #ffffff;
-    outline-offset: -2px;
+    box-shadow: inset 0 0 0 2px #ffffff;
   }
 
   .breadcrumb__separator {

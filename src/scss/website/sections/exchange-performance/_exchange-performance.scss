@@ -1,0 +1,287 @@
+@use "../../../design-system/abstracts" as *;
+
+/* ==========================================================================
+   Exchange Performance
+   ========================================================================== */
+
+.exchange-performance {
+  --exchange-performance-bg: var(--color-bg);
+  --exchange-performance-fg: var(--color-text);
+  --exchange-performance-heading: var(--color-heading);
+  --exchange-performance-muted: var(--color-text-muted);
+  --exchange-performance-border: var(--color-border);
+  --exchange-performance-accent: var(--color-primary);
+
+  --exchange-performance-heading-space: clamp(2rem, 4vw, 3rem);
+  --exchange-performance-header-space: clamp(2rem, 4vw, 3.5rem);
+  --exchange-performance-header-gap: clamp(2rem, 5vw, 5rem);
+  --exchange-performance-grid-gap: clamp(1rem, 2vw, 1.5rem);
+
+  position: relative;
+  isolation: isolate;
+
+  background: var(--exchange-performance-bg);
+  color: var(--exchange-performance-fg);
+}
+
+/* ==========================================================================
+   Container
+   ========================================================================== */
+
+.exchange-performance__container {
+  position: relative;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Section Heading
+   ========================================================================== */
+
+.exchange-performance__container > .section-heading {
+  --section-heading-color: var(--exchange-performance-heading);
+  --section-heading-muted: var(--exchange-performance-muted);
+  --section-heading-accent: var(--exchange-performance-accent);
+
+  margin-block-end: var(--exchange-performance-heading-space);
+}
+
+/* ==========================================================================
+   Introduction Layout
+   ========================================================================== */
+
+.exchange-performance__header {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 0.9fr)
+    minmax(0, 1.1fr);
+
+  align-items: start;
+  gap: var(--exchange-performance-header-gap);
+
+  min-inline-size: 0;
+
+  margin-block-end: var(--exchange-performance-header-space);
+}
+
+/* ==========================================================================
+   Intro
+   ========================================================================== */
+
+.exchange-performance__intro {
+  display: grid;
+  align-content: start;
+  gap: 0.875rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Eyebrow
+   ========================================================================== */
+
+.exchange-performance__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  margin: 0;
+
+  color: var(--exchange-performance-accent);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+
+  &::before {
+    content: "";
+
+    flex: 0 0 auto;
+
+    inline-size: 1.75rem;
+    block-size: 2px;
+
+    border-radius: var(--radius-pill);
+
+    background: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Main Title
+   ========================================================================== */
+
+.exchange-performance__title {
+  max-inline-size: 36rem;
+
+  margin: 0;
+
+  color: var(--exchange-performance-heading);
+
+  font-size: clamp(var(--text-2xl), 1.3rem + 1.6vw, var(--text-4xl));
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Supporting Content
+   ========================================================================== */
+
+.exchange-performance__content {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+
+  min-inline-size: 0;
+
+  padding-block: 0.25rem;
+  padding-inline-start: clamp(1.5rem, 3vw, 3rem);
+
+  border-inline-start: 1px solid var(--exchange-performance-border);
+}
+
+.exchange-performance__subheading {
+  max-inline-size: 34rem;
+
+  margin: 0;
+
+  color: var(--exchange-performance-heading);
+
+  font-size: clamp(var(--text-lg), 1rem + 0.75vw, var(--text-2xl));
+  font-weight: font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+.exchange-performance__description {
+  max-inline-size: 44rem;
+
+  margin: 0;
+
+  color: var(--exchange-performance-muted);
+
+  font-size: clamp(var(--text-base), 0.95rem + 0.3vw, var(--text-lg));
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Statistics Grid
+   ========================================================================== */
+
+.exchange-performance__stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  gap: var(--exchange-performance-grid-gap);
+
+  min-inline-size: 0;
+
+  margin: 0;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .exchange-performance {
+    --exchange-performance-header-gap: 1.75rem;
+  }
+
+  .exchange-performance__header {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .exchange-performance__title,
+  .exchange-performance__subheading,
+  .exchange-performance__description {
+    max-inline-size: none;
+  }
+
+  .exchange-performance__content {
+    padding-block-start: 1.5rem;
+    padding-inline-start: 0;
+
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--exchange-performance-border);
+  }
+
+  .exchange-performance__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .exchange-performance {
+    --exchange-performance-heading-space: 1.75rem;
+    --exchange-performance-header-space: 2rem;
+  }
+
+  .exchange-performance__content {
+    gap: 0.875rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .exchange-performance {
+    --exchange-performance-heading-space: 1.5rem;
+    --exchange-performance-header-gap: 1.25rem;
+    --exchange-performance-grid-gap: 1rem;
+  }
+
+  .exchange-performance__intro {
+    gap: 0.75rem;
+  }
+
+  .exchange-performance__title {
+    font-size: var(--text-2xl);
+  }
+
+  .exchange-performance__subheading {
+    font-size: var(--text-lg);
+  }
+
+  .exchange-performance__description {
+    font-size: var(--text-sm);
+  }
+
+  .exchange-performance__stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .exchange-performance__eyebrow {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+
+  .exchange-performance__content {
+    border-color: var(--color-border-strong);
+    border-width: 2px;
+  }
+}

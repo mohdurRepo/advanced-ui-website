@@ -1,0 +1,130 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Market Bridge
+   ========================================================================== */
+
+.market-bridge {
+  --market-bridge-gap: var(--market-overview-connection-gap, 1.5rem);
+
+  --market-bridge-card-overlap: calc(
+    var(--market-summary-card-block-space, 0.625rem) +
+      var(--market-summary-scrollbar-size, 0.375rem)
+  );
+
+  --market-bridge-height: calc(
+    var(--market-bridge-gap) + var(--market-bridge-card-overlap)
+  );
+
+  --market-bridge-container-width: 1320px;
+  --market-bridge-container-space: 2rem;
+
+  --market-bridge-bg: var(--market-overview-connected-bg, #334c5c);
+
+  position: absolute;
+
+  inset-block-start: calc(var(--market-bridge-height) * -1);
+  inset-inline: 0;
+
+  z-index: 4;
+
+  block-size: var(--market-bridge-height);
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Inner Track
+   ========================================================================== */
+
+.market-bridge__inner {
+  position: relative;
+
+  inline-size: min(
+    100% - var(--market-bridge-container-space),
+    var(--market-bridge-container-width)
+  );
+
+  block-size: 100%;
+
+  margin-inline: auto;
+
+  overflow: clip;
+}
+
+/* ==========================================================================
+   Active Bridge Bar
+   ========================================================================== */
+
+.market-bridge__bar {
+  position: absolute;
+
+  inset-block: 0;
+  inset-inline-start: 0;
+
+  inline-size: 0;
+
+  background: var(--market-bridge-bg);
+
+  transform: translate3d(0, 0, 0);
+  transform-origin: left center;
+
+  will-change: inline-size, transform;
+}
+
+/* ==========================================================================
+   Always-visible Mode
+   ========================================================================== */
+
+/*
+ * In always-visible mode there is no disclosure-control gap, but the bridge
+ * still overlaps the cards' lower padding and scrollbar area.
+ */
+
+.market-overview[data-market-details-mode="always"] {
+  .market-bridge {
+    --market-bridge-gap: 0rem;
+  }
+}
+
+/* ==========================================================================
+   Bidirectional Layout
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .market-bridge__bar {
+    transform-origin: right center;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-bridge__bar {
+    border-inline: 2px solid var(--color-border-strong);
+    border-block-end: 2px solid var(--color-border-strong);
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .market-bridge__bar {
+    transition: none;
+    will-change: auto;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down(sm) {
+  .market-bridge {
+    --market-bridge-container-space: 1rem;
+  }
+}

@@ -1,0 +1,325 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Market Status
+   ========================================================================== */
+
+.market-status {
+  --market-status-color: var(--market-overview-neutral, #a9bdca);
+
+  --market-status-glow: rgb(169 189 202 / 0.38);
+
+  --market-status-indicator-size: 0.6875rem;
+
+  --market-status-dot-animation: none;
+  --market-status-halo-animation: none;
+
+  position: relative;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: calc(var(--market-status-indicator-size) * 2.25);
+  block-size: calc(var(--market-status-indicator-size) * 2.25);
+
+  flex: 0 0 auto;
+
+  color: var(--market-status-color);
+
+  pointer-events: none;
+
+  &[hidden] {
+    display: none;
+  }
+
+  &::before,
+  &::after {
+    content: "";
+
+    position: absolute;
+
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+
+    border-radius: var(--radius-pill);
+
+    transform: translate(-50%, -50%);
+
+    pointer-events: none;
+  }
+
+  /* Solid status dot */
+
+  &::before {
+    z-index: 2;
+
+    inline-size: var(--market-status-indicator-size);
+    block-size: var(--market-status-indicator-size);
+
+    background: currentColor;
+
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.2),
+      0 0 0.5rem var(--market-status-glow);
+
+    animation: var(--market-status-dot-animation);
+  }
+
+  /* Expanding live halo */
+
+  &::after {
+    z-index: 1;
+
+    inline-size: var(--market-status-indicator-size);
+    block-size: var(--market-status-indicator-size);
+
+    border: 1px solid currentColor;
+
+    opacity: 0;
+
+    animation: var(--market-status-halo-animation);
+  }
+}
+
+/* ==========================================================================
+   Open
+   ========================================================================== */
+
+/*
+ * Open markets use a regular live pulse.
+ */
+
+.market-status--open {
+  --market-status-color: var(--market-overview-success, #48df8b);
+
+  --market-status-glow: rgb(72 223 139 / 0.46);
+
+  --market-status-dot-animation: market-status-dot 1.8s ease-in-out infinite;
+
+  --market-status-halo-animation: market-status-halo 1.8s ease-out infinite;
+}
+
+/* ==========================================================================
+   Closed
+   ========================================================================== */
+
+/*
+ * A closed market is a stable state, not a live alert, so it remains static.
+ */
+
+.market-status--closed {
+  --market-status-color: var(--market-overview-danger, #ff7186);
+
+  --market-status-glow: rgb(255 113 134 / 0.38);
+}
+
+/* ==========================================================================
+   Pre-open and Auction
+   ========================================================================== */
+
+/*
+ * Pre-open and auction states pulse more slowly than an open market.
+ */
+
+.market-status--pre-open,
+.market-status--auction {
+  --market-status-color: var(--market-overview-warning, #ffb84d);
+
+  --market-status-glow: rgb(255 184 77 / 0.42);
+
+  --market-status-dot-animation: market-status-dot 2.4s ease-in-out infinite;
+
+  --market-status-halo-animation: market-status-halo 2.4s ease-out infinite;
+}
+
+/* ==========================================================================
+   Halted
+   ========================================================================== */
+
+/*
+ * A halted market receives a restrained attention pulse.
+ */
+
+.market-status--halted {
+  --market-status-color: var(
+    --market-status-halted,
+    var(--market-overview-caution, #f2dc55)
+  );
+
+  --market-status-glow: rgb(242 220 85 / 0.42);
+
+  --market-status-dot-animation: market-status-dot 2.2s ease-in-out infinite;
+
+  --market-status-halo-animation: market-status-halo 2.2s ease-out infinite;
+}
+
+/* ==========================================================================
+   Neutral
+   ========================================================================== */
+
+.market-status--neutral {
+  --market-status-color: var(
+    --market-status-neutral,
+    var(--market-overview-neutral, #a9bdca)
+  );
+
+  --market-status-glow: rgb(169 189 202 / 0.34);
+}
+
+/* ==========================================================================
+   Market Change
+   ========================================================================== */
+
+.market-change {
+  --market-change-color: inherit;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+
+  min-inline-size: 0;
+
+  color: var(--market-change-color);
+
+  font-variant-numeric: tabular-nums;
+}
+
+.market-change--up {
+  --market-change-color: var(--market-overview-success, var(--color-success));
+}
+
+.market-change--down {
+  --market-change-color: var(--market-overview-danger, var(--color-danger));
+}
+
+.market-change--neutral {
+  --market-change-color: var(
+    --market-status-neutral,
+    var(--market-overview-neutral, #a9bdca)
+  );
+}
+
+.market-change__icon {
+  --icon-size: 0.75rem;
+
+  flex: 0 0 auto;
+
+  color: currentColor;
+}
+
+/* ==========================================================================
+   Status Animations
+   ========================================================================== */
+
+@keyframes market-status-dot {
+  0%,
+  100% {
+    opacity: 1;
+
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  50% {
+    opacity: 0.88;
+
+    transform: translate(-50%, -50%) scale(1.12);
+  }
+}
+
+@keyframes market-status-halo {
+  0% {
+    opacity: 0.58;
+
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  65% {
+    opacity: 0.16;
+
+    transform: translate(-50%, -50%) scale(2);
+  }
+
+  100% {
+    opacity: 0;
+
+    transform: translate(-50%, -50%) scale(2.5);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-status::before {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+
+    box-shadow: none;
+  }
+
+  .market-status::after {
+    border-width: 2px;
+  }
+
+  .market-change {
+    font-weight: ds.font-weight("bold");
+  }
+
+  /*
+   * Direction remains understandable without relying only on color.
+   */
+
+  .market-change--up {
+    text-decoration-line: underline;
+    text-decoration-style: double;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+  }
+
+  .market-change--down {
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .market-status {
+    --market-status-dot-animation: none;
+    --market-status-halo-animation: none;
+  }
+
+  .market-status::before {
+    opacity: 1;
+
+    transform: translate(-50%, -50%);
+  }
+
+  .market-status::after {
+    display: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .market-status {
+    --market-status-dot-animation: none;
+    --market-status-halo-animation: none;
+  }
+
+  .market-status::before {
+    opacity: 1;
+
+    transform: translate(-50%, -50%);
+  }
+
+  .market-status::after {
+    display: none;
+  }
+}

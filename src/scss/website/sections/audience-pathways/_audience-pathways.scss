@@ -1,4 +1,4 @@
-@use "../../../design-system/abstracts/" as *;
+@use "../../../design-system/abstracts" as ds;
 
 /* ==========================================================================
    Audience Pathways
@@ -11,11 +11,27 @@
   --audience-pathways-muted: var(--color-text-muted);
 
   --audience-pathways-heading-space: clamp(2rem, 4vw, 3rem);
-  --audience-pathways-layout-gap: clamp(2rem, 5vw, 4rem);
+
+  --audience-pathways-column-gap: clamp(2rem, 5vw, 4rem);
+
+  --audience-pathways-row-gap: 1.5rem;
+
   --audience-pathways-cards-gap: clamp(1rem, 2vw, 1.5rem);
+
+  min-inline-size: 0;
+
+  padding-block: clamp(2.5rem, 5vw, 4rem);
 
   background: var(--audience-pathways-bg);
   color: var(--audience-pathways-fg);
+}
+
+/* ==========================================================================
+   Container
+   ========================================================================== */
+
+.audience-pathways__container {
+  min-inline-size: 0;
 }
 
 /* ==========================================================================
@@ -24,7 +40,9 @@
 
 .audience-pathways__heading {
   --section-heading-color: var(--audience-pathways-heading);
+
   --section-heading-muted: var(--audience-pathways-muted);
+
   --section-heading-accent: var(--color-primary);
 
   margin-block-end: var(--audience-pathways-heading-space);
@@ -35,25 +53,35 @@
    ========================================================================== */
 
 .audience-pathways__layout {
+  --tabs-content-space: 0;
+
   display: grid;
   grid-template-columns:
     minmax(15rem, 18rem)
     minmax(0, 1fr);
 
+  grid-template-rows:
+    auto
+    minmax(0, 1fr);
+
+  grid-template-areas:
+    "aside content"
+    "navigation content";
+
   align-items: start;
-  gap: var(--audience-pathways-layout-gap);
+
+  column-gap: var(--audience-pathways-column-gap);
+  row-gap: var(--audience-pathways-row-gap);
 
   min-inline-size: 0;
 }
 
 /* ==========================================================================
-   Aside
+   Introduction
    ========================================================================== */
 
 .audience-pathways__aside {
-  display: grid;
-  align-content: start;
-  gap: 1.75rem;
+  grid-area: aside;
 
   min-inline-size: 0;
 }
@@ -70,7 +98,8 @@
   color: var(--audience-pathways-heading);
 
   font-size: clamp(var(--text-xl), 1rem + 1.2vw, var(--text-2xl));
-  font-weight: font-weight("heavy");
+
+  font-weight: ds.font-weight("heavy");
   line-height: var(--line-height-tight);
 
   text-wrap: balance;
@@ -83,25 +112,45 @@
 }
 
 /* ==========================================================================
+   Navigation Placement
+   ========================================================================== */
+
+.audience-pathways__layout > .tabs-nav {
+  grid-area: navigation;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
    Content
    ========================================================================== */
 
 .audience-pathways__content {
+  grid-area: content;
+
+  inline-size: 100%;
   min-inline-size: 0;
+  min-block-size: 0;
+
+  margin: 0;
+  padding: 0;
 }
 
-/*
- * The active panel controls its own card layout.
- * Hidden panels must not occupy any space.
- */
+/* ==========================================================================
+   Tab Panels
+   ========================================================================== */
 
-.audience-pathways__content {
-  .tab-pane {
-    min-inline-size: 0;
+.audience-pathways__content > .tab-pane {
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  &[hidden] {
+    display: none !important;
   }
 
-  .tab-pane[hidden] {
-    display: none !important;
+  &.active {
+    display: block;
   }
 }
 
@@ -113,9 +162,10 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 
-  align-items: start;
+  align-items: stretch;
   gap: var(--audience-pathways-cards-gap);
 
+  inline-size: 100%;
   min-inline-size: 0;
 }
 
@@ -123,17 +173,20 @@
    Large Tablet
    ========================================================================== */
 
-@include respond-down(lg) {
+@include ds.respond-down(lg) {
   .audience-pathways {
-    --audience-pathways-layout-gap: 2rem;
+    --audience-pathways-column-gap: 0;
+    --audience-pathways-row-gap: 1.25rem;
   }
 
   .audience-pathways__layout {
     grid-template-columns: minmax(0, 1fr);
-  }
+    grid-template-rows: auto auto auto;
 
-  .audience-pathways__aside {
-    gap: 1.25rem;
+    grid-template-areas:
+      "aside"
+      "navigation"
+      "content";
   }
 
   .audience-pathways__title {
@@ -145,22 +198,17 @@
   .audience-pathways__title span {
     display: inline;
   }
-
-  /*
-   * Navigation remains one horizontal scrollable row.
-   */
-  .audience-pathways__aside .tabs-nav {
-    justify-content: flex-start;
-  }
 }
 
 /* ==========================================================================
    Tablet
    ========================================================================== */
 
-@include respond-down(md) {
+@include ds.respond-down(md) {
   .audience-pathways {
     --audience-pathways-heading-space: 1.75rem;
+
+    padding-block: clamp(2rem, 5vw, 3rem);
   }
 
   .audience-pathways__cards {
@@ -172,15 +220,13 @@
    Mobile
    ========================================================================== */
 
-@include respond-down(sm) {
+@include ds.respond-down(sm) {
   .audience-pathways {
     --audience-pathways-heading-space: 1.5rem;
-    --audience-pathways-layout-gap: 1.5rem;
+    --audience-pathways-row-gap: 1rem;
     --audience-pathways-cards-gap: 1rem;
-  }
 
-  .audience-pathways__aside {
-    gap: 1rem;
+    padding-block: 2rem;
   }
 
   .audience-pathways__title {

@@ -1,0 +1,224 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Market News
+   ========================================================================== */
+
+.market-news {
+  --market-news-bg: var(--color-surface);
+  --market-news-bg-hover: var(--color-surface-alt);
+
+  --market-news-fg: var(--color-text);
+  --market-news-heading: var(--color-heading);
+  --market-news-muted: var(--color-text-muted);
+
+  --market-news-border: var(--color-border);
+  --market-news-border-strong: var(--color-border-strong);
+
+  --market-news-space: clamp(1.125rem, 2vw, 1.5rem);
+
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 32rem;
+
+  padding: var(--market-news-space);
+
+  border: 1px solid var(--market-news-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--market-news-bg);
+  color: var(--market-news-fg);
+
+  box-shadow: var(--shadow-md);
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Tabs
+   ========================================================================== */
+
+.market-news__tabs {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Tabs Navigation
+   ========================================================================== */
+
+.market-news__tabs > .tabs-nav {
+  inline-size: 100%;
+  max-inline-size: 100%;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline proximity;
+
+  touch-action: pan-x pan-y;
+
+  scrollbar-width: none;
+
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.market-news__tabs > .tabs-nav > [role="tab"] {
+  flex: 1 1 0;
+
+  min-inline-size: max-content;
+
+  scroll-snap-align: start;
+}
+
+/* ==========================================================================
+   Tabs Content
+   ========================================================================== */
+
+.market-news__tabs > .tabs-content {
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+.market-news__tabs > .tabs-content > .tab-pane {
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  &[hidden] {
+    display: none !important;
+  }
+
+  &.active {
+    display: block;
+  }
+}
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
+.market-news__empty {
+  display: grid;
+  place-items: center;
+
+  min-block-size: 18rem;
+
+  padding: clamp(1.5rem, 4vw, 3rem);
+
+  color: var(--market-news-muted);
+
+  text-align: center;
+}
+
+.market-news__empty-text {
+  max-inline-size: 24rem;
+
+  margin: 0;
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.market-news__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+
+  flex: 0 0 auto;
+
+  margin-block-start: 1rem;
+  padding-block-start: 1rem;
+
+  border-block-start: 1px solid var(--market-news-border);
+}
+
+.market-news__actions .btn {
+  max-inline-size: 100%;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down(lg) {
+  .market-news {
+    min-block-size: auto;
+  }
+
+  .market-news__empty {
+    min-block-size: 14rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down(sm) {
+  .market-news {
+    --market-news-space: 1rem;
+
+    min-block-size: auto;
+
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .market-news__tabs > .tabs-nav {
+    inline-size: 100%;
+  }
+
+  .market-news__empty {
+    min-block-size: 11rem;
+
+    padding: 1.5rem 1rem;
+  }
+
+  .market-news__actions {
+    align-items: stretch;
+    justify-content: stretch;
+
+    margin-block-start: 0.75rem;
+    padding-block-start: 0.875rem;
+  }
+
+  .market-news__actions .btn {
+    inline-size: 100%;
+
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-news {
+    border-width: 2px;
+    box-shadow: none;
+  }
+
+  .market-news__actions {
+    border-block-start-width: 2px;
+  }
+}

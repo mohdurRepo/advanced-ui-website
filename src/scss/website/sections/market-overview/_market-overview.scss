@@ -1,0 +1,518 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Market Overview
+   ========================================================================== */
+
+.market-overview {
+  /*
+   * Used by the permanently visible home-page Market Details and bridge.
+   */
+  --market-overview-connected-bg: #334c5c;
+
+  --market-overview-container-width: 1320px;
+  --market-overview-container-space: 2rem;
+
+  /*
+   * This space is retained for the active-card bridge on the home page.
+   */
+  --market-overview-connection-gap: 1.5rem;
+
+  /*
+   * Inner-page disclosure control.
+   */
+  --market-overview-control-width: 12rem;
+  --market-overview-control-size: 3.125rem;
+
+  --market-overview-control-bg: var(--color-surface);
+  --market-overview-control-color: var(--color-primary);
+  --market-overview-control-border: var(--color-border);
+  --market-overview-control-border-hover: var(--color-primary);
+
+  --market-overview-line-color: color-mix(
+    in oklab,
+    var(--color-text-muted),
+    transparent 62%
+  );
+
+  position: relative;
+  isolation: isolate;
+
+  min-inline-size: 0;
+
+  background: transparent;
+  color: var(--color-text);
+}
+
+/* ==========================================================================
+   Disclosure
+   ========================================================================== */
+
+.market-overview__disclosure {
+  position: relative;
+
+  display: block;
+
+  min-inline-size: 0;
+
+  margin: 0;
+  padding-block-start: var(--market-overview-connection-gap);
+
+  background: transparent;
+}
+
+/* ==========================================================================
+   Centered Disclosure Handle
+   ========================================================================== */
+
+.market-overview__summary {
+  --market-overview-icon-rotation: 0deg;
+  --market-overview-icon-translate: 0;
+
+  position: absolute;
+
+  inset-block-start: calc(
+    var(--market-overview-connection-gap) -
+      (var(--market-overview-control-size) / 2)
+  );
+
+  inset-inline: 0;
+  z-index: 10;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: min(
+    var(--market-overview-control-width),
+    calc(100% - var(--market-overview-container-space))
+  );
+
+  block-size: var(--market-overview-control-size);
+
+  margin-inline: auto;
+  padding: 0;
+
+  border: 0;
+
+  background: linear-gradient(
+      90deg,
+      transparent,
+      var(--market-overview-line-color) 16%,
+      var(--market-overview-line-color) 84%,
+      transparent
+    )
+    center / 100% 1px no-repeat;
+
+  color: var(--market-overview-control-color);
+
+  cursor: pointer;
+  list-style: none;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &::marker {
+    content: "";
+  }
+
+  &[hidden] {
+    display: none !important;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:hover,
+  &:focus-visible {
+    .market-overview__summary-icon {
+      --market-overview-icon-translate: -0.125rem;
+
+      border-color: var(--market-overview-control-border-hover);
+
+      background: var(--color-primary);
+      color: var(--color-on-primary);
+
+      opacity: 1;
+
+      box-shadow: var(--shadow-lg);
+    }
+  }
+
+  &:focus-visible {
+    .market-overview__summary-icon {
+      @include ds.focus-ring;
+    }
+  }
+
+  &:active {
+    .market-overview__summary-icon {
+      --market-overview-icon-translate: 0;
+
+      box-shadow: var(--shadow-sm);
+    }
+  }
+}
+
+/* ==========================================================================
+   Circular Arrow
+   ========================================================================== */
+
+.market-overview__summary-icon {
+  --icon-size: 1.25rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: var(--market-overview-control-size);
+  block-size: var(--market-overview-control-size);
+
+  flex: 0 0 auto;
+
+  border: 1px solid var(--market-overview-control-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--market-overview-control-bg);
+  color: var(--market-overview-control-color);
+
+  box-shadow: var(--shadow-md);
+
+  opacity: 1;
+
+  pointer-events: none;
+
+  transform: translateY(var(--market-overview-icon-translate))
+    rotate(var(--market-overview-icon-rotation));
+
+  @include ds.transition(
+    (background-color, border-color, box-shadow, color, opacity, transform),
+    fast
+  );
+}
+
+/* ==========================================================================
+   Open State
+   ========================================================================== */
+
+/*
+ * Upward arrow: details are visible and can be collapsed.
+ */
+
+.market-overview__disclosure[open] {
+  .market-overview__summary-icon {
+    --market-overview-icon-rotation: 0deg;
+
+    opacity: 0.76;
+  }
+}
+
+/* ==========================================================================
+   Closed State
+   ========================================================================== */
+
+/*
+ * Downward arrow: details are hidden and can be expanded.
+ */
+
+.market-overview__disclosure:not([open]) {
+  .market-overview__summary-icon {
+    --market-overview-icon-rotation: 180deg;
+
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   Inner Page Disclosure
+   ========================================================================== */
+
+/*
+ * Inner pages use a compact disclosure clearance.
+ *
+ * Closed:
+ * The disclosure occupies no layout height and the control overlaps the
+ * beginning of the breadcrumb.
+ *
+ * Open:
+ * Only enough space is retained to clear the lower half of the control.
+ * The full home-page bridge gap is not used.
+ */
+
+.market-overview[data-market-details-mode="disclosure"] {
+  --market-overview-disclosure-clearance: 0.375rem;
+
+  --market-overview-inner-gradient-angle: 90deg;
+
+  --market-overview-inner-bg: linear-gradient(
+    var(--market-overview-inner-gradient-angle),
+    #002c72 0%,
+    #063f91 58%,
+    #0759aa 100%
+  );
+
+  --market-overview-line-color: rgb(255 255 255 / 0.26);
+
+  z-index: 2;
+
+  .market-overview__disclosure {
+    padding-block-start: calc(
+      (var(--market-overview-control-size) / 2) +
+        var(--market-overview-disclosure-clearance)
+    );
+
+    padding-block-end: 0;
+  }
+
+  /*
+   * Keep the control attached to the same boundary in both states.
+   */
+  .market-overview__summary {
+    inset-block-start: calc(var(--market-overview-control-size) / -2);
+  }
+
+  /*
+   * Apply the shared inner-page gradient only while Details are visible.
+   */
+  .market-overview__disclosure[open] {
+    background: var(--market-overview-inner-bg);
+  }
+
+  /*
+   * A closed disclosure must not create an empty strip before the
+   * breadcrumb.
+   */
+  .market-overview__disclosure:not([open]) {
+    padding-block-start: 0;
+  }
+
+  .market-overview__disclosure:not([open]) .market-overview__summary-icon {
+    box-shadow:
+      0 0 0 0.375rem rgb(255 255 255 / 0.12),
+      var(--shadow-lg);
+  }
+}
+
+/* ==========================================================================
+   Inner Page RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .market-overview[data-market-details-mode="disclosure"] {
+    --market-overview-inner-gradient-angle: 270deg;
+  }
+}
+
+/* ==========================================================================
+   Details Content
+   ========================================================================== */
+
+.market-overview__details-content {
+  position: relative;
+
+  min-inline-size: 0;
+
+  background: transparent;
+
+  &[hidden] {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Curtain Motion
+   ========================================================================== */
+
+/*
+ * Curtain animations apply only to interactive inner-page disclosures.
+ */
+
+.market-overview:not([data-market-details-mode="always"]) {
+  .market-overview__disclosure[open]:not(.is-closing) {
+    .market-details {
+      animation: market-overview-curtain-open 200ms ease-out both;
+    }
+  }
+
+  .market-overview__disclosure.is-closing {
+    .market-details {
+      animation: market-overview-curtain-close 180ms ease-in both;
+    }
+  }
+
+  .market-overview__disclosure.is-opening,
+  .market-overview__disclosure.is-closing {
+    .market-details {
+      will-change: clip-path, opacity, transform;
+    }
+  }
+}
+
+@keyframes market-overview-curtain-open {
+  from {
+    opacity: 0;
+
+    clip-path: inset(0 0 100%);
+
+    transform: translateY(-0.25rem);
+  }
+
+  to {
+    opacity: 1;
+
+    clip-path: inset(0);
+
+    transform: translateY(0);
+  }
+}
+
+@keyframes market-overview-curtain-close {
+  from {
+    opacity: 1;
+
+    clip-path: inset(0);
+
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+
+    clip-path: inset(0 0 100%);
+
+    transform: translateY(-0.25rem);
+  }
+}
+
+/* ==========================================================================
+   Permanently Visible Home Mode
+   ========================================================================== */
+
+.market-overview[data-market-details-mode="always"] {
+  /*
+   * Preserve the home-page connection gap because the bridge occupies it.
+   * Only the disclosure handle is removed.
+   */
+  .market-overview__disclosure {
+    padding-block-start: var(--market-overview-connection-gap);
+    padding-block-end: 0;
+
+    background: transparent;
+  }
+
+  .market-overview__summary,
+  [data-market-overview-toggle] {
+    display: none !important;
+  }
+
+  .market-overview__details-content,
+  [data-market-overview-details] {
+    display: block;
+
+    opacity: 1;
+
+    clip-path: none;
+
+    transform: none;
+  }
+
+  .market-details {
+    opacity: 1;
+
+    animation: none !important;
+
+    clip-path: none;
+
+    transform: none;
+
+    will-change: auto;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-overview {
+    --market-overview-line-color: currentColor;
+  }
+
+  .market-overview[data-market-details-mode="disclosure"] {
+    --market-overview-inner-bg: #000000;
+  }
+
+  .market-overview__summary-icon {
+    border-width: 2px;
+    border-color: currentColor;
+
+    box-shadow: none;
+
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .market-overview__summary-icon {
+    transition: none;
+  }
+
+  .market-overview__summary:hover,
+  .market-overview__summary:focus-visible,
+  .market-overview__summary:active {
+    .market-overview__summary-icon {
+      --market-overview-icon-translate: 0;
+    }
+  }
+
+  .market-overview__disclosure {
+    .market-details {
+      opacity: 1;
+
+      animation: none !important;
+
+      clip-path: none;
+
+      transform: none;
+
+      will-change: auto;
+    }
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down(lg) {
+  .market-overview {
+    --market-overview-connection-gap: 1.375rem;
+    --market-overview-control-width: 10rem;
+    --market-overview-control-size: 3rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down(sm) {
+  .market-overview {
+    --market-overview-container-space: 1rem;
+    --market-overview-connection-gap: 1.25rem;
+    --market-overview-control-width: 8rem;
+    --market-overview-control-size: 2.875rem;
+  }
+
+  .market-overview[data-market-details-mode="disclosure"] {
+    --market-overview-disclosure-clearance: 0.25rem;
+  }
+
+  .market-overview__summary-icon {
+    --icon-size: 1.125rem;
+  }
+}

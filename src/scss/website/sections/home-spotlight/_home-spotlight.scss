@@ -1,0 +1,255 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Home Spotlight
+   ========================================================================== */
+
+.home-spotlight {
+  --home-spotlight-bg: var(--color-bg);
+  --home-spotlight-fg: var(--color-text);
+
+  --home-spotlight-gap: clamp(1rem, 2vw, 1.5rem);
+
+  position: relative;
+
+  min-inline-size: 0;
+
+  padding-block: clamp(2.5rem, 5vw, 4rem);
+
+  background: var(--home-spotlight-bg);
+  color: var(--home-spotlight-fg);
+}
+
+/* ==========================================================================
+   Container
+   ========================================================================== */
+
+.home-spotlight__container {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Grid
+   ========================================================================== */
+
+.home-spotlight__grid {
+  display: grid;
+
+  /*
+   * Desktop:
+   *
+   * Featured events | Featured video | Upcoming activities
+   */
+
+  grid-template-columns:
+    minmax(0, 1.45fr)
+    minmax(15rem, 0.95fr)
+    minmax(17rem, 0.85fr);
+
+  align-items: stretch;
+  gap: var(--home-spotlight-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Grid Areas
+   ========================================================================== */
+
+.home-spotlight__events,
+.home-spotlight__video,
+.home-spotlight__activities {
+  min-inline-size: 0;
+  min-block-size: 100%;
+}
+
+.home-spotlight__events {
+  grid-area: events;
+}
+
+.home-spotlight__video {
+  grid-area: video;
+}
+
+.home-spotlight__activities {
+  grid-area: activities;
+}
+
+/*
+ * Named areas are assigned separately so optional components can be removed
+ * without changing their source order.
+ */
+
+.home-spotlight__grid {
+  grid-template-areas: "events video activities";
+}
+
+/* ==========================================================================
+   Equal Height Chain
+   ========================================================================== */
+
+.home-spotlight__events,
+.home-event-slider,
+.home-spotlight__video,
+.home-video-card,
+.home-spotlight__activities,
+.home-upcoming-activities,
+.home-upcoming-activities__swiper {
+  block-size: 100%;
+}
+
+/* ==========================================================================
+   Hidden Optional Components
+   ========================================================================== */
+
+.home-spotlight__video[hidden],
+.home-spotlight__activities[hidden] {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Optional Layout: No Video
+   ========================================================================== */
+
+.home-spotlight__grid:not(:has(> .home-spotlight__video)) {
+  grid-template-columns:
+    minmax(0, 1.7fr)
+    minmax(18rem, 0.8fr);
+
+  grid-template-areas: "events activities";
+}
+
+.home-spotlight__grid:has(> .home-spotlight__video[hidden]) {
+  grid-template-columns:
+    minmax(0, 1.7fr)
+    minmax(18rem, 0.8fr);
+
+  grid-template-areas: "events activities";
+}
+
+/* ==========================================================================
+   Optional Layout: No Upcoming Activities
+   ========================================================================== */
+
+.home-spotlight__grid:not(:has(> .home-spotlight__activities)) {
+  grid-template-columns:
+    minmax(0, 1.7fr)
+    minmax(18rem, 0.8fr);
+
+  grid-template-areas: "events video";
+}
+
+.home-spotlight__grid:has(> .home-spotlight__activities[hidden]) {
+  grid-template-columns:
+    minmax(0, 1.7fr)
+    minmax(18rem, 0.8fr);
+
+  grid-template-areas: "events video";
+}
+
+/* ==========================================================================
+   Optional Layout: Events Only
+   ========================================================================== */
+
+.home-spotlight__grid:not(:has(> .home-spotlight__video)):not(
+    :has(> .home-spotlight__activities)
+  ),
+.home-spotlight__grid:has(> .home-spotlight__video[hidden]):has(
+    > .home-spotlight__activities[hidden]
+  ) {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "events";
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down(lg) {
+  .home-spotlight__grid,
+  .home-spotlight__grid:not(:has(> .home-spotlight__video)),
+  .home-spotlight__grid:not(:has(> .home-spotlight__activities)),
+  .home-spotlight__grid:has(> .home-spotlight__video[hidden]),
+  .home-spotlight__grid:has(> .home-spotlight__activities[hidden]) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    grid-template-areas:
+      "events events"
+      "video activities";
+  }
+
+  .home-spotlight__grid:not(:has(> .home-spotlight__video)) {
+    grid-template-areas:
+      "events events"
+      "activities activities";
+  }
+
+  .home-spotlight__grid:has(> .home-spotlight__video[hidden]) {
+    grid-template-areas:
+      "events events"
+      "activities activities";
+  }
+
+  .home-spotlight__grid:not(:has(> .home-spotlight__activities)) {
+    grid-template-areas:
+      "events events"
+      "video video";
+  }
+
+  .home-spotlight__grid:has(> .home-spotlight__activities[hidden]) {
+    grid-template-areas:
+      "events events"
+      "video video";
+  }
+
+  .home-spotlight__grid:not(:has(> .home-spotlight__video)):not(
+      :has(> .home-spotlight__activities)
+    ),
+  .home-spotlight__grid:has(> .home-spotlight__video[hidden]):has(
+      > .home-spotlight__activities[hidden]
+    ) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "events";
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down(md) {
+  .home-spotlight {
+    padding-block: clamp(2rem, 5vw, 3rem);
+  }
+
+  .home-spotlight__grid,
+  .home-spotlight__grid:not(:has(> .home-spotlight__video)),
+  .home-spotlight__grid:not(:has(> .home-spotlight__activities)),
+  .home-spotlight__grid:has(> .home-spotlight__video[hidden]),
+  .home-spotlight__grid:has(> .home-spotlight__activities[hidden]),
+  .home-spotlight__grid:not(:has(> .home-spotlight__video)):not(
+      :has(> .home-spotlight__activities)
+    ),
+  .home-spotlight__grid:has(> .home-spotlight__video[hidden]):has(
+      > .home-spotlight__activities[hidden]
+    ) {
+    grid-template-columns: minmax(0, 1fr);
+
+    grid-template-areas:
+      "events"
+      "video"
+      "activities";
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down(sm) {
+  .home-spotlight {
+    --home-spotlight-gap: 1rem;
+
+    padding-block: 2rem;
+  }
+}

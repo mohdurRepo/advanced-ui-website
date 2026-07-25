@@ -1,0 +1,334 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Home Video Card
+   ========================================================================== */
+
+.home-video-card {
+  --home-video-bg: #000000;
+  --home-video-border: var(--color-border);
+
+  --home-video-overlay: rgb(0 0 0 / 0.24);
+  --home-video-overlay-hover: rgb(0 0 0 / 0.12);
+
+  --home-video-min-height: clamp(22rem, 27vw, 27rem);
+
+  position: relative;
+  isolation: isolate;
+
+  min-inline-size: 0;
+  min-block-size: var(--home-video-min-height);
+  block-size: 100%;
+
+  border: 1px solid var(--home-video-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--home-video-bg);
+  color: #ffffff;
+
+  box-shadow: var(--shadow-md);
+
+  overflow: hidden;
+
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   Wrapper
+   ========================================================================== */
+
+.home-video-card__wrapper {
+  position: relative;
+  isolation: isolate;
+
+  display: grid;
+  place-items: center;
+
+  min-inline-size: 0;
+  min-block-size: var(--home-video-min-height);
+  block-size: 100%;
+
+  background: var(--home-video-bg);
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Media
+   ========================================================================== */
+
+.home-video-card__thumbnail,
+.home-video-card__video {
+  position: absolute;
+  inset: 0;
+
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.home-video-card__thumbnail {
+  z-index: 0;
+
+  object-fit: cover;
+  object-position: center;
+
+  opacity: 1;
+  visibility: visible;
+
+  transform: scale(1);
+
+  @include ds.transition((opacity, visibility, transform), normal);
+}
+
+.home-video-card__video {
+  z-index: 3;
+
+  background: #000000;
+
+  object-fit: contain;
+  object-position: center;
+
+  opacity: 1;
+}
+
+/*
+ * The author-level rule guarantees that the video stays removed from layout
+ * until JavaScript intentionally exposes it.
+ */
+
+.home-video-card__video[hidden] {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Overlay
+   ========================================================================== */
+
+.home-video-card__wrapper::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  background:
+    radial-gradient(
+      circle at center,
+      transparent 0%,
+      rgb(0 0 0 / 0.08) 44%,
+      rgb(0 0 0 / 0.3) 100%
+    ),
+    var(--home-video-overlay);
+
+  opacity: 1;
+  visibility: visible;
+
+  pointer-events: none;
+
+  @include ds.transition((background-color, opacity, visibility), fast);
+}
+
+/* ==========================================================================
+   Play Button
+   ========================================================================== */
+
+.home-video-card__play {
+  --icon-size: 1.375rem;
+
+  position: relative;
+  z-index: 2;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 4.25rem;
+  block-size: 4.25rem;
+
+  padding: 0;
+
+  border: 1px solid rgb(255 255 255 / 0.76);
+  border-radius: var(--radius-pill);
+
+  background: rgb(255 255 255 / 0.94);
+  color: var(--color-primary);
+
+  box-shadow:
+    var(--shadow-lg),
+    0 0 0 0.5rem rgb(255 255 255 / 0.12);
+
+  backdrop-filter: blur(0.375rem);
+
+  cursor: pointer;
+
+  opacity: 1;
+  visibility: visible;
+
+  @include ds.transition(
+    (background-color, color, box-shadow, opacity, visibility, transform),
+    fast
+  );
+
+  &:hover {
+    border-color: #ffffff;
+
+    background: #ffffff;
+    color: var(--color-primary-hover);
+
+    box-shadow:
+      var(--shadow-lg),
+      0 0 0 0.625rem rgb(255 255 255 / 0.16);
+
+    transform: scale(1.06);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include ds.focus-ring;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+/* ==========================================================================
+   Card Interaction
+   ========================================================================== */
+
+.home-video-card__wrapper:hover {
+  .home-video-card__thumbnail {
+    transform: scale(1.035);
+  }
+
+  &::after {
+    background:
+      radial-gradient(
+        circle at center,
+        transparent 0%,
+        rgb(0 0 0 / 0.04) 48%,
+        rgb(0 0 0 / 0.22) 100%
+      ),
+      var(--home-video-overlay-hover);
+  }
+}
+
+.home-video-card__wrapper:focus-within {
+  .home-video-card__thumbnail {
+    transform: scale(1.02);
+  }
+}
+
+/* ==========================================================================
+   Playing State
+   ========================================================================== */
+
+.home-video-card.is-playing {
+  .home-video-card__thumbnail,
+  .home-video-card__play,
+  .home-video-card__wrapper::after {
+    opacity: 0;
+    visibility: hidden;
+
+    pointer-events: none;
+  }
+
+  .home-video-card__thumbnail {
+    transform: scale(1);
+  }
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.home-video-card.is-loading {
+  .home-video-card__play {
+    opacity: 0.72;
+
+    cursor: progress;
+    pointer-events: none;
+  }
+}
+
+/* ==========================================================================
+   Error State
+   ========================================================================== */
+
+.home-video-card.has-error {
+  .home-video-card__play {
+    border-color: var(--color-danger);
+
+    color: var(--color-danger);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down(sm) {
+  .home-video-card {
+    --home-video-min-height: 20rem;
+
+    border-radius: var(--radius-md);
+  }
+
+  .home-video-card__play {
+    --icon-size: 1.25rem;
+
+    inline-size: 3.75rem;
+    block-size: 3.75rem;
+
+    box-shadow:
+      var(--shadow-md),
+      0 0 0 0.375rem rgb(255 255 255 / 0.12);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .home-video-card {
+    border-width: 2px;
+  }
+
+  .home-video-card__wrapper::after {
+    background: rgb(0 0 0 / 0.42);
+  }
+
+  .home-video-card__play {
+    border-width: 2px;
+    border-color: #000000;
+
+    background: #ffffff;
+    color: #000000;
+
+    box-shadow: 0 0 0 2px #ffffff;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .home-video-card__thumbnail,
+  .home-video-card__wrapper::after,
+  .home-video-card__play {
+    transition: none;
+  }
+
+  .home-video-card__wrapper:hover .home-video-card__thumbnail,
+  .home-video-card__wrapper:focus-within .home-video-card__thumbnail,
+  .home-video-card__play:hover,
+  .home-video-card__play:active {
+    transform: none;
+  }
+}

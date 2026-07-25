@@ -1,36 +1,88 @@
-@use "../../../design-system/abstracts/" as *;
+@use "../../../design-system/abstracts" as *;
 
 /* ==========================================================================
-   Group Company Card
+   Ecosystem Company Card
    ========================================================================== */
 
-.group-company-card {
-  --group-card-fg: #15253d;
-  --group-card-muted: #52647d;
-  --group-card-accent: var(--color-primary);
+.ecosystem-company-card {
+  --ecosystem-card-bg: var(--group-ecosystem-card-bg, var(--color-surface));
+
+  --ecosystem-card-fg: var(--group-ecosystem-heading, var(--color-heading));
+
+  --ecosystem-card-muted: var(--group-ecosystem-muted, var(--color-text-muted));
+
+  --ecosystem-card-border: var(
+    --group-ecosystem-card-border,
+    var(--color-border)
+  );
+
+  --ecosystem-card-accent: var(--group-ecosystem-accent, var(--color-primary));
+
+  --ecosystem-card-arrow-translate: 0.15rem;
+
+  position: relative;
 
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   justify-items: center;
-  gap: 1rem;
+  gap: 1.125rem;
 
   min-inline-size: 0;
-  min-block-size: 100%;
+  min-block-size: 15rem;
+
+  margin: 0;
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+
+  overflow: hidden;
+
+  border: 1px solid var(--ecosystem-card-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--ecosystem-card-bg);
+  color: var(--ecosystem-card-fg);
+
+  box-shadow: var(--shadow-sm);
 
   text-align: center;
 
-  color: var(--group-card-fg);
+  @include transition((border-color, box-shadow, transform), normal);
 }
 
 /* ==========================================================================
-   Logo
+   Accent Detail
    ========================================================================== */
 
-.group-company-card__logo {
+.ecosystem-company-card::before {
+  content: "";
+
+  position: absolute;
+
+  inset-block-start: 0;
+  inset-inline-start: 50%;
+
+  inline-size: 3.5rem;
+  block-size: 3px;
+
+  border-radius: 0 0 var(--radius-pill) var(--radius-pill);
+
+  background: var(--ecosystem-card-accent);
+
+  transform: translateX(-50%);
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Company Logo
+   ========================================================================== */
+
+.ecosystem-company-card__logo {
   display: block;
 
-  inline-size: clamp(7rem, 12vw, 10rem);
-  block-size: 2.5rem;
+  inline-size: min(100%, 10rem);
+  block-size: 3.25rem;
+
+  margin-block-start: 0.375rem;
 
   object-fit: contain;
   object-position: center;
@@ -40,12 +92,14 @@
    Description
    ========================================================================== */
 
-.group-company-card__text {
-  max-inline-size: 18rem;
+.ecosystem-company-card__description {
+  align-self: start;
+
+  max-inline-size: 20rem;
 
   margin: 0 auto;
 
-  color: var(--group-card-fg);
+  color: var(--ecosystem-card-fg);
 
   font-size: var(--text-base);
   font-weight: font-weight("semibold");
@@ -55,17 +109,19 @@
 }
 
 /* ==========================================================================
-   Link
+   Website Link
    ========================================================================== */
 
-.group-company-card__link {
+.ecosystem-company-card__link {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
 
+  align-self: end;
+
   margin-block-start: 0.25rem;
 
-  color: var(--group-card-accent);
+  color: var(--ecosystem-card-accent);
 
   white-space: nowrap;
 
@@ -75,12 +131,6 @@
     flex: 0 0 auto;
 
     @include transition(transform, fast);
-  }
-
-  &:hover {
-    .has-icon {
-      transform: translate(0.15rem, -0.15rem);
-    }
   }
 
   &:focus {
@@ -93,14 +143,46 @@
 }
 
 /* ==========================================================================
+   Interaction
+   ========================================================================== */
+
+.ecosystem-company-card:focus-within {
+  border-color: color-mix(
+    in oklab,
+    var(--ecosystem-card-accent),
+    var(--ecosystem-card-border) 35%
+  );
+
+  box-shadow: var(--shadow-md);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ecosystem-company-card:hover {
+    border-color: color-mix(
+      in oklab,
+      var(--ecosystem-card-accent),
+      var(--ecosystem-card-border) 35%
+    );
+
+    box-shadow: var(--shadow-md);
+
+    transform: translateY(-0.1875rem);
+  }
+
+  .ecosystem-company-card__link:hover {
+    .has-icon {
+      transform: translate(var(--ecosystem-card-arrow-translate), -0.15rem);
+    }
+  }
+}
+
+/* ==========================================================================
    RTL
    ========================================================================== */
 
 html[dir="rtl"] {
-  .group-company-card__link:hover {
-    .has-icon {
-      transform: translate(-0.15rem, -0.15rem);
-    }
+  .ecosystem-company-card {
+    --ecosystem-card-arrow-translate: -0.15rem;
   }
 }
 
@@ -109,14 +191,33 @@ html[dir="rtl"] {
    ========================================================================== */
 
 @include respond-down(sm) {
-  .group-company-card {
-    gap: 0.875rem;
+  .ecosystem-company-card {
+    gap: 1rem;
+
+    min-block-size: 13rem;
+
+    padding: 1.5rem 1.25rem;
   }
 
-  .group-company-card__text {
-    max-inline-size: 22rem;
+  .ecosystem-company-card__logo {
+    inline-size: min(100%, 9rem);
+    block-size: 3rem;
+  }
+
+  .ecosystem-company-card__description {
+    max-inline-size: 24rem;
 
     font-size: var(--text-sm);
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .ecosystem-company-card {
+    box-shadow: none;
   }
 }
 
@@ -125,7 +226,17 @@ html[dir="rtl"] {
    ========================================================================== */
 
 html[data-contrast="high"] {
-  .group-company-card__link {
+  .ecosystem-company-card {
+    border-width: 2px;
+
+    box-shadow: none;
+  }
+
+  .ecosystem-company-card::before {
+    block-size: 4px;
+  }
+
+  .ecosystem-company-card__link {
     text-decoration: underline;
     text-decoration-thickness: 2px;
     text-underline-offset: 0.2em;
@@ -137,11 +248,13 @@ html[data-contrast="high"] {
    ========================================================================== */
 
 html[data-motion="reduce"] {
-  .group-company-card__link .has-icon {
+  .ecosystem-company-card,
+  .ecosystem-company-card__link .has-icon {
     transition: none;
   }
 
-  .group-company-card__link:hover .has-icon {
+  .ecosystem-company-card:hover,
+  .ecosystem-company-card__link:hover .has-icon {
     transform: none;
   }
 }

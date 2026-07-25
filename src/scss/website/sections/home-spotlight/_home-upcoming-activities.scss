@@ -1,0 +1,582 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Home Upcoming Activities
+   ========================================================================== */
+
+.home-upcoming-activities {
+  --home-activities-bg: var(--color-surface);
+  --home-activities-fg: var(--color-text);
+  --home-activities-heading: var(--color-heading);
+  --home-activities-muted: var(--color-text-muted);
+
+  --home-activities-border: var(--color-border);
+  --home-activities-border-strong: var(--color-border-strong);
+
+  --home-activities-accent: var(--color-primary);
+
+  --home-activities-min-height: clamp(22rem, 27vw, 27rem);
+  --home-activities-space: clamp(1rem, 2vw, 1.5rem);
+
+  position: relative;
+  isolation: isolate;
+
+  min-inline-size: 0;
+  min-block-size: var(--home-activities-min-height);
+  block-size: 100%;
+
+  border: 1px solid var(--home-activities-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--home-activities-bg);
+  color: var(--home-activities-fg);
+
+  box-shadow: var(--shadow-md);
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Swiper Structure
+   ========================================================================== */
+
+.home-upcoming-activities__swiper {
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 100%;
+  block-size: 100%;
+
+  overflow: hidden;
+}
+
+.home-upcoming-activities__wrapper {
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+.home-upcoming-activities__slide {
+  min-inline-size: 0;
+  min-block-size: 100%;
+  block-size: auto;
+}
+
+/* ==========================================================================
+   Body
+   ========================================================================== */
+
+.home-upcoming-activities__body {
+  --home-activities-slide-accent: var(--home-activities-accent);
+
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: var(--home-activities-min-height);
+  block-size: 100%;
+
+  padding: var(--home-activities-space);
+
+  background: var(--home-activities-bg);
+  color: var(--home-activities-fg);
+
+  overflow: hidden;
+
+  &::before {
+    content: "";
+
+    position: absolute;
+
+    inset-block-start: 0;
+    inset-inline: 0;
+
+    block-size: 0.1875rem;
+
+    background: var(--home-activities-slide-accent);
+
+    pointer-events: none;
+  }
+}
+
+/* ==========================================================================
+   Activity Variants
+   ========================================================================== */
+
+.home-upcoming-activities__body--ipo {
+  --home-activities-slide-accent: var(--color-primary);
+}
+
+.home-upcoming-activities__body--listing {
+  --home-activities-slide-accent: var(--color-success);
+}
+
+.home-upcoming-activities__body--cmf {
+  --home-activities-slide-accent: var(--color-warning);
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.home-upcoming-activities__header {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+
+  flex: 0 0 auto;
+
+  margin-block-end: 0.875rem;
+  padding-block-end: 0.75rem;
+
+  border-block-end: 1px solid var(--home-activities-border);
+
+  &::before {
+    content: "";
+
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+
+    flex: 0 0 auto;
+
+    border-radius: var(--radius-pill);
+
+    background: var(--home-activities-slide-accent);
+
+    box-shadow: 0 0 0.5rem
+      color-mix(in oklab, var(--home-activities-slide-accent), transparent 42%);
+  }
+}
+
+.home-upcoming-activities__title {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--home-activities-heading);
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   List
+   ========================================================================== */
+
+.home-upcoming-activities__list {
+  display: grid;
+  align-content: start;
+
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Item
+   ========================================================================== */
+
+.home-upcoming-activities__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.875rem;
+
+  min-inline-size: 0;
+
+  padding-block: 0.875rem;
+
+  border-block-end: 1px solid var(--home-activities-border);
+
+  &:first-child {
+    padding-block-start: 0;
+  }
+
+  &:last-child {
+    padding-block-end: 0;
+
+    border-block-end: 0;
+  }
+}
+
+/* ==========================================================================
+   Counter
+   ========================================================================== */
+
+.home-upcoming-activities__counter {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+
+  min-inline-size: 3.75rem;
+
+  padding-inline-end: 0.875rem;
+
+  border-inline-end: 1px solid var(--home-activities-border);
+}
+
+.home-upcoming-activities__days {
+  color: var(--home-activities-slide-accent);
+
+  font-size: var(--text-xl);
+  font-weight: ds.font-weight("heavy");
+  line-height: 1;
+
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.home-upcoming-activities__label {
+  margin-block-start: 0.25rem;
+
+  color: var(--home-activities-muted);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("semibold");
+  line-height: var(--line-height-tight);
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.home-upcoming-activities__content {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Dates
+   ========================================================================== */
+
+.home-upcoming-activities__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.4rem;
+
+  min-inline-size: 0;
+
+  color: var(--home-activities-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-tight);
+
+  font-variant-numeric: tabular-nums;
+}
+
+.home-upcoming-activities__date {
+  white-space: nowrap;
+}
+
+.home-upcoming-activities__date--gregorian {
+  color: var(--home-activities-heading);
+
+  font-weight: ds.font-weight("bold");
+}
+
+.home-upcoming-activities__date--hijri {
+  color: var(--home-activities-muted);
+}
+
+/*
+ * English presents Gregorian | Hijri.
+ * Arabic preserves the source order as Hijri | Gregorian.
+ */
+
+html:not([lang^="ar"]) {
+  .home-upcoming-activities__date--gregorian {
+    order: 1;
+  }
+
+  .home-upcoming-activities__separator {
+    order: 2;
+  }
+
+  .home-upcoming-activities__date--hijri {
+    order: 3;
+  }
+}
+
+.home-upcoming-activities__separator {
+  color: var(--home-activities-border-strong);
+
+  user-select: none;
+}
+
+/* ==========================================================================
+   Company
+   ========================================================================== */
+
+.home-upcoming-activities__company {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+
+  min-inline-size: 0;
+
+  margin-block-start: 0.5rem;
+}
+
+.home-upcoming-activities__logo {
+  inline-size: 1.875rem;
+  block-size: 1.875rem;
+
+  flex: 0 0 auto;
+
+  padding: 0.125rem;
+
+  border: 1px solid var(--home-activities-border);
+  border-radius: var(--radius-sm);
+
+  background: #ffffff;
+
+  object-fit: contain;
+  object-position: center;
+}
+
+.home-upcoming-activities__name {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--home-activities-heading);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  overflow: hidden;
+  overflow-wrap: anywhere;
+
+  display: -webkit-box;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* ==========================================================================
+   Completed State
+   ========================================================================== */
+
+.home-upcoming-activities__item.is-complete {
+  .home-upcoming-activities__days,
+  .home-upcoming-activities__label {
+    color: var(--home-activities-muted);
+  }
+
+  .home-upcoming-activities__logo {
+    filter: grayscale(1);
+    opacity: 0.72;
+  }
+}
+
+/* ==========================================================================
+   Today State
+   ========================================================================== */
+
+.home-upcoming-activities__item.is-today {
+  .home-upcoming-activities__days {
+    color: var(--color-warning);
+  }
+
+  .home-upcoming-activities__counter {
+    border-inline-end-color: var(--color-warning);
+  }
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.home-upcoming-activities__footer {
+  flex: 0 0 auto;
+
+  margin-block-start: auto;
+  padding-block-start: 1.125rem;
+}
+
+.home-upcoming-activities__action {
+  inline-size: 100%;
+
+  justify-content: center;
+}
+
+/* ==========================================================================
+   Pagination
+   ========================================================================== */
+
+.home-upcoming-activities__pagination,
+.home-upcoming-activities .swiper-pagination {
+  position: static;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+
+  flex: 0 0 auto;
+
+  inline-size: 100%;
+
+  margin-block-start: 0.75rem;
+  padding-block-end: 0.75rem;
+}
+
+.home-upcoming-activities {
+  .swiper-pagination-bullet {
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+
+    margin: 0 !important;
+    padding: 0;
+
+    border: 0;
+    border-radius: var(--radius-pill);
+
+    background: color-mix(
+      in oklab,
+      var(--home-activities-muted),
+      transparent 42%
+    );
+
+    opacity: 1;
+
+    cursor: pointer;
+
+    @include ds.transition((inline-size, background-color, box-shadow), fast);
+
+    &:hover {
+      background: var(--home-activities-muted);
+    }
+
+    &:focus {
+      outline: none;
+    }
+
+    &:focus-visible {
+      @include ds.focus-ring;
+    }
+  }
+
+  .swiper-pagination-bullet-active {
+    inline-size: 1.25rem;
+
+    background: var(--home-activities-accent);
+
+    box-shadow: 0 0 0.375rem
+      color-mix(in oklab, var(--home-activities-accent), transparent 55%);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down(sm) {
+  .home-upcoming-activities {
+    --home-activities-min-height: 23rem;
+    --home-activities-space: 1rem;
+
+    block-size: auto;
+
+    border-radius: var(--radius-md);
+  }
+
+  .home-upcoming-activities__item {
+    gap: 0.75rem;
+
+    padding-block: 0.75rem;
+  }
+
+  .home-upcoming-activities__counter {
+    min-inline-size: 3.25rem;
+
+    padding-inline-end: 0.625rem;
+  }
+
+  .home-upcoming-activities__days {
+    font-size: var(--text-lg);
+  }
+
+  .home-upcoming-activities__logo {
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+  }
+}
+
+/* ==========================================================================
+   Very Small Screens
+   ========================================================================== */
+
+@media (max-width: 360px) {
+  .home-upcoming-activities__item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .home-upcoming-activities__counter {
+    grid-template-columns: auto auto;
+    align-items: baseline;
+    justify-content: start;
+    justify-items: start;
+    gap: 0.5rem;
+
+    min-inline-size: 0;
+
+    padding-inline-end: 0;
+    padding-block-end: 0.625rem;
+
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--home-activities-border);
+  }
+
+  .home-upcoming-activities__label {
+    margin-block-start: 0;
+
+    text-align: start;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .home-upcoming-activities {
+    border-width: 2px;
+    box-shadow: none;
+  }
+
+  .home-upcoming-activities__header,
+  .home-upcoming-activities__item,
+  .home-upcoming-activities__counter,
+  .home-upcoming-activities__logo {
+    border-width: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .home-upcoming-activities .swiper-pagination-bullet {
+    transition: none;
+  }
+}

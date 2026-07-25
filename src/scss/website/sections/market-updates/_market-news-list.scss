@@ -1,0 +1,431 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Market News List
+   ========================================================================== */
+
+.market-news-list {
+  --market-news-list-fg: var(--market-news-fg, var(--color-text));
+
+  --market-news-list-heading: var(--market-news-heading, var(--color-heading));
+
+  --market-news-list-muted: var(--market-news-muted, var(--color-text-muted));
+
+  --market-news-list-line: var(--market-news-border, var(--color-border));
+
+  --market-news-list-hover: var(
+    --market-news-bg-hover,
+    var(--color-surface-alt)
+  );
+
+  display: flex;
+  flex-direction: column;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Item
+   ========================================================================== */
+
+.market-news-list__item {
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  border-block-end: 1px solid var(--market-news-list-line);
+
+  &:last-child {
+    border-block-end: 0;
+  }
+}
+
+/* ==========================================================================
+   Link
+   ========================================================================== */
+
+.market-news-list__link {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.875rem;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: none;
+
+  margin-inline: -0.5rem;
+  padding: 1rem 0.5rem;
+
+  border-radius: var(--radius-md);
+
+  color: var(--market-news-list-fg);
+  text-decoration: none;
+
+  @include ds.transition((background-color, color), fast);
+
+  &:hover {
+    background: var(--market-news-list-hover);
+
+    .market-news-list__title {
+      color: color-mix(
+        in oklab,
+        var(--market-news-list-heading),
+        var(--color-primary) 28%
+      );
+    }
+
+    .market-news-list__logo {
+      border-color: color-mix(in oklab, var(--color-primary), transparent 45%);
+
+      transform: translateY(-1px);
+    }
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include ds.focus-ring;
+  }
+}
+
+/* ==========================================================================
+   Logo
+   ========================================================================== */
+
+.market-news-list__logo {
+  display: block;
+
+  inline-size: 3rem;
+  block-size: 3rem;
+
+  min-inline-size: 0;
+
+  padding: 0.25rem;
+
+  border: 1px solid var(--market-news-list-line);
+  border-radius: var(--radius-sm);
+
+  background: #ffffff;
+
+  object-fit: contain;
+  object-position: center;
+
+  @include ds.transition((border-color, transform), fast);
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.market-news-list__content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 0.75rem;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: none;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.market-news-list__title {
+  display: block;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: none;
+
+  margin: 0;
+
+  color: var(--market-news-list-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+
+  @include ds.transition(color, fast);
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.market-news-list__footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.625rem 1rem;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: none;
+
+  padding-block-start: 0.625rem;
+
+  border-block-start: 1px solid
+    color-mix(in oklab, var(--market-news-list-line), transparent 32%);
+}
+
+/* ==========================================================================
+   Market Metadata
+   ========================================================================== */
+
+.market-news-list__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.625rem;
+
+  min-inline-size: 0;
+
+  color: var(--market-news-list-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-tight);
+}
+
+.market-news-list__code,
+.market-news-list__symbol {
+  white-space: nowrap;
+
+  font-variant-numeric: tabular-nums;
+}
+
+.market-news-list__code {
+  padding-inline-end: 0.625rem;
+
+  border-inline-end: 1px solid var(--market-news-list-line);
+}
+
+.market-news-list__symbol {
+  color: var(--market-news-list-heading);
+
+  font-weight: ds.font-weight("bold");
+}
+
+/* ==========================================================================
+   Market Change
+   ========================================================================== */
+
+.market-news-list__change {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  min-inline-size: 0;
+
+  font-weight: ds.font-weight("bold");
+  font-variant-numeric: tabular-nums;
+
+  white-space: nowrap;
+}
+
+.market-news-list__change .has-icon {
+  --icon-size: 0.625rem;
+
+  flex: 0 0 auto;
+}
+
+.market-news-list__change--positive {
+  color: var(--color-success);
+}
+
+.market-news-list__change--negative {
+  color: var(--color-danger);
+}
+
+.market-news-list__change--neutral {
+  color: var(--market-news-list-muted);
+}
+
+/* ==========================================================================
+   Date and Time
+   ========================================================================== */
+
+.market-news-list__datetime {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem 0.4rem;
+
+  min-inline-size: 0;
+  max-inline-size: 100%;
+
+  justify-self: end;
+
+  color: var(--market-news-list-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-tight);
+  text-align: end;
+
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: isolate;
+}
+
+.market-news-list__dates {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+
+  white-space: nowrap;
+}
+
+.market-news-list__date {
+  min-inline-size: 0;
+
+  white-space: nowrap;
+}
+
+.market-news-list__date--gregorian {
+  color: var(--market-news-list-heading);
+
+  font-weight: ds.font-weight("bold");
+}
+
+.market-news-list__date--hijri {
+  color: var(--market-news-list-muted);
+}
+
+.market-news-list__date-separator,
+.market-news-list__datetime-separator {
+  color: var(--market-news-list-line);
+
+  font-weight: ds.font-weight("bold");
+
+  user-select: none;
+}
+
+.market-news-list__time {
+  color: var(--market-news-list-heading);
+
+  font-weight: ds.font-weight("bold");
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down(md) {
+  .market-news-list__footer {
+    gap: 0.625rem 0.75rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down(sm) {
+  .market-news-list__link {
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: 0.625rem;
+
+    margin-inline: -0.25rem;
+    padding: 0.875rem 0.25rem;
+  }
+
+  .market-news-list__logo {
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+  }
+
+  .market-news-list__content {
+    gap: 0.625rem;
+  }
+
+  .market-news-list__footer {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 0.625rem;
+
+    padding-block-start: 0.5rem;
+  }
+
+  .market-news-list__meta {
+    gap: 0.35rem 0.5rem;
+  }
+
+  .market-news-list__datetime {
+    justify-self: end;
+
+    max-inline-size: 100%;
+  }
+
+  .market-news-list__change {
+    flex-wrap: wrap;
+
+    white-space: normal;
+  }
+}
+
+/* ==========================================================================
+   Small Mobile
+   ========================================================================== */
+
+@media (max-width: 420px) {
+  .market-news-list__link {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .market-news-list__logo {
+    display: none;
+  }
+
+  .market-news-list__datetime {
+    row-gap: 0.375rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-news-list__item {
+    border-block-end-width: 2px;
+  }
+
+  .market-news-list__logo {
+    border-width: 2px;
+  }
+
+  .market-news-list__footer {
+    border-block-start-width: 2px;
+  }
+
+  .market-news-list__code {
+    border-inline-end-width: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .market-news-list__link,
+  .market-news-list__logo,
+  .market-news-list__title {
+    transition: none;
+  }
+
+  .market-news-list__link:hover .market-news-list__logo {
+    transform: none;
+  }
+}

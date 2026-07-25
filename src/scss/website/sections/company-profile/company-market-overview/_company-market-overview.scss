@@ -1,0 +1,138 @@
+@use "../../../../design-system/abstracts" as *;
+
+/* ==========================================================================
+   Company Market Overview
+   ========================================================================== */
+
+.company-market-overview {
+  --company-market-overview-bg: var(--color-bg);
+  --company-market-overview-fg: var(--color-text);
+
+  --company-market-overview-surface-bg: var(--color-surface-alt);
+  --company-market-overview-surface-border: var(--color-border);
+  --company-market-overview-surface-radius: var(--radius-xl);
+  --company-market-overview-surface-space: clamp(1rem, 2vw, 1.5rem);
+
+  --company-market-overview-gap: clamp(1.5rem, 3vw, 2.5rem);
+
+  min-inline-size: 0;
+
+  background: var(--company-market-overview-bg);
+  color: var(--company-market-overview-fg);
+}
+
+/* ==========================================================================
+   Surface
+   ========================================================================== */
+
+.company-market-overview__surface {
+  min-inline-size: 0;
+
+  padding: var(--company-market-overview-surface-space);
+
+  overflow: visible;
+
+  border: 1px solid var(--company-market-overview-surface-border);
+  border-radius: var(--company-market-overview-surface-radius);
+
+  background: var(--company-market-overview-surface-bg);
+}
+
+/* ==========================================================================
+   Grid
+   ========================================================================== */
+
+.company-market-overview__grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.5fr)
+    minmax(18rem, 0.9fr);
+
+  align-items: stretch;
+  gap: var(--company-market-overview-gap);
+
+  min-inline-size: 0;
+}
+
+/*
+ * If either optional region is removed, the remaining direct child fills
+ * the complete available width.
+ */
+
+.company-market-overview__grid > :only-child {
+  grid-column: 1 / -1;
+}
+
+/* ==========================================================================
+   Primary Region
+   ========================================================================== */
+
+.company-market-overview__primary {
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Secondary Region
+   ========================================================================== */
+
+.company-market-overview__secondary {
+  min-inline-size: 0;
+  min-block-size: 100%;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .company-market-overview {
+    --company-market-overview-gap: 2rem;
+  }
+
+  .company-market-overview__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .company-market-overview__secondary {
+    min-block-size: auto;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .company-market-overview {
+    --company-market-overview-surface-radius: var(--radius-lg);
+    --company-market-overview-surface-space: 0.75rem;
+    --company-market-overview-gap: 1.5rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .company-market-overview__surface {
+    border-width: 2px;
+    border-color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .company-market-overview__surface {
+    border-color: #000000;
+
+    background: transparent;
+  }
+}

@@ -6,18 +6,16 @@
 
 .hero-section {
   /*
-   * These values intentionally match .page-breadcrumb.
-   *
-   * The gradient is horizontal so the independently rendered breadcrumb
-   * and hero sections meet without a visible color seam.
+   * These fixed colors intentionally match .page-breadcrumb.
+   * The masthead remains dark in both light and dark themes.
    */
 
-  --page-hero-bg-start: #073fbd;
-  --page-hero-bg-middle: #075ee4;
-  --page-hero-bg-end: #218af4;
+  --page-hero-bg-start: #002c72;
+  --page-hero-bg-middle: #063f91;
+  --page-hero-bg-end: #0759aa;
 
   --page-hero-fg: #ffffff;
-  --page-hero-muted: rgb(255 255 255 / 0.72);
+  --page-hero-muted: rgb(255 255 255 / 0.74);
 
   --page-hero-gradient-angle: 90deg;
 
@@ -25,21 +23,21 @@
 
   --hero-section-space-start: clamp(1.5rem, 3vw, 2.5rem);
   --hero-section-space-end: clamp(2rem, 4vw, 3.5rem);
-  --hero-section-space-inline: clamp(1rem, 2vw, 1.5rem);
 
   /* Decorative image */
 
-  --hero-section-image: url("../../assets/images/hero-bg-pattern.png");
+  --hero-section-image: url("../../../assets/images/hero-bg-pattern.png");
   --hero-section-image-size: min(38rem, 48vw);
   --hero-section-image-opacity: 1;
 
   --hero-section-image-inline: -3rem;
   --hero-section-image-block: -5rem;
 
-  /* Accent glow */
+  /* Decorative glow */
 
   --hero-section-glow-size: 34rem;
   --hero-section-glow-opacity: 0.2;
+  --hero-section-glow-blur: 1.5rem;
 
   --hero-section-glow-inline: -12rem;
   --hero-section-glow-block: -14rem;
@@ -47,9 +45,10 @@
   position: relative;
   isolation: isolate;
 
+  inline-size: 100%;
   min-inline-size: 0;
 
-  padding: 0 var(--hero-section-space-inline) var(--hero-section-space-end);
+  padding-block: var(--hero-section-space-start) var(--hero-section-space-end);
 
   overflow: hidden;
 
@@ -61,6 +60,7 @@
   );
 
   color: var(--page-hero-fg);
+  color-scheme: dark;
 }
 
 /* ==========================================================================
@@ -78,10 +78,41 @@
 }
 
 /* ==========================================================================
+   Accent Glow
+   ========================================================================== */
+
+.hero-section__background::before {
+  content: "";
+
+  position: absolute;
+
+  inset-inline-end: var(--hero-section-glow-inline);
+  inset-block-end: var(--hero-section-glow-block);
+
+  inline-size: var(--hero-section-glow-size);
+  block-size: var(--hero-section-glow-size);
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle at center,
+    rgb(74 183 255 / 0.72) 0%,
+    rgb(40 144 244 / 0.36) 34%,
+    transparent 72%
+  );
+
+  opacity: var(--hero-section-glow-opacity);
+
+  filter: blur(var(--hero-section-glow-blur));
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
    Bottom-End Decorative Image
    ========================================================================== */
 
-.hero-section__background::after {
+/*.hero-section__background::after {
   content: "";
 
   position: absolute;
@@ -100,7 +131,7 @@
   opacity: var(--hero-section-image-opacity);
 
   pointer-events: none;
-}
+}*/
 
 /* ==========================================================================
    Content
@@ -137,7 +168,7 @@ html[dir="rtl"] {
     --hero-section-space-end: 2.75rem;
 
     --hero-section-image-size: min(32rem, 60vw);
-    --hero-section-image-opacity: 1;
+    --hero-section-image-opacity: 0.82;
 
     --hero-section-glow-size: 28rem;
     --hero-section-glow-inline: -10rem;
@@ -157,6 +188,7 @@ html[dir="rtl"] {
     --hero-section-image-size: min(26rem, 72vw);
     --hero-section-image-inline: -4rem;
     --hero-section-image-block: -3rem;
+    --hero-section-image-opacity: 0.56;
 
     --hero-section-glow-size: 24rem;
     --hero-section-glow-opacity: 0.16;
@@ -172,34 +204,16 @@ html[dir="rtl"] {
   .hero-section {
     --hero-section-space-start: 1rem;
     --hero-section-space-end: 2rem;
-    --hero-section-space-inline: 1rem;
 
     --hero-section-image-size: 20rem;
-    --hero-section-image-opacity: 0.12;
+    --hero-section-image-opacity: 0.16;
     --hero-section-image-inline: -6rem;
     --hero-section-image-block: -2rem;
 
     --hero-section-glow-size: 20rem;
-    --hero-section-glow-opacity: 0.14;
+    --hero-section-glow-opacity: 0.12;
     --hero-section-glow-inline: -8rem;
     --hero-section-glow-block: -8rem;
-  }
-}
-
-/* ==========================================================================
-   Dark Theme
-   ========================================================================== */
-
-html[data-theme="dark"] {
-  .hero-section {
-    --page-hero-bg-start: #002c72;
-    --page-hero-bg-middle: #063f91;
-    --page-hero-bg-end: #0759aa;
-
-    --page-hero-muted: rgb(255 255 255 / 0.72);
-
-    --hero-section-image-opacity: 1;
-    --hero-section-glow-opacity: 0.16;
   }
 }
 
@@ -218,8 +232,7 @@ html[data-contrast="high"] {
 
     background: #000000;
 
-    outline: 2px solid #ffffff;
-    outline-offset: -2px;
+    box-shadow: inset 0 0 0 2px #ffffff;
   }
 
   .hero-section__background {

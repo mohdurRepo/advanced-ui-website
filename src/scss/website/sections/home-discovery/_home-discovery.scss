@@ -1,0 +1,162 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Home Discovery
+   ========================================================================== */
+
+.home-discovery {
+  --home-discovery-fg: var(--color-heading);
+  --home-discovery-muted: var(--color-text-muted);
+  --home-discovery-accent: var(--color-primary);
+
+  --home-discovery-promotion-width: 17rem;
+  --home-discovery-content-width: 48rem;
+
+  --home-discovery-gap: clamp(1rem, 2vw, 2rem);
+  --home-discovery-main-gap: clamp(1rem, 2vw, 1.5rem);
+
+  position: relative;
+
+  min-inline-size: 0;
+
+  padding-block: clamp(2.5rem, 5vw, 4.5rem);
+
+  background: transparent;
+  color: var(--home-discovery-fg);
+}
+
+/* ==========================================================================
+   Container
+   ========================================================================== */
+
+.home-discovery__container {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+.home-discovery__grid {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, var(--home-discovery-promotion-width))
+    minmax(0, var(--home-discovery-content-width))
+    minmax(0, var(--home-discovery-promotion-width));
+
+  grid-template-areas: "promotion-start main promotion-end";
+
+  align-items: stretch;
+  justify-content: center;
+  gap: var(--home-discovery-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Main Content
+   ========================================================================== */
+
+.home-discovery__main {
+  grid-area: main;
+
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--home-discovery-main-gap);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.home-discovery__title {
+  max-inline-size: 42rem;
+
+  margin: 0;
+
+  color: var(--home-discovery-fg);
+
+  font-size: clamp(var(--text-xl), 1rem + 1.2vw, var(--text-2xl));
+
+  font-weight: ds.font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+.home-discovery__title-line,
+.home-discovery__title-accent {
+  display: block;
+}
+
+.home-discovery__title-accent {
+  color: var(--home-discovery-accent);
+}
+
+/* ==========================================================================
+   Constrained Desktop
+   ========================================================================== */
+
+@media (min-width: 992px) and (max-width: 1200px) {
+  .home-discovery {
+    --home-discovery-promotion-width: 14rem;
+    --home-discovery-gap: 1rem;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+/* ==========================================================================
+   Tablet and Mobile Stack
+   ========================================================================== */
+
+@include ds.respond-down(md) {
+  .home-discovery {
+    --home-discovery-content-width: 42rem;
+    --home-discovery-gap: 1.5rem;
+  }
+
+  .home-discovery__grid {
+    grid-template-columns: minmax(0, 1fr);
+
+    /*
+     * One promotion above the discovery content and one below it.
+     */
+    grid-template-areas:
+      "promotion-start"
+      "main"
+      "promotion-end";
+
+    justify-items: center;
+  }
+
+  .home-discovery__main {
+    inline-size: min(100%, var(--home-discovery-content-width));
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down(sm) {
+  .home-discovery {
+    --home-discovery-main-gap: 1rem;
+    --home-discovery-gap: 1.25rem;
+
+    padding-block: 2rem;
+  }
+
+  .home-discovery__title {
+    font-size: var(--text-lg);
+  }
+}

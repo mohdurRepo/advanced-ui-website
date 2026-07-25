@@ -1,0 +1,218 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Market Updates
+   ========================================================================== */
+
+.market-updates {
+  --market-updates-bg: color-mix(
+    in oklab,
+    var(--color-surface),
+    var(--color-primary) 14%
+  );
+
+  --market-updates-fg: var(--color-heading);
+  --market-updates-muted: var(--color-text-muted);
+  --market-updates-border: var(--color-border);
+
+  --market-updates-space: clamp(1.25rem, 3vw, 2rem);
+  --market-updates-gap: clamp(1.25rem, 2.5vw, 2rem);
+
+  --market-updates-news-width: 1.55fr;
+  --market-updates-calendar-width: 0.95fr;
+
+  --market-updates-gradient-angle: 135deg;
+
+  position: relative;
+  isolation: isolate;
+
+  min-inline-size: 0;
+
+  padding-block: clamp(2rem, 4vw, 3.5rem);
+
+  color: var(--market-updates-fg);
+}
+
+/* ==========================================================================
+   Container
+   ========================================================================== */
+
+.market-updates__container {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Surface
+   ========================================================================== */
+
+.market-updates__surface {
+  position: relative;
+  isolation: isolate;
+
+  min-inline-size: 0;
+
+  padding: var(--market-updates-space);
+
+  border: 1px solid var(--market-updates-border);
+  border-radius: var(--radius-lg);
+
+  background:
+    linear-gradient(
+      var(--market-updates-gradient-angle),
+      color-mix(in oklab, var(--color-primary), transparent 90%),
+      transparent 42%
+    ),
+    var(--market-updates-bg);
+
+  color: var(--market-updates-fg);
+
+  box-shadow: var(--shadow-md);
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+.market-updates__grid {
+  position: relative;
+  z-index: 1;
+
+  display: grid;
+  grid-template-columns:
+    minmax(0, var(--market-updates-news-width))
+    minmax(20rem, var(--market-updates-calendar-width));
+
+  align-items: stretch;
+  gap: var(--market-updates-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Column
+   ========================================================================== */
+
+.market-updates__column {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: start;
+  gap: 1rem;
+
+  min-inline-size: 0;
+}
+
+.market-updates__column > .surface-insights {
+  min-inline-size: 0;
+  min-block-size: 100%;
+}
+
+/* ==========================================================================
+   Section Headings
+   ========================================================================== */
+
+.market-updates {
+  .section-heading {
+    --section-heading-color: var(--market-updates-fg);
+    --section-heading-muted: var(--market-updates-muted);
+    --section-heading-accent: var(--color-primary);
+
+    min-inline-size: 0;
+  }
+}
+
+/* ==========================================================================
+   Bidirectional Layout
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .market-updates {
+    --market-updates-gradient-angle: 225deg;
+  }
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down(lg) {
+  .market-updates {
+    --market-updates-gap: 2rem;
+  }
+
+  .market-updates__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .market-updates__column > .surface-insights {
+    min-block-size: auto;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down(md) {
+  .market-updates {
+    --market-updates-space: clamp(1rem, 3vw, 1.5rem);
+    --market-updates-gap: 1.75rem;
+
+    padding-block: clamp(1.5rem, 4vw, 2.5rem);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down(sm) {
+  .market-updates {
+    --market-updates-space: 1rem;
+    --market-updates-gap: 1.5rem;
+
+    padding-block: 1.5rem;
+  }
+
+  .market-updates__surface {
+    border-radius: var(--radius-md);
+
+    box-shadow: var(--shadow-sm);
+  }
+
+  .market-updates__column {
+    gap: 0.75rem;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .market-updates {
+    --market-updates-bg: color-mix(
+      in oklab,
+      var(--color-surface),
+      var(--color-primary) 10%
+    );
+  }
+
+  .market-updates__surface {
+    box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-updates__surface {
+    border-width: 2px;
+
+    background: var(--market-updates-bg);
+    box-shadow: none;
+  }
+}

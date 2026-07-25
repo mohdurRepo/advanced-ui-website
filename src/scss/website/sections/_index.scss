@@ -8,33 +8,31 @@
    Market
    ========================================================================== */
 
-@forward "market-summary";
-@forward "market-details";
-@forward "insights-panel";
-@forward "calendar-card";
-@forward "announcement-calendar";
+//@forward "market-summary";
+//@forward "market-details";
+@forward "market-overview";
+//@forward "insights-panel";
+//@forward "calendar-card";
+//@forward "announcement-calendar";
+@forward "market-updates";
 /* ==========================================================================
    General Content
    ========================================================================== */
-@forward "intro-section";
+//@forward "intro-section";
 @forward "audience-pathways";
-@forward "feature-stats";
-@forward "app-download";
+@forward "exchange-performance";
+@forward "mobile-app-promo";
 @forward "group-ecosystem";
 
 /* ==========================================================================
    Home
    ========================================================================== */
 
-@forward "home-intro-actions";
-@forward "home-intro-highlights";
+@forward "home-discovery";
+@forward "home-spotlight";
 
 /* ==========================================================================
    Company
    ========================================================================== */
 
-@forward "company-profile-hero";
-@forward "company-market-overview";
-@forward "performance-chart";
-@forward "company-updates";
-//@forward "financial-information";
+@forward "company-profile";

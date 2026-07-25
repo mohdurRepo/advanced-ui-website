@@ -1,23 +1,29 @@
-@use "../../../design-system/abstracts/" as *;
+@use "../../../design-system/abstracts" as ds;
 
 /* ==========================================================================
    Audience Pathways Navigation
    ========================================================================== */
 
 .audience-pathways-nav {
-  --tabs-content-space: 0;
-
-  --audience-nav-gap: 0.875rem;
+  --audience-nav-gap: 0.625rem;
   --audience-nav-link-gap: 0.75rem;
 
   --audience-nav-icon-size: 2rem;
   --audience-nav-icon-glyph-size: 1rem;
 
-  --audience-nav-active-color: var(--color-primary);
+  --audience-nav-fg: var(--color-text-muted);
+  --audience-nav-active: var(--color-primary);
+
   --audience-nav-active-bg: color-mix(
     in oklab,
     var(--color-primary),
     transparent 88%
+  );
+
+  --audience-nav-hover-bg: color-mix(
+    in oklab,
+    var(--color-primary),
+    transparent 92%
   );
 
   min-inline-size: 0;
@@ -27,97 +33,116 @@
    Desktop Navigation
    ========================================================================== */
 
-.audience-pathways-nav {
-  .tabs-nav {
-    display: grid;
-    gap: var(--audience-nav-gap);
+.audience-pathways-nav > .tabs-nav {
+  display: grid;
+  align-content: start;
+  gap: var(--audience-nav-gap);
 
-    min-inline-size: 0;
+  inline-size: 100%;
+  min-inline-size: 0;
 
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 
-    border-block-end: 0;
+  border: 0;
 
-    overflow: visible;
-  }
+  overflow: visible;
 }
 
 /* ==========================================================================
-   Tab Link
+   Tab
    ========================================================================== */
 
-.audience-pathways-nav {
-  .tab-link {
-    position: relative;
+.audience-pathways-nav > .tabs-nav > .tab-link {
+  position: relative;
 
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: var(--audience-nav-link-gap);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--audience-nav-link-gap);
 
-    inline-size: fit-content;
-    max-inline-size: 100%;
-    min-block-size: 3.25rem;
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 3.25rem;
 
-    padding: 0.5rem 0.875rem;
+  padding: 0.5rem 0.875rem;
 
-    border: 0;
-    border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
 
-    background: transparent;
-    color: var(--color-text-muted);
+  background: transparent;
+  color: var(--audience-nav-fg);
 
-    font: inherit;
-    font-size: var(--text-lg);
-    font-weight: font-weight("bold");
-    line-height: var(--line-height-tight);
+  font: inherit;
+  font-size: var(--text-base);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
 
-    white-space: normal;
-    text-align: start;
+  text-align: start;
+  white-space: normal;
 
-    cursor: pointer;
+  cursor: pointer;
 
-    @include transition((background-color, color, box-shadow), fast);
+  @include ds.transition(
+    (background-color, border-color, box-shadow, color, transform),
+    fast
+  );
 
-    &:hover:not(:disabled):not(.is-disabled) {
-      background: var(--audience-nav-active-bg);
-      color: var(--audience-nav-active-color);
-    }
+  &:hover:not(:disabled):not(.is-disabled) {
+    border-color: color-mix(
+      in oklab,
+      var(--audience-nav-active),
+      transparent 72%
+    );
 
-    &:focus {
-      outline: none;
-    }
+    background: var(--audience-nav-hover-bg);
+    color: var(--audience-nav-active);
+  }
 
-    &:focus-visible {
-      @include focus-ring;
-    }
+  &:focus {
+    outline: none;
+  }
 
-    &.active,
-    &[aria-selected="true"] {
-      background: var(--audience-nav-active-bg);
-      color: var(--audience-nav-active-color);
-    }
+  &:focus-visible {
+    @include ds.focus-ring;
+  }
 
-    &:disabled,
-    &.is-disabled,
-    &[aria-disabled="true"] {
-      color: var(--color-on-disabled);
+  &.active,
+  &[aria-selected="true"] {
+    border-color: color-mix(
+      in oklab,
+      var(--audience-nav-active),
+      transparent 64%
+    );
 
-      cursor: not-allowed;
-      pointer-events: none;
-    }
+    background: var(--audience-nav-active-bg);
+    color: var(--audience-nav-active);
+
+    box-shadow: var(--shadow-sm);
+  }
+
+  &:active:not(:disabled):not(.is-disabled) {
+    transform: scale(0.985);
+  }
+
+  &:disabled,
+  &.is-disabled,
+  &[aria-disabled="true"] {
+    color: var(--color-on-disabled);
+
+    opacity: 0.58;
+
+    cursor: not-allowed;
+    pointer-events: none;
   }
 }
 
 /* ==========================================================================
-   Tab Icon
+   Icon
    ========================================================================== */
 
 .audience-pathways-nav__icon {
   --icon-size: var(--audience-nav-icon-glyph-size);
-
-  flex: 0 0 auto;
 
   display: inline-grid;
   place-items: center;
@@ -125,82 +150,93 @@
   inline-size: var(--audience-nav-icon-size);
   block-size: var(--audience-nav-icon-size);
 
-  border: 1px solid color-mix(in oklab, var(--color-primary), transparent 68%);
+  flex: 0 0 auto;
+
+  border: 1px solid
+    color-mix(in oklab, var(--audience-nav-active), transparent 68%);
+
   border-radius: var(--radius-pill);
 
   background: var(--audience-nav-active-bg);
-  color: var(--audience-nav-active-color);
+  color: var(--audience-nav-active);
 
-  @include transition((background-color, border-color, color, transform), fast);
+  @include ds.transition(
+    (background-color, border-color, color, transform),
+    fast
+  );
+}
 
-  .tab-link:hover &,
-  .tab-link.active &,
-  .tab-link[aria-selected="true"] & {
-    border-color: var(--color-primary);
+.audience-pathways-nav
+  > .tabs-nav
+  > .tab-link:hover
+  .audience-pathways-nav__icon,
+.audience-pathways-nav
+  > .tabs-nav
+  > .tab-link.active
+  .audience-pathways-nav__icon,
+.audience-pathways-nav
+  > .tabs-nav
+  > .tab-link[aria-selected="true"]
+  .audience-pathways-nav__icon {
+  border-color: var(--audience-nav-active);
 
-    background: var(--color-primary);
-    color: var(--color-on-primary);
+  background: var(--audience-nav-active);
+  color: var(--color-on-primary);
 
-    transform: scale(1.04);
-  }
+  transform: scale(1.05);
 }
 
 /* ==========================================================================
-   Tablet and Below — Horizontal Scrolling
+   Large Tablet — Horizontal Navigation
    ========================================================================== */
 
-@include respond-down(lg) {
+@include ds.respond-down(lg) {
   .audience-pathways-nav {
-    --audience-nav-gap: 0.875rem;
-    --audience-nav-link-gap: 0.75rem;
-
-    --audience-nav-icon-size: 2rem;
-    --audience-nav-icon-glyph-size: 1rem;
+    --audience-nav-gap: 0.75rem;
   }
 
-  .audience-pathways-nav {
-    .tabs-nav {
-      display: flex;
-      align-items: center;
-      gap: var(--audience-nav-gap);
+  .audience-pathways-nav > .tabs-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--audience-nav-gap);
 
-      inline-size: 100%;
-      max-inline-size: 100%;
+    inline-size: 100%;
+    max-inline-size: 100%;
 
-      margin-inline: -0.25rem;
-      padding-inline: 0.25rem;
-      padding-block-end: 0.5rem;
+    margin-inline: -0.25rem;
+    padding-inline: 0.25rem;
+    padding-block-end: 0.5rem;
 
-      overflow-x: auto;
-      overflow-y: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
 
-      overscroll-behavior-inline: contain;
-      scroll-snap-type: inline proximity;
+    overscroll-behavior-inline: contain;
 
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
+    scroll-padding-inline: 0.25rem;
+    scroll-snap-type: inline proximity;
 
-      touch-action: pan-x pan-y;
+    scrollbar-width: none;
 
-      &::-webkit-scrollbar {
-        display: none;
-      }
+    touch-action: pan-x pan-y;
+
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      display: none;
     }
+  }
 
-    .tab-link {
-      flex: 0 0 auto;
+  .audience-pathways-nav > .tabs-nav > .tab-link {
+    flex: 0 0 auto;
 
-      inline-size: auto;
-      min-block-size: 3rem;
+    inline-size: auto;
+    min-block-size: 3rem;
 
-      padding: 0.5rem 0.875rem;
+    padding: 0.5rem 0.875rem;
 
-      font-size: var(--text-base);
+    white-space: nowrap;
 
-      white-space: nowrap;
-
-      scroll-snap-align: start;
-    }
+    scroll-snap-align: start;
   }
 }
 
@@ -208,27 +244,25 @@
    Mobile
    ========================================================================== */
 
-@include respond-down(sm) {
+@include ds.respond-down(sm) {
   .audience-pathways-nav {
-    --audience-nav-gap: 0.75rem;
+    --audience-nav-gap: 0.625rem;
     --audience-nav-link-gap: 0.625rem;
 
     --audience-nav-icon-size: 1.875rem;
     --audience-nav-icon-glyph-size: 0.9375rem;
   }
 
-  .audience-pathways-nav {
-    .tabs-nav {
-      padding-block-end: 0.375rem;
-    }
+  .audience-pathways-nav > .tabs-nav {
+    padding-block-end: 0.375rem;
+  }
 
-    .tab-link {
-      min-block-size: 2.875rem;
+  .audience-pathways-nav > .tabs-nav > .tab-link {
+    min-block-size: 2.875rem;
 
-      padding: 0.4375rem 0.75rem;
+    padding: 0.4375rem 0.75rem;
 
-      font-size: var(--text-base);
-    }
+    font-size: var(--text-sm);
   }
 }
 
@@ -237,14 +271,12 @@
    ========================================================================== */
 
 html[data-contrast="high"] {
-  .audience-pathways-nav {
-    .tab-link {
-      border: 2px solid transparent;
+  .audience-pathways-nav > .tabs-nav > .tab-link {
+    border-width: 2px;
 
-      &.active,
-      &[aria-selected="true"] {
-        border-color: currentColor;
-      }
+    &.active,
+    &[aria-selected="true"] {
+      border-color: currentColor;
     }
   }
 
@@ -258,16 +290,24 @@ html[data-contrast="high"] {
    ========================================================================== */
 
 html[data-motion="reduce"] {
-  .audience-pathways-nav {
-    .tab-link,
-    .audience-pathways-nav__icon {
-      transition: none;
-    }
+  .audience-pathways-nav > .tabs-nav > .tab-link,
+  .audience-pathways-nav__icon {
+    transition: none;
+  }
 
-    .tab-link:hover .audience-pathways-nav__icon,
-    .tab-link.active .audience-pathways-nav__icon,
-    .tab-link[aria-selected="true"] .audience-pathways-nav__icon {
-      transform: none;
-    }
+  .audience-pathways-nav > .tabs-nav > .tab-link:active,
+  .audience-pathways-nav
+    > .tabs-nav
+    > .tab-link:hover
+    .audience-pathways-nav__icon,
+  .audience-pathways-nav
+    > .tabs-nav
+    > .tab-link.active
+    .audience-pathways-nav__icon,
+  .audience-pathways-nav
+    > .tabs-nav
+    > .tab-link[aria-selected="true"]
+    .audience-pathways-nav__icon {
+    transform: none;
   }
 }

@@ -1,27 +1,61 @@
 @use "../../../design-system/abstracts" as *;
 
 /* ==========================================================================
-   Group Ecosystem
+   Saudi Tadawul Group Ecosystem
    ========================================================================== */
 
 .group-ecosystem {
   --group-ecosystem-bg: var(--color-bg);
   --group-ecosystem-fg: var(--color-text);
+  --group-ecosystem-heading: var(--color-heading);
+  --group-ecosystem-muted: var(--color-text-muted);
+  --group-ecosystem-accent: var(--color-primary);
 
-  /*
-   * Shared fixed surface color.
-   * This intentionally stays the same in light and dark themes,
-   * matching the app download section.
-   */
-  --group-ecosystem-surface-bg: #cbdbf9;
-  --group-ecosystem-surface-fg: #15253d;
-  --group-ecosystem-surface-muted: #52647d;
+  --group-ecosystem-surface-bg: color-mix(
+    in oklab,
+    var(--color-primary),
+    var(--color-surface) 84%
+  );
 
-  --group-ecosystem-gap: clamp(1.5rem, 3vw, 3rem);
-  --group-ecosystem-parent-space: clamp(2rem, 3vw, 2rem);
+  --group-ecosystem-surface-border: color-mix(
+    in oklab,
+    var(--color-primary),
+    var(--color-border) 72%
+  );
+
+  --group-ecosystem-divider: color-mix(
+    in oklab,
+    var(--group-ecosystem-heading),
+    transparent 82%
+  );
+
+  --group-ecosystem-card-bg: color-mix(
+    in oklab,
+    var(--color-surface),
+    transparent 10%
+  );
+
+  --group-ecosystem-card-border: color-mix(
+    in oklab,
+    var(--color-primary),
+    var(--color-border) 76%
+  );
+
+  --group-ecosystem-gap: clamp(1rem, 2vw, 1.5rem);
+  --group-ecosystem-parent-space: clamp(2rem, 4vw, 3.5rem);
+
+  --group-ecosystem-link-translate: 0.15rem;
 
   background: var(--group-ecosystem-bg);
   color: var(--group-ecosystem-fg);
+}
+
+/* ==========================================================================
+   Container
+   ========================================================================== */
+
+.group-ecosystem__container {
+  min-inline-size: 0;
 }
 
 /* ==========================================================================
@@ -29,10 +63,60 @@
    ========================================================================== */
 
 .group-ecosystem__surface {
-  padding: clamp(2rem, 3vw, 3rem);
+  position: relative;
+  isolation: isolate;
 
-  background: var(--group-ecosystem-surface-bg);
-  color: var(--group-ecosystem-surface-fg);
+  min-inline-size: 0;
+
+  padding: clamp(1.5rem, 4vw, 3rem);
+
+  overflow: hidden;
+
+  border: 1px solid var(--group-ecosystem-surface-border);
+  border-radius: var(--radius-xl);
+
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--group-ecosystem-surface-bg), #ffffff 8%) 0%,
+    var(--group-ecosystem-surface-bg) 58%,
+    color-mix(
+        in oklab,
+        var(--group-ecosystem-surface-bg),
+        var(--color-primary) 5%
+      )
+      100%
+  );
+
+  color: var(--group-ecosystem-heading);
+
+  box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   Decorative Surface Detail
+   ========================================================================== */
+
+.group-ecosystem__surface::before {
+  content: "";
+
+  position: absolute;
+
+  inset-inline-end: -10rem;
+  inset-block-start: -12rem;
+  z-index: -1;
+
+  inline-size: 28rem;
+  block-size: 28rem;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle at center,
+    color-mix(in oklab, var(--group-ecosystem-accent), transparent 74%) 0%,
+    transparent 70%
+  );
+
+  pointer-events: none;
 }
 
 /* ==========================================================================
@@ -42,12 +126,16 @@
 .group-ecosystem__parent {
   display: grid;
   justify-items: center;
-  gap: 1.25rem;
+  gap: 1.125rem;
 
-  max-inline-size: 46rem;
+  max-inline-size: 48rem;
 
   margin-inline: auto;
   margin-block-end: var(--group-ecosystem-parent-space);
+
+  padding-block-end: var(--group-ecosystem-parent-space);
+
+  border-block-end: 1px solid var(--group-ecosystem-divider);
 
   text-align: center;
 }
@@ -59,28 +147,30 @@
 .group-ecosystem__parent-logo {
   display: block;
 
-  inline-size: clamp(8rem, 14vw, 12rem);
+  inline-size: clamp(9rem, 14vw, 13rem);
   block-size: auto;
+  max-block-size: 5rem;
 
   object-fit: contain;
+  object-position: center;
 }
 
 /* ==========================================================================
    Parent Description
    ========================================================================== */
 
-.group-ecosystem__parent-text {
-  max-inline-size: 42rem;
+.group-ecosystem__parent-description {
+  max-inline-size: 44rem;
 
   margin: 0;
 
-  color: var(--group-ecosystem-surface-fg);
+  color: var(--group-ecosystem-heading);
 
-  font-size: clamp(var(--text-lg), 1rem + 0.6vw, var(--text-xl));
+  font-size: clamp(var(--text-base), 0.95rem + 0.5vw, var(--text-xl));
   font-weight: font-weight("bold");
   line-height: var(--line-height-relaxed);
 
-  text-wrap: auto;
+  text-wrap: balance;
 }
 
 /* ==========================================================================
@@ -94,27 +184,65 @@
 
   margin-block-start: 0.25rem;
 
-  color: var(--color-primary);
+  color: var(--group-ecosystem-accent);
 
   white-space: nowrap;
 
   .has-icon {
     --icon-size: 0.875rem;
+
+    flex: 0 0 auto;
+
+    @include transition(transform, fast);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
   }
 }
 
 /* ==========================================================================
-   Subsidiaries Grid
+   Companies Grid
    ========================================================================== */
 
-.group-ecosystem__grid {
+.group-ecosystem__companies {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-
   align-items: stretch;
   gap: var(--group-ecosystem-gap);
 
   min-inline-size: 0;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Parent Link Interaction
+   ========================================================================== */
+
+@media (hover: hover) and (pointer: fine) {
+  .group-ecosystem__parent-link:hover {
+    .has-icon {
+      transform: translate(var(--group-ecosystem-link-translate), -0.15rem);
+    }
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .group-ecosystem {
+    --group-ecosystem-link-translate: -0.15rem;
+  }
 }
 
 /* ==========================================================================
@@ -123,20 +251,21 @@
 
 @include respond-down(lg) {
   .group-ecosystem {
-    --group-ecosystem-parent-space: 3rem;
+    --group-ecosystem-parent-space: 2.75rem;
   }
 
-  .group-ecosystem__grid {
+  .group-ecosystem__companies {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   /*
-   * Keep the final card visually balanced when there are three subsidiaries.
+   * Keep the final company centered when the grid contains three items.
    */
-  .group-ecosystem__grid > :last-child:nth-child(odd) {
+  .group-ecosystem__companies > :last-child:nth-child(odd) {
     grid-column: 1 / -1;
 
-    inline-size: min(100%, 28rem);
+    inline-size: min(100%, 30rem);
+
     justify-self: center;
   }
 }
@@ -147,30 +276,76 @@
 
 @include respond-down(sm) {
   .group-ecosystem {
-    --group-ecosystem-gap: 2rem;
-    --group-ecosystem-parent-space: 2.5rem;
+    --group-ecosystem-gap: 1rem;
+    --group-ecosystem-parent-space: 2rem;
   }
 
   .group-ecosystem__surface {
     padding: 1.5rem 1rem;
+
+    border-radius: var(--radius-lg);
   }
 
   .group-ecosystem__parent {
     gap: 1rem;
   }
 
-  .group-ecosystem__parent-text {
+  .group-ecosystem__parent-logo {
+    inline-size: 9rem;
+  }
+
+  .group-ecosystem__parent-description {
     font-size: var(--text-base);
   }
 
-  .group-ecosystem__grid {
+  .group-ecosystem__companies {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .group-ecosystem__grid > :last-child:nth-child(odd) {
+  .group-ecosystem__companies > :last-child:nth-child(odd) {
     grid-column: auto;
 
     inline-size: 100%;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .group-ecosystem {
+    --group-ecosystem-surface-bg: color-mix(
+      in oklab,
+      var(--color-primary),
+      var(--color-surface) 89%
+    );
+
+    --group-ecosystem-surface-border: color-mix(
+      in oklab,
+      var(--color-primary),
+      var(--color-border) 62%
+    );
+
+    --group-ecosystem-card-bg: color-mix(
+      in oklab,
+      var(--color-surface-alt),
+      transparent 8%
+    );
+  }
+
+  .group-ecosystem__surface {
+    background: linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--group-ecosystem-surface-bg), #ffffff 3%) 0%,
+      var(--group-ecosystem-surface-bg) 62%,
+      color-mix(
+          in oklab,
+          var(--group-ecosystem-surface-bg),
+          var(--color-primary) 7%
+        )
+        100%
+    );
   }
 }
 
@@ -180,13 +355,36 @@
 
 html[data-contrast="high"] {
   .group-ecosystem__surface {
-    outline: 2px solid var(--color-border-strong);
-    outline-offset: -2px;
+    border-width: 2px;
+
+    box-shadow: none;
+  }
+
+  .group-ecosystem__surface::before {
+    display: none;
+  }
+
+  .group-ecosystem__parent {
+    border-block-end-width: 2px;
   }
 
   .group-ecosystem__parent-link {
     text-decoration: underline;
     text-decoration-thickness: 2px;
     text-underline-offset: 0.2em;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .group-ecosystem__parent-link .has-icon {
+    transition: none;
+  }
+
+  .group-ecosystem__parent-link:hover .has-icon {
+    transform: none;
   }
 }

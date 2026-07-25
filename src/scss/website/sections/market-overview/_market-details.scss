@@ -1,0 +1,270 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Market Details
+   ========================================================================== */
+
+.market-details {
+  /* -----------------------------------------------------------------------
+     Connected Surface
+     -------------------------------------------------------------------- */
+
+  --market-details-bg: var(--market-overview-connected-bg, #334c5c);
+
+  --market-details-bg-hover: var(--market-overview-connected-bg-hover, #3d596a);
+
+  --market-details-side-bg: var(--market-overview-side-bg, #0d1e2b);
+
+  --market-details-insights-bg: var(--market-overview-insights-bg, #254456);
+
+  /* -----------------------------------------------------------------------
+     Foreground
+     -------------------------------------------------------------------- */
+
+  --market-details-fg: var(--market-overview-fg, #ffffff);
+
+  --market-details-heading: var(--market-overview-heading, #ffffff);
+
+  --market-details-muted: var(--market-overview-muted, #a9bdca);
+
+  --market-details-muted-strong: var(--market-overview-muted-strong, #c4d2da);
+
+  /* -----------------------------------------------------------------------
+     Borders
+     -------------------------------------------------------------------- */
+
+  --market-details-border: var(
+    --market-overview-border,
+    rgb(255 255 255 / 0.14)
+  );
+
+  --market-details-border-hover: var(
+    --market-overview-border-hover,
+    rgb(255 255 255 / 0.28)
+  );
+
+  --market-details-border-strong: var(
+    --market-overview-border-strong,
+    rgb(255 255 255 / 0.42)
+  );
+
+  /* -----------------------------------------------------------------------
+     Layout
+     -------------------------------------------------------------------- */
+
+  --market-details-container-width: var(
+    --market-overview-container-width,
+    1320px
+  );
+
+  --market-details-container-space: var(
+    --market-overview-container-space,
+    2rem
+  );
+
+  --market-details-space: var(
+    --market-overview-panel-space,
+    clamp(1rem, 2vw, 1.5rem)
+  );
+
+  --market-details-space-sm: var(--market-overview-panel-space-sm, 1rem);
+
+  --market-details-gap: var(--market-overview-panel-gap, 1rem);
+
+  --market-details-radius: var(
+    --market-overview-panel-radius,
+    var(--radius-lg)
+  );
+
+  /*
+   * Transparent separation between the contained market panel and the next
+   * page section.
+   */
+  --market-details-after-space: clamp(1.5rem, 3vw, 2.5rem);
+
+  /* -----------------------------------------------------------------------
+     Shared Panel Contract
+     -------------------------------------------------------------------- */
+
+  --market-panel-space: var(--market-details-space);
+  --market-panel-space-sm: var(--market-details-space-sm);
+  --market-panel-gap: var(--market-details-gap);
+  --market-panel-radius: var(--market-details-radius);
+  --market-panel-line: var(--market-details-border);
+
+  /* -----------------------------------------------------------------------
+     Local Dark Surface Contract
+     -------------------------------------------------------------------- */
+
+  /*
+   * The contained Market Details panel remains dark in both page themes.
+   * Shared tables, buttons, and controls inherit these local semantic tokens.
+   */
+
+  --color-bg: var(--market-details-bg);
+
+  --color-surface: var(--market-details-side-bg);
+  --color-surface-alt: var(--market-details-insights-bg);
+
+  --color-text: var(--market-details-fg);
+  --color-heading: var(--market-details-heading);
+  --color-text-muted: var(--market-details-muted);
+
+  --color-border: var(--market-details-border);
+  --color-border-strong: var(--market-details-border-strong);
+
+  --color-disabled: #536b79;
+  --color-on-disabled: #c2cdd3;
+
+  position: relative;
+  isolation: isolate;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  padding-block-end: var(--market-details-after-space);
+
+  scroll-margin-block-start: calc(var(--app-header-height) + 1rem);
+
+  /*
+   * The outer section must remain transparent. Page background is visible
+   * around the contained details panel.
+   */
+  background: transparent;
+  color: var(--market-details-fg);
+
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+
+  color-scheme: dark;
+
+  &[hidden] {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Contained Details Surface
+   ========================================================================== */
+
+.market-details__container {
+  position: relative;
+  isolation: isolate;
+
+  display: block;
+
+  inline-size: min(
+    calc(100% - var(--market-details-container-space)),
+    var(--market-details-container-width)
+  );
+
+  max-inline-size: none;
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  margin-inline: auto;
+
+  /*
+   * Override the shared .container utility so this surface uses precisely the
+   * same width calculation as Market Summary and the bridge.
+   */
+  padding: 0;
+
+  overflow: hidden;
+
+  border-radius: 0 0 var(--market-details-radius) var(--market-details-radius);
+
+  background: var(--market-details-bg);
+  color: var(--market-details-fg);
+
+  box-shadow: var(--shadow-md);
+}
+
+/* ==========================================================================
+   Panel Stack
+   ========================================================================== */
+
+.market-details__container > [data-market-detail-panel] {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+.market-details__container > [data-market-detail-panel][hidden] {
+  display: none !important;
+}
+
+.market-details__container > [data-market-detail-panel].is-active {
+  display: block;
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.market-details[aria-busy="true"] {
+  cursor: progress;
+}
+
+.market-details[aria-busy="true"] .market-details__container {
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-details {
+    --market-details-border: rgb(255 255 255 / 0.62);
+    --market-details-border-hover: rgb(255 255 255 / 0.82);
+    --market-details-border-strong: #ffffff;
+
+    --market-panel-line: var(--market-details-border);
+
+    --color-border: var(--market-details-border);
+    --color-border-strong: var(--market-details-border-strong);
+  }
+
+  .market-details__container {
+    outline: 2px solid var(--market-details-border-strong);
+    outline-offset: -2px;
+
+    box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down(lg) {
+  .market-details {
+    --market-details-space: 1.25rem;
+    --market-details-gap: 1rem;
+    --market-details-after-space: 2rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down(sm) {
+  .market-details {
+    --market-details-container-space: var(
+      --market-overview-container-space,
+      1rem
+    );
+
+    --market-details-space: 1rem;
+    --market-details-space-sm: 0.875rem;
+    --market-details-gap: 0.75rem;
+    --market-details-radius: var(--radius-md);
+    --market-details-after-space: 1.5rem;
+  }
+
+  .market-details__container {
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+  }
+}
