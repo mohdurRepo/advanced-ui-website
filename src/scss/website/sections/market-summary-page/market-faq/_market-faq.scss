@@ -1,0 +1,225 @@
+@use "../../../../design-system/abstracts/" as *;
+
+/* ==========================================================================
+   Main Market FAQ
+   ========================================================================== */
+
+/*
+ * The shared .section class owns external spacing.
+ * The design-system accordion owns all disclosure styling and behavior.
+ */
+
+.market-faq {
+  --market-faq-bg: var(--color-bg);
+  --market-faq-fg: var(--color-text);
+
+  --market-faq-surface-bg: var(--color-surface-alt);
+  --market-faq-surface-border: var(--color-border);
+  --market-faq-surface-radius: var(--radius-xl);
+  --market-faq-surface-space: clamp(1rem, 2.5vw, 1.75rem);
+
+  position: relative;
+
+  min-inline-size: 0;
+
+  background: var(--market-faq-bg);
+  color: var(--market-faq-fg);
+}
+
+/* ==========================================================================
+   Surface
+   ========================================================================== */
+
+.market-faq__surface {
+  min-inline-size: 0;
+
+  padding: var(--market-faq-surface-space);
+
+  border: 1px solid var(--market-faq-surface-border);
+  border-radius: var(--market-faq-surface-radius);
+
+  background: var(--market-faq-surface-bg);
+  color: var(--market-faq-fg);
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.market-faq__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+
+  min-inline-size: 0;
+
+  margin-block-end: clamp(1.25rem, 2.5vw, 1.75rem);
+}
+
+/* ==========================================================================
+   Heading Icon
+   ========================================================================== */
+
+.market-faq__heading-icon {
+  --icon-size: 2.25rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Heading Content
+   ========================================================================== */
+
+.market-faq__heading-content {
+  display: grid;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.market-faq__title {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: clamp(var(--text-xl), 1rem + 1vw, var(--text-3xl));
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.market-faq__description {
+  max-inline-size: 48rem;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Design-System Accordion Placement
+   ========================================================================== */
+
+.market-faq__accordion {
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Direct Children
+   ========================================================================== */
+
+.market-faq__surface > *,
+.market-faq__header > *,
+.market-faq__accordion > * {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .market-faq {
+    --market-faq-surface-radius: var(--radius-lg);
+    --market-faq-surface-space: 0.75rem;
+  }
+
+  .market-faq__header {
+    gap: 0.625rem;
+
+    margin-block-end: 1.25rem;
+  }
+
+  .market-faq__heading-icon {
+    --icon-size: 1.625rem;
+  }
+
+  .market-faq__title {
+    font-size: var(--text-xl);
+  }
+
+  .market-faq__description {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .market-faq {
+    --market-faq-surface-bg: color-mix(
+      in oklab,
+      var(--color-surface-alt),
+      var(--color-bg) 8%
+    );
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-faq__surface {
+    border-width: 2px;
+    border-color: currentColor;
+
+    background: var(--color-bg);
+  }
+
+  .market-faq__heading-icon,
+  .market-faq__title,
+  .market-faq__description {
+    color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .market-faq {
+    background: transparent;
+    color: #000000;
+  }
+
+  .market-faq__surface {
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+  }
+
+  .market-faq__heading-icon,
+  .market-faq__title,
+  .market-faq__description {
+    color: #000000;
+  }
+}
