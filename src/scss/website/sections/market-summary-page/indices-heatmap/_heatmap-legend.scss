@@ -1,0 +1,327 @@
+@use "../../../../design-system/abstracts/" as *;
+
+/* ==========================================================================
+   Heatmap Legend
+   ========================================================================== */
+
+.heatmap-legend {
+  --heatmap-legend-direction: to right;
+
+  /*
+   * Initial TASI position:
+   *
+   * (-0.16 + 10) / 20 × 100 = 49.2%
+   */
+
+  --heatmap-marker-position: 49.2%;
+  --heatmap-marker-translate: -50%;
+
+  display: grid;
+  align-content: center;
+  gap: 0.625rem;
+
+  min-inline-size: 0;
+
+  padding: 1rem 1.125rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* ==========================================================================
+   Scale Labels
+   ========================================================================== */
+
+.heatmap-legend__labels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  align-items: center;
+
+  min-inline-size: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("semibold");
+  line-height: var(--line-height-tight);
+
+  font-variant-numeric: tabular-nums;
+}
+
+.heatmap-legend__labels > span {
+  min-inline-size: 0;
+
+  white-space: nowrap;
+
+  unicode-bidi: isolate;
+
+  &:first-child {
+    justify-self: start;
+
+    color: var(--color-danger);
+  }
+
+  &:nth-child(2) {
+    justify-self: center;
+  }
+
+  &:last-child {
+    justify-self: end;
+
+    color: var(--color-success);
+  }
+}
+
+/* ==========================================================================
+   Scale Track
+   ========================================================================== */
+
+.heatmap-legend__track {
+  position: relative;
+  isolation: isolate;
+
+  min-inline-size: 0;
+  block-size: 0.875rem;
+
+  margin-block: 0.25rem;
+
+  border: 1px solid color-mix(in oklab, var(--color-border), transparent 12%);
+
+  border-radius: var(--radius-pill);
+
+  background: linear-gradient(
+    var(--heatmap-legend-direction),
+    var(--heatmap-minus-100, #f63636) 0%,
+    var(--heatmap-minus-60, #fd4f53) 25%,
+    var(--heatmap-neutral, #9aa4ae) 50%,
+    var(--heatmap-plus-60, #00c973) 75%,
+    var(--heatmap-plus-100, #006d33) 100%
+  );
+
+  box-shadow:
+    inset 0 1px 2px rgb(0 0 0 / 0.14),
+    inset 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+
+/* ==========================================================================
+   Neutral Center
+   ========================================================================== */
+
+.heatmap-legend__track::after {
+  content: "";
+
+  position: absolute;
+
+  inset-block: -0.25rem;
+  inset-inline-start: 50%;
+  z-index: 1;
+
+  inline-size: 1px;
+
+  background: color-mix(in oklab, var(--color-heading), transparent 40%);
+
+  transform: translateX(var(--heatmap-marker-translate));
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Dynamic Marker
+   ========================================================================== */
+
+.heatmap-legend__marker {
+  position: absolute;
+
+  inset-block-start: 50%;
+  inset-inline-start: var(--heatmap-marker-position);
+  z-index: 2;
+
+  inline-size: 1rem;
+  block-size: 1rem;
+
+  border: 0.1875rem solid var(--color-surface);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-heading);
+
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--color-heading), transparent 20%),
+    0 0.25rem 0.625rem rgb(0 0 0 / 0.24);
+
+  transform: translate(var(--heatmap-marker-translate), -50%);
+
+  pointer-events: none;
+
+  @include transition((inset-inline-start, background-color), normal);
+}
+
+/* ==========================================================================
+   Marker Pointer
+   ========================================================================== */
+
+.heatmap-legend__marker::after {
+  content: "";
+
+  position: absolute;
+
+  inset-inline-start: 50%;
+  inset-block-start: calc(100% + 0.25rem);
+
+  inline-size: 0.125rem;
+  block-size: 0.375rem;
+
+  border-radius: var(--radius-pill);
+
+  background: var(--color-heading);
+
+  transform: translateX(var(--heatmap-marker-translate));
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .heatmap-legend {
+    --heatmap-legend-direction: to left;
+    --heatmap-marker-translate: 50%;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .heatmap-legend {
+    gap: 0.5rem;
+
+    padding: 0.875rem;
+  }
+
+  .heatmap-legend__labels {
+    font-size: 0.6875rem;
+  }
+
+  .heatmap-legend__track {
+    block-size: 0.75rem;
+  }
+
+  .heatmap-legend__marker {
+    inline-size: 0.875rem;
+    block-size: 0.875rem;
+
+    border-width: 0.15625rem;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .heatmap-legend__track {
+    box-shadow:
+      inset 0 1px 2px rgb(0 0 0 / 0.32),
+      inset 0 0 0 1px rgb(255 255 255 / 0.08);
+  }
+
+  .heatmap-legend__marker {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--color-heading), transparent 20%),
+      0 0.25rem 0.75rem rgb(0 0 0 / 0.4);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .heatmap-legend {
+    border-width: 2px;
+    border-color: currentColor;
+
+    background: var(--color-bg);
+  }
+
+  .heatmap-legend__labels,
+  .heatmap-legend__labels > span {
+    color: currentColor;
+  }
+
+  .heatmap-legend__track {
+    border: 2px solid currentColor;
+
+    background: currentColor;
+
+    box-shadow: none;
+  }
+
+  .heatmap-legend__track::after {
+    inline-size: 2px;
+
+    background: var(--color-bg);
+  }
+
+  .heatmap-legend__marker {
+    border: 0.1875rem solid var(--color-bg);
+
+    background: currentColor;
+
+    box-shadow: 0 0 0 2px currentColor;
+  }
+
+  .heatmap-legend__marker::after {
+    background: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .heatmap-legend__marker {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .heatmap-legend {
+    border-color: #000000;
+
+    background: transparent;
+    color: #000000;
+  }
+
+  .heatmap-legend__labels,
+  .heatmap-legend__labels > span {
+    color: #000000;
+  }
+
+  .heatmap-legend__track {
+    border-color: #000000;
+
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .heatmap-legend__marker {
+    border-color: #ffffff;
+
+    background: #000000;
+
+    box-shadow: 0 0 0 1px #000000;
+  }
+}

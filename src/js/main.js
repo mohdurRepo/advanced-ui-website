@@ -14,6 +14,7 @@ import { initModals } from "./components/modal";
 import { initToasts } from "./components/toast";
 import { initHomeSpotlight } from "./components/home-spotlight";
 import { initExchangePerformance } from "./components/exchange-performance";
+import { initIndicesHeatmap } from "./components/market-summary";
 
 import { initMarketOverview } from "./components/market-overview";
 
@@ -58,7 +59,7 @@ function initApp() {
    * Market components
    */
   initMarketOverview();
-
+  initIndicesHeatmap();
   /*
    * Homepage introduction components
    */

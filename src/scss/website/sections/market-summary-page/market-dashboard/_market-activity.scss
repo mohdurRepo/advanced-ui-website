@@ -1,0 +1,381 @@
+@use "../../../../design-system/abstracts/" as *;
+
+/* ==========================================================================
+   Today’s Market Activity
+   ========================================================================== */
+
+.market-activity {
+  --market-activity-bg: var(--color-surface);
+  --market-activity-fg: var(--color-text);
+  --market-activity-muted: var(--color-text-muted);
+  --market-activity-border: var(--color-border);
+
+  --market-activity-radius: var(--radius-xl);
+  --market-activity-shadow: var(--shadow-md);
+  --market-activity-space: clamp(1rem, 2vw, 1.5rem);
+
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  overflow: hidden;
+
+  border: 1px solid var(--market-activity-border);
+  border-radius: var(--market-activity-radius);
+
+  background: var(--market-activity-bg);
+  color: var(--market-activity-fg);
+
+  box-shadow: var(--market-activity-shadow);
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.market-activity__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  min-inline-size: 0;
+
+  padding: var(--market-activity-space);
+
+  border-block-end: 1px solid var(--market-activity-border);
+
+  background: transparent;
+}
+
+/* ==========================================================================
+   Heading Icon
+   ========================================================================== */
+
+.market-activity__heading-icon {
+  --icon-size: 2rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.market-activity__title {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: clamp(var(--text-xl), 1rem + 0.8vw, var(--text-2xl));
+  font-weight: font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Tabs
+   ========================================================================== */
+
+.market-activity__tabs {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Navigation
+   ========================================================================== */
+
+.market-activity__nav {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(6rem, 1fr));
+
+  min-inline-size: 0;
+
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+  border-block-end: 1px solid var(--market-activity-border);
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+  scroll-snap-type: inline proximity;
+
+  touch-action: pan-x;
+
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Navigation Tab
+   ========================================================================== */
+
+.market-activity {
+  .market-activity__tab {
+    position: relative;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-inline-size: 6rem;
+    min-block-size: 3.25rem;
+
+    padding: 0.75rem 0.625rem;
+
+    border: 0;
+    border-radius: 0;
+
+    background: transparent;
+    color: var(--market-activity-muted);
+
+    font: inherit;
+    font-size: var(--text-xs);
+    font-weight: font-weight("semibold");
+    line-height: var(--line-height-tight);
+
+    text-align: center;
+    white-space: nowrap;
+
+    cursor: pointer;
+    scroll-snap-align: start;
+
+    @include transition((background-color, color), fast);
+
+    &::after {
+      content: "";
+
+      position: absolute;
+
+      inset-inline: 0.75rem;
+      inset-block-end: -1px;
+
+      block-size: 0.1875rem;
+
+      border-radius: var(--radius-pill);
+
+      background: var(--color-primary);
+
+      opacity: 0;
+
+      transform: scaleX(0.55);
+      transform-origin: center;
+
+      @include transition((opacity, transform), fast);
+    }
+
+    &:hover:not(.active):not([aria-selected="true"]):not(:disabled) {
+      background: color-mix(in oklab, var(--color-primary), transparent 96%);
+
+      color: var(--color-heading);
+    }
+
+    &:focus {
+      outline: none;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+
+    &.active,
+    &[aria-selected="true"] {
+      background: color-mix(in oklab, var(--color-primary), transparent 94%);
+
+      color: var(--color-heading);
+
+      font-weight: font-weight("bold");
+
+      &::after {
+        opacity: 1;
+
+        transform: scaleX(1);
+      }
+    }
+
+    &:disabled,
+    &[aria-disabled="true"] {
+      opacity: 0.45;
+
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+  }
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.market-activity__content {
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  padding: 0;
+}
+
+/* ==========================================================================
+   Panel
+   ========================================================================== */
+
+.market-activity__panel {
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  &[hidden] {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .market-activity {
+    --market-activity-space: 1rem;
+  }
+
+  .market-activity__nav {
+    grid-template-columns: repeat(4, minmax(7rem, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .market-activity {
+    --market-activity-radius: var(--radius-lg);
+    --market-activity-space: 0.875rem;
+  }
+
+  .market-activity__header {
+    gap: 0.625rem;
+  }
+
+  .market-activity__heading-icon {
+    --icon-size: 1.5rem;
+  }
+
+  .market-activity__title {
+    font-size: var(--text-lg);
+  }
+
+  .market-activity__nav {
+    grid-template-columns: repeat(4, minmax(6.5rem, 1fr));
+  }
+
+  .market-activity {
+    .market-activity__tab {
+      min-inline-size: 6.5rem;
+      min-block-size: 3rem;
+
+      padding-inline: 0.5rem;
+
+      font-size: 0.6875rem;
+    }
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .market-activity {
+    --market-activity-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-activity {
+    border-width: 2px;
+
+    box-shadow: none;
+  }
+
+  .market-activity__header,
+  .market-activity__nav {
+    border-block-end-width: 2px;
+  }
+
+  .market-activity {
+    .market-activity__tab::after {
+      block-size: 0.25rem;
+    }
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .market-activity {
+    .market-activity__tab,
+    .market-activity__tab::after {
+      transition: none;
+    }
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .market-activity {
+    break-inside: avoid;
+
+    border-color: #000000;
+
+    background: transparent;
+    color: #000000;
+
+    box-shadow: none;
+  }
+
+  .market-activity__heading-icon,
+  .market-activity__title {
+    color: #000000;
+  }
+
+  .market-activity__nav {
+    display: none;
+  }
+
+  .market-activity__panel[hidden] {
+    display: none !important;
+  }
+}

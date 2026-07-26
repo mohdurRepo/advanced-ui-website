@@ -1,0 +1,195 @@
+@use "../../../../design-system/abstracts/" as *;
+
+/* ==========================================================================
+   Main Market Dashboard
+   ========================================================================== */
+
+/*
+ * The shared .section class owns the external vertical page spacing.
+ *
+ * This component owns:
+ * - The dashboard surface
+ * - The chart and activity grid
+ * - Responsive column behavior
+ */
+
+.market-dashboard {
+  --market-dashboard-bg: var(--color-bg);
+  --market-dashboard-fg: var(--color-text);
+
+  --market-dashboard-surface-bg: var(--color-surface-alt);
+  --market-dashboard-surface-border: var(--color-border);
+  --market-dashboard-surface-radius: var(--radius-xl);
+  --market-dashboard-surface-space: clamp(1rem, 2vw, 1.5rem);
+
+  --market-dashboard-gap: clamp(1.5rem, 3vw, 2.5rem);
+
+  position: relative;
+
+  min-inline-size: 0;
+
+  background: var(--market-dashboard-bg);
+  color: var(--market-dashboard-fg);
+}
+
+/* ==========================================================================
+   Dashboard Surface
+   ========================================================================== */
+
+.market-dashboard__surface {
+  position: relative;
+
+  min-inline-size: 0;
+
+  padding: var(--market-dashboard-surface-space);
+
+  overflow: visible;
+
+  border: 1px solid var(--market-dashboard-surface-border);
+  border-radius: var(--market-dashboard-surface-radius);
+
+  background: var(--market-dashboard-surface-bg);
+  color: var(--market-dashboard-fg);
+}
+
+/* ==========================================================================
+   Grid
+   ========================================================================== */
+
+.market-dashboard__grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 3fr)
+    minmax(0, 2fr);
+  align-items: start;
+  gap: var(--market-dashboard-gap);
+
+  min-inline-size: 0;
+}
+
+/*
+ * Either region may be removed without leaving an unused grid column.
+ */
+
+.market-dashboard__grid > :only-child {
+  grid-column: 1 / -1;
+}
+
+/* ==========================================================================
+   Primary Region
+   ========================================================================== */
+
+.market-dashboard__primary {
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Secondary Region
+   ========================================================================== */
+
+.market-dashboard__secondary {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Direct Children
+   ========================================================================== */
+
+.market-dashboard__surface > *,
+.market-dashboard__grid > *,
+.market-dashboard__primary > *,
+.market-dashboard__secondary > * {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .market-dashboard {
+    --market-dashboard-gap: 2rem;
+  }
+
+  .market-dashboard__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .market-dashboard {
+    --market-dashboard-surface-space: 1rem;
+    --market-dashboard-gap: 1.75rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .market-dashboard {
+    --market-dashboard-surface-radius: var(--radius-lg);
+    --market-dashboard-surface-space: 0.75rem;
+    --market-dashboard-gap: 1.5rem;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .market-dashboard {
+    --market-dashboard-surface-bg: color-mix(
+      in oklab,
+      var(--color-surface-alt),
+      var(--color-bg) 8%
+    );
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-dashboard__surface {
+    border-width: 2px;
+    border-color: currentColor;
+
+    background: var(--color-bg);
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .market-dashboard {
+    background: transparent;
+    color: #000000;
+  }
+
+  .market-dashboard__surface {
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+  }
+
+  .market-dashboard__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

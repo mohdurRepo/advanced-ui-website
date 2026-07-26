@@ -1,0 +1,414 @@
+@use "../../../../design-system/abstracts/" as *;
+
+/* ==========================================================================
+   Main Market Summary Hero
+   ========================================================================== */
+
+/*
+ * The modifier increases specificity because .market-summary is also used
+ * inside the shared Market Overview component.
+ *
+ * This hero variant must remain transparent so the shared .hero-section
+ * gradient is the only visible background.
+ */
+
+.market-summary.market-summary--hero {
+  --market-summary-hero-fg: var(--page-hero-fg, #ffffff);
+  --market-summary-hero-muted: var(--page-hero-muted, rgb(255 255 255 / 0.74));
+
+  --market-summary-hero-content-width: 48rem;
+  --market-summary-hero-footer-gap: clamp(1.5rem, 3vw, 3rem);
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  margin: 0;
+  padding: 0;
+
+  overflow: visible;
+
+  border: 0;
+  border-radius: 0;
+
+  background: transparent;
+  color: var(--market-summary-hero-fg);
+
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.market-summary.market-summary--hero {
+  .market-summary__header {
+    display: grid;
+    justify-items: start;
+    gap: 1rem;
+
+    inline-size: 100%;
+    max-inline-size: var(--market-summary-hero-content-width);
+    min-inline-size: 0;
+
+    margin: 0;
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+    color: inherit;
+
+    box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   Brand
+   ========================================================================== */
+
+.market-summary.market-summary--hero {
+  .market-summary__brand {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.875rem, 2vw, 1.25rem);
+
+    min-inline-size: 0;
+
+    margin: 0;
+    padding: 0;
+
+    background: transparent;
+  }
+
+  .market-summary__brand-icon {
+    --icon-size: clamp(2.75rem, 5vw, 4.5rem);
+
+    display: inline-grid;
+    place-items: center;
+
+    flex: 0 0 auto;
+
+    color: var(--market-summary-hero-fg);
+  }
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.market-summary.market-summary--hero {
+  .market-summary__title {
+    min-inline-size: 0;
+
+    margin: 0;
+
+    color: var(--market-summary-hero-fg);
+
+    font-size: clamp(2.25rem, 1.5rem + 2.25vw, 4rem);
+    font-weight: font-weight("heavy");
+    line-height: 0.98;
+
+    letter-spacing: -0.035em;
+
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.market-summary.market-summary--hero {
+  .market-summary__description {
+    max-inline-size: 42rem;
+
+    margin: 0;
+
+    color: var(--market-summary-hero-muted);
+
+    font-size: clamp(var(--text-base), 0.95rem + 0.3vw, var(--text-lg));
+    font-weight: font-weight("medium");
+    line-height: var(--line-height-relaxed);
+
+    text-wrap: pretty;
+  }
+}
+
+/* ==========================================================================
+   Index and Actions
+   ========================================================================== */
+
+.market-summary.market-summary--hero {
+  .market-summary__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1.5rem var(--market-summary-hero-footer-gap);
+
+    inline-size: 100%;
+    min-inline-size: 0;
+
+    margin-block-start: clamp(1.5rem, 3vw, 2.25rem);
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+    color: inherit;
+
+    box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   Market Index
+   ========================================================================== */
+
+.market-summary.market-summary--hero {
+  .market-summary__index {
+    justify-items: start;
+
+    min-inline-size: 0;
+
+    margin: 0;
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+    color: var(--market-summary-hero-fg);
+
+    box-shadow: none;
+  }
+
+  .market-summary__index-label {
+    margin: 0 0 0.125rem;
+
+    color: var(--market-summary-hero-muted);
+
+    font-size: var(--text-sm);
+    font-weight: font-weight("semibold");
+    line-height: var(--line-height-tight);
+
+    letter-spacing: 0;
+
+    white-space: normal;
+  }
+
+  .market-summary__index-symbol {
+    color: var(--market-summary-hero-fg);
+
+    font-weight: font-weight("bold");
+
+    white-space: nowrap;
+  }
+
+  .instrument-price__value {
+    font-size: clamp(2.5rem, 4vw, 3.75rem);
+  }
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.market-summary.market-summary--hero {
+  .market-summary__actions {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.75rem;
+
+    min-inline-size: 0;
+
+    margin: 0;
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+
+    box-shadow: none;
+  }
+
+  .market-summary__action {
+    min-inline-size: 9rem;
+    min-block-size: 2.75rem;
+
+    justify-content: center;
+    gap: 0.5rem;
+
+    white-space: nowrap;
+
+    .has-icon {
+      --icon-size: 0.625rem;
+
+      flex: 0 0 auto;
+
+      @include transition(transform, fast);
+    }
+
+    &:hover {
+      .has-icon {
+        transform: translateX(0.125rem);
+      }
+    }
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .market-summary.market-summary--hero {
+    .market-summary__title {
+      letter-spacing: 0;
+    }
+
+    .market-summary__action:hover {
+      .has-icon {
+        transform: translateX(-0.125rem);
+      }
+    }
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .market-summary.market-summary--hero {
+    .market-summary__footer {
+      align-items: flex-start;
+    }
+
+    .market-summary__actions {
+      inline-size: 100%;
+    }
+
+    .market-summary__action {
+      flex: 1 1 0;
+
+      min-inline-size: 0;
+    }
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .market-summary.market-summary--hero {
+    .market-summary__header {
+      gap: 0.875rem;
+    }
+
+    .market-summary__brand {
+      gap: 0.75rem;
+    }
+
+    .market-summary__brand-icon {
+      --icon-size: 2.75rem;
+    }
+
+    .market-summary__title {
+      font-size: var(--text-3xl);
+
+      letter-spacing: -0.025em;
+    }
+
+    .market-summary__description {
+      font-size: var(--text-sm);
+    }
+
+    .market-summary__footer {
+      display: grid;
+      gap: 1.25rem;
+
+      margin-block-start: 1.25rem;
+    }
+
+    .market-summary__index-label {
+      font-size: var(--text-xs);
+    }
+
+    .market-summary__actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.5rem;
+
+      inline-size: 100%;
+    }
+
+    .market-summary__action {
+      inline-size: 100%;
+      min-inline-size: 0;
+      min-block-size: 2.75rem;
+
+      padding-inline: 0.625rem;
+
+      font-size: var(--text-xs);
+    }
+  }
+}
+
+/* ==========================================================================
+   Extra Small Screens
+   ========================================================================== */
+
+@media (max-width: 360px) {
+  .market-summary.market-summary--hero {
+    .market-summary__actions {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .market-summary__action {
+      padding-inline: 0.75rem;
+    }
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-summary.market-summary--hero {
+    .market-summary__brand-icon,
+    .market-summary__title,
+    .market-summary__description,
+    .market-summary__index-label,
+    .market-summary__index-symbol {
+      color: currentColor;
+    }
+
+    .market-summary__action {
+      border-width: 2px;
+    }
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .market-summary.market-summary--hero {
+    .market-summary__action .has-icon {
+      transition: none;
+    }
+
+    .market-summary__action:hover .has-icon {
+      transform: none;
+    }
+  }
+}

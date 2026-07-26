@@ -1,0 +1,430 @@
+@use "../../../../design-system/abstracts/" as *;
+
+/* ==========================================================================
+   Heatmap State Tokens — Light Theme
+   ========================================================================== */
+
+.indices-heatmap {
+  --heatmap-direction: right;
+
+  --heatmap-state-fg: var(--color-heading);
+  --heatmap-state-muted: var(--color-text-muted);
+
+  --heatmap-state-positive: var(--color-success);
+  --heatmap-state-negative: var(--color-danger);
+  --heatmap-state-neutral: var(--color-text-muted);
+
+  /* Neutral */
+
+  --heatmap-neutral: rgb(137 149 160);
+
+  --heatmap-neutral-bg: linear-gradient(
+    to var(--heatmap-direction),
+    rgb(230 234 238 / 0.96) 60%,
+    rgb(230 234 238 / 0) 100%
+  );
+
+  /* Negative 0% to -2% */
+
+  --heatmap-minus-20: rgb(253 189 192);
+
+  --heatmap-minus-20-bg: linear-gradient(
+    to var(--heatmap-direction),
+    rgb(255 233 234 / 1) 60%,
+    rgb(255 233 234 / 0) 100%
+  );
+
+  /* Negative -2% to -4% */
+
+  --heatmap-minus-40: rgb(255 141 144);
+
+  --heatmap-minus-40-bg: linear-gradient(
+    to var(--heatmap-direction),
+    rgb(255 191 193 / 1) 60%,
+    rgb(255 191 193 / 0) 100%
+  );
+
+  /* Negative -4% to -6% */
+
+  --heatmap-minus-60: rgb(253 79 83);
+
+  --heatmap-minus-60-bg: linear-gradient(
+    to var(--heatmap-direction),
+    rgb(255 148 151 / 1) 60%,
+    rgb(255 148 151 / 0) 100%
+  );
+
+  /* Negative -6% to -8% */
+
+  --heatmap-minus-80: rgb(255 102 108);
+
+  --heatmap-minus-80-bg: linear-gradient(
+    to var(--heatmap-direction),
+    rgb(255 102 108 / 1) 60%,
+    rgb(255 102 108 / 0) 100%
+  );
+
+  /* Negative -8% to -10% */
+
+  --heatmap-minus-100: rgb(255 0 0);
+
+  --heatmap-minus-100-bg: linear-gradient(
+    to var(--heatmap-direction),
+    rgb(246 54 54 / 1) 60%,
+    rgb(246 54 54 / 0) 100%
+  );
+
+  /* Positive 0% to +2% */
+
+  --heatmap-plus-20: rgb(187 255 222);
+
+  --heatmap-plus-20-bg: linear-gradient(
+    to var(--heatmap-direction),
+    rgb(224 249 237 / 1) 60%,
+    rgb(224 249 237 / 0) 100%
+  );
+
+  /* Positive +2% to +4% */
+
+  --heatmap-plus-40: rgb(0 237 130);
+
+  --heatmap-plus-40-bg: linear-gradient(
+    to var(--heatmap-direction),
+    rgb(163 236 203 / 1) 60%,
+    rgb(163 236 203 / 0) 100%
+  );
+
+  /* Positive +4% to +6% */
+
+  --heatmap-plus-60: rgb(0 201 115);
+
+  --heatmap-plus-60-bg: linear-gradient(
+    to var(--heatmap-direction),
+    rgb(92 223 167 / 1) 60%,
+    rgb(92 223 167 / 0) 100%
+  );
+
+  /* Positive +6% to +8% */
+
+  --heatmap-plus-80: rgb(0 163 102);
+
+  --heatmap-plus-80-bg: linear-gradient(
+    to var(--heatmap-direction),
+    rgb(0 210 131 / 1) 60%,
+    rgb(0 210 131 / 0) 100%
+  );
+
+  /* Positive +8% to +10% */
+
+  --heatmap-plus-100: rgb(0 109 51);
+
+  --heatmap-plus-100-bg: linear-gradient(
+    to var(--heatmap-direction),
+    rgb(5 185 89 / 1) 60%,
+    rgb(5 185 89 / 0) 100%
+  );
+}
+
+/* ==========================================================================
+   Shared State Typography
+   ========================================================================== */
+
+.heatmap-item:is(
+  .neutral,
+  .minus2,
+  .minus4,
+  .minus6,
+  .minus8,
+  .minus10,
+  .plus2,
+  .plus4,
+  .plus6,
+  .plus8,
+  .plus10
+) {
+  --heatmap-item-fg: var(--heatmap-state-fg);
+  --heatmap-item-muted: var(--heatmap-state-muted);
+
+  --heatmap-item-positive: var(--heatmap-state-positive);
+  --heatmap-item-negative: var(--heatmap-state-negative);
+  --heatmap-item-neutral: var(--heatmap-state-neutral);
+}
+
+/* ==========================================================================
+   Neutral
+   ========================================================================== */
+
+.heatmap-item.neutral {
+  --heatmap-item-background: var(--heatmap-neutral-bg);
+  --heatmap-item-accent: var(--heatmap-neutral);
+}
+
+/* ==========================================================================
+   Negative States
+   ========================================================================== */
+
+.heatmap-item.minus2 {
+  --heatmap-item-background: var(--heatmap-minus-20-bg);
+  --heatmap-item-accent: var(--heatmap-minus-20);
+}
+
+.heatmap-item.minus4 {
+  --heatmap-item-background: var(--heatmap-minus-40-bg);
+  --heatmap-item-accent: var(--heatmap-minus-40);
+}
+
+.heatmap-item.minus6 {
+  --heatmap-item-background: var(--heatmap-minus-60-bg);
+  --heatmap-item-accent: var(--heatmap-minus-60);
+}
+
+.heatmap-item.minus8 {
+  --heatmap-item-background: var(--heatmap-minus-80-bg);
+  --heatmap-item-accent: var(--heatmap-minus-80);
+}
+
+.heatmap-item.minus10 {
+  --heatmap-item-background: var(--heatmap-minus-100-bg);
+  --heatmap-item-accent: var(--heatmap-minus-100);
+}
+
+/* ==========================================================================
+   Positive States
+   ========================================================================== */
+
+.heatmap-item.plus2 {
+  --heatmap-item-background: var(--heatmap-plus-20-bg);
+  --heatmap-item-accent: var(--heatmap-plus-20);
+}
+
+.heatmap-item.plus4 {
+  --heatmap-item-background: var(--heatmap-plus-40-bg);
+  --heatmap-item-accent: var(--heatmap-plus-40);
+}
+
+.heatmap-item.plus6 {
+  --heatmap-item-background: var(--heatmap-plus-60-bg);
+  --heatmap-item-accent: var(--heatmap-plus-60);
+}
+
+.heatmap-item.plus8 {
+  --heatmap-item-background: var(--heatmap-plus-80-bg);
+  --heatmap-item-accent: var(--heatmap-plus-80);
+}
+
+.heatmap-item.plus10 {
+  --heatmap-item-background: var(--heatmap-plus-100-bg);
+  --heatmap-item-accent: var(--heatmap-plus-100);
+}
+
+/* ==========================================================================
+   RTL Gradient Direction
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .indices-heatmap {
+    --heatmap-direction: left;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme Tokens
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .indices-heatmap {
+    --heatmap-state-fg: #ffffff;
+    --heatmap-state-muted: rgb(255 255 255 / 0.76);
+
+    --heatmap-state-positive: rgb(65 245 161);
+    --heatmap-state-negative: rgb(255 104 112);
+    --heatmap-state-neutral: rgb(216 224 230);
+
+    /* Neutral */
+
+    --heatmap-neutral: rgb(91 108 119);
+
+    --heatmap-neutral-bg: linear-gradient(
+      to var(--heatmap-direction),
+      rgb(49 64 74 / 1) 60%,
+      rgb(49 64 74 / 0) 100%
+    );
+
+    /* Negative 0% to -2% */
+
+    --heatmap-minus-20: rgb(109 0 4);
+
+    --heatmap-minus-20-bg: linear-gradient(
+      to var(--heatmap-direction),
+      rgb(63 3 5 / 1) 60%,
+      rgb(63 3 5 / 0) 100%
+    );
+
+    /* Negative -2% to -4% */
+
+    --heatmap-minus-40: rgb(153 8 15);
+
+    --heatmap-minus-40-bg: linear-gradient(
+      to var(--heatmap-direction),
+      rgb(89 4 8 / 1) 60%,
+      rgb(89 4 8 / 0) 100%
+    );
+
+    /* Negative -4% to -6% */
+
+    --heatmap-minus-60: rgb(179 0 8);
+
+    --heatmap-minus-60-bg: linear-gradient(
+      to var(--heatmap-direction),
+      rgb(122 10 15 / 1) 60%,
+      rgb(122 10 15 / 0) 100%
+    );
+
+    /* Negative -6% to -8% */
+
+    --heatmap-minus-80: rgb(213 16 25);
+
+    --heatmap-minus-80-bg: linear-gradient(
+      to var(--heatmap-direction),
+      rgb(142 10 16 / 1) 60%,
+      rgb(142 10 16 / 0) 100%
+    );
+
+    /* Negative -8% to -10% */
+
+    --heatmap-minus-100: rgb(255 0 12);
+
+    --heatmap-minus-100-bg: linear-gradient(
+      to var(--heatmap-direction),
+      rgb(214 1 11 / 1) 60%,
+      rgb(214 1 11 / 0) 100%
+    );
+
+    /* Positive 0% to +2% */
+
+    --heatmap-plus-20: rgb(0 91 46);
+
+    --heatmap-plus-20-bg: linear-gradient(
+      to var(--heatmap-direction),
+      rgb(1 56 29 / 1) 60%,
+      rgb(1 56 29 / 0) 100%
+    );
+
+    /* Positive +2% to +4% */
+
+    --heatmap-plus-40: rgb(0 117 60);
+
+    --heatmap-plus-40-bg: linear-gradient(
+      to var(--heatmap-direction),
+      rgb(0 72 37 / 1) 60%,
+      rgb(0 72 37 / 0) 100%
+    );
+
+    /* Positive +4% to +6% */
+
+    --heatmap-plus-60: rgb(0 141 73);
+
+    --heatmap-plus-60-bg: linear-gradient(
+      to var(--heatmap-direction),
+      rgb(0 93 48 / 1) 60%,
+      rgb(0 93 48 / 0) 100%
+    );
+
+    /* Positive +6% to +8% */
+
+    --heatmap-plus-80: rgb(0 195 102);
+
+    --heatmap-plus-80-bg: linear-gradient(
+      to var(--heatmap-direction),
+      rgb(0 128 67 / 1) 60%,
+      rgb(0 128 67 / 0) 100%
+    );
+
+    /* Positive +8% to +10% */
+
+    --heatmap-plus-100: rgb(0 255 133);
+
+    --heatmap-plus-100-bg: linear-gradient(
+      to var(--heatmap-direction),
+      rgb(0 161 84 / 1) 60%,
+      rgb(0 161 84 / 0) 100%
+    );
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .indices-heatmap {
+    --heatmap-neutral: currentColor;
+    --heatmap-minus-20: currentColor;
+    --heatmap-minus-40: currentColor;
+    --heatmap-minus-60: currentColor;
+    --heatmap-minus-80: currentColor;
+    --heatmap-minus-100: currentColor;
+    --heatmap-plus-20: currentColor;
+    --heatmap-plus-40: currentColor;
+    --heatmap-plus-60: currentColor;
+    --heatmap-plus-80: currentColor;
+    --heatmap-plus-100: currentColor;
+  }
+
+  .heatmap-item:is(
+    .neutral,
+    .minus2,
+    .minus4,
+    .minus6,
+    .minus8,
+    .minus10,
+    .plus2,
+    .plus4,
+    .plus6,
+    .plus8,
+    .plus10
+  ) {
+    --heatmap-item-background: var(--color-bg);
+    --heatmap-item-accent: currentColor;
+
+    --heatmap-item-fg: currentColor;
+    --heatmap-item-muted: currentColor;
+
+    --heatmap-item-positive: currentColor;
+    --heatmap-item-negative: currentColor;
+    --heatmap-item-neutral: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .heatmap-item:is(
+    .neutral,
+    .minus2,
+    .minus4,
+    .minus6,
+    .minus8,
+    .minus10,
+    .plus2,
+    .plus4,
+    .plus6,
+    .plus8,
+    .plus10
+  ) {
+    --heatmap-item-background: transparent;
+    --heatmap-item-accent: #000000;
+
+    --heatmap-item-fg: #000000;
+    --heatmap-item-muted: #000000;
+
+    --heatmap-item-positive: #000000;
+    --heatmap-item-negative: #000000;
+    --heatmap-item-neutral: #000000;
+
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
