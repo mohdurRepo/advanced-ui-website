@@ -30,7 +30,6 @@
   overflow: visible;
 
   border: 1px solid var(--chart-notes-border);
-  border-radius: var(--radius-lg);
 
   background: var(--chart-notes-bg);
   color: var(--chart-notes-fg);
@@ -177,7 +176,6 @@
     margin-block-start: 0.875rem;
     padding: 0.875rem;
 
-    border-radius: var(--radius-md);
   }
 
   .chart-notes__list {

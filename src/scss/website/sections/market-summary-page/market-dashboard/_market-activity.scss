@@ -10,7 +10,6 @@
   --market-activity-muted: var(--color-text-muted);
   --market-activity-border: var(--color-border);
 
-  --market-activity-radius: var(--radius-xl);
   --market-activity-shadow: var(--shadow-md);
   --market-activity-space: clamp(1rem, 2vw, 1.5rem);
 
@@ -23,7 +22,6 @@
   overflow: hidden;
 
   border: 1px solid var(--market-activity-border);
-  border-radius: var(--market-activity-radius);
 
   background: var(--market-activity-bg);
   color: var(--market-activity-fg);
@@ -272,7 +270,6 @@
 
 @include respond-down(sm) {
   .market-activity {
-    --market-activity-radius: var(--radius-lg);
     --market-activity-space: 0.875rem;
   }
 

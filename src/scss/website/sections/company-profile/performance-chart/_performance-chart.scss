@@ -9,7 +9,6 @@
   --performance-chart-fg: var(--color-text);
   --performance-chart-border: var(--color-border);
 
-  --performance-chart-radius: var(--radius-xl);
   --performance-chart-shadow: var(--shadow-md);
 
   --performance-chart-space: clamp(1rem, 2vw, 1.5rem);
@@ -24,7 +23,6 @@
   overflow: visible;
 
   border: 1px solid var(--performance-chart-border);
-  border-radius: var(--performance-chart-radius);
 
   background: var(--performance-chart-bg);
   color: var(--performance-chart-fg);
@@ -76,7 +74,6 @@
   overflow: hidden;
 
   border: 1px solid var(--performance-chart-border);
-  border-radius: var(--radius-lg);
 
   background:
     linear-gradient(
@@ -185,9 +182,7 @@
     --performance-chart-height: 18rem;
   }
 
-  .chart-surface {
-    border-radius: var(--radius-md);
-  }
+
 }
 
 /* ==========================================================================

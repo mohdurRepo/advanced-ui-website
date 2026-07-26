@@ -86,7 +86,7 @@
   }
 
   .market-summary__brand-icon {
-    --icon-size: clamp(2.75rem, 5vw, 4.5rem);
+    --icon-size: clamp(2.75rem, 5vw, 3.5rem);
 
     display: inline-grid;
     place-items: center;
@@ -109,7 +109,6 @@
 
     color: var(--market-summary-hero-fg);
 
-    font-size: clamp(2.25rem, 1.5rem + 2.25vw, 4rem);
     font-weight: font-weight("heavy");
     line-height: 0.98;
 

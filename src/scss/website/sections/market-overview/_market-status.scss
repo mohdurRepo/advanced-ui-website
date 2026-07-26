@@ -111,6 +111,9 @@
   --market-status-color: var(--market-overview-danger, #ff7186);
 
   --market-status-glow: rgb(255 113 134 / 0.38);
+
+  --market-status-dot-animation: market-status-dot 2.2s ease-in-out infinite;
+  --market-status-halo-animation: market-status-halo 2.2s ease-out infinite;
 }
 
 /* ==========================================================================
@@ -221,7 +224,7 @@
   }
 
   50% {
-    opacity: 0.88;
+    opacity: 1;
 
     transform: translate(-50%, -50%) scale(1.12);
   }

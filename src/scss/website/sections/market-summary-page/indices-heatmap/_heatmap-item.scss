@@ -34,7 +34,6 @@
 
   border: 1px solid var(--heatmap-item-border);
   border-inline-start: 0.3125rem solid var(--heatmap-item-accent);
-  border-radius: var(--radius-lg);
 
   background: var(--heatmap-item-background);
   color: var(--heatmap-item-fg);
@@ -223,7 +222,6 @@
     padding: 0.875rem;
 
     border-inline-start-width: 0.25rem;
-    border-radius: var(--radius-md);
   }
 
   .heatmap-item__name {

@@ -29,7 +29,6 @@
   block-size: 100%;
 
   border: 1px solid var(--home-event-slider-border);
-  border-radius: var(--radius-lg);
 
   background: var(--home-event-slider-bg);
   color: var(--home-event-slider-fg);
@@ -451,7 +450,6 @@ html[dir="rtl"] {
   .home-event-slider {
     --home-event-slider-min-height: 21rem;
 
-    border-radius: var(--radius-md);
   }
 
   .home-event-slider__overlay {

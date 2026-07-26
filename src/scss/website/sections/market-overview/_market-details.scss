@@ -173,8 +173,6 @@
 
   overflow: hidden;
 
-  border-radius: 0 0 var(--market-details-radius) var(--market-details-radius);
-
   background: var(--market-details-bg);
   color: var(--market-details-fg);
 
@@ -264,7 +262,4 @@ html[data-contrast="high"] {
     --market-details-after-space: 1.5rem;
   }
 
-  .market-details__container {
-    border-radius: 0 0 var(--radius-md) var(--radius-md);
-  }
 }

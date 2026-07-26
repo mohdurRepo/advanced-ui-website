@@ -73,7 +73,8 @@
   overflow: hidden;
 
   border: 1px solid var(--group-ecosystem-surface-border);
-  border-radius: var(--radius-xl);
+
+  border-top: 0;
 
   background: linear-gradient(
     145deg,
@@ -107,8 +108,6 @@
 
   inline-size: 28rem;
   block-size: 28rem;
-
-  border-radius: 50%;
 
   background: radial-gradient(
     circle at center,
@@ -283,7 +282,6 @@ html[dir="rtl"] {
   .group-ecosystem__surface {
     padding: 1.5rem 1rem;
 
-    border-radius: var(--radius-lg);
   }
 
   .group-ecosystem__parent {

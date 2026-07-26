@@ -10,7 +10,6 @@
   --company-updates-muted: var(--color-text-muted);
   --company-updates-border: var(--color-border);
 
-  --company-updates-radius: var(--radius-xl);
   --company-updates-shadow: var(--shadow-md);
   --company-updates-space: clamp(1rem, 2vw, 1.5rem);
 
@@ -23,7 +22,6 @@
   padding: var(--company-updates-space);
 
   border: 1px solid var(--company-updates-border);
-  border-radius: var(--company-updates-radius);
 
   background: var(--company-updates-bg);
   color: var(--company-updates-fg);

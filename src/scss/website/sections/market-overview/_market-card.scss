@@ -40,7 +40,6 @@
   appearance: none;
 
   border: 1px solid var(--market-card-border);
-  border-radius: var(--radius-md);
 
   background: var(--market-card-bg);
   color: var(--market-card-color);
@@ -112,11 +111,7 @@
 .market-card[aria-selected="true"] {
   z-index: 1;
 
-  border-color: var(--market-card-active-border);
   border-block-end-color: var(--market-card-active-bg);
-
-  border-end-start-radius: 0;
-  border-end-end-radius: 0;
 
   background: var(--market-card-active-bg);
 
@@ -125,7 +120,6 @@
     inset 0 1px 0 rgb(255 255 255 / 0.06);
 
   &:hover:not(:disabled):not(.is-disabled) {
-    border-color: var(--market-card-active-border);
     border-block-end-color: var(--market-card-active-bg);
 
     background: var(--market-card-active-bg);

@@ -10,8 +10,6 @@
   --financial-information-heading: var(--color-heading);
   --financial-information-muted: var(--color-text-muted);
 
-  --financial-information-space-start: clamp(2.5rem, 5vw, 4rem);
-  --financial-information-space-end: clamp(3rem, 6vw, 5rem);
   --financial-information-intro-space: clamp(1.75rem, 3vw, 2.5rem);
 
   /*
@@ -22,15 +20,11 @@
 
   --financial-information-surface-bg: var(--color-surface-alt);
   --financial-information-surface-border: var(--color-border);
-  --financial-information-surface-radius: var(--radius-xl);
   --financial-information-surface-space: clamp(1rem, 2vw, 1.5rem);
 
   position: relative;
 
   min-inline-size: 0;
-
-  padding-block: var(--financial-information-space-start)
-    var(--financial-information-space-end);
 
   background: var(--financial-information-bg);
   color: var(--financial-information-fg);
@@ -65,10 +59,11 @@
   overflow: visible;
 
   border: 1px solid var(--financial-information-surface-border);
-  border-radius: var(--financial-information-surface-radius);
 
   background: var(--financial-information-surface-bg);
   color: var(--financial-information-fg);
+
+  z-index: 1;
 }
 
 /* ==========================================================================
@@ -184,7 +179,6 @@
   --financial-shell-muted: var(--color-text-muted);
   --financial-shell-border: var(--color-border);
 
-  --financial-shell-radius: var(--radius-xl);
   --financial-shell-shadow: var(--shadow-sm);
 
   --financial-shell-header-space: clamp(1.125rem, 2vw, 1.5rem);
@@ -202,7 +196,6 @@
   min-block-size: 0;
 
   border: 1px solid var(--financial-shell-border);
-  border-radius: var(--financial-shell-radius);
 
   background: var(--financial-shell-bg);
   color: var(--financial-shell-fg);
@@ -230,9 +223,6 @@
   padding: var(--financial-shell-header-space);
 
   border-block-end: 1px solid var(--financial-shell-border);
-
-  border-start-start-radius: calc(var(--financial-shell-radius) - 1px);
-  border-start-end-radius: calc(var(--financial-shell-radius) - 1px);
 
   background:
     linear-gradient(
@@ -377,9 +367,6 @@
 
   border-block-start: 1px solid var(--financial-shell-border);
 
-  border-end-start-radius: calc(var(--financial-shell-radius) - 1px);
-  border-end-end-radius: calc(var(--financial-shell-radius) - 1px);
-
   background: color-mix(
     in oklab,
     var(--financial-shell-bg),
@@ -504,10 +491,6 @@ html[dir="rtl"] {
    ========================================================================== */
 
 @include respond-down(md) {
-  .financial-information {
-    --financial-information-space-start: 2rem;
-    --financial-information-space-end: 3.5rem;
-  }
 
   .financial-content-header {
     gap: 1rem;
@@ -524,11 +507,8 @@ html[dir="rtl"] {
 
 @include respond-down(sm) {
   .financial-information {
-    --financial-information-space-start: 1.5rem;
-    --financial-information-space-end: 2.5rem;
     --financial-information-intro-space: 1.5rem;
 
-    --financial-information-surface-radius: var(--radius-lg);
     --financial-information-surface-space: 0.75rem;
   }
 
@@ -549,7 +529,6 @@ html[dir="rtl"] {
   }
 
   .financial-content-shell {
-    --financial-shell-radius: var(--radius-lg);
     --financial-shell-header-space: 1rem;
     --financial-shell-body-space: 0.875rem;
     --financial-shell-footer-space-block: 0.875rem;

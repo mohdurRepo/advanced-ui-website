@@ -21,7 +21,6 @@
 
   --indices-heatmap-surface-bg: var(--color-surface-alt);
   --indices-heatmap-surface-border: var(--color-border);
-  --indices-heatmap-surface-radius: var(--radius-xl);
   --indices-heatmap-surface-space: clamp(1rem, 2.5vw, 1.75rem);
 
   --indices-heatmap-grid-gap: clamp(0.75rem, 1.5vw, 1rem);
@@ -49,10 +48,11 @@
   overflow: visible;
 
   border: 1px solid var(--indices-heatmap-surface-border);
-  border-radius: var(--indices-heatmap-surface-radius);
 
   background: var(--indices-heatmap-surface-bg);
   color: var(--indices-heatmap-fg);
+
+  z-index: 11;
 }
 
 /* ==========================================================================
@@ -181,7 +181,6 @@
   padding: 1rem 1.125rem;
 
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
 
   background: var(--color-surface);
   color: var(--color-text);
@@ -358,7 +357,6 @@
 
 @include respond-down(sm) {
   .indices-heatmap {
-    --indices-heatmap-surface-radius: var(--radius-lg);
     --indices-heatmap-surface-space: 0.75rem;
     --indices-heatmap-grid-gap: 0.625rem;
   }

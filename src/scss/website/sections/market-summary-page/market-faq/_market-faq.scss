@@ -15,7 +15,6 @@
 
   --market-faq-surface-bg: var(--color-surface-alt);
   --market-faq-surface-border: var(--color-border);
-  --market-faq-surface-radius: var(--radius-xl);
   --market-faq-surface-space: clamp(1rem, 2.5vw, 1.75rem);
 
   position: relative;
@@ -36,10 +35,11 @@
   padding: var(--market-faq-surface-space);
 
   border: 1px solid var(--market-faq-surface-border);
-  border-radius: var(--market-faq-surface-radius);
 
   background: var(--market-faq-surface-bg);
   color: var(--market-faq-fg);
+
+  z-index: 1;
 }
 
 /* ==========================================================================
@@ -143,7 +143,6 @@
 
 @include respond-down(sm) {
   .market-faq {
-    --market-faq-surface-radius: var(--radius-lg);
     --market-faq-surface-space: 0.75rem;
   }
 

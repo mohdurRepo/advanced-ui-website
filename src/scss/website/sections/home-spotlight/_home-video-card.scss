@@ -21,7 +21,6 @@
   block-size: 100%;
 
   border: 1px solid var(--home-video-border);
-  border-radius: var(--radius-lg);
 
   background: var(--home-video-bg);
   color: #ffffff;
@@ -274,8 +273,6 @@
 @include ds.respond-down(sm) {
   .home-video-card {
     --home-video-min-height: 20rem;
-
-    border-radius: var(--radius-md);
   }
 
   .home-video-card__play {

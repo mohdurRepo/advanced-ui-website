@@ -47,6 +47,8 @@ $button-variants: (
   font-weight: ds.font-weight("semibold");
   line-height: 1;
 
+  text-decoration: none;
+
   cursor: pointer;
   user-select: none;
   white-space: nowrap;

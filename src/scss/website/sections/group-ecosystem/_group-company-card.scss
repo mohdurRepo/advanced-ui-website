@@ -184,6 +184,10 @@ html[dir="rtl"] {
   .ecosystem-company-card {
     --ecosystem-card-arrow-translate: -0.15rem;
   }
+
+  .ecosystem-company-card::before {
+    transform: translate(50%);
+  }
 }
 
 /* ==========================================================================

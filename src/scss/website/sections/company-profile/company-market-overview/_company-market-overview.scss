@@ -10,7 +10,6 @@
 
   --company-market-overview-surface-bg: var(--color-surface-alt);
   --company-market-overview-surface-border: var(--color-border);
-  --company-market-overview-surface-radius: var(--radius-xl);
   --company-market-overview-surface-space: clamp(1rem, 2vw, 1.5rem);
 
   --company-market-overview-gap: clamp(1.5rem, 3vw, 2.5rem);
@@ -33,9 +32,10 @@
   overflow: visible;
 
   border: 1px solid var(--company-market-overview-surface-border);
-  border-radius: var(--company-market-overview-surface-radius);
 
   background: var(--company-market-overview-surface-bg);
+
+  z-index: 1;
 }
 
 /* ==========================================================================
@@ -108,7 +108,6 @@
 
 @include respond-down(sm) {
   .company-market-overview {
-    --company-market-overview-surface-radius: var(--radius-lg);
     --company-market-overview-surface-space: 0.75rem;
     --company-market-overview-gap: 1.5rem;
   }

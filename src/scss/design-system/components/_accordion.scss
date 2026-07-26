@@ -17,7 +17,6 @@
   overflow: hidden;
 
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
 
   background: var(--color-surface);
   color: var(--color-text);
@@ -34,7 +33,7 @@
   gap: 1rem;
 
   inline-size: 100%;
-  padding: 1rem 1.25rem;
+  padding: 1.2rem 1.25rem;
 
   border: 0;
 
@@ -124,7 +123,7 @@
 }
 
 .accordion-item.is-open .accordion-panel-inner {
-  padding-block-end: 1.25rem;
+  padding: 0.75rem 1.25rem;
 }
 
 /* ==========================================================================

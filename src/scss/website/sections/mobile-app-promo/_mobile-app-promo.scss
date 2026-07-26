@@ -58,7 +58,8 @@
   padding: clamp(0.75rem, 2vw, 1.5rem);
 
   border: 1px solid var(--mobile-app-surface-border);
-  border-radius: var(--mobile-app-surface-radius);
+
+  border-bottom: 0;
 
   background: linear-gradient(
     var(--mobile-app-gradient-angle),
@@ -90,7 +91,7 @@
   overflow: hidden;
 
   border: 1px solid var(--mobile-app-panel-border);
-  border-radius: var(--mobile-app-panel-radius);
+  
 
   background:
     radial-gradient(
@@ -396,7 +397,6 @@ html[dir="rtl"] {
   .mobile-app-promo__surface {
     padding: 0.625rem;
 
-    border-radius: var(--radius-lg);
   }
 
   .mobile-app-promo__panel {

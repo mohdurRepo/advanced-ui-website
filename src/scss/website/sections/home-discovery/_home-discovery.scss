@@ -19,7 +19,6 @@
 
   min-inline-size: 0;
 
-  padding-block: clamp(2.5rem, 5vw, 4.5rem);
 
   background: transparent;
   color: var(--home-discovery-fg);
@@ -153,7 +152,6 @@
     --home-discovery-main-gap: 1rem;
     --home-discovery-gap: 1.25rem;
 
-    padding-block: 2rem;
   }
 
   .home-discovery__title {

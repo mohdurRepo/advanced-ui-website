@@ -19,7 +19,6 @@
 
   --market-dashboard-surface-bg: var(--color-surface-alt);
   --market-dashboard-surface-border: var(--color-border);
-  --market-dashboard-surface-radius: var(--radius-xl);
   --market-dashboard-surface-space: clamp(1rem, 2vw, 1.5rem);
 
   --market-dashboard-gap: clamp(1.5rem, 3vw, 2.5rem);
@@ -46,10 +45,10 @@
   overflow: visible;
 
   border: 1px solid var(--market-dashboard-surface-border);
-  border-radius: var(--market-dashboard-surface-radius);
 
   background: var(--market-dashboard-surface-bg);
   color: var(--market-dashboard-fg);
+  z-index: 1;
 }
 
 /* ==========================================================================
@@ -138,7 +137,6 @@
 
 @include respond-down(sm) {
   .market-dashboard {
-    --market-dashboard-surface-radius: var(--radius-lg);
     --market-dashboard-surface-space: 0.75rem;
     --market-dashboard-gap: 1.5rem;
   }

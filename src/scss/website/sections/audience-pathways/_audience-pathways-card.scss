@@ -15,7 +15,6 @@
     var(--color-border) 45%
   );
 
-  --audience-card-radius: var(--radius-lg);
   --audience-card-shadow: var(--shadow-sm);
   --audience-card-shadow-hover: var(--shadow-md);
 
@@ -69,7 +68,6 @@
   min-inline-size: 0;
 
   border: 1px solid var(--audience-card-border);
-  border-radius: var(--audience-card-radius);
 
   background: var(--color-surface-alt);
 
@@ -282,7 +280,6 @@ html[dir="rtl"] {
   .audience-pathways-card__media {
     aspect-ratio: 3 / 2;
 
-    border-radius: var(--radius-md);
   }
 
   .audience-pathways-card__overlay {

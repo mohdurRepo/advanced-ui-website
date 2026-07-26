@@ -14,7 +14,6 @@
 
   min-inline-size: 0;
 
-  padding-block: clamp(2.5rem, 5vw, 4rem);
 
   background: var(--home-spotlight-bg);
   color: var(--home-spotlight-fg);
@@ -218,9 +217,6 @@
    ========================================================================== */
 
 @include ds.respond-down(md) {
-  .home-spotlight {
-    padding-block: clamp(2rem, 5vw, 3rem);
-  }
 
   .home-spotlight__grid,
   .home-spotlight__grid:not(:has(> .home-spotlight__video)),
@@ -249,7 +245,5 @@
 @include ds.respond-down(sm) {
   .home-spotlight {
     --home-spotlight-gap: 1rem;
-
-    padding-block: 2rem;
   }
 }

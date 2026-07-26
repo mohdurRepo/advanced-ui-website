@@ -28,7 +28,6 @@
 
   min-inline-size: 0;
 
-  padding-block: clamp(2rem, 4vw, 3.5rem);
 
   color: var(--market-updates-fg);
 }
@@ -54,7 +53,6 @@
   padding: var(--market-updates-space);
 
   border: 1px solid var(--market-updates-border);
-  border-radius: var(--radius-lg);
 
   background:
     linear-gradient(
@@ -159,7 +157,6 @@ html[dir="rtl"] {
     --market-updates-space: clamp(1rem, 3vw, 1.5rem);
     --market-updates-gap: 1.75rem;
 
-    padding-block: clamp(1.5rem, 4vw, 2.5rem);
   }
 }
 
@@ -172,12 +169,9 @@ html[dir="rtl"] {
     --market-updates-space: 1rem;
     --market-updates-gap: 1.5rem;
 
-    padding-block: 1.5rem;
   }
 
   .market-updates__surface {
-    border-radius: var(--radius-md);
-
     box-shadow: var(--shadow-sm);
   }
 

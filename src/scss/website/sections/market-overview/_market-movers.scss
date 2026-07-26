@@ -5,7 +5,7 @@
    ========================================================================== */
 
 .market-movers {
-  --market-movers-bg: var(--market-details-insights-bg, #254456);
+  --market-movers-bg: var(--market-overview-connected-bg, #254456);
 
   --market-movers-fg: var(--market-details-fg, #ffffff);
 
@@ -40,8 +40,6 @@
   flex: 0 0 auto;
 
   inline-size: 100%;
-
-  padding-inline: var(--market-panel-space);
 
   overflow-x: auto;
   overflow-y: hidden;
@@ -154,8 +152,6 @@
 
   min-inline-size: 0;
   min-block-size: 0;
-
-  padding-inline: var(--market-panel-space);
 
   overflow-x: hidden;
   overflow-y: auto;

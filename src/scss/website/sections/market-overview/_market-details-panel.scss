@@ -16,9 +16,7 @@
 
   overflow: hidden;
 
-  border: 1px solid var(--market-panel-line);
   border-block-start: 0;
-  border-radius: 0 0 var(--market-panel-radius) var(--market-panel-radius);
 
   background: var(--market-details-bg);
   color: var(--market-details-fg);
@@ -50,7 +48,6 @@
 
   overflow: hidden;
 
-  border: 1px solid var(--market-panel-line);
   border-radius: var(--market-panel-radius);
 
   background: var(--market-details-side-bg);
@@ -186,7 +183,7 @@
 .market-details-panel__main {
   grid-area: main;
 
-  padding: var(--market-panel-space);
+  padding: 0.75rem;
 
   background: var(--market-details-bg);
 }
@@ -221,7 +218,6 @@
 
   overflow: hidden;
 
-  border: 1px solid var(--market-panel-line);
   border-radius: var(--market-panel-radius);
 
   background-color: var(--market-details-side-bg);

@@ -26,7 +26,6 @@
   block-size: 100%;
 
   border: 1px solid var(--home-activities-border);
-  border-radius: var(--radius-lg);
 
   background: var(--home-activities-bg);
   color: var(--home-activities-fg);
@@ -496,7 +495,6 @@ html:not([lang^="ar"]) {
 
     block-size: auto;
 
-    border-radius: var(--radius-md);
   }
 
   .home-upcoming-activities__item {
