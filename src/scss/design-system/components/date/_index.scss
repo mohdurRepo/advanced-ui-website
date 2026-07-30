@@ -1,0 +1,33 @@
+/* ==========================================================================
+   Custom Date
+   ========================================================================== */
+
+/**
+ * Custom date architecture
+ *
+ * The partials are forwarded in dependency order:
+ *
+ * 1. Tokens establish the component contract.
+ * 2. Base handles progressive enhancement and native fallback behavior.
+ * 3. Control defines the visible single-date and unified range triggers.
+ * 4. Popover provides the floating calendar container.
+ * 5. Calendar defines navigation, month/year views, weekdays, and dates.
+ * 6. Range handles range boundaries and dates between them.
+ * 7. Presets provides reusable date-range shortcuts and footer actions.
+ * 8. States handles interaction, validation, disabled, and loading states.
+ * 9. Responsive adapts the component for tablets and mobile devices.
+ * 10. Themes provides dark and high-contrast refinements.
+ * 11. Motion centralizes transitions and reduced-motion behavior.
+ */
+
+@forward "tokens";
+@forward "base";
+@forward "control";
+@forward "popover";
+@forward "calendar";
+@forward "range";
+@forward "presets";
+@forward "states";
+@forward "responsive";
+@forward "themes";
+@forward "motion";

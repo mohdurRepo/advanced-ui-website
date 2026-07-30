@@ -1,0 +1,755 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Calendar Panel
+   ========================================================================== */
+
+.custom-date__calendar-panel {
+  display: flex;
+  flex-direction: column;
+
+  gap: var(--custom-date-calendar-panel-gap);
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Calendar Header
+   ========================================================================== */
+
+.custom-date__calendar-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+
+  gap: var(--custom-date-calendar-header-gap);
+  min-block-size: var(--custom-date-calendar-header-min-block-size);
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Navigation Groups
+   ========================================================================== */
+
+.custom-date__nav-group {
+  display: inline-flex;
+  align-items: center;
+
+  gap: var(--custom-date-calendar-grid-gap);
+  min-inline-size: 0;
+}
+
+.custom-date__nav-group:first-child {
+  justify-self: start;
+}
+
+.custom-date__nav-group:last-child {
+  justify-self: end;
+}
+
+/* ==========================================================================
+   Navigation Buttons
+   ========================================================================== */
+
+.custom-date__nav {
+  appearance: none;
+
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: var(--custom-date-nav-size);
+  block-size: var(--custom-date-nav-size);
+  padding: 0;
+
+  border: 0;
+  border-radius: var(--custom-date-nav-radius);
+
+  background: transparent;
+  color: var(--custom-date-nav-color);
+
+  font: inherit;
+  line-height: 1;
+
+  cursor: pointer;
+
+  @include ds.transition(
+    (background-color, color, opacity, outline-color, transform),
+    "fast"
+  );
+}
+
+.custom-date__nav::before {
+  --icon-size: 1rem;
+
+  transform: scaleX(var(--icon-scale-x, 1));
+}
+
+.custom-date__nav:hover:not(:disabled) {
+  background: var(--custom-date-nav-hover-bg);
+  color: var(--custom-date-nav-hover-color);
+}
+
+.custom-date__nav:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.custom-date__nav:focus-visible {
+  @include ds.focus-ring(
+    var(--custom-date-focus-outline-color),
+    1px,
+    var(--custom-date-focus-outline-width)
+  );
+}
+
+.custom-date__nav:disabled {
+  color: var(--custom-date-nav-disabled-color);
+
+  cursor: not-allowed;
+  opacity: var(--custom-date-nav-disabled-opacity);
+}
+
+/* ==========================================================================
+   Year Navigation
+   ========================================================================== */
+
+/**
+ * Year buttons contain two copies of the same chevron.
+ *
+ * The second icon participates in flex layout instead of being absolutely
+ * positioned over the first. Both icons use `--icon-scale-x`, so they always
+ * point in the same direction in LTR and RTL.
+ */
+
+.custom-date__nav--previous-year,
+.custom-date__nav--next-year {
+  gap: 0;
+}
+
+.custom-date__nav--previous-year::before,
+.custom-date__nav--next-year::before {
+  --icon-size: 0.875rem;
+}
+
+.custom-date__nav--previous-year::after,
+.custom-date__nav--next-year::after {
+  content: "";
+
+  display: block;
+  flex: 0 0 auto;
+
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+
+  margin-inline-start: -0.45rem;
+
+  background-color: currentColor;
+
+  mask: var(--icon-svg) center / contain no-repeat;
+  -webkit-mask: var(--icon-svg) center / contain no-repeat;
+
+  transform: scaleX(var(--icon-scale-x, 1));
+}
+
+/* ==========================================================================
+   Calendar Title
+   ========================================================================== */
+
+.custom-date__title-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: var(--custom-date-title-gap);
+  min-inline-size: 0;
+
+  justify-self: center;
+}
+
+/* ==========================================================================
+   Month and Year Title Buttons
+   ========================================================================== */
+
+.custom-date__title {
+  appearance: none;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-inline-size: 0;
+  min-block-size: var(--custom-date-nav-size);
+
+  padding-block: var(--custom-date-title-padding-block);
+  padding-inline: var(--custom-date-title-padding-inline);
+
+  border: 0;
+  border-radius: var(--custom-date-title-radius);
+
+  background: transparent;
+  color: var(--custom-date-title-color);
+
+  font: inherit;
+  font-size: var(--custom-date-title-font-size);
+  font-weight: var(--custom-date-title-font-weight);
+  line-height: 1;
+
+  cursor: pointer;
+
+  @include ds.transition((background-color, color, outline-color), "fast");
+}
+
+.custom-date__title:hover:not(:disabled) {
+  background: var(--custom-date-title-hover-bg);
+  color: var(--custom-date-title-hover-color);
+}
+
+.custom-date__title:focus-visible {
+  @include ds.focus-ring(
+    var(--custom-date-focus-outline-color),
+    1px,
+    var(--custom-date-focus-outline-width)
+  );
+}
+
+.custom-date__title[aria-expanded="true"],
+.custom-date__title.is-active {
+  background: var(--custom-date-title-active-bg);
+  color: var(--custom-date-title-active-color);
+}
+
+.custom-date__title--month {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-date__title--year {
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Weekday Row
+   ========================================================================== */
+
+.custom-date__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+
+  gap: var(--custom-date-calendar-grid-gap);
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Weekday
+   ========================================================================== */
+
+.custom-date__weekday {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-inline-size: 0;
+  min-block-size: var(--custom-date-weekday-min-block-size);
+
+  color: var(--custom-date-weekday-color);
+
+  font-size: var(--custom-date-weekday-font-size);
+  font-weight: var(--custom-date-weekday-font-weight);
+  line-height: 1;
+  text-align: center;
+
+  cursor: default;
+  user-select: none;
+}
+
+/* ==========================================================================
+   Date Grid
+   ========================================================================== */
+
+.custom-date__days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+
+  gap: var(--custom-date-calendar-grid-gap);
+  min-inline-size: 0;
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Date Cell
+   ========================================================================== */
+
+.custom-date__day {
+  appearance: none;
+
+  position: relative;
+  isolation: isolate;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--custom-date-day-size);
+  padding: 0;
+
+  overflow: hidden;
+
+  border: 1px solid transparent;
+  border-radius: var(--custom-date-day-radius);
+
+  background: transparent;
+  color: var(--custom-date-day-color);
+
+  font: inherit;
+  font-size: var(--custom-date-day-font-size);
+  font-weight: var(--custom-date-day-font-weight);
+  line-height: 1;
+
+  cursor: pointer;
+  user-select: none;
+
+  @include ds.transition(
+    (background-color, border-color, color, opacity, outline-color, transform),
+    "fast"
+  );
+}
+
+.custom-date__day:hover:not(:disabled):not(.is-disabled) {
+  border-color: var(--custom-date-day-hover-border-color);
+
+  background: var(--custom-date-day-hover-bg);
+  color: var(--custom-date-day-hover-color);
+}
+
+.custom-date__day:active:not(:disabled):not(.is-disabled) {
+  transform: scale(0.96);
+}
+
+.custom-date__day:focus-visible {
+  z-index: 4;
+
+  @include ds.focus-ring(
+    var(--custom-date-focus-outline-color),
+    -3px,
+    var(--custom-date-focus-outline-width)
+  );
+}
+
+/* ==========================================================================
+   Day Number
+   ========================================================================== */
+
+.custom-date__day-number {
+  position: relative;
+  z-index: 3;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  font-variant-numeric: tabular-nums;
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Outside-month Dates
+   ========================================================================== */
+
+.custom-date__day.is-outside-month {
+  color: var(--custom-date-day-outside-color);
+  opacity: var(--custom-date-day-outside-opacity);
+}
+
+/* ==========================================================================
+   Blank Date Cells
+   ========================================================================== */
+
+.custom-date__day--blank {
+  min-block-size: var(--custom-date-day-size);
+
+  border-color: transparent;
+  background: transparent;
+
+  pointer-events: none;
+  visibility: hidden;
+}
+
+/* ==========================================================================
+   Today
+   ========================================================================== */
+
+.custom-date__day.is-today {
+  border-color: var(--custom-date-today-border-color);
+
+  color: var(--custom-date-today-color);
+
+  font-weight: var(--custom-date-today-font-weight);
+}
+
+.custom-date__day.is-today::after {
+  content: "";
+
+  position: absolute;
+  inset-inline-start: 50%;
+  inset-block-end: 0.25rem;
+  z-index: 3;
+
+  inline-size: 0.25rem;
+  block-size: 0.25rem;
+
+  border-radius: var(--radius-pill, #{ds.radius("pill")});
+
+  background: currentColor;
+
+  transform: translateX(-50%);
+}
+
+/* ==========================================================================
+   In-range Date
+   ========================================================================== */
+
+.custom-date__day.is-in-range,
+.custom-date__day.is-preview-range {
+  border-radius: 0;
+
+  background: var(--custom-date-range-bg);
+  color: var(--custom-date-range-color);
+}
+
+.custom-date__day.is-preview-range {
+  background: var(--custom-date-range-preview-bg, var(--custom-date-range-bg));
+}
+
+/* ==========================================================================
+   Range Boundaries
+   ========================================================================== */
+
+/**
+ * Boundary dates always paint above the connecting range background.
+ *
+ * Existing range styles may generate a `::before` connector. It is disabled
+ * on the boundary cells because every adjacent in-range cell already owns its
+ * own background. This prevents the light range layer from covering half of
+ * the blue start or end date.
+ */
+
+.custom-date__day.is-range-start,
+.custom-date__day.is-range-end {
+  z-index: 2;
+
+  overflow: hidden;
+
+  border-color: var(--custom-date-selected-border-color);
+
+  background: var(--custom-date-selected-bg) !important;
+  color: var(--custom-date-selected-color) !important;
+
+  font-weight: var(--custom-date-selected-font-weight);
+}
+
+.custom-date__day.is-range-start::before,
+.custom-date__day.is-range-end::before {
+  content: none !important;
+}
+
+.custom-date__day.is-range-start {
+  border-start-start-radius: var(--custom-date-day-radius);
+  border-end-start-radius: var(--custom-date-day-radius);
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.custom-date__day.is-range-end {
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  border-start-end-radius: var(--custom-date-day-radius);
+  border-end-end-radius: var(--custom-date-day-radius);
+}
+
+.custom-date__day.is-range-start.is-range-end {
+  border-radius: var(--custom-date-day-radius);
+}
+
+/* ==========================================================================
+   Selected Date
+   ========================================================================== */
+
+.custom-date__day.is-selected,
+.custom-date__day[aria-selected="true"] {
+  z-index: 2;
+
+  border-color: var(--custom-date-selected-border-color);
+
+  background: var(--custom-date-selected-bg);
+  color: var(--custom-date-selected-color);
+
+  font-weight: var(--custom-date-selected-font-weight);
+}
+
+.custom-date__day.is-selected.is-today::after,
+.custom-date__day[aria-selected="true"].is-today::after,
+.custom-date__day.is-range-start.is-today::after,
+.custom-date__day.is-range-end.is-today::after {
+  background: currentColor;
+}
+
+/* ==========================================================================
+   Disabled Dates
+   ========================================================================== */
+
+.custom-date__day:disabled,
+.custom-date__day.is-disabled,
+.custom-date__day[aria-disabled="true"] {
+  color: var(--custom-date-day-disabled-color);
+  opacity: var(--custom-date-day-disabled-opacity);
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Month and Year Picker
+   ========================================================================== */
+
+.custom-date__picker {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Picker Grid
+   ========================================================================== */
+
+.custom-date__picker-grid {
+  display: grid;
+
+  gap: var(--custom-date-picker-gap);
+  min-inline-size: 0;
+  max-block-size: var(--custom-date-picker-max-block-size);
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  scrollbar-color: var(--color-border-strong) transparent;
+  scrollbar-width: thin;
+}
+
+.custom-date__picker-grid--months {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.custom-date__picker-grid--years {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* ==========================================================================
+   Picker Option
+   ========================================================================== */
+
+.custom-date__picker-option {
+  appearance: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-inline-size: 0;
+  min-block-size: var(--custom-date-picker-option-min-block-size);
+
+  padding-block: var(--custom-date-picker-option-padding-block);
+  padding-inline: var(--custom-date-picker-option-padding-inline);
+
+  border: 1px solid transparent;
+  border-radius: var(--custom-date-picker-option-radius);
+
+  background: transparent;
+  color: var(--custom-date-picker-option-color);
+
+  font: inherit;
+  font-size: var(--custom-date-day-font-size);
+  font-weight: var(--custom-date-day-font-weight);
+  line-height: var(--custom-date-line-height);
+  text-align: center;
+
+  cursor: pointer;
+
+  @include ds.transition(
+    (background-color, border-color, color, outline-color),
+    "fast"
+  );
+}
+
+.custom-date__picker-option:hover:not(:disabled) {
+  border-color: var(--custom-date-picker-option-hover-border-color);
+
+  background: var(--custom-date-picker-option-hover-bg);
+  color: var(--custom-date-picker-option-hover-color);
+}
+
+.custom-date__picker-option:focus-visible {
+  @include ds.focus-ring(
+    var(--custom-date-focus-outline-color),
+    1px,
+    var(--custom-date-focus-outline-width)
+  );
+}
+
+/* ==========================================================================
+   Selected Picker Option
+   ========================================================================== */
+
+.custom-date__picker-option.is-selected,
+.custom-date__picker-option[aria-selected="true"] {
+  border-color: var(--custom-date-selected-border-color);
+
+  background: var(--custom-date-picker-option-selected-bg);
+  color: var(--custom-date-picker-option-selected-color);
+
+  font-weight: var(--custom-date-selected-font-weight);
+}
+
+/* ==========================================================================
+   Disabled Picker Option
+   ========================================================================== */
+
+.custom-date__picker-option:disabled,
+.custom-date__picker-option.is-disabled,
+.custom-date__picker-option[aria-disabled="true"] {
+  color: var(--custom-date-day-disabled-color);
+  opacity: var(--custom-date-day-disabled-opacity);
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Picker Scrollbar
+   ========================================================================== */
+
+.custom-date__picker-grid::-webkit-scrollbar {
+  inline-size: 0.5rem;
+}
+
+.custom-date__picker-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-date__picker-grid::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill, #{ds.radius("pill")});
+
+  background: var(--color-border-strong);
+}
+
+.custom-date__picker-grid::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   Calendar View Visibility
+   ========================================================================== */
+
+.custom-date__calendar-view[hidden],
+.custom-date__picker[hidden] {
+  display: none;
+}
+
+/* ==========================================================================
+   Desktop Range Divider
+   ========================================================================== */
+
+/**
+ * Range calendars render two adjacent `.custom-date__calendar-panel`
+ * elements. The logical border follows the document direction automatically,
+ * so no separate RTL override is required.
+ */
+
+@include ds.respond-up("md") {
+  .custom-date--range,
+  .custom-date__popover--range {
+    .custom-date__calendar-panel:first-child {
+      padding-inline-end: var(--custom-date-calendar-panel-space);
+    }
+
+    .custom-date__calendar-panel + .custom-date__calendar-panel {
+      padding-inline-start: var(--custom-date-calendar-panel-space);
+
+      border-inline-start: 1px solid
+        var(--custom-date-calendar-divider-color, var(--color-border));
+    }
+  }
+}
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+/**
+ * JavaScript applies `.icon-flip-rtl` to chronological navigation icons.
+ *
+ * Both year chevrons consume the same `--icon-scale-x` value, ensuring the
+ * duplicated icon never becomes an X or mixed `><` shape.
+ */
+
+html[dir="rtl"] {
+  .custom-date__day-number,
+  .custom-date__title--year,
+  .custom-date__picker-option {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  .custom-date__nav--previous-year::after,
+  .custom-date__nav--next-year::after {
+    transform: scaleX(var(--icon-scale-x, -1));
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .custom-date__day.is-today {
+    outline: 2px dotted currentColor;
+    outline-offset: -4px;
+  }
+
+  .custom-date__day.is-selected,
+  .custom-date__day.is-range-start,
+  .custom-date__day.is-range-end,
+  .custom-date__picker-option.is-selected {
+    border-width: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .custom-date__nav,
+  .custom-date__title,
+  .custom-date__day,
+  .custom-date__picker-option {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .custom-date__nav,
+  .custom-date__title,
+  .custom-date__day,
+  .custom-date__picker-option {
+    transition: none;
+  }
+}

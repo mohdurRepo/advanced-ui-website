@@ -1,0 +1,25 @@
+/* ==========================================================================
+   Form
+   ========================================================================== */
+
+/* Shared form tokens and structural foundations */
+@forward "tokens";
+@forward "layout";
+
+/* Native controls and field composition */
+@forward "control";
+@forward "native-select";
+@forward "field";
+@forward "input-group";
+@forward "floating-label";
+
+/* Selection controls */
+@forward "choice";
+
+/* Specialized native form patterns */
+@forward "file-upload";
+@forward "otp";
+
+/* Control feedback and actions */
+@forward "validation";
+@forward "actions";

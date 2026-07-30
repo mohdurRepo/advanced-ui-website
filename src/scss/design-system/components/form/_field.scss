@@ -1,0 +1,155 @@
+/* ==========================================================================
+   Field Wrapper
+   ========================================================================== */
+
+.form-field {
+  --form-field-end-space: 4.5rem;
+  --form-field-action-inset: var(--space-1, 0.25rem);
+
+  position: relative;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.form-field > .form-control {
+  position: relative;
+  z-index: 0;
+}
+
+/* ==========================================================================
+   Leading Icon
+   ========================================================================== */
+
+.form-field-icon {
+  --icon-size: var(--form-control-indicator-size);
+
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: calc(
+    (var(--form-control-indicator-space) - var(--icon-size)) / 2
+  );
+  z-index: 1;
+
+  color: var(--form-help-color);
+
+  pointer-events: none;
+
+  transform: translateY(-50%);
+  transition: color var(--form-control-transition);
+}
+
+.form-field-icon-start > .form-control {
+  padding-inline-start: var(--form-control-indicator-space);
+}
+
+.form-field:focus-within > .form-field-icon {
+  color: var(--form-control-focus-border-color);
+}
+
+/* ==========================================================================
+   Trailing Content
+   ========================================================================== */
+
+.form-field-content-end > .form-control {
+  padding-inline-end: var(--form-field-end-space);
+}
+
+/* ==========================================================================
+   Field Action
+   ========================================================================== */
+
+.form-field-action {
+  appearance: none;
+
+  position: absolute;
+  inset-block: var(--form-field-action-inset);
+  inset-inline-end: var(--form-field-action-inset);
+  z-index: 1;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--form-control-gap);
+
+  min-inline-size: 2.5rem;
+  padding-inline: var(--space-3, 0.75rem);
+
+  border: 0;
+  border-radius: var(--radius-sm, 0.375rem);
+
+  background: transparent;
+  color: var(--color-primary);
+
+  font: inherit;
+  font-size: var(--form-help-font-size);
+  font-weight: var(--form-label-font-weight);
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background-color var(--form-control-transition),
+    color var(--form-control-transition),
+    outline-color var(--form-control-transition);
+}
+
+.form-field-action:hover:not(:disabled) {
+  background-color: var(--color-surface-alt);
+  color: var(--color-primary-hover);
+}
+
+.form-field-action:focus-visible {
+  outline: var(--form-control-focus-outline-width) solid
+    var(--form-control-focus-outline-color);
+  outline-offset: -2px;
+}
+
+.form-field-action:active:not(:disabled),
+.form-field-action[aria-pressed="true"] {
+  background-color: var(--color-surface-alt);
+  color: var(--color-heading);
+}
+
+.form-field-action:disabled,
+.form-field-action[aria-disabled="true"] {
+  color: var(--form-control-disabled-color);
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Disabled Control
+   ========================================================================== */
+
+.form-field:has(> .form-control:disabled) > .form-field-icon {
+  color: var(--form-control-disabled-color);
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .form-field-icon,
+  .form-field-action {
+    color: ButtonText;
+  }
+
+  .form-field-action:hover:not(:disabled),
+  .form-field-action:active:not(:disabled),
+  .form-field-action[aria-pressed="true"] {
+    color: Highlight;
+  }
+
+  .form-field-action:focus-visible {
+    outline-color: Highlight;
+  }
+
+  .form-field-action:disabled,
+  .form-field-action[aria-disabled="true"],
+  .form-field:has(> .form-control:disabled) > .form-field-icon {
+    color: GrayText;
+  }
+}

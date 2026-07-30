@@ -1,0 +1,184 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Private Validation Helper
+   ========================================================================== */
+
+@mixin _custom-select-validation-state($color) {
+  --custom-select-border-color: #{$color};
+  --custom-select-hover-border-color: #{$color};
+  --custom-select-focus-color: #{$color};
+  --custom-select-indicator-color: #{$color};
+}
+
+/* ==========================================================================
+   Sizes
+   ========================================================================== */
+
+.custom-select--sm {
+  --custom-select-control-min-block-size: var(
+    --form-control-min-block-size-sm,
+    2.5rem
+  );
+
+  --custom-select-control-padding-block: var(
+    --form-control-padding-block-sm,
+    #{ds.space(2)}
+  );
+
+  --custom-select-control-padding-inline: var(
+    --form-control-padding-inline-sm,
+    #{ds.space(3)}
+  );
+
+  --custom-select-option-min-block-size: 2.25rem;
+  --custom-select-option-padding-block: #{ds.space(1)};
+  --custom-select-option-padding-inline: #{ds.space(2)};
+  --custom-select-option-font-size: var(--text-xs, #{ds.font-size("xs")});
+
+  --custom-select-indicator-size: 0.875rem;
+  --custom-select-clear-size: 1.75rem;
+  --custom-select-popover-padding: #{ds.space(1)};
+}
+
+.custom-select--lg {
+  --custom-select-control-min-block-size: var(
+    --form-control-min-block-size-lg,
+    3.5rem
+  );
+
+  --custom-select-control-padding-block: var(
+    --form-control-padding-block-lg,
+    #{ds.space(4)}
+  );
+
+  --custom-select-control-padding-inline: var(
+    --form-control-padding-inline-lg,
+    #{ds.space(5)}
+  );
+
+  --custom-select-option-min-block-size: 3rem;
+  --custom-select-option-padding-block: #{ds.space(3)};
+  --custom-select-option-padding-inline: #{ds.space(4)};
+  --custom-select-option-font-size: var(--text-base, #{ds.font-size("base")});
+
+  --custom-select-indicator-size: 1.125rem;
+  --custom-select-clear-size: 2.25rem;
+}
+
+/* ==========================================================================
+   Valid
+   ========================================================================== */
+
+:where(.form-group, .form-fieldset).is-valid .custom-select,
+.custom-select.is-valid {
+  @include _custom-select-validation-state(var(--custom-select-valid-color));
+}
+
+.was-validated
+  .custom-select:has(
+    > .custom-select__fallback
+      .custom-select__native:required:valid:not(:disabled)
+  ) {
+  @include _custom-select-validation-state(var(--custom-select-valid-color));
+}
+
+/* ==========================================================================
+   Invalid
+   ========================================================================== */
+
+:where(.form-group, .form-fieldset).is-invalid .custom-select,
+.custom-select.is-invalid,
+.custom-select:has(
+  > .custom-select__fallback
+    .custom-select__native[aria-invalid]:not([aria-invalid="false"])
+),
+.was-validated
+  .custom-select:has(
+    > .custom-select__fallback .custom-select__native:invalid:not(:disabled)
+  ) {
+  @include _custom-select-validation-state(var(--custom-select-invalid-color));
+}
+
+/* ==========================================================================
+   Loading
+   ========================================================================== */
+
+.custom-select.is-loading,
+.custom-select[aria-busy="true"] {
+  cursor: progress;
+}
+
+.custom-select.is-loading .custom-select__trigger,
+.custom-select[aria-busy="true"] .custom-select__trigger {
+  cursor: progress;
+}
+
+.custom-select.is-loading .custom-select__clear,
+.custom-select[aria-busy="true"] .custom-select__clear {
+  display: none;
+}
+
+.custom-select.is-loading .custom-select__indicator,
+.custom-select[aria-busy="true"] .custom-select__indicator {
+  color: var(--custom-select-focus-color);
+
+  animation: custom-select-loading 0.8s linear infinite;
+}
+
+@keyframes custom-select-loading {
+  to {
+    rotate: 1turn;
+  }
+}
+
+/* ==========================================================================
+   Disabled
+   ========================================================================== */
+
+:where(
+  .custom-select.is-disabled,
+  .custom-select[aria-disabled="true"],
+  .custom-select:has(> .custom-select__fallback .custom-select__native:disabled)
+) {
+  --custom-select-bg: var(--custom-select-disabled-bg);
+  --custom-select-color: var(--custom-select-disabled-color);
+  --custom-select-placeholder-color: var(--custom-select-disabled-color);
+  --custom-select-border-color: var(--custom-select-disabled-border-color);
+  --custom-select-hover-border-color: var(
+    --custom-select-disabled-border-color
+  );
+  --custom-select-indicator-color: var(--custom-select-disabled-color);
+
+  cursor: not-allowed;
+}
+
+:where(
+    .custom-select.is-disabled,
+    .custom-select[aria-disabled="true"],
+    .custom-select:has(
+      > .custom-select__fallback .custom-select__native:disabled
+    )
+  )
+  .custom-select__trigger {
+  border-color: var(--custom-select-disabled-border-color);
+  background: var(--custom-select-disabled-bg);
+  color: var(--custom-select-disabled-color);
+  opacity: var(--custom-select-disabled-opacity);
+
+  cursor: inherit;
+  pointer-events: none;
+
+  -webkit-text-fill-color: var(--custom-select-disabled-color);
+}
+
+:where(
+    .custom-select.is-disabled,
+    .custom-select[aria-disabled="true"],
+    .custom-select:has(
+      > .custom-select__fallback .custom-select__native:disabled
+    )
+  )
+  :where(.custom-select__clear, .custom-select__popover) {
+  display: none;
+}

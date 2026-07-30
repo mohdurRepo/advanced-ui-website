@@ -1,0 +1,177 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   One-Time Password
+   ========================================================================== */
+
+/**
+ * A fixed-length verification-code group.
+ *
+ * The group remains left-to-right in RTL documents because verification
+ * codes are ordered numeric data. JavaScript owns paste distribution,
+ * keyboard navigation, and automatic focus movement.
+ */
+
+.form-otp {
+  --form-otp-input-size: 3rem;
+  --form-otp-gap: var(--space-2, #{ds.space(2)});
+  --form-otp-font-size: var(--text-xl, #{ds.font-size("xl")});
+
+  display: flex;
+  align-items: center;
+  gap: var(--form-otp-gap);
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* ==========================================================================
+   Input
+   ========================================================================== */
+
+.form-otp-input {
+  appearance: none;
+
+  flex: 0 0 auto;
+
+  inline-size: var(--form-otp-input-size);
+  block-size: var(--form-otp-input-size);
+  min-inline-size: 0;
+  padding: 0;
+
+  border: var(--form-control-border-width) solid
+    var(--form-control-border-color);
+  border-radius: var(--form-control-radius);
+
+  background-color: var(--form-control-bg);
+  background-clip: padding-box;
+  color: var(--form-control-color);
+  caret-color: var(--color-primary);
+
+  font-family: inherit;
+  font-size: var(--form-otp-font-size);
+  font-weight: var(--form-label-font-weight);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: center;
+
+  transition:
+    background-color var(--form-control-transition),
+    border-color var(--form-control-transition),
+    color var(--form-control-transition),
+    outline-color var(--form-control-transition);
+}
+
+/* ==========================================================================
+   Interaction
+   ========================================================================== */
+
+.form-otp-input:hover:not(:disabled):not([readonly]) {
+  border-color: var(--form-control-hover-border-color);
+}
+
+.form-otp-input:focus {
+  border-color: var(--form-control-focus-border-color);
+}
+
+.form-otp-input:focus-visible {
+  outline: var(--form-control-focus-outline-width) solid
+    var(--form-control-focus-outline-color);
+  outline-offset: var(--form-control-focus-outline-offset);
+}
+
+/* ==========================================================================
+   Separator
+   ========================================================================== */
+
+.form-otp-separator {
+  flex: 0 0 auto;
+
+  color: var(--form-help-color);
+
+  font-size: var(--text-lg, #{ds.font-size("lg")});
+  font-weight: var(--form-label-font-weight);
+  line-height: 1;
+
+  user-select: none;
+}
+
+/* ==========================================================================
+   Read-only
+   ========================================================================== */
+
+.form-otp-input[readonly] {
+  border-color: var(--form-control-readonly-border-color);
+  background-color: var(--form-control-readonly-bg);
+  color: var(--form-control-readonly-color);
+
+  cursor: text;
+}
+
+/* ==========================================================================
+   Disabled
+   ========================================================================== */
+
+.form-otp-input:disabled {
+  border-color: var(--form-control-disabled-border-color);
+  background-color: var(--form-control-disabled-bg);
+  color: var(--form-control-disabled-color);
+  opacity: var(--form-control-disabled-opacity);
+
+  cursor: not-allowed;
+
+  -webkit-text-fill-color: var(--form-control-disabled-color);
+}
+
+/* ==========================================================================
+   Autofill
+   ========================================================================== */
+
+.form-otp-input:-webkit-autofill {
+  border-color: var(--form-control-border-color);
+
+  caret-color: var(--form-control-color);
+  -webkit-text-fill-color: var(--form-control-color);
+  -webkit-box-shadow: 0 0 0 1000px var(--form-control-bg) inset;
+}
+
+.form-otp-input:-webkit-autofill:hover {
+  border-color: var(--form-control-hover-border-color);
+}
+
+.form-otp-input:-webkit-autofill:focus {
+  border-color: var(--form-control-focus-border-color);
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .form-otp {
+    --form-otp-input-size: clamp(2.25rem, 12vw, 2.75rem);
+    --form-otp-gap: var(--space-1, #{ds.space(1)});
+    --form-otp-font-size: var(--text-lg, #{ds.font-size("lg")});
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .form-otp-input:focus-visible {
+    border-color: Highlight;
+    outline-color: Highlight;
+  }
+
+  .form-otp-input:disabled {
+    border-color: GrayText;
+    color: GrayText;
+
+    -webkit-text-fill-color: GrayText;
+  }
+}

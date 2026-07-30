@@ -1,0 +1,223 @@
+/* ==========================================================================
+   Input Group
+   ========================================================================== */
+
+.input-group {
+  --input-group-border-color: var(--form-control-border-color);
+  --input-group-divider-color: var(--form-control-border-color);
+
+  position: relative;
+
+  display: flex;
+  align-items: stretch;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  border: var(--form-control-border-width) solid var(--input-group-border-color);
+  border-radius: var(--form-control-radius);
+
+  overflow: hidden;
+
+  background-color: var(--form-control-bg);
+
+  transition:
+    border-color var(--form-control-transition),
+    outline-color var(--form-control-transition);
+}
+
+.input-group > * {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Control
+   ========================================================================== */
+
+.input-group > .form-control {
+  flex: 1 1 auto;
+
+  border: 0;
+  border-radius: 0;
+
+  background-color: transparent;
+}
+
+.input-group > .form-control:hover,
+.input-group > .form-control:focus,
+.input-group > .form-control:focus-visible {
+  border-color: transparent;
+  outline: 0;
+}
+
+.input-group > .form-control[readonly] {
+  background-color: var(--form-control-readonly-bg);
+}
+
+.input-group > .form-control:disabled {
+  background-color: var(--form-control-disabled-bg);
+}
+
+/* ==========================================================================
+   Text Addon
+   ========================================================================== */
+
+.input-group-text {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  padding-inline: var(--form-control-padding-inline);
+
+  background-color: var(--color-surface-alt);
+  color: var(--form-help-color);
+
+  font: inherit;
+  font-size: var(--form-control-font-size);
+  font-weight: var(--form-control-font-weight);
+  line-height: var(--form-control-line-height);
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Action
+   ========================================================================== */
+
+.input-group-action {
+  appearance: none;
+
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: var(--form-control-gap);
+
+  min-inline-size: var(--form-control-min-block-size);
+  padding-inline: var(--form-control-padding-inline);
+
+  border: 0;
+
+  background-color: var(--color-surface-alt);
+  color: var(--color-primary);
+
+  font: inherit;
+  font-size: var(--form-help-font-size);
+  font-weight: var(--form-label-font-weight);
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background-color var(--form-control-transition),
+    color var(--form-control-transition),
+    outline-color var(--form-control-transition);
+}
+
+.input-group-action:hover:not(:disabled) {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.input-group-action:focus-visible {
+  position: relative;
+  z-index: 1;
+
+  outline: var(--form-control-focus-outline-width) solid
+    var(--form-control-focus-outline-color);
+  outline-offset: -2px;
+}
+
+.input-group-action:active:not(:disabled) {
+  background-color: var(--color-primary-hover);
+  color: var(--color-on-primary);
+}
+
+.input-group-action:disabled,
+.input-group-action[aria-disabled="true"] {
+  background-color: var(--form-control-disabled-bg);
+  color: var(--form-control-disabled-color);
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Dividers
+   ========================================================================== */
+
+.input-group > .input-group-text:first-child,
+.input-group > .input-group-action:first-child {
+  border-inline-end: var(--form-control-border-width) solid
+    var(--input-group-divider-color);
+}
+
+.input-group > .input-group-text:last-child,
+.input-group > .input-group-action:last-child {
+  border-inline-start: var(--form-control-border-width) solid
+    var(--input-group-divider-color);
+}
+
+/* ==========================================================================
+   Group Interaction
+   ========================================================================== */
+
+.input-group:has(> .form-control:hover:not(:disabled):not([readonly])) {
+  --input-group-border-color: var(--form-control-hover-border-color);
+  --input-group-divider-color: var(--form-control-hover-border-color);
+}
+
+.input-group:focus-within {
+  --input-group-border-color: var(--form-control-focus-border-color);
+  --input-group-divider-color: var(--form-control-focus-border-color);
+
+  outline: var(--form-control-focus-outline-width) solid
+    var(--form-control-focus-outline-color);
+  outline-offset: var(--form-control-focus-outline-offset);
+}
+
+.input-group:has(> .form-control:disabled) {
+  --input-group-border-color: var(--form-control-disabled-border-color);
+  --input-group-divider-color: var(--form-control-disabled-border-color);
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .input-group {
+    --input-group-border-color: CanvasText;
+    --input-group-divider-color: CanvasText;
+  }
+
+  .input-group:focus-within {
+    --input-group-border-color: Highlight;
+    --input-group-divider-color: Highlight;
+
+    outline-color: Highlight;
+  }
+
+  .input-group:has(> .form-control:disabled) {
+    --input-group-border-color: GrayText;
+    --input-group-divider-color: GrayText;
+  }
+
+  .input-group-action,
+  .input-group-text {
+    background-color: Canvas;
+    color: ButtonText;
+  }
+
+  .input-group-action:hover:not(:disabled),
+  .input-group-action:active:not(:disabled) {
+    background-color: Highlight;
+    color: HighlightText;
+  }
+
+  .input-group-action:disabled,
+  .input-group-action[aria-disabled="true"] {
+    color: GrayText;
+  }
+}

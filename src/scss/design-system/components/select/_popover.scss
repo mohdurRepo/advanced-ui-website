@@ -1,0 +1,162 @@
+/* ==========================================================================
+   Popover
+   ========================================================================== */
+
+/**
+ * JavaScript measures the trigger and writes viewport coordinates through:
+ *
+ * - --custom-select-popover-top
+ * - --custom-select-popover-left
+ * - --custom-select-popover-inline-size
+ * - --custom-select-available-block-size
+ *
+ * Physical top/left coordinates are intentional because they describe the
+ * viewport rather than document direction. All internal layout remains logical.
+ */
+
+.custom-select__popover {
+  --custom-select-popover-offset: -0.375rem;
+  --custom-select-popover-transform-origin: center top;
+
+  position: fixed;
+  inset: auto;
+  top: var(--custom-select-popover-top, 0);
+  left: var(--custom-select-popover-left, 0);
+  z-index: var(--custom-select-popover-z-index);
+
+  display: flex;
+  flex-direction: column;
+
+  inline-size: min(
+    var(--custom-select-popover-inline-size, 20rem),
+    calc(
+      100vw - var(--custom-select-viewport-gap) - var(
+          --custom-select-viewport-gap
+        )
+    )
+  );
+  max-inline-size: calc(
+    100vw - var(--custom-select-viewport-gap) - var(
+        --custom-select-viewport-gap
+      )
+  );
+  max-block-size: var(--custom-select-popover-max-block-size);
+  min-block-size: 0;
+
+  padding: var(--custom-select-popover-padding);
+  margin: 0;
+
+  overflow: hidden;
+
+  border: var(--custom-select-popover-border-width) solid
+    var(--custom-select-popover-border-color);
+  border-radius: var(--custom-select-popover-radius);
+
+  background: var(--custom-select-popover-bg);
+  box-shadow: var(--custom-select-popover-shadow);
+  color: var(--custom-select-popover-color);
+
+  color-scheme: inherit;
+  isolation: isolate;
+  overscroll-behavior: contain;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transform: translateY(var(--custom-select-popover-offset)) scale(0.985);
+  transform-origin: var(--custom-select-popover-transform-origin);
+
+  transition:
+    opacity var(--custom-select-popover-duration)
+      var(--custom-select-popover-easing),
+    transform var(--custom-select-popover-duration)
+      var(--custom-select-popover-easing),
+    visibility 0s linear var(--custom-select-popover-duration);
+  transition-behavior: allow-discrete;
+}
+
+/* ==========================================================================
+   Placement
+   ========================================================================== */
+
+.custom-select.is-open-up .custom-select__popover,
+.custom-select__popover[data-placement^="top"] {
+  --custom-select-popover-offset: 0.375rem;
+  --custom-select-popover-transform-origin: center bottom;
+}
+
+/* ==========================================================================
+   Positioned State
+   ========================================================================== */
+
+/**
+ * The panel stays hidden until JavaScript has measured and positioned it.
+ * This prevents a one-frame flash at the viewport origin.
+ */
+
+.custom-select__popover:not(.is-positioned) {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Open State
+   ========================================================================== */
+
+.custom-select__popover.is-positioned.is-open,
+.custom-select__popover.is-positioned:popover-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+
+  transform: translateY(0) scale(1);
+
+  transition-delay: 0s;
+}
+
+/**
+ * `.is-closing` supports browsers without discrete Popover API transitions.
+ * JavaScript removes the panel after --custom-select-popover-duration.
+ */
+
+.custom-select__popover.is-positioned.is-closing {
+  visibility: visible;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Popover API
+   ========================================================================== */
+
+.custom-select__popover[popover] {
+  margin: 0;
+}
+
+.custom-select__popover::backdrop {
+  background: transparent;
+}
+
+@starting-style {
+  .custom-select__popover.is-positioned:popover-open {
+    opacity: 0;
+    transform: translateY(var(--custom-select-popover-offset)) scale(0.985);
+  }
+}
+
+/* ==========================================================================
+   Viewport Safety
+   ========================================================================== */
+
+@supports (max-block-size: 100dvh) {
+  .custom-select__popover {
+    max-block-size: min(
+      var(--custom-select-popover-max-block-size),
+      calc(
+        100dvh - var(--custom-select-viewport-gap) - var(
+            --custom-select-viewport-gap
+          )
+      )
+    );
+  }
+}

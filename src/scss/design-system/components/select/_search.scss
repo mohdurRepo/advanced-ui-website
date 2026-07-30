@@ -1,0 +1,185 @@
+/* ==========================================================================
+   Search Region
+   ========================================================================== */
+
+.custom-select__search {
+  flex: 0 0 auto;
+
+  padding: var(--custom-select-search-padding);
+
+  border-block-end: 1px solid var(--custom-select-search-border-color);
+}
+
+.custom-select__search-field {
+  position: relative;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Search Input
+   ========================================================================== */
+
+.custom-select__search-input {
+  appearance: none;
+
+  display: block;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 2.5rem;
+
+  padding-block: 0.5rem;
+  padding-inline-start: calc(
+    var(--custom-select-option-padding-inline) +
+      var(--custom-select-indicator-size) + var(--custom-select-search-gap)
+  );
+  padding-inline-end: var(--custom-select-option-padding-inline);
+
+  border: var(--custom-select-control-border-width) solid
+    var(--custom-select-border-color);
+  border-radius: var(--custom-select-option-radius);
+
+  background: var(--custom-select-bg);
+  color: var(--custom-select-color);
+
+  font: inherit;
+  font-size: var(--custom-select-option-font-size);
+  line-height: var(--custom-select-line-height);
+  text-align: start;
+
+  transition:
+    background-color var(--custom-select-transition),
+    border-color var(--custom-select-transition),
+    color var(--custom-select-transition),
+    outline-color var(--custom-select-transition);
+}
+
+.custom-select__search.has-query .custom-select__search-input {
+  padding-inline-end: calc(
+    var(--custom-select-option-padding-inline) +
+      var(--custom-select-clear-size) + var(--custom-select-search-gap)
+  );
+}
+
+.custom-select__search-input::placeholder {
+  color: var(--custom-select-placeholder-color);
+  opacity: 1;
+}
+
+.custom-select__search-input:hover {
+  border-color: var(--custom-select-hover-border-color);
+}
+
+.custom-select__search-input:focus {
+  border-color: var(--custom-select-focus-color);
+  outline: none;
+}
+
+.custom-select__search-input:focus-visible {
+  outline: var(--custom-select-focus-outline-width) solid
+    var(--custom-select-focus-outline-color);
+  outline-offset: 1px;
+}
+
+/* Remove browser-specific search decorations; the component owns clearing. */
+
+.custom-select__search-input::-webkit-search-decoration,
+.custom-select__search-input::-webkit-search-cancel-button,
+.custom-select__search-input::-webkit-search-results-button,
+.custom-select__search-input::-webkit-search-results-decoration {
+  display: none;
+}
+
+/* ==========================================================================
+   Search Icon
+   ========================================================================== */
+
+.custom-select__search-icon {
+  --icon-size: var(--custom-select-indicator-size);
+
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: var(--custom-select-option-padding-inline);
+  z-index: 1;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--custom-select-search-icon-color);
+
+  pointer-events: none;
+
+  transform: translateY(-50%);
+
+  transition: color var(--custom-select-transition);
+}
+
+.custom-select__search-field:focus-within .custom-select__search-icon {
+  color: var(--custom-select-focus-color);
+}
+
+/* ==========================================================================
+   Clear Query
+   ========================================================================== */
+
+.custom-select__search-clear {
+  appearance: none;
+
+  --icon-size: 0.75rem;
+
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: var(--custom-select-option-padding-inline);
+  z-index: 1;
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: var(--custom-select-clear-size);
+  block-size: var(--custom-select-clear-size);
+  padding: 0;
+
+  border: 0;
+  border-radius: var(--custom-select-clear-radius);
+
+  background: transparent;
+  color: var(--custom-select-clear-color);
+
+  font: inherit;
+  line-height: 1;
+
+  cursor: pointer;
+  touch-action: manipulation;
+
+  transform: translateY(-50%);
+
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    background-color var(--custom-select-transition),
+    color var(--custom-select-transition),
+    outline-color var(--custom-select-transition);
+}
+
+.custom-select__search.has-query .custom-select__search-clear {
+  display: inline-flex;
+}
+
+.custom-select__search-clear:hover:not(:disabled) {
+  background: var(--custom-select-clear-hover-bg);
+  color: var(--custom-select-clear-hover-color);
+}
+
+.custom-select__search-clear:focus-visible {
+  outline: var(--custom-select-focus-outline-width) solid
+    var(--custom-select-focus-outline-color);
+  outline-offset: 1px;
+}
+
+.custom-select__search-clear:disabled {
+  cursor: not-allowed;
+}

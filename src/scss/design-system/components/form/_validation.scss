@@ -1,0 +1,291 @@
+/* ==========================================================================
+   Private State Helper
+   ========================================================================== */
+
+/**
+ * Maps a validation state to the shared control border tokens.
+ *
+ * Components that consume the shared tokens automatically receive the same
+ * valid and invalid treatment, including future custom selects and dates.
+ */
+
+@mixin _validation-state($color) {
+  --form-state-color: #{$color};
+  --form-control-border-color: #{$color};
+  --form-control-hover-border-color: #{$color};
+  --form-control-focus-border-color: #{$color};
+}
+
+/* ==========================================================================
+   Explicit Validation States
+   ========================================================================== */
+
+:where(
+  .form-group,
+  .form-fieldset,
+  .form-field,
+  .form-select-wrap,
+  .form-file,
+  .form-otp,
+  .input-group,
+  .form-control,
+  .form-select,
+  .form-check-input,
+  .form-switch-input,
+  .form-otp-input
+).is-valid {
+  @include _validation-state(var(--form-valid-color));
+}
+
+:where(
+  .form-group,
+  .form-fieldset,
+  .form-field,
+  .form-select-wrap,
+  .form-file,
+  .form-otp,
+  .input-group,
+  .form-control,
+  .form-select,
+  .form-check-input,
+  .form-switch-input,
+  .form-otp-input
+).is-invalid {
+  @include _validation-state(var(--form-invalid-color));
+}
+
+/* ==========================================================================
+   ARIA Invalid State
+   ========================================================================== */
+
+:where(
+    .form-control,
+    .form-select,
+    .form-check-input,
+    .form-switch-input,
+    .form-otp-input
+  )[aria-invalid]:not([aria-invalid="false"]) {
+  @include _validation-state(var(--form-invalid-color));
+}
+
+.form-field:has(> .form-control[aria-invalid]:not([aria-invalid="false"])),
+.form-select-wrap:has(> .form-select[aria-invalid]:not([aria-invalid="false"])),
+.input-group:has(> .form-control[aria-invalid]:not([aria-invalid="false"])),
+.form-file:has(> .form-file-input[aria-invalid]:not([aria-invalid="false"])),
+.form-otp:has(> .form-otp-input[aria-invalid]:not([aria-invalid="false"])) {
+  @include _validation-state(var(--form-invalid-color));
+}
+
+/* ==========================================================================
+   Choice Indicators
+   ========================================================================== */
+
+:where(.form-group, .form-fieldset).is-valid
+  :where(.form-check-input, .form-switch-input):not(:disabled),
+:where(.form-check-input, .form-switch-input).is-valid:not(:disabled) {
+  border-color: var(--form-valid-color);
+}
+
+:where(.form-group, .form-fieldset).is-invalid
+  :where(.form-check-input, .form-switch-input):not(:disabled),
+:where(.form-check-input, .form-switch-input).is-invalid:not(:disabled),
+:where(.form-check-input, .form-switch-input)[aria-invalid]:not(
+    [aria-invalid="false"]
+  ):not(:disabled) {
+  border-color: var(--form-invalid-color);
+}
+
+/* ==========================================================================
+   Native Constraint Validation
+   ========================================================================== */
+
+/**
+ * Add `.was-validated` after a submit attempt.
+ */
+
+:where(.was-validated)
+  :where(
+    .form-control:required:valid:not(:disabled),
+    .form-select:required:valid:not(:disabled),
+    .form-check-input:required:valid:not(:disabled),
+    .form-switch-input:required:valid:not(:disabled),
+    .form-otp-input:required:valid:not(:disabled)
+  ) {
+  @include _validation-state(var(--form-valid-color));
+}
+
+:where(.was-validated)
+  :where(
+    .form-control:invalid:not(:disabled),
+    .form-select:invalid:not(:disabled),
+    .form-check-input:invalid:not(:disabled),
+    .form-switch-input:invalid:not(:disabled),
+    .form-otp-input:invalid:not(:disabled)
+  ) {
+  @include _validation-state(var(--form-invalid-color));
+}
+
+:where(.was-validated)
+  :where(
+    .form-check-input:required:valid:not(:disabled),
+    .form-switch-input:required:valid:not(:disabled)
+  ) {
+  border-color: var(--form-valid-color);
+}
+
+:where(.was-validated)
+  :where(
+    .form-check-input:invalid:not(:disabled),
+    .form-switch-input:invalid:not(:disabled)
+  ) {
+  border-color: var(--form-invalid-color);
+}
+
+/* ==========================================================================
+   Valid Composite Controls
+   ========================================================================== */
+
+:where(
+  .was-validated .form-field:has(> .form-control:required:valid:not(:disabled)),
+  .was-validated
+    .form-select-wrap:has(> .form-select:required:valid:not(:disabled)),
+  .was-validated
+    .input-group:has(> .form-control:required:valid:not(:disabled)),
+  .was-validated
+    .form-file:has(> .form-file-input:required:valid:not(:disabled)),
+  .was-validated
+    .form-otp:has(> .form-otp-input:required):not(
+      :has(> .form-otp-input:invalid)
+    )
+) {
+  @include _validation-state(var(--form-valid-color));
+}
+
+/* ==========================================================================
+   Invalid Composite Controls
+   ========================================================================== */
+
+:where(
+  .was-validated .form-field:has(> .form-control:invalid:not(:disabled)),
+  .was-validated .form-select-wrap:has(> .form-select:invalid:not(:disabled)),
+  .was-validated .input-group:has(> .form-control:invalid:not(:disabled)),
+  .was-validated .form-file:has(> .form-file-input:invalid:not(:disabled)),
+  .was-validated .form-otp:has(> .form-otp-input:invalid:not(:disabled))
+) {
+  @include _validation-state(var(--form-invalid-color));
+}
+
+/* ==========================================================================
+   Explicit State Precedence
+   ========================================================================== */
+
+/**
+ * Explicit application or server states override native constraint states.
+ */
+
+:where(
+    .form-group,
+    .form-fieldset,
+    .form-field,
+    .form-select-wrap,
+    .form-file,
+    .form-otp,
+    .input-group
+  ).is-valid
+  :where(
+    .form-field,
+    .form-select-wrap,
+    .form-file,
+    .form-otp,
+    .input-group,
+    .form-control,
+    .form-select,
+    .form-check-input,
+    .form-switch-input,
+    .form-otp-input
+  ) {
+  @include _validation-state(var(--form-valid-color));
+}
+
+:where(
+    .form-group,
+    .form-fieldset,
+    .form-field,
+    .form-select-wrap,
+    .form-file,
+    .form-otp,
+    .input-group
+  ).is-invalid
+  :where(
+    .form-field,
+    .form-select-wrap,
+    .form-file,
+    .form-otp,
+    .input-group,
+    .form-control,
+    .form-select,
+    .form-check-input,
+    .form-switch-input,
+    .form-otp-input
+  ) {
+  @include _validation-state(var(--form-invalid-color));
+}
+
+/* ==========================================================================
+   Feedback Messages
+   ========================================================================== */
+
+.form-feedback,
+.form-success,
+.form-error {
+  margin: 0;
+
+  font-size: var(--form-help-font-size);
+  line-height: var(--form-help-line-height);
+
+  overflow-wrap: anywhere;
+}
+
+.form-feedback {
+  color: var(--form-state-color, var(--form-help-color));
+}
+
+.form-success {
+  color: var(--form-valid-color);
+}
+
+.form-error {
+  color: var(--form-invalid-color);
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .form-feedback,
+  .form-success,
+  .form-error {
+    color: CanvasText;
+  }
+
+  :where(.form-group, .form-fieldset).is-invalid
+    :where(.form-check-input, .form-switch-input):not(:disabled),
+  :where(.form-check-input, .form-switch-input).is-invalid:not(:disabled),
+  :where(.form-check-input, .form-switch-input)[aria-invalid]:not(
+      [aria-invalid="false"]
+    ):not(:disabled),
+  :where(.was-validated)
+    :where(
+      .form-check-input:invalid:not(:disabled),
+      .form-switch-input:invalid:not(:disabled)
+    ) {
+    border-color: CanvasText;
+    border-style: dashed;
+  }
+
+  :where(.form-check-input, .form-switch-input):focus-visible {
+    border-color: Highlight;
+    outline-color: Highlight;
+  }
+}

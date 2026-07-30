@@ -1,0 +1,99 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Shared Form Tokens
+   ========================================================================== */
+
+/**
+ * Shared by native form controls, custom selects, and date controls.
+ *
+ * Component-specific partials may map their local custom properties to these
+ * values, but should not redefine the shared control measurements or states.
+ */
+
+:root {
+  /* Form rhythm */
+  --form-space: var(--space-6, #{ds.space(6)});
+  --form-row-space: var(--space-5, #{ds.space(5)});
+  --form-group-space: var(--space-2, #{ds.space(2)});
+  --form-inline-space: var(--space-4, #{ds.space(4)});
+  --form-fieldset-space: var(--space-4, #{ds.space(4)});
+
+  /* Labels and supporting text */
+  --form-label-color: var(--color-heading);
+  --form-label-font-size: var(--text-sm, #{ds.font-size("sm")});
+  --form-label-font-weight: #{ds.font-weight("heavy")};
+  --form-label-line-height: #{ds.line-height("normal")};
+
+  --form-help-color: var(--color-text-muted);
+  --form-help-font-size: var(--text-sm, #{ds.font-size("sm")});
+  --form-help-line-height: #{ds.line-height("normal")};
+
+  /* Control typography */
+  --form-control-font-size: var(--text-base, #{ds.font-size("base")});
+  --form-control-line-height: #{ds.line-height("normal")};
+  --form-control-font-weight: #{ds.font-weight("regular")};
+
+  /* Control sizing */
+  --form-control-min-block-size-sm: 2.5rem;
+  --form-control-min-block-size: 3rem;
+  --form-control-min-block-size-lg: 3.5rem;
+
+  --form-control-padding-block-sm: var(--space-2, #{ds.space(2)});
+  --form-control-padding-block: var(--space-3, #{ds.space(3)});
+  --form-control-padding-block-lg: var(--space-4, #{ds.space(4)});
+
+  --form-control-padding-inline-sm: var(--space-3, #{ds.space(3)});
+  --form-control-padding-inline: var(--space-4, #{ds.space(4)});
+  --form-control-padding-inline-lg: var(--space-5, #{ds.space(5)});
+
+  --form-control-gap: var(--space-2, #{ds.space(2)});
+  --form-control-indicator-size: 1rem;
+  --form-control-indicator-space: 3rem;
+
+  /* Control shape */
+  --form-control-border-width: 1px;
+  --form-control-radius: var(--radius-md, #{ds.radius("md")});
+
+  /* Control colors */
+  --form-control-bg: var(--color-surface);
+  --form-control-color: var(--color-text);
+  --form-control-placeholder-color: var(--color-text-muted);
+
+  --form-control-border-color: var(--color-border);
+  --form-control-hover-border-color: var(--color-border-strong);
+
+  /* Focus */
+  --form-control-focus-border-color: var(--focus-ring, var(--color-primary));
+  --form-control-focus-outline-color: var(--focus-ring, var(--color-primary));
+  --form-control-focus-outline-width: var(--focus-ring-width, 2px);
+  --form-control-focus-outline-offset: 2px;
+
+  /* Read-only */
+  --form-control-readonly-bg: var(--color-surface-alt);
+  --form-control-readonly-color: var(--color-text);
+  --form-control-readonly-border-color: var(--color-border);
+
+  /* Disabled */
+  --form-control-disabled-bg: var(--color-disabled);
+  --form-control-disabled-color: var(--color-on-disabled);
+  --form-control-disabled-border-color: var(--color-disabled);
+  --form-control-disabled-opacity: 1;
+
+  /* Validation */
+  --form-required-color: var(--color-danger);
+  --form-valid-color: var(--color-success);
+  --form-invalid-color: var(--color-danger);
+
+  /* Motion */
+  --form-control-transition: var(--transition-fast, #{ds.motion("fast")});
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  --form-control-border-width: 2px;
+  --form-control-focus-outline-offset: 3px;
+}

@@ -1,0 +1,302 @@
+/* ==========================================================================
+   Custom Date Motion
+   ========================================================================== */
+
+/**
+ * Motion remains subtle and functional:
+ *
+ * - The popover fades and shifts slightly.
+ * - Calendar views use a short directional transition.
+ * - Selected dates receive restrained feedback.
+ * - Loading indicators rotate.
+ *
+ * Every animation is disabled by the design-system motion preference and by
+ * the operating-system reduced-motion preference.
+ */
+
+/* ==========================================================================
+   Popover
+   ========================================================================== */
+
+.custom-date__popover {
+  transition:
+    opacity var(--custom-date-popover-duration)
+      var(--custom-date-popover-easing),
+    transform var(--custom-date-popover-duration)
+      var(--custom-date-popover-easing),
+    visibility 0s linear var(--custom-date-popover-duration);
+}
+
+.custom-date.is-open .custom-date__popover,
+.custom-date__popover.is-open,
+.custom-date__popover:popover-open {
+  transition:
+    opacity var(--custom-date-popover-duration)
+      var(--custom-date-popover-easing),
+    transform var(--custom-date-popover-duration)
+      var(--custom-date-popover-easing),
+    visibility 0s linear 0s;
+}
+
+/* ==========================================================================
+   Calendar Indicator
+   ========================================================================== */
+
+.custom-date__indicator {
+  transition:
+    color var(--custom-date-transition),
+    opacity var(--custom-date-transition),
+    transform var(--custom-date-transition);
+}
+
+.custom-date.is-open .custom-date__indicator {
+  transform: translateY(-50%) scale(1.08);
+}
+
+/* ==========================================================================
+   Calendar View
+   ========================================================================== */
+
+/**
+ * JavaScript may add a directional class before replacing the active month:
+ *
+ * `.is-moving-forward`
+ * `.is-moving-backward`
+ */
+
+.custom-date__calendar-view.is-entering {
+  animation: custom-date-view-enter 160ms ease-out both;
+}
+
+.custom-date__calendar-view.is-moving-forward {
+  animation: custom-date-view-forward 160ms ease-out both;
+}
+
+.custom-date__calendar-view.is-moving-backward {
+  animation: custom-date-view-backward 160ms ease-out both;
+}
+
+@keyframes custom-date-view-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes custom-date-view-forward {
+  from {
+    opacity: 0;
+    transform: translateX(0.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes custom-date-view-backward {
+  from {
+    opacity: 0;
+    transform: translateX(-0.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ==========================================================================
+   RTL Calendar Direction
+   ========================================================================== */
+
+/**
+ * Chronological movement is mirrored visually in RTL documents.
+ */
+
+html[dir="rtl"] {
+  .custom-date__calendar-view.is-moving-forward {
+    animation-name: custom-date-view-backward;
+  }
+
+  .custom-date__calendar-view.is-moving-backward {
+    animation-name: custom-date-view-forward;
+  }
+}
+
+/* ==========================================================================
+   Month and Year Picker
+   ========================================================================== */
+
+.custom-date__picker.is-entering {
+  animation: custom-date-picker-enter 140ms ease-out both;
+}
+
+@keyframes custom-date-picker-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ==========================================================================
+   Selected Date Feedback
+   ========================================================================== */
+
+.custom-date__day.is-just-selected {
+  animation: custom-date-day-selected 180ms ease-out;
+}
+
+@keyframes custom-date-day-selected {
+  0% {
+    transform: scale(0.88);
+  }
+
+  70% {
+    transform: scale(1.06);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ==========================================================================
+   Range Feedback
+   ========================================================================== */
+
+.custom-date--range
+  .custom-date__day:is(.is-in-range, .is-range-preview)::before {
+  transition:
+    background-color var(--custom-date-transition),
+    opacity var(--custom-date-transition);
+}
+
+.custom-date--range .custom-date__day.is-range-start,
+.custom-date--range .custom-date__day.is-range-end {
+  transition:
+    background-color var(--custom-date-transition),
+    border-color var(--custom-date-transition),
+    color var(--custom-date-transition),
+    transform var(--custom-date-transition);
+}
+
+/* ==========================================================================
+   Loading
+   ========================================================================== */
+
+.custom-date.is-loading .custom-date__indicator,
+.custom-date[aria-busy="true"] .custom-date__indicator {
+  animation: custom-date-spin 1s linear infinite;
+}
+
+@keyframes custom-date-spin {
+  from {
+    transform: translateY(-50%) rotate(0turn);
+  }
+
+  to {
+    transform: translateY(-50%) rotate(1turn);
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion: Operating System
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .custom-date,
+  .custom-date *,
+  .custom-date *::before,
+  .custom-date *::after {
+    scroll-behavior: auto;
+  }
+
+  .custom-date__trigger,
+  .custom-date__clear,
+  .custom-date__indicator,
+  .custom-date__popover,
+  .custom-date__nav,
+  .custom-date__title,
+  .custom-date__day,
+  .custom-date__day::before,
+  .custom-date__picker-option,
+  .custom-date__preset,
+  .custom-date__action {
+    transition: none;
+  }
+
+  .custom-date__calendar-view,
+  .custom-date__picker,
+  .custom-date__day.is-just-selected,
+  .custom-date.is-loading .custom-date__indicator,
+  .custom-date[aria-busy="true"] .custom-date__indicator {
+    animation: none;
+  }
+
+  .custom-date__popover,
+  .custom-date.is-open-up .custom-date__popover,
+  .custom-date__popover[data-placement^="top"] {
+    transform: none;
+  }
+
+  .custom-date.is-open .custom-date__indicator {
+    transform: translateY(-50%);
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion: Design-system Preference
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .custom-date,
+  .custom-date *,
+  .custom-date *::before,
+  .custom-date *::after {
+    scroll-behavior: auto;
+  }
+
+  .custom-date__trigger,
+  .custom-date__clear,
+  .custom-date__indicator,
+  .custom-date__popover,
+  .custom-date__nav,
+  .custom-date__title,
+  .custom-date__day,
+  .custom-date__day::before,
+  .custom-date__picker-option,
+  .custom-date__preset,
+  .custom-date__action {
+    transition: none;
+  }
+
+  .custom-date__calendar-view,
+  .custom-date__picker,
+  .custom-date__day.is-just-selected,
+  .custom-date.is-loading .custom-date__indicator,
+  .custom-date[aria-busy="true"] .custom-date__indicator {
+    animation: none;
+  }
+
+  .custom-date__popover,
+  .custom-date.is-open-up .custom-date__popover,
+  .custom-date__popover[data-placement^="top"] {
+    transform: none;
+  }
+
+  .custom-date.is-open .custom-date__indicator {
+    transform: translateY(-50%);
+  }
+}

@@ -1,0 +1,162 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Form Actions
+   ========================================================================== */
+
+/**
+ * Arranges form-level actions without defining button appearance.
+ *
+ * The default alignment follows the logical inline end, so it adapts to both
+ * LTR and RTL documents without directional overrides.
+ */
+
+.form-actions {
+  --form-actions-gap: var(--space-3, #{ds.space(3)});
+  --form-actions-group-gap: var(--space-2, #{ds.space(2)});
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--form-actions-gap);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.form-actions > * {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Alignment
+   ========================================================================== */
+
+.form-actions-start {
+  justify-content: flex-start;
+}
+
+.form-actions-center {
+  justify-content: center;
+}
+
+.form-actions-between {
+  justify-content: space-between;
+}
+
+/* ==========================================================================
+   Action Group
+   ========================================================================== */
+
+/**
+ * Keeps related actions together inside a larger action row.
+ */
+
+.form-actions-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--form-actions-group-gap);
+
+  min-inline-size: 0;
+}
+
+.form-actions-group > * {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Fluid Actions
+   ========================================================================== */
+
+/**
+ * Gives direct buttons equal access to the available width while allowing
+ * them to wrap when their labels need more space.
+ */
+
+.form-actions-fluid > .btn {
+  flex: 1 1 10rem;
+}
+
+.form-actions-fluid > .form-actions-group {
+  flex: 1 1 auto;
+}
+
+.form-actions-fluid > .form-actions-group > .btn {
+  flex: 1 1 10rem;
+}
+
+/* ==========================================================================
+   Status
+   ========================================================================== */
+
+/**
+ * Optional non-action content for submission progress or result messages.
+ * Use `role="status"` or an appropriate live region in the HTML when the
+ * message changes dynamically.
+ */
+
+.form-actions-status {
+  flex: 1 1 16rem;
+
+  min-inline-size: 0;
+  margin: 0;
+
+  color: var(--form-help-color);
+
+  font-size: var(--form-help-font-size);
+  line-height: var(--form-help-line-height);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Inline Mobile Opt-out
+   ========================================================================== */
+
+/**
+ * Preserve a horizontal action row on small screens when the actions are
+ * known to fit. This modifier should be used sparingly.
+ */
+
+.form-actions-inline {
+  flex-direction: row;
+  align-items: center;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .form-actions:not(.form-actions-inline) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-actions:not(.form-actions-inline) > .btn,
+  .form-actions:not(.form-actions-inline) > .form-actions-group {
+    inline-size: 100%;
+  }
+
+  .form-actions:not(.form-actions-inline) > .form-actions-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-actions:not(.form-actions-inline) > .form-actions-group > .btn {
+    inline-size: 100%;
+  }
+
+  .form-actions-fluid:not(.form-actions-inline) > .btn,
+  .form-actions-fluid:not(.form-actions-inline) > .form-actions-group > .btn {
+    flex-basis: auto;
+  }
+
+  .form-actions-status {
+    flex-basis: auto;
+    inline-size: 100%;
+  }
+}

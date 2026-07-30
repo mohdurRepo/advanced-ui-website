@@ -1,0 +1,446 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Custom Select
+   ========================================================================== */
+
+.custom-select {
+  --custom-select-height: var(--form-control-height, 2.75rem);
+
+  --custom-select-padding-x: var(--form-control-padding-x, 0.875rem);
+
+  --custom-select-padding-y: var(--form-control-padding-y, 0.625rem);
+
+  --custom-select-bg: var(--form-control-bg, var(--color-surface));
+
+  --custom-select-color: var(--form-control-color, var(--color-text));
+
+  --custom-select-placeholder: var(
+    --form-control-placeholder,
+    var(--color-text-muted)
+  );
+
+  --custom-select-border-color: var(--form-control-border, var(--color-border));
+
+  --custom-select-hover-border-color: var(--color-primary);
+
+  --custom-select-focus-border-color: var(--color-primary);
+
+  --custom-select-radius: var(--form-control-radius, var(--radius-sm));
+
+  --custom-select-menu-offset: 0.375rem;
+  --custom-select-menu-max-height: 18rem;
+
+  position: relative;
+
+  display: block;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Control
+   ========================================================================== */
+
+.custom-select__control {
+  position: relative;
+
+  display: flex;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.custom-select__toggle,
+.custom-select__readonly {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--custom-select-height);
+
+  padding: var(--custom-select-padding-y) 2.75rem var(--custom-select-padding-y)
+    var(--custom-select-padding-x);
+
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--custom-select-border-color);
+  border-radius: var(--custom-select-radius);
+
+  background-color: var(--custom-select-bg);
+  color: var(--custom-select-color);
+
+  appearance: none;
+
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+  text-align: start;
+
+  @include ds.transition(
+    (background-color, border-color, color, box-shadow),
+    "fast"
+  );
+}
+
+.custom-select__toggle {
+  cursor: pointer;
+}
+
+.custom-select__toggle:hover:not(:disabled) {
+  border-color: var(--custom-select-hover-border-color);
+}
+
+.custom-select__toggle:focus-visible {
+  border-color: var(--custom-select-focus-border-color);
+
+  outline: 0;
+
+  @include ds.focus-ring;
+}
+
+/* Reserve space for both the clear action and indicator. */
+
+.custom-select.has-value[data-clearable="true"] .custom-select__toggle,
+.custom-select--multiple.has-value .custom-select__toggle {
+  padding-inline-end: 4.75rem;
+}
+
+/* ==========================================================================
+   Value
+   ========================================================================== */
+
+.custom-select__value {
+  display: block;
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-select__value--placeholder {
+  color: var(--custom-select-placeholder);
+}
+
+/* ==========================================================================
+   Indicator
+   ========================================================================== */
+
+.custom-select__indicator {
+  position: absolute;
+
+  inset-block-start: 50%;
+  inset-inline-end: 0.875rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+
+  color: var(--custom-select-placeholder);
+
+  line-height: 1;
+
+  pointer-events: none;
+
+  transform: translateY(-50%);
+
+  @include ds.transition((color, transform), "fast");
+}
+
+/* ==========================================================================
+   Clear action
+   ========================================================================== */
+
+.custom-select__clear {
+  position: absolute;
+  z-index: 2;
+
+  inset-block-start: 50%;
+  inset-inline-end: 2.5rem;
+
+  display: none;
+  place-items: center;
+
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  min-block-size: 0;
+  padding: 0;
+
+  border: 0;
+  border-radius: var(--radius-sm);
+
+  background: transparent;
+  color: var(--custom-select-placeholder);
+
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transform: translateY(-50%);
+
+  @include ds.transition((background-color, color, box-shadow), "fast");
+}
+
+.custom-select.has-value[data-clearable="true"] .custom-select__clear,
+.custom-select--multiple.has-value .custom-select__clear {
+  display: inline-grid;
+}
+
+.custom-select__clear:hover:not(:disabled) {
+  background: var(--color-surface-alt);
+  color: var(--color-danger);
+}
+
+.custom-select__clear:focus-visible {
+  outline: 0;
+
+  @include ds.focus-ring;
+}
+
+.custom-select__clear:disabled {
+  color: var(--form-disabled-color, var(--color-text-muted));
+
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Menu
+   ========================================================================== */
+
+.custom-select__menu {
+  position: absolute;
+  z-index: var(--z-dropdown, 1000);
+
+  inset-block-start: calc(100% + var(--custom-select-menu-offset));
+
+  inset-inline: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 100%;
+  max-block-size: var(--custom-select-menu-max-height);
+
+  overflow: hidden;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+
+  color: var(--color-text);
+}
+
+.custom-select__menu[hidden] {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Open state
+   ========================================================================== */
+
+.custom-select.is-open {
+  z-index: var(--z-dropdown, 1000);
+}
+
+.custom-select.is-open .custom-select__toggle {
+  border-color: var(--custom-select-focus-border-color);
+
+  @include ds.focus-ring;
+}
+
+.custom-select.is-open .custom-select__indicator {
+  color: var(--color-primary);
+
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* ==========================================================================
+   Menu positioning
+   ========================================================================== */
+
+.custom-select--menu-top .custom-select__menu {
+  inset-block-start: auto;
+
+  inset-block-end: calc(100% + var(--custom-select-menu-offset));
+}
+
+.custom-select--menu-end .custom-select__menu {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+}
+
+.custom-select--menu-auto .custom-select__menu {
+  inline-size: max-content;
+  min-inline-size: 100%;
+  max-inline-size: min(24rem, calc(100vw - 2rem));
+}
+
+/* ==========================================================================
+   Width variants
+   ========================================================================== */
+
+.custom-select--auto {
+  inline-size: auto;
+}
+
+.custom-select--fit {
+  inline-size: fit-content;
+}
+
+.custom-select--fit .custom-select__toggle {
+  inline-size: auto;
+}
+
+/* ==========================================================================
+   Sizes
+   ========================================================================== */
+
+.custom-select--sm {
+  --custom-select-height: 2.25rem;
+  --custom-select-padding-x: 0.75rem;
+  --custom-select-padding-y: 0.5rem;
+}
+
+.custom-select--sm :is(.custom-select__toggle, .custom-select__readonly) {
+  font-size: var(--text-xs);
+}
+
+.custom-select--lg {
+  --custom-select-height: 3.25rem;
+  --custom-select-padding-x: 1rem;
+  --custom-select-padding-y: 0.75rem;
+}
+
+.custom-select--lg :is(.custom-select__toggle, .custom-select__readonly) {
+  font-size: var(--text-base);
+}
+
+/* ==========================================================================
+   Disabled state
+   ========================================================================== */
+
+.custom-select.is-disabled .custom-select__toggle,
+.custom-select[aria-disabled="true"] .custom-select__toggle,
+.custom-select__toggle:disabled {
+  border-color: var(--form-disabled-border, var(--color-border));
+
+  background-color: var(--color-surface-alt);
+
+  color: var(--form-disabled-color, var(--color-text-muted));
+
+  cursor: not-allowed;
+}
+
+.custom-select.is-disabled .custom-select__indicator,
+.custom-select[aria-disabled="true"] .custom-select__indicator,
+.custom-select__toggle:disabled .custom-select__indicator {
+  color: var(--form-disabled-color, var(--color-text-muted));
+}
+
+.custom-select.is-disabled .custom-select__clear,
+.custom-select[aria-disabled="true"] .custom-select__clear {
+  display: none;
+}
+
+/* ==========================================================================
+   Readonly state
+   ========================================================================== */
+
+.custom-select__readonly {
+  background-color: var(--color-surface-alt);
+
+  cursor: default;
+}
+
+/* ==========================================================================
+   Validation
+   ========================================================================== */
+
+.custom-select.is-valid .custom-select__toggle,
+.form-group.is-valid .custom-select .custom-select__toggle {
+  border-color: var(--color-success);
+}
+
+.custom-select.is-invalid .custom-select__toggle,
+.custom-select[aria-invalid="true"] .custom-select__toggle,
+.form-group.is-invalid .custom-select .custom-select__toggle {
+  border-color: var(--color-danger);
+}
+
+.custom-select.is-valid.is-open .custom-select__toggle,
+.form-group.is-valid .custom-select.is-open .custom-select__toggle {
+  box-shadow: 0 0 0 0.1875rem
+    color-mix(in srgb, var(--color-success) 18%, transparent);
+}
+
+.custom-select.is-invalid.is-open .custom-select__toggle,
+.custom-select[aria-invalid="true"].is-open .custom-select__toggle,
+.form-group.is-invalid .custom-select.is-open .custom-select__toggle {
+  box-shadow: 0 0 0 0.1875rem
+    color-mix(in srgb, var(--color-danger) 18%, transparent);
+}
+
+/* ==========================================================================
+   Loading
+   ========================================================================== */
+
+.custom-select.is-loading .custom-select__toggle {
+  cursor: wait;
+}
+
+.custom-select.is-loading .custom-select__indicator {
+  animation: icon-spin 1s linear infinite;
+}
+
+/* ==========================================================================
+   Reduced motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .custom-select__toggle,
+  .custom-select__readonly,
+  .custom-select__indicator,
+  .custom-select__clear {
+    transition: none;
+  }
+
+  .custom-select.is-open .custom-select__indicator {
+    transform: translateY(-50%);
+  }
+
+  .custom-select.is-loading .custom-select__indicator {
+    animation: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .custom-select__toggle,
+  .custom-select__readonly,
+  .custom-select__indicator,
+  .custom-select__clear {
+    transition: none;
+  }
+
+  .custom-select.is-open .custom-select__indicator {
+    transform: translateY(-50%);
+  }
+
+  .custom-select.is-loading .custom-select__indicator {
+    animation: none;
+  }
+}

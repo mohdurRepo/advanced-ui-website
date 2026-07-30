@@ -1,0 +1,230 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Form
+   ========================================================================== */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--form-space);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Rows
+   ========================================================================== */
+
+/**
+ * `.form-row` provides form-specific spacing while grid utilities control the
+ * number of columns.
+ */
+
+.form-row {
+  --grid-gap: var(--form-row-space);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.form-row > * {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Groups
+   ========================================================================== */
+
+.form-group {
+  display: grid;
+  align-content: start;
+  gap: var(--form-group-space);
+
+  min-inline-size: 0;
+}
+
+.form-group-grow {
+  flex: 1 1 18rem;
+}
+
+.form-group-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--form-inline-space);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Labels
+   ========================================================================== */
+
+.form-label,
+.form-label-static,
+.form-legend {
+  color: var(--form-label-color);
+
+  font-size: var(--form-label-font-size);
+  font-weight: var(--form-label-font-weight);
+  line-height: var(--form-label-line-height);
+}
+
+.form-label {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1, #{ds.space(1)});
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+}
+
+.form-label-static {
+  display: block;
+}
+
+.form-required {
+  color: var(--form-required-color);
+}
+
+.form-optional {
+  color: var(--form-help-color);
+
+  font-size: 0.875em;
+  font-weight: #{ds.font-weight("regular")};
+}
+
+/* ==========================================================================
+   Supporting Text
+   ========================================================================== */
+
+.form-help,
+.form-fieldset-description {
+  margin: 0;
+
+  color: var(--form-help-color);
+
+  font-size: var(--form-help-font-size);
+  line-height: var(--form-help-line-height);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Fieldsets
+   ========================================================================== */
+
+.form-fieldset {
+  min-inline-size: 0;
+  padding: 0;
+  margin: 0;
+
+  border: 0;
+}
+
+.form-legend {
+  max-inline-size: 100%;
+  padding: 0;
+  margin-block-end: var(--form-group-space);
+
+  overflow-wrap: anywhere;
+}
+
+.form-fieldset-description {
+  margin-block-end: var(--form-fieldset-space);
+}
+
+.form-fieldset-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--form-fieldset-space);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Horizontal Form
+   ========================================================================== */
+
+.form-horizontal {
+  --form-horizontal-label-width: 12rem;
+}
+
+.form-horizontal .form-group {
+  grid-template-columns:
+    minmax(8rem, var(--form-horizontal-label-width))
+    minmax(0, 1fr);
+  column-gap: var(--form-row-space);
+  row-gap: var(--form-group-space);
+}
+
+.form-horizontal .form-label {
+  grid-column: 1;
+  grid-row: 1;
+  align-items: center;
+  align-self: start;
+
+  min-block-size: var(--form-control-min-block-size);
+}
+
+.form-horizontal .form-group > :not(.form-label) {
+  grid-column: 2;
+}
+
+/* ==========================================================================
+   Inline Form
+   ========================================================================== */
+
+.form-inline {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: flex-end;
+  gap: var(--form-inline-space);
+}
+
+.form-inline .form-group {
+  flex: 0 1 14rem;
+}
+
+.form-inline .form-group-grow {
+  flex: 1 1 20rem;
+}
+
+.form-inline > .btn {
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .form-horizontal .form-group {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .form-horizontal .form-label,
+  .form-horizontal .form-group > :not(.form-label) {
+    grid-column: 1;
+  }
+
+  .form-horizontal .form-label {
+    grid-row: auto;
+    min-block-size: auto;
+  }
+
+  .form-inline {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-inline .form-group,
+  .form-inline .form-group-grow,
+  .form-inline > .btn {
+    flex-basis: auto;
+    inline-size: 100%;
+  }
+}

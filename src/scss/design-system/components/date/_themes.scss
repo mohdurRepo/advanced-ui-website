@@ -1,0 +1,393 @@
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+/**
+ * Most dark-theme behavior comes automatically from semantic design-system
+ * tokens. These refinements improve depth and range visibility on dark
+ * surfaces.
+ */
+
+html[data-theme="dark"] {
+  .custom-date {
+    --custom-date-popover-shadow:
+      0 1.5rem 4rem rgb(0 0 0 / 0.42), 0 0.5rem 1.5rem rgb(0 0 0 / 0.24);
+
+    --custom-date-day-outside-opacity: 0.52;
+    --custom-date-day-disabled-opacity: 0.48;
+  }
+}
+
+/* ==========================================================================
+   Dark-theme Color Mixing
+   ========================================================================== */
+
+@supports (color: color-mix(in oklab, black, white)) {
+  html[data-theme="dark"] {
+    .custom-date {
+      --custom-date-day-active-bg: color-mix(
+        in oklab,
+        var(--color-primary) 14%,
+        var(--color-surface)
+      );
+
+      --custom-date-range-bg: color-mix(
+        in oklab,
+        var(--color-primary) 18%,
+        var(--color-surface)
+      );
+
+      --custom-date-range-preview-bg: color-mix(
+        in oklab,
+        var(--color-primary) 12%,
+        var(--color-surface)
+      );
+
+      --custom-date-preset-active-bg: color-mix(
+        in oklab,
+        var(--color-primary) 18%,
+        var(--color-surface)
+      );
+    }
+  }
+}
+
+/* ==========================================================================
+   Light Surface
+   ========================================================================== */
+
+/**
+ * Surface utilities redefine semantic variables locally. The custom date
+ * consumes those values without introducing a separate component theme.
+ */
+
+.surface-light {
+  .custom-date {
+    --custom-date-bg: var(--color-surface);
+    --custom-date-popover-bg: var(--color-surface);
+    --custom-date-popover-color: var(--color-text);
+  }
+}
+
+/* ==========================================================================
+   Dark Surface
+   ========================================================================== */
+
+.surface-dark {
+  .custom-date {
+    --custom-date-bg: var(--color-surface);
+    --custom-date-popover-bg: var(--color-surface);
+    --custom-date-popover-color: var(--color-text);
+
+    --custom-date-placeholder-color: var(--color-text-muted);
+    --custom-date-border-color: var(--color-border);
+    --custom-date-hover-border-color: var(--color-border-strong);
+  }
+}
+
+/* ==========================================================================
+   Brand Surface
+   ========================================================================== */
+
+.surface-brand {
+  .custom-date {
+    --custom-date-bg: var(--color-surface-alt);
+    --custom-date-color: var(--color-text);
+    --custom-date-placeholder-color: var(--color-text-muted);
+
+    --custom-date-border-color: var(--color-border);
+    --custom-date-hover-border-color: var(--color-border-strong);
+
+    --custom-date-popover-bg: var(--color-surface);
+    --custom-date-popover-color: var(--color-text);
+    --custom-date-popover-border-color: var(--color-border);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .custom-date {
+    --custom-date-control-border-width: 2px;
+
+    --custom-date-border-color: var(--color-border-strong);
+    --custom-date-hover-border-color: var(--color-text);
+    --custom-date-focus-color: var(--focus-ring);
+    --custom-date-focus-outline-color: var(--focus-ring);
+
+    --custom-date-popover-border-width: 2px;
+    --custom-date-popover-border-color: var(--color-border-strong);
+    --custom-date-popover-shadow: none;
+
+    --custom-date-day-disabled-opacity: 0.72;
+    --custom-date-day-outside-opacity: 0.78;
+
+    --custom-date-range-bg: transparent;
+    --custom-date-range-preview-bg: transparent;
+
+    --custom-date-selected-bg: var(--color-text);
+    --custom-date-selected-color: var(--color-bg);
+    --custom-date-selected-border-color: var(--color-text);
+
+    --custom-date-range-start-bg: var(--color-text);
+    --custom-date-range-start-color: var(--color-bg);
+
+    --custom-date-range-end-bg: var(--color-text);
+    --custom-date-range-end-color: var(--color-bg);
+  }
+
+  /* ========================================================================
+     Control
+     ======================================================================== */
+
+  .custom-date__trigger,
+  .custom-date__initial-trigger {
+    border-width: var(--custom-date-control-border-width);
+  }
+
+  /* ========================================================================
+     Today
+     ======================================================================== */
+
+  .custom-date__day.is-today {
+    border-width: 2px;
+    border-style: double;
+  }
+
+  /* ========================================================================
+     Selected Date
+     ======================================================================== */
+
+  .custom-date__day.is-selected,
+  .custom-date__day[aria-selected="true"] {
+    outline: 2px solid var(--color-bg);
+    outline-offset: -4px;
+  }
+
+  /* ========================================================================
+     Range
+     ======================================================================== */
+
+  .custom-date--range .custom-date__day:is(.is-in-range, .is-range-preview) {
+    border-block: 2px solid currentColor;
+
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.16em;
+  }
+
+  .custom-date--range
+    .custom-date__day:is(.is-in-range, .is-range-preview)::before {
+    background: transparent;
+  }
+
+  .custom-date--range .custom-date__day.is-range-start,
+  .custom-date--range .custom-date__day.is-range-end {
+    border-width: 2px;
+
+    outline: 2px solid var(--color-bg);
+    outline-offset: -4px;
+
+    text-decoration: none;
+  }
+
+  /* ========================================================================
+     Active Boundary
+     ======================================================================== */
+
+  .custom-date--range[data-active-boundary="start"] .custom-date__range-start,
+  .custom-date--range[data-active-boundary="end"] .custom-date__range-end {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.16em;
+  }
+
+  /* ========================================================================
+     Presets
+     ======================================================================== */
+
+  .custom-date__preset {
+    border-width: 2px;
+  }
+
+  .custom-date__preset.is-active,
+  .custom-date__preset[aria-pressed="true"] {
+    border-color: var(--color-text);
+
+    background: var(--color-text);
+    color: var(--color-bg);
+
+    text-decoration: underline;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+/**
+ * Windows High Contrast Mode may replace authored colors. Explicit system
+ * colors preserve control boundaries, selected states, and disabled states.
+ */
+
+@media (forced-colors: active) {
+  .custom-date {
+    --custom-date-bg: Field;
+    --custom-date-color: FieldText;
+    --custom-date-placeholder-color: GrayText;
+
+    --custom-date-border-color: ButtonBorder;
+    --custom-date-hover-border-color: Highlight;
+    --custom-date-focus-color: Highlight;
+    --custom-date-focus-outline-color: Highlight;
+
+    --custom-date-indicator-color: ButtonText;
+
+    --custom-date-popover-bg: Canvas;
+    --custom-date-popover-color: CanvasText;
+    --custom-date-popover-border-color: ButtonBorder;
+    --custom-date-popover-shadow: none;
+
+    --custom-date-day-color: CanvasText;
+    --custom-date-day-hover-bg: Highlight;
+    --custom-date-day-hover-color: HighlightText;
+
+    --custom-date-selected-bg: Highlight;
+    --custom-date-selected-color: HighlightText;
+    --custom-date-selected-border-color: Highlight;
+
+    --custom-date-range-bg: Canvas;
+    --custom-date-range-color: CanvasText;
+
+    --custom-date-range-preview-bg: Canvas;
+    --custom-date-range-preview-color: CanvasText;
+
+    --custom-date-range-start-bg: Highlight;
+    --custom-date-range-start-color: HighlightText;
+
+    --custom-date-range-end-bg: Highlight;
+    --custom-date-range-end-color: HighlightText;
+
+    --custom-date-disabled-bg: Field;
+    --custom-date-disabled-color: GrayText;
+    --custom-date-disabled-border-color: GrayText;
+  }
+
+  /* ========================================================================
+     Control
+     ======================================================================== */
+
+  .custom-date__trigger,
+  .custom-date__initial-trigger {
+    forced-color-adjust: auto;
+  }
+
+  .custom-date__trigger:focus-visible,
+  .custom-date.is-open .custom-date__trigger {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  /* ========================================================================
+     Icons
+     ======================================================================== */
+
+  .custom-date__indicator,
+  .custom-date__initial-indicator,
+  .custom-date__nav::before,
+  .custom-date__nav::after {
+    forced-color-adjust: auto;
+  }
+
+  /* ========================================================================
+     Today
+     ======================================================================== */
+
+  .custom-date__day.is-today {
+    border: 2px solid Highlight;
+  }
+
+  /* ========================================================================
+     Selected Date
+     ======================================================================== */
+
+  .custom-date__day.is-selected,
+  .custom-date__day[aria-selected="true"],
+  .custom-date__day.is-range-start,
+  .custom-date__day.is-range-end {
+    border-color: Highlight;
+
+    background: Highlight;
+    color: HighlightText;
+
+    forced-color-adjust: none;
+  }
+
+  /* ========================================================================
+     Range
+     ======================================================================== */
+
+  .custom-date--range .custom-date__day:is(.is-in-range, .is-range-preview) {
+    border-block: 1px solid Highlight;
+
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+  }
+
+  .custom-date--range
+    .custom-date__day:is(.is-in-range, .is-range-preview)::before {
+    background: transparent;
+  }
+
+  /* ========================================================================
+     Disabled
+     ======================================================================== */
+
+  .custom-date__day:disabled,
+  .custom-date__day.is-disabled,
+  .custom-date__day[aria-disabled="true"],
+  .custom-date__nav:disabled,
+  .custom-date__picker-option:disabled,
+  .custom-date__preset:disabled,
+  .custom-date__action:disabled {
+    border-color: GrayText;
+
+    color: GrayText;
+    opacity: 1;
+
+    forced-color-adjust: none;
+  }
+
+  /* ========================================================================
+     Active Preset
+     ======================================================================== */
+
+  .custom-date__preset.is-active,
+  .custom-date__preset[aria-pressed="true"] {
+    border-color: Highlight;
+
+    background: Highlight;
+    color: HighlightText;
+
+    forced-color-adjust: none;
+  }
+}
+
+/* ==========================================================================
+   Increased Contrast Preference
+   ========================================================================== */
+
+@media (prefers-contrast: more) {
+  .custom-date {
+    --custom-date-control-border-width: 2px;
+    --custom-date-popover-border-width: 2px;
+    --custom-date-day-disabled-opacity: 0.72;
+    --custom-date-day-outside-opacity: 0.76;
+  }
+
+  .custom-date__day.is-today {
+    border-width: 2px;
+  }
+}

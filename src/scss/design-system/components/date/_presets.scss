@@ -1,0 +1,314 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Date Presets
+   ========================================================================== */
+
+/**
+ * Presets provide quick range selection without replacing manual calendar
+ * interaction.
+ *
+ * Supported keys may include:
+ *
+ * today
+ * yesterday
+ * last7
+ * last30
+ * thisMonth
+ * lastMonth
+ */
+
+.custom-date__presets {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+
+  gap: var(--custom-date-presets-gap);
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Preset Label
+   ========================================================================== */
+
+.custom-date__presets-label {
+  flex: 0 0 100%;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs, #{ds.font-size("xs")});
+  font-weight: #{ds.font-weight("bold")};
+  line-height: var(--line-height-normal, #{ds.line-height("normal")});
+}
+
+/* ==========================================================================
+   Preset Button
+   ========================================================================== */
+
+.custom-date__preset {
+  appearance: none;
+
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  min-block-size: var(--custom-date-preset-min-block-size);
+
+  padding-block: var(--custom-date-preset-padding-block);
+  padding-inline: var(--custom-date-preset-padding-inline);
+
+  border: 1px solid var(--custom-date-preset-border-color);
+  border-radius: var(--custom-date-preset-radius);
+
+  background: var(--custom-date-preset-bg);
+  color: var(--custom-date-preset-color);
+
+  font: inherit;
+  font-size: var(--custom-date-preset-font-size);
+  font-weight: var(--custom-date-preset-font-weight);
+  line-height: 1;
+  text-align: center;
+
+  cursor: pointer;
+  white-space: nowrap;
+
+  @include ds.transition(
+    (background-color, border-color, color, opacity, outline-color, transform),
+    "fast"
+  );
+}
+
+/* ==========================================================================
+   Active Preset
+   ========================================================================== */
+
+.custom-date__preset.is-active,
+.custom-date__preset[aria-pressed="true"] {
+  border-color: var(--custom-date-preset-active-border-color);
+
+  background: var(--custom-date-preset-active-bg);
+  color: var(--custom-date-preset-active-color);
+}
+
+/* ==========================================================================
+   Disabled Preset
+   ========================================================================== */
+
+.custom-date__preset:disabled,
+.custom-date__preset.is-disabled,
+.custom-date__preset[aria-disabled="true"] {
+  border-color: var(--custom-date-disabled-border-color);
+
+  background: var(--custom-date-disabled-bg);
+  color: var(--custom-date-disabled-color);
+  opacity: var(--custom-date-disabled-opacity);
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Footer Selection Summary
+   ========================================================================== */
+
+/**
+ * The summary gives range users a concise confirmation before applying:
+ *
+ * 2026-01-01 – 2026-06-30
+ */
+
+.custom-date__selection-summary {
+  display: flex;
+  flex: 1 1 100%;
+  align-items: center;
+
+  gap: var(--custom-date-control-gap);
+  min-inline-size: 0;
+}
+
+.custom-date__selection-summary-label {
+  flex: 0 0 auto;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs, #{ds.font-size("xs")});
+  font-weight: #{ds.font-weight("medium")};
+}
+
+.custom-date__selection-summary-value {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  color: var(--color-heading);
+
+  direction: ltr;
+  font-size: var(--text-xs, #{ds.font-size("xs")});
+  font-weight: #{ds.font-weight("bold")};
+  text-overflow: ellipsis;
+  unicode-bidi: isolate;
+  white-space: nowrap;
+}
+
+.custom-date__selection-summary-value.is-placeholder {
+  color: var(--custom-date-placeholder-color);
+
+  font-weight: #{ds.font-weight("regular")};
+}
+
+/* ==========================================================================
+   Footer Actions
+   ========================================================================== */
+
+.custom-date__actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: var(--custom-date-control-gap);
+  margin-inline-start: auto;
+}
+
+/* ==========================================================================
+   Footer Action
+   ========================================================================== */
+
+.custom-date__action {
+  appearance: none;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-block-size: 2.375rem;
+
+  padding-block: #{ds.space(2)};
+  padding-inline: #{ds.space(4)};
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill, #{ds.radius("pill")});
+
+  font: inherit;
+  font-size: var(--text-xs, #{ds.font-size("xs")});
+  font-weight: #{ds.font-weight("bold")};
+  line-height: 1;
+  text-align: center;
+
+  cursor: pointer;
+  white-space: nowrap;
+
+  @include ds.transition(
+    (background-color, border-color, color, opacity, outline-color, transform),
+    "fast"
+  );
+}
+
+/* ==========================================================================
+   Clear Action
+   ========================================================================== */
+
+.custom-date__action--clear {
+  border-color: var(--color-border);
+
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   Today Action
+   ========================================================================== */
+
+.custom-date__action--today {
+  border-color: var(--color-border);
+
+  background: var(--color-surface);
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Cancel Action
+   ========================================================================== */
+
+.custom-date__action--cancel {
+  border-color: transparent;
+
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   Apply Action
+   ========================================================================== */
+
+.custom-date__action--apply {
+  border-color: var(--color-primary);
+
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* ==========================================================================
+   Disabled Footer Action
+   ========================================================================== */
+
+.custom-date__action:disabled,
+.custom-date__action.is-disabled,
+.custom-date__action[aria-disabled="true"] {
+  border-color: var(--custom-date-disabled-border-color);
+
+  background: var(--custom-date-disabled-bg);
+  color: var(--custom-date-disabled-color);
+  opacity: var(--custom-date-disabled-opacity);
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Preset-only Footer
+   ========================================================================== */
+
+.custom-date__popover-footer.is-presets-only .custom-date__presets {
+  flex-basis: 100%;
+}
+
+/* ==========================================================================
+   Actions-only Footer
+   ========================================================================== */
+
+.custom-date__popover-footer.is-actions-only .custom-date__actions {
+  inline-size: 100%;
+
+  justify-content: flex-end;
+}
+
+/* ==========================================================================
+   Empty Footer Regions
+   ========================================================================== */
+
+.custom-date__presets:empty,
+.custom-date__actions:empty,
+.custom-date__selection-summary:empty {
+  display: none;
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .custom-date__selection-summary-value {
+    direction: ltr;
+    text-align: start;
+    unicode-bidi: isolate;
+  }
+
+  .custom-date__actions {
+    margin-inline-start: 0;
+    margin-inline-end: auto;
+  }
+}

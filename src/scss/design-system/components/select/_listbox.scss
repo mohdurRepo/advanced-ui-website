@@ -1,0 +1,138 @@
+/* ==========================================================================
+   Listbox
+   ========================================================================== */
+
+/**
+ * Keyboard focus remains on the trigger or search input while
+ * `aria-activedescendant` identifies the active option.
+ */
+
+.custom-select__listbox {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--custom-select-listbox-gap);
+
+  min-inline-size: 0;
+  min-block-size: 0;
+  max-block-size: var(--custom-select-listbox-max-block-size);
+  padding: var(--custom-select-listbox-padding);
+  margin: 0;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  outline: none;
+
+  list-style: none;
+  overscroll-behavior: contain;
+  scroll-padding-block: var(--custom-select-option-min-block-size);
+  scrollbar-color: var(--color-border-strong) transparent;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  touch-action: pan-y;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+.custom-select__listbox[aria-busy="true"] {
+  cursor: progress;
+}
+
+/* ==========================================================================
+   Option Groups
+   ========================================================================== */
+
+.custom-select__group {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--custom-select-listbox-gap);
+
+  min-inline-size: 0;
+}
+
+.custom-select__group + .custom-select__group {
+  padding-block-start: var(--custom-select-group-padding-block);
+  margin-block-start: var(--custom-select-group-padding-block);
+
+  border-block-start: 1px solid var(--custom-select-popover-border-color);
+}
+
+.custom-select__group-label {
+  display: block;
+
+  padding-block: var(--custom-select-group-padding-block);
+  padding-inline: var(--custom-select-group-padding-inline);
+
+  color: var(--custom-select-group-color);
+
+  font-size: var(--custom-select-group-font-size);
+  font-weight: var(--custom-select-group-font-weight);
+  line-height: var(--custom-select-line-height);
+
+  overflow-wrap: anywhere;
+}
+
+.custom-select__group[aria-disabled="true"] {
+  opacity: var(--custom-select-option-disabled-opacity);
+}
+
+/* ==========================================================================
+   Empty Results
+   ========================================================================== */
+
+/**
+ * The no-results status is a sibling of the listbox, not a listbox child.
+ * This keeps the ARIA listbox tree limited to options and option groups.
+ */
+
+.custom-select__empty {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+
+  min-inline-size: 0;
+  min-block-size: var(--custom-select-empty-min-block-size);
+  padding: var(--custom-select-empty-padding);
+  margin: 0;
+
+  color: var(--custom-select-empty-color);
+
+  font-size: var(--custom-select-option-font-size);
+  line-height: var(--custom-select-line-height);
+  text-align: center;
+
+  overflow-wrap: anywhere;
+}
+
+.custom-select__empty[hidden] {
+  display: none;
+}
+
+/* ==========================================================================
+   Scrollbar
+   ========================================================================== */
+
+.custom-select__listbox::-webkit-scrollbar {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+}
+
+.custom-select__listbox::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-select__listbox::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: var(--radius-pill);
+
+  background: var(--color-border-strong);
+  background-clip: padding-box;
+}
+
+.custom-select__listbox::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+  background-clip: padding-box;
+}

@@ -1,0 +1,672 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .custom-date {
+    --custom-date-range-popover-inline-size: min(
+      44rem,
+      calc(100dvw - (var(--custom-date-viewport-gap) * 2))
+    );
+
+    --custom-date-popover-padding: #{ds.space(3)};
+
+    --custom-date-footer-padding-block: #{ds.space(3)};
+    --custom-date-footer-padding-inline: #{ds.space(3)};
+  }
+
+  .custom-date__footer-layout,
+  .custom-date__footer-inner {
+    align-items: flex-end;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .custom-date {
+    --custom-date-popover-inline-size: min(
+      22rem,
+      calc(100dvw - (var(--custom-date-viewport-gap) * 2))
+    );
+
+    --custom-date-range-popover-inline-size: calc(
+      100dvw - (var(--custom-date-viewport-gap) * 2)
+    );
+
+    --custom-date-calendar-panel-space: #{ds.space(2)};
+
+    --custom-date-day-size: 2.375rem;
+
+    --custom-date-footer-padding-block: #{ds.space(3)};
+    --custom-date-footer-padding-inline: #{ds.space(3)};
+  }
+
+  /* ========================================================================
+     Popover Width
+     ======================================================================== */
+
+  .custom-date__popover {
+    max-inline-size: calc(100dvw - (var(--custom-date-viewport-gap) * 2));
+  }
+
+  /* ========================================================================
+     Quick Ranges
+     ======================================================================== */
+
+  .custom-date__preset-list,
+  .custom-date__quick-ranges-list {
+    gap: #{ds.space(1)};
+  }
+
+  .custom-date__preset,
+  .custom-date__quick-range {
+    padding-inline: #{ds.space(2)};
+  }
+
+  /* ========================================================================
+     Footer
+     ======================================================================== */
+
+  .custom-date__footer-layout,
+  .custom-date__footer-inner {
+    gap: #{ds.space(2)};
+  }
+
+  .custom-date__footer-actions,
+  .custom-date__actions {
+    justify-content: flex-end;
+  }
+}
+
+/* ==========================================================================
+   Floating Mobile Sheet
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .custom-date {
+    --custom-date-control-padding-block: #{ds.space(3)};
+    --custom-date-control-padding-inline: #{ds.space(3)};
+
+    --custom-date-popover-padding: 0;
+
+    --custom-date-calendar-panel-gap: #{ds.space(2)};
+    --custom-date-calendar-header-gap: #{ds.space(1)};
+    --custom-date-calendar-grid-gap: #{ds.space(1)};
+
+    --custom-date-nav-size: var(--custom-date-mobile-navigation-size);
+
+    --custom-date-title-padding-block: #{ds.space(1)};
+    --custom-date-title-padding-inline: #{ds.space(1)};
+
+    --custom-date-weekday-min-block-size: var(
+      --custom-date-mobile-weekday-size
+    );
+
+    --custom-date-weekday-font-size: 0.6875rem;
+
+    --custom-date-day-size: var(--custom-date-mobile-day-size);
+
+    --custom-date-day-font-size: var(--custom-date-mobile-day-font-size);
+
+    --custom-date-footer-padding-block: var(
+      --custom-date-mobile-footer-padding-block
+    );
+
+    --custom-date-footer-padding-inline: var(
+      --custom-date-mobile-footer-padding-inline
+    );
+
+    --custom-date-footer-layout-gap: var(--custom-date-mobile-footer-gap);
+
+    --custom-date-footer-action-gap: var(--custom-date-mobile-action-gap);
+
+    --custom-date-action-min-block-size: var(
+      --custom-date-mobile-action-min-block-size
+    );
+
+    --custom-date-action-padding-inline: var(
+      --custom-date-mobile-action-padding-inline
+    );
+
+    --custom-date-action-font-size: var(--custom-date-mobile-action-font-size);
+  }
+
+  /* ========================================================================
+     Floating Position
+     ======================================================================== */
+
+  /**
+   * The sheet deliberately leaves visible space around itself.
+   *
+   * Positioning values from the desktop positioner are overridden because a
+   * mobile floating sheet is centered against the visual viewport.
+   */
+
+  .custom-date__popover,
+  .custom-date__popover[popover] {
+    inset: auto !important;
+
+    top: auto !important;
+    right: auto !important;
+    bottom: calc(
+      var(--custom-date-mobile-sheet-block-end-gap) +
+        var(--custom-date-safe-area-bottom)
+    ) !important;
+    left: 50% !important;
+
+    inline-size: var(--custom-date-mobile-sheet-inline-size) !important;
+
+    max-inline-size: var(--custom-date-mobile-sheet-inline-size);
+
+    max-block-size: var(--custom-date-mobile-sheet-max-block-size);
+
+    border-radius: var(--custom-date-mobile-sheet-radius);
+
+    box-shadow: var(--custom-date-mobile-sheet-shadow);
+
+    transform: translate(-50%, 0.75rem);
+
+    transform-origin: center bottom;
+  }
+
+  .custom-date__popover.is-open,
+  .custom-date__popover:popover-open,
+  .custom-date.is-open .custom-date__popover {
+    transform: translate(-50%, 0);
+  }
+
+  .custom-date__popover[data-custom-date-placement="top"],
+  .custom-date.is-open-up .custom-date__popover {
+    transform-origin: center bottom;
+  }
+
+  /* ========================================================================
+     Mobile Backdrop
+     ======================================================================== */
+
+  .custom-date__popover::backdrop {
+    background: var(--custom-date-mobile-backdrop-bg);
+
+    opacity: 1;
+  }
+
+  /* ========================================================================
+     No Internal Calendar Scrolling
+     ======================================================================== */
+
+  /**
+   * A single complete month is sized to fit the floating sheet.
+   *
+   * The calendar region must never become an independently scrolling panel.
+   */
+
+  .custom-date__popover-shell,
+  .custom-date__popover-content {
+    max-block-size: none;
+
+    overflow: visible;
+  }
+
+  .custom-date__popover-main,
+  .custom-date__calendar-region {
+    flex: 0 0 auto;
+
+    min-block-size: 0;
+    max-block-size: none;
+    padding: 0;
+
+    overflow: visible;
+
+    overscroll-behavior: auto;
+    scrollbar-gutter: auto;
+  }
+
+  /* ========================================================================
+     One Calendar for Mobile Ranges
+     ======================================================================== */
+
+  /**
+   * Range selection remains fully functional through month navigation.
+   *
+   * Only the primary month is visible, preventing a second panel from forcing
+   * vertical scrolling.
+   */
+
+  .custom-date--range .custom-date__calendars > :nth-child(n + 2),
+  .custom-date__popover--range .custom-date__calendars > :nth-child(n + 2) {
+    display: none;
+  }
+
+  .custom-date--range .custom-date__calendars,
+  .custom-date__popover--range .custom-date__calendars {
+    grid-template-columns: minmax(0, 1fr);
+
+    gap: 0;
+  }
+
+  .custom-date--range
+    .custom-date__calendar-panel
+    + .custom-date__calendar-panel,
+  .custom-date__popover--range
+    .custom-date__calendar-panel
+    + .custom-date__calendar-panel {
+    border: 0;
+  }
+
+  /* ========================================================================
+     Calendar
+     ======================================================================== */
+
+  .custom-date__calendar-panel {
+    padding: var(--custom-date-mobile-calendar-padding);
+  }
+
+  .custom-date__calendar-header {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+
+    min-block-size: var(--custom-date-mobile-calendar-header-size);
+  }
+
+  .custom-date__nav-group {
+    gap: 0.125rem;
+  }
+
+  .custom-date__title-group {
+    gap: 0.125rem;
+  }
+
+  .custom-date__title {
+    min-block-size: var(--custom-date-mobile-navigation-size);
+
+    font-size: var(--text-sm);
+  }
+
+  .custom-date__weekdays {
+    gap: var(--custom-date-mobile-calendar-row-gap);
+  }
+
+  .custom-date__days {
+    gap: var(--custom-date-mobile-calendar-row-gap);
+
+    overflow: visible;
+  }
+
+  .custom-date__weekday {
+    min-block-size: var(--custom-date-mobile-weekday-size);
+  }
+
+  .custom-date__day,
+  .custom-date__day--blank {
+    min-block-size: var(--custom-date-mobile-day-size);
+  }
+
+  /* ========================================================================
+     Month and Year Pickers
+     ======================================================================== */
+
+  .custom-date__picker-grid {
+    max-block-size: none;
+
+    overflow: visible;
+  }
+
+  .custom-date__picker-grid--months {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .custom-date__picker-grid--years {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    max-block-size: 16rem;
+
+    overflow-y: auto;
+
+    overscroll-behavior: contain;
+  }
+
+  /* ========================================================================
+     Footer
+     ======================================================================== */
+
+  .custom-date__footer,
+  .custom-date__popover-footer {
+    padding: var(--custom-date-mobile-footer-padding-block)
+      var(--custom-date-mobile-footer-padding-inline);
+  }
+
+  .custom-date__footer-layout,
+  .custom-date__footer-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+
+    gap: var(--custom-date-mobile-footer-gap);
+  }
+
+  /* ========================================================================
+     Quick Ranges
+     ======================================================================== */
+
+  .custom-date__presets-label,
+  .custom-date__quick-ranges-label {
+    margin-block-end: #{ds.space(1)};
+
+    font-size: var(--text-xs);
+  }
+
+  .custom-date__preset-list,
+  .custom-date__quick-ranges-list {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: #{ds.space(1)};
+
+    overflow: visible;
+  }
+
+  .custom-date__preset,
+  .custom-date__quick-range {
+    flex: 1 1 auto;
+
+    min-block-size: 2rem;
+    padding: 0.375rem #{ds.space(2)};
+
+    font-size: var(--text-xs);
+  }
+
+  /* ========================================================================
+     Footer Actions
+     ======================================================================== */
+
+  /**
+   * All actions remain in one compact row.
+   */
+
+  .custom-date__footer-actions,
+  .custom-date__actions {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    gap: var(--custom-date-mobile-action-gap);
+
+    inline-size: 100%;
+    min-inline-size: 0;
+  }
+
+  .custom-date__action {
+    inline-size: 100%;
+    min-inline-size: 0;
+
+    min-block-size: var(--custom-date-mobile-action-min-block-size);
+
+    padding: 0.375rem var(--custom-date-mobile-action-padding-inline);
+
+    font-size: var(--custom-date-mobile-action-font-size);
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+  }
+
+  /* ========================================================================
+     Control
+     ======================================================================== */
+
+  .custom-date__range-value {
+    gap: #{ds.space(1)};
+  }
+
+  .custom-date__range-start,
+  .custom-date__range-end,
+  .custom-date__range-separator {
+    font-size: var(--text-sm);
+  }
+}
+
+/* ==========================================================================
+   Narrow Mobile
+   ========================================================================== */
+
+@media (max-width: 24rem) and (min-height: 32rem) {
+  .custom-date {
+    --custom-date-mobile-sheet-inline-gap: 0.375rem;
+    --custom-date-mobile-sheet-block-end-gap: 0.375rem;
+
+    --custom-date-mobile-calendar-padding: #{ds.space(2)};
+    --custom-date-mobile-calendar-header-size: 2.25rem;
+    --custom-date-mobile-navigation-size: 2rem;
+    --custom-date-mobile-weekday-size: 1.5rem;
+
+    --custom-date-mobile-day-size: clamp(2rem, 10dvw, 2.25rem);
+
+    --custom-date-mobile-footer-padding-block: #{ds.space(2)};
+    --custom-date-mobile-footer-padding-inline: #{ds.space(2)};
+
+    --custom-date-mobile-action-min-block-size: 2.125rem;
+    --custom-date-mobile-action-padding-inline: 0.375rem;
+  }
+
+  .custom-date__weekday,
+  .custom-date__day,
+  .custom-date__preset,
+  .custom-date__quick-range,
+  .custom-date__action {
+    font-size: 0.6875rem;
+  }
+}
+
+/* ==========================================================================
+   Short Viewport
+   ========================================================================== */
+
+@media (max-height: 42rem) and (min-height: 32rem) {
+  .custom-date {
+    --custom-date-mobile-calendar-padding: var(
+      --custom-date-compact-calendar-padding
+    );
+
+    --custom-date-mobile-calendar-header-size: var(
+      --custom-date-compact-header-size
+    );
+
+    --custom-date-mobile-navigation-size: var(
+      --custom-date-compact-navigation-size
+    );
+
+    --custom-date-mobile-weekday-size: var(--custom-date-compact-weekday-size);
+
+    --custom-date-mobile-day-size: var(--custom-date-compact-day-size);
+
+    --custom-date-mobile-calendar-row-gap: var(--custom-date-compact-row-gap);
+
+    --custom-date-mobile-footer-padding-block: var(
+      --custom-date-compact-footer-padding-block
+    );
+
+    --custom-date-mobile-footer-padding-inline: var(
+      --custom-date-compact-footer-padding-inline
+    );
+
+    --custom-date-mobile-action-min-block-size: var(
+      --custom-date-compact-action-size
+    );
+
+    --custom-date-preset-gap: #{ds.space(1)};
+  }
+
+  .custom-date__calendar-panel {
+    gap: #{ds.space(1)};
+  }
+
+  .custom-date__presets-label,
+  .custom-date__quick-ranges-label {
+    display: none;
+  }
+
+  .custom-date__preset,
+  .custom-date__quick-range {
+    min-block-size: 1.875rem;
+    padding-block: 0.25rem;
+    padding-inline: 0.5rem;
+
+    font-size: 0.6875rem;
+  }
+
+  .custom-date__footer-layout,
+  .custom-date__footer-inner {
+    gap: #{ds.space(1)};
+  }
+
+  .custom-date__action {
+    padding-block: 0.25rem;
+
+    font-size: 0.6875rem;
+  }
+}
+
+/* ==========================================================================
+   Very Short Viewport
+   ========================================================================== */
+
+/**
+ * Optional quick ranges are removed before any calendar scrolling is
+ * introduced. Core date selection and actions remain visible.
+ */
+
+@media (max-height: 35rem) and (min-height: 32rem) {
+  .custom-date__presets,
+  .custom-date__quick-ranges {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Native Fallback for Extremely Short Mobile Viewports
+   ========================================================================== */
+
+/**
+ * A complete six-week calendar plus accessible controls cannot be presented
+ * responsibly below this height without clipping or internal scrolling.
+ *
+ * Restore the native date input instead of degrading the custom component.
+ */
+
+@media (max-width: 36rem) and (max-height: 31.99rem) {
+  .custom-date.is-enhanced > .custom-date__interface {
+    display: none;
+  }
+
+  .custom-date.is-enhanced > .custom-date__native,
+  .custom-date.is-enhanced > .custom-date__fallback {
+    position: static;
+
+    inline-size: 100%;
+    block-size: auto;
+    padding: initial;
+    margin: 0;
+
+    overflow: visible;
+    border: initial;
+
+    clip: auto;
+    clip-path: none;
+    opacity: 1;
+
+    pointer-events: auto;
+    white-space: normal;
+  }
+}
+
+/* ==========================================================================
+   Short Landscape Devices
+   ========================================================================== */
+
+/**
+ * Landscape phones use the native fallback. Compressing a six-row calendar
+ * into a very short landscape viewport would reduce date targets below a
+ * comfortable and accessible size.
+ */
+
+@media (orientation: landscape) and (max-width: 58rem) and (max-height: 31.99rem) {
+  .custom-date.is-enhanced > .custom-date__interface {
+    display: none;
+  }
+
+  .custom-date.is-enhanced > .custom-date__native,
+  .custom-date.is-enhanced > .custom-date__fallback {
+    position: static;
+
+    inline-size: 100%;
+    block-size: auto;
+    padding: initial;
+    margin: 0;
+
+    overflow: visible;
+    border: initial;
+
+    clip: auto;
+    clip-path: none;
+    opacity: 1;
+
+    pointer-events: auto;
+    white-space: normal;
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  @include ds.respond-down("sm") {
+    .custom-date__popover,
+    .custom-date__popover[popover] {
+      right: auto !important;
+      left: 50% !important;
+    }
+
+    .custom-date__footer-actions,
+    .custom-date__actions {
+      direction: rtl;
+    }
+
+    .custom-date__range-value {
+      justify-content: flex-end;
+    }
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  @include ds.respond-down("sm") {
+    .custom-date__popover {
+      outline: 2px solid currentColor;
+      outline-offset: -2px;
+    }
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .custom-date__popover,
+  .custom-date__popover::backdrop {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .custom-date__popover,
+  .custom-date__popover::backdrop {
+    transition: none;
+  }
+}

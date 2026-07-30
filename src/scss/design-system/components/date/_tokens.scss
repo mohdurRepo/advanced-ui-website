@@ -1,0 +1,610 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Custom Date Tokens
+   ========================================================================== */
+
+/**
+ * Custom-date tokens map to the shared form-control contract wherever
+ * possible. This keeps native fallback controls and enhanced controls aligned
+ * with text inputs and custom selects.
+ *
+ * Tokens are scoped to `.custom-date` so semantic colors adapt naturally to
+ * surfaces, themes, accents, and high-contrast mode.
+ */
+
+.custom-date {
+  /* =========================================================================
+     Control Geometry
+     ========================================================================= */
+
+  --custom-date-control-min-block-size: var(
+    --form-control-min-block-size,
+    3rem
+  );
+
+  --custom-date-control-padding-block: var(
+    --form-control-padding-block,
+    #{ds.space(3)}
+  );
+
+  --custom-date-control-padding-inline: var(
+    --form-control-padding-inline,
+    #{ds.space(4)}
+  );
+
+  --custom-date-control-gap: var(--form-control-gap, #{ds.space(2)});
+
+  --custom-date-control-border-width: var(--form-control-border-width, 1px);
+
+  --custom-date-control-radius: var(
+    --form-control-radius,
+    var(--radius-md, #{ds.radius("md")})
+  );
+
+  /* =========================================================================
+     Control Typography
+     ========================================================================= */
+
+  --custom-date-font-size: var(
+    --form-control-font-size,
+    var(--text-base, #{ds.font-size("base")})
+  );
+
+  --custom-date-font-weight: var(
+    --form-control-font-weight,
+    #{ds.font-weight("regular")}
+  );
+
+  --custom-date-line-height: var(
+    --form-control-line-height,
+    #{ds.line-height("normal")}
+  );
+
+  /* =========================================================================
+     Control Colors
+     ========================================================================= */
+
+  --custom-date-bg: var(--form-control-bg, var(--color-surface));
+
+  --custom-date-color: var(--form-control-color, var(--color-text));
+
+  --custom-date-placeholder-color: var(
+    --form-control-placeholder-color,
+    var(--color-text-muted)
+  );
+
+  --custom-date-border-color: var(
+    --form-control-border-color,
+    var(--color-border)
+  );
+
+  --custom-date-hover-border-color: var(
+    --form-control-hover-border-color,
+    var(--color-border-strong)
+  );
+
+  /* =========================================================================
+     Focus
+     ========================================================================= */
+
+  --custom-date-focus-color: var(
+    --form-control-focus-border-color,
+    var(--focus-ring, var(--color-primary))
+  );
+
+  --custom-date-focus-outline-color: var(
+    --form-control-focus-outline-color,
+    var(--focus-ring, var(--color-primary))
+  );
+
+  --custom-date-focus-outline-width: var(
+    --form-control-focus-outline-width,
+    var(--focus-ring-width, 2px)
+  );
+
+  --custom-date-focus-outline-offset: var(
+    --form-control-focus-outline-offset,
+    2px
+  );
+
+  /* =========================================================================
+     Control Actions
+     ========================================================================= */
+
+  --custom-date-indicator-size: var(--form-control-indicator-size, 1.125rem);
+
+  --custom-date-indicator-color: var(
+    --form-help-color,
+    var(--color-text-muted)
+  );
+
+  --custom-date-clear-size: 2rem;
+
+  --custom-date-clear-radius: var(--radius-pill, #{ds.radius("pill")});
+
+  --custom-date-clear-color: var(--color-text-muted);
+  --custom-date-clear-hover-bg: var(--color-surface-alt);
+  --custom-date-clear-hover-color: var(--color-heading);
+
+  /* =========================================================================
+     Range Control
+     ========================================================================= */
+
+  --custom-date-range-gap: #{ds.space(2)};
+
+  --custom-date-range-separator-color: var(--color-text-muted);
+
+  --custom-date-range-separator-font-weight: #{ds.font-weight("medium")};
+
+  /* =========================================================================
+     Popover Geometry
+     ========================================================================= */
+
+  /**
+   * A small gap keeps the anchored popover visually connected to its control.
+   */
+
+  --custom-date-popover-gap: #{ds.space(1)};
+  --custom-date-viewport-gap: #{ds.space(3)};
+
+  --custom-date-popover-inline-size: 22rem;
+  --custom-date-range-popover-inline-size: 44rem;
+
+  --custom-date-popover-max-inline-size: calc(
+    100dvw - (var(--custom-date-viewport-gap) * 2)
+  );
+
+  --custom-date-popover-max-block-size: min(
+    38rem,
+    var(--custom-date-available-block-size, calc(100dvh - #{ds.space(6)}))
+  );
+
+  --custom-date-popover-padding: #{ds.space(3)};
+
+  --custom-date-popover-border-width: 1px;
+
+  --custom-date-popover-radius: var(--radius-lg, #{ds.radius("lg")});
+
+  --custom-date-popover-z-index: var(--z-popover, #{ds.z("popover")});
+
+  /* =========================================================================
+     Popover Colors
+     ========================================================================= */
+
+  --custom-date-popover-bg: var(--color-surface);
+  --custom-date-popover-color: var(--color-text);
+
+  --custom-date-popover-border-color: var(--color-border);
+
+  --custom-date-popover-shadow: var(--shadow-lg, #{ds.shadow("lg")});
+
+  /* =========================================================================
+     Floating Mobile Sheet
+     ========================================================================= */
+
+  /**
+   * The mobile presentation is a floating sheet rather than a full-screen
+   * dialog. Page content remains visible around the sheet.
+   */
+
+  --custom-date-mobile-sheet-inline-gap: #{ds.space(2)};
+  --custom-date-mobile-sheet-block-end-gap: #{ds.space(2)};
+
+  --custom-date-mobile-sheet-inline-size: min(
+    32rem,
+    calc(100dvw - (var(--custom-date-mobile-sheet-inline-gap) * 2))
+  );
+
+  --custom-date-mobile-sheet-max-block-size: calc(
+    100dvh - var(--custom-date-mobile-sheet-block-end-gap) - #{ds.space(4)}
+  );
+
+  --custom-date-mobile-sheet-radius: var(--radius-lg, #{ds.radius("lg")});
+
+  --custom-date-mobile-sheet-shadow: var(--shadow-xl, #{ds.shadow("xl")});
+
+  --custom-date-mobile-backdrop-bg: rgb(0 0 0 / 0.28);
+
+  --custom-date-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* =========================================================================
+     Calendar Layout
+     ========================================================================= */
+
+  --custom-date-calendar-gap: #{ds.space(2)};
+  --custom-date-calendar-panel-space: #{ds.space(2)};
+
+  --custom-date-calendar-panel-gap: #{ds.space(3)};
+
+  --custom-date-calendar-divider-color: var(--color-border);
+
+  --custom-date-calendar-header-min-block-size: 2.75rem;
+  --custom-date-calendar-header-gap: #{ds.space(2)};
+
+  --custom-date-calendar-grid-gap: #{ds.space(1)};
+
+  /* =========================================================================
+     Calendar Navigation
+     ========================================================================= */
+
+  --custom-date-nav-size: 2.25rem;
+
+  --custom-date-nav-radius: var(--radius-sm, #{ds.radius("sm")});
+
+  --custom-date-nav-color: var(--color-text-muted);
+  --custom-date-nav-hover-bg: var(--color-surface-alt);
+  --custom-date-nav-hover-color: var(--color-heading);
+
+  --custom-date-nav-disabled-color: var(--color-on-disabled);
+
+  --custom-date-nav-disabled-opacity: 0.64;
+
+  /* =========================================================================
+     Calendar Title
+     ========================================================================= */
+
+  --custom-date-title-gap: #{ds.space(1)};
+
+  --custom-date-title-padding-block: #{ds.space(2)};
+  --custom-date-title-padding-inline: #{ds.space(2)};
+
+  --custom-date-title-radius: var(--radius-sm, #{ds.radius("sm")});
+
+  --custom-date-title-color: var(--color-heading);
+  --custom-date-title-hover-bg: var(--color-surface-alt);
+  --custom-date-title-hover-color: var(--color-heading);
+  --custom-date-title-active-bg: var(--color-surface-alt);
+  --custom-date-title-active-color: var(--color-primary);
+
+  --custom-date-title-font-size: var(--text-sm, #{ds.font-size("sm")});
+
+  --custom-date-title-font-weight: #{ds.font-weight("bold")};
+
+  /* =========================================================================
+     Weekdays
+     ========================================================================= */
+
+  --custom-date-weekday-min-block-size: 2rem;
+  --custom-date-weekday-color: var(--color-text-muted);
+
+  --custom-date-weekday-font-size: var(--text-xs, #{ds.font-size("xs")});
+
+  --custom-date-weekday-font-weight: #{ds.font-weight("bold")};
+
+  /* =========================================================================
+     Date Cells
+     ========================================================================= */
+
+  --custom-date-day-size: 2.5rem;
+
+  --custom-date-day-radius: var(--radius-sm, #{ds.radius("sm")});
+
+  --custom-date-day-font-size: var(--text-sm, #{ds.font-size("sm")});
+
+  --custom-date-day-font-weight: #{ds.font-weight("medium")};
+
+  --custom-date-day-color: var(--color-text);
+
+  --custom-date-day-hover-bg: var(--color-surface-alt);
+  --custom-date-day-hover-color: var(--color-heading);
+
+  --custom-date-day-hover-border-color: transparent;
+
+  --custom-date-day-active-bg: var(--color-surface-alt);
+  --custom-date-day-active-color: var(--color-heading);
+
+  --custom-date-day-outside-color: var(--color-text-muted);
+  --custom-date-day-outside-opacity: 0.6;
+
+  --custom-date-day-disabled-color: var(--color-on-disabled);
+  --custom-date-day-disabled-opacity: 0.56;
+
+  /* =========================================================================
+     Today
+     ========================================================================= */
+
+  --custom-date-today-color: var(--color-primary);
+  --custom-date-today-border-color: var(--color-primary);
+
+  --custom-date-today-font-weight: #{ds.font-weight("bold")};
+
+  /* =========================================================================
+     Selected Date
+     ========================================================================= */
+
+  --custom-date-selected-bg: var(--color-primary);
+  --custom-date-selected-color: var(--color-on-primary);
+
+  --custom-date-selected-border-color: var(--color-primary);
+
+  --custom-date-selected-font-weight: #{ds.font-weight("bold")};
+
+  /* =========================================================================
+     Date Range
+     ========================================================================= */
+
+  --custom-date-range-bg: var(--color-surface-alt);
+  --custom-date-range-color: var(--color-text);
+
+  --custom-date-range-preview-bg: var(--color-surface-alt);
+
+  --custom-date-range-preview-color: var(--color-text);
+
+  --custom-date-range-start-bg: var(--color-primary);
+  --custom-date-range-start-color: var(--color-on-primary);
+
+  --custom-date-range-end-bg: var(--color-primary);
+  --custom-date-range-end-color: var(--color-on-primary);
+
+  /* =========================================================================
+     Month and Year Pickers
+     ========================================================================= */
+
+  --custom-date-picker-gap: #{ds.space(2)};
+  --custom-date-picker-max-block-size: 18rem;
+
+  --custom-date-picker-option-min-block-size: 2.75rem;
+
+  --custom-date-picker-option-padding-block: #{ds.space(2)};
+  --custom-date-picker-option-padding-inline: #{ds.space(3)};
+
+  --custom-date-picker-option-radius: var(--radius-sm, #{ds.radius("sm")});
+
+  --custom-date-picker-option-color: var(--color-text);
+
+  --custom-date-picker-option-hover-bg: var(--color-surface-alt);
+
+  --custom-date-picker-option-hover-color: var(--color-heading);
+
+  --custom-date-picker-option-hover-border-color: transparent;
+
+  --custom-date-picker-option-selected-bg: var(--color-primary);
+
+  --custom-date-picker-option-selected-color: var(--color-on-primary);
+
+  /* =========================================================================
+     Presets
+     ========================================================================= */
+
+  --custom-date-presets-gap: #{ds.space(2)};
+  --custom-date-presets-padding-block-start: #{ds.space(3)};
+
+  --custom-date-presets-border-color: var(--color-border);
+
+  --custom-date-presets-label-gap: #{ds.space(2)};
+  --custom-date-presets-label-color: var(--color-text-muted);
+
+  --custom-date-presets-label-font-size: var(--text-xs, #{ds.font-size("xs")});
+
+  --custom-date-presets-label-font-weight: #{ds.font-weight("bold")};
+  --custom-date-presets-label-line-height: 1.25;
+
+  --custom-date-preset-gap: #{ds.space(2)};
+  --custom-date-preset-min-block-size: 2.25rem;
+
+  --custom-date-preset-padding-block: #{ds.space(2)};
+  --custom-date-preset-padding-inline: #{ds.space(3)};
+
+  --custom-date-preset-border-width: 1px;
+
+  --custom-date-preset-radius: var(--radius-pill, #{ds.radius("pill")});
+
+  --custom-date-preset-bg: transparent;
+  --custom-date-preset-color: var(--color-text-muted);
+  --custom-date-preset-border-color: var(--color-border);
+
+  --custom-date-preset-hover-bg: var(--color-surface-alt);
+  --custom-date-preset-hover-color: var(--color-heading);
+
+  --custom-date-preset-hover-border-color: var(--color-border-strong);
+
+  --custom-date-preset-active-bg: var(--color-primary);
+  --custom-date-preset-active-color: var(--color-on-primary);
+
+  --custom-date-preset-active-border-color: var(--color-primary);
+
+  --custom-date-preset-font-size: var(--text-xs, #{ds.font-size("xs")});
+
+  --custom-date-preset-font-weight: #{ds.font-weight("bold")};
+
+  /* =========================================================================
+     Footer
+     ========================================================================= */
+
+  --custom-date-footer-gap: #{ds.space(3)};
+  --custom-date-footer-layout-gap: #{ds.space(3)};
+  --custom-date-footer-action-gap: #{ds.space(2)};
+
+  --custom-date-footer-padding-block: #{ds.space(4)};
+  --custom-date-footer-padding-inline: #{ds.space(4)};
+
+  --custom-date-footer-border-color: var(--color-border);
+
+  /* =========================================================================
+     Footer Actions
+     ========================================================================= */
+
+  --custom-date-action-min-block-size: 2.5rem;
+
+  --custom-date-action-padding-block: #{ds.space(2)};
+  --custom-date-action-padding-inline: #{ds.space(4)};
+
+  --custom-date-action-border-width: 1px;
+
+  --custom-date-action-radius: var(--radius-pill, #{ds.radius("pill")});
+
+  --custom-date-action-font-size: var(--text-xs, #{ds.font-size("xs")});
+
+  --custom-date-action-font-weight: #{ds.font-weight("bold")};
+
+  --custom-date-action-primary-bg: var(--color-primary);
+  --custom-date-action-primary-color: var(--color-on-primary);
+
+  --custom-date-action-primary-border-color: var(--color-primary);
+
+  --custom-date-action-primary-hover-bg: var(--color-primary-hover);
+
+  --custom-date-action-primary-hover-color: var(--color-on-primary);
+
+  --custom-date-action-primary-hover-border-color: var(--color-primary-hover);
+
+  --custom-date-action-secondary-bg: transparent;
+  --custom-date-action-secondary-color: var(--color-primary);
+
+  --custom-date-action-secondary-border-color: var(--color-border);
+
+  --custom-date-action-secondary-hover-bg: var(--color-surface-alt);
+
+  --custom-date-action-secondary-hover-color: var(--color-primary);
+
+  --custom-date-action-secondary-hover-border-color: var(--color-border-strong);
+
+  --custom-date-action-quiet-color: var(--color-text-muted);
+  --custom-date-action-quiet-hover-bg: var(--color-surface-alt);
+  --custom-date-action-quiet-hover-color: var(--color-heading);
+
+  /* =========================================================================
+     Mobile Calendar
+     ========================================================================= */
+
+  --custom-date-mobile-calendar-padding: #{ds.space(3)};
+  --custom-date-mobile-calendar-header-size: 2.5rem;
+  --custom-date-mobile-navigation-size: 2.25rem;
+  --custom-date-mobile-weekday-size: 1.75rem;
+
+  --custom-date-mobile-day-size: clamp(2.125rem, 10dvw, 2.75rem);
+
+  --custom-date-mobile-day-font-size: var(--text-sm, #{ds.font-size("sm")});
+
+  --custom-date-mobile-calendar-row-gap: #{ds.space(1)};
+
+  --custom-date-mobile-footer-padding-block: #{ds.space(3)};
+  --custom-date-mobile-footer-padding-inline: #{ds.space(3)};
+
+  --custom-date-mobile-footer-gap: #{ds.space(2)};
+  --custom-date-mobile-action-gap: #{ds.space(1)};
+
+  --custom-date-mobile-action-min-block-size: 2.375rem;
+
+  --custom-date-mobile-action-padding-inline: #{ds.space(2)};
+
+  --custom-date-mobile-action-font-size: var(--text-xs, #{ds.font-size("xs")});
+
+  /* =========================================================================
+     Compact Short-viewport Calendar
+     ========================================================================= */
+
+  --custom-date-compact-calendar-padding: #{ds.space(2)};
+  --custom-date-compact-header-size: 2.125rem;
+  --custom-date-compact-navigation-size: 2rem;
+  --custom-date-compact-weekday-size: 1.375rem;
+  --custom-date-compact-day-size: 1.875rem;
+  --custom-date-compact-row-gap: 0;
+
+  --custom-date-compact-footer-padding-block: #{ds.space(2)};
+  --custom-date-compact-footer-padding-inline: #{ds.space(2)};
+  --custom-date-compact-action-size: 2.125rem;
+
+  /* =========================================================================
+     Disabled and Read-only
+     ========================================================================= */
+
+  --custom-date-disabled-bg: var(
+    --form-control-disabled-bg,
+    var(--color-disabled)
+  );
+
+  --custom-date-disabled-color: var(
+    --form-control-disabled-color,
+    var(--color-on-disabled)
+  );
+
+  --custom-date-disabled-border-color: var(
+    --form-control-disabled-border-color,
+    var(--color-disabled)
+  );
+
+  --custom-date-disabled-opacity: var(--form-control-disabled-opacity, 1);
+
+  --custom-date-readonly-bg: var(
+    --form-control-readonly-bg,
+    var(--color-surface-alt)
+  );
+
+  --custom-date-readonly-color: var(
+    --form-control-readonly-color,
+    var(--color-text)
+  );
+
+  --custom-date-readonly-border-color: var(
+    --form-control-readonly-border-color,
+    var(--color-border)
+  );
+
+  /* =========================================================================
+     Validation
+     ========================================================================= */
+
+  --custom-date-valid-color: var(--form-valid-color, var(--color-success));
+
+  --custom-date-invalid-color: var(--form-invalid-color, var(--color-danger));
+
+  /* =========================================================================
+     Motion
+     ========================================================================= */
+
+  --custom-date-transition: var(
+    --form-control-transition,
+    var(--transition-fast, #{ds.motion("fast")})
+  );
+
+  --custom-date-popover-duration: 140ms;
+  --custom-date-popover-easing: ease-out;
+}
+
+/* ==========================================================================
+   Enhanced Color Mixing
+   ========================================================================== */
+
+@supports (color: color-mix(in oklab, black, white)) {
+  .custom-date {
+    --custom-date-day-active-bg: color-mix(
+      in oklab,
+      var(--color-primary) 9%,
+      var(--color-surface)
+    );
+
+    --custom-date-range-bg: color-mix(
+      in oklab,
+      var(--color-primary) 12%,
+      var(--color-surface)
+    );
+
+    --custom-date-range-preview-bg: color-mix(
+      in oklab,
+      var(--color-primary) 8%,
+      var(--color-surface)
+    );
+
+    --custom-date-preset-active-bg: color-mix(
+      in oklab,
+      var(--color-primary) 14%,
+      var(--color-surface)
+    );
+
+    --custom-date-preset-active-color: var(--color-primary);
+
+    --custom-date-preset-active-border-color: color-mix(
+      in oklab,
+      var(--color-primary) 45%,
+      var(--color-border)
+    );
+
+    --custom-date-mobile-backdrop-bg: color-mix(
+      in oklab,
+      var(--color-overlay) 72%,
+      transparent
+    );
+  }
+}

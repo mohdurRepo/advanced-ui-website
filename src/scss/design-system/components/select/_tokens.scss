@@ -1,0 +1,249 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Custom Select Tokens
+   ========================================================================== */
+
+/**
+ * Custom-select tokens map to the shared form-control contract wherever
+ * possible. This keeps native fallback controls and enhanced controls aligned.
+ *
+ * Tokens are scoped to the component so surfaces can safely override semantic
+ * color properties without creating a second global theme layer.
+ */
+
+.custom-select {
+  /* Control */
+  --custom-select-control-min-block-size: var(
+    --form-control-min-block-size,
+    3rem
+  );
+
+  --custom-select-control-padding-block: var(
+    --form-control-padding-block,
+    #{ds.space(3)}
+  );
+
+  --custom-select-control-padding-inline: var(
+    --form-control-padding-inline,
+    #{ds.space(4)}
+  );
+
+  --custom-select-control-gap: var(--form-control-gap, #{ds.space(2)});
+  --custom-select-control-border-width: var(--form-control-border-width, 1px);
+  --custom-select-control-radius: var(
+    --form-control-radius,
+    var(--radius-md, #{ds.radius("md")})
+  );
+
+  /* Typography */
+  --custom-select-font-size: var(
+    --form-control-font-size,
+    var(--text-base, #{ds.font-size("base")})
+  );
+
+  --custom-select-font-weight: var(
+    --form-control-font-weight,
+    #{ds.font-weight("regular")}
+  );
+
+  --custom-select-line-height: var(
+    --form-control-line-height,
+    #{ds.line-height("normal")}
+  );
+
+  /* Control colors */
+  --custom-select-bg: var(--form-control-bg, var(--color-surface));
+  --custom-select-color: var(--form-control-color, var(--color-text));
+
+  --custom-select-placeholder-color: var(
+    --form-control-placeholder-color,
+    var(--color-text-muted)
+  );
+
+  --custom-select-border-color: var(
+    --form-control-border-color,
+    var(--color-border)
+  );
+
+  --custom-select-hover-border-color: var(
+    --form-control-hover-border-color,
+    var(--color-border-strong)
+  );
+
+  --custom-select-focus-color: var(
+    --form-control-focus-border-color,
+    var(--focus-ring, var(--color-primary))
+  );
+
+  --custom-select-focus-outline-color: var(
+    --form-control-focus-outline-color,
+    var(--focus-ring, var(--color-primary))
+  );
+
+  --custom-select-focus-outline-width: var(
+    --form-control-focus-outline-width,
+    var(--focus-ring-width, 2px)
+  );
+
+  --custom-select-focus-outline-offset: var(
+    --form-control-focus-outline-offset,
+    2px
+  );
+
+  /* Trigger content */
+  --custom-select-indicator-size: var(--form-control-indicator-size, 1rem);
+  --custom-select-clear-size: 2rem;
+  --custom-select-clear-radius: var(--radius-pill, #{ds.radius("pill")});
+
+  --custom-select-indicator-color: var(
+    --form-help-color,
+    var(--color-text-muted)
+  );
+
+  --custom-select-clear-color: var(--color-text-muted);
+  --custom-select-clear-hover-bg: var(--color-surface-alt);
+  --custom-select-clear-hover-color: var(--color-heading);
+
+  /* Popover geometry */
+  --custom-select-popover-gap: #{ds.space(2)};
+  --custom-select-viewport-gap: #{ds.space(3)};
+
+  --custom-select-popover-max-block-size: min(
+    22rem,
+    var(--custom-select-available-block-size, calc(100dvh - #{ds.space(6)}))
+  );
+
+  --custom-select-popover-padding: #{ds.space(2)};
+  --custom-select-popover-border-width: 1px;
+  --custom-select-popover-radius: var(--radius-md, #{ds.radius("md")});
+  --custom-select-popover-z-index: var(--z-popover, #{ds.z("popover")});
+
+  /* Popover colors */
+  --custom-select-popover-bg: var(--color-surface);
+  --custom-select-popover-color: var(--color-text);
+  --custom-select-popover-border-color: var(--color-border);
+  --custom-select-popover-shadow: var(--shadow-lg, #{ds.shadow("lg")});
+
+  /* Search */
+  --custom-select-search-gap: #{ds.space(2)};
+  --custom-select-search-padding: #{ds.space(2)};
+  --custom-select-search-border-color: var(--color-border);
+  --custom-select-search-icon-color: var(--color-text-muted);
+
+  /* Listbox */
+  --custom-select-listbox-gap: #{ds.space(1)};
+  --custom-select-listbox-max-block-size: 17.5rem;
+  --custom-select-listbox-padding: #{ds.space(1)};
+
+  /* Groups */
+  --custom-select-group-padding-block: #{ds.space(2)};
+  --custom-select-group-padding-inline: #{ds.space(3)};
+  --custom-select-group-color: var(--color-text-muted);
+  --custom-select-group-font-size: var(--text-xs, #{ds.font-size("xs")});
+  --custom-select-group-font-weight: #{ds.font-weight("heavy")};
+
+  /* Options */
+  --custom-select-option-min-block-size: 2.75rem;
+  --custom-select-option-gap: #{ds.space(2)};
+  --custom-select-option-padding-block: #{ds.space(2)};
+  --custom-select-option-padding-inline: #{ds.space(3)};
+  --custom-select-option-radius: var(--radius-sm, #{ds.radius("sm")});
+
+  --custom-select-option-font-size: var(--text-sm, #{ds.font-size("sm")});
+
+  --custom-select-option-color: var(--color-text);
+  --custom-select-option-hover-bg: var(--color-surface-alt);
+  --custom-select-option-hover-color: var(--color-heading);
+  --custom-select-option-active-bg: var(--color-surface-alt);
+  --custom-select-option-selected-bg: var(--color-surface-alt);
+  --custom-select-option-selected-color: var(--color-primary);
+
+  --custom-select-option-disabled-color: var(--color-on-disabled);
+  --custom-select-option-disabled-opacity: 0.72;
+
+  --custom-select-check-size: 1rem;
+  --custom-select-check-color: var(--color-primary);
+
+  /* Empty result */
+  --custom-select-empty-min-block-size: 7rem;
+  --custom-select-empty-padding: #{ds.space(4)};
+  --custom-select-empty-color: var(--color-text-muted);
+
+  /* Multiple selection */
+  --custom-select-tag-gap: #{ds.space(1)};
+  --custom-select-tag-padding-block: #{ds.space(1)};
+  --custom-select-tag-padding-inline: #{ds.space(2)};
+  --custom-select-tag-radius: var(--radius-sm, #{ds.radius("sm")});
+  --custom-select-tag-bg: var(--color-surface-alt);
+  --custom-select-tag-color: var(--color-text);
+
+  --custom-select-tag-font-size: var(--text-xs, #{ds.font-size("xs")});
+
+  --custom-select-tag-font-weight: #{ds.font-weight("medium")};
+
+  /* Disabled */
+  --custom-select-disabled-bg: var(
+    --form-control-disabled-bg,
+    var(--color-disabled)
+  );
+
+  --custom-select-disabled-color: var(
+    --form-control-disabled-color,
+    var(--color-on-disabled)
+  );
+
+  --custom-select-disabled-border-color: var(
+    --form-control-disabled-border-color,
+    var(--color-disabled)
+  );
+
+  --custom-select-disabled-opacity: var(--form-control-disabled-opacity, 1);
+
+  /* Validation */
+  --custom-select-valid-color: var(--form-valid-color, var(--color-success));
+
+  --custom-select-invalid-color: var(--form-invalid-color, var(--color-danger));
+
+  /* Motion */
+  --custom-select-transition: var(
+    --form-control-transition,
+    var(--transition-fast, #{ds.motion("fast")})
+  );
+
+  --custom-select-popover-duration: 140ms;
+  --custom-select-popover-easing: ease-out;
+
+  /*
+ * Maximum pre-enhancement window before the native fallback is restored.
+ * JavaScript normally enhances the control well before this delay expires.
+ */
+
+  --custom-select-fallback-delay: 2s;
+}
+
+/* ==========================================================================
+   Enhanced Color Mixing
+   ========================================================================== */
+
+@supports (color: color-mix(in oklab, black, white)) {
+  .custom-select {
+    --custom-select-option-active-bg: color-mix(
+      in oklab,
+      var(--color-primary) 9%,
+      var(--color-surface)
+    );
+
+    --custom-select-option-selected-bg: color-mix(
+      in oklab,
+      var(--color-primary) 12%,
+      var(--color-surface)
+    );
+
+    --custom-select-tag-bg: color-mix(
+      in oklab,
+      var(--color-primary) 10%,
+      var(--color-surface)
+    );
+  }
+}

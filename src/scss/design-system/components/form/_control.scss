@@ -1,0 +1,180 @@
+/* ==========================================================================
+   Native Controls
+   ========================================================================== */
+
+.form-control {
+  appearance: none;
+
+  display: block;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--form-control-min-block-size);
+  padding-block: var(--form-control-padding-block);
+  padding-inline: var(--form-control-padding-inline);
+
+  border: var(--form-control-border-width) solid
+    var(--form-control-border-color);
+  border-radius: var(--form-control-radius);
+
+  background-color: var(--form-control-bg);
+  background-clip: padding-box;
+  color: var(--form-control-color);
+  caret-color: var(--color-primary);
+
+  font-family: inherit;
+  font-size: var(--form-control-font-size);
+  font-weight: var(--form-control-font-weight);
+  line-height: var(--form-control-line-height);
+
+  transition:
+    background-color var(--form-control-transition),
+    border-color var(--form-control-transition),
+    color var(--form-control-transition),
+    outline-color var(--form-control-transition);
+}
+
+.form-control::placeholder {
+  color: var(--form-control-placeholder-color);
+  opacity: 1;
+}
+
+/* ==========================================================================
+   Interaction
+   ========================================================================== */
+
+.form-control:hover:not(:disabled):not([readonly]) {
+  border-color: var(--form-control-hover-border-color);
+}
+
+.form-control:focus {
+  border-color: var(--form-control-focus-border-color);
+}
+
+.form-control:focus-visible {
+  outline: var(--form-control-focus-outline-width) solid
+    var(--form-control-focus-outline-color);
+  outline-offset: var(--form-control-focus-outline-offset);
+}
+
+/* ==========================================================================
+   Sizes
+   ========================================================================== */
+
+.form-control-sm {
+  --form-control-min-block-size: var(--form-control-min-block-size-sm);
+  --form-control-padding-block: var(--form-control-padding-block-sm);
+  --form-control-padding-inline: var(--form-control-padding-inline-sm);
+}
+
+.form-control-lg {
+  --form-control-min-block-size: var(--form-control-min-block-size-lg);
+  --form-control-padding-block: var(--form-control-padding-block-lg);
+  --form-control-padding-inline: var(--form-control-padding-inline-lg);
+}
+
+/* ==========================================================================
+   Textarea
+   ========================================================================== */
+
+textarea.form-control {
+  min-block-size: 8rem;
+  resize: vertical;
+}
+
+textarea.form-control:not([rows]) {
+  block-size: 8rem;
+}
+
+/* ==========================================================================
+   Search
+   ========================================================================== */
+
+input[type="search"].form-control {
+  -webkit-appearance: none;
+}
+
+input[type="search"].form-control::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+input[type="search"].form-control::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   Numeric Content
+   ========================================================================== */
+
+input[type="number"].form-control {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Read-only
+   ========================================================================== */
+
+.form-control[readonly] {
+  border-color: var(--form-control-readonly-border-color);
+  background-color: var(--form-control-readonly-bg);
+  color: var(--form-control-readonly-color);
+
+  cursor: text;
+}
+
+/* ==========================================================================
+   Disabled
+   ========================================================================== */
+
+.form-control:disabled {
+  border-color: var(--form-control-disabled-border-color);
+  background-color: var(--form-control-disabled-bg);
+  color: var(--form-control-disabled-color);
+  opacity: var(--form-control-disabled-opacity);
+
+  cursor: not-allowed;
+
+  -webkit-text-fill-color: var(--form-control-disabled-color);
+}
+
+.form-control:disabled::placeholder {
+  color: var(--form-control-disabled-color);
+}
+
+/* ==========================================================================
+   Autofill
+   ========================================================================== */
+
+.form-control:-webkit-autofill {
+  border-color: var(--form-control-border-color);
+
+  caret-color: var(--form-control-color);
+  -webkit-text-fill-color: var(--form-control-color);
+  -webkit-box-shadow: 0 0 0 1000px var(--form-control-bg) inset;
+}
+
+.form-control:-webkit-autofill:hover {
+  border-color: var(--form-control-hover-border-color);
+}
+
+.form-control:-webkit-autofill:focus {
+  border-color: var(--form-control-focus-border-color);
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .form-control:focus-visible {
+    border-color: Highlight;
+    outline-color: Highlight;
+  }
+
+  .form-control:disabled {
+    border-color: GrayText;
+    color: GrayText;
+
+    -webkit-text-fill-color: GrayText;
+  }
+}

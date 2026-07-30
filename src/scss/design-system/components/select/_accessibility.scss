@@ -1,0 +1,230 @@
+/* ==========================================================================
+   Touch Targets
+   ========================================================================== */
+
+/**
+ * Preserve compact visual variants while ensuring comfortable targets on
+ * touch-first devices.
+ */
+
+@media (any-pointer: coarse) {
+  .custom-select__trigger {
+    min-block-size: max(var(--custom-select-control-min-block-size), 2.75rem);
+  }
+
+  .custom-select__clear {
+    inline-size: max(var(--custom-select-clear-size), 2.75rem);
+    block-size: max(var(--custom-select-clear-size), 2.75rem);
+  }
+
+  .custom-select__search-clear {
+    min-inline-size: 2.75rem;
+    min-block-size: 2.75rem;
+  }
+
+  .custom-select__option {
+    min-block-size: max(var(--custom-select-option-min-block-size), 2.75rem);
+  }
+}
+
+/* ==========================================================================
+   High Contrast Preference
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .custom-select {
+    --custom-select-control-border-width: 2px;
+    --custom-select-popover-border-width: 2px;
+    --custom-select-popover-shadow: none;
+
+    --custom-select-option-active-bg: transparent;
+    --custom-select-option-selected-bg: var(--color-primary);
+    --custom-select-option-selected-color: var(--color-on-primary);
+
+    --custom-select-disabled-opacity: 1;
+  }
+
+  .custom-select__option.is-active:not([aria-disabled="true"], .is-disabled),
+  .custom-select__option[data-active="true"]:not(
+      [aria-disabled="true"],
+      .is-disabled
+    ) {
+    outline: 2px solid currentColor;
+    outline-offset: -2px;
+  }
+
+  .custom-select__option[aria-selected="true"],
+  .custom-select__option.is-selected {
+    font-weight: 800;
+  }
+}
+
+/* ==========================================================================
+   Windows Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .custom-select {
+    --custom-select-bg: Canvas;
+    --custom-select-color: CanvasText;
+    --custom-select-placeholder-color: GrayText;
+    --custom-select-border-color: ButtonText;
+    --custom-select-hover-border-color: Highlight;
+    --custom-select-focus-color: Highlight;
+    --custom-select-focus-outline-color: Highlight;
+
+    --custom-select-indicator-color: ButtonText;
+    --custom-select-clear-color: ButtonText;
+    --custom-select-clear-hover-bg: Highlight;
+    --custom-select-clear-hover-color: HighlightText;
+
+    --custom-select-popover-bg: Canvas;
+    --custom-select-popover-color: CanvasText;
+    --custom-select-popover-border-color: ButtonText;
+    --custom-select-popover-shadow: none;
+
+    --custom-select-search-border-color: ButtonText;
+    --custom-select-search-icon-color: ButtonText;
+
+    --custom-select-option-color: CanvasText;
+    --custom-select-option-hover-bg: Highlight;
+    --custom-select-option-hover-color: HighlightText;
+    --custom-select-option-active-bg: Highlight;
+    --custom-select-option-selected-bg: Highlight;
+    --custom-select-option-selected-color: HighlightText;
+    --custom-select-option-disabled-color: GrayText;
+
+    --custom-select-check-color: Highlight;
+
+    --custom-select-tag-bg: Canvas;
+    --custom-select-tag-color: CanvasText;
+
+    --custom-select-disabled-bg: Canvas;
+    --custom-select-disabled-color: GrayText;
+    --custom-select-disabled-border-color: GrayText;
+    --custom-select-disabled-opacity: 1;
+  }
+
+  :where(
+    .custom-select__trigger,
+    .custom-select__clear,
+    .custom-select__popover,
+    .custom-select__search-input,
+    .custom-select__search-clear,
+    .custom-select__option,
+    .custom-select__option-check,
+    .custom-select__tag,
+    .custom-select__tag-overflow,
+    .custom-select__selection-count
+  ) {
+    forced-color-adjust: none;
+  }
+
+  .custom-select__option[aria-selected="true"],
+  .custom-select__option.is-selected,
+  .custom-select__option.is-active:not([aria-disabled="true"], .is-disabled),
+  .custom-select__option[data-active="true"]:not(
+      [aria-disabled="true"],
+      .is-disabled
+    ) {
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .custom-select--multiple
+    .custom-select__option[aria-selected="true"]
+    .custom-select__option-check,
+  .custom-select--multiple
+    .custom-select__option.is-selected
+    .custom-select__option-check {
+    border-color: Highlight;
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .custom-select__clear:hover:not(:disabled),
+  .custom-select__search-clear:hover:not(:disabled) {
+    background: Highlight;
+    color: HighlightText;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@mixin _custom-select-reduced-motion {
+  .custom-select {
+    --custom-select-transition: 0ms;
+    --custom-select-popover-duration: 0ms;
+  }
+
+  :where(
+    .custom-select__trigger,
+    .custom-select__indicator,
+    .custom-select__clear,
+    .custom-select__popover,
+    .custom-select__search-input,
+    .custom-select__search-icon,
+    .custom-select__search-clear,
+    .custom-select__option,
+    .custom-select__option-check
+  ) {
+    transition: none;
+  }
+
+  .custom-select__popover {
+    transform: none;
+  }
+
+  .custom-select.is-loading .custom-select__indicator,
+  .custom-select[aria-busy="true"] .custom-select__indicator {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @include _custom-select-reduced-motion;
+}
+
+html[data-motion="reduce"] {
+  @include _custom-select-reduced-motion;
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .custom-select.is-enhanced > .custom-select__interface {
+    display: none !important;
+  }
+
+  .custom-select.is-enhanced > .custom-select__fallback {
+    position: static;
+
+    inline-size: 100%;
+    block-size: auto;
+    padding: 0;
+    margin: 0;
+
+    overflow: visible;
+
+    clip: auto;
+    clip-path: none;
+    opacity: 1;
+
+    pointer-events: auto;
+    white-space: normal;
+  }
+
+  .custom-select__native {
+    appearance: none;
+
+    border: 0;
+
+    background: transparent;
+    box-shadow: none;
+    color: #000000;
+  }
+}

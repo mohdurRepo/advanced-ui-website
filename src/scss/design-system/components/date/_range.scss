@@ -1,0 +1,325 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Date Range
+   ========================================================================== */
+
+/**
+ * Range styling is applied to the same date buttons used by single-date
+ * calendars.
+ *
+ * JavaScript assigns:
+ *
+ * `.is-range-start`   First selected boundary
+ * `.is-range-end`     Final selected boundary
+ * `.is-in-range`      Dates between committed boundaries
+ * `.is-range-preview` Dates in the current hover/keyboard preview
+ * `.is-same-day-range` Start and end are the same date
+ */
+
+/* ==========================================================================
+   Range Layer
+   ========================================================================== */
+
+/**
+ * Range backgrounds use pseudo-elements so the day number and focus outline
+ * remain above the continuous range surface.
+ */
+
+.custom-date--range .custom-date__day::before {
+  content: "";
+
+  position: absolute;
+  inset-block: 0.1875rem;
+  inset-inline: calc(var(--custom-date-calendar-grid-gap) / -2);
+  z-index: -1;
+
+  border-radius: 0;
+
+  background: transparent;
+
+  pointer-events: none;
+
+  @include ds.transition((background-color, opacity), "fast");
+}
+
+/* ==========================================================================
+   Committed Range
+   ========================================================================== */
+
+.custom-date--range .custom-date__day.is-in-range {
+  border-color: transparent;
+  border-radius: 0;
+
+  background: transparent;
+  color: var(--custom-date-range-color);
+}
+
+.custom-date--range .custom-date__day.is-in-range::before {
+  background: var(--custom-date-range-bg);
+}
+
+/* ==========================================================================
+   Range Preview
+   ========================================================================== */
+
+/**
+ * Preview dates appear while the user is choosing the second boundary.
+ */
+
+.custom-date--range .custom-date__day.is-range-preview {
+  border-color: transparent;
+  border-radius: 0;
+
+  background: transparent;
+  color: var(--custom-date-range-preview-color);
+}
+
+.custom-date--range .custom-date__day.is-range-preview::before {
+  background: var(--custom-date-range-preview-bg);
+}
+
+/* ==========================================================================
+   Range Boundaries
+   ========================================================================== */
+
+.custom-date--range .custom-date__day.is-range-start,
+.custom-date--range .custom-date__day.is-range-end {
+  z-index: 1;
+
+  border-color: var(--custom-date-selected-border-color);
+  border-radius: var(--custom-date-day-radius);
+
+  color: var(--custom-date-selected-color);
+
+  font-weight: var(--custom-date-selected-font-weight);
+}
+
+.custom-date--range .custom-date__day.is-range-start {
+  background: var(--custom-date-range-start-bg);
+}
+
+.custom-date--range .custom-date__day.is-range-end {
+  background: var(--custom-date-range-end-bg);
+}
+
+/* ==========================================================================
+   Boundary Range Continuation
+   ========================================================================== */
+
+/**
+ * The boundary button owns the circular selected surface while its
+ * pseudo-element connects it to the dates inside the range.
+ */
+
+.custom-date--range .custom-date__day.is-range-start::before,
+.custom-date--range .custom-date__day.is-range-end::before {
+  inset-block: 0.1875rem;
+
+  background: var(--custom-date-range-bg);
+}
+
+.custom-date--range .custom-date__day.is-range-start::before {
+  inset-inline-start: 50%;
+  inset-inline-end: calc(var(--custom-date-calendar-grid-gap) / -2);
+
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+
+.custom-date--range .custom-date__day.is-range-end::before {
+  inset-inline-start: calc(var(--custom-date-calendar-grid-gap) / -2);
+  inset-inline-end: 50%;
+
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+/* ==========================================================================
+   Preview Boundaries
+   ========================================================================== */
+
+.custom-date--range .custom-date__day.is-preview-start,
+.custom-date--range .custom-date__day.is-preview-end {
+  z-index: 1;
+
+  border-color: var(--custom-date-focus-color);
+  border-radius: var(--custom-date-day-radius);
+
+  background: var(--custom-date-range-preview-bg);
+  color: var(--custom-date-range-preview-color);
+}
+
+.custom-date--range .custom-date__day.is-preview-start::before,
+.custom-date--range .custom-date__day.is-preview-end::before {
+  background: var(--custom-date-range-preview-bg);
+}
+
+.custom-date--range .custom-date__day.is-preview-start::before {
+  inset-inline-start: 50%;
+  inset-inline-end: calc(var(--custom-date-calendar-grid-gap) / -2);
+}
+
+.custom-date--range .custom-date__day.is-preview-end::before {
+  inset-inline-start: calc(var(--custom-date-calendar-grid-gap) / -2);
+  inset-inline-end: 50%;
+}
+
+/* ==========================================================================
+   Same-day Range
+   ========================================================================== */
+
+/**
+ * When both boundaries refer to the same date, no continuation layer is
+ * needed.
+ */
+
+.custom-date--range .custom-date__day.is-same-day-range,
+.custom-date--range .custom-date__day.is-range-start.is-range-end {
+  border-radius: var(--custom-date-day-radius);
+
+  background: var(--custom-date-selected-bg);
+  color: var(--custom-date-selected-color);
+}
+
+.custom-date--range .custom-date__day.is-same-day-range::before,
+.custom-date--range .custom-date__day.is-range-start.is-range-end::before {
+  display: none;
+}
+
+/* ==========================================================================
+   Week-row Boundaries
+   ========================================================================== */
+
+/**
+ * A continuous range must stop visually at the first and last columns of each
+ * calendar week rather than connecting across separate grid rows.
+ */
+
+.custom-date--range
+  .custom-date__day:is(.is-in-range, .is-range-preview):nth-child(
+    7n + 1
+  )::before {
+  inset-inline-start: 0;
+
+  border-start-start-radius: var(--custom-date-day-radius);
+  border-end-start-radius: var(--custom-date-day-radius);
+}
+
+.custom-date--range
+  .custom-date__day:is(.is-in-range, .is-range-preview):nth-child(7n)::before {
+  inset-inline-end: 0;
+
+  border-start-end-radius: var(--custom-date-day-radius);
+  border-end-end-radius: var(--custom-date-day-radius);
+}
+
+.custom-date--range .custom-date__day.is-range-start:nth-child(7n)::before,
+.custom-date--range .custom-date__day.is-preview-start:nth-child(7n)::before {
+  display: none;
+}
+
+.custom-date--range .custom-date__day.is-range-end:nth-child(7n + 1)::before,
+.custom-date--range .custom-date__day.is-preview-end:nth-child(7n + 1)::before {
+  display: none;
+}
+
+/* ==========================================================================
+   Adjacent Boundaries
+   ========================================================================== */
+
+/**
+ * Adjacent start and end dates retain a small continuous bridge beneath their
+ * selected surfaces.
+ */
+
+.custom-date--range
+  .custom-date__day.is-range-start
+  + .custom-date__day.is-range-end::before {
+  display: block;
+}
+
+/* ==========================================================================
+   Today Inside a Range
+   ========================================================================== */
+
+.custom-date--range
+  .custom-date__day.is-today:is(
+    .is-in-range,
+    .is-range-preview,
+    .is-range-start,
+    .is-range-end
+  )::after {
+  background: currentColor;
+}
+
+/* ==========================================================================
+   Outside-month Range Dates
+   ========================================================================== */
+
+/**
+ * Outside-month dates may participate in a range, but they remain slightly
+ * quieter unless they are a selected boundary.
+ */
+
+.custom-date--range
+  .custom-date__day.is-outside-month:is(.is-in-range, .is-range-preview) {
+  opacity: 0.78;
+}
+
+.custom-date--range
+  .custom-date__day.is-outside-month:is(.is-range-start, .is-range-end) {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   Disabled Range Dates
+   ========================================================================== */
+
+.custom-date--range
+  .custom-date__day:is(
+    :disabled,
+    .is-disabled,
+    [aria-disabled="true"]
+  )::before {
+  display: none;
+}
+
+/* ==========================================================================
+   Range Selection Instructions
+   ========================================================================== */
+
+.custom-date__range-instruction {
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs, #{ds.font-size("xs")});
+  line-height: var(--line-height-normal, #{ds.line-height("normal")});
+}
+
+/* ==========================================================================
+   Active Range Boundary
+   ========================================================================== */
+
+/**
+ * A subtle control-level marker communicates which boundary the next selected
+ * date will update.
+ */
+
+.custom-date--range[data-active-boundary="start"] .custom-date__range-start,
+.custom-date--range[data-active-boundary="end"] .custom-date__range-end {
+  font-weight: #{ds.font-weight("bold")};
+}
+
+/* ==========================================================================
+   High-contrast Geometry Hooks
+   ========================================================================== */
+
+/**
+ * High-contrast colors are assigned in `_themes.scss`; these structural rules
+ * ensure the boundaries remain distinguishable without relying only on fill.
+ */
+
+.custom-date--range .custom-date__day.is-range-start,
+.custom-date--range .custom-date__day.is-range-end {
+  outline-offset: -2px;
+}

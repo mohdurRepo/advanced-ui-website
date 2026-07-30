@@ -1,0 +1,416 @@
+/* ==========================================================================
+   Custom Date
+   ========================================================================== */
+
+/**
+ * Native date inputs remain the source of truth.
+ *
+ * JavaScript creates `.custom-date__interface` and adds `.is-enhanced` only
+ * after the accessible custom interface is complete.
+ *
+ * Before enhancement, a static initial trigger prevents the browser-specific
+ * native date presentation from flashing on screen.
+ */
+
+.custom-date {
+  position: relative;
+
+  display: block;
+
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+
+  color: var(--custom-date-color);
+
+  font-family: inherit;
+  font-size: var(--custom-date-font-size);
+  font-weight: var(--custom-date-font-weight);
+  line-height: var(--custom-date-line-height);
+}
+
+/* ==========================================================================
+   Native Fallback
+   ========================================================================== */
+
+.custom-date__fallback {
+  position: relative;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.custom-date__native {
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Native Range Fallback
+   ========================================================================== */
+
+/**
+ * Without enhancement, range controls expose both native date inputs.
+ *
+ * The enhanced interface replaces them visually with one unified trigger while
+ * retaining both native fields for submission, validation, reset, autofill,
+ * and external integrations.
+ */
+
+.custom-date__native-range {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: var(--custom-date-range-gap);
+  min-inline-size: 0;
+}
+
+.custom-date__native-range > * {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Initial Trigger
+   ========================================================================== */
+
+/**
+ * This presentational trigger is included in the authored HTML.
+ *
+ * It prevents browser-native date formatting from appearing briefly while the
+ * enhanced interface is being constructed. JavaScript does not interact with
+ * this element, and it remains excluded from the accessibility tree.
+ */
+
+.custom-date__initial-trigger {
+  position: relative;
+
+  display: none;
+  align-items: center;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--custom-date-control-min-block-size);
+
+  padding-block: var(--custom-date-control-padding-block);
+  padding-inline-start: var(--custom-date-control-padding-inline);
+  padding-inline-end: calc(
+    var(--custom-date-control-padding-inline) +
+      var(--custom-date-indicator-size) + var(--custom-date-control-gap)
+  );
+
+  border: var(--custom-date-control-border-width) solid
+    var(--custom-date-border-color);
+  border-radius: var(--custom-date-control-radius);
+
+  background: var(--custom-date-bg);
+  color: var(--custom-date-color);
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Initial Trigger Value
+   ========================================================================== */
+
+.custom-date__initial-value {
+  display: block;
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-date__initial-value.is-placeholder {
+  color: var(--custom-date-placeholder-color);
+}
+
+/* ==========================================================================
+   Initial Trigger Indicator
+   ========================================================================== */
+
+.custom-date__initial-indicator {
+  --icon-size: var(--custom-date-indicator-size);
+
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: var(--custom-date-control-padding-inline);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--custom-date-indicator-color);
+
+  transform: translateY(-50%);
+}
+
+/* ==========================================================================
+   Initialization State
+   ========================================================================== */
+
+/**
+ * Hide the native control and display the initial trigger only during the
+ * pre-enhancement window.
+ *
+ * `.is-enhancement-failed` restores the native fallback if JavaScript detects
+ * that the enhanced interface could not be constructed.
+ */
+
+.custom-date[data-custom-date]:not(.is-enhanced):not(.is-enhancement-failed),
+.custom-date[data-custom-date-range]:not(.is-enhanced):not(
+    .is-enhancement-failed
+  ) {
+  min-block-size: var(--custom-date-control-min-block-size);
+}
+
+.custom-date[data-custom-date]:not(.is-enhanced):not(.is-enhancement-failed)
+  > .custom-date__fallback
+  > .custom-date__native,
+.custom-date[data-custom-date-range]:not(.is-enhanced):not(
+    .is-enhancement-failed
+  )
+  > .custom-date__fallback
+  > .custom-date__native-range {
+  position: absolute;
+  inset: 0;
+
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+
+  overflow: hidden;
+
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  opacity: 0;
+
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.custom-date[data-custom-date]:not(.is-enhanced):not(.is-enhancement-failed)
+  > .custom-date__fallback
+  > .custom-date__initial-trigger,
+.custom-date[data-custom-date-range]:not(.is-enhanced):not(
+    .is-enhancement-failed
+  )
+  > .custom-date__fallback
+  > .custom-date__initial-trigger {
+  display: flex;
+}
+
+/* ==========================================================================
+   Completed or Failed Initialization
+   ========================================================================== */
+
+.custom-date:is(.is-enhanced, .is-enhancement-failed)
+  .custom-date__initial-trigger {
+  display: none;
+}
+
+/* ==========================================================================
+   No-script Fallback
+   ========================================================================== */
+
+/**
+ * Browsers supporting the scripting media feature restore native controls
+ * immediately when JavaScript is unavailable.
+ */
+
+@media (scripting: none) {
+  .custom-date[data-custom-date]:not(.is-enhanced):not(.is-enhancement-failed),
+  .custom-date[data-custom-date-range]:not(.is-enhanced):not(
+      .is-enhancement-failed
+    ) {
+    min-block-size: 0;
+  }
+
+  .custom-date[data-custom-date]:not(.is-enhanced):not(.is-enhancement-failed)
+    > .custom-date__fallback
+    > .custom-date__native,
+  .custom-date[data-custom-date-range]:not(.is-enhanced):not(
+      .is-enhancement-failed
+    )
+    > .custom-date__fallback
+    > .custom-date__native-range {
+    position: static;
+    inset: auto;
+
+    inline-size: 100%;
+    block-size: auto;
+    padding: revert;
+    margin: 0;
+
+    overflow: visible;
+
+    clip: auto;
+    clip-path: none;
+    opacity: 1;
+
+    pointer-events: auto;
+    white-space: normal;
+  }
+
+  .custom-date[data-custom-date]:not(.is-enhanced):not(.is-enhancement-failed)
+    > .custom-date__fallback
+    > .custom-date__initial-trigger,
+  .custom-date[data-custom-date-range]:not(.is-enhanced):not(
+      .is-enhancement-failed
+    )
+    > .custom-date__fallback
+    > .custom-date__initial-trigger {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Failed Enhancement
+   ========================================================================== */
+
+/**
+ * If enhancement fails after JavaScript starts, restore the native controls.
+ */
+
+.custom-date.is-enhancement-failed {
+  min-block-size: 0;
+}
+
+.custom-date.is-enhancement-failed > .custom-date__fallback {
+  position: static;
+
+  inline-size: 100%;
+  block-size: auto;
+  padding: 0;
+  margin: 0;
+
+  overflow: visible;
+
+  clip: auto;
+  clip-path: none;
+  opacity: 1;
+
+  pointer-events: auto;
+  white-space: normal;
+}
+
+.custom-date.is-enhancement-failed
+  > .custom-date__fallback
+  > .custom-date__native,
+.custom-date.is-enhancement-failed
+  > .custom-date__fallback
+  > .custom-date__native-range {
+  position: static;
+  inset: auto;
+
+  inline-size: 100%;
+  block-size: auto;
+  padding: revert;
+  margin: 0;
+
+  overflow: visible;
+
+  clip: auto;
+  clip-path: none;
+  opacity: 1;
+
+  pointer-events: auto;
+  white-space: normal;
+}
+
+/* ==========================================================================
+   Enhanced Native Controls
+   ========================================================================== */
+
+/**
+ * Do not use `display: none` for native controls.
+ *
+ * Keeping them in the document supports native constraint validation,
+ * programmatic focus, form reset, autofill, and application integrations.
+ * JavaScript removes them from sequential keyboard navigation.
+ */
+
+.custom-date.is-enhanced > .custom-date__fallback {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+
+  overflow: hidden;
+
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  opacity: 0;
+
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Enhanced Interface
+   ========================================================================== */
+
+.custom-date__interface {
+  position: relative;
+
+  display: none;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.custom-date.is-enhanced > .custom-date__interface {
+  display: block;
+}
+
+/* ==========================================================================
+   Control Region
+   ========================================================================== */
+
+/**
+ * The trigger and optional clear action share this region.
+ *
+ * Popover positioning is anchored to the control element rather than the
+ * visually hidden native inputs.
+ */
+
+.custom-date__control {
+  position: relative;
+
+  display: flex;
+  align-items: stretch;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--custom-date-control-min-block-size);
+}
+
+/* ==========================================================================
+   Partially Generated Interface
+   ========================================================================== */
+
+/**
+ * A generated interface must never become visible before initialization
+ * completes.
+ */
+
+.custom-date:not(.is-enhanced) > .custom-date__interface {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Hidden Generated Content
+   ========================================================================== */
+
+.custom-date [hidden] {
+  display: none !important;
+}

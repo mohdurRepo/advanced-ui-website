@@ -1,0 +1,158 @@
+/* ==========================================================================
+   Floating Label
+   ========================================================================== */
+
+.form-floating {
+  --form-floating-label-block-start: var(--space-2, 0.5rem);
+  --form-floating-padding-block-start: 1.5rem;
+  --form-floating-padding-block-end: var(--space-2, 0.5rem);
+
+  position: relative;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Controls
+   ========================================================================== */
+
+.form-floating > .form-control,
+.form-floating > .form-select {
+  min-block-size: var(--form-control-min-block-size-lg);
+  padding-block-start: var(--form-floating-padding-block-start);
+  padding-block-end: var(--form-floating-padding-block-end);
+}
+
+.form-floating > textarea.form-control {
+  min-block-size: 8rem;
+}
+
+/* ==========================================================================
+   Label
+   ========================================================================== */
+
+.form-floating > label {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline: var(--form-control-padding-inline);
+  z-index: 1;
+
+  max-inline-size: calc(
+    100% - var(--form-control-padding-inline) - var(
+        --form-control-padding-inline
+      )
+  );
+
+  color: var(--form-control-placeholder-color);
+
+  font-size: var(--form-control-font-size);
+  font-weight: var(--form-control-font-weight);
+  line-height: 1;
+
+  overflow: hidden;
+  pointer-events: none;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  transform: translateY(-50%);
+  transform-origin: center;
+
+  transition:
+    color var(--form-control-transition),
+    font-size var(--form-control-transition),
+    inset-block-start var(--form-control-transition),
+    transform var(--form-control-transition);
+}
+
+.form-floating > textarea.form-control + label {
+  inset-block-start: var(--form-control-padding-block);
+
+  transform: none;
+}
+
+.form-floating > .form-select + label {
+  inset-inline-end: var(--form-control-indicator-space);
+
+  max-inline-size: calc(
+    100% - var(--form-control-padding-inline) - var(
+        --form-control-indicator-space
+      )
+  );
+}
+
+/* ==========================================================================
+   Placeholder
+   ========================================================================== */
+
+.form-floating > .form-control::placeholder {
+  color: transparent;
+}
+
+.form-floating > .form-control:focus::placeholder {
+  color: var(--form-control-placeholder-color);
+}
+
+/* ==========================================================================
+   Floating State
+   ========================================================================== */
+
+.form-floating > .form-control:focus + label,
+.form-floating > .form-control:not(:placeholder-shown) + label,
+.form-floating > .form-control:-webkit-autofill + label,
+.form-floating > .form-select + label {
+  inset-block-start: var(--form-floating-label-block-start);
+
+  color: var(--form-help-color);
+
+  font-size: var(--form-help-font-size);
+
+  transform: none;
+}
+
+.form-floating > .form-control:focus + label,
+.form-floating > .form-select:focus + label {
+  color: var(--form-control-focus-border-color);
+}
+
+.form-floating:focus-within > .form-select-icon {
+  color: var(--form-control-focus-border-color);
+}
+
+/* ==========================================================================
+   Disabled and Read-only
+   ========================================================================== */
+
+.form-floating > .form-control:disabled + label,
+.form-floating > .form-select:disabled + label {
+  color: var(--form-control-disabled-color);
+}
+
+.form-floating > .form-select:disabled ~ .form-select-icon {
+  color: var(--form-control-disabled-color);
+}
+
+.form-floating > .form-control[readonly] + label {
+  color: var(--form-help-color);
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .form-floating > label {
+    color: CanvasText;
+  }
+
+  .form-floating > .form-control:focus + label,
+  .form-floating > .form-select:focus + label {
+    color: Highlight;
+  }
+
+  .form-floating > .form-control:disabled + label,
+  .form-floating > .form-select:disabled + label {
+    color: GrayText;
+  }
+}

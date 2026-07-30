@@ -1,0 +1,188 @@
+/* ==========================================================================
+   Native Select
+   ========================================================================== */
+
+.form-select-wrap {
+  position: relative;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.form-select {
+  appearance: none;
+
+  display: block;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--form-control-min-block-size);
+  padding-block: var(--form-control-padding-block);
+  padding-inline-start: var(--form-control-padding-inline);
+  padding-inline-end: var(--form-control-indicator-space);
+
+  border: var(--form-control-border-width) solid
+    var(--form-control-border-color);
+  border-radius: var(--form-control-radius);
+
+  background-color: var(--form-control-bg);
+  background-image: none;
+  color: var(--form-control-color);
+
+  font-family: inherit;
+  font-size: var(--form-control-font-size);
+  font-weight: var(--form-control-font-weight);
+  line-height: var(--form-control-line-height);
+
+  cursor: pointer;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  transition:
+    background-color var(--form-control-transition),
+    border-color var(--form-control-transition),
+    color var(--form-control-transition),
+    outline-color var(--form-control-transition);
+}
+
+/* ==========================================================================
+   Indicator
+   ========================================================================== */
+
+.form-select-icon {
+  --icon-size: var(--form-control-indicator-size);
+
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: var(--form-control-padding-inline);
+
+  color: var(--form-help-color);
+
+  pointer-events: none;
+
+  transform: translateY(-50%);
+}
+
+/* ==========================================================================
+   Placeholder Option
+   ========================================================================== */
+
+.form-select:required:invalid {
+  color: var(--form-control-placeholder-color);
+}
+
+.form-select option {
+  background-color: var(--form-control-bg);
+  color: var(--form-control-color);
+}
+
+.form-select option:disabled {
+  color: var(--form-control-disabled-color);
+}
+
+/* ==========================================================================
+   Interaction
+   ========================================================================== */
+
+.form-select:hover:not(:disabled) {
+  border-color: var(--form-control-hover-border-color);
+}
+
+.form-select:focus {
+  border-color: var(--form-control-focus-border-color);
+}
+
+.form-select:focus-visible {
+  outline: var(--form-control-focus-outline-width) solid
+    var(--form-control-focus-outline-color);
+  outline-offset: var(--form-control-focus-outline-offset);
+}
+
+.form-select:focus + .form-select-icon {
+  color: var(--form-control-focus-border-color);
+}
+
+/* ==========================================================================
+   Sizes
+   ========================================================================== */
+
+.form-select-sm {
+  --form-control-min-block-size: var(--form-control-min-block-size-sm);
+  --form-control-padding-block: var(--form-control-padding-block-sm);
+  --form-control-padding-inline: var(--form-control-padding-inline-sm);
+}
+
+.form-select-lg {
+  --form-control-min-block-size: var(--form-control-min-block-size-lg);
+  --form-control-padding-block: var(--form-control-padding-block-lg);
+  --form-control-padding-inline: var(--form-control-padding-inline-lg);
+}
+
+.form-select-sm + .form-select-icon {
+  inset-inline-end: var(--form-control-padding-inline-sm);
+}
+
+.form-select-lg + .form-select-icon {
+  inset-inline-end: var(--form-control-padding-inline-lg);
+}
+
+/* ==========================================================================
+   Multiple and Listbox Selects
+   ========================================================================== */
+
+.form-select[multiple],
+.form-select[size]:not([size="1"]) {
+  min-block-size: 8rem;
+  padding-inline-end: var(--form-control-padding-inline);
+
+  cursor: default;
+  white-space: normal;
+}
+
+.form-select[multiple] + .form-select-icon,
+.form-select[size]:not([size="1"]) + .form-select-icon {
+  display: none;
+}
+
+/* ==========================================================================
+   Disabled
+   ========================================================================== */
+
+.form-select:disabled {
+  border-color: var(--form-control-disabled-border-color);
+  background-color: var(--form-control-disabled-bg);
+  color: var(--form-control-disabled-color);
+  opacity: var(--form-control-disabled-opacity);
+
+  cursor: not-allowed;
+
+  -webkit-text-fill-color: var(--form-control-disabled-color);
+}
+
+.form-select:disabled + .form-select-icon {
+  color: var(--form-control-disabled-color);
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .form-select:focus-visible {
+    border-color: Highlight;
+    outline-color: Highlight;
+  }
+
+  .form-select-icon {
+    color: ButtonText;
+  }
+
+  .form-select:disabled,
+  .form-select:disabled + .form-select-icon {
+    border-color: GrayText;
+    color: GrayText;
+
+    -webkit-text-fill-color: GrayText;
+  }
+}

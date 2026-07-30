@@ -1,0 +1,353 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   File Input
+   ========================================================================== */
+
+.form-file {
+  position: relative;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.form-file-input {
+  @include ds.visually-hidden;
+}
+
+/* ==========================================================================
+   File Selector
+   ========================================================================== */
+
+.form-file-label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: stretch;
+
+  min-block-size: var(--form-control-min-block-size);
+
+  border: var(--form-control-border-width) solid
+    var(--form-control-border-color);
+  border-radius: var(--form-control-radius);
+
+  overflow: hidden;
+
+  background-color: var(--form-control-bg);
+  color: var(--form-control-color);
+
+  cursor: pointer;
+
+  transition:
+    background-color var(--form-control-transition),
+    border-color var(--form-control-transition),
+    color var(--form-control-transition),
+    outline-color var(--form-control-transition);
+}
+
+.form-file-label > :first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding-inline: var(--form-control-padding-inline);
+
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+
+  font-size: var(--form-help-font-size);
+  font-weight: var(--form-label-font-weight);
+  line-height: 1;
+
+  white-space: nowrap;
+
+  transition: background-color var(--form-control-transition);
+}
+
+.form-file-label > .form-file-name {
+  display: flex;
+  align-items: center;
+
+  padding-inline: var(--form-control-padding-inline);
+}
+
+.form-file-label:hover {
+  border-color: var(--form-control-hover-border-color);
+}
+
+.form-file-label:hover > :first-child {
+  background-color: var(--color-primary-hover);
+}
+
+.form-file-input:focus-visible + .form-file-label {
+  border-color: var(--form-control-focus-border-color);
+
+  outline: var(--form-control-focus-outline-width) solid
+    var(--form-control-focus-outline-color);
+  outline-offset: var(--form-control-focus-outline-offset);
+}
+
+.form-file-input:disabled + .form-file-label {
+  border-color: var(--form-control-disabled-border-color);
+  background-color: var(--form-control-disabled-bg);
+  color: var(--form-control-disabled-color);
+
+  cursor: not-allowed;
+}
+
+.form-file-input:disabled + .form-file-label > :first-child {
+  background-color: var(--form-control-disabled-color);
+  color: var(--form-control-disabled-bg);
+}
+
+/* ==========================================================================
+   Dropzone
+   ========================================================================== */
+
+.form-dropzone {
+  display: grid;
+  place-items: center;
+
+  min-block-size: 10rem;
+  padding: var(--space-8, #{ds.space(8)});
+
+  border: 2px dashed var(--form-control-border-color);
+  border-radius: var(--form-control-radius);
+
+  background-color: var(--form-control-bg);
+  color: var(--form-control-color);
+
+  cursor: pointer;
+
+  text-align: center;
+
+  transition:
+    background-color var(--form-control-transition),
+    border-color var(--form-control-transition),
+    color var(--form-control-transition),
+    outline-color var(--form-control-transition);
+}
+
+.form-dropzone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2, #{ds.space(2)});
+
+  min-inline-size: 0;
+}
+
+.form-dropzone-content strong {
+  color: var(--form-label-color);
+}
+
+.form-dropzone:hover,
+.form-file.is-dragover .form-dropzone,
+.form-dropzone.is-dragover,
+.form-dropzone[data-drag-active="true"] {
+  border-color: var(--color-primary);
+  background-color: var(--color-surface-alt);
+}
+
+.form-file.is-dragover .form-dropzone,
+.form-dropzone.is-dragover,
+.form-dropzone[data-drag-active="true"] {
+  color: var(--color-primary);
+}
+
+.form-file-input:focus-visible + .form-dropzone {
+  border-color: var(--form-control-focus-border-color);
+
+  outline: var(--form-control-focus-outline-width) solid
+    var(--form-control-focus-outline-color);
+  outline-offset: var(--form-control-focus-outline-offset);
+}
+
+.form-file-input:disabled + .form-dropzone {
+  border-color: var(--form-control-disabled-border-color);
+  background-color: var(--form-control-disabled-bg);
+  color: var(--form-control-disabled-color);
+
+  cursor: not-allowed;
+}
+
+.form-file-input:disabled + .form-dropzone strong {
+  color: inherit;
+}
+
+/* ==========================================================================
+   File List
+   ========================================================================== */
+
+.form-file-list {
+  display: grid;
+  gap: var(--space-2, #{ds.space(2)});
+
+  padding: 0;
+  margin: 0;
+
+  list-style: none;
+}
+
+.form-file-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-3, #{ds.space(3)});
+
+  min-inline-size: 0;
+  padding: var(--space-3, #{ds.space(3)});
+
+  border: var(--form-control-border-width) solid
+    var(--form-control-border-color);
+  border-radius: var(--form-control-radius);
+
+  background-color: var(--form-control-bg);
+  color: var(--form-control-color);
+}
+
+.form-file-item > .has-icon:not(.form-file-remove) {
+  --icon-size: var(--form-control-indicator-size);
+
+  color: var(--color-primary);
+}
+
+.form-file-name {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.form-file-size {
+  color: var(--form-help-color);
+
+  font-size: var(--form-help-font-size);
+  font-variant-numeric: tabular-nums;
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Remove Action
+   ========================================================================== */
+
+.form-file-remove {
+  appearance: none;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  padding: 0;
+
+  border: 0;
+  border-radius: var(--radius-sm, #{ds.radius("sm")});
+
+  background: transparent;
+  color: var(--color-danger);
+
+  cursor: pointer;
+
+  transition:
+    background-color var(--form-control-transition),
+    color var(--form-control-transition),
+    outline-color var(--form-control-transition);
+}
+
+.form-file-remove:hover:not(:disabled) {
+  background-color: var(--color-surface-alt);
+  color: var(--color-danger-hover);
+}
+
+.form-file-remove:focus-visible {
+  outline: var(--form-control-focus-outline-width) solid
+    var(--form-control-focus-outline-color);
+  outline-offset: 2px;
+}
+
+.form-file-remove:disabled {
+  color: var(--form-control-disabled-color);
+
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .form-file-label {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .form-file-label > :first-child,
+  .form-file-label > .form-file-name {
+    min-block-size: var(--form-control-min-block-size);
+  }
+
+  .form-file-label > .form-file-name {
+    border-block-start: var(--form-control-border-width) solid
+      var(--form-control-border-color);
+  }
+
+  .form-dropzone {
+    min-block-size: 8rem;
+    padding: var(--space-6, #{ds.space(6)});
+  }
+
+  .form-file-item {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .form-file-size {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .form-file-remove {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .form-file-label,
+  .form-dropzone,
+  .form-file-item {
+    border-color: ButtonText;
+  }
+
+  .form-file-label > :first-child {
+    background-color: ButtonFace;
+    color: ButtonText;
+  }
+
+  .form-file-input:focus-visible + .form-file-label,
+  .form-file-input:focus-visible + .form-dropzone,
+  .form-file-remove:focus-visible {
+    border-color: Highlight;
+    outline-color: Highlight;
+  }
+
+  .form-file.is-dragover .form-dropzone,
+  .form-dropzone.is-dragover,
+  .form-dropzone[data-drag-active="true"] {
+    border-color: Highlight;
+    color: Highlight;
+  }
+
+  .form-file-input:disabled + .form-file-label,
+  .form-file-input:disabled + .form-dropzone,
+  .form-file-remove:disabled {
+    border-color: GrayText;
+    color: GrayText;
+  }
+}

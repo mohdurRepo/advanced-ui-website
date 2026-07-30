@@ -1,0 +1,226 @@
+/* ==========================================================================
+   Trigger
+   ========================================================================== */
+
+.custom-select__trigger {
+  appearance: none;
+
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--custom-select-control-min-block-size);
+
+  padding-block: var(--custom-select-control-padding-block);
+  padding-inline-start: var(--custom-select-control-padding-inline);
+  padding-inline-end: calc(
+    var(--custom-select-control-padding-inline) +
+      var(--custom-select-indicator-size) + var(--custom-select-control-gap)
+  );
+
+  border: var(--custom-select-control-border-width) solid
+    var(--custom-select-border-color);
+  border-radius: var(--custom-select-control-radius);
+
+  background-color: var(--custom-select-bg);
+  background-image: none;
+  color: var(--custom-select-color);
+
+  font: inherit;
+  line-height: var(--custom-select-line-height);
+  text-align: start;
+
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    background-color var(--custom-select-transition),
+    border-color var(--custom-select-transition),
+    color var(--custom-select-transition),
+    outline-color var(--custom-select-transition);
+}
+
+/* Reserve space for both the clear action and indicator. */
+
+.custom-select[data-clearable].has-value .custom-select__trigger {
+  padding-inline-end: calc(
+    var(--custom-select-control-padding-inline) +
+      var(--custom-select-indicator-size) + var(--custom-select-clear-size) +
+      var(--custom-select-control-gap) + var(--custom-select-control-gap)
+  );
+}
+
+/* ==========================================================================
+   Value
+   ========================================================================== */
+
+.custom-select__value {
+  display: block;
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  color: inherit;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-select__value.is-placeholder,
+.custom-select__value[data-placeholder="true"] {
+  color: var(--custom-select-placeholder-color);
+}
+
+/* ==========================================================================
+   Indicator
+   ========================================================================== */
+
+.custom-select__indicator {
+  --icon-size: var(--custom-select-indicator-size);
+
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: var(--custom-select-control-padding-inline);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--custom-select-indicator-color);
+
+  pointer-events: none;
+
+  transform: translateY(-50%);
+  transform-origin: center;
+
+  transition:
+    color var(--custom-select-transition),
+    transform var(--custom-select-transition);
+}
+
+.custom-select.is-open .custom-select__indicator,
+.custom-select__trigger[aria-expanded="true"] .custom-select__indicator {
+  color: var(--custom-select-focus-color);
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* ==========================================================================
+   Clear Action
+   ========================================================================== */
+
+/**
+ * The clear action is a sibling of the trigger, never a nested button.
+ * This preserves valid HTML and gives it an independent accessible name.
+ */
+
+.custom-select__clear {
+  appearance: none;
+
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: calc(
+    var(--custom-select-control-padding-inline) +
+      var(--custom-select-indicator-size) + var(--custom-select-control-gap)
+  );
+  z-index: 1;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: var(--custom-select-clear-size);
+  block-size: var(--custom-select-clear-size);
+  padding: 0;
+
+  border: 0;
+  border-radius: var(--custom-select-clear-radius);
+
+  background: transparent;
+  color: var(--custom-select-clear-color);
+
+  --icon-size: 0.875rem;
+
+  font: inherit;
+  line-height: 1;
+
+  cursor: pointer;
+  touch-action: manipulation;
+
+  transform: translateY(-50%);
+
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    background-color var(--custom-select-transition),
+    color var(--custom-select-transition),
+    outline-color var(--custom-select-transition);
+}
+
+.custom-select__clear:hover:not(:disabled) {
+  background: var(--custom-select-clear-hover-bg);
+  color: var(--custom-select-clear-hover-color);
+}
+
+.custom-select__clear:focus-visible {
+  outline: var(--custom-select-focus-outline-width) solid
+    var(--custom-select-focus-outline-color);
+  outline-offset: 1px;
+}
+
+.custom-select__clear[hidden] {
+  display: none;
+}
+
+/* ==========================================================================
+   Interaction
+   ========================================================================== */
+
+.custom-select__trigger:hover:not(:disabled) {
+  border-color: var(--custom-select-hover-border-color);
+}
+
+.custom-select__trigger:focus {
+  border-color: var(--custom-select-focus-color);
+}
+
+.custom-select__trigger:focus-visible {
+  outline: var(--custom-select-focus-outline-width) solid
+    var(--custom-select-focus-outline-color);
+  outline-offset: var(--custom-select-focus-outline-offset);
+}
+
+.custom-select.is-open .custom-select__trigger,
+.custom-select__trigger[aria-expanded="true"] {
+  border-color: var(--custom-select-focus-color);
+}
+
+/**
+ * Constraint validation or external code may focus the visually hidden native
+ * select. Mirror that focus on the visible trigger.
+ */
+
+.custom-select.is-native-focused .custom-select__trigger,
+.custom-select:has(.custom-select__native:focus-visible)
+  .custom-select__trigger {
+  border-color: var(--custom-select-focus-color);
+  outline: var(--custom-select-focus-outline-width) solid
+    var(--custom-select-focus-outline-color);
+  outline-offset: var(--custom-select-focus-outline-offset);
+}
+
+/* ==========================================================================
+   Disabled Controls
+   ========================================================================== */
+
+.custom-select__trigger:disabled,
+.custom-select__clear:disabled {
+  cursor: not-allowed;
+}

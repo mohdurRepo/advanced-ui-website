@@ -1,0 +1,105 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Custom Select: Actions
+   ========================================================================== */
+
+.custom-select {
+  --custom-select-footer-gap: 0.75rem;
+  --custom-select-footer-padding: 0.625rem;
+  --custom-select-footer-background: var(--color-surface);
+  --custom-select-footer-border-color: var(--color-border);
+  --custom-select-action-group-gap: 0.5rem;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.custom-select__footer {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--custom-select-footer-gap);
+  padding: var(--custom-select-footer-padding);
+  border-block-start: 1px solid var(--custom-select-footer-border-color);
+  background: var(--custom-select-footer-background);
+}
+
+/* ==========================================================================
+   Action Groups
+   ========================================================================== */
+
+.custom-select__selection-actions,
+.custom-select__action-group {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--custom-select-action-group-gap);
+}
+
+.custom-select__action-group {
+  margin-inline-start: auto;
+}
+
+/* ==========================================================================
+   Selection Summary
+   ========================================================================== */
+
+.custom-select__selection-summary {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+  text-align: center;
+}
+
+.custom-select__selection-summary strong {
+  color: var(--color-text);
+  font-weight: ds.font-weight("semibold");
+}
+
+/* ==========================================================================
+   Size Variants
+   ========================================================================== */
+
+.custom-select--sm {
+  --custom-select-footer-padding: 0.5rem;
+  --custom-select-footer-gap: 0.5rem;
+}
+
+.custom-select--sm .custom-select__footer .btn {
+  min-block-size: 2rem;
+}
+
+/* ==========================================================================
+   Responsive Layout
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .custom-select__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .custom-select__selection-actions,
+  .custom-select__action-group {
+    inline-size: 100%;
+  }
+
+  .custom-select__action-group {
+    margin-inline-start: 0;
+  }
+
+  .custom-select__selection-actions > .btn,
+  .custom-select__action-group > .btn {
+    flex: 1 1 0;
+    min-inline-size: 0;
+  }
+
+  .custom-select__selection-summary {
+    inline-size: 100%;
+  }
+}

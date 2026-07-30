@@ -1,0 +1,316 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Custom Date Control
+   ========================================================================== */
+
+/**
+ * JavaScript generates the visible control inside `.custom-date__interface`.
+ *
+ * The trigger is a real button so it supports keyboard activation, focus,
+ * disabled behavior, and correct expanded-state semantics.
+ */
+
+.custom-date__trigger {
+  appearance: none;
+
+  position: relative;
+
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--custom-date-control-min-block-size);
+
+  padding-block: var(--custom-date-control-padding-block);
+  padding-inline-start: var(--custom-date-control-padding-inline);
+  padding-inline-end: calc(
+    var(--custom-date-control-padding-inline) +
+      var(--custom-date-indicator-size) + var(--custom-date-control-gap)
+  );
+
+  border: var(--custom-date-control-border-width) solid
+    var(--custom-date-border-color);
+  border-radius: var(--custom-date-control-radius);
+
+  background: var(--custom-date-bg);
+  color: var(--custom-date-color);
+
+  font: inherit;
+  font-size: var(--custom-date-font-size);
+  font-weight: var(--custom-date-font-weight);
+  line-height: var(--custom-date-line-height);
+  text-align: start;
+
+  cursor: pointer;
+
+  @include ds.transition(
+    (background-color, border-color, box-shadow, color, outline-color),
+    "fast"
+  );
+}
+
+/* ==========================================================================
+   Clearable Control Spacing
+   ========================================================================== */
+
+/**
+ * Clearable controls reserve room for both the clear action and the calendar
+ * indicator.
+ */
+
+.custom-date[data-clearable] .custom-date__trigger {
+  padding-inline-end: calc(
+    var(--custom-date-control-padding-inline) + var(--custom-date-clear-size) +
+      var(--custom-date-control-gap) + var(--custom-date-indicator-size) +
+      var(--custom-date-control-gap)
+  );
+}
+
+/* ==========================================================================
+   Value
+   ========================================================================== */
+
+.custom-date__value {
+  display: block;
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  color: var(--custom-date-color);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-date__value.is-placeholder {
+  color: var(--custom-date-placeholder-color);
+}
+
+/* ==========================================================================
+   ISO Date Direction
+   ========================================================================== */
+
+/**
+ * ISO dates must preserve their visual order in both LTR and RTL documents.
+ *
+ * `unicode-bidi: isolate` prevents surrounding RTL text from rearranging the
+ * date segments or range separator.
+ */
+
+.custom-date__value[dir="ltr"],
+.custom-date__date-value {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* ==========================================================================
+   Unified Range Value
+   ========================================================================== */
+
+/**
+ * A range is presented as one readable value:
+ *
+ * 2026-01-01 – 2026-06-30
+ */
+
+.custom-date__range-value {
+  display: inline-flex;
+  align-items: center;
+
+  max-inline-size: 100%;
+  min-inline-size: 0;
+
+  unicode-bidi: isolate;
+  white-space: nowrap;
+}
+
+.custom-date__range-start,
+.custom-date__range-end {
+  display: block;
+
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-date__range-separator {
+  flex: 0 0 auto;
+
+  margin-inline: var(--custom-date-range-gap);
+
+  color: var(--custom-date-range-separator-color);
+
+  font-weight: var(--custom-date-range-separator-font-weight);
+
+  user-select: none;
+}
+
+/* ==========================================================================
+   Incomplete Range
+   ========================================================================== */
+
+/**
+ * During range selection, the unselected boundary remains a placeholder while
+ * the chosen boundary stays visible.
+ */
+
+.custom-date__range-start.is-placeholder,
+.custom-date__range-end.is-placeholder {
+  color: var(--custom-date-placeholder-color);
+}
+
+/* ==========================================================================
+   Calendar Indicator
+   ========================================================================== */
+
+.custom-date__indicator {
+  --icon-size: var(--custom-date-indicator-size);
+
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: var(--custom-date-control-padding-inline);
+
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: var(--custom-date-indicator-size);
+  block-size: var(--custom-date-indicator-size);
+
+  color: var(--custom-date-indicator-color);
+
+  pointer-events: none;
+
+  transform: translateY(-50%);
+
+  @include ds.transition((color, opacity, transform), "fast");
+}
+
+/* ==========================================================================
+   Clear Action
+   ========================================================================== */
+
+/**
+ * The clear button is a sibling of the trigger inside `.custom-date__control`.
+ *
+ * It remains independently focusable and does not open the calendar.
+ */
+
+.custom-date__clear {
+  appearance: none;
+
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: calc(
+    var(--custom-date-control-padding-inline) +
+      var(--custom-date-indicator-size) + var(--custom-date-control-gap)
+  );
+  z-index: 1;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: var(--custom-date-clear-size);
+  block-size: var(--custom-date-clear-size);
+  padding: 0;
+
+  border: 0;
+  border-radius: var(--custom-date-clear-radius);
+
+  background: transparent;
+  color: var(--custom-date-clear-color);
+
+  font: inherit;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transform: translateY(-50%);
+
+  @include ds.transition((background-color, color, opacity), "fast");
+}
+
+.custom-date__clear::before {
+  --icon-size: 0.875rem;
+}
+
+/* ==========================================================================
+   Hidden Clear Action
+   ========================================================================== */
+
+.custom-date__clear[hidden] {
+  display: none;
+}
+
+/* ==========================================================================
+   Active Boundary Metadata
+   ========================================================================== */
+
+/**
+ * The component may expose its active range boundary for styling and
+ * application integrations. The visible range remains one unified control.
+ */
+
+.custom-date--range[data-active-boundary="start"] .custom-date__range-start {
+  color: var(--custom-date-focus-color);
+}
+
+.custom-date--range[data-active-boundary="end"] .custom-date__range-end {
+  color: var(--custom-date-focus-color);
+}
+
+/* ==========================================================================
+   Trigger Content Safety
+   ========================================================================== */
+
+.custom-date__trigger > * {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Native Appearance Normalization
+   ========================================================================== */
+
+/**
+ * These rules affect only the visible native fallback. Once enhanced, the
+ * native control is visually hidden by `_base.scss`.
+ */
+
+.custom-date__native {
+  color-scheme: inherit;
+}
+
+.custom-date__native::-webkit-date-and-time-value {
+  min-block-size: 1.5em;
+
+  text-align: start;
+}
+
+.custom-date__native::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+.custom-date__native:disabled::-webkit-calendar-picker-indicator {
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+/**
+ * Logical positioning automatically mirrors actions and padding.
+ *
+ * Date values themselves retain LTR ordering.
+ */

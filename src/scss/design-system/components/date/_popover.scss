@@ -1,0 +1,662 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Popover
+   ========================================================================== */
+
+/**
+ * JavaScript calculates physical viewport coordinates.
+ *
+ * Physical `top` and `left` are intentional because the positioner already
+ * resolves LTR and RTL alignment.
+ */
+
+.custom-date__popover {
+  position: fixed;
+  inset: auto;
+
+  top: var(--custom-date-popover-top, 0);
+  left: var(--custom-date-popover-left, 0);
+  z-index: var(--custom-date-popover-z-index);
+
+  display: none;
+
+  inline-size: var(
+    --custom-date-positioned-inline-size,
+    var(--custom-date-popover-inline-size)
+  );
+
+  max-inline-size: var(
+    --custom-date-popover-max-inline-size,
+    calc(100dvw - (var(--custom-date-viewport-gap) * 2))
+  );
+
+  max-block-size: var(
+    --custom-date-popover-max-block-size,
+    var(
+      --custom-date-available-block-size,
+      calc(100dvh - (var(--custom-date-viewport-gap) * 2))
+    )
+  );
+
+  padding: 0;
+  margin: 0;
+
+  overflow: hidden;
+
+  border: var(--custom-date-popover-border-width) solid
+    var(--custom-date-popover-border-color);
+
+  border-radius: var(--custom-date-popover-radius);
+
+  background: var(--custom-date-popover-bg);
+  color: var(--custom-date-popover-color);
+
+  box-shadow: var(--custom-date-popover-shadow);
+
+  opacity: 0;
+  visibility: hidden;
+
+  pointer-events: none;
+
+  transform: translateY(var(--custom-date-popover-closed-translate, -0.25rem));
+
+  transform-origin: center top;
+
+  transition:
+    opacity var(--custom-date-popover-duration)
+      var(--custom-date-popover-easing),
+    transform var(--custom-date-popover-duration)
+      var(--custom-date-popover-easing),
+    visibility 0s linear var(--custom-date-popover-duration);
+}
+
+/* ==========================================================================
+   Native Popover Reset
+   ========================================================================== */
+
+.custom-date__popover[popover] {
+  inset: auto;
+
+  top: var(--custom-date-popover-top, 0);
+  left: var(--custom-date-popover-left, 0);
+
+  padding: 0;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Popover Backdrop
+   ========================================================================== */
+
+/**
+ * Anchored desktop popovers do not dim the page.
+ *
+ * The responsive floating-sheet presentation will enable the backdrop only
+ * on mobile and short viewports.
+ */
+
+.custom-date__popover::backdrop {
+  background: transparent;
+
+  opacity: 0;
+
+  transition:
+    background-color var(--custom-date-popover-duration)
+      var(--custom-date-popover-easing),
+    opacity var(--custom-date-popover-duration)
+      var(--custom-date-popover-easing);
+}
+
+/* ==========================================================================
+   Open State
+   ========================================================================== */
+
+.custom-date__popover.is-open,
+.custom-date__popover:popover-open,
+.custom-date.is-open .custom-date__popover {
+  display: block;
+
+  opacity: 1;
+  visibility: visible;
+
+  pointer-events: auto;
+
+  transform: translateY(0);
+
+  transition:
+    opacity var(--custom-date-popover-duration)
+      var(--custom-date-popover-easing),
+    transform var(--custom-date-popover-duration)
+      var(--custom-date-popover-easing),
+    visibility 0s;
+}
+
+/* ==========================================================================
+   Opens Above
+   ========================================================================== */
+
+.custom-date__popover[data-custom-date-placement="top"],
+.custom-date.is-open-up .custom-date__popover {
+  --custom-date-popover-closed-translate: 0.25rem;
+
+  transform-origin: center bottom;
+}
+
+/* ==========================================================================
+   Popover Shell
+   ========================================================================== */
+
+/**
+ * The shell owns the complete popover layout.
+ *
+ * On desktop, the main region may scroll only when the available viewport
+ * height is genuinely smaller than the calendar. Mobile scrolling will be
+ * removed by the responsive floating-sheet rules.
+ */
+
+.custom-date__popover-shell,
+.custom-date__popover-content {
+  display: flex;
+  flex-direction: column;
+
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+
+  max-block-size: inherit;
+  min-block-size: 0;
+
+  overflow: hidden;
+
+  background: inherit;
+  color: inherit;
+}
+
+/* ==========================================================================
+   Main Calendar Region
+   ========================================================================== */
+
+.custom-date__popover-main,
+.custom-date__calendar-region {
+  flex: 1 1 auto;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  padding: var(--custom-date-popover-padding);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  overscroll-behavior: contain;
+
+  /*
+   * Do not reserve permanent scrollbar space. It made one physical side of
+   * the dual calendar appear wider, especially in RTL.
+   */
+  scrollbar-gutter: auto;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ==========================================================================
+   Calendar Collection
+   ========================================================================== */
+
+.custom-date__calendars {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+
+  gap: 0;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Dual Range Calendar
+   ========================================================================== */
+
+/**
+ * Both panels use the exact same grid fraction.
+ *
+ * The gap belongs to the collection rather than either panel, producing equal
+ * physical and visual spacing in LTR and RTL.
+ */
+
+.custom-date--range .custom-date__calendars,
+.custom-date__popover--range .custom-date__calendars {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: var(--custom-date-calendar-panel-space, #{ds.space(2)});
+}
+
+/* ==========================================================================
+   Calendar Panels
+   ========================================================================== */
+
+.custom-date__calendar-panel {
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+/**
+ * The old inline border is intentionally removed.
+ *
+ * A clear gap separates the panels without making either physical side look
+ * narrower or heavier.
+ */
+
+.custom-date--range .custom-date__calendar-panel + .custom-date__calendar-panel,
+.custom-date__popover--range
+  .custom-date__calendar-panel
+  + .custom-date__calendar-panel {
+  border-inline-start: 0;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.custom-date__footer,
+.custom-date__popover-footer {
+  position: relative;
+  z-index: 1;
+
+  flex: 0 0 auto;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  padding: var(--custom-date-footer-padding-block, #{ds.space(4)})
+    var(--custom-date-footer-padding-inline, #{ds.space(4)});
+
+  border-block-start: var(--custom-date-popover-border-width) solid
+    var(--custom-date-footer-border-color);
+
+  background: var(--custom-date-popover-bg);
+  color: var(--custom-date-popover-color);
+}
+
+/* ==========================================================================
+   Accessible Status Content
+   ========================================================================== */
+
+/**
+ * Selection announcements remain available to assistive technology but never
+ * participate in the visual layout.
+ */
+
+.custom-date__selection-summary,
+.custom-date__range-summary,
+.custom-date__announcement,
+.custom-date__live-region,
+.custom-date__status,
+.custom-date__status-message,
+.custom-date__sr-status,
+.custom-date [aria-live="polite"],
+.custom-date [aria-live="assertive"] {
+  position: absolute !important;
+
+  inline-size: 1px !important;
+  block-size: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+
+  overflow: hidden !important;
+  border: 0 !important;
+
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+
+  white-space: nowrap !important;
+}
+
+/* ==========================================================================
+   Footer Layout
+   ========================================================================== */
+
+.custom-date__footer-layout,
+.custom-date__footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: var(--custom-date-footer-layout-gap, #{ds.space(3)});
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.custom-date__footer-content {
+  flex: 1 1 22rem;
+
+  min-inline-size: 0;
+}
+
+.custom-date__footer-actions,
+.custom-date__actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: var(--custom-date-footer-action-gap, #{ds.space(2)});
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Quick Ranges
+   ========================================================================== */
+
+.custom-date__presets,
+.custom-date__quick-ranges {
+  min-inline-size: 0;
+}
+
+.custom-date__presets-label,
+.custom-date__quick-ranges-label {
+  display: block;
+
+  margin-block-end: var(--custom-date-presets-label-gap, #{ds.space(2)});
+
+  color: var(--custom-date-presets-label-color);
+
+  font-size: var(--custom-date-presets-label-font-size);
+  font-weight: var(--custom-date-presets-label-font-weight);
+  line-height: var(--custom-date-presets-label-line-height);
+}
+
+.custom-date__preset-list,
+.custom-date__quick-ranges-list {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: var(--custom-date-preset-gap, #{ds.space(2)});
+
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Quick-range Button
+   ========================================================================== */
+
+.custom-date__preset,
+.custom-date__quick-range {
+  appearance: none;
+
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  min-block-size: var(--custom-date-preset-min-block-size);
+
+  padding: var(--custom-date-preset-padding-block)
+    var(--custom-date-preset-padding-inline);
+
+  border: var(--custom-date-preset-border-width) solid
+    var(--custom-date-preset-border-color);
+
+  border-radius: var(--custom-date-preset-radius);
+
+  background: var(--custom-date-preset-bg);
+  color: var(--custom-date-preset-color);
+
+  font: inherit;
+  font-size: var(--custom-date-preset-font-size);
+  font-weight: var(--custom-date-preset-font-weight);
+  line-height: 1;
+
+  cursor: pointer;
+  white-space: nowrap;
+
+  @include ds.transition(
+    (background-color, border-color, color, box-shadow),
+    "fast"
+  );
+}
+
+.custom-date__preset:hover:not(:disabled),
+.custom-date__quick-range:hover:not(:disabled) {
+  border-color: var(--custom-date-preset-hover-border-color);
+
+  background: var(--custom-date-preset-hover-bg);
+  color: var(--custom-date-preset-hover-color);
+}
+
+.custom-date__preset:focus-visible,
+.custom-date__quick-range:focus-visible {
+  @include ds.focus-ring(
+    var(--custom-date-focus-outline-color),
+    2px,
+    var(--custom-date-focus-outline-width)
+  );
+}
+
+.custom-date__preset.is-active,
+.custom-date__preset[aria-pressed="true"],
+.custom-date__quick-range.is-active,
+.custom-date__quick-range[aria-pressed="true"] {
+  border-color: var(--custom-date-preset-active-border-color);
+
+  background: var(--custom-date-preset-active-bg);
+  color: var(--custom-date-preset-active-color);
+}
+
+.custom-date__preset:disabled,
+.custom-date__quick-range:disabled {
+  border-color: var(--custom-date-disabled-border-color);
+
+  background: var(--custom-date-disabled-bg);
+  color: var(--custom-date-disabled-color);
+
+  cursor: not-allowed;
+  opacity: var(--custom-date-disabled-opacity);
+}
+
+/* ==========================================================================
+   Footer Action
+   ========================================================================== */
+
+.custom-date__action {
+  appearance: none;
+
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  min-block-size: var(--custom-date-action-min-block-size);
+
+  padding: var(--custom-date-action-padding-block)
+    var(--custom-date-action-padding-inline);
+
+  border: var(--custom-date-action-border-width) solid transparent;
+
+  border-radius: var(--custom-date-action-radius);
+
+  font: inherit;
+  font-size: var(--custom-date-action-font-size);
+  font-weight: var(--custom-date-action-font-weight);
+  line-height: 1;
+
+  cursor: pointer;
+  white-space: nowrap;
+
+  @include ds.transition(
+    (background-color, border-color, color, box-shadow, opacity),
+    "fast"
+  );
+}
+
+.custom-date__action:focus-visible {
+  @include ds.focus-ring(
+    var(--custom-date-focus-outline-color),
+    2px,
+    var(--custom-date-focus-outline-width)
+  );
+}
+
+/* ==========================================================================
+   Apply Action
+   ========================================================================== */
+
+.custom-date__action--apply {
+  border-color: var(--custom-date-action-primary-border-color);
+
+  background: var(--custom-date-action-primary-bg);
+  color: var(--custom-date-action-primary-color);
+}
+
+.custom-date__action--apply:hover:not(:disabled) {
+  border-color: var(--custom-date-action-primary-hover-border-color);
+
+  background: var(--custom-date-action-primary-hover-bg);
+
+  color: var(--custom-date-action-primary-hover-color);
+}
+
+/* ==========================================================================
+   Today and Clear Actions
+   ========================================================================== */
+
+.custom-date__action--today,
+.custom-date__action--clear {
+  border-color: var(--custom-date-action-secondary-border-color);
+
+  background: var(--custom-date-action-secondary-bg);
+
+  color: var(--custom-date-action-secondary-color);
+}
+
+.custom-date__action--today:hover:not(:disabled),
+.custom-date__action--clear:hover:not(:disabled) {
+  border-color: var(--custom-date-action-secondary-hover-border-color);
+
+  background: var(--custom-date-action-secondary-hover-bg);
+
+  color: var(--custom-date-action-secondary-hover-color);
+}
+
+/* ==========================================================================
+   Cancel Action
+   ========================================================================== */
+
+.custom-date__action--cancel {
+  border-color: transparent;
+
+  background: transparent;
+  color: var(--custom-date-action-quiet-color);
+}
+
+.custom-date__action--cancel:hover:not(:disabled) {
+  background: var(--custom-date-action-quiet-hover-bg);
+
+  color: var(--custom-date-action-quiet-hover-color);
+}
+
+/* ==========================================================================
+   Disabled Actions
+   ========================================================================== */
+
+.custom-date__action:disabled {
+  border-color: var(--custom-date-disabled-border-color);
+
+  background: var(--custom-date-disabled-bg);
+  color: var(--custom-date-disabled-color);
+
+  cursor: not-allowed;
+  opacity: var(--custom-date-disabled-opacity);
+}
+
+/* ==========================================================================
+   Empty Footer
+   ========================================================================== */
+
+.custom-date__footer:empty,
+.custom-date__footer[hidden],
+.custom-date__popover-footer:empty,
+.custom-date__popover-footer[hidden] {
+  display: none;
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .custom-date__presets,
+  .custom-date__quick-ranges {
+    text-align: right;
+  }
+
+  .custom-date__footer-actions,
+  .custom-date__actions {
+    justify-content: flex-start;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .custom-date__popover {
+    border-width: 2px;
+    box-shadow: none;
+  }
+
+  .custom-date__footer,
+  .custom-date__popover-footer {
+    border-block-start-width: 2px;
+  }
+
+  .custom-date__preset,
+  .custom-date__quick-range,
+  .custom-date__action {
+    border-width: 2px;
+  }
+
+  .custom-date__preset.is-active,
+  .custom-date__preset[aria-pressed="true"],
+  .custom-date__quick-range.is-active,
+  .custom-date__quick-range[aria-pressed="true"] {
+    outline: 2px solid currentColor;
+    outline-offset: -4px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .custom-date__popover,
+  .custom-date__popover::backdrop,
+  .custom-date__preset,
+  .custom-date__quick-range,
+  .custom-date__action {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .custom-date__popover,
+  .custom-date__popover::backdrop,
+  .custom-date__preset,
+  .custom-date__quick-range,
+  .custom-date__action {
+    transition: none;
+  }
+}

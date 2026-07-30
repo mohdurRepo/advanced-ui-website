@@ -1,0 +1,272 @@
+/* ==========================================================================
+   Custom Select
+   ========================================================================== */
+
+/**
+ * The native select remains the source of truth.
+ *
+ * JavaScript creates `.custom-select__interface` and adds `.is-enhanced` only
+ * after the accessible interface is complete.
+ */
+
+.custom-select {
+  position: relative;
+
+  display: block;
+
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+
+  color: var(--custom-select-color);
+
+  font-family: inherit;
+  font-size: var(--custom-select-font-size);
+  font-weight: var(--custom-select-font-weight);
+  line-height: var(--custom-select-line-height);
+}
+
+/* ==========================================================================
+   Native Fallback
+   ========================================================================== */
+
+.custom-select__fallback,
+.custom-select__native {
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Initial Multiple-select Trigger
+   ========================================================================== */
+
+/**
+ * A native multiple select renders as a listbox rather than a dropdown.
+ *
+ * The initial trigger matches the final control while JavaScript constructs
+ * the accessible enhanced interface. It is presentational and receives no
+ * pointer or accessibility interaction.
+ */
+
+.custom-select__fallback {
+  position: relative;
+}
+
+.custom-select__initial-trigger {
+  display: none;
+}
+
+.custom-select--multiple[data-custom-select]:not(.is-enhanced):not(
+    .is-enhancement-failed
+  ) {
+  min-block-size: var(--custom-select-control-min-block-size);
+}
+
+.custom-select--multiple[data-custom-select]:not(.is-enhanced):not(
+    .is-enhancement-failed
+  )
+  > .custom-select__fallback
+  > .custom-select__native {
+  position: absolute;
+  inset: 0;
+
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+
+  overflow: hidden;
+
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  opacity: 0;
+
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.custom-select--multiple[data-custom-select]:not(.is-enhanced):not(
+    .is-enhancement-failed
+  )
+  > .custom-select__fallback
+  > .custom-select__initial-trigger {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--custom-select-control-min-block-size);
+
+  padding-block: var(--custom-select-control-padding-block);
+  padding-inline-start: var(--custom-select-control-padding-inline);
+  padding-inline-end: calc(
+    var(--custom-select-control-padding-inline) +
+      var(--custom-select-indicator-size) + var(--custom-select-control-gap)
+  );
+
+  border: var(--custom-select-control-border-width) solid
+    var(--custom-select-border-color);
+  border-radius: var(--custom-select-control-radius);
+
+  background: var(--custom-select-bg);
+  color: var(--custom-select-color);
+
+  pointer-events: none;
+}
+
+.custom-select__initial-value {
+  display: block;
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-select__initial-value.is-placeholder {
+  color: var(--custom-select-placeholder-color);
+}
+
+.custom-select__initial-indicator {
+  --icon-size: var(--custom-select-indicator-size);
+
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: var(--custom-select-control-padding-inline);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--custom-select-indicator-color);
+
+  transform: translateY(-50%);
+}
+
+.custom-select:is(.is-enhanced, .is-enhancement-failed)
+  .custom-select__initial-trigger {
+  display: none;
+}
+
+/* ==========================================================================
+   No-script Fallback
+   ========================================================================== */
+
+/**
+ * Restore the native multiple select when JavaScript is unavailable.
+ */
+
+@media (scripting: none) {
+  .custom-select--multiple[data-custom-select]:not(.is-enhanced):not(
+      .is-enhancement-failed
+    )
+    > .custom-select__fallback
+    > .custom-select__native {
+    position: static;
+    inset: auto;
+
+    inline-size: 100%;
+    block-size: auto;
+    margin: 0;
+
+    overflow: visible;
+
+    clip: auto;
+    clip-path: none;
+    opacity: 1;
+
+    pointer-events: auto;
+    white-space: normal;
+  }
+
+  .custom-select--multiple[data-custom-select]:not(.is-enhanced):not(
+      .is-enhancement-failed
+    )
+    > .custom-select__fallback
+    > .custom-select__initial-trigger {
+    display: none;
+  }
+}
+
+/**
+ * Do not use `display: none` for the native control.
+ *
+ * Keeping it focusable supports constraint validation, programmatic focus,
+ * form reset, autofill, and external integrations. JavaScript removes it from
+ * sequential keyboard navigation after enhancement.
+ */
+
+.custom-select.is-enhanced > .custom-select__fallback {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+
+  overflow: hidden;
+
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  opacity: 0;
+
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Enhanced Interface
+   ========================================================================== */
+
+.custom-select__interface {
+  position: relative;
+
+  display: none;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.custom-select.is-enhanced > .custom-select__interface {
+  display: block;
+}
+
+/* ==========================================================================
+   Control Region
+   ========================================================================== */
+
+/**
+ * The trigger and optional clear action share this region.
+ * Popover positioning is anchored to the component root.
+ */
+
+.custom-select__control {
+  position: relative;
+
+  display: flex;
+  align-items: stretch;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--custom-select-control-min-block-size);
+}
+
+/* ==========================================================================
+   Initialization Safety
+   ========================================================================== */
+
+/**
+ * If interface generation fails, `.is-enhanced` is not applied and the native
+ * select becomes the usable fallback.
+ */
+
+.custom-select:not(.is-enhanced) > .custom-select__interface {
+  visibility: hidden;
+  pointer-events: none;
+}

@@ -1,31 +1,43 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Native form controls and accessible form patterns from the SE design system."
+    />
 
     <script>
       (function () {
         var root = document.documentElement;
 
-        var lang = localStorage.getItem("se-lang") || "en";
-        var themeChoice = localStorage.getItem("se-theme") || "system";
-        var accent = localStorage.getItem("se-accent") || "blue";
-        var fontSize = localStorage.getItem("se-font-size") || "0";
-        var contrast = localStorage.getItem("se-contrast") || "normal";
-        var motion = localStorage.getItem("se-motion") || "normal";
+        function getPreference(key, fallback) {
+          try {
+            return localStorage.getItem(key) || fallback;
+          } catch (error) {
+            return fallback;
+          }
+        }
 
-        var systemTheme =
+        var lang = getPreference("se-lang", "en");
+        var themeChoice = getPreference("se-theme", "system");
+        var accent = getPreference("se-accent", "blue");
+        var fontSize = getPreference("se-font-size", "0");
+        var contrast = getPreference("se-contrast", "normal");
+        var motion = getPreference("se-motion", "normal");
+        var prefersDark =
           window.matchMedia &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches
-            ? "dark"
-            : "light";
-
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
         var resolvedTheme =
-          themeChoice === "system" ? systemTheme : themeChoice;
+          themeChoice === "system"
+            ? prefersDark
+              ? "dark"
+              : "light"
+            : themeChoice;
 
         root.lang = lang === "ar" ? "ar" : "en";
         root.dir = lang === "ar" ? "rtl" : "ltr";
-
         root.setAttribute("data-theme", resolvedTheme);
         root.setAttribute("data-theme-choice", themeChoice);
         root.setAttribute("data-accent", accent);
@@ -35,618 +47,3234 @@
       })();
     </script>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/src/scss/main.scss" />
-    <title>Abu Faisal Design System</title>
-    <script type="module" src="/src/js/main.js"></script>
+    <title>Native Form Components | SE Design System</title>
   </head>
 
   <body>
-    <main class="section">
-      <div class="container">
-        <div class="d-flex justify-between align-center flex-wrap gap-3 mb-8">
-          <div>
-            <h1>Form System</h1>
-            <p>
-              Complete form controls, advanced inputs, validation, OTP, upload,
-              fieldsets, horizontal and inline layouts.
+    <main id="main-content">
+      <section class="section" aria-labelledby="page-title">
+        <div class="container">
+          <header class="mb-8">
+            <p class="text-primary mb-2">
+              <small>Design system · Components</small>
             </p>
-          </div>
+            <h1 class="mb-3" id="page-title">Native form components</h1>
+            <p class="text-muted">
+              Accessible examples of native controls, field layouts, selection
+              inputs, uploads, verification, validation, and form actions.
+              Custom select patterns are intentionally excluded.
+            </p>
+          </header>
 
-          <div class="d-flex gap-2 flex-wrap">
-            <button
-              class="btn btn-outline-primary btn-sm"
-              data-theme-set="light"
-            >
-              Light
-            </button>
-            <button
-              class="btn btn-outline-primary btn-sm"
-              data-theme-set="dark"
-            >
-              Dark
-            </button>
-            <button
-              class="btn btn-primary btn-sm btn-rounded"
-              data-theme-toggle
-            >
-              Toggle Theme
-            </button>
-            <button class="btn btn-outline-accent btn-sm" data-lang-set="en">
-              English
-            </button>
-            <button class="btn btn-outline-accent btn-sm" data-lang-set="ar">
-              العربية
-            </button>
-          </div>
-        </div>
-
-        <!-- Basic Controls -->
-        <section class="card mb-6">
-          <div class="card-header">
-            <h3 class="card-title">Basic Controls</h3>
-          </div>
-
-          <div class="card-body">
-            <form class="form">
-              <div class="form-row grid-2">
-                <div class="form-group">
-                  <label class="form-label" for="fullName">
-                    Full Name <span class="form-required">*</span>
-                  </label>
-                  <input
-                    id="fullName"
-                    class="form-control"
-                    type="text"
-                    placeholder="Enter full name"
-                  />
-                  <div class="form-help">Use your official full name.</div>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="email">Email</label>
-                  <input
-                    id="email"
-                    class="form-control"
-                    type="email"
-                    placeholder="name@example.com"
-                  />
-                  <div class="form-help">Business email is preferred.</div>
-                </div>
+          <!-- Basic controls -->
+          <section class="card mb-6" aria-labelledby="basic-controls-heading">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title" id="basic-controls-heading">
+                  Basic controls
+                </h2>
+                <p class="text-muted">
+                  <small>
+                    Text fields, native select, textarea, sizes, and control
+                    states.
+                  </small>
+                </p>
               </div>
+            </div>
 
-              <div class="form-group">
-                <label class="form-label" for="description">Description</label>
-                <textarea
-                  id="description"
-                  class="form-control"
-                  placeholder="Write description..."
-                ></textarea>
-              </div>
-
-              <div class="form-row grid-2">
-                <div class="form-group">
-                  <label class="form-label" for="market">Native Select</label>
-                  <div class="form-select-wrap">
-                    <select id="market" class="form-select">
-                      <option>Main Market</option>
-                      <option>Nomu Market</option>
-                      <option>Sukuk & Bonds</option>
-                    </select>
-                  </div>
-                  <div class="form-help">
-                    Native select keeps mobile and browser accessibility.
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="disabledInput">
-                    Disabled Input
-                  </label>
-                  <input
-                    id="disabledInput"
-                    class="form-control"
-                    type="text"
-                    value="Disabled value"
-                    disabled
-                  />
-                </div>
-              </div>
-            </form>
-          </div>
-        </section>
-
-        <!-- Input Groups -->
-        <section class="card mb-6">
-          <div class="card-header">
-            <h3 class="card-title">Input Groups</h3>
-          </div>
-
-          <div class="card-body">
-            <form class="form">
-              <div class="form-row grid-3">
-                <div class="form-group">
-                  <label class="form-label" for="emailPrefix"
-                    >Email Prefix</label
-                  >
-                  <div class="input-group">
-                    <span class="input-group-text">@</span>
-                    <input
-                      id="emailPrefix"
-                      class="form-control"
-                      type="email"
-                      placeholder="username"
-                    />
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="numberPrefix">
-                    Number Prefix
-                  </label>
-                  <div class="input-group">
-                    <span class="input-group-text">00</span>
-                    <input
-                      id="numberPrefix"
-                      class="form-control"
-                      type="number"
-                      placeholder="5000"
-                    />
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="amountSuffix">
-                    Amount Suffix
-                  </label>
-                  <div class="input-group">
-                    <input
-                      id="amountSuffix"
-                      class="form-control"
-                      type="number"
-                      placeholder="1000"
-                    />
-                    <span class="input-group-text">SAR</span>
-                  </div>
-                </div>
-              </div>
-            </form>
-          </div>
-        </section>
-
-        <!-- Advanced Controls -->
-        <section class="card mb-6">
-          <div class="card-header">
-            <h3 class="card-title">Advanced Controls</h3>
-          </div>
-
-          <div class="card-body">
-            <form class="form">
-              <div class="form-row grid-2">
-                <div class="form-group">
-                  <label class="form-label" for="searchInput"
-                    >Search Input</label
-                  >
-
-                  <div class="form-field form-field-icon-start">
-                    <span
-                      class="form-field-icon has-icon icon-search"
-                      aria-hidden="true"
-                    ></span>
-
-                    <input
-                      id="searchInput"
-                      class="form-control"
-                      type="search"
-                      placeholder="Search companies..."
-                    />
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="passwordInput">
-                    Password Input
-                  </label>
-
-                  <div class="form-field form-field-icon-end">
-                    <input
-                      id="passwordInput"
-                      class="form-control"
-                      type="password"
-                      placeholder="Enter password"
-                    />
-
-                    <button
-                      class="form-field-action has-icon icon-eye"
-                      type="button"
-                      data-password-toggle="#passwordInput"
-                      aria-label="Show password"
-                      aria-pressed="false"
-                    ></button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-row grid-2">
-                <div class="form-group">
-                  <label class="form-label" for="floatingName">
-                    Floating Label
-                  </label>
-
-                  <div class="form-floating">
-                    <input
-                      id="floatingName"
-                      class="form-control"
-                      type="text"
-                      placeholder="Full Name"
-                    />
-                    <label for="floatingName">Full Name</label>
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">File Upload</label>
-
-                  <div class="form-file">
-                    <input
-                      id="fileUpload"
-                      class="form-file-input"
-                      type="file"
-                      data-file-input
-                    />
-
-                    <label class="form-file-label" for="fileUpload">
-                      <span>Choose file</span>
-                      <span class="form-file-name" data-file-name>
-                        No file selected
-                      </span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Drag & Drop Upload</label>
-
-                <div class="form-file">
-                  <input
-                    id="dropUpload"
-                    class="form-file-input"
-                    type="file"
-                    multiple
-                    data-file-input
-                  />
-
-                  <label
-                    class="form-dropzone"
-                    for="dropUpload"
-                    data-dropzone="#dropUpload"
-                  >
-                    <span class="form-dropzone-content">
-                      <span
-                        class="form-dropzone-icon has-icon icon-upload icon-2xl"
-                        aria-hidden="true"
-                      ></span>
-                      <strong>Drop files here or click to upload</strong>
-                      <span class="form-file-name" data-file-name>
-                        No file selected
-                      </span>
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">OTP Input</label>
-
-                <div class="otp" data-otp>
-                  <input
-                    class="otp-input"
-                    type="text"
-                    inputmode="numeric"
-                    maxlength="1"
-                  />
-                  <input
-                    class="otp-input"
-                    type="text"
-                    inputmode="numeric"
-                    maxlength="1"
-                  />
-                  <input
-                    class="otp-input"
-                    type="text"
-                    inputmode="numeric"
-                    maxlength="1"
-                  />
-                  <input
-                    class="otp-input"
-                    type="text"
-                    inputmode="numeric"
-                    maxlength="1"
-                  />
-                  <input
-                    class="otp-input"
-                    type="text"
-                    inputmode="numeric"
-                    maxlength="1"
-                  />
-                  <input
-                    class="otp-input"
-                    type="text"
-                    inputmode="numeric"
-                    maxlength="1"
-                  />
-                </div>
-
-                <div class="form-help">
-                  Paste is supported. Only numbers are allowed.
-                </div>
-              </div>
-            </form>
-          </div>
-        </section>
-
-        <!-- Check Radio Switch -->
-        <section class="card mb-6">
-          <div class="card-header">
-            <h3 class="card-title">Checkbox, Radio & Switch</h3>
-          </div>
-
-          <div class="card-body">
-            <form class="form">
-              <div class="form-row grid-3">
-                <div class="form-group">
-                  <label class="form-label">Checkboxes</label>
-
-                  <div class="form-check">
-                    <input id="checkBanks" type="checkbox" checked />
-                    <label for="checkBanks">Banks</label>
-                  </div>
-
-                  <div class="form-check">
-                    <input id="checkEnergy" type="checkbox" />
-                    <label for="checkEnergy">Energy</label>
-                  </div>
-
-                  <div class="form-check">
-                    <input id="checkDisabled" type="checkbox" disabled />
-                    <label for="checkDisabled">Disabled checkbox</label>
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Radio Buttons</label>
-
-                  <div class="form-check">
-                    <input
-                      id="radioMain"
-                      name="marketType"
-                      type="radio"
-                      checked
-                    />
-                    <label for="radioMain">Main Market</label>
-                  </div>
-
-                  <div class="form-check">
-                    <input id="radioNomu" name="marketType" type="radio" />
-                    <label for="radioNomu">Nomu Market</label>
-                  </div>
-
-                  <div class="form-check">
-                    <input
-                      id="radioDisabled"
-                      name="marketType"
-                      type="radio"
-                      disabled
-                    />
-                    <label for="radioDisabled">Disabled radio</label>
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Switches</label>
-
-                  <label class="form-switch">
-                    <input type="checkbox" checked />
-                    Enable notifications
-                  </label>
-
-                  <label class="form-switch">
-                    <input type="checkbox" />
-                    Auto refresh
-                  </label>
-
-                  <label class="form-switch">
-                    <input type="checkbox" disabled />
-                    Disabled switch
-                  </label>
-                </div>
-              </div>
-            </form>
-          </div>
-        </section>
-
-        <!-- Validation -->
-        <section class="card mb-6">
-          <div class="card-header">
-            <h3 class="card-title">Validation States</h3>
-          </div>
-
-          <div class="card-body">
-            <form class="form">
-              <div class="form-row grid-2">
-                <div class="form-group">
-                  <label class="form-label" for="validInput">Valid Input</label>
-                  <input
-                    id="validInput"
-                    class="form-control is-valid"
-                    type="text"
-                    value="Correct value"
-                  />
-                  <div class="form-success">Looks good.</div>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="invalidInput">
-                    Invalid Input
-                  </label>
-                  <input
-                    id="invalidInput"
-                    class="form-control is-invalid"
-                    type="text"
-                    value="Wrong value"
-                  />
-                  <div class="form-error">Please enter a valid value.</div>
-                </div>
-              </div>
-            </form>
-          </div>
-        </section>
-
-        <!-- Fieldset -->
-        <section class="card mb-6">
-          <div class="card-header">
-            <h3 class="card-title">Fieldset & Sections</h3>
-          </div>
-
-          <div class="card-body">
-            <form class="form">
-              <fieldset class="form-fieldset">
-                <legend class="form-legend">Account Information</legend>
+            <div class="card-body">
+              <form
+                class="form"
+                action="#"
+                method="post"
+                aria-labelledby="basic-controls-heading"
+              >
+                <p class="form-help">
+                  Fields marked with
+                  <span class="form-required" aria-hidden="true">*</span>
+                  are required.
+                </p>
 
                 <div class="form-row grid-2">
                   <div class="form-group">
-                    <label class="form-label" for="accountName">Name</label>
-                    <input id="accountName" class="form-control" type="text" />
+                    <label class="form-label" for="full-name">
+                      Full name
+                      <span class="form-required" aria-hidden="true">*</span>
+                    </label>
+                    <input
+                      class="form-control"
+                      id="full-name"
+                      name="fullName"
+                      type="text"
+                      autocomplete="name"
+                      placeholder="Enter your full name"
+                      aria-describedby="full-name-help"
+                      required
+                    />
+                    <p class="form-help" id="full-name-help">
+                      Use the name shown on your official documents.
+                    </p>
                   </div>
 
                   <div class="form-group">
-                    <label class="form-label" for="accountEmail">Email</label>
+                    <label class="form-label" for="email-address">
+                      Email address
+                      <span class="form-required" aria-hidden="true">*</span>
+                    </label>
                     <input
-                      id="accountEmail"
                       class="form-control"
+                      id="email-address"
+                      name="email"
                       type="email"
+                      autocomplete="email"
+                      inputmode="email"
+                      placeholder="name@example.com"
+                      required
                     />
                   </div>
                 </div>
-              </fieldset>
 
-              <div class="form-section">
-                <h4 class="form-section-title">Preferences</h4>
-                <p class="form-section-text">
-                  These settings can be changed later.
-                </p>
+                <div class="form-row grid-2">
+                  <div class="form-group">
+                    <label class="form-label" for="phone-number">
+                      Phone number
+                      <span class="form-optional">Optional</span>
+                    </label>
+                    <input
+                      class="form-control"
+                      id="phone-number"
+                      name="phone"
+                      type="tel"
+                      autocomplete="tel"
+                      inputmode="tel"
+                      placeholder="+966 5X XXX XXXX"
+                    />
+                  </div>
 
-                <label class="form-switch">
-                  <input type="checkbox" checked />
-                  Receive email notifications
-                </label>
-              </div>
-            </form>
-          </div>
-        </section>
-
-        <!-- Horizontal -->
-        <section class="card mb-6">
-          <div class="card-header">
-            <h3 class="card-title">Horizontal Form</h3>
-          </div>
-
-          <div class="card-body">
-            <form class="form form-horizontal">
-              <div class="form-group">
-                <label class="form-label" for="horizontalName">Name</label>
-                <input id="horizontalName" class="form-control" type="text" />
-                <div class="form-help">Label and input align horizontally.</div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" for="horizontalEmail">Email</label>
-                <input id="horizontalEmail" class="form-control" type="email" />
-              </div>
-            </form>
-          </div>
-        </section>
-
-        <!-- Inline -->
-        <section class="card mb-6">
-          <div class="card-header">
-            <h3 class="card-title">Inline Form</h3>
-          </div>
-
-          <div class="card-body">
-            <form class="form form-inline">
-              <div class="form-group">
-                <label class="form-label" for="inlineSearch">Keyword</label>
-                <input
-                  id="inlineSearch"
-                  class="form-control"
-                  type="search"
-                  placeholder="Search..."
-                />
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" for="inlineMarket">Market</label>
-                <div class="form-select-wrap">
-                  <select id="inlineMarket" class="form-select">
-                    <option>Main Market</option>
-                    <option>Nomu Market</option>
-                  </select>
+                  <div class="form-group">
+                    <label class="form-label" for="market">
+                      Market
+                      <span class="form-required" aria-hidden="true">*</span>
+                    </label>
+                    <div class="form-select-wrap">
+                      <select
+                        class="form-select"
+                        id="market"
+                        name="market"
+                        aria-describedby="market-help"
+                        required
+                      >
+                        <option value="" selected disabled>
+                          Choose a market
+                        </option>
+                        <option value="main">Main Market</option>
+                        <option value="nomu">Nomu – Parallel Market</option>
+                        <option value="sukuk">Sukuk &amp; Bonds</option>
+                      </select>
+                      <span
+                        class="form-select-icon has-icon icon-chevron-down"
+                        aria-hidden="true"
+                      ></span>
+                    </div>
+                    <p class="form-help" id="market-help">
+                      This example uses a native HTML select.
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <button class="btn btn-primary btn-rounded" type="button">
-                Apply Filters
-              </button>
-            </form>
-          </div>
-        </section>
-
-        <!-- Actions -->
-        <section class="card">
-          <div class="card-header">
-            <h3 class="card-title">Form Actions</h3>
-          </div>
-
-          <div class="card-body">
-            <form class="form">
-              <div class="form-row grid-2">
                 <div class="form-group">
-                  <label class="form-label" for="readonlyInput">Readonly</label>
-                  <input
-                    id="readonlyInput"
+                  <label class="form-label" for="description">
+                    Description
+                    <span class="form-optional">Optional</span>
+                  </label>
+                  <textarea
                     class="form-control"
+                    id="description"
+                    name="description"
+                    rows="5"
+                    maxlength="500"
+                    placeholder="Write a short description"
+                    aria-describedby="description-help"
+                  ></textarea>
+                  <p class="form-help" id="description-help">
+                    Maximum 500 characters.
+                  </p>
+                </div>
+
+                <div class="form-row grid-3">
+                  <div class="form-group">
+                    <label class="form-label" for="small-control">Small</label>
+                    <input
+                      class="form-control form-control-sm"
+                      id="small-control"
+                      name="smallControl"
+                      type="text"
+                      placeholder="Small control"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="default-control">
+                      Default
+                    </label>
+                    <input
+                      class="form-control"
+                      id="default-control"
+                      name="defaultControl"
+                      type="text"
+                      placeholder="Default control"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="large-control">Large</label>
+                    <input
+                      class="form-control form-control-lg"
+                      id="large-control"
+                      name="largeControl"
+                      type="text"
+                      placeholder="Large control"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-row grid-2">
+                  <div class="form-group">
+                    <label class="form-label" for="readonly-control">
+                      Read-only
+                    </label>
+                    <input
+                      class="form-control"
+                      id="readonly-control"
+                      name="accountReference"
+                      type="text"
+                      value="Account reference: AC-1048"
+                      readonly
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="disabled-control">
+                      Disabled
+                    </label>
+                    <input
+                      class="form-control"
+                      id="disabled-control"
+                      name="disabledControl"
+                      type="text"
+                      value="This field is unavailable"
+                      disabled
+                    />
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button class="btn btn-outline-primary" type="reset">
+                    Reset
+                  </button>
+                  <button class="btn btn-primary btn-rounded" type="submit">
+                    Submit example
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <!-- Field wrappers and input groups -->
+          <section class="card mb-6" aria-labelledby="input-groups-heading">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title" id="input-groups-heading">
+                  Fields and input groups
+                </h2>
+                <p class="text-muted">
+                  <small>
+                    Leading icons, trailing actions, prefixes, suffixes, and
+                    units.
+                  </small>
+                </p>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <form
+                class="form"
+                action="#"
+                method="post"
+                aria-labelledby="input-groups-heading"
+              >
+                <div class="form-row grid-2">
+                  <div class="form-group">
+                    <label class="form-label" for="company-search">
+                      Search
+                    </label>
+                    <div class="form-field form-field-icon-start">
+                      <span
+                        class="form-field-icon has-icon icon-search"
+                        aria-hidden="true"
+                      ></span>
+                      <input
+                        class="form-control"
+                        id="company-search"
+                        name="query"
+                        type="search"
+                        placeholder="Search companies"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <div class="form-field form-field-content-end">
+                      <input
+                        class="form-control"
+                        id="password"
+                        name="password"
+                        type="password"
+                        autocomplete="current-password"
+                        placeholder="Enter your password"
+                      />
+                      <button
+                        class="form-field-action"
+                        type="button"
+                        aria-controls="password"
+                        aria-pressed="false"
+                        data-password-toggle
+                      >
+                        Show
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row grid-3">
+                  <div class="form-group">
+                    <label class="form-label" for="username">Username</label>
+                    <div class="input-group">
+                      <span class="input-group-text" id="username-prefix">
+                        @
+                      </span>
+                      <input
+                        class="form-control"
+                        id="username"
+                        name="username"
+                        type="text"
+                        autocomplete="username"
+                        placeholder="username"
+                        aria-describedby="username-prefix"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="website">Website</label>
+                    <div class="input-group">
+                      <span class="input-group-text" id="website-prefix">
+                        https://
+                      </span>
+                      <input
+                        class="form-control"
+                        id="website"
+                        name="website"
+                        type="text"
+                        inputmode="url"
+                        autocomplete="url"
+                        placeholder="example.com"
+                        aria-describedby="website-prefix"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="amount">Amount</label>
+                    <div class="input-group">
+                      <input
+                        class="form-control"
+                        id="amount"
+                        name="amount"
+                        type="number"
+                        inputmode="decimal"
+                        min="0"
+                        step="0.01"
+                        placeholder="1000"
+                        aria-describedby="amount-unit"
+                      />
+                      <span class="input-group-text" id="amount-unit">SAR</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="account-reference">
+                    Account reference
+                  </label>
+                  <div class="input-group">
+                    <input
+                      class="form-control"
+                      id="account-reference"
+                      name="accountReference"
+                      type="text"
+                      value="AC-2026-1048"
+                      readonly
+                    />
+                    <button
+                      class="input-group-action"
+                      type="button"
+                      data-copy-target="account-reference"
+                    >
+                      <span
+                        class="has-icon icon-copy"
+                        aria-hidden="true"
+                      ></span>
+                      <span>Copy</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button class="btn btn-primary btn-rounded" type="submit">
+                    Save fields
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <!-- Floating labels -->
+          <section class="card mb-6" aria-labelledby="floating-labels-heading">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title" id="floating-labels-heading">
+                  Floating labels
+                </h2>
+                <p class="text-muted">
+                  <small>
+                    Compact labels that remain visible after a value is entered.
+                  </small>
+                </p>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <form
+                class="form"
+                action="#"
+                method="post"
+                aria-labelledby="floating-labels-heading"
+              >
+                <div class="form-row grid-2">
+                  <div class="form-floating">
+                    <input
+                      class="form-control"
+                      id="floating-company"
+                      name="company"
+                      type="text"
+                      autocomplete="organization"
+                      placeholder=" "
+                    />
+                    <label for="floating-company">Company name</label>
+                  </div>
+
+                  <div class="form-floating">
+                    <input
+                      class="form-control"
+                      id="floating-email"
+                      name="email"
+                      type="email"
+                      autocomplete="email"
+                      inputmode="email"
+                      placeholder=" "
+                    />
+                    <label for="floating-email">Email address</label>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button class="btn btn-primary btn-rounded" type="submit">
+                    Save details
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <!-- Checkbox, radio, and switch -->
+          <section class="card mb-6" aria-labelledby="selection-heading">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title" id="selection-heading">
+                  Checkbox, radio, and switch
+                </h2>
+                <p class="text-muted">
+                  <small>
+                    Grouped selection controls with checked and disabled states.
+                  </small>
+                </p>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <form
+                class="form"
+                action="#"
+                method="post"
+                aria-labelledby="selection-heading"
+              >
+                <div class="form-row grid-3">
+                  <fieldset class="form-fieldset">
+                    <legend class="form-legend">Sectors</legend>
+                    <div class="form-fieldset-body">
+                      <label class="form-check">
+                        <input
+                          class="form-check-input"
+                          name="sectors[]"
+                          type="checkbox"
+                          value="banks"
+                          checked
+                        />
+                        <span class="form-check-label">Banks</span>
+                      </label>
+
+                      <label class="form-check">
+                        <input
+                          class="form-check-input"
+                          name="sectors[]"
+                          type="checkbox"
+                          value="energy"
+                        />
+                        <span class="form-check-label">Energy</span>
+                      </label>
+
+                      <label class="form-check">
+                        <input
+                          class="form-check-input"
+                          name="sectors[]"
+                          type="checkbox"
+                          value="restricted"
+                          disabled
+                        />
+                        <span class="form-check-label">
+                          Restricted sector
+                        </span>
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <fieldset class="form-fieldset">
+                    <legend class="form-legend">Market type</legend>
+                    <div class="form-fieldset-body">
+                      <label class="form-check">
+                        <input
+                          class="form-check-input"
+                          name="marketType"
+                          type="radio"
+                          value="main"
+                          checked
+                        />
+                        <span class="form-check-label">Main Market</span>
+                      </label>
+
+                      <label class="form-check">
+                        <input
+                          class="form-check-input"
+                          name="marketType"
+                          type="radio"
+                          value="nomu"
+                        />
+                        <span class="form-check-label">Nomu Market</span>
+                      </label>
+
+                      <label class="form-check">
+                        <input
+                          class="form-check-input"
+                          name="marketType"
+                          type="radio"
+                          value="unavailable"
+                          disabled
+                        />
+                        <span class="form-check-label">
+                          Unavailable market
+                        </span>
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <fieldset class="form-fieldset">
+                    <legend class="form-legend">Preferences</legend>
+                    <div class="form-fieldset-body">
+                      <label class="form-switch">
+                        <input
+                          class="form-switch-input"
+                          name="notifications"
+                          type="checkbox"
+                          role="switch"
+                          value="enabled"
+                          checked
+                        />
+                        <span class="form-switch-label">Notifications</span>
+                      </label>
+
+                      <label class="form-switch">
+                        <input
+                          class="form-switch-input"
+                          name="automaticRefresh"
+                          type="checkbox"
+                          role="switch"
+                          value="enabled"
+                        />
+                        <span class="form-switch-label">
+                          Automatic refresh
+                        </span>
+                      </label>
+
+                      <label class="form-switch">
+                        <input
+                          class="form-switch-input"
+                          name="restrictedPreference"
+                          type="checkbox"
+                          role="switch"
+                          value="enabled"
+                          disabled
+                        />
+                        <span class="form-switch-label">
+                          Restricted preference
+                        </span>
+                      </label>
+                    </div>
+                  </fieldset>
+                </div>
+
+                <fieldset class="form-fieldset">
+                  <legend class="form-legend">Delivery method</legend>
+                  <div class="form-group-inline">
+                    <label class="form-check form-check-inline">
+                      <input
+                        class="form-check-input"
+                        name="delivery"
+                        type="radio"
+                        value="standard"
+                        checked
+                      />
+                      <span class="form-check-label">Standard</span>
+                    </label>
+
+                    <label class="form-check form-check-inline">
+                      <input
+                        class="form-check-input"
+                        name="delivery"
+                        type="radio"
+                        value="express"
+                      />
+                      <span class="form-check-label">Express</span>
+                    </label>
+
+                    <label class="form-check form-check-inline">
+                      <input
+                        class="form-check-input"
+                        name="delivery"
+                        type="radio"
+                        value="collection"
+                      />
+                      <span class="form-check-label">Collection</span>
+                    </label>
+                  </div>
+                </fieldset>
+
+                <div class="form-actions">
+                  <button class="btn btn-primary btn-rounded" type="submit">
+                    Save preferences
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <!-- File upload -->
+          <section class="card mb-6" aria-labelledby="file-upload-heading">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title" id="file-upload-heading">File upload</h2>
+                <p class="text-muted">
+                  <small>
+                    Single-file selection, multiple-file selection, and a
+                    selected-file example.
+                  </small>
+                </p>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <form
+                class="form"
+                action="#"
+                method="post"
+                enctype="multipart/form-data"
+                aria-labelledby="file-upload-heading"
+              >
+                <div class="form-row grid-2">
+                  <div class="form-group">
+                    <label class="form-label" for="document-upload">
+                      Supporting document
+                    </label>
+                    <div class="form-file">
+                      <input
+                        class="form-file-input"
+                        id="document-upload"
+                        name="document"
+                        type="file"
+                        accept=".pdf,.doc,.docx,application/pdf"
+                        aria-describedby="document-upload-help"
+                      />
+                      <label class="form-file-label" for="document-upload">
+                        <span>Choose file</span>
+                        <span class="form-file-name" data-file-name>
+                          No file selected
+                        </span>
+                      </label>
+                    </div>
+                    <p class="form-help" id="document-upload-help">
+                      PDF or DOCX, up to 10 MB.
+                    </p>
+                  </div>
+
+                  <div class="form-group">
+                    <span class="form-label-static" id="selected-files-label">
+                      Selected file
+                    </span>
+                    <ul
+                      class="form-file-list"
+                      aria-labelledby="selected-files-label"
+                    >
+                      <li class="form-file-item">
+                        <span
+                          class="has-icon icon-pdf-file"
+                          aria-hidden="true"
+                        ></span>
+                        <span class="form-file-name">
+                          company-profile.pdf
+                        </span>
+                        <span class="form-file-size">1.8 MB</span>
+                        <button
+                          class="form-file-remove has-icon icon-close-x"
+                          type="button"
+                          aria-label="Remove company-profile.pdf"
+                          data-file-remove
+                        ></button>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="multiple-file-upload">
+                    Upload multiple files
+                  </label>
+                  <div class="form-file">
+                    <input
+                      class="form-file-input"
+                      id="multiple-file-upload"
+                      name="attachments[]"
+                      type="file"
+                      accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
+                      aria-describedby="multiple-file-upload-help"
+                      multiple
+                    />
+                    <label class="form-dropzone" for="multiple-file-upload">
+                      <span class="form-dropzone-content">
+                        <strong>Choose files to upload</strong>
+                        <span class="form-file-name">
+                          PDF, DOCX, PNG, or JPG
+                        </span>
+                      </span>
+                    </label>
+                  </div>
+                  <p class="form-help" id="multiple-file-upload-help">
+                    Maximum 10 MB per file.
+                  </p>
+                </div>
+
+                <div class="form-actions">
+                  <button class="btn btn-primary btn-rounded" type="submit">
+                    Upload files
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <!-- Verification code -->
+          <section class="card mb-6" aria-labelledby="verification-heading">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title" id="verification-heading">
+                  Verification code
+                </h2>
+                <p class="text-muted">
+                  <small>
+                    Six numeric fields for a one-time verification code.
+                  </small>
+                </p>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <form
+                class="form"
+                action="#"
+                method="post"
+                aria-labelledby="verification-heading"
+                data-otp-form
+              >
+                <fieldset
+                  class="form-fieldset"
+                  aria-describedby="verification-help"
+                >
+                  <legend class="form-legend">Enter the six-digit code</legend>
+                  <div class="form-otp" data-otp>
+                    <input
+                      class="form-otp-input"
+                      name="verificationDigit1"
+                      type="text"
+                      inputmode="numeric"
+                      autocomplete="one-time-code"
+                      pattern="[0-9]"
+                      maxlength="1"
+                      aria-label="Digit 1 of 6"
+                      data-otp-input
+                      required
+                    />
+                    <input
+                      class="form-otp-input"
+                      name="verificationDigit2"
+                      type="text"
+                      inputmode="numeric"
+                      pattern="[0-9]"
+                      maxlength="1"
+                      aria-label="Digit 2 of 6"
+                      data-otp-input
+                      required
+                    />
+                    <input
+                      class="form-otp-input"
+                      name="verificationDigit3"
+                      type="text"
+                      inputmode="numeric"
+                      pattern="[0-9]"
+                      maxlength="1"
+                      aria-label="Digit 3 of 6"
+                      data-otp-input
+                      required
+                    />
+                    <span class="form-otp-separator" aria-hidden="true">–</span>
+                    <input
+                      class="form-otp-input"
+                      name="verificationDigit4"
+                      type="text"
+                      inputmode="numeric"
+                      pattern="[0-9]"
+                      maxlength="1"
+                      aria-label="Digit 4 of 6"
+                      data-otp-input
+                      required
+                    />
+                    <input
+                      class="form-otp-input"
+                      name="verificationDigit5"
+                      type="text"
+                      inputmode="numeric"
+                      pattern="[0-9]"
+                      maxlength="1"
+                      aria-label="Digit 5 of 6"
+                      data-otp-input
+                      required
+                    />
+                    <input
+                      class="form-otp-input"
+                      name="verificationDigit6"
+                      type="text"
+                      inputmode="numeric"
+                      pattern="[0-9]"
+                      maxlength="1"
+                      aria-label="Digit 6 of 6"
+                      data-otp-input
+                      required
+                    />
+                  </div>
+                  <p class="form-help" id="verification-help">
+                    The code expires in ten minutes.
+                  </p>
+                </fieldset>
+
+                <div class="form-actions">
+                  <button class="btn btn-primary btn-rounded" type="submit">
+                    Verify code
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <!-- Validation -->
+          <section class="card mb-6" aria-labelledby="validation-heading">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title" id="validation-heading">
+                  Validation states
+                </h2>
+                <p class="text-muted">
+                  <small>
+                    Valid and invalid states for text and selection controls.
+                  </small>
+                </p>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <form
+                class="form"
+                action="#"
+                method="post"
+                aria-labelledby="validation-heading"
+                novalidate
+              >
+                <div class="form-row grid-2">
+                  <div class="form-group is-valid">
+                    <label class="form-label" for="valid-input">
+                      Valid input
+                    </label>
+                    <input
+                      class="form-control"
+                      id="valid-input"
+                      name="validInput"
+                      type="text"
+                      value="Correct value"
+                      aria-describedby="valid-input-message"
+                    />
+                    <p class="form-success" id="valid-input-message">
+                      Looks good.
+                    </p>
+                  </div>
+
+                  <div class="form-group is-invalid">
+                    <label class="form-label" for="invalid-input">
+                      Invalid input
+                    </label>
+                    <input
+                      class="form-control"
+                      id="invalid-input"
+                      name="invalidInput"
+                      type="text"
+                      value="Wrong value"
+                      aria-invalid="true"
+                      aria-describedby="invalid-input-message"
+                      required
+                    />
+                    <p class="form-error" id="invalid-input-message">
+                      Please enter a valid value.
+                    </p>
+                  </div>
+                </div>
+
+                <fieldset
+                  class="form-fieldset is-invalid"
+                  aria-describedby="terms-error"
+                >
+                  <legend class="form-legend">Terms and conditions</legend>
+                  <label class="form-check">
+                    <input
+                      class="form-check-input"
+                      name="termsAccepted"
+                      type="checkbox"
+                      value="yes"
+                      aria-invalid="true"
+                      required
+                    />
+                    <span class="form-check-label">
+                      I agree to the terms and conditions.
+                    </span>
+                  </label>
+                  <p class="form-error" id="terms-error">
+                    You must accept the terms before continuing.
+                  </p>
+                </fieldset>
+
+                <div class="form-actions">
+                  <button class="btn btn-primary btn-rounded" type="submit">
+                    Validate form
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <!-- Fieldsets -->
+          <section class="card mb-6" aria-labelledby="fieldsets-heading">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title" id="fieldsets-heading">
+                  Fieldsets and sections
+                </h2>
+                <p class="text-muted">
+                  <small>
+                    Semantic grouping for related information and settings.
+                  </small>
+                </p>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <form
+                class="form"
+                action="#"
+                method="post"
+                aria-labelledby="fieldsets-heading"
+              >
+                <fieldset
+                  class="form-fieldset"
+                  aria-describedby="account-information-description"
+                >
+                  <legend class="form-legend">Account information</legend>
+                  <p
+                    class="form-fieldset-description"
+                    id="account-information-description"
+                  >
+                    Enter the primary information for this account.
+                  </p>
+                  <div class="form-fieldset-body">
+                    <div class="form-row grid-2">
+                      <div class="form-group">
+                        <label class="form-label" for="account-name">
+                          Name
+                        </label>
+                        <input
+                          class="form-control"
+                          id="account-name"
+                          name="accountName"
+                          type="text"
+                          autocomplete="name"
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <label class="form-label" for="account-email">
+                          Email
+                        </label>
+                        <input
+                          class="form-control"
+                          id="account-email"
+                          name="accountEmail"
+                          type="email"
+                          autocomplete="email"
+                          inputmode="email"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </fieldset>
+
+                <fieldset class="form-fieldset" disabled>
+                  <legend class="form-legend">Disabled fieldset</legend>
+                  <div class="form-fieldset-body">
+                    <div class="form-group">
+                      <label class="form-label" for="disabled-fieldset-input">
+                        Unavailable field
+                      </label>
+                      <input
+                        class="form-control"
+                        id="disabled-fieldset-input"
+                        name="disabledFieldsetInput"
+                        type="text"
+                        value="This group is disabled"
+                      />
+                    </div>
+                  </div>
+                </fieldset>
+
+                <div class="form-actions">
+                  <button class="btn btn-primary btn-rounded" type="submit">
+                    Save account
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <!-- Horizontal form -->
+          <section class="card mb-6" aria-labelledby="horizontal-form-heading">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title" id="horizontal-form-heading">
+                  Horizontal form
+                </h2>
+                <p class="text-muted">
+                  <small>
+                    Labels and controls align in columns and collapse
+                    responsively.
+                  </small>
+                </p>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <form
+                class="form form-horizontal"
+                action="#"
+                method="post"
+                aria-labelledby="horizontal-form-heading"
+              >
+                <div class="form-group">
+                  <label class="form-label" for="display-name">
+                    Display name
+                  </label>
+                  <input
+                    class="form-control"
+                    id="display-name"
+                    name="displayName"
                     type="text"
-                    value="Readonly value"
-                    readonly
+                    autocomplete="nickname"
+                    aria-describedby="display-name-help"
+                  />
+                  <p class="form-help" id="display-name-help">
+                    This name appears throughout the account.
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="horizontal-email">
+                    Email
+                  </label>
+                  <input
+                    class="form-control"
+                    id="horizontal-email"
+                    name="email"
+                    type="email"
+                    autocomplete="email"
+                    inputmode="email"
+                  />
+                </div>
+
+                <div class="form-actions">
+                  <button class="btn btn-outline-primary" type="reset">
+                    Cancel
+                  </button>
+                  <button class="btn btn-primary btn-rounded" type="submit">
+                    Save changes
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <!-- Inline form -->
+          <section class="card mb-6" aria-labelledby="inline-form-heading">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title" id="inline-form-heading">
+                  Inline filter form
+                </h2>
+                <p class="text-muted">
+                  <small>
+                    Compact native filters that stack at the configured
+                    responsive breakpoint.
+                  </small>
+                </p>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <form
+                class="form form-inline"
+                action="#"
+                method="get"
+                role="search"
+                aria-labelledby="inline-form-heading"
+              >
+                <div class="form-group form-group-grow">
+                  <label class="form-label" for="filter-keyword">
+                    Keyword
+                  </label>
+                  <input
+                    class="form-control"
+                    id="filter-keyword"
+                    name="keyword"
+                    type="search"
+                    placeholder="Search companies"
                   />
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label" for="disabledSelect">
-                    Disabled Select
-                  </label>
+                  <label class="form-label" for="filter-market">Market</label>
                   <div class="form-select-wrap">
-                    <select id="disabledSelect" class="form-select" disabled>
-                      <option>Disabled select</option>
+                    <select
+                      class="form-select"
+                      id="filter-market"
+                      name="market"
+                    >
+                      <option value="">All markets</option>
+                      <option value="main">Main Market</option>
+                      <option value="nomu">Nomu Market</option>
                     </select>
+                    <span
+                      class="form-select-icon has-icon icon-chevron-down"
+                      aria-hidden="true"
+                    ></span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="filter-status">Status</label>
+                  <div class="form-select-wrap">
+                    <select
+                      class="form-select"
+                      id="filter-status"
+                      name="status"
+                    >
+                      <option value="">All statuses</option>
+                      <option value="active">Active</option>
+                      <option value="pending">Pending</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                    <span
+                      class="form-select-icon has-icon icon-chevron-down"
+                      aria-hidden="true"
+                    ></span>
+                  </div>
+                </div>
+
+                <button class="btn btn-primary btn-rounded" type="submit">
+                  <span class="has-icon icon-search" aria-hidden="true"></span>
+                  <span>Apply filters</span>
+                </button>
+              </form>
+            </div>
+          </section>
+
+          <!-- Form actions -->
+          <section class="card" aria-labelledby="form-actions-heading">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title" id="form-actions-heading">
+                  Form actions
+                </h2>
+                <p class="text-muted">
+                  <small>
+                    End-aligned, spaced, grouped, and fluid action patterns.
+                  </small>
+                </p>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="form">
+                <div class="form-group">
+                  <span class="form-label-static">End aligned</span>
+                  <div class="form-actions">
+                    <button class="btn btn-outline-primary" type="button">
+                      Cancel
+                    </button>
+                    <button class="btn btn-primary btn-rounded" type="button">
+                      Save changes
+                    </button>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <span class="form-label-static">Spaced actions</span>
+                  <div class="form-actions form-actions-between">
+                    <button class="btn btn-outline-danger" type="button">
+                      Delete account
+                    </button>
+
+                    <div class="form-actions-group">
+                      <button class="btn btn-outline-primary" type="button">
+                        Back
+                      </button>
+                      <button
+                        class="btn btn-primary btn-rounded btn-arrow"
+                        type="button"
+                      >
+                        <span>Continue</span>
+                        <span
+                          class="has-icon icon-chevron-right icon-flip-rtl"
+                          aria-hidden="true"
+                        ></span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <span class="form-label-static">Fluid actions</span>
+                  <div class="form-actions form-actions-fluid">
+                    <button class="btn btn-outline-primary" type="button">
+                      Previous
+                    </button>
+                    <button class="btn btn-primary btn-rounded" type="button">
+                      Next
+                    </button>
                   </div>
                 </div>
               </div>
+            </div>
+          </section>
+          <!--
+  Custom Select
 
-              <div class="form-actions">
-                <button class="btn btn-outline-primary" type="button">
-                  Cancel
-                </button>
-                <button class="btn btn-primary btn-rounded" type="submit">
-                  Submit Form
-                </button>
+  Drop this section inside the existing form-page .container. Each component
+  keeps a real native <select> as its source of truth. JavaScript progressively
+  enhances the wrapper, while the native control remains responsible for form
+  submission, reset, autofill, validation, and no-JavaScript fallback.
+
+  Do not add generated trigger, popover, search, or listbox markup here.
+  The custom-select JavaScript will create that accessible interface and keep
+  it synchronized with the native select.
+-->
+
+          <section
+            class="custom-select-showcase"
+            aria-labelledby="custom-select-title"
+          >
+            <header class="mb-8">
+              <p class="text-primary mb-2">
+                <small>Design system · Components</small>
+              </p>
+              <h2 class="mb-3" id="custom-select-title">Custom select</h2>
+              <p class="text-muted">
+                Progressive custom selects with native form behavior, accessible
+                keyboard interaction, search, option groups, multiple selection,
+                smart placement, and validation.
+              </p>
+            </header>
+
+            <!-- ===============================================================
+       Basic single selection
+       =============================================================== -->
+
+            <section class="card mb-6" aria-labelledby="single-select-heading">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title" id="single-select-heading">
+                    Single selection
+                  </h3>
+                  <p class="text-muted">
+                    <small>
+                      Required, optional, preselected, and clearable
+                      single-value selects.
+                    </small>
+                  </p>
+                </div>
               </div>
-            </form>
-          </div>
-        </section>
-      </div>
+
+              <div class="card-body">
+                <form
+                  class="form"
+                  action="#"
+                  method="post"
+                  aria-labelledby="single-select-heading"
+                >
+                  <p class="form-help">
+                    Fields marked with
+                    <span class="form-required" aria-hidden="true">*</span>
+                    are required.
+                  </p>
+
+                  <div class="form-row grid-2">
+                    <div class="form-group">
+                      <label class="form-label" for="custom-market">
+                        Market
+                        <span class="form-required" aria-hidden="true">*</span>
+                      </label>
+
+                      <div class="custom-select" data-custom-select>
+                        <div class="form-select-wrap custom-select__fallback">
+                          <select
+                            class="form-select custom-select__native"
+                            id="custom-market"
+                            name="market"
+                            aria-describedby="custom-market-help"
+                            required
+                          >
+                            <option value="" selected disabled>
+                              Choose a market
+                            </option>
+                            <option value="main">Main Market</option>
+                            <option value="nomu">Nomu – Parallel Market</option>
+                            <option value="sukuk">Sukuk &amp; Bonds</option>
+                            <option value="funds">Investment Funds</option>
+                          </select>
+
+                          <span
+                            class="form-select-icon has-icon icon-chevron-down"
+                            aria-hidden="true"
+                          ></span>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="custom-market-help">
+                        Select the market you want to explore.
+                      </p>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label" for="custom-currency">
+                        Settlement currency
+                        <span class="form-optional">Optional</span>
+                      </label>
+
+                      <div
+                        class="custom-select"
+                        data-custom-select
+                        data-clearable
+                      >
+                        <div class="form-select-wrap custom-select__fallback">
+                          <select
+                            class="form-select custom-select__native"
+                            id="custom-currency"
+                            name="currency"
+                            aria-describedby="custom-currency-help"
+                          >
+                            <option value="">No preference</option>
+                            <option value="SAR" selected>
+                              Saudi Riyal (SAR)
+                            </option>
+                            <option value="USD">US Dollar (USD)</option>
+                            <option value="EUR">Euro (EUR)</option>
+                            <option value="GBP">Pound Sterling (GBP)</option>
+                          </select>
+
+                          <span
+                            class="form-select-icon has-icon icon-chevron-down"
+                            aria-hidden="true"
+                          ></span>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="custom-currency-help">
+                        The selection can be cleared because this field is
+                        optional.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="form-row grid-2">
+                    <div class="form-group">
+                      <label class="form-label" for="custom-order-type">
+                        Order type
+                      </label>
+
+                      <div class="custom-select" data-custom-select>
+                        <div class="form-select-wrap custom-select__fallback">
+                          <select
+                            class="form-select custom-select__native"
+                            id="custom-order-type"
+                            name="orderType"
+                          >
+                            <option value="market">Market order</option>
+                            <option value="limit" selected>Limit order</option>
+                            <option value="stop">Stop order</option>
+                            <option value="stop-limit">Stop-limit order</option>
+                          </select>
+
+                          <span
+                            class="form-select-icon has-icon icon-chevron-down"
+                            aria-hidden="true"
+                          ></span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label" for="custom-report-period">
+                        Reporting period
+                      </label>
+
+                      <div class="custom-select" data-custom-select>
+                        <div class="form-select-wrap custom-select__fallback">
+                          <select
+                            class="form-select custom-select__native"
+                            id="custom-report-period"
+                            name="reportPeriod"
+                          >
+                            <option value="today">Today</option>
+                            <option value="week">This week</option>
+                            <option value="month" selected>This month</option>
+                            <option value="quarter">This quarter</option>
+                            <option value="year">This year</option>
+                          </select>
+
+                          <span
+                            class="form-select-icon has-icon icon-chevron-down"
+                            aria-hidden="true"
+                          ></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-actions">
+                    <button class="btn btn-outline-primary" type="reset">
+                      Reset
+                    </button>
+                    <button class="btn btn-primary btn-rounded" type="submit">
+                      Submit example
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </section>
+
+            <!-- ===============================================================
+       Search and option groups
+       =============================================================== -->
+
+            <section class="card mb-6" aria-labelledby="search-select-heading">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title" id="search-select-heading">
+                    Search and option groups
+                  </h3>
+                  <p class="text-muted">
+                    <small>
+                      Search is enabled only for collections that benefit from
+                      it. Native option groups remain the semantic source.
+                    </small>
+                  </p>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <form
+                  class="form"
+                  action="#"
+                  method="get"
+                  role="search"
+                  aria-labelledby="search-select-heading"
+                >
+                  <div class="form-row grid-2">
+                    <div class="form-group">
+                      <label class="form-label" for="custom-company">
+                        Listed company
+                      </label>
+
+                      <div
+                        class="custom-select"
+                        data-custom-select
+                        data-searchable
+                        data-clearable
+                      >
+                        <div class="form-select-wrap custom-select__fallback">
+                          <select
+                            class="form-select custom-select__native"
+                            id="custom-company"
+                            name="company"
+                            aria-describedby="custom-company-help"
+                          >
+                            <option value="">All companies</option>
+
+                            <optgroup label="Banking">
+                              <option value="alrajhi">Al Rajhi Bank</option>
+                              <option value="alahli">
+                                Saudi National Bank
+                              </option>
+                              <option value="alinma">Alinma Bank</option>
+                              <option value="riyad-bank">Riyad Bank</option>
+                            </optgroup>
+
+                            <optgroup label="Energy">
+                              <option value="aramco">Saudi Aramco</option>
+                              <option value="aldrees">Aldrees</option>
+                              <option value="petro-rabigh">Petro Rabigh</option>
+                            </optgroup>
+
+                            <optgroup label="Materials">
+                              <option value="sabic">SABIC</option>
+                              <option value="maaden">Ma’aden</option>
+                              <option value="yamama-cement">
+                                Yamama Cement
+                              </option>
+                              <option value="southern-cement">
+                                Southern Province Cement
+                              </option>
+                            </optgroup>
+
+                            <optgroup label="Telecommunication services">
+                              <option value="stc">stc</option>
+                              <option value="mobily">Mobily</option>
+                              <option value="zain-ksa">Zain KSA</option>
+                            </optgroup>
+                          </select>
+
+                          <span
+                            class="form-select-icon has-icon icon-chevron-down"
+                            aria-hidden="true"
+                          ></span>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="custom-company-help">
+                        Search by company name, then use the arrow keys to
+                        review results.
+                      </p>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label" for="custom-security-type">
+                        Security type
+                      </label>
+
+                      <div class="custom-select" data-custom-select>
+                        <div class="form-select-wrap custom-select__fallback">
+                          <select
+                            class="form-select custom-select__native"
+                            id="custom-security-type"
+                            name="securityType"
+                          >
+                            <option value="">All security types</option>
+
+                            <optgroup label="Equity">
+                              <option value="ordinary-share">
+                                Ordinary share
+                              </option>
+                              <option value="reit">REIT</option>
+                              <option value="cef">Closed-end fund</option>
+                            </optgroup>
+
+                            <optgroup label="Debt">
+                              <option value="government-sukuk">
+                                Government sukuk
+                              </option>
+                              <option value="corporate-sukuk">
+                                Corporate sukuk
+                              </option>
+                              <option value="bond" disabled>
+                                Conventional bond (unavailable)
+                              </option>
+                            </optgroup>
+                          </select>
+
+                          <span
+                            class="form-select-icon has-icon icon-chevron-down"
+                            aria-hidden="true"
+                          ></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-actions">
+                    <button class="btn btn-primary btn-rounded" type="submit">
+                      <span
+                        class="has-icon icon-search"
+                        aria-hidden="true"
+                      ></span>
+                      <span>Apply filters</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </section>
+
+            <!-- ===============================================================
+       Multiple selection
+       =============================================================== -->
+
+            <section
+              class="card mb-6"
+              aria-labelledby="multiple-select-heading"
+            >
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title" id="multiple-select-heading">
+                    Multiple selection
+                  </h3>
+                  <p class="text-muted">
+                    <small>
+                      Selected values remain native multiple-select values and
+                      submit under the same field name.
+                    </small>
+                  </p>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <form
+                  class="form"
+                  action="#"
+                  method="post"
+                  aria-labelledby="multiple-select-heading"
+                >
+                  <div class="form-row grid-2">
+                    <div class="form-group">
+                      <label class="form-label" for="custom-sectors">
+                        Sectors
+                        <span class="form-required" aria-hidden="true">*</span>
+                      </label>
+
+                      <div
+                        class="custom-select custom-select--multiple"
+                        data-custom-select
+                        data-searchable
+                        data-placeholder="Choose one or more sectors"
+                      >
+                        <div class="custom-select__fallback">
+                          <select
+                            class="form-select custom-select__native"
+                            id="custom-sectors"
+                            name="sectors[]"
+                            aria-describedby="custom-sectors-help"
+                            multiple
+                            required
+                          >
+                            <option value="banks" selected>Banks</option>
+                            <option value="energy">Energy</option>
+                            <option value="materials" selected>
+                              Materials
+                            </option>
+                            <option value="capital-goods">Capital Goods</option>
+                            <option value="healthcare">Health Care</option>
+                            <option value="telecom">
+                              Telecommunication Services
+                            </option>
+                            <option value="transportation">
+                              Transportation
+                            </option>
+                            <option value="real-estate">
+                              Real Estate Management
+                            </option>
+                            <option value="software">
+                              Software &amp; Services
+                            </option>
+                          </select>
+
+                          <div
+                            class="custom-select__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span class="custom-select__tags">
+                              <span class="custom-select__tag">
+                                <span class="custom-select__tag-label"
+                                  >Banks</span
+                                >
+                              </span>
+
+                              <span class="custom-select__tag">
+                                <span class="custom-select__tag-label"
+                                  >Materials</span
+                                >
+                              </span>
+                            </span>
+
+                            <span
+                              class="custom-select__initial-indicator has-icon icon-chevron-down"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="custom-sectors-help">
+                        Choose at least one sector. Multiple values can be
+                        selected.
+                      </p>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label" for="custom-notifications">
+                        Notification topics
+                        <span class="form-optional">Optional</span>
+                      </label>
+
+                      <div
+                        class="custom-select custom-select--multiple"
+                        data-custom-select
+                        data-placeholder="Choose notification topics"
+                      >
+                        <div class="custom-select__fallback">
+                          <select
+                            class="form-select custom-select__native"
+                            id="custom-notifications"
+                            name="notificationTopics[]"
+                            aria-describedby="custom-notifications-help"
+                            multiple
+                          >
+                            <option value="market-news">Market news</option>
+                            <option value="issuer-news">
+                              Issuer announcements
+                            </option>
+                            <option value="price-alerts">Price alerts</option>
+                            <option value="dividends">
+                              Dividend announcements
+                            </option>
+                            <option value="reports">New reports</option>
+                            <option value="events">Market events</option>
+                          </select>
+
+                          <div
+                            class="custom-select__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span
+                              class="custom-select__initial-value is-placeholder"
+                              dir="auto"
+                            >
+                              Choose notification topics
+                            </span>
+
+                            <span
+                              class="custom-select__initial-indicator has-icon icon-chevron-down"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="custom-notifications-help">
+                        Leave the field empty to receive only essential
+                        notifications.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="form-actions">
+                    <button class="btn btn-outline-primary" type="reset">
+                      Reset
+                    </button>
+                    <button class="btn btn-primary btn-rounded" type="submit">
+                      Save preferences
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </section>
+
+            <!-- ===============================================================
+       Long lists and automatic placement
+       =============================================================== -->
+
+            <section class="card mb-6" aria-labelledby="long-select-heading">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title" id="long-select-heading">
+                    Long lists and automatic placement
+                  </h3>
+                  <p class="text-muted">
+                    <small>
+                      The option panel is height-limited, scrollable, aligned to
+                      the logical start edge, and opens above when space below
+                      is limited.
+                    </small>
+                  </p>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <div class="form-row grid-2">
+                  <div class="form-group">
+                    <label class="form-label" for="custom-list-country">
+                      Market country or region
+                    </label>
+
+                    <div
+                      class="custom-select"
+                      data-custom-select
+                      data-searchable
+                      data-clearable
+                    >
+                      <div class="form-select-wrap custom-select__fallback">
+                        <select
+                          class="form-select custom-select__native"
+                          id="custom-list-country"
+                          name="marketCountry"
+                          aria-describedby="custom-list-country-help"
+                        >
+                          <option value="">All countries and regions</option>
+                          <option value="SA">Saudi Arabia</option>
+                          <option value="AE">United Arab Emirates</option>
+                          <option value="BH">Bahrain</option>
+                          <option value="KW">Kuwait</option>
+                          <option value="OM">Oman</option>
+                          <option value="QA">Qatar</option>
+                          <option value="EG">Egypt</option>
+                          <option value="JO">Jordan</option>
+                          <option value="GB">United Kingdom</option>
+                          <option value="DE">Germany</option>
+                          <option value="FR">France</option>
+                          <option value="CH">Switzerland</option>
+                          <option value="US">United States</option>
+                          <option value="CA">Canada</option>
+                          <option value="JP">Japan</option>
+                          <option value="CN">China</option>
+                          <option value="HK">Hong Kong</option>
+                          <option value="SG">Singapore</option>
+                          <option value="AU">Australia</option>
+                        </select>
+
+                        <span
+                          class="form-select-icon has-icon icon-chevron-down"
+                          aria-hidden="true"
+                        ></span>
+                      </div>
+                    </div>
+
+                    <p class="form-help" id="custom-list-country-help">
+                      The panel chooses its opening direction automatically and
+                      keeps the active option visible while navigating.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ===============================================================
+       Sizes and states
+       =============================================================== -->
+
+            <section class="card mb-6" aria-labelledby="select-states-heading">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title" id="select-states-heading">
+                    Sizes and states
+                  </h3>
+                  <p class="text-muted">
+                    <small>
+                      Small, default, large, disabled, valid, and server-invalid
+                      examples.
+                    </small>
+                  </p>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <div class="form">
+                  <div class="form-row grid-3">
+                    <div class="form-group">
+                      <label class="form-label" for="custom-size-small"
+                        >Small</label
+                      >
+
+                      <div
+                        class="custom-select custom-select--sm"
+                        data-custom-select
+                      >
+                        <div class="form-select-wrap custom-select__fallback">
+                          <select
+                            class="form-select form-select-sm custom-select__native"
+                            id="custom-size-small"
+                            name="smallSelect"
+                          >
+                            <option value="one">Option one</option>
+                            <option value="two">Option two</option>
+                            <option value="three">Option three</option>
+                          </select>
+
+                          <span
+                            class="form-select-icon has-icon icon-chevron-down"
+                            aria-hidden="true"
+                          ></span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label" for="custom-size-default">
+                        Default
+                      </label>
+
+                      <div class="custom-select" data-custom-select>
+                        <div class="form-select-wrap custom-select__fallback">
+                          <select
+                            class="form-select custom-select__native"
+                            id="custom-size-default"
+                            name="defaultSelect"
+                          >
+                            <option value="one">Option one</option>
+                            <option value="two">Option two</option>
+                            <option value="three">Option three</option>
+                          </select>
+
+                          <span
+                            class="form-select-icon has-icon icon-chevron-down"
+                            aria-hidden="true"
+                          ></span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label" for="custom-size-large"
+                        >Large</label
+                      >
+
+                      <div
+                        class="custom-select custom-select--lg"
+                        data-custom-select
+                      >
+                        <div class="form-select-wrap custom-select__fallback">
+                          <select
+                            class="form-select form-select-lg custom-select__native"
+                            id="custom-size-large"
+                            name="largeSelect"
+                          >
+                            <option value="one">Option one</option>
+                            <option value="two">Option two</option>
+                            <option value="three">Option three</option>
+                          </select>
+
+                          <span
+                            class="form-select-icon has-icon icon-chevron-down"
+                            aria-hidden="true"
+                          ></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-row grid-3">
+                    <div class="form-group">
+                      <label class="form-label" for="custom-disabled"
+                        >Disabled</label
+                      >
+
+                      <div class="custom-select" data-custom-select>
+                        <div class="form-select-wrap custom-select__fallback">
+                          <select
+                            class="form-select custom-select__native"
+                            id="custom-disabled"
+                            name="disabledSelect"
+                            disabled
+                          >
+                            <option value="unavailable" selected>
+                              Selection unavailable
+                            </option>
+                          </select>
+
+                          <span
+                            class="form-select-icon has-icon icon-chevron-down"
+                            aria-hidden="true"
+                          ></span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="form-group is-valid">
+                      <label class="form-label" for="custom-valid">
+                        Valid selection
+                      </label>
+
+                      <div class="custom-select" data-custom-select>
+                        <div class="form-select-wrap custom-select__fallback">
+                          <select
+                            class="form-select custom-select__native"
+                            id="custom-valid"
+                            name="validSelect"
+                            aria-describedby="custom-valid-feedback"
+                          >
+                            <option value="approved" selected>Approved</option>
+                            <option value="pending">Pending</option>
+                          </select>
+
+                          <span
+                            class="form-select-icon has-icon icon-chevron-down"
+                            aria-hidden="true"
+                          ></span>
+                        </div>
+                      </div>
+
+                      <p
+                        class="form-feedback form-success"
+                        id="custom-valid-feedback"
+                      >
+                        The selection is available.
+                      </p>
+                    </div>
+
+                    <div class="form-group is-invalid">
+                      <label class="form-label" for="custom-invalid">
+                        Invalid selection
+                        <span class="form-required" aria-hidden="true">*</span>
+                      </label>
+
+                      <div class="custom-select" data-custom-select>
+                        <div class="form-select-wrap custom-select__fallback">
+                          <select
+                            class="form-select custom-select__native"
+                            id="custom-invalid"
+                            name="invalidSelect"
+                            aria-invalid="true"
+                            aria-describedby="custom-invalid-error"
+                            required
+                          >
+                            <option value="" selected disabled>
+                              Choose an option
+                            </option>
+                            <option value="individual">Individual</option>
+                            <option value="institution">Institution</option>
+                          </select>
+
+                          <span
+                            class="form-select-icon has-icon icon-chevron-down"
+                            aria-hidden="true"
+                          ></span>
+                        </div>
+                      </div>
+
+                      <p
+                        class="form-feedback form-error"
+                        id="custom-invalid-error"
+                      >
+                        Choose an investor type.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ===============================================================
+       Validation integration
+       =============================================================== -->
+
+            <section class="card" aria-labelledby="select-validation-heading">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title" id="select-validation-heading">
+                    Form validation
+                  </h3>
+                  <p class="text-muted">
+                    <small>
+                      The native select remains the validated control. The
+                      enhanced trigger will mirror its required, valid, and
+                      invalid states.
+                    </small>
+                  </p>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <form
+                  class="form"
+                  action="#"
+                  method="post"
+                  aria-labelledby="select-validation-heading"
+                  novalidate
+                >
+                  <div class="form-row grid-2">
+                    <div class="form-group">
+                      <label class="form-label" for="custom-country">
+                        Country or region
+                        <span class="form-required" aria-hidden="true">*</span>
+                      </label>
+
+                      <div
+                        class="custom-select"
+                        data-custom-select
+                        data-searchable
+                      >
+                        <div class="form-select-wrap custom-select__fallback">
+                          <select
+                            class="form-select custom-select__native"
+                            id="custom-country"
+                            name="country"
+                            aria-describedby="custom-country-help"
+                            autocomplete="country"
+                            required
+                          >
+                            <option value="" selected disabled>
+                              Choose a country or region
+                            </option>
+                            <option value="SA">Saudi Arabia</option>
+                            <option value="AE">United Arab Emirates</option>
+                            <option value="BH">Bahrain</option>
+                            <option value="KW">Kuwait</option>
+                            <option value="OM">Oman</option>
+                            <option value="QA">Qatar</option>
+                            <option value="EG">Egypt</option>
+                            <option value="JO">Jordan</option>
+                            <option value="GB">United Kingdom</option>
+                            <option value="US">United States</option>
+                          </select>
+
+                          <span
+                            class="form-select-icon has-icon icon-chevron-down"
+                            aria-hidden="true"
+                          ></span>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="custom-country-help">
+                        Start typing after opening the list to filter available
+                        countries.
+                      </p>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label" for="custom-investor-category">
+                        Investor category
+                        <span class="form-required" aria-hidden="true">*</span>
+                      </label>
+
+                      <div class="custom-select" data-custom-select>
+                        <div class="form-select-wrap custom-select__fallback">
+                          <select
+                            class="form-select custom-select__native"
+                            id="custom-investor-category"
+                            name="investorCategory"
+                            required
+                          >
+                            <option value="" selected disabled>
+                              Choose an investor category
+                            </option>
+                            <option value="individual">
+                              Individual investor
+                            </option>
+                            <option value="qualified">
+                              Qualified individual investor
+                            </option>
+                            <option value="institutional">
+                              Institutional investor
+                            </option>
+                            <option value="government">
+                              Government entity
+                            </option>
+                          </select>
+
+                          <span
+                            class="form-select-icon has-icon icon-chevron-down"
+                            aria-hidden="true"
+                          ></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-actions">
+                    <button class="btn btn-outline-primary" type="reset">
+                      Clear form
+                    </button>
+                    <button class="btn btn-primary btn-rounded" type="submit">
+                      Continue
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </section>
+          </section>
+
+          <!--
+  Custom Date
+
+  Place this section inside the existing form-page `.container`.
+
+  Each component retains native date inputs as its source of truth.
+  JavaScript progressively creates the visible trigger, calendar popover,
+  date grid, range selection, presets, and accessible live regions.
+
+  Native values always use the ISO `YYYY-MM-DD` format.
+-->
+
+          <section
+            class="custom-date-showcase"
+            aria-labelledby="custom-date-title"
+          >
+            <!-- ====================================================================
+       Introduction
+       ==================================================================== -->
+
+            <header class="mb-8">
+              <p class="text-primary mb-2">
+                <small>Design system · Components</small>
+              </p>
+
+              <h2 class="mb-3" id="custom-date-title">Custom date</h2>
+
+              <p class="text-muted">
+                Progressive single-date and date-range controls with native form
+                behavior, responsive calendars, smart placement, constraints,
+                presets, keyboard interaction, RTL support, and validation.
+              </p>
+            </header>
+
+            <!-- ====================================================================
+       Single Date
+       ==================================================================== -->
+
+            <section class="card mb-6" aria-labelledby="single-date-heading">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title" id="single-date-heading">
+                    Single date
+                  </h3>
+
+                  <p class="text-muted">
+                    <small>
+                      Optional, required, preselected, and clearable single-date
+                      controls.
+                    </small>
+                  </p>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <form
+                  class="form"
+                  action="#"
+                  method="post"
+                  aria-labelledby="single-date-heading"
+                >
+                  <p class="form-help">
+                    Fields marked with
+                    <span class="form-required" aria-hidden="true">*</span>
+                    are required.
+                  </p>
+
+                  <div class="form-row grid-3">
+                    <!-- Basic optional date -->
+
+                    <div class="form-group">
+                      <label class="form-label" for="appointment-date">
+                        Appointment date
+                        <span class="form-optional">Optional</span>
+                      </label>
+
+                      <div
+                        class="custom-date"
+                        data-custom-date
+                        data-placeholder="YYYY-MM-DD"
+                      >
+                        <div class="custom-date__fallback">
+                          <input
+                            class="form-control custom-date__native"
+                            id="appointment-date"
+                            name="appointmentDate"
+                            type="date"
+                            aria-describedby="appointment-date-help"
+                          />
+
+                          <div
+                            class="custom-date__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span
+                              class="custom-date__initial-value is-placeholder"
+                            >
+                              YYYY-MM-DD
+                            </span>
+
+                            <span
+                              class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="appointment-date-help">
+                        Choose a suitable appointment date.
+                      </p>
+                    </div>
+
+                    <!-- Required date -->
+
+                    <div class="form-group">
+                      <label class="form-label" for="settlement-date">
+                        Settlement date
+                        <span class="form-required" aria-hidden="true">*</span>
+                      </label>
+
+                      <div
+                        class="custom-date"
+                        data-custom-date
+                        data-placeholder="YYYY-MM-DD"
+                      >
+                        <div class="custom-date__fallback">
+                          <input
+                            class="form-control custom-date__native"
+                            id="settlement-date"
+                            name="settlementDate"
+                            type="date"
+                            aria-describedby="settlement-date-help settlement-date-error"
+                            required
+                          />
+
+                          <div
+                            class="custom-date__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span
+                              class="custom-date__initial-value is-placeholder"
+                            >
+                              YYYY-MM-DD
+                            </span>
+
+                            <span
+                              class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="settlement-date-help">
+                        This date is required to complete the request.
+                      </p>
+
+                      <p
+                        class="form-error"
+                        id="settlement-date-error"
+                        aria-live="polite"
+                        hidden
+                      >
+                        Choose a settlement date.
+                      </p>
+                    </div>
+
+                    <!-- Preselected date -->
+
+                    <div class="form-group">
+                      <label class="form-label" for="reporting-date">
+                        Reporting date
+                      </label>
+
+                      <div
+                        class="custom-date"
+                        data-custom-date
+                        data-clearable
+                        data-placeholder="YYYY-MM-DD"
+                      >
+                        <div class="custom-date__fallback">
+                          <input
+                            class="form-control custom-date__native"
+                            id="reporting-date"
+                            name="reportingDate"
+                            type="date"
+                            value="2026-07-29"
+                            aria-describedby="reporting-date-help"
+                          />
+
+                          <div
+                            class="custom-date__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span class="custom-date__initial-value">
+                              2026-07-29
+                            </span>
+
+                            <span
+                              class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="reporting-date-help">
+                        The default date can be changed or cleared.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="form-actions">
+                    <button class="btn btn-outline-primary" type="reset">
+                      Reset
+                    </button>
+
+                    <button class="btn btn-primary btn-rounded" type="submit">
+                      Save dates
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </section>
+
+            <!-- ====================================================================
+       Date Constraints
+       ==================================================================== -->
+
+            <section
+              class="card mb-6"
+              aria-labelledby="date-constraints-heading"
+            >
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title" id="date-constraints-heading">
+                    Date constraints
+                  </h3>
+
+                  <p class="text-muted">
+                    <small>
+                      Minimum, maximum, past, future, and unavailable weekday
+                      restrictions.
+                    </small>
+                  </p>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <form
+                  class="form"
+                  action="#"
+                  method="post"
+                  aria-labelledby="date-constraints-heading"
+                >
+                  <div class="form-row grid-2">
+                    <!-- Minimum and maximum -->
+
+                    <div class="form-group">
+                      <label class="form-label" for="subscription-date">
+                        Subscription date
+                      </label>
+
+                      <div
+                        class="custom-date"
+                        data-custom-date
+                        data-clearable
+                        data-placeholder="YYYY-MM-DD"
+                      >
+                        <div class="custom-date__fallback">
+                          <input
+                            class="form-control custom-date__native"
+                            id="subscription-date"
+                            name="subscriptionDate"
+                            type="date"
+                            min="2026-01-01"
+                            max="2026-12-31"
+                            aria-describedby="subscription-date-help"
+                          />
+
+                          <div
+                            class="custom-date__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span
+                              class="custom-date__initial-value is-placeholder"
+                            >
+                              YYYY-MM-DD
+                            </span>
+
+                            <span
+                              class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="subscription-date-help">
+                        Choose a date between 2026-01-01 and 2026-12-31.
+                      </p>
+                    </div>
+
+                    <!-- Disable past dates -->
+
+                    <div class="form-group">
+                      <label class="form-label" for="future-event-date">
+                        Future event date
+                      </label>
+
+                      <div
+                        class="custom-date"
+                        data-custom-date
+                        data-disable-past
+                        data-clearable
+                        data-placeholder="YYYY-MM-DD"
+                      >
+                        <div class="custom-date__fallback">
+                          <input
+                            class="form-control custom-date__native"
+                            id="future-event-date"
+                            name="futureEventDate"
+                            type="date"
+                            aria-describedby="future-event-date-help"
+                          />
+
+                          <div
+                            class="custom-date__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span
+                              class="custom-date__initial-value is-placeholder"
+                            >
+                              YYYY-MM-DD
+                            </span>
+
+                            <span
+                              class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="future-event-date-help">
+                        Dates before today are unavailable.
+                      </p>
+                    </div>
+
+                    <!-- Disable future dates -->
+
+                    <div class="form-group">
+                      <label class="form-label" for="historical-date">
+                        Historical date
+                      </label>
+
+                      <div
+                        class="custom-date"
+                        data-custom-date
+                        data-disable-future
+                        data-clearable
+                        data-placeholder="YYYY-MM-DD"
+                      >
+                        <div class="custom-date__fallback">
+                          <input
+                            class="form-control custom-date__native"
+                            id="historical-date"
+                            name="historicalDate"
+                            type="date"
+                            aria-describedby="historical-date-help"
+                          />
+
+                          <div
+                            class="custom-date__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span
+                              class="custom-date__initial-value is-placeholder"
+                            >
+                              YYYY-MM-DD
+                            </span>
+
+                            <span
+                              class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="historical-date-help">
+                        Dates after today are unavailable.
+                      </p>
+                    </div>
+
+                    <!-- Restricted weekdays -->
+
+                    <div class="form-group">
+                      <label class="form-label" for="business-date">
+                        Business date
+                      </label>
+
+                      <div
+                        class="custom-date"
+                        data-custom-date
+                        data-disabled-weekdays="5,6"
+                        data-clearable
+                        data-placeholder="YYYY-MM-DD"
+                      >
+                        <div class="custom-date__fallback">
+                          <input
+                            class="form-control custom-date__native"
+                            id="business-date"
+                            name="businessDate"
+                            type="date"
+                            aria-describedby="business-date-help"
+                          />
+
+                          <div
+                            class="custom-date__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span
+                              class="custom-date__initial-value is-placeholder"
+                            >
+                              YYYY-MM-DD
+                            </span>
+
+                            <span
+                              class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="business-date-help">
+                        Friday and Saturday are unavailable.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="form-actions">
+                    <button class="btn btn-outline-primary" type="reset">
+                      Reset
+                    </button>
+
+                    <button class="btn btn-primary btn-rounded" type="submit">
+                      Apply constraints
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </section>
+
+            <!-- ====================================================================
+       Date Range
+       ==================================================================== -->
+
+            <section class="card mb-6" aria-labelledby="date-range-heading">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title" id="date-range-heading">Date range</h3>
+
+                  <p class="text-muted">
+                    <small>
+                      Start and end dates presented through one unified
+                      responsive control.
+                    </small>
+                  </p>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <form
+                  class="form"
+                  action="#"
+                  method="post"
+                  aria-labelledby="date-range-heading"
+                >
+                  <div class="form-row grid-2">
+                    <!-- Required basic range -->
+
+                    <fieldset class="form-group form-fieldset">
+                      <legend class="form-label">
+                        Reporting period
+                        <span class="form-required" aria-hidden="true">*</span>
+                      </legend>
+
+                      <div
+                        class="custom-date custom-date--range"
+                        data-custom-date-range
+                        data-clearable
+                        data-placeholder="YYYY-MM-DD – YYYY-MM-DD"
+                      >
+                        <div class="custom-date__fallback">
+                          <div class="custom-date__native-range">
+                            <input
+                              class="form-control custom-date__native"
+                              id="reporting-period-start"
+                              name="reportingPeriodStart"
+                              type="date"
+                              data-date-start
+                              aria-label="Reporting period start date"
+                              aria-describedby="reporting-period-help reporting-period-error"
+                              required
+                            />
+
+                            <input
+                              class="form-control custom-date__native"
+                              id="reporting-period-end"
+                              name="reportingPeriodEnd"
+                              type="date"
+                              data-date-end
+                              aria-label="Reporting period end date"
+                              aria-describedby="reporting-period-help reporting-period-error"
+                              required
+                            />
+                          </div>
+
+                          <div
+                            class="custom-date__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span
+                              class="custom-date__initial-value is-placeholder"
+                            >
+                              YYYY-MM-DD – YYYY-MM-DD
+                            </span>
+
+                            <span
+                              class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="reporting-period-help">
+                        Choose a start date and an equal or later end date.
+                      </p>
+
+                      <p
+                        class="form-error"
+                        id="reporting-period-error"
+                        aria-live="polite"
+                        hidden
+                      >
+                        Choose a valid reporting period.
+                      </p>
+                    </fieldset>
+
+                    <!-- Range with presets -->
+
+                    <fieldset class="form-group form-fieldset">
+                      <legend class="form-label">
+                        Market activity period
+                        <span class="form-optional">Optional</span>
+                      </legend>
+
+                      <div
+                        class="custom-date custom-date--range"
+                        data-custom-date-range
+                        data-clearable
+                        data-presets="today,yesterday,last7,last30,thisMonth,lastMonth"
+                        data-placeholder="YYYY-MM-DD – YYYY-MM-DD"
+                      >
+                        <div class="custom-date__fallback">
+                          <div class="custom-date__native-range">
+                            <input
+                              class="form-control custom-date__native"
+                              id="market-period-start"
+                              name="marketPeriodStart"
+                              type="date"
+                              data-date-start
+                              aria-label="Market activity start date"
+                              aria-describedby="market-period-help"
+                            />
+
+                            <input
+                              class="form-control custom-date__native"
+                              id="market-period-end"
+                              name="marketPeriodEnd"
+                              type="date"
+                              data-date-end
+                              aria-label="Market activity end date"
+                              aria-describedby="market-period-help"
+                            />
+                          </div>
+
+                          <div
+                            class="custom-date__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span
+                              class="custom-date__initial-value is-placeholder"
+                            >
+                              YYYY-MM-DD – YYYY-MM-DD
+                            </span>
+
+                            <span
+                              class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="market-period-help">
+                        Choose a custom period or use a predefined range.
+                      </p>
+                    </fieldset>
+
+                    <!-- Preselected range -->
+
+                    <fieldset class="form-group form-fieldset">
+                      <legend class="form-label">Financial period</legend>
+
+                      <div
+                        class="custom-date custom-date--range"
+                        data-custom-date-range
+                        data-clearable
+                        data-placeholder="YYYY-MM-DD – YYYY-MM-DD"
+                      >
+                        <div class="custom-date__fallback">
+                          <div class="custom-date__native-range">
+                            <input
+                              class="form-control custom-date__native"
+                              id="financial-period-start"
+                              name="financialPeriodStart"
+                              type="date"
+                              value="2026-01-01"
+                              data-date-start
+                              aria-label="Financial period start date"
+                              aria-describedby="financial-period-help"
+                            />
+
+                            <input
+                              class="form-control custom-date__native"
+                              id="financial-period-end"
+                              name="financialPeriodEnd"
+                              type="date"
+                              value="2026-06-30"
+                              data-date-end
+                              aria-label="Financial period end date"
+                              aria-describedby="financial-period-help"
+                            />
+                          </div>
+
+                          <div
+                            class="custom-date__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span class="custom-date__initial-value">
+                              2026-01-01 – 2026-06-30
+                            </span>
+
+                            <span
+                              class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="financial-period-help">
+                        Change either boundary or clear the complete range.
+                      </p>
+                    </fieldset>
+
+                    <!-- Constrained range -->
+
+                    <fieldset class="form-group form-fieldset">
+                      <legend class="form-label">
+                        Annual comparison period
+                      </legend>
+
+                      <div
+                        class="custom-date custom-date--range"
+                        data-custom-date-range
+                        data-clearable
+                        data-placeholder="YYYY-MM-DD – YYYY-MM-DD"
+                      >
+                        <div class="custom-date__fallback">
+                          <div class="custom-date__native-range">
+                            <input
+                              class="form-control custom-date__native"
+                              id="comparison-period-start"
+                              name="comparisonPeriodStart"
+                              type="date"
+                              min="2026-01-01"
+                              max="2026-12-31"
+                              data-date-start
+                              aria-label="Annual comparison start date"
+                              aria-describedby="comparison-period-help"
+                            />
+
+                            <input
+                              class="form-control custom-date__native"
+                              id="comparison-period-end"
+                              name="comparisonPeriodEnd"
+                              type="date"
+                              min="2026-01-01"
+                              max="2026-12-31"
+                              data-date-end
+                              aria-label="Annual comparison end date"
+                              aria-describedby="comparison-period-help"
+                            />
+                          </div>
+
+                          <div
+                            class="custom-date__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span
+                              class="custom-date__initial-value is-placeholder"
+                            >
+                              YYYY-MM-DD – YYYY-MM-DD
+                            </span>
+
+                            <span
+                              class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="comparison-period-help">
+                        Both dates must fall within the 2026 calendar year.
+                      </p>
+                    </fieldset>
+                  </div>
+
+                  <div class="form-actions">
+                    <button class="btn btn-outline-primary" type="reset">
+                      Reset
+                    </button>
+
+                    <button class="btn btn-primary btn-rounded" type="submit">
+                      Apply periods
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </section>
+
+            <!-- ====================================================================
+       Control States
+       ==================================================================== -->
+
+            <section class="card mb-6" aria-labelledby="date-states-heading">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title" id="date-states-heading">
+                    Control states
+                  </h3>
+
+                  <p class="text-muted">
+                    <small>
+                      Disabled, read-only, loading, valid, and invalid date
+                      controls.
+                    </small>
+                  </p>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <form
+                  class="form"
+                  action="#"
+                  method="post"
+                  aria-labelledby="date-states-heading"
+                >
+                  <div class="form-row grid-3">
+                    <!-- Disabled -->
+
+                    <div class="form-group">
+                      <label class="form-label" for="disabled-date">
+                        Disabled date
+                      </label>
+
+                      <div
+                        class="custom-date is-disabled"
+                        data-custom-date
+                        data-placeholder="YYYY-MM-DD"
+                      >
+                        <div class="custom-date__fallback">
+                          <input
+                            class="form-control custom-date__native"
+                            id="disabled-date"
+                            name="disabledDate"
+                            type="date"
+                            value="2026-07-29"
+                            disabled
+                          />
+
+                          <div
+                            class="custom-date__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span class="custom-date__initial-value">
+                              2026-07-29
+                            </span>
+
+                            <span
+                              class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Read-only -->
+
+                    <div class="form-group">
+                      <label class="form-label" for="readonly-date">
+                        Read-only date
+                      </label>
+
+                      <div
+                        class="custom-date is-readonly"
+                        data-custom-date
+                        data-placeholder="YYYY-MM-DD"
+                      >
+                        <div class="custom-date__fallback">
+                          <input
+                            class="form-control custom-date__native"
+                            id="readonly-date"
+                            name="readonlyDate"
+                            type="date"
+                            value="2026-07-29"
+                            readonly
+                            aria-describedby="readonly-date-help"
+                          />
+
+                          <div
+                            class="custom-date__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span class="custom-date__initial-value">
+                              2026-07-29
+                            </span>
+
+                            <span
+                              class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p class="form-help" id="readonly-date-help">
+                        This value can be submitted but cannot be changed.
+                      </p>
+                    </div>
+
+                    <!-- Loading -->
+
+                    <div class="form-group">
+                      <label class="form-label" for="loading-date"
+                        >Loading date</label
+                      >
+
+                      <div
+                        class="custom-date is-loading"
+                        data-custom-date
+                        data-placeholder="Loading available dates…"
+                        aria-busy="true"
+                      >
+                        <div class="custom-date__fallback">
+                          <input
+                            class="form-control custom-date__native"
+                            id="loading-date"
+                            name="loadingDate"
+                            type="date"
+                            disabled
+                          />
+
+                          <div
+                            class="custom-date__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span
+                              class="custom-date__initial-value is-placeholder"
+                              dir="auto"
+                            >
+                              Loading available dates…
+                            </span>
+
+                            <span
+                              class="custom-date__initial-indicator has-icon icon-sync-refresh icon-spin"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Valid -->
+
+                    <div class="form-group is-valid">
+                      <label class="form-label" for="valid-date"
+                        >Confirmed date</label
+                      >
+
+                      <div
+                        class="custom-date is-valid"
+                        data-custom-date
+                        data-clearable
+                        data-placeholder="YYYY-MM-DD"
+                      >
+                        <div class="custom-date__fallback">
+                          <input
+                            class="form-control custom-date__native"
+                            id="valid-date"
+                            name="confirmedDate"
+                            type="date"
+                            value="2026-07-29"
+                            aria-describedby="valid-date-feedback"
+                          />
+
+                          <div
+                            class="custom-date__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span class="custom-date__initial-value">
+                              2026-07-29
+                            </span>
+
+                            <span
+                              class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p class="form-success" id="valid-date-feedback">
+                        The date is available.
+                      </p>
+                    </div>
+
+                    <!-- Invalid -->
+
+                    <div class="form-group is-invalid">
+                      <label class="form-label" for="invalid-date">
+                        Disclosure date
+                        <span class="form-required" aria-hidden="true">*</span>
+                      </label>
+
+                      <div
+                        class="custom-date is-invalid"
+                        data-custom-date
+                        data-placeholder="YYYY-MM-DD"
+                      >
+                        <div class="custom-date__fallback">
+                          <input
+                            class="form-control custom-date__native"
+                            id="invalid-date"
+                            name="disclosureDate"
+                            type="date"
+                            aria-describedby="invalid-date-error"
+                            aria-invalid="true"
+                            required
+                          />
+
+                          <div
+                            class="custom-date__initial-trigger"
+                            aria-hidden="true"
+                          >
+                            <span
+                              class="custom-date__initial-value is-placeholder"
+                            >
+                              YYYY-MM-DD
+                            </span>
+
+                            <span
+                              class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                              aria-hidden="true"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p
+                        class="form-error"
+                        id="invalid-date-error"
+                        aria-live="polite"
+                      >
+                        Choose a disclosure date.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="form-actions">
+                    <button class="btn btn-outline-primary" type="reset">
+                      Reset
+                    </button>
+
+                    <button class="btn btn-primary btn-rounded" type="submit">
+                      Submit dates
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </section>
+          </section>
+        </div>
+      </section>
     </main>
+
+    <script type="module" src="/src/js/main.js"></script>
   </body>
 </html>

@@ -1,0 +1,449 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Control Hover
+   ========================================================================== */
+
+.custom-date__trigger:hover:not(:disabled) {
+  border-color: var(--custom-date-hover-border-color);
+}
+
+.custom-date__trigger:hover:not(:disabled) .custom-date__indicator {
+  color: var(--custom-date-color);
+}
+
+/* ==========================================================================
+   Control Focus
+   ========================================================================== */
+
+.custom-date__trigger:focus {
+  outline: none;
+}
+
+.custom-date__trigger:focus-visible {
+  border-color: var(--custom-date-focus-color);
+
+  outline: var(--custom-date-focus-outline-width) solid
+    var(--custom-date-focus-outline-color);
+  outline-offset: var(--custom-date-focus-outline-offset);
+}
+
+/* ==========================================================================
+   Native Validation Focus
+   ========================================================================== */
+
+/**
+ * JavaScript briefly applies `.is-native-focused` when native validation sends
+ * focus to a visually hidden date input.
+ */
+
+.custom-date.is-native-focused .custom-date__trigger {
+  border-color: var(--custom-date-focus-color);
+
+  outline: var(--custom-date-focus-outline-width) solid
+    var(--custom-date-focus-outline-color);
+  outline-offset: var(--custom-date-focus-outline-offset);
+}
+
+/* ==========================================================================
+   Open State
+   ========================================================================== */
+
+.custom-date.is-open .custom-date__trigger {
+  border-color: var(--custom-date-focus-color);
+
+  outline: var(--custom-date-focus-outline-width) solid
+    var(--custom-date-focus-outline-color);
+  outline-offset: var(--custom-date-focus-outline-offset);
+}
+
+.custom-date.is-open .custom-date__indicator {
+  color: var(--custom-date-focus-color);
+}
+
+/* ==========================================================================
+   Clear Action Interaction
+   ========================================================================== */
+
+.custom-date__clear:hover:not(:disabled) {
+  background: var(--custom-date-clear-hover-bg);
+  color: var(--custom-date-clear-hover-color);
+}
+
+.custom-date__clear:focus {
+  outline: none;
+}
+
+.custom-date__clear:focus-visible {
+  @include ds.focus-ring(
+    var(--custom-date-focus-outline-color),
+    1px,
+    var(--custom-date-focus-outline-width)
+  );
+}
+
+.custom-date__clear:active:not(:disabled) {
+  transform: translateY(-50%) scale(0.94);
+}
+
+/* ==========================================================================
+   Navigation Interaction
+   ========================================================================== */
+
+.custom-date__nav:hover:not(:disabled) {
+  background: var(--custom-date-nav-hover-bg);
+  color: var(--custom-date-nav-hover-color);
+}
+
+.custom-date__nav:focus {
+  outline: none;
+}
+
+.custom-date__nav:focus-visible {
+  @include ds.focus-ring(
+    var(--custom-date-focus-outline-color),
+    1px,
+    var(--custom-date-focus-outline-width)
+  );
+}
+
+.custom-date__nav:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.custom-date__nav:disabled,
+.custom-date__nav.is-disabled,
+.custom-date__nav[aria-disabled="true"] {
+  color: var(--custom-date-nav-disabled-color);
+  opacity: var(--custom-date-nav-disabled-opacity);
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Month and Year Title Interaction
+   ========================================================================== */
+
+.custom-date__title:hover:not(:disabled) {
+  background: var(--custom-date-title-hover-bg);
+}
+
+.custom-date__title:focus {
+  outline: none;
+}
+
+.custom-date__title:focus-visible {
+  @include ds.focus-ring(
+    var(--custom-date-focus-outline-color),
+    1px,
+    var(--custom-date-focus-outline-width)
+  );
+}
+
+.custom-date__title[aria-expanded="true"] {
+  background: var(--custom-date-title-hover-bg);
+  color: var(--custom-date-focus-color);
+}
+
+/* ==========================================================================
+   Date Cell Interaction
+   ========================================================================== */
+
+.custom-date__day:hover:not(
+    :disabled,
+    .is-disabled,
+    [aria-disabled="true"],
+    .is-selected,
+    .is-range-start,
+    .is-range-end
+  ) {
+  border-color: transparent;
+
+  background: var(--custom-date-day-hover-bg);
+  color: var(--custom-date-day-hover-color);
+}
+
+.custom-date--range
+  .custom-date__day:is(.is-in-range, .is-range-preview):hover:not(
+    :disabled,
+    .is-disabled,
+    [aria-disabled="true"],
+    .is-range-start,
+    .is-range-end
+  ) {
+  border-radius: var(--custom-date-day-radius);
+
+  background: var(--custom-date-day-hover-bg);
+}
+
+.custom-date__day:focus {
+  outline: none;
+}
+
+.custom-date__day:focus-visible,
+.custom-date__day.is-active {
+  z-index: 3;
+
+  outline: var(--custom-date-focus-outline-width) solid
+    var(--custom-date-focus-outline-color);
+  outline-offset: -1px;
+}
+
+.custom-date__day:active:not(:disabled, .is-disabled, [aria-disabled="true"]) {
+  transform: scale(0.92);
+}
+
+/* ==========================================================================
+   Picker Option Interaction
+   ========================================================================== */
+
+.custom-date__picker-option:hover:not(
+    :disabled,
+    .is-disabled,
+    [aria-disabled="true"],
+    .is-selected
+  ) {
+  background: var(--custom-date-picker-option-hover-bg);
+  color: var(--custom-date-picker-option-hover-color);
+}
+
+.custom-date__picker-option:focus {
+  outline: none;
+}
+
+.custom-date__picker-option:focus-visible,
+.custom-date__picker-option.is-active {
+  @include ds.focus-ring(
+    var(--custom-date-focus-outline-color),
+    -1px,
+    var(--custom-date-focus-outline-width)
+  );
+}
+
+/* ==========================================================================
+   Preset Interaction
+   ========================================================================== */
+
+.custom-date__preset:hover:not(
+    :disabled,
+    .is-disabled,
+    [aria-disabled="true"],
+    .is-active,
+    [aria-pressed="true"]
+  ) {
+  border-color: var(--custom-date-preset-hover-border-color);
+
+  background: var(--custom-date-preset-hover-bg);
+  color: var(--custom-date-preset-hover-color);
+}
+
+.custom-date__preset:focus {
+  outline: none;
+}
+
+.custom-date__preset:focus-visible {
+  @include ds.focus-ring(
+    var(--custom-date-focus-outline-color),
+    1px,
+    var(--custom-date-focus-outline-width)
+  );
+}
+
+.custom-date__preset:active:not(
+    :disabled,
+    .is-disabled,
+    [aria-disabled="true"]
+  ) {
+  transform: scale(0.97);
+}
+
+/* ==========================================================================
+   Footer Action Interaction
+   ========================================================================== */
+
+.custom-date__action:focus {
+  outline: none;
+}
+
+.custom-date__action:focus-visible {
+  @include ds.focus-ring(
+    var(--custom-date-focus-outline-color),
+    1px,
+    var(--custom-date-focus-outline-width)
+  );
+}
+
+.custom-date__action--clear:hover:not(:disabled),
+.custom-date__action--today:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+
+  background: var(--color-surface-alt);
+  color: var(--color-heading);
+}
+
+.custom-date__action--cancel:hover:not(:disabled) {
+  background: var(--color-surface-alt);
+  color: var(--color-heading);
+}
+
+.custom-date__action--apply:hover:not(:disabled) {
+  border-color: var(--color-primary-hover);
+
+  background: var(--color-primary-hover);
+}
+
+.custom-date__action:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* ==========================================================================
+   Disabled Component
+   ========================================================================== */
+
+.custom-date.is-disabled,
+.custom-date:has(.custom-date__native:disabled) {
+  color: var(--custom-date-disabled-color);
+}
+
+.custom-date.is-disabled .custom-date__trigger,
+.custom-date:has(.custom-date__native:disabled) .custom-date__trigger {
+  border-color: var(--custom-date-disabled-border-color);
+
+  background: var(--custom-date-disabled-bg);
+  color: var(--custom-date-disabled-color);
+  opacity: var(--custom-date-disabled-opacity);
+
+  cursor: not-allowed;
+}
+
+.custom-date.is-disabled .custom-date__indicator,
+.custom-date:has(.custom-date__native:disabled) .custom-date__indicator {
+  color: currentColor;
+  opacity: 0.72;
+}
+
+.custom-date.is-disabled .custom-date__clear,
+.custom-date:has(.custom-date__native:disabled) .custom-date__clear {
+  display: none;
+}
+
+/* ==========================================================================
+   Read-only Component
+   ========================================================================== */
+
+.custom-date.is-readonly .custom-date__trigger,
+.custom-date:has(.custom-date__native[readonly]) .custom-date__trigger {
+  border-color: var(--custom-date-readonly-border-color);
+
+  background: var(--custom-date-readonly-bg);
+  color: var(--custom-date-readonly-color);
+
+  cursor: default;
+}
+
+.custom-date.is-readonly .custom-date__clear,
+.custom-date:has(.custom-date__native[readonly]) .custom-date__clear {
+  display: none;
+}
+
+/* ==========================================================================
+   Loading Component
+   ========================================================================== */
+
+.custom-date.is-loading .custom-date__trigger,
+.custom-date[aria-busy="true"] .custom-date__trigger {
+  color: var(--custom-date-placeholder-color);
+
+  cursor: wait;
+}
+
+.custom-date.is-loading .custom-date__clear,
+.custom-date[aria-busy="true"] .custom-date__clear {
+  display: none;
+}
+
+.custom-date.is-loading .custom-date__indicator,
+.custom-date[aria-busy="true"] .custom-date__indicator {
+  --icon-animation: icon-spin 1s linear infinite;
+
+  color: var(--custom-date-focus-color);
+}
+
+/* ==========================================================================
+   Valid State
+   ========================================================================== */
+
+.custom-date.is-valid .custom-date__trigger,
+.form-group.is-valid .custom-date__trigger,
+.custom-date:has(.custom-date__native[aria-invalid="false"])
+  .custom-date__trigger {
+  border-color: var(--custom-date-valid-color);
+}
+
+.custom-date.is-valid .custom-date__indicator,
+.form-group.is-valid .custom-date__indicator {
+  color: var(--custom-date-valid-color);
+}
+
+/* ==========================================================================
+   Invalid State
+   ========================================================================== */
+
+.custom-date.is-invalid .custom-date__trigger,
+.form-group.is-invalid .custom-date__trigger,
+.custom-date:has(.custom-date__native[aria-invalid="true"])
+  .custom-date__trigger {
+  border-color: var(--custom-date-invalid-color);
+}
+
+.custom-date.is-invalid .custom-date__indicator,
+.form-group.is-invalid .custom-date__indicator,
+.custom-date:has(.custom-date__native[aria-invalid="true"])
+  .custom-date__indicator {
+  color: var(--custom-date-invalid-color);
+}
+
+.custom-date.is-invalid .custom-date__trigger:focus-visible,
+.form-group.is-invalid .custom-date__trigger:focus-visible,
+.custom-date:has(.custom-date__native[aria-invalid="true"])
+  .custom-date__trigger:focus-visible {
+  outline-color: var(--custom-date-invalid-color);
+}
+
+/* ==========================================================================
+   Open Validation State
+   ========================================================================== */
+
+.custom-date.is-open:is(.is-valid, .is-invalid) .custom-date__trigger,
+.form-group:is(.is-valid, .is-invalid)
+  .custom-date.is-open
+  .custom-date__trigger {
+  outline-color: currentColor;
+}
+
+/* ==========================================================================
+   Unavailable Interaction
+   ========================================================================== */
+
+.custom-date:is(.is-disabled, .is-readonly, .is-loading) .custom-date__popover {
+  display: none;
+}
+
+/* ==========================================================================
+   Pointer Safety
+   ========================================================================== */
+
+.custom-date__trigger:disabled,
+.custom-date__clear:disabled {
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Focus-within
+   ========================================================================== */
+
+.custom-date__control:focus-within {
+  position: relative;
+  z-index: 1;
+}
