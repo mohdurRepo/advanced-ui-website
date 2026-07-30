@@ -1,0 +1,358 @@
+/* ==========================================================================
+   Reveal Targets
+   ========================================================================== */
+
+/**
+ * Reveal effects apply to either:
+ *
+ * - the generated content wrapper for whole-element animation; or
+ * - generated units when animating lines, words, or characters.
+ *
+ * Only successfully prepared components are allowed to enter a hidden initial
+ * state.
+ */
+
+.text-animation.is-text-animation-ready:not([data-text-animation-unit])
+  > .text-animation__content,
+.text-animation.is-text-animation-ready[data-text-animation-unit]
+  .text-animation__unit {
+  animation-duration: var(--text-animation-runtime-duration);
+  animation-delay: calc(
+    var(--text-animation-runtime-delay) + var(--text-animation-item-delay, 0ms)
+  );
+  animation-timing-function: var(--text-animation-easing);
+  animation-fill-mode: both;
+}
+
+/* ==========================================================================
+   Final State
+   ========================================================================== */
+
+.text-animation.is-text-animation-complete:not([data-text-animation-unit])
+  > .text-animation__content,
+.text-animation.is-text-animation-complete[data-text-animation-unit]
+  .text-animation__unit {
+  opacity: var(--text-animation-opacity-end);
+
+  filter: none;
+  transform: none;
+}
+
+/* ==========================================================================
+   Fade
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation-effect="fade"] {
+  &:not([data-text-animation-unit]) > .text-animation__content,
+  &[data-text-animation-unit] .text-animation__unit {
+    opacity: var(--text-animation-opacity-start);
+  }
+
+  &.is-text-animation-animating {
+    &:not([data-text-animation-unit]) > .text-animation__content,
+    &[data-text-animation-unit] .text-animation__unit {
+      animation-name: text-animation-fade;
+    }
+  }
+}
+
+@keyframes text-animation-fade {
+  from {
+    opacity: var(--text-animation-opacity-start);
+  }
+
+  to {
+    opacity: var(--text-animation-opacity-end);
+  }
+}
+
+/* ==========================================================================
+   Fade Up
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation-effect="fade-up"] {
+  &:not([data-text-animation-unit]) > .text-animation__content,
+  &[data-text-animation-unit] .text-animation__unit {
+    opacity: var(--text-animation-opacity-start);
+
+    transform: translate3d(0, var(--text-animation-distance-block), 0);
+  }
+
+  &.is-text-animation-animating {
+    &:not([data-text-animation-unit]) > .text-animation__content,
+    &[data-text-animation-unit] .text-animation__unit {
+      animation-name: text-animation-fade-up;
+    }
+  }
+}
+
+@keyframes text-animation-fade-up {
+  from {
+    opacity: var(--text-animation-opacity-start);
+
+    transform: translate3d(0, var(--text-animation-distance-block), 0);
+  }
+
+  to {
+    opacity: var(--text-animation-opacity-end);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ==========================================================================
+   Fade Down
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation-effect="fade-down"] {
+  &:not([data-text-animation-unit]) > .text-animation__content,
+  &[data-text-animation-unit] .text-animation__unit {
+    opacity: var(--text-animation-opacity-start);
+
+    transform: translate3d(
+      0,
+      calc(var(--text-animation-distance-block) * -1),
+      0
+    );
+  }
+
+  &.is-text-animation-animating {
+    &:not([data-text-animation-unit]) > .text-animation__content,
+    &[data-text-animation-unit] .text-animation__unit {
+      animation-name: text-animation-fade-down;
+    }
+  }
+}
+
+@keyframes text-animation-fade-down {
+  from {
+    opacity: var(--text-animation-opacity-start);
+
+    transform: translate3d(
+      0,
+      calc(var(--text-animation-distance-block) * -1),
+      0
+    );
+  }
+
+  to {
+    opacity: var(--text-animation-opacity-end);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ==========================================================================
+   Slide From Inline Start
+   ========================================================================== */
+
+/**
+ * `--text-animation-inline-sign` is reversed for RTL in `_direction.scss`.
+ */
+
+.text-animation.is-text-animation-ready[data-text-animation-effect="slide-inline"] {
+  &:not([data-text-animation-unit]) > .text-animation__content,
+  &[data-text-animation-unit] .text-animation__unit {
+    opacity: var(--text-animation-opacity-start);
+
+    transform: translate3d(
+      calc(
+        var(--text-animation-distance-inline) *
+          var(--text-animation-inline-sign, -1)
+      ),
+      0,
+      0
+    );
+  }
+
+  &.is-text-animation-animating {
+    &:not([data-text-animation-unit]) > .text-animation__content,
+    &[data-text-animation-unit] .text-animation__unit {
+      animation-name: text-animation-slide-inline;
+    }
+  }
+}
+
+@keyframes text-animation-slide-inline {
+  from {
+    opacity: var(--text-animation-opacity-start);
+
+    transform: translate3d(
+      calc(
+        var(--text-animation-distance-inline) *
+          var(--text-animation-inline-sign, -1)
+      ),
+      0,
+      0
+    );
+  }
+
+  to {
+    opacity: var(--text-animation-opacity-end);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ==========================================================================
+   Slide From Inline End
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation-effect="slide-inline-end"] {
+  &:not([data-text-animation-unit]) > .text-animation__content,
+  &[data-text-animation-unit] .text-animation__unit {
+    opacity: var(--text-animation-opacity-start);
+
+    transform: translate3d(
+      calc(
+        var(--text-animation-distance-inline) *
+          var(--text-animation-inline-sign, -1) * -1
+      ),
+      0,
+      0
+    );
+  }
+
+  &.is-text-animation-animating {
+    &:not([data-text-animation-unit]) > .text-animation__content,
+    &[data-text-animation-unit] .text-animation__unit {
+      animation-name: text-animation-slide-inline-end;
+    }
+  }
+}
+
+@keyframes text-animation-slide-inline-end {
+  from {
+    opacity: var(--text-animation-opacity-start);
+
+    transform: translate3d(
+      calc(
+        var(--text-animation-distance-inline) *
+          var(--text-animation-inline-sign, -1) * -1
+      ),
+      0,
+      0
+    );
+  }
+
+  to {
+    opacity: var(--text-animation-opacity-end);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ==========================================================================
+   Scale
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation-effect="scale"] {
+  &:not([data-text-animation-unit]) > .text-animation__content,
+  &[data-text-animation-unit] .text-animation__unit {
+    opacity: var(--text-animation-opacity-start);
+    transform: scale(var(--text-animation-scale-start));
+  }
+
+  &.is-text-animation-animating {
+    &:not([data-text-animation-unit]) > .text-animation__content,
+    &[data-text-animation-unit] .text-animation__unit {
+      animation-name: text-animation-scale;
+      animation-timing-function: var(--text-animation-easing-emphasized);
+    }
+  }
+}
+
+@keyframes text-animation-scale {
+  from {
+    opacity: var(--text-animation-opacity-start);
+    transform: scale(var(--text-animation-scale-start));
+  }
+
+  to {
+    opacity: var(--text-animation-opacity-end);
+    transform: scale(1);
+  }
+}
+
+/* ==========================================================================
+   Blur In
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation-effect="blur-in"] {
+  &:not([data-text-animation-unit]) > .text-animation__content,
+  &[data-text-animation-unit] .text-animation__unit {
+    opacity: var(--text-animation-opacity-start);
+
+    filter: blur(var(--text-animation-blur-start));
+
+    transform: translate3d(
+      0,
+      calc(var(--text-animation-distance-block) * 0.5),
+      0
+    );
+  }
+
+  &.is-text-animation-animating {
+    &:not([data-text-animation-unit]) > .text-animation__content,
+    &[data-text-animation-unit] .text-animation__unit {
+      animation-name: text-animation-blur-in;
+    }
+  }
+}
+
+@keyframes text-animation-blur-in {
+  from {
+    opacity: var(--text-animation-opacity-start);
+
+    filter: blur(var(--text-animation-blur-start));
+
+    transform: translate3d(
+      0,
+      calc(var(--text-animation-distance-block) * 0.5),
+      0
+    );
+  }
+
+  to {
+    opacity: var(--text-animation-opacity-end);
+
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ==========================================================================
+   Clip Reveal
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation-effect="clip"] {
+  overflow: clip;
+
+  &:not([data-text-animation-unit]) > .text-animation__content,
+  &[data-text-animation-unit] .text-animation__unit {
+    opacity: var(--text-animation-opacity-start);
+
+    clip-path: inset(0 100% 0 0);
+  }
+
+  &.is-text-animation-animating {
+    &:not([data-text-animation-unit]) > .text-animation__content,
+    &[data-text-animation-unit] .text-animation__unit {
+      animation-name: text-animation-clip;
+    }
+  }
+}
+
+@supports not (overflow: clip) {
+  .text-animation.is-text-animation-ready[data-text-animation-effect="clip"] {
+    overflow: hidden;
+  }
+}
+
+@keyframes text-animation-clip {
+  from {
+    opacity: var(--text-animation-opacity-start);
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    opacity: var(--text-animation-opacity-end);
+    clip-path: inset(0 0 0 0);
+  }
+}

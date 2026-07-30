@@ -1,0 +1,361 @@
+/* ==========================================================================
+   Rotating Phrases
+   ========================================================================== */
+
+/**
+ * Before enhancement, the first phrase remains visible and every other phrase
+ * uses the native `[hidden]` attribute.
+ *
+ * JavaScript removes `hidden` only after the rotating interface is prepared.
+ */
+
+.text-animation[data-text-animation="rotate"] {
+  display: inline;
+
+  min-inline-size: var(--text-animation-rotate-min-inline-size);
+
+  vertical-align: baseline;
+}
+
+/* ==========================================================================
+   Enhanced Container
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation="rotate"] {
+  position: relative;
+  isolation: isolate;
+
+  display: inline-grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: baseline;
+
+  inline-size: var(--text-animation-rotate-inline-size, auto);
+  min-inline-size: var(--text-animation-rotate-min-inline-size);
+  min-block-size: var(--text-animation-rotate-block-size, 1lh);
+
+  vertical-align: baseline;
+}
+
+/* ==========================================================================
+   Phrase
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation="rotate"]
+  [data-text-animation-phrase] {
+  grid-area: 1 / 1;
+
+  display: inline-block;
+
+  min-inline-size: 0;
+  max-inline-size: 100%;
+
+  opacity: 0;
+  visibility: hidden;
+
+  pointer-events: none;
+
+  transform: none;
+
+  animation-duration: var(--text-animation-rotate-duration);
+  animation-timing-function: var(--text-animation-easing);
+  animation-fill-mode: both;
+}
+
+/* ==========================================================================
+   Active Phrase
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation="rotate"]
+  [data-text-animation-phrase].is-active {
+  position: relative;
+
+  opacity: 1;
+  visibility: visible;
+
+  pointer-events: auto;
+}
+
+/* ==========================================================================
+   Fade Effect
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation="rotate"][data-text-animation-effect="fade"]
+  [data-text-animation-phrase].is-entering {
+  visibility: visible;
+
+  animation-name: text-animation-rotate-fade-in;
+}
+
+.text-animation.is-text-animation-ready[data-text-animation="rotate"][data-text-animation-effect="fade"]
+  [data-text-animation-phrase].is-leaving {
+  visibility: visible;
+
+  animation-name: text-animation-rotate-fade-out;
+}
+
+@keyframes text-animation-rotate-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes text-animation-rotate-fade-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   Fade-up Effect
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation="rotate"][data-text-animation-effect="fade-up"]
+  [data-text-animation-phrase].is-entering {
+  visibility: visible;
+
+  animation-name: text-animation-rotate-fade-up-in;
+}
+
+.text-animation.is-text-animation-ready[data-text-animation="rotate"][data-text-animation-effect="fade-up"]
+  [data-text-animation-phrase].is-leaving {
+  visibility: visible;
+
+  animation-name: text-animation-rotate-fade-up-out;
+}
+
+@keyframes text-animation-rotate-fade-up-in {
+  from {
+    opacity: 0;
+
+    transform: translate3d(0, var(--text-animation-rotate-distance), 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes text-animation-rotate-fade-up-out {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    opacity: 0;
+
+    transform: translate3d(
+      0,
+      calc(var(--text-animation-rotate-distance) * -1),
+      0
+    );
+  }
+}
+
+/* ==========================================================================
+   Inline-slide Effect
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation="rotate"][data-text-animation-effect="slide-inline"]
+  [data-text-animation-phrase].is-entering {
+  visibility: visible;
+
+  animation-name: text-animation-rotate-inline-in;
+}
+
+.text-animation.is-text-animation-ready[data-text-animation="rotate"][data-text-animation-effect="slide-inline"]
+  [data-text-animation-phrase].is-leaving {
+  visibility: visible;
+
+  animation-name: text-animation-rotate-inline-out;
+}
+
+@keyframes text-animation-rotate-inline-in {
+  from {
+    opacity: 0;
+
+    transform: translate3d(
+      calc(
+        var(--text-animation-rotate-distance) *
+          var(--text-animation-inline-sign, -1)
+      ),
+      0,
+      0
+    );
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes text-animation-rotate-inline-out {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    opacity: 0;
+
+    transform: translate3d(
+      calc(
+        var(--text-animation-rotate-distance) *
+          var(--text-animation-inline-sign, -1) * -1
+      ),
+      0,
+      0
+    );
+  }
+}
+
+/* ==========================================================================
+   Scale Effect
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation="rotate"][data-text-animation-effect="scale"]
+  [data-text-animation-phrase].is-entering {
+  visibility: visible;
+
+  animation-name: text-animation-rotate-scale-in;
+}
+
+.text-animation.is-text-animation-ready[data-text-animation="rotate"][data-text-animation-effect="scale"]
+  [data-text-animation-phrase].is-leaving {
+  visibility: visible;
+
+  animation-name: text-animation-rotate-scale-out;
+}
+
+@keyframes text-animation-rotate-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(var(--text-animation-scale-start));
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes text-animation-rotate-scale-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+}
+
+/* ==========================================================================
+   Transitioning State
+   ========================================================================== */
+
+.text-animation.is-text-animation-transitioning[data-text-animation="rotate"] {
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Paused State
+   ========================================================================== */
+
+.text-animation.is-text-animation-paused[data-text-animation="rotate"]
+  [data-text-animation-phrase],
+[data-text-animation-group].is-text-animation-paused
+  .text-animation[data-text-animation="rotate"]
+  [data-text-animation-phrase] {
+  animation-play-state: paused;
+}
+
+/* ==========================================================================
+   Completed Transition
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation="rotate"]
+  [data-text-animation-phrase]:not(.is-active):not(.is-entering):not(
+    .is-leaving
+  ) {
+  opacity: 0;
+  visibility: hidden;
+
+  transform: none;
+  animation: none;
+}
+
+.text-animation.is-text-animation-ready[data-text-animation="rotate"]
+  [data-text-animation-phrase].is-active:not(.is-entering):not(.is-leaving) {
+  opacity: 1;
+  visibility: visible;
+
+  transform: none;
+  animation: none;
+}
+
+/* ==========================================================================
+   Disabled and Reduced Behavior
+   ========================================================================== */
+
+/**
+ * When rotation is disabled, only the current phrase is displayed.
+ */
+
+.text-animation[data-text-animation="rotate"][data-text-animation-disabled]
+  [data-text-animation-phrase],
+.text-animation.is-text-animation-disabled[data-text-animation="rotate"]
+  [data-text-animation-phrase] {
+  display: none;
+
+  opacity: 1;
+  visibility: visible;
+
+  transform: none;
+  animation: none;
+}
+
+.text-animation[data-text-animation="rotate"][data-text-animation-disabled]
+  [data-text-animation-phrase].is-active,
+.text-animation.is-text-animation-disabled[data-text-animation="rotate"]
+  [data-text-animation-phrase].is-active,
+.text-animation[data-text-animation="rotate"][data-text-animation-disabled]
+  [data-text-animation-phrase]:first-child,
+.text-animation.is-text-animation-disabled[data-text-animation="rotate"]
+  [data-text-animation-phrase]:first-child {
+  display: inline;
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .text-animation[data-text-animation="rotate"] [data-text-animation-phrase] {
+    display: none !important;
+  }
+
+  .text-animation[data-text-animation="rotate"]
+    [data-text-animation-phrase].is-active,
+  .text-animation[data-text-animation="rotate"]
+    [data-text-animation-phrase]:first-child {
+    display: inline !important;
+
+    opacity: 1 !important;
+    visibility: visible !important;
+
+    transform: none !important;
+    animation: none !important;
+  }
+}

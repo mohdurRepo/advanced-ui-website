@@ -1,0 +1,278 @@
+/* ==========================================================================
+   Numeric Counter
+   ========================================================================== */
+
+/**
+ * JavaScript updates the visible number with locale-aware formatting.
+ *
+ * The final value remains in the original HTML, providing a complete fallback
+ * when JavaScript is unavailable.
+ */
+
+.text-animation[data-text-animation="count"] {
+  display: inline-block;
+
+  min-inline-size: var(--text-animation-counter-min-inline-size);
+
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings:
+    "tnum" 1,
+    "lnum" 1;
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Counter Value
+   ========================================================================== */
+
+.text-animation__counter-value {
+  display: inline;
+
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: inherit;
+}
+
+/* ==========================================================================
+   Prefix and Suffix
+   ========================================================================== */
+
+.text-animation__counter-prefix,
+.text-animation__counter-suffix {
+  display: inline;
+
+  color: inherit;
+  font: inherit;
+}
+
+/* ==========================================================================
+   Prepared State
+   ========================================================================== */
+
+/**
+ * Counters remain visible throughout their animation. Only subtle opacity and
+ * movement are used, preventing the statistic from disappearing while the
+ * page initializes.
+ */
+
+.text-animation.is-text-animation-ready[data-text-animation="count"] {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ==========================================================================
+   Fade-up Counter Effect
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation="count"][data-text-animation-effect="fade-up"]:not(
+    .is-text-animation-complete
+  ) {
+  opacity: var(--text-animation-opacity-start);
+
+  transform: translate3d(
+    0,
+    calc(var(--text-animation-distance-block) * 0.5),
+    0
+  );
+}
+
+.text-animation.is-text-animation-animating[data-text-animation="count"][data-text-animation-effect="fade-up"] {
+  animation: text-animation-counter-fade-up
+    var(--text-animation-runtime-duration) var(--text-animation-easing)
+    var(--text-animation-runtime-delay) both;
+}
+
+@keyframes text-animation-counter-fade-up {
+  from {
+    opacity: var(--text-animation-opacity-start);
+
+    transform: translate3d(
+      0,
+      calc(var(--text-animation-distance-block) * 0.5),
+      0
+    );
+  }
+
+  to {
+    opacity: var(--text-animation-opacity-end);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ==========================================================================
+   Scale Counter Effect
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation="count"][data-text-animation-effect="scale"]:not(
+    .is-text-animation-complete
+  ) {
+  opacity: var(--text-animation-opacity-start);
+  transform: scale(var(--text-animation-scale-start));
+}
+
+.text-animation.is-text-animation-animating[data-text-animation="count"][data-text-animation-effect="scale"] {
+  animation: text-animation-counter-scale var(--text-animation-runtime-duration)
+    var(--text-animation-easing-emphasized) var(--text-animation-runtime-delay)
+    both;
+}
+
+@keyframes text-animation-counter-scale {
+  from {
+    opacity: var(--text-animation-opacity-start);
+    transform: scale(var(--text-animation-scale-start));
+  }
+
+  to {
+    opacity: var(--text-animation-opacity-end);
+    transform: scale(1);
+  }
+}
+
+/* ==========================================================================
+   Completed State
+   ========================================================================== */
+
+.text-animation.is-text-animation-complete[data-text-animation="count"] {
+  opacity: 1;
+
+  transform: none;
+  animation: none;
+}
+
+/* ==========================================================================
+   Updating State
+   ========================================================================== */
+
+/**
+ * This state may be applied when an existing counter receives a new value.
+ */
+
+.text-animation.is-text-animation-updating[data-text-animation="count"] {
+  animation: text-animation-counter-update var(--text-animation-duration-fast)
+    var(--text-animation-easing) both;
+}
+
+@keyframes text-animation-counter-update {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  45% {
+    opacity: 0.55;
+
+    transform: translate3d(
+      0,
+      calc(var(--text-animation-distance-block) * -0.2),
+      0
+    );
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ==========================================================================
+   Positive and Negative Values
+   ========================================================================== */
+
+/**
+ * Semantic state should be provided by the application. JavaScript must not
+ * infer whether a value is positive or negative from color alone.
+ */
+
+.text-animation[data-text-animation="count"].price-up {
+  color: var(--price-state-color, var(--color-success));
+}
+
+.text-animation[data-text-animation="count"].price-down {
+  color: var(--price-state-color, var(--color-danger));
+}
+
+.text-animation[data-text-animation="count"].price-neutral {
+  color: var(--price-state-color, var(--color-text-muted));
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.text-animation.is-text-animation-loading[data-text-animation="count"] {
+  color: var(--color-text-muted);
+
+  cursor: progress;
+}
+
+.text-animation.is-text-animation-loading[data-text-animation="count"]
+  .text-animation__counter-value {
+  opacity: 0.64;
+}
+
+/* ==========================================================================
+   Disabled State
+   ========================================================================== */
+
+.text-animation[data-text-animation="count"][data-text-animation-disabled],
+.text-animation.is-text-animation-disabled[data-text-animation="count"] {
+  opacity: 1;
+
+  transform: none;
+  animation: none;
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+/**
+ * JavaScript immediately displays the final number when reduced motion is
+ * requested. These rules remove secondary entrance and update effects.
+ */
+
+@media (prefers-reduced-motion: reduce) {
+  .text-animation[data-text-animation="count"] {
+    opacity: 1 !important;
+
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+html[data-motion="reduce"] {
+  .text-animation[data-text-animation="count"] {
+    opacity: 1 !important;
+
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .text-animation[data-text-animation="count"].price-up,
+  .text-animation[data-text-animation="count"].price-down,
+  .text-animation[data-text-animation="count"].price-neutral {
+    color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .text-animation[data-text-animation="count"] {
+    opacity: 1 !important;
+
+    color: inherit !important;
+
+    transform: none !important;
+    animation: none !important;
+  }
+}

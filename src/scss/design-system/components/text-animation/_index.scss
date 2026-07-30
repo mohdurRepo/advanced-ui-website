@@ -1,0 +1,39 @@
+/* ==========================================================================
+   Text Animation
+   ========================================================================== */
+
+/* Component tokens and configuration */
+@forward "tokens";
+
+/* Progressive-enhancement foundation */
+@forward "base";
+
+/* Reveal effects */
+@forward "reveal";
+
+/* Word, character, and line staggering */
+@forward "stagger";
+
+/* Animated emphasis and highlights */
+@forward "highlight";
+
+/* Rotating phrases */
+@forward "rotate";
+
+/* Typewriter presentation */
+@forward "typewriter";
+
+/* Numeric counters */
+@forward "counter";
+
+/* Sequenced animation groups */
+@forward "group";
+
+/* Responsive behavior */
+@forward "responsive";
+
+/* RTL and bidirectional content */
+@forward "direction";
+
+/* Accessibility, reduced motion, and contrast */
+@forward "accessibility";

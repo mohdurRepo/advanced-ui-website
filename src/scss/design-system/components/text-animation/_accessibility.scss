@@ -1,0 +1,316 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Accessible Text
+   ========================================================================== */
+
+/**
+ * JavaScript may create this element to preserve the complete original text
+ * while visual units are hidden from the accessibility tree.
+ */
+
+.text-animation__accessible {
+  position: absolute !important;
+
+  inline-size: 1px !important;
+  block-size: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+
+  overflow: hidden !important;
+
+  border: 0 !important;
+
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+
+  white-space: nowrap !important;
+}
+
+/* ==========================================================================
+   Focus Visibility
+   ========================================================================== */
+
+[data-text-animation-replay]:focus-visible,
+[data-text-animation-replay-all]:focus-visible,
+[data-text-animation-pause-all]:focus-visible,
+[data-text-animation-toggle]:focus-visible,
+[data-text-animation-previous]:focus-visible,
+[data-text-animation-next]:focus-visible {
+  @include ds.focus-ring(
+    var(--text-animation-focus-color),
+    var(--text-animation-focus-offset),
+    var(--text-animation-focus-width)
+  );
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+/**
+ * Users requesting reduced motion receive the complete final content
+ * immediately.
+ *
+ * JavaScript also checks this preference so counters, typewriter effects, and
+ * rotating phrases do not continue updating in the background.
+ */
+
+@mixin text-animation-reduced-motion {
+  .text-animation,
+  .text-animation *,
+  .text-animation::before,
+  .text-animation::after,
+  [data-text-animation-group],
+  [data-text-animation-group] * {
+    scroll-behavior: auto !important;
+
+    animation-duration: 0ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    animation-play-state: paused !important;
+
+    transition-duration: 0ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  .text-animation,
+  .text-animation__content,
+  .text-animation__unit,
+  .text-animation__word,
+  .text-animation__character,
+  .text-animation__line,
+  .text-animation__typing,
+  .text-animation__counter-value {
+    opacity: 1 !important;
+    visibility: visible !important;
+
+    filter: none !important;
+    transform: none !important;
+
+    clip-path: none !important;
+  }
+
+  /* ------------------------------------------------------------------------
+     Highlights
+     ------------------------------------------------------------------------ */
+
+  .text-animation[data-text-animation="highlight"]::after {
+    opacity: var(--text-animation-highlight-opacity) !important;
+
+    transform: scaleX(1) rotate(var(--text-animation-marker-rotation, 0deg)) !important;
+  }
+
+  .text-animation[data-text-animation="highlight"][data-text-animation-effect="underline"]::after,
+  .text-animation[data-text-animation="highlight"][data-text-animation-effect="fill"]::after {
+    opacity: 1 !important;
+    transform: scaleX(1) !important;
+  }
+
+  .text-animation[data-text-animation="highlight"][data-text-animation-effect="fill"] {
+    color: var(--text-animation-highlight-on-color);
+  }
+
+  /* ------------------------------------------------------------------------
+     Rotating phrases
+     ------------------------------------------------------------------------ */
+
+  .text-animation[data-text-animation="rotate"] [data-text-animation-phrase] {
+    display: none !important;
+
+    opacity: 1 !important;
+    visibility: visible !important;
+
+    transform: none !important;
+  }
+
+  .text-animation[data-text-animation="rotate"]
+    [data-text-animation-phrase].is-active,
+  .text-animation[data-text-animation="rotate"]
+    [data-text-animation-phrase]:first-child {
+    display: inline !important;
+  }
+
+  /* ------------------------------------------------------------------------
+     Typewriter
+     ------------------------------------------------------------------------ */
+
+  .text-animation[data-text-animation="type"][data-text-animation-cursor]::after {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+
+  .text-animation[data-text-animation="type"][data-text-animation-cursor-hide]::after {
+    content: none;
+  }
+
+  /* ------------------------------------------------------------------------
+     Counters
+     ------------------------------------------------------------------------ */
+
+  .text-animation[data-text-animation="count"] {
+    opacity: 1 !important;
+
+    filter: none !important;
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @include text-animation-reduced-motion;
+}
+
+html[data-motion="reduce"] {
+  @include text-animation-reduced-motion;
+}
+
+/* ==========================================================================
+   Reduced Transparency
+   ========================================================================== */
+
+@media (prefers-reduced-transparency: reduce) {
+  .text-animation {
+    --text-animation-opacity-start: 1;
+    --text-animation-highlight-opacity: 1;
+  }
+
+  .text-animation[data-text-animation-effect="blur-in"] {
+    --text-animation-blur-start: 0;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .text-animation {
+    --text-animation-opacity-start: 1;
+    --text-animation-blur-start: 0;
+  }
+
+  .text-animation[data-text-animation="highlight"][data-text-animation-effect="underline"]::after,
+  .text-animation[data-text-animation="highlight"][data-text-animation-effect="marker"]::after {
+    background: currentColor;
+  }
+
+  .text-animation[data-text-animation="highlight"][data-text-animation-effect="fill"] {
+    color: currentColor;
+    text-decoration: underline;
+    text-decoration-thickness: var(--text-animation-highlight-thickness);
+    text-underline-offset: var(--text-animation-highlight-offset);
+  }
+
+  .text-animation[data-text-animation="highlight"][data-text-animation-effect="fill"]::after {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .text-animation {
+    --text-animation-highlight-color: Highlight;
+    --text-animation-highlight-on-color: HighlightText;
+    --text-animation-cursor-color: CanvasText;
+    --text-animation-focus-color: Highlight;
+  }
+
+  .text-animation[data-text-animation="highlight"][data-text-animation-effect="underline"]::after,
+  .text-animation[data-text-animation="highlight"][data-text-animation-effect="marker"]::after {
+    background: CanvasText;
+    forced-color-adjust: auto;
+  }
+
+  .text-animation[data-text-animation="highlight"][data-text-animation-effect="fill"] {
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
+
+  .text-animation[data-text-animation="highlight"][data-text-animation-effect="fill"]::after {
+    background: Highlight;
+  }
+
+  .text-animation[data-text-animation="type"][data-text-animation-cursor]::after {
+    background: CanvasText;
+    forced-color-adjust: auto;
+  }
+}
+
+/* ==========================================================================
+   Disabled Controls
+   ========================================================================== */
+
+[data-text-animation-replay]:disabled,
+[data-text-animation-replay-all]:disabled,
+[data-text-animation-pause-all]:disabled,
+[data-text-animation-toggle]:disabled,
+[data-text-animation-previous]:disabled,
+[data-text-animation-next]:disabled,
+[aria-disabled="true"][data-text-animation-replay],
+[aria-disabled="true"][data-text-animation-replay-all],
+[aria-disabled="true"][data-text-animation-pause-all],
+[aria-disabled="true"][data-text-animation-toggle],
+[aria-disabled="true"][data-text-animation-previous],
+[aria-disabled="true"][data-text-animation-next] {
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.64;
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .text-animation,
+  .text-animation *,
+  .text-animation::before,
+  .text-animation::after,
+  [data-text-animation-group],
+  [data-text-animation-group] * {
+    opacity: 1 !important;
+    visibility: visible !important;
+
+    filter: none !important;
+    transform: none !important;
+
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .text-animation__accessible {
+    position: static !important;
+
+    inline-size: auto !important;
+    block-size: auto !important;
+    margin: 0 !important;
+
+    overflow: visible !important;
+
+    clip: auto !important;
+    clip-path: none !important;
+
+    white-space: normal !important;
+  }
+
+  /**
+   * Avoid printing both the accessible copy and generated visual units.
+   */
+
+  .text-animation:has(> .text-animation__accessible)
+    > .text-animation__content {
+    display: none !important;
+  }
+
+  [data-text-animation-replay],
+  [data-text-animation-replay-all],
+  [data-text-animation-pause-all],
+  [data-text-animation-toggle],
+  [data-text-animation-previous],
+  [data-text-animation-next] {
+    display: none !important;
+  }
+}

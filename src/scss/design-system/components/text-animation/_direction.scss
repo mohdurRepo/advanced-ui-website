@@ -1,0 +1,232 @@
+/* ==========================================================================
+   Logical Direction
+   ========================================================================== */
+
+/**
+ * Inline motion follows the component's own resolved direction rather than
+ * assuming the direction of the entire page.
+ *
+ * LTR:
+ * - inline start is left
+ * - inline end is right
+ *
+ * RTL:
+ * - inline start is right
+ * - inline end is left
+ */
+
+.text-animation,
+[data-text-animation-group] {
+  --text-animation-inline-sign: -1;
+  --text-animation-highlight-origin: left center;
+  --text-animation-marker-rotation: -1deg;
+}
+
+/* ==========================================================================
+   RTL Tokens
+   ========================================================================== */
+
+.text-animation:dir(rtl),
+[data-text-animation-group]:dir(rtl) {
+  --text-animation-inline-sign: 1;
+  --text-animation-highlight-origin: right center;
+  --text-animation-marker-rotation: 1deg;
+}
+
+/**
+ * Fallback for browsers without `:dir()` support.
+ */
+
+html[dir="rtl"] {
+  .text-animation,
+  [data-text-animation-group] {
+    --text-animation-inline-sign: 1;
+    --text-animation-highlight-origin: right center;
+    --text-animation-marker-rotation: 1deg;
+  }
+}
+
+/* ==========================================================================
+   Explicit Nested Direction
+   ========================================================================== */
+
+/**
+ * Explicitly directed content must override the page direction. This supports
+ * English content inside Arabic pages and Arabic content inside English pages.
+ */
+
+[dir="ltr"] {
+  .text-animation,
+  [data-text-animation-group] {
+    --text-animation-inline-sign: -1;
+    --text-animation-highlight-origin: left center;
+    --text-animation-marker-rotation: -1deg;
+  }
+}
+
+[dir="rtl"] {
+  .text-animation,
+  [data-text-animation-group] {
+    --text-animation-inline-sign: 1;
+    --text-animation-highlight-origin: right center;
+    --text-animation-marker-rotation: 1deg;
+  }
+}
+
+/* The component may carry its own explicit direction. */
+
+.text-animation[dir="ltr"],
+[data-text-animation-group][dir="ltr"] {
+  --text-animation-inline-sign: -1;
+  --text-animation-highlight-origin: left center;
+  --text-animation-marker-rotation: -1deg;
+}
+
+.text-animation[dir="rtl"],
+[data-text-animation-group][dir="rtl"] {
+  --text-animation-inline-sign: 1;
+  --text-animation-highlight-origin: right center;
+  --text-animation-marker-rotation: 1deg;
+}
+
+/* ==========================================================================
+   Text Units
+   ========================================================================== */
+
+/**
+ * Do not force generated units to LTR.
+ *
+ * Words, grapheme clusters, punctuation, and numbers retain the browser's
+ * native bidirectional behavior.
+ */
+
+.text-animation__content,
+.text-animation__unit,
+.text-animation__word,
+.text-animation__character,
+.text-animation__line,
+.text-animation__typing,
+.text-animation__counter-value {
+  direction: inherit;
+  text-align: inherit;
+}
+
+/**
+ * `plaintext` lets each generated line resolve mixed-direction content from
+ * its own text while retaining the direction inherited by ordinary units.
+ */
+
+.text-animation__line {
+  unicode-bidi: plaintext;
+}
+
+/* ==========================================================================
+   RTL Clip Reveal
+   ========================================================================== */
+
+/**
+ * The default clip effect reveals from the physical left in LTR.
+ * RTL content uses a mirrored keyframe so it begins at inline start.
+ */
+
+.text-animation.is-text-animation-animating:dir(
+    rtl
+  )[data-text-animation-effect="clip"] {
+  &:not([data-text-animation-unit]) > .text-animation__content,
+  &[data-text-animation-unit] .text-animation__unit {
+    animation-name: text-animation-clip-rtl;
+  }
+}
+
+html[dir="rtl"] {
+  .text-animation.is-text-animation-animating[data-text-animation-effect="clip"] {
+    &:not([data-text-animation-unit]) > .text-animation__content,
+    &[data-text-animation-unit] .text-animation__unit {
+      animation-name: text-animation-clip-rtl;
+    }
+  }
+}
+
+/* Explicit LTR content inside an RTL document restores the LTR animation. */
+
+html[dir="rtl"] [dir="ltr"] {
+  .text-animation.is-text-animation-animating[data-text-animation-effect="clip"],
+  &.text-animation.is-text-animation-animating[data-text-animation-effect="clip"] {
+    &:not([data-text-animation-unit]) > .text-animation__content,
+    &[data-text-animation-unit] .text-animation__unit {
+      animation-name: text-animation-clip;
+    }
+  }
+}
+
+@keyframes text-animation-clip-rtl {
+  from {
+    opacity: var(--text-animation-opacity-start);
+    clip-path: inset(0 0 0 100%);
+  }
+
+  to {
+    opacity: var(--text-animation-opacity-end);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* ==========================================================================
+   Highlight Direction
+   ========================================================================== */
+
+.text-animation[data-text-animation="highlight"]::after {
+  transform-origin: var(--text-animation-highlight-origin);
+}
+
+.text-animation[data-text-animation="highlight"][data-text-animation-effect="marker"]::after {
+  transform: scaleX(1) rotate(var(--text-animation-marker-rotation));
+}
+
+.text-animation.is-text-animation-ready[data-text-animation="highlight"][data-text-animation-effect="marker"]:not(
+    .is-text-animation-complete
+  )::after {
+  transform: scaleX(0) rotate(var(--text-animation-marker-rotation));
+}
+
+.text-animation.is-text-animation-complete[data-text-animation="highlight"][data-text-animation-effect="marker"]::after {
+  transform: scaleX(1) rotate(var(--text-animation-marker-rotation));
+}
+
+/* ==========================================================================
+   Rotating Phrases
+   ========================================================================== */
+
+.text-animation[data-text-animation="rotate"],
+.text-animation[data-text-animation="rotate"] [data-text-animation-phrase] {
+  direction: inherit;
+  text-align: inherit;
+}
+
+/* ==========================================================================
+   Typewriter
+   ========================================================================== */
+
+/**
+ * Logical margin keeps the cursor after the typed value in both directions.
+ */
+
+.text-animation[data-text-animation="type"]::after {
+  margin-inline-start: var(--text-animation-cursor-gap);
+  margin-inline-end: 0;
+}
+
+/* ==========================================================================
+   Counters
+   ========================================================================== */
+
+/**
+ * Counters remain in the surrounding reading direction. No `dir="ltr"` is
+ * generated or required.
+ */
+
+.text-animation[data-text-animation="count"] {
+  direction: inherit;
+  text-align: inherit;
+  unicode-bidi: plaintext;
+}

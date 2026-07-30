@@ -1,0 +1,225 @@
+/* ==========================================================================
+   Typewriter
+   ========================================================================== */
+
+/**
+ * The complete original text remains visible before enhancement.
+ *
+ * JavaScript creates `.text-animation__typing`, preserves the component's
+ * accessible name, and progressively updates only the visual text node.
+ */
+
+.text-animation[data-text-animation="type"] {
+  min-inline-size: 0;
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Typing Content
+   ========================================================================== */
+
+.text-animation__typing {
+  display: inline;
+
+  color: inherit;
+  font: inherit;
+
+  white-space: pre-wrap;
+  overflow-wrap: inherit;
+}
+
+/* ==========================================================================
+   Cursor
+   ========================================================================== */
+
+/**
+ * The cursor is generated only after successful enhancement. It therefore
+ * never appears beside ordinary fallback text.
+ */
+
+.text-animation.is-text-animation-ready[data-text-animation="type"][data-text-animation-cursor]::after {
+  content: "";
+
+  display: inline-block;
+
+  inline-size: var(--text-animation-cursor-width);
+  block-size: var(--text-animation-cursor-height);
+
+  margin-inline-start: var(--text-animation-cursor-gap);
+
+  background: var(--text-animation-cursor-color);
+  opacity: var(--text-animation-cursor-opacity);
+
+  vertical-align: -0.08em;
+
+  animation: text-animation-cursor-blink
+    var(--text-animation-cursor-blink-duration) steps(1, end) infinite;
+}
+
+/* ==========================================================================
+   Cursor Blink
+   ========================================================================== */
+
+@keyframes text-animation-cursor-blink {
+  0%,
+  45% {
+    opacity: var(--text-animation-cursor-opacity);
+  }
+
+  46%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   Waiting State
+   ========================================================================== */
+
+.text-animation.is-text-animation-ready[data-text-animation="type"]:not(
+    .is-text-animation-animating
+  ):not(.is-text-animation-complete)::after {
+  animation-play-state: paused;
+}
+
+/* ==========================================================================
+   Active State
+   ========================================================================== */
+
+.text-animation.is-text-animation-animating[data-text-animation="type"] {
+  visibility: visible;
+}
+
+/* ==========================================================================
+   Paused State
+   ========================================================================== */
+
+.text-animation.is-text-animation-paused[data-text-animation="type"]::after,
+[data-text-animation-group].is-text-animation-paused
+  .text-animation[data-text-animation="type"]::after {
+  animation-play-state: paused;
+}
+
+/* ==========================================================================
+   Completed State
+   ========================================================================== */
+
+/**
+ * The cursor remains visible after completion when
+ * `data-text-animation-cursor` is present.
+ *
+ * Add `data-text-animation-cursor-hide` to remove it when typing finishes.
+ */
+
+.text-animation.is-text-animation-complete[data-text-animation="type"][data-text-animation-cursor-hide]::after {
+  content: none;
+}
+
+/* ==========================================================================
+   No Cursor
+   ========================================================================== */
+
+.text-animation[data-text-animation="type"]:not(
+    [data-text-animation-cursor]
+  )::after {
+  content: none;
+}
+
+/* ==========================================================================
+   Disabled State
+   ========================================================================== */
+
+.text-animation[data-text-animation="type"][data-text-animation-disabled],
+.text-animation.is-text-animation-disabled[data-text-animation="type"] {
+  visibility: visible;
+
+  white-space: normal;
+}
+
+.text-animation[data-text-animation="type"][data-text-animation-disabled]::after,
+.text-animation.is-text-animation-disabled[data-text-animation="type"]::after {
+  content: none;
+}
+
+/* ==========================================================================
+   Loading Safety
+   ========================================================================== */
+
+/**
+ * If initialization fails after a typing node was created, the component is
+ * restored to its complete visible state.
+ */
+
+.text-animation.is-text-animation-failed[data-text-animation="type"] {
+  visibility: visible;
+}
+
+.text-animation.is-text-animation-failed[data-text-animation="type"]::after {
+  content: none;
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+/**
+ * Logical margin places the cursor after the typed content in either writing
+ * direction.
+ */
+
+html[dir="rtl"] {
+  .text-animation[data-text-animation="type"] {
+    text-align: inherit;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .text-animation.is-text-animation-ready[data-text-animation="type"][data-text-animation-cursor]::after {
+    inline-size: max(var(--text-animation-cursor-width), 2px);
+
+    background: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+/**
+ * JavaScript immediately writes the complete value when reduced motion is
+ * active. CSS disables cursor blinking while retaining a stable cursor.
+ */
+
+@media (prefers-reduced-motion: reduce) {
+  .text-animation.is-text-animation-ready[data-text-animation="type"][data-text-animation-cursor]::after {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .text-animation.is-text-animation-ready[data-text-animation="type"][data-text-animation-cursor]::after {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .text-animation[data-text-animation="type"] {
+    visibility: visible !important;
+  }
+
+  .text-animation[data-text-animation="type"]::after {
+    content: none !important;
+  }
+}

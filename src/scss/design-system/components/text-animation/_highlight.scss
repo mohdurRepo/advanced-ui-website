@@ -1,0 +1,281 @@
+/* ==========================================================================
+   Animated Highlight Base
+   ========================================================================== */
+
+/**
+ * Highlight effects are visible by default.
+ *
+ * Once JavaScript successfully prepares the component, the decoration returns
+ * to its initial state and animates forward. This preserves emphasis when
+ * JavaScript is unavailable.
+ */
+
+.text-animation[data-text-animation="highlight"] {
+  position: relative;
+  isolation: isolate;
+
+  display: inline;
+
+  color: inherit;
+
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* ==========================================================================
+   Shared Decoration
+   ========================================================================== */
+
+.text-animation[data-text-animation="highlight"]::after {
+  content: "";
+
+  position: absolute;
+  z-index: -1;
+
+  pointer-events: none;
+
+  transform-origin: var(--text-animation-highlight-origin, left center);
+
+  animation-duration: var(--text-animation-highlight-duration);
+  animation-delay: var(--text-animation-runtime-delay);
+  animation-timing-function: var(--text-animation-easing-emphasized);
+  animation-fill-mode: both;
+}
+
+/* ==========================================================================
+   Underline
+   ========================================================================== */
+
+.text-animation[data-text-animation="highlight"][data-text-animation-effect="underline"]::after {
+  inset-inline: 0;
+  inset-block-end: calc(var(--text-animation-highlight-offset) * -1);
+
+  block-size: var(--text-animation-highlight-thickness);
+
+  border-radius: var(--text-animation-highlight-radius);
+
+  background: var(--text-animation-highlight-color);
+
+  transform: scaleX(1);
+}
+
+/* Prepared initial state */
+
+.text-animation.is-text-animation-ready[data-text-animation="highlight"][data-text-animation-effect="underline"]:not(
+    .is-text-animation-complete
+  )::after {
+  transform: scaleX(0);
+}
+
+/* Active state */
+
+.text-animation.is-text-animation-animating[data-text-animation="highlight"][data-text-animation-effect="underline"]::after {
+  animation-name: text-animation-highlight-underline;
+}
+
+@keyframes text-animation-highlight-underline {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ==========================================================================
+   Marker
+   ========================================================================== */
+
+.text-animation[data-text-animation="highlight"][data-text-animation-effect="marker"] {
+  margin-inline: calc(var(--text-animation-marker-padding-inline) * -1);
+
+  padding-inline: var(--text-animation-marker-padding-inline);
+}
+
+.text-animation[data-text-animation="highlight"][data-text-animation-effect="marker"]::after {
+  inset-inline: 0;
+
+  inset-block-start: var(--text-animation-marker-inset-block-start, 12%);
+  inset-block-end: var(--text-animation-marker-inset-block-end, 5%);
+
+  border-radius: var(--text-animation-highlight-radius);
+
+  background: var(--text-animation-highlight-color);
+  opacity: var(--text-animation-highlight-opacity);
+
+  transform: scaleX(1) rotate(-1deg);
+}
+
+/* Prepared initial state */
+
+.text-animation.is-text-animation-ready[data-text-animation="highlight"][data-text-animation-effect="marker"]:not(
+    .is-text-animation-complete
+  )::after {
+  transform: scaleX(0) rotate(-1deg);
+}
+
+/* Active state */
+
+.text-animation.is-text-animation-animating[data-text-animation="highlight"][data-text-animation-effect="marker"]::after {
+  animation-name: text-animation-highlight-marker;
+}
+
+@keyframes text-animation-highlight-marker {
+  from {
+    transform: scaleX(0) rotate(-1deg);
+  }
+
+  to {
+    transform: scaleX(1) rotate(-1deg);
+  }
+}
+
+/* ==========================================================================
+   Background Fill
+   ========================================================================== */
+
+.text-animation[data-text-animation="highlight"][data-text-animation-effect="fill"] {
+  padding-inline: var(--text-animation-marker-padding-inline);
+
+  color: var(--text-animation-highlight-on-color);
+
+  @supports (box-decoration-break: clone) {
+    box-decoration-break: clone;
+  }
+}
+
+.text-animation[data-text-animation="highlight"][data-text-animation-effect="fill"]::after {
+  inset: -0.08em calc(var(--text-animation-marker-padding-inline) * -1);
+
+  border-radius: var(--text-animation-highlight-radius);
+
+  background: var(--text-animation-highlight-color);
+
+  transform: scaleX(1);
+}
+
+/* Prepared initial state */
+
+.text-animation.is-text-animation-ready[data-text-animation="highlight"][data-text-animation-effect="fill"]:not(
+    .is-text-animation-complete
+  ) {
+  color: inherit;
+}
+
+.text-animation.is-text-animation-ready[data-text-animation="highlight"][data-text-animation-effect="fill"]:not(
+    .is-text-animation-complete
+  )::after {
+  transform: scaleX(0);
+}
+
+/* Active state */
+
+.text-animation.is-text-animation-animating[data-text-animation="highlight"][data-text-animation-effect="fill"] {
+  animation: text-animation-highlight-color
+    var(--text-animation-highlight-duration)
+    var(--text-animation-easing-emphasized) var(--text-animation-runtime-delay)
+    both;
+}
+
+.text-animation.is-text-animation-animating[data-text-animation="highlight"][data-text-animation-effect="fill"]::after {
+  animation-name: text-animation-highlight-fill;
+}
+
+@keyframes text-animation-highlight-fill {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes text-animation-highlight-color {
+  0%,
+  45% {
+    color: inherit;
+  }
+
+  100% {
+    color: var(--text-animation-highlight-on-color);
+  }
+}
+
+/* ==========================================================================
+   Completed State
+   ========================================================================== */
+
+.text-animation.is-text-animation-complete[data-text-animation="highlight"]::after {
+  transform: scaleX(1);
+  animation: none;
+}
+
+.text-animation.is-text-animation-complete[data-text-animation="highlight"][data-text-animation-effect="marker"]::after {
+  transform: scaleX(1) rotate(-1deg);
+}
+
+.text-animation.is-text-animation-complete[data-text-animation="highlight"][data-text-animation-effect="fill"] {
+  color: var(--text-animation-highlight-on-color);
+}
+
+/* ==========================================================================
+   Paused State
+   ========================================================================== */
+
+.text-animation.is-text-animation-paused[data-text-animation="highlight"]::after,
+[data-text-animation-group].is-text-animation-paused
+  .text-animation[data-text-animation="highlight"]::after {
+  animation-play-state: paused;
+}
+
+/* ==========================================================================
+   Disabled State
+   ========================================================================== */
+
+.text-animation[data-text-animation="highlight"][data-text-animation-disabled]::after,
+.text-animation.is-text-animation-disabled[data-text-animation="highlight"]::after {
+  transform: scaleX(1);
+  animation: none;
+}
+
+.text-animation[data-text-animation="highlight"][data-text-animation-effect="marker"][data-text-animation-disabled]::after,
+.text-animation.is-text-animation-disabled[data-text-animation="highlight"][data-text-animation-effect="marker"]::after {
+  transform: scaleX(1) rotate(-1deg);
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .text-animation[data-text-animation="highlight"][data-text-animation-effect="marker"]::after {
+    inset-block-start: auto;
+    inset-block-end: calc(var(--text-animation-highlight-offset) * -1);
+
+    block-size: var(--text-animation-highlight-thickness);
+
+    background: currentColor;
+    opacity: 1;
+    transform: scaleX(1) rotate(0);
+  }
+
+  .text-animation.is-text-animation-ready[data-text-animation="highlight"][data-text-animation-effect="marker"]:not(
+      .is-text-animation-complete
+    )::after {
+    transform: scaleX(0) rotate(0);
+  }
+
+  .text-animation.is-text-animation-animating[data-text-animation="highlight"][data-text-animation-effect="marker"]::after {
+    animation-name: text-animation-highlight-underline;
+  }
+
+  .text-animation[data-text-animation="highlight"][data-text-animation-effect="fill"] {
+    color: currentColor;
+  }
+
+  .text-animation[data-text-animation="highlight"][data-text-animation-effect="fill"]::after {
+    display: none;
+  }
+}

@@ -1,0 +1,191 @@
+/* ==========================================================================
+   Animation Group
+   ========================================================================== */
+
+/**
+ * Animation groups coordinate related components without changing their
+ * individual effects.
+ *
+ * JavaScript assigns `--text-animation-group-index` to each direct animated
+ * member and adds `.is-text-animation-group-ready` after preparation.
+ */
+
+[data-text-animation-group] {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Group Members
+   ========================================================================== */
+
+[data-text-animation-group] .text-animation {
+  --text-animation-group-index: 0;
+
+  --text-animation-group-item-delay: calc(
+    var(--text-animation-group-index) * var(--text-animation-group-stagger)
+  );
+
+  --text-animation-runtime-delay: calc(
+    var(--text-animation-delay) + var(--text-animation-group-delay) +
+      var(--text-animation-group-item-delay)
+  );
+}
+
+/* ==========================================================================
+   Nested Groups
+   ========================================================================== */
+
+/**
+ * A nested group establishes a new sequence. Its child delay is based on the
+ * nested group rather than accumulating every ancestor's index.
+ */
+
+[data-text-animation-group] [data-text-animation-group] .text-animation {
+  --text-animation-group-index: 0;
+  --text-animation-group-item-delay: 0ms;
+}
+
+/* ==========================================================================
+   Simultaneous Group
+   ========================================================================== */
+
+[data-text-animation-group][data-text-animation-group-order="together"]
+  .text-animation {
+  --text-animation-group-item-delay: 0ms;
+}
+
+/* ==========================================================================
+   Reverse Group
+   ========================================================================== */
+
+/**
+ * JavaScript assigns reversed indexes when the group uses `reverse`.
+ */
+
+[data-text-animation-group][data-text-animation-group-order="reverse"]
+  .text-animation {
+  --text-animation-group-item-delay: calc(
+    var(--text-animation-group-index) * var(--text-animation-group-stagger)
+  );
+}
+
+/* ==========================================================================
+   Group States
+   ========================================================================== */
+
+[data-text-animation-group].is-text-animation-group-ready {
+  isolation: isolate;
+}
+
+[data-text-animation-group].is-text-animation-group-animating {
+  pointer-events: auto;
+}
+
+[data-text-animation-group].is-text-animation-group-complete .text-animation {
+  --text-animation-runtime-delay: 0ms;
+}
+
+/* ==========================================================================
+   Paused Group
+   ========================================================================== */
+
+[data-text-animation-group].is-text-animation-paused .text-animation,
+[data-text-animation-group].is-text-animation-paused .text-animation *,
+[data-text-animation-group].is-text-animation-paused .text-animation::before,
+[data-text-animation-group].is-text-animation-paused .text-animation::after {
+  animation-play-state: paused !important;
+}
+
+/* ==========================================================================
+   Disabled Group
+   ========================================================================== */
+
+[data-text-animation-group][data-text-animation-disabled] .text-animation,
+[data-text-animation-group].is-text-animation-disabled .text-animation {
+  opacity: 1 !important;
+  visibility: visible !important;
+
+  filter: none !important;
+  transform: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+[data-text-animation-group][data-text-animation-disabled] .text-animation *,
+[data-text-animation-group].is-text-animation-disabled .text-animation * {
+  opacity: 1 !important;
+  visibility: visible !important;
+
+  filter: none !important;
+  transform: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* ==========================================================================
+   Group Controls
+   ========================================================================== */
+
+/**
+ * Controls remain ordinary design-system buttons. These state selectors only
+ * expose their current behavior consistently.
+ */
+
+[data-text-animation-pause-all][aria-pressed="true"],
+[data-text-animation-toggle][aria-pressed="true"] {
+  --text-animation-control-active-color: var(--color-primary);
+
+  border-color: var(--text-animation-control-active-color);
+  color: var(--text-animation-control-active-color);
+}
+
+/* ==========================================================================
+   Busy State
+   ========================================================================== */
+
+[data-text-animation-group][aria-busy="true"] {
+  cursor: progress;
+}
+
+[data-text-animation-group][aria-busy="true"] [data-text-animation-replay] {
+  pointer-events: none;
+  opacity: 0.64;
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-text-animation-group] .text-animation {
+    --text-animation-group-index: 0;
+    --text-animation-group-item-delay: 0ms;
+    --text-animation-runtime-delay: 0ms;
+  }
+}
+
+html[data-motion="reduce"] {
+  [data-text-animation-group] .text-animation {
+    --text-animation-group-index: 0;
+    --text-animation-group-item-delay: 0ms;
+    --text-animation-runtime-delay: 0ms;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  [data-text-animation-group],
+  [data-text-animation-group] .text-animation,
+  [data-text-animation-group] .text-animation * {
+    opacity: 1 !important;
+    visibility: visible !important;
+
+    filter: none !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}

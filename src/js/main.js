@@ -17,7 +17,7 @@ import { initIndicesHeatmap } from "./components/market-summary";
 import { initForms } from "./components/form";
 import { initCustomSelects } from "./components/custom-select";
 import { initCustomDates } from "./components/custom-date";
-
+import { initTextAnimation } from "./components/text-animation";
 import { initMarketOverview } from "./components/market-overview";
 
 import { renderDataTable } from "./vendors/datatables/datatable.core";
@@ -75,6 +75,8 @@ function initApp() {
   initForms();
   initCustomSelects();
   initCustomDates();
+
+  initTextAnimation();
 }
 
 /* ==========================================================================

@@ -1,0 +1,254 @@
+/* ==========================================================================
+   Staggered Animation
+   ========================================================================== */
+
+/**
+ * JavaScript assigns `--text-animation-index` to each generated unit.
+ *
+ * The calculated delay is capped by `--text-animation-max-stagger`, preventing
+ * long content from taking an unreasonable amount of time to finish.
+ */
+
+.text-animation[data-text-animation-unit] .text-animation__unit {
+  --text-animation-item-delay: min(
+    calc(
+      var(--text-animation-index, 0) * var(--text-animation-runtime-stagger)
+    ),
+    var(--text-animation-max-stagger)
+  );
+
+  animation-delay: calc(
+    var(--text-animation-runtime-delay) + var(--text-animation-item-delay)
+  );
+}
+
+/* ==========================================================================
+   Word Units
+   ========================================================================== */
+
+.text-animation[data-text-animation-unit="words"] .text-animation__content {
+  display: inline;
+}
+
+.text-animation[data-text-animation-unit="words"] .text-animation__word {
+  display: inline-block;
+
+  max-inline-size: 100%;
+
+  white-space: nowrap;
+}
+
+/**
+ * Spaces are explicit nodes created by JavaScript. Keeping them outside the
+ * animated word prevents collapsed or inconsistent spacing.
+ */
+
+.text-animation[data-text-animation-unit="words"] .text-animation__space {
+  display: inline;
+
+  white-space: pre;
+}
+
+/* ==========================================================================
+   Character Units
+   ========================================================================== */
+
+.text-animation[data-text-animation-unit="characters"]
+  .text-animation__content {
+  display: inline;
+}
+
+.text-animation[data-text-animation-unit="characters"]
+  .text-animation__character {
+  display: inline-block;
+
+  white-space: pre;
+}
+
+/**
+ * Character animation is intended for short display text. Long content remains
+ * readable, but wrapping continues according to the original whitespace.
+ */
+
+.text-animation[data-text-animation-unit="characters"]
+  .text-animation__character.is-whitespace {
+  display: inline;
+
+  animation: none;
+}
+
+/* ==========================================================================
+   Line Units
+   ========================================================================== */
+
+.text-animation[data-text-animation-unit="lines"] .text-animation__content {
+  display: block;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.text-animation[data-text-animation-unit="lines"] .text-animation__line-clip {
+  display: block;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  overflow: clip;
+}
+
+.text-animation[data-text-animation-unit="lines"] .text-animation__line {
+  display: block;
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+}
+
+@supports not (overflow: clip) {
+  .text-animation[data-text-animation-unit="lines"] .text-animation__line-clip {
+    overflow: hidden;
+  }
+}
+
+/* ==========================================================================
+   Inline Staggered Content
+   ========================================================================== */
+
+.text-animation--inline[data-text-animation-unit] .text-animation__content,
+.text-animation--inline[data-text-animation-unit="words"]
+  .text-animation__content,
+.text-animation--inline[data-text-animation-unit="characters"]
+  .text-animation__content {
+  display: inline;
+}
+
+/* ==========================================================================
+   Stagger Variants
+   ========================================================================== */
+
+.text-animation--stagger-tight {
+  --text-animation-stagger: 32ms;
+}
+
+.text-animation--stagger-normal {
+  --text-animation-stagger: 60ms;
+}
+
+.text-animation--stagger-relaxed {
+  --text-animation-stagger: 100ms;
+}
+
+/* ==========================================================================
+   Reverse Stagger
+   ========================================================================== */
+
+/**
+ * JavaScript calculates a reversed index when
+ * `data-text-animation-order="reverse"` is present. CSS continues to consume
+ * the same index contract.
+ */
+
+.text-animation[data-text-animation-order="reverse"] .text-animation__unit {
+  --text-animation-item-delay: min(
+    calc(
+      var(--text-animation-index, 0) * var(--text-animation-runtime-stagger)
+    ),
+    var(--text-animation-max-stagger)
+  );
+}
+
+/* ==========================================================================
+   Center-out Stagger
+   ========================================================================== */
+
+/**
+ * For center-out sequencing, JavaScript assigns the visual distance from the
+ * center as `--text-animation-index`.
+ */
+
+.text-animation[data-text-animation-order="center"] .text-animation__unit {
+  --text-animation-item-delay: min(
+    calc(
+      var(--text-animation-index, 0) * var(--text-animation-runtime-stagger)
+    ),
+    var(--text-animation-max-stagger)
+  );
+}
+
+/* ==========================================================================
+   Active State
+   ========================================================================== */
+
+.text-animation.is-text-animation-animating[data-text-animation-unit]
+  .text-animation__unit {
+  animation-play-state: running;
+}
+
+/* ==========================================================================
+   Paused State
+   ========================================================================== */
+
+.text-animation.is-text-animation-paused[data-text-animation-unit]
+  .text-animation__unit,
+[data-text-animation-group].is-text-animation-paused
+  .text-animation[data-text-animation-unit]
+  .text-animation__unit {
+  animation-play-state: paused;
+}
+
+/* ==========================================================================
+   Completed State
+   ========================================================================== */
+
+.text-animation.is-text-animation-complete[data-text-animation-unit]
+  .text-animation__unit {
+  opacity: 1;
+
+  filter: none;
+  transform: none;
+
+  animation-name: none;
+}
+
+/* ==========================================================================
+   No Stagger
+   ========================================================================== */
+
+.text-animation[data-text-animation-stagger="0"] .text-animation__unit,
+.text-animation.text-animation--no-stagger .text-animation__unit {
+  --text-animation-item-delay: 0ms;
+
+  animation-delay: var(--text-animation-runtime-delay);
+}
+
+/* ==========================================================================
+   Long-content Safety
+   ========================================================================== */
+
+/**
+ * JavaScript may add this class when the generated unit count exceeds its
+ * configured safety limit. The component falls back to whole-content motion.
+ */
+
+.text-animation.is-text-animation-unit-limit .text-animation__unit {
+  opacity: 1;
+
+  filter: none;
+  transform: none;
+
+  animation: none;
+}
+
+/* ==========================================================================
+   Disabled State
+   ========================================================================== */
+
+.text-animation[data-text-animation-disabled] .text-animation__unit,
+.text-animation.is-text-animation-disabled .text-animation__unit {
+  opacity: 1;
+
+  filter: none;
+  transform: none;
+
+  animation: none;
+}

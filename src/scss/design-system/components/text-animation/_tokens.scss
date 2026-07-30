@@ -1,0 +1,277 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Text Animation Tokens
+   ========================================================================== */
+
+/**
+ * Animation tokens are scoped to enhanced text-animation components.
+ *
+ * JavaScript adds `.is-text-animation-ready` only after the component has
+ * been prepared. Unenhanced content remains fully visible.
+ */
+
+.text-animation,
+[data-text-animation-group] {
+  /* ------------------------------------------------------------------------
+     Timing
+     ------------------------------------------------------------------------ */
+
+  --text-animation-duration-fast: 320ms;
+  --text-animation-duration: 560ms;
+  --text-animation-duration-slow: 760ms;
+
+  --text-animation-delay: 0ms;
+  --text-animation-stagger: 60ms;
+  --text-animation-max-stagger: 800ms;
+
+  --text-animation-easing: cubic-bezier(0.22, 1, 0.36, 1);
+  --text-animation-easing-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --text-animation-easing-linear: linear;
+
+  /* ------------------------------------------------------------------------
+     Reveal geometry
+     ------------------------------------------------------------------------ */
+
+  --text-animation-distance-block: 1rem;
+  --text-animation-distance-inline: 1rem;
+
+  --text-animation-scale-start: 0.96;
+  --text-animation-blur-start: 0.5rem;
+
+  --text-animation-opacity-start: 0;
+  --text-animation-opacity-end: 1;
+
+  /* ------------------------------------------------------------------------
+     Transform composition
+     ------------------------------------------------------------------------ */
+
+  --text-animation-translate-x: 0;
+  --text-animation-translate-y: 0;
+  --text-animation-scale: 1;
+  --text-animation-rotate: 0deg;
+
+  /* ------------------------------------------------------------------------
+     Word, character, and line units
+     ------------------------------------------------------------------------ */
+
+  --text-animation-unit-display: inline-block;
+  --text-animation-word-space: 0.25em;
+  --text-animation-line-gap: 0;
+
+  /* ------------------------------------------------------------------------
+     Highlight
+     ------------------------------------------------------------------------ */
+
+  --text-animation-highlight-color: var(--color-primary);
+  --text-animation-highlight-on-color: var(--color-on-primary);
+
+  --text-animation-highlight-thickness: 0.16em;
+  --text-animation-highlight-offset: 0.12em;
+  --text-animation-highlight-radius: var(--radius-sm, #{ds.radius("sm")});
+
+  --text-animation-highlight-duration: 700ms;
+  --text-animation-highlight-opacity: 0.2;
+
+  --text-animation-marker-padding-inline: 0.08em;
+  --text-animation-marker-inset-block: 12% 5%;
+
+  /* ------------------------------------------------------------------------
+     Rotating phrases
+     ------------------------------------------------------------------------ */
+
+  --text-animation-rotate-duration: 420ms;
+  --text-animation-rotate-distance: 0.65em;
+  --text-animation-rotate-min-inline-size: 0;
+
+  /* ------------------------------------------------------------------------
+     Typewriter
+     ------------------------------------------------------------------------ */
+
+  --text-animation-type-speed: 55ms;
+  --text-animation-type-start-delay: 250ms;
+
+  --text-animation-cursor-width: 0.08em;
+  --text-animation-cursor-height: 1em;
+  --text-animation-cursor-gap: 0.08em;
+  --text-animation-cursor-color: currentColor;
+
+  --text-animation-cursor-blink-duration: 800ms;
+  --text-animation-cursor-opacity: 1;
+
+  /* ------------------------------------------------------------------------
+     Counters
+     ------------------------------------------------------------------------ */
+
+  --text-animation-counter-duration: 1200ms;
+  --text-animation-counter-min-inline-size: 0;
+
+  /* ------------------------------------------------------------------------
+     Groups
+     ------------------------------------------------------------------------ */
+
+  --text-animation-group-stagger: 120ms;
+  --text-animation-group-delay: 0ms;
+
+  /* ------------------------------------------------------------------------
+     Focus and controls
+     ------------------------------------------------------------------------ */
+
+  --text-animation-focus-color: var(--focus-ring, var(--color-primary));
+
+  --text-animation-focus-width: var(--focus-ring-width, 2px);
+  --text-animation-focus-offset: 2px;
+
+  /* ------------------------------------------------------------------------
+     Runtime values
+     ------------------------------------------------------------------------ */
+
+  --text-animation-runtime-delay: var(--text-animation-delay);
+  --text-animation-runtime-duration: var(--text-animation-duration);
+  --text-animation-runtime-stagger: var(--text-animation-stagger);
+}
+
+/* ==========================================================================
+   Inline Variant
+   ========================================================================== */
+
+.text-animation--inline {
+  --text-animation-distance-block: 0.5em;
+  --text-animation-distance-inline: 0.5em;
+
+  display: inline;
+}
+
+/* ==========================================================================
+   Speed Variants
+   ========================================================================== */
+
+.text-animation--fast {
+  --text-animation-duration: var(--text-animation-duration-fast);
+  --text-animation-rotate-duration: var(--text-animation-duration-fast);
+}
+
+.text-animation--slow {
+  --text-animation-duration: var(--text-animation-duration-slow);
+  --text-animation-rotate-duration: var(--text-animation-duration-slow);
+}
+
+/* ==========================================================================
+   Subtle Motion Variant
+   ========================================================================== */
+
+.text-animation--subtle {
+  --text-animation-distance-block: 0.5rem;
+  --text-animation-distance-inline: 0.5rem;
+  --text-animation-scale-start: 0.985;
+  --text-animation-blur-start: 0.2rem;
+}
+
+/* ==========================================================================
+   Expressive Motion Variant
+   ========================================================================== */
+
+.text-animation--expressive {
+  --text-animation-distance-block: 1.5rem;
+  --text-animation-distance-inline: 1.5rem;
+  --text-animation-scale-start: 0.92;
+  --text-animation-blur-start: 0.75rem;
+
+  --text-animation-duration: var(--text-animation-duration-slow);
+  --text-animation-easing: var(--text-animation-easing-emphasized);
+}
+
+/* ==========================================================================
+   Theme Adaptation
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .text-animation,
+  [data-text-animation-group] {
+    --text-animation-highlight-opacity: 0.28;
+  }
+}
+
+/* ==========================================================================
+   High Contrast Tokens
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .text-animation,
+  [data-text-animation-group] {
+    --text-animation-highlight-color: currentColor;
+    --text-animation-highlight-on-color: Canvas;
+
+    --text-animation-highlight-opacity: 1;
+    --text-animation-highlight-thickness: 0.2em;
+
+    --text-animation-focus-color: currentColor;
+    --text-animation-focus-width: 4px;
+
+    --text-animation-blur-start: 0;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion Tokens
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .text-animation,
+  [data-text-animation-group] {
+    --text-animation-duration-fast: 0ms;
+    --text-animation-duration: 0ms;
+    --text-animation-duration-slow: 0ms;
+
+    --text-animation-delay: 0ms;
+    --text-animation-stagger: 0ms;
+    --text-animation-max-stagger: 0ms;
+
+    --text-animation-highlight-duration: 0ms;
+    --text-animation-rotate-duration: 0ms;
+
+    --text-animation-type-speed: 0ms;
+    --text-animation-type-start-delay: 0ms;
+
+    --text-animation-cursor-blink-duration: 0ms;
+    --text-animation-counter-duration: 0ms;
+
+    --text-animation-group-stagger: 0ms;
+    --text-animation-group-delay: 0ms;
+
+    --text-animation-distance-block: 0;
+    --text-animation-distance-inline: 0;
+    --text-animation-scale-start: 1;
+    --text-animation-blur-start: 0;
+  }
+}
+
+html[data-motion="reduce"] {
+  .text-animation,
+  [data-text-animation-group] {
+    --text-animation-duration-fast: 0ms;
+    --text-animation-duration: 0ms;
+    --text-animation-duration-slow: 0ms;
+
+    --text-animation-delay: 0ms;
+    --text-animation-stagger: 0ms;
+    --text-animation-max-stagger: 0ms;
+
+    --text-animation-highlight-duration: 0ms;
+    --text-animation-rotate-duration: 0ms;
+
+    --text-animation-type-speed: 0ms;
+    --text-animation-type-start-delay: 0ms;
+
+    --text-animation-cursor-blink-duration: 0ms;
+    --text-animation-counter-duration: 0ms;
+
+    --text-animation-group-stagger: 0ms;
+    --text-animation-group-delay: 0ms;
+
+    --text-animation-distance-block: 0;
+    --text-animation-distance-inline: 0;
+    --text-animation-scale-start: 1;
+    --text-animation-blur-start: 0;
+  }
+}

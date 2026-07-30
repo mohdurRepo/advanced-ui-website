@@ -1,0 +1,248 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .text-animation,
+  [data-text-animation-group] {
+    --text-animation-distance-block: 0.875rem;
+    --text-animation-distance-inline: 0.875rem;
+
+    --text-animation-group-stagger: 100ms;
+  }
+}
+
+/* ==========================================================================
+   Small Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .text-animation,
+  [data-text-animation-group] {
+    --text-animation-duration-fast: 280ms;
+    --text-animation-duration: 480ms;
+    --text-animation-duration-slow: 640ms;
+
+    --text-animation-distance-block: 0.75rem;
+    --text-animation-distance-inline: 0.75rem;
+
+    --text-animation-blur-start: 0.35rem;
+
+    --text-animation-stagger: 48ms;
+    --text-animation-max-stagger: 600ms;
+
+    --text-animation-group-stagger: 90ms;
+
+    --text-animation-rotate-duration: 360ms;
+    --text-animation-rotate-distance: 0.5em;
+
+    --text-animation-highlight-duration: 600ms;
+  }
+
+  /* ------------------------------------------------------------------------
+     Rotating phrases
+     ------------------------------------------------------------------------ */
+
+  .text-animation.is-text-animation-ready[data-text-animation="rotate"] {
+    max-inline-size: 100%;
+  }
+
+  .text-animation.is-text-animation-ready[data-text-animation="rotate"]
+    [data-text-animation-phrase] {
+    max-inline-size: 100%;
+
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .text-animation,
+  [data-text-animation-group] {
+    --text-animation-duration-fast: 240ms;
+    --text-animation-duration: 420ms;
+    --text-animation-duration-slow: 560ms;
+
+    --text-animation-distance-block: 0.625rem;
+    --text-animation-distance-inline: 0.625rem;
+
+    --text-animation-scale-start: 0.98;
+    --text-animation-blur-start: 0.25rem;
+
+    --text-animation-stagger: 38ms;
+    --text-animation-max-stagger: 480ms;
+
+    --text-animation-group-stagger: 72ms;
+
+    --text-animation-rotate-duration: 320ms;
+    --text-animation-rotate-distance: 0.4em;
+
+    --text-animation-highlight-duration: 520ms;
+
+    --text-animation-type-speed: 45ms;
+    --text-animation-type-start-delay: 180ms;
+  }
+
+  /* ------------------------------------------------------------------------
+     Character sequencing
+     ------------------------------------------------------------------------ */
+
+  /**
+   * Character animations can become unnecessarily long on narrow screens.
+   * The reduced stagger retains the effect while keeping completion fast.
+   */
+
+  .text-animation[data-text-animation-unit="characters"] {
+    --text-animation-stagger: 18ms;
+    --text-animation-max-stagger: 360ms;
+  }
+
+  /* ------------------------------------------------------------------------
+     Line sequencing
+     ------------------------------------------------------------------------ */
+
+  .text-animation[data-text-animation-unit="lines"] {
+    --text-animation-stagger: 85ms;
+    --text-animation-max-stagger: 340ms;
+  }
+
+  /* ------------------------------------------------------------------------
+     Typewriter
+     ------------------------------------------------------------------------ */
+
+  .text-animation[data-text-animation="type"] {
+    max-inline-size: 100%;
+
+    overflow-wrap: anywhere;
+  }
+
+  /* ------------------------------------------------------------------------
+     Counters
+     ------------------------------------------------------------------------ */
+
+  .text-animation[data-text-animation="count"] {
+    max-inline-size: 100%;
+
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* ------------------------------------------------------------------------
+     Highlights
+     ------------------------------------------------------------------------ */
+
+  .text-animation[data-text-animation="highlight"][data-text-animation-effect="marker"] {
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+}
+
+/* ==========================================================================
+   Very Narrow Viewports
+   ========================================================================== */
+
+@media (max-width: 24rem) {
+  .text-animation,
+  [data-text-animation-group] {
+    --text-animation-distance-block: 0.5rem;
+    --text-animation-distance-inline: 0.5rem;
+
+    --text-animation-stagger: 30ms;
+    --text-animation-max-stagger: 360ms;
+
+    --text-animation-group-stagger: 60ms;
+  }
+
+  .text-animation[data-text-animation-unit="characters"] {
+    --text-animation-stagger: 14ms;
+    --text-animation-max-stagger: 280ms;
+  }
+
+  .text-animation.is-text-animation-ready[data-text-animation="rotate"] {
+    display: inline-grid;
+
+    inline-size: 100%;
+    max-inline-size: 100%;
+  }
+}
+
+/* ==========================================================================
+   Short Viewports
+   ========================================================================== */
+
+/**
+ * Short screens benefit from faster motion because users encounter content
+ * more frequently while scrolling.
+ */
+
+@media (max-height: 40rem) {
+  .text-animation,
+  [data-text-animation-group] {
+    --text-animation-duration-fast: 220ms;
+    --text-animation-duration: 360ms;
+    --text-animation-duration-slow: 480ms;
+
+    --text-animation-distance-block: 0.5rem;
+    --text-animation-distance-inline: 0.5rem;
+
+    --text-animation-stagger: 32ms;
+    --text-animation-max-stagger: 400ms;
+
+    --text-animation-group-stagger: 60ms;
+
+    --text-animation-rotate-duration: 280ms;
+    --text-animation-highlight-duration: 440ms;
+  }
+}
+
+/* ==========================================================================
+   Landscape Mobile
+   ========================================================================== */
+
+@media (orientation: landscape) and (max-height: 32rem) {
+  .text-animation,
+  [data-text-animation-group] {
+    --text-animation-duration: 320ms;
+    --text-animation-duration-slow: 400ms;
+
+    --text-animation-distance-block: 0.375rem;
+    --text-animation-distance-inline: 0.375rem;
+
+    --text-animation-stagger: 24ms;
+    --text-animation-max-stagger: 300ms;
+
+    --text-animation-group-stagger: 48ms;
+  }
+}
+
+/* ==========================================================================
+   Coarse Pointer
+   ========================================================================== */
+
+/**
+ * Rotating phrases pause through JavaScript interaction rather than hover-only
+ * CSS, keeping touch behavior predictable.
+ */
+
+@media (hover: none) and (pointer: coarse) {
+  .text-animation[data-text-animation="rotate"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* ==========================================================================
+   Large Viewports
+   ========================================================================== */
+
+@include ds.respond-up("xxl") {
+  .text-animation--expressive {
+    --text-animation-distance-block: 1.75rem;
+    --text-animation-distance-inline: 1.75rem;
+  }
+}

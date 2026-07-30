@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="light" data-accent="blue">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="Accessible and reusable text-animation design-system examples."
+    />
+
+    <title>Text Animation | Abu Faisal Design System</title>
+
+    <link rel="stylesheet" href="/src/scss/main.scss" />
+
+    <script>
+      (function () {
+        var root = document.documentElement;
+
+        var lang = localStorage.getItem("se-lang") || "en";
+        var themeChoice = localStorage.getItem("se-theme") || "system";
+        var accent = localStorage.getItem("se-accent") || "blue";
+        var fontSize = localStorage.getItem("se-font-size") || "0";
+        var contrast = localStorage.getItem("se-contrast") || "normal";
+        var motion = localStorage.getItem("se-motion") || "normal";
+
+        var systemTheme =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+
+        var resolvedTheme =
+          themeChoice === "system" ? systemTheme : themeChoice;
+
+        root.lang = lang === "ar" ? "ar" : "en";
+        root.dir = lang === "ar" ? "rtl" : "ltr";
+
+        root.setAttribute("data-theme", resolvedTheme);
+        root.setAttribute("data-theme-choice", themeChoice);
+        root.setAttribute("data-accent", accent);
+        root.setAttribute("data-font-size", fontSize);
+        root.setAttribute("data-contrast", contrast);
+        root.setAttribute("data-motion", motion);
+      })();
+    </script>
+
+    <script type="module" src="/src/js/main.js"></script>
+  </head>
+
+  <body>
+    <a class="visually-hidden focusable" href="#main-content">
+      Skip to main content
+    </a>
+
+    <main class="page" id="main-content">
+      <div class="page__background" aria-hidden="true"></div>
+
+      <!-- ================================================================
+           Introduction
+           ================================================================ -->
+
+      <section class="section">
+        <div class="container">
+          <div class="surface rounded-xl shadow-sm p-8">
+            <div class="stack stack--lg">
+              <header class="stack stack--sm">
+                <p class="text-primary fw-bold">Design system component</p>
+
+                <h1
+                  class="text-animation"
+                  data-text-animation="reveal"
+                  data-text-animation-unit="words"
+                  data-text-animation-effect="fade-up"
+                  data-text-animation-stagger="70"
+                  data-text-animation-once
+                >
+                  Reusable text animation
+                </h1>
+
+                <p
+                  class="text-animation text-muted"
+                  data-text-animation="reveal"
+                  data-text-animation-unit="lines"
+                  data-text-animation-effect="fade"
+                  data-text-animation-delay="180"
+                  data-text-animation-once
+                >
+                  Accessible, responsive, theme-aware motion for headings,
+                  supporting content, statistics, actions, and live interface
+                  updates.
+                </p>
+              </header>
+
+              <div class="cluster cluster--sm">
+                <button
+                  class="btn btn-primary"
+                  type="button"
+                  data-text-animation-replay-all
+                >
+                  Replay all animations
+                </button>
+
+                <button
+                  class="btn btn-outline-primary"
+                  type="button"
+                  data-text-animation-pause-all
+                  data-pause-label="Pause animations"
+                  data-resume-label="Resume animations"
+                  aria-pressed="false"
+                >
+                  Pause animations
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           Reveal Effects
+           ================================================================ -->
+
+      <section class="section-sm">
+        <div class="container">
+          <article class="card">
+            <header class="card__header">
+              <div class="stack stack--xs">
+                <h2>Reveal effects</h2>
+                <p class="text-muted">
+                  Direction-aware effects for headings and supporting text.
+                </p>
+              </div>
+            </header>
+
+            <div class="card__body">
+              <div class="grid-auto">
+                <section class="surface-alt rounded-lg p-6">
+                  <div class="stack stack--md">
+                    <p class="text-primary fw-bold">Fade</p>
+
+                    <h3
+                      class="text-animation"
+                      data-text-animation="reveal"
+                      data-text-animation-effect="fade"
+                    >
+                      Clear information builds confidence.
+                    </h3>
+
+                    <button
+                      class="btn btn-sm btn-outline-primary"
+                      type="button"
+                      data-text-animation-replay
+                    >
+                      Replay
+                    </button>
+                  </div>
+                </section>
+
+                <section class="surface-alt rounded-lg p-6">
+                  <div class="stack stack--md">
+                    <p class="text-primary fw-bold">Fade up</p>
+
+                    <h3
+                      class="text-animation"
+                      data-text-animation="reveal"
+                      data-text-animation-effect="fade-up"
+                    >
+                      Designed for dependable experiences.
+                    </h3>
+
+                    <button
+                      class="btn btn-sm btn-outline-primary"
+                      type="button"
+                      data-text-animation-replay
+                    >
+                      Replay
+                    </button>
+                  </div>
+                </section>
+
+                <section class="surface-alt rounded-lg p-6">
+                  <div class="stack stack--md">
+                    <p class="text-primary fw-bold">Inline slide</p>
+
+                    <h3
+                      class="text-animation"
+                      data-text-animation="reveal"
+                      data-text-animation-effect="slide-inline"
+                    >
+                      Motion follows the reading direction.
+                    </h3>
+
+                    <button
+                      class="btn btn-sm btn-outline-primary"
+                      type="button"
+                      data-text-animation-replay
+                    >
+                      Replay
+                    </button>
+                  </div>
+                </section>
+
+                <section class="surface-alt rounded-lg p-6">
+                  <div class="stack stack--md">
+                    <p class="text-primary fw-bold">Soft blur</p>
+
+                    <h3
+                      class="text-animation"
+                      data-text-animation="reveal"
+                      data-text-animation-effect="blur-in"
+                    >
+                      Focus attention without distraction.
+                    </h3>
+
+                    <button
+                      class="btn btn-sm btn-outline-primary"
+                      type="button"
+                      data-text-animation-replay
+                    >
+                      Replay
+                    </button>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           Staggered Units
+           ================================================================ -->
+
+      <section class="section-sm">
+        <div class="container">
+          <article class="card">
+            <header class="card__header">
+              <div class="stack stack--xs">
+                <h2>Staggered content</h2>
+                <p class="text-muted">
+                  Animate words, characters, or measured lines through one
+                  consistent API.
+                </p>
+              </div>
+            </header>
+
+            <div class="card__body">
+              <div class="stack stack--2xl">
+                <section class="surface-alt rounded-lg p-6">
+                  <div class="stack stack--sm">
+                    <p class="text-primary fw-bold">Words</p>
+
+                    <h3
+                      class="text-animation"
+                      data-text-animation="reveal"
+                      data-text-animation-unit="words"
+                      data-text-animation-effect="fade-up"
+                      data-text-animation-stagger="65"
+                    >
+                      Discover opportunities across a connected market.
+                    </h3>
+                  </div>
+                </section>
+
+                <section class="surface-alt rounded-lg p-6">
+                  <div class="stack stack--sm">
+                    <p class="text-primary fw-bold">Characters</p>
+
+                    <h3
+                      class="text-animation"
+                      data-text-animation="reveal"
+                      data-text-animation-unit="characters"
+                      data-text-animation-effect="fade"
+                      data-text-animation-stagger="24"
+                      data-text-animation-max-stagger="700"
+                    >
+                      Market intelligence
+                    </h3>
+                  </div>
+                </section>
+
+                <section class="surface-alt rounded-lg p-6">
+                  <div class="stack stack--sm">
+                    <p class="text-primary fw-bold">Lines</p>
+
+                    <p
+                      class="text-animation"
+                      data-text-animation="reveal"
+                      data-text-animation-unit="lines"
+                      data-text-animation-effect="fade-up"
+                      data-text-animation-stagger="120"
+                    >
+                      Follow market activity with timely information. Compare
+                      performance across sectors. Make informed decisions with
+                      clear and dependable data.
+                    </p>
+                  </div>
+                </section>
+
+                <div class="cluster cluster--sm">
+                  <button
+                    class="btn btn-outline-primary"
+                    type="button"
+                    data-text-animation-replay
+                  >
+                    Replay examples
+                  </button>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           Emphasis and Rotating Phrases
+           ================================================================ -->
+
+      <section class="section-sm">
+        <div class="container">
+          <div class="grid-2">
+            <article class="card">
+              <header class="card__header">
+                <div class="stack stack--xs">
+                  <h2>Animated emphasis</h2>
+                  <p class="text-muted">
+                    Highlight key language without hiding its meaning.
+                  </p>
+                </div>
+              </header>
+
+              <div class="card__body">
+                <div class="stack stack--xl">
+                  <h3>
+                    Build with
+                    <span
+                      class="text-animation text-animation--inline"
+                      data-text-animation="highlight"
+                      data-text-animation-effect="underline"
+                      data-text-animation-delay="250"
+                    >
+                      clarity
+                    </span>
+                    and move with
+                    <span
+                      class="text-animation text-animation--inline"
+                      data-text-animation="highlight"
+                      data-text-animation-effect="marker"
+                      data-text-animation-delay="500"
+                    >
+                      confidence
+                    </span>
+                    .
+                  </h3>
+
+                  <button
+                    class="btn btn-outline-primary"
+                    type="button"
+                    data-text-animation-replay
+                  >
+                    Replay emphasis
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            <article class="card">
+              <header class="card__header">
+                <div class="stack stack--xs">
+                  <h2>Rotating phrases</h2>
+                  <p class="text-muted">
+                    Cycle through related messages with manual controls.
+                  </p>
+                </div>
+              </header>
+
+              <div class="card__body">
+                <div class="stack stack--xl">
+                  <h3>
+                    Explore
+                    <span
+                      class="text-animation text-animation--inline"
+                      data-text-animation="rotate"
+                      data-text-animation-effect="fade-up"
+                      data-text-animation-interval="2800"
+                      data-text-animation-pause-on-hover
+                      data-text-animation-pause-on-focus
+                      aria-live="polite"
+                      aria-atomic="true"
+                    >
+                      <span data-text-animation-phrase>market data</span>
+                      <span data-text-animation-phrase hidden>
+                        issuer information
+                      </span>
+                      <span data-text-animation-phrase hidden>
+                        trading insights
+                      </span>
+                      <span data-text-animation-phrase hidden>
+                        investment opportunities
+                      </span>
+                    </span>
+                  </h3>
+
+                  <div class="cluster cluster--sm">
+                    <button
+                      class="btn btn-sm btn-outline-primary"
+                      type="button"
+                      data-text-animation-previous
+                      aria-label="Show previous phrase"
+                    >
+                      Previous
+                    </button>
+
+                    <button
+                      class="btn btn-sm btn-outline-primary"
+                      type="button"
+                      data-text-animation-toggle
+                      data-pause-label="Pause"
+                      data-resume-label="Resume"
+                      aria-pressed="false"
+                    >
+                      Pause
+                    </button>
+
+                    <button
+                      class="btn btn-sm btn-outline-primary"
+                      type="button"
+                      data-text-animation-next
+                      aria-label="Show next phrase"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           Typewriter and Counters
+           ================================================================ -->
+
+      <section class="section-sm">
+        <div class="container">
+          <article class="card">
+            <header class="card__header">
+              <div class="stack stack--xs">
+                <h2>Typewriter and counters</h2>
+                <p class="text-muted">
+                  Progressive text and locale-aware numeric animation.
+                </p>
+              </div>
+            </header>
+
+            <div class="card__body">
+              <div class="stack stack--2xl">
+                <section class="surface-dark rounded-xl p-6">
+                  <div class="stack stack--lg">
+                    <p class="text-muted">Typewriter</p>
+
+                    <h3
+                      class="text-animation"
+                      data-text-animation="type"
+                      data-text-animation-speed="55"
+                      data-text-animation-start-delay="250"
+                      data-text-animation-cursor
+                      data-text-animation-once
+                    >
+                      Reliable information. Clear decisions.
+                    </h3>
+
+                    <button
+                      class="btn btn-light"
+                      type="button"
+                      data-text-animation-replay
+                    >
+                      Replay typing
+                    </button>
+                  </div>
+                </section>
+
+                <div class="grid-3">
+                  <section class="surface-alt rounded-lg p-6">
+                    <div class="stack stack--xs">
+                      <p class="text-muted">Listed securities</p>
+
+                      <h3
+                        class="text-animation numeric"
+                        data-text-animation="count"
+                        data-text-animation-from="0"
+                        data-text-animation-to="312"
+                        data-text-animation-duration="1200"
+                      >
+                        312
+                      </h3>
+                    </div>
+                  </section>
+
+                  <section class="surface-alt rounded-lg p-6">
+                    <div class="stack stack--xs">
+                      <p class="text-muted">Market growth</p>
+
+                      <h3
+                        class="text-animation numeric text-success"
+                        data-text-animation="count"
+                        data-text-animation-from="0"
+                        data-text-animation-to="12.8"
+                        data-text-animation-decimals="1"
+                        data-text-animation-suffix="%"
+                        data-text-animation-duration="1400"
+                      >
+                        12.8%
+                      </h3>
+                    </div>
+                  </section>
+
+                  <section class="surface-alt rounded-lg p-6">
+                    <div class="stack stack--xs">
+                      <p class="text-muted">Daily transactions</p>
+
+                      <h3
+                        class="text-animation numeric"
+                        data-text-animation="count"
+                        data-text-animation-from="0"
+                        data-text-animation-to="24850"
+                        data-text-animation-grouping
+                        data-text-animation-duration="1600"
+                      >
+                        24,850
+                      </h3>
+                    </div>
+                  </section>
+                </div>
+
+                <button
+                  class="btn btn-outline-primary"
+                  type="button"
+                  data-text-animation-replay
+                >
+                  Replay section
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           Sequenced Group
+           ================================================================ -->
+
+      <section class="section-sm">
+        <div class="container">
+          <article class="card">
+            <header class="card__header">
+              <div class="stack stack--xs">
+                <h2>Sequenced group</h2>
+                <p class="text-muted">
+                  Coordinate related elements while each keeps its own effect.
+                </p>
+              </div>
+            </header>
+
+            <div class="card__body">
+              <section
+                class="surface-dark rounded-xl p-8"
+                data-text-animation-group
+                data-text-animation-group-stagger="140"
+              >
+                <div class="stack stack--lg">
+                  <p
+                    class="text-animation text-accent fw-bold"
+                    data-text-animation="reveal"
+                    data-text-animation-effect="fade"
+                  >
+                    Market overview
+                  </p>
+
+                  <h3
+                    class="text-animation"
+                    data-text-animation="reveal"
+                    data-text-animation-unit="words"
+                    data-text-animation-effect="fade-up"
+                    data-text-animation-stagger="60"
+                  >
+                    Understand today’s market at a glance
+                  </h3>
+
+                  <p
+                    class="text-animation"
+                    data-text-animation="reveal"
+                    data-text-animation-effect="fade-up"
+                  >
+                    Review performance, market activity, and sector movements
+                    through one clear experience.
+                  </p>
+
+                  <div
+                    class="cluster cluster--sm text-animation"
+                    data-text-animation="reveal"
+                    data-text-animation-effect="fade-up"
+                  >
+                    <a class="btn btn-primary" href="#">Explore the market</a>
+                    <a class="btn btn-light" href="#">View reports</a>
+                  </div>
+                </div>
+              </section>
+
+              <div class="cluster cluster--sm mt-6">
+                <button
+                  class="btn btn-outline-primary"
+                  type="button"
+                  data-text-animation-replay
+                >
+                  Replay sequence
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           Activation
+           ================================================================ -->
+
+      <section class="section-sm">
+        <div class="container">
+          <article class="card">
+            <header class="card__header">
+              <div class="stack stack--xs">
+                <h2>Activation behavior</h2>
+                <p class="text-muted">
+                  Start immediately, on viewport entry, or manually through the
+                  public API.
+                </p>
+              </div>
+            </header>
+
+            <div class="card__body">
+              <div class="grid-2">
+                <section class="surface-alt rounded-lg p-6">
+                  <div class="stack stack--sm">
+                    <p class="text-primary fw-bold">Viewport</p>
+
+                    <h3
+                      class="text-animation"
+                      data-text-animation="reveal"
+                      data-text-animation-effect="fade-up"
+                      data-text-animation-trigger="viewport"
+                      data-text-animation-threshold="0.35"
+                      data-text-animation-once
+                    >
+                      Starts when sufficiently visible.
+                    </h3>
+                  </div>
+                </section>
+
+                <section class="surface-alt rounded-lg p-6">
+                  <div class="stack stack--sm">
+                    <p class="text-primary fw-bold">Immediate</p>
+
+                    <h3
+                      class="text-animation"
+                      data-text-animation="reveal"
+                      data-text-animation-effect="fade"
+                      data-text-animation-trigger="immediate"
+                    >
+                      Starts as soon as initialization finishes.
+                    </h3>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           Arabic and RTL
+           ================================================================ -->
+
+      <section class="section-sm" lang="ar" dir="rtl">
+        <div class="container">
+          <article class="card">
+            <header class="card__header">
+              <div class="stack stack--xs">
+                <h2>النص العربي واتجاه الكتابة</h2>
+                <p class="text-muted">
+                  تستخدم المكونات العربية نفس البنية والخصائص من دون تكرار.
+                </p>
+              </div>
+            </header>
+
+            <div class="card__body">
+              <div class="grid-2">
+                <section class="surface-alt rounded-lg p-6">
+                  <div class="stack stack--lg">
+                    <h3
+                      class="text-animation"
+                      data-text-animation="reveal"
+                      data-text-animation-unit="words"
+                      data-text-animation-effect="fade-up"
+                      data-text-animation-stagger="75"
+                    >
+                      معلومات واضحة لاتخاذ قرارات أكثر ثقة
+                    </h3>
+
+                    <p
+                      class="text-animation"
+                      data-text-animation="reveal"
+                      data-text-animation-effect="slide-inline"
+                    >
+                      استكشف بيانات السوق وأداء القطاعات وأحدث الإعلانات.
+                    </p>
+                  </div>
+                </section>
+
+                <section class="surface-alt rounded-lg p-6">
+                  <div class="stack stack--lg">
+                    <h3>
+                      اكتشف
+                      <span
+                        class="text-animation text-animation--inline"
+                        data-text-animation="rotate"
+                        data-text-animation-effect="fade-up"
+                        data-text-animation-interval="2800"
+                        data-text-animation-pause-on-hover
+                        aria-live="polite"
+                        aria-atomic="true"
+                      >
+                        <span data-text-animation-phrase>بيانات السوق</span>
+                        <span data-text-animation-phrase hidden>
+                          معلومات الشركات
+                        </span>
+                        <span data-text-animation-phrase hidden>
+                          فرص الاستثمار
+                        </span>
+                      </span>
+                    </h3>
+
+                    <button
+                      class="btn btn-outline-primary"
+                      type="button"
+                      data-text-animation-replay
+                    >
+                      إعادة الحركة
+                    </button>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           Accessibility
+           ================================================================ -->
+
+      <section class="section-sm">
+        <div class="container">
+          <article class="alert alert-info">
+            <div class="alert__content">
+              <h2 class="alert__title">Accessible motion</h2>
+
+              <div class="alert__description">
+                <p>
+                  Text remains readable before enhancement. Reduced-motion
+                  preferences display the final content immediately, and no
+                  animation is required to understand or operate the page.
+                </p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           Disabled Example
+           ================================================================ -->
+
+      <section class="section-sm">
+        <div class="container">
+          <article class="card">
+            <header class="card__header">
+              <div class="stack stack--xs">
+                <h2>Animation disabled</h2>
+                <p class="text-muted">
+                  Individual content can opt out while preserving appearance.
+                </p>
+              </div>
+            </header>
+
+            <div class="card__body">
+              <p
+                class="text-animation"
+                data-text-animation="reveal"
+                data-text-animation-effect="fade-up"
+                data-text-animation-disabled
+              >
+                This content remains immediately visible and does not animate.
+              </p>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
