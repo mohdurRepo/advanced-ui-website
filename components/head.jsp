@@ -111,7 +111,6 @@
 
 </c:if>
 
-
 <%--
   ============================================================================
   Saudi Exchange — Shared Header (Desktop phase)
@@ -311,15 +310,11 @@
                                 <c:out value="${nodeL2.title}" />
                               </span>
 
-                              <%--
-                                Future Level-2 menu description:
-
-                                <c:if test="${not empty nodeL2.description}">
-                                  <span class="mega-menu-nav__text">
-                                    <c:out value="${nodeL2.description}" />
-                                  </span>
-                                </c:if>
-                              --%>
+                              <c:if test="${not empty nodeL2.description}">
+                                <span class="mega-menu-nav__text">
+                                  <c:out value="${nodeL2.description}" />
+                                </span>
+                              </c:if>
                             </span>
 
                             <span
