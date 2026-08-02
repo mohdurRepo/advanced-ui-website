@@ -1,8 +1,31 @@
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<c:set
+  var="currentPageUniqueName"
+  value="${wp.selectionModel.selected.objectID.uniqueName}"
+/>
+
+<c:set
+  var="isHomePage"
+  value="${
+        currentPageUniqueName == 'com.tadawul.home'
+        or currentPageUniqueName == 'com.tadawul.home.v3'
+        or currentPageUniqueName == 'com.tadawul.saudiexchange.home.v3'
+    }"
+/>
+
+<c:set var="marketOverviewMode" value="${isHomePage ? 'home' : 'inner'}" />
+
+<c:set
+  var="marketDetailsMode"
+  value="${isHomePage ? 'always' : 'collapsible'}"
+/>
+
 <section
-  class="market-overview market-overview--home"
+  class="market-overview market-overview--${marketOverviewMode}"
   aria-label="Market overview"
   data-market-overview
-  data-market-details-mode="always"
+  data-page-mode="${marketOverviewMode}"
+  data-market-details-mode="${marketDetailsMode}"
 >
   <!-- =======================================================================
        Market Summary
@@ -425,18 +448,18 @@
   <details
     class="market-overview__disclosure"
     data-market-details-disclosure
-    open
-  >
+    <c:if test="${isHomePage}">open</c:if>
+>
     <!-- =====================================================================
          Native Disclosure Control
     ====================================================================== -->
 
     <summary
-      class="market-overview__summary"
-      data-market-overview-toggle
-      aria-expanded="true"
-      hidden
-    >
+    class="market-overview__summary"
+    data-market-overview-toggle
+    aria-expanded="${isHomePage ? 'true' : 'false'}"
+    <c:if test="${isHomePage}">hidden</c:if>
+>
       <span
         class="market-overview__summary-icon has-icon icon-chevron-up"
         aria-hidden="true"
@@ -452,10 +475,10 @@
     ====================================================================== -->
 
     <div
-      class="market-overview__details-content"
-      data-market-overview-details
-      aria-hidden="false"
-    >
+    class="market-overview__details-content"
+    data-market-overview-details
+    aria-hidden="${isHomePage ? 'false' : 'true'}"
+>
       <!-- ===================================================================
            Market Bridge
       ==================================================================== -->
@@ -481,14 +504,14 @@
 ============================================================================ -->
 
           <section
-            class="market-details-panel market-details-panel--overview is-active"
-            id="market-panel-tasi"
-            role="tabpanel"
-            aria-labelledby="market-tab-tasi"
-            aria-hidden="false"
-            data-market-detail-panel
-            data-market="M"
-          >
+  class="market-details-panel market-details-panel--overview is-active"
+  id="market-panel-tasi"
+  role="tabpanel"
+  aria-labelledby="market-tab-tasi"
+  aria-hidden="false"
+  data-market-detail-panel
+  data-market="M"
+>
             <div class="market-details-panel__grid">
               <!-- =====================================================================
          Chart
@@ -567,11 +590,11 @@
     ====================================================================== -->
 
               <div
-                class="market-details-panel__collapsible"
-                id="tasi-market-details"
-                data-market-details-collapsible
-                aria-hidden="false"
-              >
+  class="market-details-panel__collapsible"
+  id="tasi-market-details"
+  data-market-details-collapsible
+  aria-hidden="false"
+>
                 <!-- ===================================================================
            Market Movers
       ==================================================================== -->
@@ -646,7 +669,7 @@
                       id="tasi-gainers"
                       role="tabpanel"
                       aria-labelledby="tasi-tab-gainers"
-                      aria-hidden="false"
+                      
                       data-market-movers-panel
                     >
                       <ul class="market-movers__list">
@@ -3507,7 +3530,7 @@
               id="derivatives-mt30"
               role="tabpanel"
               aria-labelledby="derivatives-tab-mt30"
-              aria-hidden="false"
+              
               data-market-view-panel
             >
               <div class="market-details-panel__grid">
@@ -3578,7 +3601,7 @@
                   class="market-details-panel__collapsible"
                   id="mt30-market-details"
                   data-market-details-collapsible
-                  aria-hidden="false"
+                  
                 >
                   <div class="market-details-panel__stats">
                     <dl class="market-stats">
@@ -3833,7 +3856,7 @@
                   class="derivatives-dashboard__more"
                   id="derivatives-more-tables"
                   data-market-details-collapsible
-                  aria-hidden="false"
+                  
                 >
                   <!-- ===============================================================
              Single Stock Futures
