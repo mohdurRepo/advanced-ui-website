@@ -114,28 +114,31 @@
 
 <%--
   ============================================================================
-  Saudi Exchange — Shared Header
+  Saudi Exchange — Shared Header (Desktop phase)
   ----------------------------------------------------------------------------
-  Included in this step:
+  Included:
     - Dynamic WCM logo
     - Refactored desktop navigation
+    - Six visible Level-3 entries per column
+    - Conditional featured content
     - Desktop language switch
-    - Mobile menu trigger
+    - Mobile burger trigger
 
-  Intentionally excluded until the next step:
-    - Mobile navigation overlay
-    - Mobile navigation <aside>
+  Not included yet:
+    - Mobile overlay
+    - Mobile <aside>
 
-  Removed:
-    - Desktop theme toggle
-    - Mobile theme toggle
+  Temporarily disabled:
+    - Level-2 descriptions
+    - Mega-menu panel titles
+    - Theme toggle
   ============================================================================
 --%>
 
 <header class="site-header" data-site-header>
   <div class="site-header__inner">
     <%-- ======================================================================
-         Brand / dynamic WCM logo
+         Brand
          ====================================================================== --%>
 
     <div class="site-header__brand">
@@ -192,252 +195,246 @@
          Desktop navigation
          ====================================================================== --%>
 
-<nav
-  class="site-nav site-header__nav"
-  aria-label="Main navigation"
-  data-site-nav
->
-  <ul class="site-nav__list">
-    <c:set
-      var="navigationRoot"
-      value="${wp.selectionModel.selectionPath[1]}"
-    />
-
-    <c:forEach
-      items="${wp.navigationModel.children[navigationRoot]}"
-      var="node"
-      varStatus="level1Status"
+    <nav
+      class="site-nav site-header__nav"
+      aria-label="Main navigation"
+      data-site-nav
     >
-      <c:set
-        var="hidePageFromNavL1"
-        value="${node.metadata['navVisibility']}"
-      />
-
-      <c:set
-        var="isExcludedLevel1Node"
-        value="${
-          node.objectID.uniqueName == 'com.tadawul.home'
-          or node.objectID.uniqueName == 'com.tadawul.hiddenpage'
-          or node.objectID.uniqueName == 'com.tadawul.home.v3'
-          or node.objectID.uniqueName == 'com.tadawul.footer.v3'
-        }"
-      />
-
-      <c:if test="${hidePageFromNavL1 != 'hide' and not isExcludedLevel1Node}">
+      <ul class="site-nav__list">
         <c:set
-          var="megaMenuId"
-          value="mega-menu-${level1Status.index}"
+          var="navigationRoot"
+          value="${wp.selectionModel.selectionPath[1]}"
         />
 
-        <li class="site-nav__item has-mega-menu">
-          <button
-            class="site-nav__trigger"
-            type="button"
-            aria-expanded="false"
-            aria-controls="${megaMenuId}"
-            data-mega-menu-trigger
+        <c:forEach
+          items="${wp.navigationModel.children[navigationRoot]}"
+          var="node"
+          varStatus="level1Status"
+        >
+          <c:set
+            var="hidePageFromNavL1"
+            value="${node.metadata['navVisibility']}"
+          />
+
+          <c:set
+            var="isExcludedLevel1Node"
+            value="${
+              node.objectID.uniqueName == 'com.tadawul.home'
+              or node.objectID.uniqueName == 'com.tadawul.hiddenpage'
+              or node.objectID.uniqueName == 'com.tadawul.home.v3'
+              or node.objectID.uniqueName == 'com.tadawul.saudiexchange.home.v3'
+              or node.objectID.uniqueName == 'com.tadawul.footer.v3'
+            }"
+          />
+
+          <c:if
+            test="${hidePageFromNavL1 != 'hide' and not isExcludedLevel1Node}"
           >
-            <span class="site-nav__trigger-text">
-              <c:out value="${node.title}" />
-            </span>
+            <c:set
+              var="megaMenuId"
+              value="mega-menu-${level1Status.index}"
+            />
 
-            <span
-              class="has-icon icon-chevron-down site-nav__trigger-icon"
-              aria-hidden="true"
-            ></span>
-          </button>
+            <li class="site-nav__item has-mega-menu">
+              <button
+                class="site-nav__trigger"
+                type="button"
+                aria-expanded="false"
+                aria-controls="${megaMenuId}"
+                data-mega-menu-trigger
+              >
+                <span class="site-nav__trigger-text">
+                  <c:out value="${node.title}" />
+                </span>
 
-          <div
-            class="mega-menu"
-            id="${megaMenuId}"
-            aria-hidden="true"
-            data-mega-menu
-          >
-            <div class="mega-menu__container">
-              <%-- ================================================================
-                   Level 2: category rail
-                   ================================================================ --%>
+                <span
+                  class="has-icon icon-chevron-down site-nav__trigger-icon"
+                  aria-hidden="true"
+                ></span>
+              </button>
 
-              <div class="mega-menu__rail">
-                <div
-                  class="mega-menu-nav"
-                  role="tablist"
-                  aria-label="${node.title}"
-                >
-                  <c:forEach
-                    items="${wp.navigationModel.children[node]}"
-                    var="nodeL2"
-                    varStatus="level2Status"
-                  >
-                    <c:set
-                      var="hidePageFromNavL2"
-                      value="${nodeL2.metadata['navVisibility']}"
-                    />
+              <div
+                class="mega-menu"
+                id="${megaMenuId}"
+                aria-hidden="true"
+                data-mega-menu
+              >
+                <div class="mega-menu__container">
+                  <%-- ==========================================================
+                       Level 2 category rail
+                       ========================================================== --%>
 
-                    <c:if test="${hidePageFromNavL2 != 'hide'}">
-                      <c:set
-                        var="level2TabId"
-                        value="mega-tab-${level1Status.index}-${level2Status.index}"
-                      />
-
-                      <c:set
-                        var="level2PanelId"
-                        value="mega-panel-${level1Status.index}-${level2Status.index}"
-                      />
-
-                      <button
-                        class="mega-menu-nav__item${level2Status.first ? ' is-active' : ''}"
-                        id="${level2TabId}"
-                        type="button"
-                        role="tab"
-                        aria-selected="${level2Status.first ? 'true' : 'false'}"
-                        aria-controls="${level2PanelId}"
-                        tabindex="${level2Status.first ? '0' : '-1'}"
-                        data-mega-menu-tab
-                      >
-                        <span
-                          class="has-icon icon-segment-container mega-menu-nav__icon"
-                          aria-hidden="true"
-                        ></span>
-
-                        <span class="mega-menu-nav__body">
-                          <span class="mega-menu-nav__heading">
-                            <c:out value="${nodeL2.title}" />
-                          </span>
-
-                          <c:if test="${not empty nodeL2.description}">
-                            <span class="mega-menu-nav__text">
-                              <c:out value="${nodeL2.description}" />
-                            </span>
-                          </c:if>
-                        </span>
-
-                        <span
-                          class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
-                          aria-hidden="true"
-                        ></span>
-                      </button>
-                    </c:if>
-                  </c:forEach>
-                </div>
-              </div>
-
-              <%-- ================================================================
-                   Level 2 content panels
-                   ================================================================ --%>
-
-              <div class="mega-menu__content">
-                <c:forEach
-                  items="${wp.navigationModel.children[node]}"
-                  var="nodeL2"
-                  varStatus="level2Status"
-                >
-                  <c:set
-                    var="hidePageFromNavL2"
-                    value="${nodeL2.metadata['navVisibility']}"
-                  />
-
-                  <c:if test="${hidePageFromNavL2 != 'hide'}">
-                    <c:set
-                      var="level2TabId"
-                      value="mega-tab-${level1Status.index}-${level2Status.index}"
-                    />
-
-                    <c:set
-                      var="level2PanelId"
-                      value="mega-panel-${level1Status.index}-${level2Status.index}"
-                    />
-
-                    <section
-                      class="mega-menu-panel${level2Status.first ? ' is-active' : ''}"
-                      id="${level2PanelId}"
-                      role="tabpanel"
-                      aria-labelledby="${level2TabId}"
-                      aria-hidden="${level2Status.first ? 'false' : 'true'}"
-                      data-mega-menu-panel
-                      <c:if test="${not level2Status.first}">hidden</c:if>
+                  <div class="mega-menu__rail">
+                    <div
+                      class="mega-menu-nav"
+                      role="tablist"
+                      aria-label="${node.title}"
                     >
-                      <h2 class="mega-menu-panel__title">
-                        <c:out value="${nodeL2.title}" />
-                      </h2>
+                      <c:forEach
+                        items="${wp.navigationModel.children[node]}"
+                        var="nodeL2"
+                        varStatus="level2Status"
+                      >
+                        <c:set
+                          var="hidePageFromNavL2"
+                          value="${nodeL2.metadata['navVisibility']}"
+                        />
 
-                      <div class="mega-menu-panel__layout">
-                        <div class="mega-menu-panel__links">
-                          <%-- Direct link to the selected Level-2 landing page. --%>
+                        <c:if test="${hidePageFromNavL2 != 'hide'}">
+                          <c:set
+                            var="level2TabId"
+                            value="mega-tab-${level1Status.index}-${level2Status.index}"
+                          />
 
-                          <portal-navigation:urlGeneration
-                            contentNode="${wp.identification[nodeL2]}"
-                            keepNavigationalState="false"
+                          <c:set
+                            var="level2PanelId"
+                            value="mega-panel-${level1Status.index}-${level2Status.index}"
+                          />
+
+                          <button
+                            class="mega-menu-nav__item${level2Status.first ? ' is-active' : ''}"
+                            id="${level2TabId}"
+                            type="button"
+                            role="tab"
+                            aria-selected="${level2Status.first ? 'true' : 'false'}"
+                            aria-controls="${level2PanelId}"
+                            tabindex="${level2Status.first ? '0' : '-1'}"
+                            data-mega-menu-tab
                           >
-                            <a
-                              class="mega-menu-panel__link mega-menu-panel__link--overview"
-                              href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
-                            >
-                              <span>
+                            <span
+                              class="has-icon icon-segment-container mega-menu-nav__icon"
+                              aria-hidden="true"
+                            ></span>
+
+                            <span class="mega-menu-nav__body">
+                              <span class="mega-menu-nav__heading">
                                 <c:out value="${nodeL2.title}" />
                               </span>
 
-                              <span
-                                class="has-icon icon-chevron-right icon-flip-rtl"
-                                aria-hidden="true"
-                              ></span>
-                            </a>
-                          </portal-navigation:urlGeneration>
+                              <%--
+                                Future Level-2 menu description:
 
-                          <%-- ======================================================
-                               Level 3 links and Level 4 flyouts
-                               ====================================================== --%>
+                                <c:if test="${not empty nodeL2.description}">
+                                  <span class="mega-menu-nav__text">
+                                    <c:out value="${nodeL2.description}" />
+                                  </span>
+                                </c:if>
+                              --%>
+                            </span>
 
-                          <c:forEach
-                            items="${wp.navigationModel.children[nodeL2]}"
-                            var="nodeL3"
-                            varStatus="level3Status"
-                          >
+                            <span
+                              class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
+                              aria-hidden="true"
+                            ></span>
+                          </button>
+                        </c:if>
+                      </c:forEach>
+                    </div>
+                  </div>
+
+                  <%-- ==========================================================
+                       Level 2 content panels
+                       ========================================================== --%>
+
+                  <div class="mega-menu__content">
+                    <c:forEach
+                      items="${wp.navigationModel.children[node]}"
+                      var="nodeL2"
+                      varStatus="level2Status"
+                    >
+                      <c:set
+                        var="hidePageFromNavL2"
+                        value="${nodeL2.metadata['navVisibility']}"
+                      />
+
+                      <c:if test="${hidePageFromNavL2 != 'hide'}">
+                        <c:set
+                          var="level2TabId"
+                          value="mega-tab-${level1Status.index}-${level2Status.index}"
+                        />
+
+                        <c:set
+                          var="level2PanelId"
+                          value="mega-panel-${level1Status.index}-${level2Status.index}"
+                        />
+
+                        <section
+                          class="mega-menu-panel${level2Status.first ? ' is-active' : ''}"
+                          id="${level2PanelId}"
+                          role="tabpanel"
+                          aria-labelledby="${level2TabId}"
+                          aria-hidden="${level2Status.first ? 'false' : 'true'}"
+                          data-mega-menu-panel
+                          <c:if test="${not level2Status.first}">hidden</c:if>
+                        >
+                          <%--
+                            Future panel title:
+
+                            <h2 class="mega-menu-panel__title">
+                              <c:out value="${nodeL2.title}" />
+                            </h2>
+                          --%>
+
+                          <div class="mega-menu-panel__layout">
+                            <%-- ==================================================
+                                 Level 3 links: six visible entries per column
+                                 ================================================== --%>
+
                             <c:set
-                              var="hidePageFromNavL3"
-                              value="${nodeL3.metadata['navVisibility']}"
+                              var="visibleLevel3Counter"
+                              value="0"
+                              scope="page"
                             />
 
-                            <c:if test="${hidePageFromNavL3 != 'hide'}">
-                              <%-- Determine whether this Level-3 node has at least
-                                   one visible Level-4 child. --%>
-
+                            <c:forEach
+                              items="${wp.navigationModel.children[nodeL2]}"
+                              var="nodeL3"
+                            >
                               <c:set
-                                var="hasVisibleL4"
-                                value="false"
-                                scope="page"
+                                var="hidePageFromNavL3"
+                                value="${nodeL3.metadata['navVisibility']}"
                               />
 
-                              <c:if test="${wp.navigationModel.hasChildren[nodeL3]}">
-                                <c:forEach
-                                  items="${wp.navigationModel.children[nodeL3]}"
-                                  var="nodeL4VisibilityCheck"
+                              <c:if test="${hidePageFromNavL3 != 'hide'}">
+                                <%-- Open a new column before entries 1, 7, 13... --%>
+
+                                <c:if test="${visibleLevel3Counter mod 6 == 0}">
+                                  <div class="mega-menu-panel__column">
+                                </c:if>
+
+                                <c:set
+                                  var="hasVisibleL4"
+                                  value="false"
+                                  scope="page"
+                                />
+
+                                <c:if
+                                  test="${wp.navigationModel.hasChildren[nodeL3]}"
                                 >
-                                  <c:if
-                                    test="${nodeL4VisibilityCheck.metadata['navVisibility'] != 'hide'}"
+                                  <c:forEach
+                                    items="${wp.navigationModel.children[nodeL3]}"
+                                    var="nodeL4VisibilityCheck"
                                   >
-                                    <c:set
-                                      var="hasVisibleL4"
-                                      value="true"
-                                      scope="page"
-                                    />
-                                  </c:if>
-                                </c:forEach>
-                              </c:if>
-
-                              <c:choose>
-                                <%-- Level 3 with visible Level-4 children. --%>
-
-                                <c:when test="${hasVisibleL4}">
-                                  <div class="mega-menu-flyout">
-                                    <portal-navigation:urlGeneration
-                                      contentNode="${wp.identification[nodeL3]}"
-                                      keepNavigationalState="false"
+                                    <c:if
+                                      test="${nodeL4VisibilityCheck.metadata['navVisibility'] != 'hide'}"
                                     >
-                                      <a
+                                      <c:set
+                                        var="hasVisibleL4"
+                                        value="true"
+                                        scope="page"
+                                      />
+                                    </c:if>
+                                  </c:forEach>
+                                </c:if>
+
+                                <c:choose>
+                                  <%-- Level 3 with visible Level-4 children. --%>
+
+                                  <c:when test="${hasVisibleL4}">
+                                    <div class="mega-menu-flyout">
+                                      <button
                                         class="mega-menu-flyout__trigger"
-                                        href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
-                                        aria-haspopup="true"
+                                        type="button"
                                         aria-expanded="false"
                                         data-mega-menu-flyout-trigger
                                       >
@@ -449,192 +446,300 @@
                                           class="has-icon icon-chevron-right icon-flip-rtl mega-menu-flyout__icon"
                                           aria-hidden="true"
                                         ></span>
+                                      </button>
+
+                                      <div
+                                        class="mega-menu-flyout__menu"
+                                        data-mega-menu-flyout-menu
+                                      >
+                                        <%-- Optional Level-3 landing-page link.
+                                             Kept without an icon, matching static. --%>
+
+                                        <portal-navigation:urlGeneration
+                                          contentNode="${wp.identification[nodeL3]}"
+                                          keepNavigationalState="false"
+                                        >
+                                          <a
+                                            class="mega-menu-flyout__link mega-menu-flyout__link--overview"
+                                            href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
+                                          >
+                                            <c:out value="${nodeL3.title}" />
+                                          </a>
+                                        </portal-navigation:urlGeneration>
+
+                                        <c:forEach
+                                          items="${wp.navigationModel.children[nodeL3]}"
+                                          var="nodeL4"
+                                        >
+                                          <c:set
+                                            var="hidePageFromNavL4"
+                                            value="${nodeL4.metadata['navVisibility']}"
+                                          />
+
+                                          <c:if
+                                            test="${hidePageFromNavL4 != 'hide'}"
+                                          >
+                                            <portal-navigation:urlGeneration
+                                              contentNode="${wp.identification[nodeL4]}"
+                                              keepNavigationalState="false"
+                                            >
+                                              <a
+                                                class="mega-menu-flyout__link"
+                                                href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
+                                              >
+                                                <c:out value="${nodeL4.title}" />
+                                              </a>
+                                            </portal-navigation:urlGeneration>
+                                          </c:if>
+                                        </c:forEach>
+                                      </div>
+                                    </div>
+                                  </c:when>
+
+                                  <%-- Level 3 without visible Level-4 children. --%>
+
+                                  <c:otherwise>
+                                    <portal-navigation:urlGeneration
+                                      contentNode="${wp.identification[nodeL3]}"
+                                      keepNavigationalState="false"
+                                    >
+                                      <a
+                                        class="mega-menu-panel__link"
+                                        href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
+                                      >
+                                        <c:out value="${nodeL3.title}" />
                                       </a>
                                     </portal-navigation:urlGeneration>
+                                  </c:otherwise>
+                                </c:choose>
 
-                                    <div
-                                      class="mega-menu-flyout__menu"
-                                      data-mega-menu-flyout-menu
-                                    >
-                                      <c:forEach
-                                        items="${wp.navigationModel.children[nodeL3]}"
-                                        var="nodeL4"
-                                      >
-                                        <c:set
-                                          var="hidePageFromNavL4"
-                                          value="${nodeL4.metadata['navVisibility']}"
+                                <c:set
+                                  var="visibleLevel3Counter"
+                                  value="${visibleLevel3Counter + 1}"
+                                  scope="page"
+                                />
+
+                                <%-- Close columns after entries 6, 12, 18... --%>
+
+                                <c:if test="${visibleLevel3Counter mod 6 == 0}">
+                                  </div>
+                                </c:if>
+                              </c:if>
+                            </c:forEach>
+
+                            <%-- Close the final partially filled column. --%>
+
+                            <c:if test="${visibleLevel3Counter mod 6 != 0}">
+                              </div>
+                            </c:if>
+
+                            <%-- Careers link remains available for the relevant
+                                 About section. It has no added chevron icon. --%>
+
+                            <c:if
+                              test="${nodeL2.objectID.uniqueName == 'com.tadawul.about.exchange.aboutus.v3'}"
+                            >
+                              <div class="mega-menu-panel__column">
+                                <c:url
+                                  var="careersUrl"
+                                  value="https://careers.tadawulgroup.sa/"
+                                >
+                                  <c:param
+                                    name="lang"
+                                    value="${pageContext.request.locale.language == 'ar' ? 'ar' : 'en'}"
+                                  />
+                                </c:url>
+
+                                <a
+                                  class="mega-menu-panel__link mega-menu-panel__link--external"
+                                  href="${careersUrl}"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <fmt:message key="theme.subMenue.career" />
+                                </a>
+                              </div>
+                            </c:if>
+
+                            <%-- ==================================================
+                                 Conditional featured content from legacy header
+                                 ================================================== --%>
+
+                            <c:set
+                              var="hasMegaMenuFeature"
+                              value="${
+                                node.objectID.uniqueName == 'com.tadawul.saudiexchange.ourmarkets.v3'
+                                or node.objectID.uniqueName == 'com.tadawul.listing.v3'
+                                or node.objectID.uniqueName == 'com.tadawul.listing.v3_update'
+                                or node.objectID.uniqueName == 'com.tadawul.trading.v3'
+                                or node.objectID.uniqueName == 'com.tadawul.trading.v3_update'
+                                or node.objectID.uniqueName == 'com.tadawul.newsandreports.v3'
+                                or node.objectID.uniqueName == 'com.tadawul.newsandreports.v3_update'
+                                or node.objectID.uniqueName == 'com.tadawul.v3.rules.and.guidance'
+                                or node.objectID.uniqueName == 'com.tadawul.aboutsaudiexchange.v3'
+                                or node.objectID.uniqueName == 'com.tadawul.aboutsaudiexchange.v3_update'
+                              }"
+                            />
+
+                            <c:if test="${hasMegaMenuFeature}">
+                              <div class="mega-menu-panel__feature">
+                                <c:choose>
+                                  <%-- Our Market --%>
+
+                                  <c:when
+                                    test="${node.objectID.uniqueName == 'com.tadawul.saudiexchange.ourmarkets.v3'}"
+                                  >
+                                    <wcm:setExplicitContext
+                                      path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/Our market"
+                                    />
+
+                                    <wcm:content
+                                      pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
+                                    />
+                                  </c:when>
+
+                                  <%-- Listing: retain legacy custom 400-listed box. --%>
+
+                                  <c:when
+                                    test="${
+                                      node.objectID.uniqueName == 'com.tadawul.listing.v3'
+                                      or node.objectID.uniqueName == 'com.tadawul.listing.v3_update'
+                                    }"
+                                  >
+                                    <div class="menubondBox">
+                                      <div class="menubondHdng">
+                                        <fmt:message
+                                          key="theme.menu.listing.right.400.info"
                                         />
+                                      </div>
 
-                                        <c:if test="${hidePageFromNavL4 != 'hide'}">
-                                          <portal-navigation:urlGeneration
-                                            contentNode="${wp.identification[nodeL4]}"
-                                            keepNavigationalState="false"
+                                      <div class="menubondCont">
+                                        <p>
+                                          <fmt:message
+                                            key="theme.menu.listing.right.400.desc"
+                                          />
+                                        </p>
+
+                                        <c:choose>
+                                          <c:when
+                                            test="${fn:contains(pageContext.request.locale.language, 'ar')}"
                                           >
                                             <a
-                                              class="mega-menu-flyout__link"
-                                              href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
+                                              class="visitBtn"
+                                              href="https://www.saudiexchange.sa/Resources/400ListedSecurities/ar.html"
+                                              target="_blank"
+                                              rel="noopener noreferrer"
                                             >
-                                              <c:out value="${nodeL4.title}" />
+                                              <fmt:message
+                                                key="theme.menu.listing.right.cta"
+                                              />
                                             </a>
-                                          </portal-navigation:urlGeneration>
-                                        </c:if>
-                                      </c:forEach>
+                                          </c:when>
+
+                                          <c:otherwise>
+                                            <a
+                                              class="visitBtn"
+                                              href="https://www.saudiexchange.sa/Resources/400ListedSecurities/"
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                            >
+                                              <fmt:message
+                                                key="theme.menu.listing.right.cta"
+                                              />
+                                            </a>
+                                          </c:otherwise>
+                                        </c:choose>
+                                      </div>
                                     </div>
-                                  </div>
-                                </c:when>
+                                  </c:when>
 
-                                <%-- Level 3 without visible Level-4 children. --%>
+                                  <%-- Trading --%>
 
-                                <c:otherwise>
-                                  <portal-navigation:urlGeneration
-                                    contentNode="${wp.identification[nodeL3]}"
-                                    keepNavigationalState="false"
+                                  <c:when
+                                    test="${
+                                      node.objectID.uniqueName == 'com.tadawul.trading.v3'
+                                      or node.objectID.uniqueName == 'com.tadawul.trading.v3_update'
+                                    }"
                                   >
-                                    <a
-                                      class="mega-menu-panel__link"
-                                      href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
-                                    >
-                                      <c:out value="${nodeL3.title}" />
-                                    </a>
-                                  </portal-navigation:urlGeneration>
-                                </c:otherwise>
-                              </c:choose>
+                                    <wcm:setExplicitContext
+                                      path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/Trading"
+                                    />
+
+                                    <wcm:content
+                                      pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
+                                    />
+                                  </c:when>
+
+                                  <%-- News and Reports --%>
+
+                                  <c:when
+                                    test="${
+                                      node.objectID.uniqueName == 'com.tadawul.newsandreports.v3'
+                                      or node.objectID.uniqueName == 'com.tadawul.newsandreports.v3_update'
+                                    }"
+                                  >
+                                    <wcm:setExplicitContext
+                                      path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/market news"
+                                    />
+
+                                    <wcm:content
+                                      pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
+                                    />
+                                  </c:when>
+
+                                  <%-- Rules and Guidance --%>
+
+                                  <c:when
+                                    test="${node.objectID.uniqueName == 'com.tadawul.v3.rules.and.guidance'}"
+                                  >
+                                    <wcm:setExplicitContext
+                                      path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/Rules and Guidance"
+                                    />
+
+                                    <wcm:content
+                                      pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
+                                    />
+                                  </c:when>
+
+                                  <%-- About Saudi Exchange --%>
+
+                                  <c:when
+                                    test="${
+                                      node.objectID.uniqueName == 'com.tadawul.aboutsaudiexchange.v3'
+                                      or node.objectID.uniqueName == 'com.tadawul.aboutsaudiexchange.v3_update'
+                                    }"
+                                  >
+                                    <wcm:setExplicitContext
+                                      path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/About Saudi Exchange"
+                                    />
+
+                                    <wcm:content
+                                      pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
+                                    />
+                                  </c:when>
+                                </c:choose>
+                              </div>
                             </c:if>
-                          </c:forEach>
-
-                          <%-- ======================================================
-                               Careers external link
-                               ====================================================== --%>
-
-                          <c:if
-                            test="${nodeL2.objectID.uniqueName == 'com.tadawul.about.exchange.aboutus.v3'}"
-                          >
-                            <c:url
-                              var="careersUrl"
-                              value="https://careers.tadawulgroup.sa/"
-                            >
-                              <c:param
-                                name="lang"
-                                value="${pageContext.request.locale.language == 'ar' ? 'ar' : 'en'}"
-                              />
-                            </c:url>
-
-                            <a
-                              class="mega-menu-panel__link mega-menu-panel__link--external"
-                              href="${careersUrl}"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <span>
-                                <fmt:message key="theme.subMenue.career" />
-                              </span>
-
-                              <span
-                                class="has-icon icon-external-link"
-                                aria-hidden="true"
-                              ></span>
-                            </a>
-                          </c:if>
-                        </div>
-
-                        <%-- ========================================================
-                             Featured content area
-
-                             Keep this valid and empty until WCM content is enabled.
-                             The wrapper can be hidden through CSS when empty.
-                             ======================================================== --%>
-
-                        <div class="mega-menu-panel__feature">
-                          <div
-                            class="mega-feature"
-                            data-mega-menu-feature
-                            data-navigation-node="${node.objectID.uniqueName}"
-                          >
-                            <%--
-                            Example WCM integration:
-
-                            <c:choose>
-                              <c:when test="${node.objectID.uniqueName == 'com.tadawul.saudiexchange.ourmarkets.v3'}">
-                                <wcm:setExplicitContext
-                                  path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/Our market"
-                                />
-                                <wcm:content
-                                  pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
-                                />
-                              </c:when>
-
-                              <c:when test="${node.objectID.uniqueName == 'com.tadawul.listing.v3_update'}">
-                                <wcm:setExplicitContext
-                                  path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/Listing"
-                                />
-                                <wcm:content
-                                  pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
-                                />
-                              </c:when>
-
-                              <c:when test="${node.objectID.uniqueName == 'com.tadawul.trading.v3_update'}">
-                                <wcm:setExplicitContext
-                                  path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/Trading"
-                                />
-                                <wcm:content
-                                  pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
-                                />
-                              </c:when>
-
-                              <c:when test="${node.objectID.uniqueName == 'com.tadawul.newsandreports.v3_update'}">
-                                <wcm:setExplicitContext
-                                  path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/market news"
-                                />
-                                <wcm:content
-                                  pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
-                                />
-                              </c:when>
-
-                              <c:when test="${node.objectID.uniqueName == 'com.tadawul.v3.rules.and.guidance'}">
-                                <wcm:setExplicitContext
-                                  path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/Rules and Guidance"
-                                />
-                                <wcm:content
-                                  pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
-                                />
-                              </c:when>
-
-                              <c:when test="${node.objectID.uniqueName == 'com.tadawul.aboutsaudiexchange.v3_update'}">
-                                <wcm:setExplicitContext
-                                  path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/About Saudi Exchange"
-                                />
-                                <wcm:content
-                                  pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
-                                />
-                              </c:when>
-                            </c:choose>
-                            --%>
                           </div>
-                        </div>
-                      </div>
-                    </section>
-                  </c:if>
-                </c:forEach>
+                        </section>
+                      </c:if>
+                    </c:forEach>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </li>
-      </c:if>
-    </c:forEach>
-  </ul>
-</nav>
+            </li>
+          </c:if>
+        </c:forEach>
+      </ul>
+    </nav>
 
     <%-- ======================================================================
          Header actions
          ====================================================================== --%>
 
     <div class="site-header__actions header-actions">
-      <%-- Desktop actions --%>
-
       <div class="header-actions__desktop">
         <c:choose>
-          <%-- Current language: Arabic; switch target: English. --%>
-
           <c:when
             test="${fn:contains(pageContext.request.locale.language, 'ar')}"
           >
@@ -649,17 +754,11 @@
               </span>
 
               <span
-                class="has-icon icon-globe icon-accent header-lang-switch__icon"
+                class="has-icon icon-globe icon-accent mobile-nav__language-icon"
                 aria-hidden="true"
               ></span>
-
-              <span class="visually-hidden">
-                Switch to English
-              </span>
             </a>
           </c:when>
-
-          <%-- Current language: English; switch target: Arabic. --%>
 
           <c:otherwise>
             <a
@@ -668,39 +767,36 @@
               aria-label="Switch to Arabic"
               hreflang="ar"
             >
-              <span class="header-lang-switch__current">
-                EN
-              </span>
+              <span class="header-lang-switch__current">EN</span>
 
               <span
-                class="has-icon icon-globe icon-accent header-lang-switch__icon"
+                class="has-icon icon-globe icon-accent mobile-nav__language-icon"
                 aria-hidden="true"
               ></span>
-
-              <span class="visually-hidden">
-                Switch to Arabic
-              </span>
             </a>
           </c:otherwise>
         </c:choose>
       </div>
-
-      <%--
+<%--
   ============================================================================
   Saudi Exchange — Mobile Navigation
   ----------------------------------------------------------------------------
   Place this block immediately after </header>.
 
-  Navigation mapping:
-    Level 1 -> Primary mobile section
-    Level 2 -> Nested section
-    Level 3 -> Nested link or expandable section
-    Level 4 -> Final nested links
+  Matches the static structure:
+    - mobile-nav-overlay
+    - mobile-nav
+    - mobile-nav__layout
+    - mobile-nav__body
+    - mobile-nav__menu
+    - nested mobile-nav__submenu blocks
 
-  Removed:
-    - All mobile theme buttons
-    - Repeated language controls on every navigation level
-    - Separate generated drawer panels for every navigation node
+  Behavior:
+    - Parent items with children render only as expand/collapse buttons.
+    - Opening a parent shows its children directly.
+    - No repeated "Our Market > Our Market" overview link.
+    - Featured content is rendered conditionally using the legacy rules.
+    - Theme controls are removed.
   ============================================================================
 --%>
 
@@ -719,21 +815,59 @@
 >
   <div class="mobile-nav__layout">
     <%-- ======================================================================
-         Drawer header
+         Mobile header
          ====================================================================== --%>
 
     <header class="mobile-nav__header">
-      <a
-        class="mobile-nav__brand"
-        href="/"
-        aria-label="Saudi Exchange homepage"
-      >
-        <img
-          class="mobile-nav__logo"
-          src="<r:url uri='${themeWebDAVBaseURI}assets/images/favicon.png' keepNavigationalState='false' lateBinding='false' protected='false' />"
-          alt="Saudi Exchange"
-        />
-      </a>
+      <div class="mobile-nav__brand">
+        <c:choose>
+          <c:when
+            test="${fn:contains(pageContext.request.locale.language, 'ar')}"
+          >
+            <wcm:initworkspace />
+
+            <%
+              Workspace mobileWorkspace =
+                (Workspace) pageContext.getAttribute(Workspace.WCM_ERROR_KEY);
+
+              RenderingContext mobileRenderingContext =
+                (RenderingContext) request.getAttribute(
+                  Workspace.WCM_RENDERINGCONTEXT_KEY
+                );
+            %>
+
+            <wcm:setExplicitContext
+              path="tadawulv2_ar/sa-tadawul/sa-home/sa-logo/logo"
+            />
+
+            <wcm:content
+              pageDesign="TadawulV2_Design/LOGO/LOGO-PT_v3"
+            />
+          </c:when>
+
+          <c:otherwise>
+            <wcm:initworkspace />
+
+            <%
+              Workspace mobileWorkspace =
+                (Workspace) pageContext.getAttribute(Workspace.WCM_ERROR_KEY);
+
+              RenderingContext mobileRenderingContext =
+                (RenderingContext) request.getAttribute(
+                  Workspace.WCM_RENDERINGCONTEXT_KEY
+                );
+            %>
+
+            <wcm:setExplicitContext
+              path="tadawulv2_en/sa-tadawul/sa-home/sa-logo/logo"
+            />
+
+            <wcm:content
+              pageDesign="TadawulV2_Design/LOGO/LOGO-PT_v3"
+            />
+          </c:otherwise>
+        </c:choose>
+      </div>
 
       <button
         class="mobile-nav__close has-icon icon-close-x"
@@ -788,11 +922,11 @@
     </div>
 
     <%-- ======================================================================
-         Navigation
+         Mobile navigation body
          ====================================================================== --%>
 
-    <nav class="mobile-nav__navigation" aria-label="Mobile main navigation">
-      <ul class="mobile-nav__list">
+    <nav class="mobile-nav__body" aria-label="Mobile main navigation">
+      <ul class="mobile-nav__menu">
         <c:set
           var="mobileNavigationRoot"
           value="${wp.selectionModel.selectionPath[1]}"
@@ -801,7 +935,7 @@
         <c:forEach
           items="${wp.navigationModel.children[mobileNavigationRoot]}"
           var="nodeL1"
-          varStatus="level1Status"
+          varStatus="mobileLevel1Status"
         >
           <c:set
             var="hidePageFromMobileNavL1"
@@ -824,11 +958,17 @@
           >
             <c:set
               var="mobileLevel1Id"
-              value="mobile-menu-l1-${level1Status.index}"
+              value="mobile-menu-l1-${mobileLevel1Status.index}"
             />
 
-            <li class="mobile-nav__item has-submenu">
+            <li
+              class="mobile-nav__item${wp.navigationModel.hasChildren[nodeL1] ? ' has-submenu' : ''}"
+            >
               <c:choose>
+                <%-- ==========================================================
+                     Level 1 with children
+                     ========================================================== --%>
+
                 <c:when test="${wp.navigationModel.hasChildren[nodeL1]}">
                   <button
                     class="mobile-nav__trigger"
@@ -854,36 +994,11 @@
                     aria-hidden="true"
                     hidden
                   >
-                    <%-- Link to the Level-1 landing page. --%>
-
-                    <portal-navigation:urlGeneration
-                      contentNode="${wp.identification[nodeL1]}"
-                      keepNavigationalState="false"
-                    >
-                      <a
-                        class="mobile-nav__link mobile-nav__link--overview"
-                        href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
-                      >
-                        <span>
-                          <c:out value="${nodeL1.title}" />
-                        </span>
-
-                        <span
-                          class="has-icon icon-chevron-right icon-flip-rtl"
-                          aria-hidden="true"
-                        ></span>
-                      </a>
-                    </portal-navigation:urlGeneration>
-
                     <ul class="mobile-nav__submenu-list">
-                      <%-- ======================================================
-                           Level 2
-                           ====================================================== --%>
-
                       <c:forEach
                         items="${wp.navigationModel.children[nodeL1]}"
                         var="nodeL2"
-                        varStatus="level2Status"
+                        varStatus="mobileLevel2Status"
                       >
                         <c:set
                           var="hidePageFromMobileNavL2"
@@ -893,11 +1008,17 @@
                         <c:if test="${hidePageFromMobileNavL2 != 'hide'}">
                           <c:set
                             var="mobileLevel2Id"
-                            value="mobile-menu-l2-${level1Status.index}-${level2Status.index}"
+                            value="mobile-menu-l2-${mobileLevel1Status.index}-${mobileLevel2Status.index}"
                           />
 
-                          <li class="mobile-nav__submenu-item">
+                          <li
+                            class="mobile-nav__submenu-item${wp.navigationModel.hasChildren[nodeL2] ? ' has-submenu' : ''}"
+                          >
                             <c:choose>
+                              <%-- ==============================================
+                                   Level 2 with children
+                                   ============================================== --%>
+
                               <c:when
                                 test="${wp.navigationModel.hasChildren[nodeL2]}"
                               >
@@ -925,36 +1046,11 @@
                                   aria-hidden="true"
                                   hidden
                                 >
-                                  <%-- Link to the Level-2 landing page. --%>
-
-                                  <portal-navigation:urlGeneration
-                                    contentNode="${wp.identification[nodeL2]}"
-                                    keepNavigationalState="false"
-                                  >
-                                    <a
-                                      class="mobile-nav__link mobile-nav__link--overview"
-                                      href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
-                                    >
-                                      <span>
-                                        <c:out value="${nodeL2.title}" />
-                                      </span>
-
-                                      <span
-                                        class="has-icon icon-chevron-right icon-flip-rtl"
-                                        aria-hidden="true"
-                                      ></span>
-                                    </a>
-                                  </portal-navigation:urlGeneration>
-
                                   <ul class="mobile-nav__submenu-list">
-                                    <%-- ==========================================
-                                         Level 3
-                                         ========================================== --%>
-
                                     <c:forEach
                                       items="${wp.navigationModel.children[nodeL2]}"
                                       var="nodeL3"
-                                      varStatus="level3Status"
+                                      varStatus="mobileLevel3Status"
                                     >
                                       <c:set
                                         var="hidePageFromMobileNavL3"
@@ -991,11 +1087,17 @@
 
                                         <c:set
                                           var="mobileLevel3Id"
-                                          value="mobile-menu-l3-${level1Status.index}-${level2Status.index}-${level3Status.index}"
+                                          value="mobile-menu-l3-${mobileLevel1Status.index}-${mobileLevel2Status.index}-${mobileLevel3Status.index}"
                                         />
 
-                                        <li class="mobile-nav__submenu-item">
+                                        <li
+                                          class="mobile-nav__submenu-item${hasVisibleMobileL4 ? ' has-submenu' : ''}"
+                                        >
                                           <c:choose>
+                                            <%-- ==================================
+                                                 Level 3 with visible Level 4
+                                                 ================================== --%>
+
                                             <c:when test="${hasVisibleMobileL4}">
                                               <button
                                                 class="mobile-nav__subtrigger"
@@ -1023,36 +1125,9 @@
                                                 aria-hidden="true"
                                                 hidden
                                               >
-                                                <%-- Link to Level-3 landing page. --%>
-
-                                                <portal-navigation:urlGeneration
-                                                  contentNode="${wp.identification[nodeL3]}"
-                                                  keepNavigationalState="false"
-                                                >
-                                                  <a
-                                                    class="mobile-nav__link mobile-nav__link--overview"
-                                                    href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
-                                                  >
-                                                    <span>
-                                                      <c:out
-                                                        value="${nodeL3.title}"
-                                                      />
-                                                    </span>
-
-                                                    <span
-                                                      class="has-icon icon-chevron-right icon-flip-rtl"
-                                                      aria-hidden="true"
-                                                    ></span>
-                                                  </a>
-                                                </portal-navigation:urlGeneration>
-
                                                 <ul
                                                   class="mobile-nav__submenu-list"
                                                 >
-                                                  <%-- ==============================
-                                                       Level 4
-                                                       ============================== --%>
-
                                                   <c:forEach
                                                     items="${wp.navigationModel.children[nodeL3]}"
                                                     var="nodeL4"
@@ -1088,6 +1163,10 @@
                                               </div>
                                             </c:when>
 
+                                            <%-- ==================================
+                                                 Level 3 direct link
+                                                 ================================== --%>
+
                                             <c:otherwise>
                                               <portal-navigation:urlGeneration
                                                 contentNode="${wp.identification[nodeL3]}"
@@ -1106,7 +1185,7 @@
                                       </c:if>
                                     </c:forEach>
 
-                                    <%-- Careers external link. --%>
+                                    <%-- Careers link --%>
 
                                     <c:if
                                       test="${nodeL2.objectID.uniqueName == 'com.tadawul.about.exchange.aboutus.v3'}"
@@ -1128,22 +1207,167 @@
                                           target="_blank"
                                           rel="noopener noreferrer"
                                         >
-                                          <span>
-                                            <fmt:message
-                                              key="theme.subMenue.career"
-                                            />
-                                          </span>
-
-                                          <span
-                                            class="has-icon icon-external-link"
-                                            aria-hidden="true"
-                                          ></span>
+                                          <fmt:message
+                                            key="theme.subMenue.career"
+                                          />
                                         </a>
                                       </li>
                                     </c:if>
                                   </ul>
+
+                                  <%-- ==========================================
+                                       Featured content for this Level-2 section
+                                       ========================================== --%>
+
+                                  <c:set
+                                    var="hasMobileFeature"
+                                    value="${
+                                      nodeL1.objectID.uniqueName == 'com.tadawul.saudiexchange.ourmarkets.v3'
+                                      or nodeL1.objectID.uniqueName == 'com.tadawul.listing.v3'
+                                      or nodeL1.objectID.uniqueName == 'com.tadawul.listing.v3_update'
+                                      or nodeL1.objectID.uniqueName == 'com.tadawul.trading.v3'
+                                      or nodeL1.objectID.uniqueName == 'com.tadawul.trading.v3_update'
+                                      or nodeL1.objectID.uniqueName == 'com.tadawul.newsandreports.v3'
+                                      or nodeL1.objectID.uniqueName == 'com.tadawul.newsandreports.v3_update'
+                                      or nodeL1.objectID.uniqueName == 'com.tadawul.v3.rules.and.guidance'
+                                      or nodeL1.objectID.uniqueName == 'com.tadawul.aboutsaudiexchange.v3'
+                                      or nodeL1.objectID.uniqueName == 'com.tadawul.aboutsaudiexchange.v3_update'
+                                    }"
+                                  />
+
+                                  <c:if test="${hasMobileFeature}">
+                                    <div class="mobile-nav__feature">
+                                      <c:choose>
+                                        <c:when
+                                          test="${nodeL1.objectID.uniqueName == 'com.tadawul.saudiexchange.ourmarkets.v3'}"
+                                        >
+                                          <wcm:setExplicitContext
+                                            path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/Our market"
+                                          />
+
+                                          <wcm:content
+                                            pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
+                                          />
+                                        </c:when>
+
+                                        <c:when
+                                          test="${
+                                            nodeL1.objectID.uniqueName == 'com.tadawul.listing.v3'
+                                            or nodeL1.objectID.uniqueName == 'com.tadawul.listing.v3_update'
+                                          }"
+                                        >
+                                          <div class="menubondBox">
+                                            <div class="menubondHdng">
+                                              <fmt:message
+                                                key="theme.menu.listing.right.400.info"
+                                              />
+                                            </div>
+
+                                            <div class="menubondCont">
+                                              <p>
+                                                <fmt:message
+                                                  key="theme.menu.listing.right.400.desc"
+                                                />
+                                              </p>
+
+                                              <c:choose>
+                                                <c:when
+                                                  test="${fn:contains(pageContext.request.locale.language, 'ar')}"
+                                                >
+                                                  <a
+                                                    class="visitBtn"
+                                                    href="https://www.saudiexchange.sa/Resources/400ListedSecurities/ar.html"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                  >
+                                                    <fmt:message
+                                                      key="theme.menu.listing.right.cta"
+                                                    />
+                                                  </a>
+                                                </c:when>
+
+                                                <c:otherwise>
+                                                  <a
+                                                    class="visitBtn"
+                                                    href="https://www.saudiexchange.sa/Resources/400ListedSecurities/"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                  >
+                                                    <fmt:message
+                                                      key="theme.menu.listing.right.cta"
+                                                    />
+                                                  </a>
+                                                </c:otherwise>
+                                              </c:choose>
+                                            </div>
+                                          </div>
+                                        </c:when>
+
+                                        <c:when
+                                          test="${
+                                            nodeL1.objectID.uniqueName == 'com.tadawul.trading.v3'
+                                            or nodeL1.objectID.uniqueName == 'com.tadawul.trading.v3_update'
+                                          }"
+                                        >
+                                          <wcm:setExplicitContext
+                                            path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/Trading"
+                                          />
+
+                                          <wcm:content
+                                            pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
+                                          />
+                                        </c:when>
+
+                                        <c:when
+                                          test="${
+                                            nodeL1.objectID.uniqueName == 'com.tadawul.newsandreports.v3'
+                                            or nodeL1.objectID.uniqueName == 'com.tadawul.newsandreports.v3_update'
+                                          }"
+                                        >
+                                          <wcm:setExplicitContext
+                                            path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/market news"
+                                          />
+
+                                          <wcm:content
+                                            pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
+                                          />
+                                        </c:when>
+
+                                        <c:when
+                                          test="${nodeL1.objectID.uniqueName == 'com.tadawul.v3.rules.and.guidance'}"
+                                        >
+                                          <wcm:setExplicitContext
+                                            path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/Rules and Guidance"
+                                          />
+
+                                          <wcm:content
+                                            pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
+                                          />
+                                        </c:when>
+
+                                        <c:when
+                                          test="${
+                                            nodeL1.objectID.uniqueName == 'com.tadawul.aboutsaudiexchange.v3'
+                                            or nodeL1.objectID.uniqueName == 'com.tadawul.aboutsaudiexchange.v3_update'
+                                          }"
+                                        >
+                                          <wcm:setExplicitContext
+                                            path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/About Saudi Exchange"
+                                          />
+
+                                          <wcm:content
+                                            pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
+                                          />
+                                        </c:when>
+                                      </c:choose>
+                                    </div>
+                                  </c:if>
                                 </div>
                               </c:when>
+
+                              <%-- ==============================================
+                                   Level 2 direct link
+                                   ============================================== --%>
 
                               <c:otherwise>
                                 <portal-navigation:urlGeneration
@@ -1163,70 +1387,12 @@
                         </c:if>
                       </c:forEach>
                     </ul>
-
-                    <%-- ========================================================
-                         Optional featured content
-                         ======================================================== --%>
-
-                    <div
-                      class="mobile-nav__feature"
-                      data-mobile-nav-feature
-                      data-navigation-node="${nodeL1.objectID.uniqueName}"
-                    >
-                      <%--
-                      Enable the appropriate WCM content when the content model
-                      and language-specific paths are finalized.
-
-                      <c:choose>
-                        <c:when test="${nodeL1.objectID.uniqueName == 'com.tadawul.saudiexchange.ourmarkets.v3'}">
-                          <wcm:setExplicitContext
-                            path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/Our market"
-                          />
-                          <wcm:content
-                            pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
-                          />
-                        </c:when>
-
-                        <c:when test="${nodeL1.objectID.uniqueName == 'com.tadawul.trading.v3'}">
-                          <wcm:setExplicitContext
-                            path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/Trading"
-                          />
-                          <wcm:content
-                            pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
-                          />
-                        </c:when>
-
-                        <c:when test="${nodeL1.objectID.uniqueName == 'com.tadawul.newsandreports.v3'}">
-                          <wcm:setExplicitContext
-                            path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/market news"
-                          />
-                          <wcm:content
-                            pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
-                          />
-                        </c:when>
-
-                        <c:when test="${nodeL1.objectID.uniqueName == 'com.tadawul.v3.rules.and.guidance'}">
-                          <wcm:setExplicitContext
-                            path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/Rules and Guidance"
-                          />
-                          <wcm:content
-                            pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
-                          />
-                        </c:when>
-
-                        <c:when test="${nodeL1.objectID.uniqueName == 'com.tadawul.aboutsaudiexchange.v3'}">
-                          <wcm:setExplicitContext
-                            path="tadawulv2_en/sa-tadawul/SA-Home/Featured-Menu-V3/About Saudi Exchange"
-                          />
-                          <wcm:content
-                            pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
-                          />
-                        </c:when>
-                      </c:choose>
-                      --%>
-                    </div>
                   </div>
                 </c:when>
+
+                <%-- ==========================================================
+                     Level 1 direct link
+                     ========================================================== --%>
 
                 <c:otherwise>
                   <portal-navigation:urlGeneration
@@ -1248,9 +1414,16 @@
       </ul>
     </nav>
 
-    <%-- Footer links can be connected to portal nodes later. --%>
+    <%-- ======================================================================
+         Mobile footer
+         ====================================================================== --%>
 
     <footer class="mobile-nav__footer">
+      <%--
+        Replace these placeholders with the final portal-generated nodes
+        when their unique names are confirmed.
+      --%>
+
       <a class="mobile-nav__footer-link" href="#">
         <fmt:message key="theme.footer.contactUs" />
       </a>
@@ -1261,7 +1434,6 @@
     </footer>
   </div>
 </aside>
-
       <div class="header-actions__mobile">
         <button
           class="header-burger"
