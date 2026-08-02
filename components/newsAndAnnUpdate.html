@@ -49,6 +49,8 @@
       ========================================================== -->
 
       <div class="tabs-nav" role="tablist" aria-label="Audience pathways">
+        <!-- Investing -->
+
         <button
           id="audience-pathways-tab-investing"
           class="tab-link active"
@@ -70,6 +72,8 @@
             text="[Plugin:Locale]"] الاستثمار [/Plugin:Matches]
           </span>
         </button>
+
+        <!-- Issuing -->
 
         <button
           id="audience-pathways-tab-issuing"
@@ -93,28 +97,7 @@
           </span>
         </button>
 
-        <button
-          id="audience-pathways-tab-qfi"
-          class="tab-link"
-          type="button"
-          role="tab"
-          aria-selected="false"
-          aria-controls="audience-pathways-panel-qfi"
-          tabindex="-1"
-          data-tab-target="audience-pathways-panel-qfi"
-        >
-          <span
-            class="audience-pathways-nav__icon has-icon icon-check"
-            aria-hidden="true"
-          ></span>
-
-          <span>
-            [Plugin:Matches pattern="en(.*)" text="[Plugin:Locale]"] Qualified
-            Foreign Investor [/Plugin:Matches] [Plugin:Matches pattern="ar(.*)"
-            text="[Plugin:Locale]"] المستثمرون الأجانب المؤهلون
-            [/Plugin:Matches]
-          </span>
-        </button>
+        <!-- Membership -->
 
         <button
           id="audience-pathways-tab-membership"
@@ -145,7 +128,7 @@
 
       <div class="tabs-content audience-pathways__content">
         <!-- =======================================================
-             Investing
+             Investing Panel
         ======================================================== -->
 
         <div
@@ -169,7 +152,7 @@
         </div>
 
         <!-- =======================================================
-             Issuing
+             Issuing Panel
         ======================================================== -->
 
         <div
@@ -178,6 +161,7 @@
           role="tabpanel"
           aria-labelledby="audience-pathways-tab-issuing"
           aria-hidden="true"
+          tabindex="0"
           hidden
         >
           <nav class="audience-pathways__cards" aria-label="Issuing resources">
@@ -191,32 +175,7 @@
         </div>
 
         <!-- =======================================================
-             Qualified Foreign Investor
-        ======================================================== -->
-
-        <div
-          id="audience-pathways-panel-qfi"
-          class="tab-pane"
-          role="tabpanel"
-          aria-labelledby="audience-pathways-tab-qfi"
-          aria-hidden="true"
-          hidden
-        >
-          <nav
-            class="audience-pathways__cards"
-            aria-label="Qualified foreign investor resources"
-          >
-            [Plugin:Matches pattern="en(.*)" text="[Plugin:Locale]"] [Component
-            name="tadawulv2_design/menus/menu-home-what-are-you-looking-for-licensing-v3"
-            resultsPerPage="" startPage="" ] [/Plugin:Matches] [Plugin:Matches
-            pattern="ar(.*)" text="[Plugin:Locale]"] [Component
-            name="tadawulv2_design/menus/menu-home-what-are-you-looking-for-licensing-v3-ar"
-            resultsPerPage="" startPage="" ] [/Plugin:Matches]
-          </nav>
-        </div>
-
-        <!-- =======================================================
-             Membership
+             Membership Panel
         ======================================================== -->
 
         <div
@@ -225,6 +184,7 @@
           role="tabpanel"
           aria-labelledby="audience-pathways-tab-membership"
           aria-hidden="true"
+          tabindex="0"
           hidden
         >
           <nav
