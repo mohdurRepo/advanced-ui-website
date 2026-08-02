@@ -1,703 +1,245 @@
 <!-- ===============================================================
-     Latest News
+     Audience Pathways
 ================================================================ -->
 
 <section
-  class="market-updates__column"
-  aria-labelledby="market-news-title"
+  class="audience-pathways section"
+  aria-labelledby="audience-pathways-title"
 >
-  <h3
-    id="market-news-title"
-    class="section-heading section-heading--lg"
-  >
-    <span
-      class="section-heading__icon has-icon icon-tadawul"
-      aria-hidden="true"
-    ></span>
-
-    <span class="section-heading__text">
-      <fmt:message key="announcement.all.news.title" />
-    </span>
-  </h3>
-
-  <div class="market-news surface-insights" data-market-news>
+  <div class="container audience-pathways__container">
     <!-- ===========================================================
-         News Tabs
+         Section Heading
     ============================================================ -->
 
-    <div
-      class="tabs tabs--pill tabs--full market-news__tabs"
-      data-tabs
+    <h2
+      id="audience-pathways-title"
+      class="section-heading section-heading--lg section-heading--center section-heading--decorated audience-pathways__heading"
     >
-      <div
-        class="tabs-nav"
-        role="tablist"
-        aria-label="Latest news categories"
-      >
+      <span
+        class="section-heading__icon has-icon icon-tadawul"
+        aria-hidden="true"
+      ></span>
+
+      <span class="section-heading__text">
+        [Plugin:Matches pattern="en(.*)" text="[Plugin:Locale]"] What Are You
+        Looking For? [/Plugin:Matches] [Plugin:Matches pattern="ar(.*)"
+        text="[Plugin:Locale]"] ما الذي تبحث عنه؟ [/Plugin:Matches]
+      </span>
+    </h2>
+
+    <div class="audience-pathways__layout audience-pathways-nav tabs" data-tabs>
+      <!-- =========================================================
+           Introduction
+      ========================================================== -->
+
+      <div class="audience-pathways__aside">
+        <h3 class="audience-pathways__title">
+          [Plugin:Matches pattern="en(.*)" text="[Plugin:Locale]"] Smart
+          Investing,
+          <span>Seamless Growth</span>
+          [/Plugin:Matches] [Plugin:Matches pattern="ar(.*)"
+          text="[Plugin:Locale]"] الاستثمار الذكي
+          <span>النمو السلس</span>
+          [/Plugin:Matches]
+        </h3>
+      </div>
+
+      <!-- =========================================================
+           Navigation
+      ========================================================== -->
+
+      <div class="tabs-nav" role="tablist" aria-label="Audience pathways">
         <button
+          id="audience-pathways-tab-investing"
           class="tab-link active"
-          id="market-news-tab-market-news"
           type="button"
           role="tab"
           aria-selected="true"
-          aria-controls="market-news-panel-market-news"
+          aria-controls="audience-pathways-panel-investing"
           tabindex="0"
-          data-tab-target="market-news-panel-market-news"
+          data-tab-target="audience-pathways-panel-investing"
         >
-          <fmt:message key="announcement.market.news.label" />
+          <span
+            class="audience-pathways-nav__icon has-icon icon-check"
+            aria-hidden="true"
+          ></span>
+
+          <span>
+            [Plugin:Matches pattern="en(.*)" text="[Plugin:Locale]"] Investing
+            [/Plugin:Matches] [Plugin:Matches pattern="ar(.*)"
+            text="[Plugin:Locale]"] الاستثمار [/Plugin:Matches]
+          </span>
         </button>
 
         <button
+          id="audience-pathways-tab-issuing"
           class="tab-link"
-          id="market-news-tab-announcements"
           type="button"
           role="tab"
           aria-selected="false"
-          aria-controls="market-news-panel-announcements"
+          aria-controls="audience-pathways-panel-issuing"
           tabindex="-1"
-          data-tab-target="market-news-panel-announcements"
+          data-tab-target="audience-pathways-panel-issuing"
         >
-          <fmt:message key="announcement.label" />
+          <span
+            class="audience-pathways-nav__icon has-icon icon-check"
+            aria-hidden="true"
+          ></span>
+
+          <span>
+            [Plugin:Matches pattern="en(.*)" text="[Plugin:Locale]"] Issuing
+            [/Plugin:Matches] [Plugin:Matches pattern="ar(.*)"
+            text="[Plugin:Locale]"] إصدار الأسهم [/Plugin:Matches]
+          </span>
         </button>
 
         <button
+          id="audience-pathways-tab-qfi"
           class="tab-link"
-          id="market-news-tab-trending"
           type="button"
           role="tab"
           aria-selected="false"
-          aria-controls="market-news-panel-trending"
+          aria-controls="audience-pathways-panel-qfi"
           tabindex="-1"
-          data-tab-target="market-news-panel-trending"
+          data-tab-target="audience-pathways-panel-qfi"
         >
-          <fmt:message key="announcement.trending.label" />
+          <span
+            class="audience-pathways-nav__icon has-icon icon-check"
+            aria-hidden="true"
+          ></span>
+
+          <span>
+            [Plugin:Matches pattern="en(.*)" text="[Plugin:Locale]"] Qualified
+            Foreign Investor [/Plugin:Matches] [Plugin:Matches pattern="ar(.*)"
+            text="[Plugin:Locale]"] المستثمرون الأجانب المؤهلون
+            [/Plugin:Matches]
+          </span>
+        </button>
+
+        <button
+          id="audience-pathways-tab-membership"
+          class="tab-link"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="audience-pathways-panel-membership"
+          tabindex="-1"
+          data-tab-target="audience-pathways-panel-membership"
+        >
+          <span
+            class="audience-pathways-nav__icon has-icon icon-check"
+            aria-hidden="true"
+          ></span>
+
+          <span>
+            [Plugin:Matches pattern="en(.*)" text="[Plugin:Locale]"] Membership
+            [/Plugin:Matches] [Plugin:Matches pattern="ar(.*)"
+            text="[Plugin:Locale]"] العضوية [/Plugin:Matches]
+          </span>
         </button>
       </div>
 
-      <div class="tabs-content">
+      <!-- =========================================================
+           Tab Content
+      ========================================================== -->
+
+      <div class="tabs-content audience-pathways__content">
         <!-- =======================================================
-             Market News Panel
+             Investing
         ======================================================== -->
 
         <div
+          id="audience-pathways-panel-investing"
           class="tab-pane active"
-          id="market-news-panel-market-news"
           role="tabpanel"
-          aria-labelledby="market-news-tab-market-news"
+          aria-labelledby="audience-pathways-tab-investing"
           aria-hidden="false"
         >
-          <c:choose>
-            <c:when
-              test="${requestScope.MARKET_NEWS_VIEW != null
-                && not empty requestScope.MARKET_NEWS_VIEW}"
-            >
-              <div
-                class="market-news-list"
-                role="list"
-                data-market-news-list
-              >
-                <c:forEach
-                  items="${requestScope.MARKET_NEWS_VIEW}"
-                  var="allNews"
-                  begin="0"
-                  end="4"
-                >
-                  <%-- Resolve the market-news logo. --%>
-
-                  <c:choose>
-                    <c:when
-                      test="${allNews.companyType eq 'CMA'
-                        or allNews.companyType eq 'SE'
-                        or allNews.companyType eq 'EDAA'}"
-                    >
-                      <c:set
-                        var="logoSrc"
-                        value="https://betauat.saudiexchange.sa/Resources/SEImage/${allNews.companyType}.png"
-                      />
-                    </c:when>
-
-                    <c:otherwise>
-                      <c:set
-                        var="logoSrc"
-                        value="https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/${allNews.companyType}.png"
-                      />
-                    </c:otherwise>
-                  </c:choose>
-
-                  <article
-                    class="market-news-list__item"
-                    role="listitem"
-                  >
-                    <a
-                      class="market-news-list__link track-news-click"
-                      href="${allNews.url}"
-                      data-news-id="${allNews.newsId}"
-                      data-news-type="M"
-                    >
-                      <img
-                        class="market-news-list__logo"
-                        src="${logoSrc}"
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                        onerror="this.onerror=null; this.src='https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/default-Logo.png';"
-                      />
-
-                      <div class="market-news-list__content">
-                        <h4 class="market-news-list__title">
-                          ${allNews.newsShortDesc}
-                        </h4>
-
-                        <footer class="market-news-list__footer">
-                          <div
-                            class="market-news-list__datetime"
-                            dir="ltr"
-                          >
-                            <div class="market-news-list__dates">
-                              <span
-                                class="market-news-list__date market-news-list__date--hijri"
-                              >
-                                ${allNews.hijiDate}
-                              </span>
-
-                              <span
-                                class="market-news-list__date-separator"
-                                aria-hidden="true"
-                              >
-                                |
-                              </span>
-
-                              <span
-                                class="market-news-list__date market-news-list__date--gregorian"
-                              >
-                                ${allNews.newsDateStr}
-                              </span>
-                            </div>
-                          </div>
-                        </footer>
-                      </div>
-                    </a>
-                  </article>
-                </c:forEach>
-              </div>
-            </c:when>
-
-            <c:otherwise>
-              <div class="market-news__empty" role="status">
-                <p class="market-news__empty-text">
-                  No data available.
-                </p>
-              </div>
-            </c:otherwise>
-          </c:choose>
-
-          <div class="market-news__actions">
-            <a
-              class="btn btn-sm btn-outline-primary has-icon icon-chevron-right icon-end icon-flip-rtl"
-              href="/wps/portal/saudiexchange_v3/newsandreports/issuer-news?locale=${pageContext.response.locale}"
-            >
-              <span>
-                <fmt:message key="news.label.viewall" />
-              </span>
-            </a>
-          </div>
+          <nav
+            class="audience-pathways__cards"
+            aria-label="Investing resources"
+          >
+            [Plugin:Matches pattern="en(.*)" text="[Plugin:Locale]"] [Component
+            name="tadawulv2_design/menus/menu-home-what-are-you-looking-for-investing-v3"
+            resultsPerPage="" startPage="" ] [/Plugin:Matches] [Plugin:Matches
+            pattern="ar(.*)" text="[Plugin:Locale]"] [Component
+            name="tadawulv2_design/menus/menu-home-what-are-you-looking-for-investing-v3-ar"
+            resultsPerPage="" startPage="" ] [/Plugin:Matches]
+          </nav>
         </div>
 
         <!-- =======================================================
-             Announcements Panel
+             Issuing
         ======================================================== -->
 
         <div
+          id="audience-pathways-panel-issuing"
           class="tab-pane"
-          id="market-news-panel-announcements"
           role="tabpanel"
-          aria-labelledby="market-news-tab-announcements"
+          aria-labelledby="audience-pathways-tab-issuing"
           aria-hidden="true"
-          tabindex="0"
           hidden
         >
-          <c:choose>
-            <c:when
-              test="${requestScope.ANNOUNCEMENTS_VIEW != null
-                && not empty requestScope.ANNOUNCEMENTS_VIEW}"
-            >
-              <div
-                class="market-news-list"
-                role="list"
-                data-market-news-list
-              >
-                <c:forEach
-                  items="${requestScope.ANNOUNCEMENTS_VIEW}"
-                  var="allNews"
-                  begin="0"
-                  end="4"
-                >
-                  <%-- Resolve announcement price movement. --%>
-
-                  <c:choose>
-                    <c:when test="${allNews.indexChangeValue lt 0}">
-                      <c:set
-                        var="newsChangeModifier"
-                        value="market-news-list__change--negative"
-                      />
-
-                      <c:set
-                        var="newsChangeIcon"
-                        value="icon-triangle-down"
-                      />
-                    </c:when>
-
-                    <c:when test="${allNews.indexChangeValue gt 0}">
-                      <c:set
-                        var="newsChangeModifier"
-                        value="market-news-list__change--positive"
-                      />
-
-                      <c:set
-                        var="newsChangeIcon"
-                        value="icon-triangle-up"
-                      />
-                    </c:when>
-
-                    <c:otherwise>
-                      <c:set
-                        var="newsChangeModifier"
-                        value="market-news-list__change--neutral"
-                      />
-
-                      <c:set
-                        var="newsChangeIcon"
-                        value=""
-                      />
-                    </c:otherwise>
-                  </c:choose>
-
-                  <article
-                    class="market-news-list__item"
-                    role="listitem"
-                  >
-                    <a
-                      class="market-news-list__link track-news-click"
-                      href="${allNews.announcementDetailsUrl}"
-                      data-news-id="${allNews.announcementNumber}"
-                      data-news-type="A"
-                    >
-                      <img
-                        class="market-news-list__logo"
-                        src="https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/${allNews.indexSymbol}.png"
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                        onerror="this.onerror=null; this.src='<fmt:message key="header.company.logo" />default-Logo.png';"
-                      />
-
-                      <div class="market-news-list__content">
-                        <h4 class="market-news-list__title">
-                          ${allNews.newsShortDesc}
-                        </h4>
-
-                        <footer class="market-news-list__footer">
-                          <div
-                            class="market-news-list__meta"
-                            aria-label="Market information"
-                          >
-                            <span
-                              class="market-news-list__code"
-                              dir="ltr"
-                            >
-                              ${allNews.indexSymbol}
-                            </span>
-
-                            <span class="market-news-list__symbol">
-                              ${allNews.indexName}
-                            </span>
-
-                            <span
-                              class="market-news-list__change ${newsChangeModifier}"
-                              dir="ltr"
-                            >
-                              <c:if test="${not empty newsChangeIcon}">
-                                <span
-                                  class="has-icon ${newsChangeIcon}"
-                                  aria-hidden="true"
-                                ></span>
-                              </c:if>
-
-                              <span>${allNews.indexChangeValue}</span>
-
-                              <span>
-                                (${allNews.indexStockChangePresentage}%)
-                              </span>
-                            </span>
-                          </div>
-
-                          <div
-                            class="market-news-list__datetime"
-                            dir="ltr"
-                          >
-                            <div class="market-news-list__dates">
-                              <span
-                                class="market-news-list__date market-news-list__date--hijri"
-                              >
-                                ${allNews.hijiDate}
-                              </span>
-
-                              <span
-                                class="market-news-list__date-separator"
-                                aria-hidden="true"
-                              >
-                                |
-                              </span>
-
-                              <span
-                                class="market-news-list__date market-news-list__date--gregorian"
-                              >
-                                ${allNews.newsDateStr}
-                              </span>
-                            </div>
-                          </div>
-                        </footer>
-                      </div>
-                    </a>
-                  </article>
-                </c:forEach>
-              </div>
-            </c:when>
-
-            <c:otherwise>
-              <div class="market-news__empty" role="status">
-                <p class="market-news__empty-text">
-                  No data available.
-                </p>
-              </div>
-            </c:otherwise>
-          </c:choose>
-
-          <div class="market-news__actions">
-            <a
-              class="btn btn-sm btn-outline-primary has-icon icon-chevron-right icon-end icon-flip-rtl"
-              href="/wps/portal/saudiexchange_v3/newsandreports/issuer-news/issuer-announcements?locale=${pageContext.response.locale}"
-            >
-              <span>
-                <fmt:message key="news.label.viewall" />
-              </span>
-            </a>
-          </div>
+          <nav class="audience-pathways__cards" aria-label="Issuing resources">
+            [Plugin:Matches pattern="en(.*)" text="[Plugin:Locale]"] [Component
+            name="tadawulv2_design/menus/menu-home-what-are-you-looking-for-issuing-v3"
+            resultsPerPage="" startPage="" ] [/Plugin:Matches] [Plugin:Matches
+            pattern="ar(.*)" text="[Plugin:Locale]"] [Component
+            name="tadawulv2_design/menus/menu-home-what-are-you-looking-for-issuing-v3-ar"
+            resultsPerPage="" startPage="" ] [/Plugin:Matches]
+          </nav>
         </div>
 
         <!-- =======================================================
-             Trending News Panel
+             Qualified Foreign Investor
         ======================================================== -->
 
         <div
+          id="audience-pathways-panel-qfi"
           class="tab-pane"
-          id="market-news-panel-trending"
           role="tabpanel"
-          aria-labelledby="market-news-tab-trending"
+          aria-labelledby="audience-pathways-tab-qfi"
           aria-hidden="true"
-          tabindex="0"
           hidden
         >
-          <c:choose>
-            <c:when
-              test="${requestScope.TRENDING_NEWS_VIEW != null
-                && not empty requestScope.TRENDING_NEWS_VIEW}"
-            >
-              <div
-                class="market-news-list"
-                role="list"
-                data-market-news-list
-              >
-                <c:forEach
-                  items="${requestScope.TRENDING_NEWS_VIEW}"
-                  var="allNews"
-                  begin="0"
-                  end="4"
-                >
-                  <%-- Resolve the image identifier by item type. --%>
+          <nav
+            class="audience-pathways__cards"
+            aria-label="Qualified foreign investor resources"
+          >
+            [Plugin:Matches pattern="en(.*)" text="[Plugin:Locale]"] [Component
+            name="tadawulv2_design/menus/menu-home-what-are-you-looking-for-licensing-v3"
+            resultsPerPage="" startPage="" ] [/Plugin:Matches] [Plugin:Matches
+            pattern="ar(.*)" text="[Plugin:Locale]"] [Component
+            name="tadawulv2_design/menus/menu-home-what-are-you-looking-for-licensing-v3-ar"
+            resultsPerPage="" startPage="" ] [/Plugin:Matches]
+          </nav>
+        </div>
 
-                  <c:choose>
-                    <c:when test="${allNews.itemType eq 'ANN'}">
-                      <c:set
-                        var="imageIdentifier"
-                        value="${allNews.indexSymbol}"
-                      />
-                    </c:when>
+        <!-- =======================================================
+             Membership
+        ======================================================== -->
 
-                    <c:otherwise>
-                      <c:set
-                        var="imageIdentifier"
-                        value="${allNews.companyType}"
-                      />
-                    </c:otherwise>
-                  </c:choose>
-
-                  <%-- Resolve the trending-news logo location. --%>
-
-                  <c:choose>
-                    <c:when
-                      test="${allNews.companyType eq 'CMA'
-                        or allNews.companyType eq 'SE'
-                        or allNews.companyType eq '3'}"
-                    >
-                      <c:set
-                        var="logoSrc"
-                        value="https://betauat.saudiexchange.sa/Resources/SEImage/${imageIdentifier}.png"
-                      />
-                    </c:when>
-
-                    <c:otherwise>
-                      <c:set
-                        var="logoSrc"
-                        value="https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/${imageIdentifier}.png"
-                      />
-                    </c:otherwise>
-                  </c:choose>
-
-                  <article
-                    class="market-news-list__item"
-                    role="listitem"
-                  >
-                    <a
-                      class="market-news-list__link"
-                      href="${allNews.url}"
-                    >
-                      <img
-                        class="market-news-list__logo"
-                        src="${logoSrc}"
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                        onerror="this.onerror=null; this.src='https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/default-Logo.png';"
-                      />
-
-                      <div class="market-news-list__content">
-                        <h4 class="market-news-list__title">
-                          ${allNews.newsShortDesc}
-                        </h4>
-
-                        <footer class="market-news-list__footer">
-                          <div
-                            class="market-news-list__datetime"
-                            dir="ltr"
-                          >
-                            <div class="market-news-list__dates">
-                              <span
-                                class="market-news-list__date market-news-list__date--hijri"
-                              >
-                                ${allNews.hijiDate}
-                              </span>
-
-                              <span
-                                class="market-news-list__date-separator"
-                                aria-hidden="true"
-                              >
-                                |
-                              </span>
-
-                              <span
-                                class="market-news-list__date market-news-list__date--gregorian"
-                              >
-                                ${allNews.newsDateStr}
-                              </span>
-                            </div>
-                          </div>
-                        </footer>
-                      </div>
-                    </a>
-                  </article>
-                </c:forEach>
-              </div>
-            </c:when>
-
-            <c:otherwise>
-              <div class="market-news__empty" role="status">
-                <p class="market-news__empty-text">
-                  No data available.
-                </p>
-              </div>
-            </c:otherwise>
-          </c:choose>
+        <div
+          id="audience-pathways-panel-membership"
+          class="tab-pane"
+          role="tabpanel"
+          aria-labelledby="audience-pathways-tab-membership"
+          aria-hidden="true"
+          hidden
+        >
+          <nav
+            class="audience-pathways__cards"
+            aria-label="Membership resources"
+          >
+            [Plugin:Matches pattern="en(.*)" text="[Plugin:Locale]"] [Component
+            name="tadawulv2_design/menus/menu-home-what-are-you-looking-for-membership-v3"
+            resultsPerPage="" startPage="" ] [/Plugin:Matches] [Plugin:Matches
+            pattern="ar(.*)" text="[Plugin:Locale]"] [Component
+            name="tadawulv2_design/menus/menu-home-what-are-you-looking-for-membership-v3-ar"
+            resultsPerPage="" startPage="" ] [/Plugin:Matches]
+          </nav>
         </div>
       </div>
     </div>
   </div>
 </section>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const marketNewsContainers = document.querySelectorAll(
-    "[data-market-news]"
-  );
-
-  marketNewsContainers.forEach((container) => {
-    initializeNewsTabs(container);
-    initializeNewsTracking(container);
-  });
-});
-
-/* ===============================================================
-   News Tabs
-================================================================ */
-
-function initializeNewsTabs(container) {
-  const tabsRoot = container.querySelector("[data-tabs]");
-
-  if (!tabsRoot) {
-    return;
-  }
-
-  const tabList = tabsRoot.querySelector('[role="tablist"]');
-  const tabs = Array.from(
-    tabsRoot.querySelectorAll('[role="tab"][data-tab-target]')
-  );
-
-  if (!tabList || tabs.length === 0) {
-    return;
-  }
-
-  const panels = tabs
-    .map((tab) => {
-      const panelId = tab.dataset.tabTarget;
-
-      if (!panelId) {
-        return null;
-      }
-
-      return document.getElementById(panelId);
-    })
-    .filter(Boolean);
-
-  function activateTab(selectedTab, moveFocus = false) {
-    const selectedPanelId = selectedTab.dataset.tabTarget;
-
-    tabs.forEach((tab) => {
-      const isSelected = tab === selectedTab;
-
-      tab.classList.toggle("active", isSelected);
-      tab.setAttribute("aria-selected", String(isSelected));
-      tab.setAttribute("tabindex", isSelected ? "0" : "-1");
-    });
-
-    panels.forEach((panel) => {
-      const isSelected = panel.id === selectedPanelId;
-
-      panel.classList.toggle("active", isSelected);
-      panel.setAttribute("aria-hidden", String(!isSelected));
-      panel.hidden = !isSelected;
-    });
-
-    if (moveFocus) {
-      selectedTab.focus();
-    }
-  }
-
-  tabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      activateTab(tab);
-    });
-
-    tab.addEventListener("keydown", (event) => {
-      const currentIndex = tabs.indexOf(tab);
-      let nextIndex = currentIndex;
-
-      switch (event.key) {
-        case "ArrowRight":
-          nextIndex = (currentIndex + 1) % tabs.length;
-          break;
-
-        case "ArrowLeft":
-          nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-          break;
-
-        case "Home":
-          nextIndex = 0;
-          break;
-
-        case "End":
-          nextIndex = tabs.length - 1;
-          break;
-
-        case "Enter":
-        case " ":
-          event.preventDefault();
-          activateTab(tab);
-          return;
-
-        default:
-          return;
-      }
-
-      event.preventDefault();
-      activateTab(tabs[nextIndex], true);
-    });
-  });
-
-  const initiallySelectedTab =
-    tabs.find((tab) => tab.getAttribute("aria-selected") === "true") ||
-    tabs[0];
-
-  activateTab(initiallySelectedTab);
-}
-
-/* ===============================================================
-   News Click Tracking
-================================================================ */
-
-function initializeNewsTracking(container) {
-  const newsLinks = container.querySelectorAll(".track-news-click");
-
-  if (newsLinks.length === 0) {
-    return;
-  }
-
-  const trackingUrl = window.marketNewsConfig?.trackNewsClickUrl;
-  const currentLanguage =
-    window.marketNewsConfig?.language ||
-    document.documentElement.lang ||
-    "en";
-
-  newsLinks.forEach((link) => {
-    link.addEventListener("click", async (event) => {
-      const newsId = link.dataset.newsId;
-      const newsType = (link.dataset.newsType || "M").toUpperCase();
-      const destinationUrl = link.href;
-
-      if (!newsId || !trackingUrl) {
-        return;
-      }
-
-      event.preventDefault();
-
-      const requestBody = new URLSearchParams({
-        newsId,
-        newsType,
-        language: currentLanguage
-      });
-
-      try {
-        const response = await fetch(trackingUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-          },
-          body: requestBody.toString(),
-          credentials: "same-origin",
-          keepalive: true
-        });
-
-        if (!response.ok) {
-          console.error(
-            "Failed to track news click:",
-            response.status,
-            response.statusText
-          );
-        }
-      } catch (error) {
-        console.error("Error tracking news click:", error);
-      } finally {
-        window.location.assign(destinationUrl);
-      }
-    });
-  });
-}
-</script>
