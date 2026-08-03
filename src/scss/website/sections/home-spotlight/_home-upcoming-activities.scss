@@ -40,11 +40,13 @@
    ========================================================================== */
 
 .home-upcoming-activities__swiper {
+  position: relative;
+
   display: flex;
   flex-direction: column;
 
   min-inline-size: 0;
-  min-block-size: 100%;
+  min-block-size: var(--home-activities-min-height);
   block-size: 100%;
 
   overflow: hidden;
@@ -55,12 +57,15 @@
 
   min-inline-size: 0;
   min-block-size: 0;
+  block-size: 100%;
 }
 
 .home-upcoming-activities__slide {
   min-inline-size: 0;
   min-block-size: 100%;
-  block-size: auto;
+  block-size: 100%;
+
+  overflow: hidden;
 }
 
 /* ==========================================================================
@@ -90,7 +95,6 @@
     content: "";
 
     position: absolute;
-
     inset-block-start: 0;
     inset-inline: 0;
 
@@ -128,6 +132,8 @@
   gap: 0.625rem;
 
   flex: 0 0 auto;
+
+  min-inline-size: 0;
 
   margin-block-end: 0.875rem;
   padding-block-end: 0.75rem;
@@ -184,6 +190,11 @@
   padding: 0;
 
   list-style: none;
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--home-activities-border-strong) transparent;
 }
 
 /* ==========================================================================
@@ -294,9 +305,15 @@
   color: var(--home-activities-muted);
 }
 
+.home-upcoming-activities__separator {
+  color: var(--home-activities-border-strong);
+
+  user-select: none;
+}
+
 /*
- * English presents Gregorian | Hijri.
- * Arabic preserves the source order as Hijri | Gregorian.
+ * English displays Gregorian | Hijri.
+ * Arabic preserves the source order.
  */
 
 html:not([lang^="ar"]) {
@@ -311,12 +328,6 @@ html:not([lang^="ar"]) {
   .home-upcoming-activities__date--hijri {
     order: 3;
   }
-}
-
-.home-upcoming-activities__separator {
-  color: var(--home-activities-border-strong);
-
-  user-select: none;
 }
 
 /* ==========================================================================
@@ -334,6 +345,8 @@ html:not([lang^="ar"]) {
 }
 
 .home-upcoming-activities__logo {
+  display: block;
+
   inline-size: 1.875rem;
   block-size: 1.875rem;
 
@@ -351,6 +364,8 @@ html:not([lang^="ar"]) {
 }
 
 .home-upcoming-activities__name {
+  display: -webkit-box;
+
   min-inline-size: 0;
 
   margin: 0;
@@ -363,8 +378,6 @@ html:not([lang^="ar"]) {
 
   overflow: hidden;
   overflow-wrap: anywhere;
-
-  display: -webkit-box;
 
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -436,6 +449,8 @@ html:not([lang^="ar"]) {
 
   margin-block-start: 0.75rem;
   padding-block-end: 0.75rem;
+
+  pointer-events: none;
 }
 
 .home-upcoming-activities {
@@ -458,6 +473,7 @@ html:not([lang^="ar"]) {
     opacity: 1;
 
     cursor: pointer;
+    pointer-events: auto;
 
     @include ds.transition((inline-size, background-color, box-shadow), fast);
 
@@ -482,6 +498,26 @@ html:not([lang^="ar"]) {
     box-shadow: 0 0 0.375rem
       color-mix(in oklab, var(--home-activities-accent), transparent 55%);
   }
+
+  .swiper-pagination-lock {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Empty List
+   ========================================================================== */
+
+.home-upcoming-activities__list:empty {
+  display: none;
+}
+
+/*
+ * Apply this state to the body when the CMS returns no activity items.
+ */
+
+.home-upcoming-activities__body.is-empty {
+  justify-content: flex-start;
 }
 
 /* ==========================================================================
@@ -494,7 +530,12 @@ html:not([lang^="ar"]) {
     --home-activities-space: 1rem;
 
     block-size: auto;
+  }
 
+  .home-upcoming-activities__swiper,
+  .home-upcoming-activities__slide,
+  .home-upcoming-activities__body {
+    min-block-size: var(--home-activities-min-height);
   }
 
   .home-upcoming-activities__item {
@@ -548,6 +589,10 @@ html:not([lang^="ar"]) {
     margin-block-start: 0;
 
     text-align: start;
+  }
+
+  .home-upcoming-activities__date {
+    white-space: normal;
   }
 }
 

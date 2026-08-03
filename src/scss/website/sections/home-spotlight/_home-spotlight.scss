@@ -7,13 +7,11 @@
 .home-spotlight {
   --home-spotlight-bg: var(--color-bg);
   --home-spotlight-fg: var(--color-text);
-
   --home-spotlight-gap: clamp(1rem, 2vw, 1.5rem);
 
   position: relative;
 
   min-inline-size: 0;
-
 
   background: var(--home-spotlight-bg);
   color: var(--home-spotlight-fg);
@@ -33,17 +31,11 @@
 
 .home-spotlight__grid {
   display: grid;
-
-  /*
-   * Desktop:
-   *
-   * Featured events | Featured video | Upcoming activities
-   */
-
   grid-template-columns:
     minmax(0, 1.45fr)
     minmax(15rem, 0.95fr)
     minmax(17rem, 0.85fr);
+  grid-template-areas: "events video activities";
 
   align-items: stretch;
   gap: var(--home-spotlight-gap);
@@ -52,14 +44,49 @@
 }
 
 /* ==========================================================================
-   Grid Areas
+   IBM Portal Wrapper Normalization
+
+   The static template renders the spotlight components as direct grid
+   children. IBM Portal inserts component-container, component-control and
+   ibmPortalControl wrappers around them.
+
+   display: contents removes only the wrapper boxes, allowing events, video
+   and activities to participate in the spotlight grid.
+   ========================================================================== */
+
+.home-spotlight__grid {
+  > .component-container,
+  > .component-container > .component-control,
+  > .component-container > .component-control > .ibmPortalControl {
+    display: contents;
+  }
+
+  /*
+   * Portal administration and analytics elements must not become grid items
+   * after display: contents is applied.
+   */
+
+  > .component-container
+    > .component-control
+    > .ibmPortalControl
+    > :not(
+      .home-spotlight__events,
+      .home-spotlight__video,
+      .home-spotlight__activities
+    ) {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Grid Items
    ========================================================================== */
 
 .home-spotlight__events,
 .home-spotlight__video,
 .home-spotlight__activities {
   min-inline-size: 0;
-  min-block-size: 100%;
+  min-block-size: 0;
 }
 
 .home-spotlight__events {
@@ -74,27 +101,34 @@
   grid-area: activities;
 }
 
-/*
- * Named areas are assigned separately so optional components can be removed
- * without changing their source order.
- */
-
-.home-spotlight__grid {
-  grid-template-areas: "events video activities";
-}
-
 /* ==========================================================================
-   Equal Height Chain
+   Equal Height
    ========================================================================== */
 
 .home-spotlight__events,
-.home-event-slider,
 .home-spotlight__video,
+.home-spotlight__activities {
+  align-self: stretch;
+}
+
+.home-event-slider,
 .home-video-card,
-.home-spotlight__activities,
-.home-upcoming-activities,
-.home-upcoming-activities__swiper {
+.home-upcoming-activities {
+  min-block-size: 100%;
   block-size: 100%;
+}
+
+/*
+ * Swiper wrappers should fill their component without forcing the grid
+ * columns wider than their available space.
+ */
+
+.home-event-slider,
+.home-event-slider__wrapper,
+.home-upcoming-activities,
+.home-upcoming-activities__swiper,
+.home-upcoming-activities__wrapper {
+  min-inline-size: 0;
 }
 
 /* ==========================================================================
@@ -110,19 +144,11 @@
    Optional Layout: No Video
    ========================================================================== */
 
-.home-spotlight__grid:not(:has(> .home-spotlight__video)) {
+.home-spotlight__grid:not(:has(.home-spotlight__video)),
+.home-spotlight__grid:has(.home-spotlight__video[hidden]) {
   grid-template-columns:
     minmax(0, 1.7fr)
     minmax(18rem, 0.8fr);
-
-  grid-template-areas: "events activities";
-}
-
-.home-spotlight__grid:has(> .home-spotlight__video[hidden]) {
-  grid-template-columns:
-    minmax(0, 1.7fr)
-    minmax(18rem, 0.8fr);
-
   grid-template-areas: "events activities";
 }
 
@@ -130,19 +156,11 @@
    Optional Layout: No Upcoming Activities
    ========================================================================== */
 
-.home-spotlight__grid:not(:has(> .home-spotlight__activities)) {
+.home-spotlight__grid:not(:has(.home-spotlight__activities)),
+.home-spotlight__grid:has(.home-spotlight__activities[hidden]) {
   grid-template-columns:
     minmax(0, 1.7fr)
     minmax(18rem, 0.8fr);
-
-  grid-template-areas: "events video";
-}
-
-.home-spotlight__grid:has(> .home-spotlight__activities[hidden]) {
-  grid-template-columns:
-    minmax(0, 1.7fr)
-    minmax(18rem, 0.8fr);
-
   grid-template-areas: "events video";
 }
 
@@ -150,11 +168,17 @@
    Optional Layout: Events Only
    ========================================================================== */
 
-.home-spotlight__grid:not(:has(> .home-spotlight__video)):not(
-    :has(> .home-spotlight__activities)
+.home-spotlight__grid:not(:has(.home-spotlight__video)):not(
+    :has(.home-spotlight__activities)
   ),
-.home-spotlight__grid:has(> .home-spotlight__video[hidden]):has(
-    > .home-spotlight__activities[hidden]
+.home-spotlight__grid:not(:has(.home-spotlight__video)):has(
+    .home-spotlight__activities[hidden]
+  ),
+.home-spotlight__grid:has(.home-spotlight__video[hidden]):not(
+    :has(.home-spotlight__activities)
+  ),
+.home-spotlight__grid:has(.home-spotlight__video[hidden]):has(
+    .home-spotlight__activities[hidden]
   ) {
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas: "events";
@@ -165,47 +189,52 @@
    ========================================================================== */
 
 @include ds.respond-down(lg) {
-  .home-spotlight__grid,
-  .home-spotlight__grid:not(:has(> .home-spotlight__video)),
-  .home-spotlight__grid:not(:has(> .home-spotlight__activities)),
-  .home-spotlight__grid:has(> .home-spotlight__video[hidden]),
-  .home-spotlight__grid:has(> .home-spotlight__activities[hidden]) {
+  .home-spotlight__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-
     grid-template-areas:
       "events events"
       "video activities";
   }
 
-  .home-spotlight__grid:not(:has(> .home-spotlight__video)) {
+  /*
+   * No video.
+   */
+
+  .home-spotlight__grid:not(:has(.home-spotlight__video)),
+  .home-spotlight__grid:has(.home-spotlight__video[hidden]) {
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
-      "events events"
-      "activities activities";
+      "events"
+      "activities";
   }
 
-  .home-spotlight__grid:has(> .home-spotlight__video[hidden]) {
+  /*
+   * No upcoming activities.
+   */
+
+  .home-spotlight__grid:not(:has(.home-spotlight__activities)),
+  .home-spotlight__grid:has(.home-spotlight__activities[hidden]) {
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
-      "events events"
-      "activities activities";
+      "events"
+      "video";
   }
 
-  .home-spotlight__grid:not(:has(> .home-spotlight__activities)) {
-    grid-template-areas:
-      "events events"
-      "video video";
-  }
+  /*
+   * Events only.
+   */
 
-  .home-spotlight__grid:has(> .home-spotlight__activities[hidden]) {
-    grid-template-areas:
-      "events events"
-      "video video";
-  }
-
-  .home-spotlight__grid:not(:has(> .home-spotlight__video)):not(
-      :has(> .home-spotlight__activities)
+  .home-spotlight__grid:not(:has(.home-spotlight__video)):not(
+      :has(.home-spotlight__activities)
     ),
-  .home-spotlight__grid:has(> .home-spotlight__video[hidden]):has(
-      > .home-spotlight__activities[hidden]
+  .home-spotlight__grid:not(:has(.home-spotlight__video)):has(
+      .home-spotlight__activities[hidden]
+    ),
+  .home-spotlight__grid:has(.home-spotlight__video[hidden]):not(
+      :has(.home-spotlight__activities)
+    ),
+  .home-spotlight__grid:has(.home-spotlight__video[hidden]):has(
+      .home-spotlight__activities[hidden]
     ) {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "events";
@@ -217,24 +246,53 @@
    ========================================================================== */
 
 @include ds.respond-down(md) {
-
-  .home-spotlight__grid,
-  .home-spotlight__grid:not(:has(> .home-spotlight__video)),
-  .home-spotlight__grid:not(:has(> .home-spotlight__activities)),
-  .home-spotlight__grid:has(> .home-spotlight__video[hidden]),
-  .home-spotlight__grid:has(> .home-spotlight__activities[hidden]),
-  .home-spotlight__grid:not(:has(> .home-spotlight__video)):not(
-      :has(> .home-spotlight__activities)
-    ),
-  .home-spotlight__grid:has(> .home-spotlight__video[hidden]):has(
-      > .home-spotlight__activities[hidden]
-    ) {
+  .home-spotlight__grid {
     grid-template-columns: minmax(0, 1fr);
-
     grid-template-areas:
       "events"
       "video"
       "activities";
+  }
+
+  /*
+   * No video.
+   */
+
+  .home-spotlight__grid:not(:has(.home-spotlight__video)),
+  .home-spotlight__grid:has(.home-spotlight__video[hidden]) {
+    grid-template-areas:
+      "events"
+      "activities";
+  }
+
+  /*
+   * No upcoming activities.
+   */
+
+  .home-spotlight__grid:not(:has(.home-spotlight__activities)),
+  .home-spotlight__grid:has(.home-spotlight__activities[hidden]) {
+    grid-template-areas:
+      "events"
+      "video";
+  }
+
+  /*
+   * Events only.
+   */
+
+  .home-spotlight__grid:not(:has(.home-spotlight__video)):not(
+      :has(.home-spotlight__activities)
+    ),
+  .home-spotlight__grid:not(:has(.home-spotlight__video)):has(
+      .home-spotlight__activities[hidden]
+    ),
+  .home-spotlight__grid:has(.home-spotlight__video[hidden]):not(
+      :has(.home-spotlight__activities)
+    ),
+  .home-spotlight__grid:has(.home-spotlight__video[hidden]):has(
+      .home-spotlight__activities[hidden]
+    ) {
+    grid-template-areas: "events";
   }
 }
 

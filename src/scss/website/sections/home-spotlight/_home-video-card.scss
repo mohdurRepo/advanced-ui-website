@@ -81,10 +81,19 @@
   @include ds.transition((opacity, visibility, transform), normal);
 }
 
+/*
+ * This class may be applied to either:
+ *
+ * 1. A native HTML video element.
+ * 2. A YouTube or external-video iframe.
+ */
+
 .home-video-card__video {
   z-index: 3;
 
-  background: #000000;
+  border: 0;
+
+  background: var(--home-video-bg);
 
   object-fit: contain;
   object-position: center;
@@ -93,8 +102,7 @@
 }
 
 /*
- * The author-level rule guarantees that the video stays removed from layout
- * until JavaScript intentionally exposes it.
+ * Keep the media completely removed until JavaScript exposes it.
  */
 
 .home-video-card__video[hidden] {
@@ -145,6 +153,10 @@
   inline-size: 4.25rem;
   block-size: 4.25rem;
 
+  width: 4.25rem;
+  height: 4.25rem;
+
+  margin: 0;
   padding: 0;
 
   border: 1px solid rgb(255 255 255 / 0.76);
@@ -164,8 +176,18 @@
   opacity: 1;
   visibility: visible;
 
+  transform: scale(1);
+
   @include ds.transition(
-    (background-color, color, box-shadow, opacity, visibility, transform),
+    (
+      background-color,
+      border-color,
+      color,
+      box-shadow,
+      opacity,
+      visibility,
+      transform
+    ),
     fast
   );
 
@@ -267,6 +289,19 @@
 }
 
 /* ==========================================================================
+   Unavailable State
+   ========================================================================== */
+
+.home-video-card.is-unavailable {
+  .home-video-card__play {
+    opacity: 0.48;
+
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+/* ==========================================================================
    Mobile
    ========================================================================== */
 
@@ -280,6 +315,9 @@
 
     inline-size: 3.75rem;
     block-size: 3.75rem;
+
+    width: 3.75rem;
+    height: 3.75rem;
 
     box-shadow:
       var(--shadow-md),

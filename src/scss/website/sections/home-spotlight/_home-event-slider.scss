@@ -12,17 +12,16 @@
   --home-event-slider-border: var(--color-border);
 
   --home-event-slider-navigation-bg: rgb(0 0 0 / 0.68);
-
   --home-event-slider-navigation-hover-bg: rgb(0 0 0 / 0.88);
-
   --home-event-slider-navigation-border: rgb(255 255 255 / 0.7);
 
   --home-event-slider-min-height: clamp(22rem, 27vw, 27rem);
-
   --home-event-slider-content-padding: clamp(1.25rem, 2.5vw, 2rem);
 
   position: relative;
   isolation: isolate;
+
+  display: block;
 
   min-inline-size: 0;
   min-block-size: var(--home-event-slider-min-height);
@@ -46,20 +45,26 @@
 
 .home-event-slider__wrapper {
   min-inline-size: 0;
-  min-block-size: 100%;
+  min-block-size: var(--home-event-slider-min-height);
   block-size: 100%;
 }
 
 .home-event-slider__slide {
   min-inline-size: 0;
-  min-block-size: 100%;
-  block-size: auto;
+  min-block-size: var(--home-event-slider-min-height);
+  block-size: 100%;
+
+  overflow: hidden;
 }
 
 .home-event-slider__slide > article {
+  display: block;
+
   min-inline-size: 0;
-  min-block-size: 100%;
+  min-block-size: var(--home-event-slider-min-height);
   block-size: 100%;
+
+  margin: 0;
 }
 
 /* ==========================================================================
@@ -116,7 +121,7 @@
 }
 
 /* ==========================================================================
-   Overlay
+   Content Overlay
    ========================================================================== */
 
 .home-event-slider__overlay {
@@ -129,11 +134,11 @@
   gap: 0.5rem;
 
   inline-size: 100%;
+  min-inline-size: 0;
   min-block-size: 72%;
 
   padding-block: var(--home-event-slider-content-padding)
     clamp(3.25rem, 5vw, 4rem);
-
   padding-inline: clamp(3.75rem, 6vw, 5rem);
 
   background: linear-gradient(
@@ -159,15 +164,15 @@
   color: var(--home-event-slider-fg);
 
   font-size: clamp(var(--text-xl), 1rem + 1.2vw, var(--text-3xl));
-
   font-weight: ds.font-weight("heavy");
   line-height: var(--line-height-tight);
 
+  overflow-wrap: anywhere;
   text-wrap: balance;
 }
 
 /* ==========================================================================
-   Text
+   Description
    ========================================================================== */
 
 .home-event-slider__text {
@@ -180,6 +185,7 @@
   font-size: var(--text-sm);
   line-height: var(--line-height-relaxed);
 
+  overflow-wrap: anywhere;
   text-wrap: pretty;
 }
 
@@ -236,8 +242,7 @@
   --icon-size: 1.125rem;
 
   position: absolute;
-
-  top: 50%;
+  inset-block-start: 50%;
   z-index: 4;
 
   display: inline-grid;
@@ -247,8 +252,7 @@
   block-size: 3rem;
 
   /*
-   * Swiper also declares physical dimensions. Supplying both forms keeps
-   * the control size stable regardless of stylesheet loading order.
+   * Physical dimensions override Swiper's default button dimensions.
    */
 
   width: 3rem;
@@ -258,7 +262,6 @@
   padding: 0;
 
   border: 1px solid var(--home-event-slider-navigation-border);
-
   border-radius: var(--radius-pill);
 
   background: var(--home-event-slider-navigation-bg);
@@ -272,6 +275,7 @@
 
   cursor: pointer;
 
+  opacity: 1;
   transform: translateY(-50%);
 
   @include ds.transition(
@@ -280,9 +284,8 @@
   );
 
   /*
-   * Swiper versions may render navigation using either ::after or an
-   * injected SVG. Both are removed because the HTML already contains
-   * the design-system chevron icon.
+   * The markup already supplies the design-system icon. Hide Swiper's
+   * generated arrow and SVG in every supported Swiper version.
    */
 
   &::after {
@@ -352,6 +355,11 @@
   inset-inline-start: 0.875rem;
   inset-inline-end: auto;
 
+  /*
+   * Reset Swiper's physical positioning so logical properties control
+   * both LTR and RTL layouts.
+   */
+
   left: auto;
   right: auto;
 }
@@ -386,6 +394,8 @@
   gap: 0.375rem;
 
   inline-size: 100%;
+
+  pointer-events: none;
 }
 
 .home-event-slider {
@@ -404,6 +414,7 @@
     opacity: 1;
 
     cursor: pointer;
+    pointer-events: auto;
 
     @include ds.transition((inline-size, background-color, box-shadow), fast);
 
@@ -449,7 +460,6 @@ html[dir="rtl"] {
 @include ds.respond-down(sm) {
   .home-event-slider {
     --home-event-slider-min-height: 21rem;
-
   }
 
   .home-event-slider__overlay {
@@ -541,6 +551,7 @@ html[data-motion="reduce"] {
     transform: none;
   }
 
+  .home-event-slider .home-event-slider__navigation:hover,
   .home-event-slider .home-event-slider__navigation:active {
     transform: translateY(-50%);
   }
