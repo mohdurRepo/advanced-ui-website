@@ -1,723 +1,461 @@
 <!-- ===============================================================
-     Latest News
+     Featured Video
+================================================================ -->
+
+<article
+  class="home-spotlight__video home-video-card"
+  aria-labelledby="home-featured-video-title"
+  data-home-video-card
+>
+  <h3 id="home-featured-video-title" class="visually-hidden">
+    <fmt:message key="home.featured.video.title" />
+  </h3>
+
+  <div
+    class="home-video-card__wrapper"
+    data-home-video
+    data-video-url="${fn:escapeXml(videoLink)}"
+  >
+    <img
+      class="home-video-card__thumbnail"
+      src="data:image/jpeg;base64,${fn:escapeXml(thumbnailBase64)}"
+      alt=""
+      loading="lazy"
+      decoding="async"
+      data-home-video-thumbnail
+    />
+
+    <video
+      id="home-featured-video-media"
+      class="home-video-card__video"
+      controls
+      playsinline
+      preload="metadata"
+      hidden
+      data-home-video-media
+    >
+      <source src="${fn:escapeXml(videoLink)}" type="video/mp4" />
+
+      Your browser does not support the video element.
+    </video>
+
+    <button
+      class="home-video-card__play has-icon icon-play"
+      type="button"
+      aria-label="Play featured market video"
+      aria-controls="home-featured-video-media"
+      data-home-video-play
+    ></button>
+  </div>
+</article>
+
+<!-- ===============================================================
+     Upcoming Market Activities
 ================================================================ -->
 
 <section
-  class="market-updates__column"
-  aria-labelledby="market-news-title"
+  class="home-spotlight__activities home-upcoming-activities"
+  aria-labelledby="home-upcoming-activities-title"
 >
-  <h3
-    id="market-news-title"
-    class="section-heading section-heading--lg"
-  >
-    <span
-      class="section-heading__icon has-icon icon-tadawul"
-      aria-hidden="true"
-    ></span>
-
-    <span class="section-heading__text">
-      <fmt:message key="announcement.all.news.title" />
-    </span>
+  <h3 id="home-upcoming-activities-title" class="visually-hidden">
+    Upcoming market activities
   </h3>
 
-  <div class="market-news surface-insights" data-market-news>
-    <!-- ===========================================================
-         News Tabs
-    ============================================================ -->
+  <div
+    class="home-upcoming-activities__swiper swiper"
+    data-home-activities-slider
+    role="region"
+    aria-roledescription="carousel"
+    aria-labelledby="home-upcoming-activities-title"
+  >
+    <div
+      id="home-upcoming-activities-slides"
+      class="home-upcoming-activities__wrapper swiper-wrapper"
+    >
+      <!-- =========================================================
+           IPO
+      ========================================================== -->
+
+      <c:if test="${not empty iops}">
+        <div
+          class="home-upcoming-activities__slide swiper-slide"
+          role="group"
+          aria-roledescription="slide"
+          aria-label="IPO"
+        >
+          <section
+            class="home-upcoming-activities__body home-upcoming-activities__body--ipo"
+            aria-labelledby="home-activities-ipo-title"
+          >
+            <header class="home-upcoming-activities__header">
+              <h4
+                id="home-activities-ipo-title"
+                class="home-upcoming-activities__title"
+              >
+                <fmt:message key="ipo.upcoming-ipos" />
+              </h4>
+            </header>
+
+            <ul class="home-upcoming-activities__list">
+              <c:forEach
+                var="ipo"
+                items="${iops}"
+                varStatus="status"
+                begin="0"
+                end="2"
+              >
+                <li class="home-upcoming-activities__item">
+                  <div class="home-upcoming-activities__counter">
+                    <strong
+                      class="home-upcoming-activities__days"
+                      data-countdown-days
+                    >
+                      <fmt:formatNumber value="${ipo.daysLeft}" pattern="00" />
+                    </strong>
+
+                    <span class="home-upcoming-activities__label">
+                      <c:choose>
+                        <c:when test="${ipo.daysLeft eq 1}">
+                          <fmt:message key="ipo.dayLeft.label" />
+                        </c:when>
+
+                        <c:otherwise>
+                          <fmt:message key="ipo.daysLeft.label" />
+                        </c:otherwise>
+                      </c:choose>
+                    </span>
+                  </div>
+
+                  <div class="home-upcoming-activities__content">
+                    <div class="home-upcoming-activities__meta">
+                      <span
+                        class="home-upcoming-activities__date home-upcoming-activities__date--hijri"
+                        dir="ltr"
+                      >
+                        ${ipo.hijriDate}
+                      </span>
+
+                      <span
+                        class="home-upcoming-activities__separator"
+                        aria-hidden="true"
+                      >
+                        |
+                      </span>
+
+                      <span
+                        class="home-upcoming-activities__date home-upcoming-activities__date--gregorian"
+                        dir="ltr"
+                      >
+                        ${ipo.gregorianDate}
+                      </span>
+                    </div>
+
+                    <div class="home-upcoming-activities__company">
+                      <p class="home-upcoming-activities__name">
+                        <c:choose>
+                          <c:when
+                            test="${pageContext.request.locale.language eq 'ar'}"
+                          >
+                            ${ipo.companyNameAr}
+                          </c:when>
+
+                          <c:otherwise> ${ipo.companyNameEn} </c:otherwise>
+                        </c:choose>
+                      </p>
+                    </div>
+                  </div>
+                </li>
+              </c:forEach>
+            </ul>
+
+            <footer class="home-upcoming-activities__footer">
+              <a
+                class="btn btn-sm btn-outline-primary btn-arrow home-upcoming-activities__action"
+                href="/wps/portal/saudiexchange_v3/market-participants/issuers/ipo?locale=${pageContext.request.locale.language}"
+              >
+                <span>
+                  <fmt:message key="news.label.viewall" />
+                </span>
+
+                <span
+                  class="has-icon icon-chevron-right icon-flip-rtl"
+                  aria-hidden="true"
+                ></span>
+              </a>
+            </footer>
+          </section>
+        </div>
+      </c:if>
+
+      <!-- =========================================================
+           Listing
+      ========================================================== -->
+
+      <c:if test="${not empty listings}">
+        <div
+          class="home-upcoming-activities__slide swiper-slide"
+          role="group"
+          aria-roledescription="slide"
+          aria-label="Listing"
+        >
+          <section
+            class="home-upcoming-activities__body home-upcoming-activities__body--listing"
+            aria-labelledby="home-activities-listing-title"
+          >
+            <header class="home-upcoming-activities__header">
+              <h4
+                id="home-activities-listing-title"
+                class="home-upcoming-activities__title"
+              >
+                <fmt:message key="ipo.listing" />
+              </h4>
+            </header>
+
+            <ul class="home-upcoming-activities__list">
+              <c:forEach
+                var="listing"
+                items="${listings}"
+                varStatus="status"
+                begin="0"
+                end="2"
+              >
+                <li class="home-upcoming-activities__item">
+                  <div class="home-upcoming-activities__counter">
+                    <strong
+                      class="home-upcoming-activities__days"
+                      data-countdown-days
+                    >
+                      <fmt:formatNumber
+                        value="${listing.daysLeft}"
+                        pattern="00"
+                      />
+                    </strong>
+
+                    <span class="home-upcoming-activities__label">
+                      <c:choose>
+                        <c:when test="${listing.daysLeft eq 1}">
+                          <fmt:message key="ipo.dayLeft.label" />
+                        </c:when>
+
+                        <c:otherwise>
+                          <fmt:message key="ipo.daysLeft.label" />
+                        </c:otherwise>
+                      </c:choose>
+                    </span>
+                  </div>
+
+                  <div class="home-upcoming-activities__content">
+                    <div class="home-upcoming-activities__meta">
+                      <span
+                        class="home-upcoming-activities__date home-upcoming-activities__date--hijri"
+                        dir="ltr"
+                      >
+                        ${listing.hijriDate}
+                      </span>
+
+                      <span
+                        class="home-upcoming-activities__separator"
+                        aria-hidden="true"
+                      >
+                        |
+                      </span>
+
+                      <span
+                        class="home-upcoming-activities__date home-upcoming-activities__date--gregorian"
+                        dir="ltr"
+                      >
+                        ${listing.gregorianDate}
+                      </span>
+                    </div>
+
+                    <div class="home-upcoming-activities__company">
+                      <p class="home-upcoming-activities__name">
+                        <c:choose>
+                          <c:when
+                            test="${pageContext.request.locale.language eq 'ar'}"
+                          >
+                            ${listing.companyNameAr}
+                          </c:when>
+
+                          <c:otherwise> ${listing.companyNameEn} </c:otherwise>
+                        </c:choose>
+                      </p>
+                    </div>
+                  </div>
+                </li>
+              </c:forEach>
+            </ul>
+
+            <footer class="home-upcoming-activities__footer">
+              <a
+                class="btn btn-sm btn-outline-primary btn-arrow home-upcoming-activities__action"
+                href="/wps/portal/saudiexchange_v3/market-participants/issuers/listings?locale=${pageContext.request.locale.language}"
+              >
+                <span>
+                  <fmt:message key="news.label.viewall" />
+                </span>
+
+                <span
+                  class="has-icon icon-chevron-right icon-flip-rtl"
+                  aria-hidden="true"
+                ></span>
+              </a>
+            </footer>
+          </section>
+        </div>
+      </c:if>
+
+      <!-- =========================================================
+           CMF
+      ========================================================== -->
+
+      <c:if test="${not empty cmf}">
+        <div
+          class="home-upcoming-activities__slide swiper-slide"
+          role="group"
+          aria-roledescription="slide"
+          aria-label="CMF"
+        >
+          <section
+            class="home-upcoming-activities__body home-upcoming-activities__body--cmf"
+            aria-labelledby="home-activities-cmf-title"
+          >
+            <header class="home-upcoming-activities__header">
+              <h4
+                id="home-activities-cmf-title"
+                class="home-upcoming-activities__title"
+              >
+                <fmt:message key="ipo.events" />
+              </h4>
+            </header>
+
+            <ul class="home-upcoming-activities__list">
+              <c:forEach
+                var="item"
+                items="${cmf}"
+                varStatus="status"
+                begin="0"
+                end="2"
+              >
+                <li class="home-upcoming-activities__item">
+                  <div class="home-upcoming-activities__counter">
+                    <strong
+                      class="home-upcoming-activities__days"
+                      data-countdown-days
+                    >
+                      <fmt:formatNumber value="${item.daysLeft}" pattern="00" />
+                    </strong>
+
+                    <span class="home-upcoming-activities__label">
+                      <c:choose>
+                        <c:when test="${item.daysLeft eq 1}">
+                          <fmt:message key="ipo.dayLeft.label" />
+                        </c:when>
+
+                        <c:otherwise>
+                          <fmt:message key="ipo.daysLeft.label" />
+                        </c:otherwise>
+                      </c:choose>
+                    </span>
+                  </div>
+
+                  <div class="home-upcoming-activities__content">
+                    <div class="home-upcoming-activities__meta">
+                      <span
+                        class="home-upcoming-activities__date home-upcoming-activities__date--hijri"
+                        dir="ltr"
+                      >
+                        ${item.hijriDate}
+                      </span>
+
+                      <span
+                        class="home-upcoming-activities__separator"
+                        aria-hidden="true"
+                      >
+                        |
+                      </span>
+
+                      <span
+                        class="home-upcoming-activities__date home-upcoming-activities__date--gregorian"
+                        dir="ltr"
+                      >
+                        ${item.gregorianDate}
+                      </span>
+                    </div>
+
+                    <div class="home-upcoming-activities__company">
+                      <p class="home-upcoming-activities__name">
+                        <fmt:message key="ipo.cmf" />
+                      </p>
+                    </div>
+                  </div>
+                </li>
+              </c:forEach>
+            </ul>
+
+            <footer class="home-upcoming-activities__footer">
+              <a
+                class="btn btn-sm btn-outline-primary btn-arrow home-upcoming-activities__action"
+                href="#"
+              >
+                <span>
+                  <fmt:message key="news.label.viewall" />
+                </span>
+
+                <span
+                  class="has-icon icon-chevron-right icon-flip-rtl"
+                  aria-hidden="true"
+                ></span>
+              </a>
+            </footer>
+          </section>
+        </div>
+      </c:if>
+    </div>
 
     <div
-      class="tabs tabs--pill tabs--full market-news__tabs"
-      data-tabs
-    >
-      <div
-        class="tabs-nav"
-        role="tablist"
-        aria-label="Latest news categories"
-      >
-        <button
-          class="tab-link active"
-          id="market-news-tab-market-news"
-          type="button"
-          role="tab"
-          aria-selected="true"
-          aria-controls="market-news-panel-market-news"
-          tabindex="0"
-          data-tab-target="market-news-panel-market-news"
-        >
-          <fmt:message key="announcement.market.news.label" />
-        </button>
-
-        <button
-          class="tab-link"
-          id="market-news-tab-announcements"
-          type="button"
-          role="tab"
-          aria-selected="false"
-          aria-controls="market-news-panel-announcements"
-          tabindex="-1"
-          data-tab-target="market-news-panel-announcements"
-        >
-          <fmt:message key="announcement.label" />
-        </button>
-
-        <button
-          class="tab-link"
-          id="market-news-tab-trending"
-          type="button"
-          role="tab"
-          aria-selected="false"
-          aria-controls="market-news-panel-trending"
-          tabindex="-1"
-          data-tab-target="market-news-panel-trending"
-        >
-          <fmt:message key="announcement.trending.label" />
-        </button>
-      </div>
-
-      <div class="tabs-content">
-        <!-- =======================================================
-             Market News Panel
-        ======================================================== -->
-
-        <div
-          class="tab-pane active"
-          id="market-news-panel-market-news"
-          role="tabpanel"
-          aria-labelledby="market-news-tab-market-news"
-          aria-hidden="false"
-        >
-          <c:choose>
-            <c:when
-              test="${requestScope.MARKET_NEWS_VIEW != null
-                && not empty requestScope.MARKET_NEWS_VIEW}"
-            >
-              <div
-                class="market-news-list"
-                role="list"
-                data-market-news-list
-              >
-                <c:forEach
-                  items="${requestScope.MARKET_NEWS_VIEW}"
-                  var="allNews"
-                  begin="0"
-                  end="4"
-                >
-                  <c:choose>
-                    <c:when
-                      test="${allNews.companyType eq 'CMA'
-                        or allNews.companyType eq 'SE'
-                        or allNews.companyType eq 'EDAA'}"
-                    >
-                      <c:set
-                        var="logoSrc"
-                        value="https://betauat.saudiexchange.sa/Resources/SEImage/${allNews.companyType}.png"
-                      />
-                    </c:when>
-
-                    <c:otherwise>
-                      <c:set
-                        var="logoSrc"
-                        value="https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/${allNews.companyType}.png"
-                      />
-                    </c:otherwise>
-                  </c:choose>
-
-                  <article
-                    class="market-news-list__item"
-                    role="listitem"
-                  >
-                    <a
-                      class="market-news-list__link track-news-click"
-                      href="${allNews.url}"
-                      data-news-id="${allNews.newsId}"
-                      data-news-type="M"
-                    >
-                      <img
-                        class="market-news-list__logo"
-                        src="${logoSrc}"
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                        onerror="this.onerror=null; this.src='https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/default-Logo.png';"
-                      />
-
-                      <div class="market-news-list__content">
-                        <h4 class="market-news-list__title">
-                          ${allNews.newsShortDesc}
-                        </h4>
-
-                        <footer class="market-news-list__footer">
-                          <div
-                            class="market-news-list__datetime"
-                            dir="ltr"
-                          >
-                            <div class="market-news-list__dates">
-                              <span
-                                class="market-news-list__date market-news-list__date--gregorian"
-                              >
-                                ${allNews.newsDateStr}
-                              </span>
-
-                              <span
-                                class="market-news-list__date-separator"
-                                aria-hidden="true"
-                              >
-                                |
-                              </span>
-
-                              <span
-                                class="market-news-list__date market-news-list__date--hijri"
-                              >
-                                ${allNews.hijiDate}
-                              </span>
-                            </div>
-                          </div>
-                        </footer>
-                      </div>
-                    </a>
-                  </article>
-                </c:forEach>
-              </div>
-            </c:when>
-
-            <c:otherwise>
-              <div class="market-news__empty" role="status">
-                <p class="market-news__empty-text">
-                  <fmt:message key="common.no.data.available" />
-                </p>
-              </div>
-            </c:otherwise>
-          </c:choose>
-
-          <div class="market-news__actions">
-            <a
-              class="btn btn-sm btn-outline-primary has-icon icon-chevron-right icon-end icon-flip-rtl"
-              href="/wps/portal/saudiexchange_v3/newsandreports/issuer-news?locale=${pageContext.response.locale}"
-            >
-              <span>
-                <fmt:message key="news.label.viewall" />
-              </span>
-            </a>
-          </div>
-        </div>
-
-        <!-- =======================================================
-             Announcements Panel
-        ======================================================== -->
-
-        <div
-          class="tab-pane"
-          id="market-news-panel-announcements"
-          role="tabpanel"
-          aria-labelledby="market-news-tab-announcements"
-          aria-hidden="true"
-          tabindex="0"
-          hidden
-        >
-          <c:choose>
-            <c:when
-              test="${requestScope.ANNOUNCEMENTS_VIEW != null
-                && not empty requestScope.ANNOUNCEMENTS_VIEW}"
-            >
-              <div
-                class="market-news-list"
-                role="list"
-                data-market-news-list
-              >
-                <c:forEach
-                  items="${requestScope.ANNOUNCEMENTS_VIEW}"
-                  var="allNews"
-                  begin="0"
-                  end="4"
-                >
-                  <c:choose>
-                    <c:when test="${allNews.indexChangeValue lt 0}">
-                      <c:set
-                        var="newsChangeModifier"
-                        value="market-news-list__change--negative"
-                      />
-
-                      <c:set
-                        var="newsChangeIcon"
-                        value="icon-triangle-down"
-                      />
-                    </c:when>
-
-                    <c:when test="${allNews.indexChangeValue gt 0}">
-                      <c:set
-                        var="newsChangeModifier"
-                        value="market-news-list__change--positive"
-                      />
-
-                      <c:set
-                        var="newsChangeIcon"
-                        value="icon-triangle-up"
-                      />
-                    </c:when>
-
-                    <c:otherwise>
-                      <c:set
-                        var="newsChangeModifier"
-                        value="market-news-list__change--neutral"
-                      />
-
-                      <c:set
-                        var="newsChangeIcon"
-                        value=""
-                      />
-                    </c:otherwise>
-                  </c:choose>
-
-                  <article
-                    class="market-news-list__item"
-                    role="listitem"
-                  >
-                    <a
-                      class="market-news-list__link track-news-click"
-                      href="${allNews.announcementDetailsUrl}"
-                      data-news-id="${allNews.announcementNumber}"
-                      data-news-type="A"
-                    >
-                      <img
-                        class="market-news-list__logo"
-                        src="https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/${allNews.indexSymbol}.png"
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                        onerror="this.onerror=null; this.src='<fmt:message key="header.company.logo" />default-Logo.png';"
-                      />
-
-                      <div class="market-news-list__content">
-                        <h4 class="market-news-list__title">
-                          ${allNews.newsShortDesc}
-                        </h4>
-
-                        <footer class="market-news-list__footer">
-                          <div
-                            class="market-news-list__meta"
-                            aria-label="Market information"
-                          >
-                            <span
-                              class="market-news-list__code"
-                              dir="ltr"
-                            >
-                              ${allNews.indexSymbol}
-                            </span>
-
-                            <span class="market-news-list__symbol">
-                              ${allNews.indexName}
-                            </span>
-
-                            <span
-                              class="market-news-list__change ${newsChangeModifier}"
-                              dir="ltr"
-                            >
-                              <c:if test="${not empty newsChangeIcon}">
-                                <span
-                                  class="has-icon ${newsChangeIcon}"
-                                  aria-hidden="true"
-                                ></span>
-                              </c:if>
-
-                              <span>
-                                ${allNews.indexChangeValue}
-                              </span>
-
-                              <span>
-                                (${allNews.indexStockChangePresentage}%)
-                              </span>
-                            </span>
-                          </div>
-
-                          <div
-                            class="market-news-list__datetime"
-                            dir="ltr"
-                          >
-                            <div class="market-news-list__dates">
-                              <span
-                                class="market-news-list__date market-news-list__date--gregorian"
-                              >
-                                ${allNews.newsDateStr}
-                              </span>
-
-                              <span
-                                class="market-news-list__date-separator"
-                                aria-hidden="true"
-                              >
-                                |
-                              </span>
-
-                              <span
-                                class="market-news-list__date market-news-list__date--hijri"
-                              >
-                                ${allNews.hijiDate}
-                              </span>
-                            </div>
-                          </div>
-                        </footer>
-                      </div>
-                    </a>
-                  </article>
-                </c:forEach>
-              </div>
-            </c:when>
-
-            <c:otherwise>
-              <div class="market-news__empty" role="status">
-                <p class="market-news__empty-text">
-                  <fmt:message key="common.no.data.available" />
-                </p>
-              </div>
-            </c:otherwise>
-          </c:choose>
-
-          <div class="market-news__actions">
-            <a
-              class="btn btn-sm btn-outline-primary has-icon icon-chevron-right icon-end icon-flip-rtl"
-              href="/wps/portal/saudiexchange_v3/newsandreports/issuer-news/issuer-announcements?locale=${pageContext.response.locale}"
-            >
-              <span>
-                <fmt:message key="news.label.viewall" />
-              </span>
-            </a>
-          </div>
-        </div>
-
-        <!-- =======================================================
-             Trending News Panel
-        ======================================================== -->
-
-        <div
-          class="tab-pane"
-          id="market-news-panel-trending"
-          role="tabpanel"
-          aria-labelledby="market-news-tab-trending"
-          aria-hidden="true"
-          tabindex="0"
-          hidden
-        >
-          <c:choose>
-            <c:when
-              test="${requestScope.TRENDING_NEWS_VIEW != null
-                && not empty requestScope.TRENDING_NEWS_VIEW}"
-            >
-              <div
-                class="market-news-list"
-                role="list"
-                data-market-news-list
-              >
-                <c:forEach
-                  items="${requestScope.TRENDING_NEWS_VIEW}"
-                  var="allNews"
-                  begin="0"
-                  end="4"
-                >
-                  <c:choose>
-                    <c:when test="${allNews.itemType eq 'ANN'}">
-                      <c:set
-                        var="imageIdentifier"
-                        value="${allNews.indexSymbol}"
-                      />
-                    </c:when>
-
-                    <c:otherwise>
-                      <c:set
-                        var="imageIdentifier"
-                        value="${allNews.companyType}"
-                      />
-                    </c:otherwise>
-                  </c:choose>
-
-                  <c:choose>
-                    <c:when
-                      test="${allNews.companyType eq 'CMA'
-                        or allNews.companyType eq 'SE'
-                        or allNews.companyType eq '3'}"
-                    >
-                      <c:set
-                        var="logoSrc"
-                        value="https://betauat.saudiexchange.sa/Resources/SEImage/${imageIdentifier}.png"
-                      />
-                    </c:when>
-
-                    <c:otherwise>
-                      <c:set
-                        var="logoSrc"
-                        value="https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/${imageIdentifier}.png"
-                      />
-                    </c:otherwise>
-                  </c:choose>
-
-                  <article
-                    class="market-news-list__item"
-                    role="listitem"
-                  >
-                    <a
-                      class="market-news-list__link"
-                      href="${allNews.url}"
-                    >
-                      <img
-                        class="market-news-list__logo"
-                        src="${logoSrc}"
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                        onerror="this.onerror=null; this.src='https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/default-Logo.png';"
-                      />
-
-                      <div class="market-news-list__content">
-                        <h4 class="market-news-list__title">
-                          ${allNews.newsShortDesc}
-                        </h4>
-
-                        <footer class="market-news-list__footer">
-                          <div
-                            class="market-news-list__datetime"
-                            dir="ltr"
-                          >
-                            <div class="market-news-list__dates">
-                              <span
-                                class="market-news-list__date market-news-list__date--gregorian"
-                              >
-                                ${allNews.newsDateStr}
-                              </span>
-
-                              <span
-                                class="market-news-list__date-separator"
-                                aria-hidden="true"
-                              >
-                                |
-                              </span>
-
-                              <span
-                                class="market-news-list__date market-news-list__date--hijri"
-                              >
-                                ${allNews.hijiDate}
-                              </span>
-                            </div>
-                          </div>
-                        </footer>
-                      </div>
-                    </a>
-                  </article>
-                </c:forEach>
-              </div>
-            </c:when>
-
-            <c:otherwise>
-              <div class="market-news__empty" role="status">
-                <p class="market-news__empty-text">
-                  <fmt:message key="common.no.data.available" />
-                </p>
-              </div>
-            </c:otherwise>
-          </c:choose>
-        </div>
-      </div>
-    </div>
+      class="home-upcoming-activities__pagination swiper-pagination"
+      aria-label="Upcoming activity slides"
+    ></div>
   </div>
 </section>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    const marketNewsComponents = document.querySelectorAll(
-      "[data-market-news]"
-    );
+    const sliders = document.querySelectorAll("[data-home-activities-slider]");
 
-    marketNewsComponents.forEach(function (component) {
-      initializeMarketNewsTabs(component);
-      initializeMarketNewsTracking(component);
+    sliders.forEach(function (sliderElement) {
+      const paginationElement = sliderElement.querySelector(
+        ".home-upcoming-activities__pagination",
+      );
+
+      new Swiper(sliderElement, {
+        slidesPerView: 1,
+        loop: false,
+        effect: "fade",
+        fadeEffect: {
+          crossFade: true,
+        },
+        speed: 600,
+
+        autoplay: {
+          delay: 3500,
+          disableOnInteraction: true,
+        },
+
+        pagination: {
+          el: paginationElement,
+          clickable: true,
+        },
+
+        on: {
+          reachEnd: function (swiper) {
+            window.setTimeout(function () {
+              swiper.slideTo(0, 900);
+              swiper.autoplay.stop();
+            }, 2000);
+          },
+        },
+      });
     });
   });
-
-  /* ===============================================================
-     Market News Tabs
-  ================================================================ */
-
-  function initializeMarketNewsTabs(component) {
-    const tabsRoot = component.querySelector("[data-tabs]");
-
-    if (!tabsRoot) {
-      return;
-    }
-
-    const tabs = Array.from(
-      tabsRoot.querySelectorAll(
-        '[role="tab"][data-tab-target]'
-      )
-    );
-
-    if (!tabs.length) {
-      return;
-    }
-
-    const panels = tabs
-      .map(function (tab) {
-        const panelId = tab.getAttribute("data-tab-target");
-
-        if (!panelId) {
-          return null;
-        }
-
-        return tabsRoot.querySelector(
-          "#" + CSS.escape(panelId)
-        );
-      })
-      .filter(Boolean);
-
-    function activateTab(selectedTab, moveFocus) {
-      const selectedPanelId =
-        selectedTab.getAttribute("data-tab-target");
-
-      tabs.forEach(function (tab) {
-        const isActive = tab === selectedTab;
-
-        tab.classList.toggle("active", isActive);
-        tab.setAttribute(
-          "aria-selected",
-          String(isActive)
-        );
-        tab.setAttribute(
-          "tabindex",
-          isActive ? "0" : "-1"
-        );
-      });
-
-      panels.forEach(function (panel) {
-        const isActive = panel.id === selectedPanelId;
-
-        panel.classList.toggle("active", isActive);
-        panel.setAttribute(
-          "aria-hidden",
-          String(!isActive)
-        );
-        panel.hidden = !isActive;
-      });
-
-      if (moveFocus) {
-        selectedTab.focus();
-      }
-    }
-
-    tabs.forEach(function (tab, index) {
-      tab.addEventListener("click", function () {
-        activateTab(tab, false);
-      });
-
-      tab.addEventListener("keydown", function (event) {
-        let nextIndex = index;
-
-        switch (event.key) {
-          case "ArrowRight":
-            nextIndex = (index + 1) % tabs.length;
-            break;
-
-          case "ArrowLeft":
-            nextIndex =
-              (index - 1 + tabs.length) % tabs.length;
-            break;
-
-          case "Home":
-            nextIndex = 0;
-            break;
-
-          case "End":
-            nextIndex = tabs.length - 1;
-            break;
-
-          case "Enter":
-          case " ":
-            event.preventDefault();
-            activateTab(tab, false);
-            return;
-
-          default:
-            return;
-        }
-
-        event.preventDefault();
-        activateTab(tabs[nextIndex], true);
-      });
-    });
-
-    const initialTab =
-      tabs.find(function (tab) {
-        return (
-          tab.getAttribute("aria-selected") === "true"
-        );
-      }) || tabs[0];
-
-    activateTab(initialTab, false);
-  }
-
-  /* ===============================================================
-     News Click Tracking
-  ================================================================ */
-
-  function initializeMarketNewsTracking(component) {
-    const newsLinks = component.querySelectorAll(
-      ".track-news-click"
-    );
-
-    if (!newsLinks.length) {
-      return;
-    }
-
-    const trackNewsClickURL = "<%= trackNewsClickURL %>";
-    const currentLanguage =
-      "${pageContext.request.locale.language}";
-
-    newsLinks.forEach(function (link) {
-      link.addEventListener("click", function (event) {
-        const newsId = link.dataset.newsId;
-        const newsType = (
-          link.dataset.newsType || "M"
-        ).toUpperCase();
-
-        const originalHref = link.href;
-
-        if (!newsId || !trackNewsClickURL) {
-          return;
-        }
-
-        event.preventDefault();
-
-        const requestBody =
-          "newsId=" +
-          encodeURIComponent(newsId) +
-          "&newsType=" +
-          encodeURIComponent(newsType) +
-          "&language=" +
-          encodeURIComponent(currentLanguage);
-
-        fetch(trackNewsClickURL, {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/x-www-form-urlencoded;charset=UTF-8"
-          },
-          body: requestBody,
-          credentials: "same-origin",
-          keepalive: true
-        })
-          .then(function (response) {
-            if (!response.ok) {
-              console.error(
-                "Failed to track news click:",
-                response.status,
-                response.statusText
-              );
-            }
-          })
-          .catch(function (error) {
-            console.error(
-              "Error tracking news click:",
-              error
-            );
-          })
-          .finally(function () {
-            window.location.href = originalHref;
-          });
-      });
-    });
-  }
 </script>
