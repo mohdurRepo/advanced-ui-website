@@ -1,0 +1,416 @@
+@use "../../../design-system/abstracts" as *;
+
+/* ==========================================================================
+   Performance Chart
+   ========================================================================== */
+
+.performance-chart {
+  --performance-chart-bg: var(--color-surface);
+  --performance-chart-fg: var(--color-text);
+  --performance-chart-border: var(--color-border);
+
+  --performance-chart-shadow: var(--shadow-md);
+
+  --performance-chart-space: clamp(1rem, 2vw, 1.5rem);
+  --performance-chart-height: clamp(18rem, 25vw, 23rem);
+
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  overflow: visible;
+
+  border: 1px solid var(--performance-chart-border);
+
+  background: var(--performance-chart-bg);
+  color: var(--performance-chart-fg);
+
+  box-shadow: var(--performance-chart-shadow);
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.performance-chart__header {
+  flex: 0 0 auto;
+
+  min-inline-size: 0;
+
+  padding: var(--performance-chart-space);
+
+  border-block-end: 1px solid var(--performance-chart-border);
+}
+
+/* ==========================================================================
+   Body
+   ========================================================================== */
+
+.performance-chart__body {
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  padding: var(--performance-chart-space);
+}
+
+/* ==========================================================================
+   Chart Surface
+   ========================================================================== */
+
+.chart-surface {
+  position: relative;
+  isolation: isolate;
+
+  display: grid;
+  place-items: stretch;
+
+  inline-size: 100%;
+  block-size: var(--performance-chart-height);
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  overflow: hidden;
+
+  border: 1px solid var(--performance-chart-border);
+
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--color-primary), transparent 96%),
+      transparent 34%
+    ),
+    var(--color-surface);
+}
+
+/* ==========================================================================
+   Chart Canvas
+   ========================================================================== */
+
+.chart-canvas {
+  position: relative;
+  z-index: 1;
+
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Generic Market Chart Integration
+   ========================================================================== */
+
+/*
+ * The chart surface owns the rendered height. The generic chart must fill
+ * that surface without applying its standalone minimum height.
+ */
+
+.chart-surface > .market-chart,
+.chart-canvas.market-chart {
+  --market-chart-min-height: 0;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Highcharts Integration
+   ========================================================================== */
+
+.chart-canvas > .highcharts-container,
+.chart-canvas .highcharts-root {
+  inline-size: 100% !important;
+  block-size: 100% !important;
+
+  max-inline-size: 100%;
+  max-block-size: 100%;
+}
+
+.chart-canvas > .highcharts-container {
+  position: relative !important;
+}
+
+.chart-canvas canvas,
+.chart-canvas svg {
+  display: block;
+
+  max-inline-size: 100%;
+  max-block-size: 100%;
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.performance-chart[aria-busy="true"] .chart-surface {
+  cursor: progress;
+}
+
+.performance-chart[aria-busy="true"] .chart-toolbar {
+  pointer-events: none;
+}
+
+.performance-chart[aria-busy="true"] .chart-toolbar__bottom {
+  opacity: 0.6;
+}
+
+/* ==========================================================================
+   Fullscreen
+   ========================================================================== */
+
+.performance-chart:fullscreen {
+  inline-size: 100vw;
+  block-size: 100dvh;
+
+  overflow-y: auto;
+
+  border: 0;
+
+  background: var(--performance-chart-bg);
+}
+
+.performance-chart:fullscreen .performance-chart__header {
+  position: sticky;
+
+  inset-block-start: 0;
+  z-index: var(--z-sticky);
+
+  background: var(--performance-chart-bg);
+}
+
+.performance-chart:fullscreen .performance-chart__body {
+  flex: 1 1 auto;
+
+  display: flex;
+
+  min-block-size: 0;
+}
+
+.performance-chart:fullscreen .chart-surface {
+  flex: 1 1 auto;
+
+  block-size: auto;
+  min-block-size: 20rem;
+}
+
+/* ==========================================================================
+   Fullscreen Fallback
+   ========================================================================== */
+
+/*
+ * JavaScript may use this class when the native Fullscreen API is
+ * unavailable or unsuitable.
+ */
+
+.performance-chart.is-fullscreen {
+  position: fixed;
+
+  inset: 0;
+  z-index: var(--z-modal);
+
+  inline-size: 100vw;
+  block-size: 100dvh;
+
+  overflow-y: auto;
+
+  border: 0;
+
+  background: var(--performance-chart-bg);
+}
+
+.performance-chart.is-fullscreen .performance-chart__header {
+  position: sticky;
+
+  inset-block-start: 0;
+  z-index: var(--z-sticky);
+
+  background: var(--performance-chart-bg);
+}
+
+.performance-chart.is-fullscreen .performance-chart__body {
+  flex: 1 1 auto;
+
+  display: flex;
+
+  min-block-size: 0;
+}
+
+.performance-chart.is-fullscreen .chart-surface {
+  flex: 1 1 auto;
+
+  block-size: auto;
+  min-block-size: 20rem;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include respond-down(lg) {
+  .performance-chart {
+    --performance-chart-height: clamp(19rem, 47vw, 25rem);
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include respond-down(md) {
+  .performance-chart {
+    --performance-chart-space: 1rem;
+    --performance-chart-height: clamp(18rem, 58vw, 23rem);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include respond-down(sm) {
+  .performance-chart {
+    --performance-chart-space: 0.875rem;
+    --performance-chart-height: 18rem;
+  }
+
+  .performance-chart__header,
+  .performance-chart__body {
+    min-inline-size: 0;
+  }
+
+  .performance-chart:fullscreen,
+  .performance-chart.is-fullscreen {
+    --performance-chart-space: 0.75rem;
+  }
+
+  .performance-chart:fullscreen .chart-surface,
+  .performance-chart.is-fullscreen .chart-surface {
+    min-block-size: 16rem;
+  }
+}
+
+/* ==========================================================================
+   Extra Small Screens
+   ========================================================================== */
+
+@media (max-width: 360px) {
+  .performance-chart {
+    --performance-chart-height: 16rem;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .performance-chart {
+    --performance-chart-shadow: none;
+  }
+
+  .chart-surface {
+    background:
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--color-primary), transparent 94%),
+        transparent 38%
+      ),
+      var(--color-surface);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .performance-chart,
+  .chart-surface {
+    border-width: 2px;
+    border-color: currentColor;
+
+    box-shadow: none;
+  }
+
+  .performance-chart__header {
+    border-block-end-width: 2px;
+    border-color: currentColor;
+  }
+
+  .chart-surface {
+    background: var(--color-surface);
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .performance-chart[aria-busy="true"] .chart-toolbar__bottom {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .performance-chart[aria-busy="true"] .chart-toolbar__bottom {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .performance-chart {
+    --performance-chart-bg: transparent;
+    --performance-chart-fg: #000000;
+    --performance-chart-border: #000000;
+    --performance-chart-shadow: none;
+    --performance-chart-height: 18rem;
+
+    break-inside: avoid;
+
+    color: #000000;
+  }
+
+  .performance-chart__header {
+    border-color: #000000;
+  }
+
+  .performance-chart__body {
+    padding-block: 1rem;
+  }
+
+  .chart-surface {
+    block-size: var(--performance-chart-height);
+
+    border-color: #000000;
+
+    background: transparent;
+  }
+
+  .performance-chart:fullscreen,
+  .performance-chart.is-fullscreen {
+    position: static;
+
+    inline-size: auto;
+    block-size: auto;
+
+    overflow: visible;
+  }
+}

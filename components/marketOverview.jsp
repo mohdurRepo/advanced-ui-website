@@ -1,25 +1,15 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <c:set
-  var="currentPageUniqueName"
-  value="${wp.selectionModel.selected.objectID.uniqueName}"
-/>
+    var="marketOverviewMode"
+    value="${empty param.marketOverviewMode ? 'inner' : param.marketOverviewMode}" />
 
 <c:set
-  var="isHomePage"
-  value="${
-        currentPageUniqueName == 'com.tadawul.home'
-        or currentPageUniqueName == 'com.tadawul.home.v3'
-        or currentPageUniqueName == 'com.tadawul.saudiexchange.home.v3'
-    }"
-/>
-
-<c:set var="marketOverviewMode" value="${isHomePage ? 'home' : 'inner'}" />
+    var="isHomePage"
+    value="${marketOverviewMode eq 'home'}" />
 
 <c:set
-  var="marketDetailsMode"
-  value="${isHomePage ? 'always' : 'collapsible'}"
-/>
-
+    var="marketDetailsMode"
+    value="${isHomePage ? 'always' : 'collapsible'}" />
 <section
   class="market-overview market-overview--${marketOverviewMode}"
   aria-label="Market overview"
@@ -665,13 +655,13 @@
           ================================================================ -->
 
                     <div
-                      class="market-movers__panel is-active"
-                      id="tasi-gainers"
-                      role="tabpanel"
-                      aria-labelledby="tasi-tab-gainers"
-                      
-                      data-market-movers-panel
-                    >
+  class="market-movers__panel is-active"
+  id="tasi-gainers"
+  role="tabpanel"
+  aria-labelledby="tasi-tab-gainers"
+  aria-hidden="false"
+  data-market-movers-panel
+>
                       <ul class="market-movers__list">
                         <li class="market-movers__row">
                           <div class="market-movers__info">
@@ -3526,13 +3516,13 @@
   ========================================================================== -->
 
             <div
-              class="market-view-panel market-details-panel--analytics is-active"
-              id="derivatives-mt30"
-              role="tabpanel"
-              aria-labelledby="derivatives-tab-mt30"
-              
-              data-market-view-panel
-            >
+  class="market-view-panel market-details-panel--analytics is-active"
+  id="derivatives-mt30"
+  role="tabpanel"
+  aria-labelledby="derivatives-tab-mt30"
+  aria-hidden="false"
+  data-market-view-panel
+>
               <div class="market-details-panel__grid">
                 <!-- MT30 Chart -->
 

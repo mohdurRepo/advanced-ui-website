@@ -36,6 +36,14 @@
         root.setAttribute("data-motion", motion);
       })();
     </script>
+    <script src="https://code.highcharts.com/stock/highstock.js"></script>
+
+    <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+
+    <script src="https://code.highcharts.com/stock/modules/export-data.js"></script>
+
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
     <script type="module" src="/src/js/main.js"></script>
   </head>
   <body>
@@ -5519,26 +5527,37 @@
 
       <section
         class="market-dashboard section"
-        aria-label="Main Market performance and today's activity"
+        aria-labelledby="market-dashboard-title"
       >
         <div class="container">
           <div class="market-dashboard__surface">
+            <h2 id="market-dashboard-title" class="visually-hidden">
+              Main Market Dashboard
+            </h2>
+
+            <!-- ===============================================================
+           Main dashboard columns
+           =============================================================== -->
+
             <div class="market-dashboard__grid">
-              <!-- =================================================================
-             Market Performance
-             ================================================================= -->
+              <!-- =============================================================
+             Market performance
+             ============================================================= -->
 
               <div class="market-dashboard__primary">
                 <section
                   class="performance-chart market-index-chart"
-                  data-chart
-                  data-chart-symbol="TASI"
-                  data-chart-page-name="MainMarket"
-                  data-chart-x-label="Time"
-                  data-chart-y-label="Index"
+                  data-performance-chart
                   aria-labelledby="market-performance-title"
+                  aria-busy="true"
                 >
+                  <!-- ===============================================================
+         Chart Toolbar
+         =============================================================== -->
+
                   <header class="performance-chart__header chart-toolbar">
+                    <!-- Top Row -->
+
                     <div class="chart-toolbar__top">
                       <div class="chart-toolbar__heading">
                         <span
@@ -5546,12 +5565,12 @@
                           aria-hidden="true"
                         ></span>
 
-                        <h2
+                        <h3
                           id="market-performance-title"
                           class="chart-toolbar__title"
                         >
                           Main Market Performance
-                        </h2>
+                        </h3>
                       </div>
 
                       <a
@@ -5567,19 +5586,21 @@
                       </a>
                     </div>
 
+                    <!-- Bottom Row -->
+
                     <div class="chart-toolbar__bottom">
+                      <!-- Chart Range -->
+
                       <div
                         class="chart-toolbar__ranges"
-                        role="tablist"
+                        role="group"
                         aria-label="Chart range"
                       >
                         <button
                           class="chart-range is-active"
                           type="button"
-                          role="tab"
-                          aria-selected="true"
-                          tabindex="0"
-                          data-range="1D"
+                          aria-pressed="true"
+                          data-chart-range="1D"
                         >
                           1D
                         </button>
@@ -5587,10 +5608,8 @@
                         <button
                           class="chart-range"
                           type="button"
-                          role="tab"
-                          aria-selected="false"
-                          tabindex="-1"
-                          data-range="1W"
+                          aria-pressed="false"
+                          data-chart-range="1W"
                         >
                           1W
                         </button>
@@ -5598,10 +5617,8 @@
                         <button
                           class="chart-range"
                           type="button"
-                          role="tab"
-                          aria-selected="false"
-                          tabindex="-1"
-                          data-range="1M"
+                          aria-pressed="false"
+                          data-chart-range="1M"
                         >
                           1M
                         </button>
@@ -5609,10 +5626,8 @@
                         <button
                           class="chart-range"
                           type="button"
-                          role="tab"
-                          aria-selected="false"
-                          tabindex="-1"
-                          data-range="3M"
+                          aria-pressed="false"
+                          data-chart-range="3M"
                         >
                           3M
                         </button>
@@ -5620,10 +5635,8 @@
                         <button
                           class="chart-range"
                           type="button"
-                          role="tab"
-                          aria-selected="false"
-                          tabindex="-1"
-                          data-range="6M"
+                          aria-pressed="false"
+                          data-chart-range="6M"
                         >
                           6M
                         </button>
@@ -5631,10 +5644,8 @@
                         <button
                           class="chart-range"
                           type="button"
-                          role="tab"
-                          aria-selected="false"
-                          tabindex="-1"
-                          data-range="1Y"
+                          aria-pressed="false"
+                          data-chart-range="1Y"
                         >
                           1Y
                         </button>
@@ -5642,10 +5653,8 @@
                         <button
                           class="chart-range"
                           type="button"
-                          role="tab"
-                          aria-selected="false"
-                          tabindex="-1"
-                          data-range="5Y"
+                          aria-pressed="false"
+                          data-chart-range="5Y"
                         >
                           5Y
                         </button>
@@ -5653,224 +5662,185 @@
                         <button
                           class="chart-range"
                           type="button"
-                          role="tab"
-                          aria-selected="false"
-                          tabindex="-1"
-                          data-range="ALL"
+                          aria-pressed="false"
+                          data-chart-range="ALL"
                         >
                           Inception
                         </button>
                       </div>
 
-                      <div
-                        class="chart-toolbar__actions"
-                        aria-label="Chart actions"
-                      >
-                        <button
-                          class="chart-btn chart-btn--compare"
-                          type="button"
-                          data-chart-compare
-                        >
-                          <span>Compare</span>
+                      <!-- Chart Utilities -->
 
-                          <span
-                            class="has-icon icon-add-plus"
-                            aria-hidden="true"
-                          ></span>
-                        </button>
+                      <div class="chart-toolbar__utilities">
+                        <!-- Chart Type -->
 
-                        <div class="chart-export">
-                          <button
-                            id="main-market-export-trigger"
-                            class="chart-btn chart-export__trigger"
-                            type="button"
-                            aria-haspopup="menu"
-                            aria-expanded="false"
-                            aria-controls="main-market-export-menu"
+                        <div class="chart-toolbar__type">
+                          <div
+                            class="market-chart-toggle"
+                            role="group"
+                            aria-label="Chart type"
                           >
-                            <span>Export</span>
+                            <button
+                              class="market-chart-toggle__button is-active"
+                              type="button"
+                              aria-pressed="true"
+                              data-chart-type="trend"
+                            >
+                              Trend
+                            </button>
+
+                            <button
+                              class="market-chart-toggle__button"
+                              type="button"
+                              aria-pressed="false"
+                              data-chart-type="candlestick"
+                            >
+                              Candles
+                            </button>
+                          </div>
+                        </div>
+
+                        <!-- Chart Actions -->
+
+                        <div
+                          class="chart-toolbar__actions"
+                          aria-label="Chart actions"
+                        >
+                          <button
+                            class="chart-btn chart-btn--compare"
+                            type="button"
+                            aria-pressed="false"
+                            data-chart-compare
+                          >
+                            <span>Compare</span>
 
                             <span
-                              class="has-icon icon-menu-dots-vertical"
+                              class="has-icon icon-add-plus"
                               aria-hidden="true"
                             ></span>
                           </button>
 
-                          <ul
-                            id="main-market-export-menu"
-                            class="chart-export-menu"
-                            role="menu"
-                            aria-label="Export chart"
-                            hidden
-                          >
-                            <li role="none">
-                              <button
-                                type="button"
-                                role="menuitem"
-                                data-export-action="fullscreen"
-                              >
-                                <span
-                                  class="has-icon icon-external-link"
-                                  aria-hidden="true"
-                                ></span>
+                          <!-- Export -->
 
-                                <span>View Full Screen</span>
-                              </button>
-                            </li>
+                          <div class="chart-export">
+                            <button
+                              id="main-market-export-trigger"
+                              class="chart-btn chart-export__trigger"
+                              type="button"
+                              aria-haspopup="menu"
+                              aria-expanded="false"
+                              aria-controls="main-market-export-menu"
+                            >
+                              <span>Export</span>
 
-                            <li role="none">
-                              <button
-                                type="button"
-                                role="menuitem"
-                                data-export-action="print"
-                              >
-                                <span
-                                  class="has-icon icon-file-download"
-                                  aria-hidden="true"
-                                ></span>
+                              <span
+                                class="has-icon icon-menu-dots-vertical"
+                                aria-hidden="true"
+                              ></span>
+                            </button>
 
-                                <span>Print Chart</span>
-                              </button>
-                            </li>
+                            <ul
+                              id="main-market-export-menu"
+                              class="chart-export-menu"
+                              role="menu"
+                              aria-label="Export chart"
+                              hidden
+                            >
+                              <li role="none">
+                                <button
+                                  type="button"
+                                  role="menuitem"
+                                  data-export-action="fullscreen"
+                                >
+                                  <span
+                                    class="has-icon icon-external-link"
+                                    aria-hidden="true"
+                                  ></span>
 
-                            <li
-                              class="chart-export-menu__separator"
-                              role="separator"
-                            ></li>
+                                  <span>View Full Screen</span>
+                                </button>
+                              </li>
 
-                            <li role="none">
-                              <button
-                                type="button"
-                                role="menuitem"
-                                data-export-action="png"
-                              >
-                                <span
-                                  class="has-icon icon-file-download"
-                                  aria-hidden="true"
-                                ></span>
+                              <li role="none">
+                                <button
+                                  type="button"
+                                  role="menuitem"
+                                  data-export-action="print"
+                                >
+                                  <span
+                                    class="has-icon icon-file-download"
+                                    aria-hidden="true"
+                                  ></span>
 
-                                <span>Download PNG</span>
-                              </button>
-                            </li>
+                                  <span>Print Chart</span>
+                                </button>
+                              </li>
 
-                            <li role="none">
-                              <button
-                                type="button"
-                                role="menuitem"
-                                data-export-action="pdf"
-                              >
-                                <span
-                                  class="has-icon icon-pdf-file"
-                                  aria-hidden="true"
-                                ></span>
+                              <li
+                                class="chart-export-menu__separator"
+                                role="separator"
+                              ></li>
 
-                                <span>Download PDF</span>
-                              </button>
-                            </li>
-                          </ul>
+                              <li role="none">
+                                <button
+                                  type="button"
+                                  role="menuitem"
+                                  data-export-action="png"
+                                >
+                                  <span
+                                    class="has-icon icon-file-download"
+                                    aria-hidden="true"
+                                  ></span>
+
+                                  <span>Download PNG</span>
+                                </button>
+                              </li>
+
+                              <li role="none">
+                                <button
+                                  type="button"
+                                  role="menuitem"
+                                  data-export-action="pdf"
+                                >
+                                  <span
+                                    class="has-icon icon-pdf-file"
+                                    aria-hidden="true"
+                                  ></span>
+
+                                  <span>Download PDF</span>
+                                </button>
+                              </li>
+                            </ul>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </header>
 
+                  <!-- ===============================================================
+         Chart Surface
+         =============================================================== -->
+
                   <div class="performance-chart__body">
                     <div class="chart-surface">
                       <div
                         id="main-market-chart"
-                        class="chart-canvas"
-                        role="img"
+                        class="chart-canvas market-chart market-chart--performance"
+                        data-market-chart
+                        data-chart-context="performance"
+                        data-chart-state="loading"
                         aria-label="Main Market index performance chart"
                       ></div>
                     </div>
-
-                    <dl
-                      class="market-index-chart__metrics"
-                      aria-label="Main Market trading summary"
-                    >
-                      <div class="market-index-chart__metric">
-                        <dt class="market-index-chart__metric-label">
-                          Value Traded
-                        </dt>
-
-                        <dd class="market-index-chart__metric-value">
-                          <data value="7014665452.12">7,014,665,452.12</data>
-                        </dd>
-                      </div>
-
-                      <div class="market-index-chart__metric">
-                        <dt class="market-index-chart__metric-label">
-                          Volume Traded
-                        </dt>
-
-                        <dd class="market-index-chart__metric-value">
-                          <data value="315557435">315,557,435</data>
-                        </dd>
-                      </div>
-
-                      <div class="market-index-chart__metric">
-                        <dt class="market-index-chart__metric-label">
-                          Market Capitalization
-                        </dt>
-
-                        <dd class="market-index-chart__metric-value">
-                          <data value="10251004260000">10,251,004.26</data>
-                        </dd>
-                      </div>
-
-                      <div class="market-index-chart__metric">
-                        <dt class="market-index-chart__metric-label price-up">
-                          Symbols Up
-                        </dt>
-
-                        <dd class="market-index-chart__metric-value">
-                          <data value="102">102</data>
-                        </dd>
-                      </div>
-
-                      <div class="market-index-chart__metric">
-                        <dt class="market-index-chart__metric-label price-down">
-                          Symbols Down
-                        </dt>
-
-                        <dd class="market-index-chart__metric-value">
-                          <data value="122">122</data>
-                        </dd>
-                      </div>
-
-                      <div class="market-index-chart__metric">
-                        <dt class="market-index-chart__metric-label">
-                          Symbols Listed
-                        </dt>
-
-                        <dd class="market-index-chart__metric-value">
-                          <data value="250">250</data>
-                        </dd>
-                      </div>
-                    </dl>
                   </div>
                 </section>
-
-                <aside class="chart-notes" aria-label="Chart information">
-                  <ul class="chart-notes__list">
-                    <li class="chart-notes__item">
-                      <span
-                        class="chart-notes__status has-icon icon-check"
-                        aria-hidden="true"
-                      ></span>
-
-                      <span class="chart-notes__text">
-                        Prices are delayed by a minimum of five minutes.
-                      </span>
-                    </li>
-                  </ul>
-                </aside>
               </div>
 
-              <!-- =================================================================
-             Today’s Activity
-             ================================================================= -->
+              <!-- =============================================================
+             Today’s activity
+             ============================================================= -->
 
-              <div
+              <section
                 class="market-dashboard__secondary market-activity"
                 aria-labelledby="market-activity-title"
               >
@@ -5880,14 +5850,12 @@
                     aria-hidden="true"
                   ></span>
 
-                  <h2 id="market-activity-title" class="market-activity__title">
+                  <h3 id="market-activity-title" class="market-activity__title">
                     Today’s Activity
-                  </h2>
+                  </h3>
                 </header>
 
                 <div class="tabs market-activity__tabs" data-tabs>
-                  <!-- Activity Navigation -->
-
                   <div
                     class="tabs-nav market-activity__nav"
                     role="tablist"
@@ -5946,12 +5914,8 @@
                     </button>
                   </div>
 
-                  <!-- Activity Content -->
-
                   <div class="tabs-content market-activity__content">
-                    <!-- ================================================================
-           Top Gainers
-           ================================================================= -->
+                    <!-- Top gainers -->
 
                     <div
                       id="activity-gainers-panel"
@@ -5970,28 +5934,10 @@
                         >
                           <thead>
                             <tr>
-                              <th
-                                class="market-activity-table__watchlist-heading"
-                                scope="col"
-                              >
-                                <span class="visually-hidden">Watchlist</span>
-                              </th>
-
                               <th scope="col">Company</th>
-
                               <th scope="col">Price</th>
-
                               <th scope="col">Change</th>
-
-                              <th scope="col">
-                                <span
-                                  class="market-activity-table__heading-stack"
-                                >
-                                  <span>Change</span>
-                                  <span>%</span>
-                                </span>
-                              </th>
-
+                              <th scope="col">Change %</th>
                               <th scope="col">
                                 <span
                                   class="market-activity-table__heading-stack"
@@ -6005,31 +5951,37 @@
 
                           <tbody>
                             <tr>
-                              <td class="market-activity-table__watchlist-cell">
-                                <button
-                                  class="market-activity-table__watchlist has-icon icon-star-outline"
-                                  type="button"
-                                  aria-label="Add MBC Group to watchlist"
-                                  aria-pressed="false"
-                                ></button>
-                              </td>
-
                               <th
                                 class="market-activity-table__company"
                                 scope="row"
                               >
-                                <span
-                                  class="market-activity-table__company-name"
+                                <div
+                                  class="market-activity-table__company-content"
                                 >
-                                  MBC Group
-                                </span>
+                                  <button
+                                    class="market-activity-table__watchlist has-icon icon-star-outline"
+                                    type="button"
+                                    aria-label="Add MBC Group to watchlist"
+                                    aria-pressed="false"
+                                  ></button>
 
-                                <span
-                                  class="market-activity-table__company-symbol"
-                                  dir="ltr"
-                                >
-                                  4072
-                                </span>
+                                  <span
+                                    class="market-activity-table__company-identity"
+                                  >
+                                    <span
+                                      class="market-activity-table__company-name"
+                                    >
+                                      MBC Group
+                                    </span>
+
+                                    <span
+                                      class="market-activity-table__company-symbol"
+                                      dir="ltr"
+                                    >
+                                      4072
+                                    </span>
+                                  </span>
+                                </div>
                               </th>
 
                               <td
@@ -6053,9 +6005,12 @@
                                 <data value="6.01">6.01%</data>
                               </td>
 
-                              <td>
+                              <td
+                                class="market-activity-table__performance-cell"
+                              >
                                 <div
                                   class="market-activity-table__performance"
+                                  role="img"
                                   aria-label="Five-day performance: up, up, down, up, up"
                                 >
                                   <span class="is-up" aria-hidden="true"></span>
@@ -6071,31 +6026,37 @@
                             </tr>
 
                             <tr>
-                              <td class="market-activity-table__watchlist-cell">
-                                <button
-                                  class="market-activity-table__watchlist has-icon icon-star-outline"
-                                  type="button"
-                                  aria-label="Add NGC to watchlist"
-                                  aria-pressed="false"
-                                ></button>
-                              </td>
-
                               <th
                                 class="market-activity-table__company"
                                 scope="row"
                               >
-                                <span
-                                  class="market-activity-table__company-name"
+                                <div
+                                  class="market-activity-table__company-content"
                                 >
-                                  NGC
-                                </span>
+                                  <button
+                                    class="market-activity-table__watchlist has-icon icon-star-outline"
+                                    type="button"
+                                    aria-label="Add NGC to watchlist"
+                                    aria-pressed="false"
+                                  ></button>
 
-                                <span
-                                  class="market-activity-table__company-symbol"
-                                  dir="ltr"
-                                >
-                                  2090
-                                </span>
+                                  <span
+                                    class="market-activity-table__company-identity"
+                                  >
+                                    <span
+                                      class="market-activity-table__company-name"
+                                    >
+                                      NGC
+                                    </span>
+
+                                    <span
+                                      class="market-activity-table__company-symbol"
+                                      dir="ltr"
+                                    >
+                                      2090
+                                    </span>
+                                  </span>
+                                </div>
                               </th>
 
                               <td
@@ -6119,9 +6080,12 @@
                                 <data value="4.41">4.41%</data>
                               </td>
 
-                              <td>
+                              <td
+                                class="market-activity-table__performance-cell"
+                              >
                                 <div
                                   class="market-activity-table__performance"
+                                  role="img"
                                   aria-label="Five-day performance: up, down, down, up, up"
                                 >
                                   <span class="is-up" aria-hidden="true"></span>
@@ -6140,31 +6104,37 @@
                             </tr>
 
                             <tr>
-                              <td class="market-activity-table__watchlist-cell">
-                                <button
-                                  class="market-activity-table__watchlist has-icon icon-star-outline"
-                                  type="button"
-                                  aria-label="Add Zamil Industrial to watchlist"
-                                  aria-pressed="false"
-                                ></button>
-                              </td>
-
                               <th
                                 class="market-activity-table__company"
                                 scope="row"
                               >
-                                <span
-                                  class="market-activity-table__company-name"
+                                <div
+                                  class="market-activity-table__company-content"
                                 >
-                                  Zamil Industrial
-                                </span>
+                                  <button
+                                    class="market-activity-table__watchlist has-icon icon-star-outline"
+                                    type="button"
+                                    aria-label="Add Zamil Industrial to watchlist"
+                                    aria-pressed="false"
+                                  ></button>
 
-                                <span
-                                  class="market-activity-table__company-symbol"
-                                  dir="ltr"
-                                >
-                                  2240
-                                </span>
+                                  <span
+                                    class="market-activity-table__company-identity"
+                                  >
+                                    <span
+                                      class="market-activity-table__company-name"
+                                    >
+                                      Zamil Industrial
+                                    </span>
+
+                                    <span
+                                      class="market-activity-table__company-symbol"
+                                      dir="ltr"
+                                    >
+                                      2240
+                                    </span>
+                                  </span>
+                                </div>
                               </th>
 
                               <td
@@ -6188,9 +6158,12 @@
                                 <data value="4.19">4.19%</data>
                               </td>
 
-                              <td>
+                              <td
+                                class="market-activity-table__performance-cell"
+                              >
                                 <div
                                   class="market-activity-table__performance"
+                                  role="img"
                                   aria-label="Five-day performance: up, up, up, down, up"
                                 >
                                   <span class="is-up" aria-hidden="true"></span>
@@ -6206,31 +6179,37 @@
                             </tr>
 
                             <tr>
-                              <td class="market-activity-table__watchlist-cell">
-                                <button
-                                  class="market-activity-table__watchlist has-icon icon-star-outline"
-                                  type="button"
-                                  aria-label="Add GASCO to watchlist"
-                                  aria-pressed="false"
-                                ></button>
-                              </td>
-
                               <th
                                 class="market-activity-table__company"
                                 scope="row"
                               >
-                                <span
-                                  class="market-activity-table__company-name"
+                                <div
+                                  class="market-activity-table__company-content"
                                 >
-                                  GASCO
-                                </span>
+                                  <button
+                                    class="market-activity-table__watchlist has-icon icon-star-outline"
+                                    type="button"
+                                    aria-label="Add GASCO to watchlist"
+                                    aria-pressed="false"
+                                  ></button>
 
-                                <span
-                                  class="market-activity-table__company-symbol"
-                                  dir="ltr"
-                                >
-                                  2080
-                                </span>
+                                  <span
+                                    class="market-activity-table__company-identity"
+                                  >
+                                    <span
+                                      class="market-activity-table__company-name"
+                                    >
+                                      GASCO
+                                    </span>
+
+                                    <span
+                                      class="market-activity-table__company-symbol"
+                                      dir="ltr"
+                                    >
+                                      2080
+                                    </span>
+                                  </span>
+                                </div>
                               </th>
 
                               <td
@@ -6254,9 +6233,12 @@
                                 <data value="4.17">4.17%</data>
                               </td>
 
-                              <td>
+                              <td
+                                class="market-activity-table__performance-cell"
+                              >
                                 <div
                                   class="market-activity-table__performance"
+                                  role="img"
                                   aria-label="Five-day performance: down, up, up, up, down"
                                 >
                                   <span
@@ -6278,9 +6260,7 @@
                       </div>
                     </div>
 
-                    <!-- ================================================================
-           Top Losers
-           ================================================================= -->
+                    <!-- Top losers -->
 
                     <div
                       id="activity-losers-panel"
@@ -6300,26 +6280,10 @@
                         >
                           <thead>
                             <tr>
-                              <th
-                                class="market-activity-table__watchlist-heading"
-                                scope="col"
-                              >
-                                <span class="visually-hidden">Watchlist</span>
-                              </th>
-
                               <th scope="col">Company</th>
                               <th scope="col">Price</th>
                               <th scope="col">Change</th>
-
-                              <th scope="col">
-                                <span
-                                  class="market-activity-table__heading-stack"
-                                >
-                                  <span>Change</span>
-                                  <span>%</span>
-                                </span>
-                              </th>
-
+                              <th scope="col">Change %</th>
                               <th scope="col">
                                 <span
                                   class="market-activity-table__heading-stack"
@@ -6336,9 +6300,7 @@
                       </div>
                     </div>
 
-                    <!-- ================================================================
-           Most Active by Volume
-           ================================================================= -->
+                    <!-- Most active by volume -->
 
                     <div
                       id="activity-volume-panel"
@@ -6358,26 +6320,10 @@
                         >
                           <thead>
                             <tr>
-                              <th
-                                class="market-activity-table__watchlist-heading"
-                                scope="col"
-                              >
-                                <span class="visually-hidden">Watchlist</span>
-                              </th>
-
                               <th scope="col">Company</th>
                               <th scope="col">Price</th>
                               <th scope="col">Volume</th>
-
-                              <th scope="col">
-                                <span
-                                  class="market-activity-table__heading-stack"
-                                >
-                                  <span>Change</span>
-                                  <span>%</span>
-                                </span>
-                              </th>
-
+                              <th scope="col">Change %</th>
                               <th scope="col">
                                 <span
                                   class="market-activity-table__heading-stack"
@@ -6394,9 +6340,7 @@
                       </div>
                     </div>
 
-                    <!-- ================================================================
-           Most Active by Value
-           ================================================================= -->
+                    <!-- Most active by value -->
 
                     <div
                       id="activity-value-panel"
@@ -6416,26 +6360,10 @@
                         >
                           <thead>
                             <tr>
-                              <th
-                                class="market-activity-table__watchlist-heading"
-                                scope="col"
-                              >
-                                <span class="visually-hidden">Watchlist</span>
-                              </th>
-
                               <th scope="col">Company</th>
                               <th scope="col">Price</th>
                               <th scope="col">Value</th>
-
-                              <th scope="col">
-                                <span
-                                  class="market-activity-table__heading-stack"
-                                >
-                                  <span>Change</span>
-                                  <span>%</span>
-                                </span>
-                              </th>
-
+                              <th scope="col">Change %</th>
                               <th scope="col">
                                 <span
                                   class="market-activity-table__heading-stack"
@@ -6453,8 +6381,84 @@
                     </div>
                   </div>
                 </div>
-              </div>
+              </section>
             </div>
+
+            <!-- ===============================================================
+           Dashboard trading summary: 3 columns × 2 rows
+           =============================================================== -->
+
+            <dl
+              class="market-dashboard__metrics"
+              aria-label="Main Market trading summary"
+            >
+              <div class="market-dashboard__metric">
+                <dt class="market-dashboard__metric-label">Value Traded</dt>
+                <dd class="market-dashboard__metric-value" dir="ltr">
+                  <data value="7014665452.12">7,014,665,452.12</data>
+                </dd>
+              </div>
+
+              <div class="market-dashboard__metric">
+                <dt class="market-dashboard__metric-label">Volume Traded</dt>
+                <dd class="market-dashboard__metric-value" dir="ltr">
+                  <data value="315557435">315,557,435</data>
+                </dd>
+              </div>
+
+              <div class="market-dashboard__metric">
+                <dt class="market-dashboard__metric-label">
+                  Market Capitalization
+                </dt>
+                <dd class="market-dashboard__metric-value" dir="ltr">
+                  <data value="10251004260000">10,251,004.26</data>
+                </dd>
+              </div>
+
+              <div class="market-dashboard__metric">
+                <dt class="market-dashboard__metric-label price-up">
+                  Symbols Up
+                </dt>
+                <dd class="market-dashboard__metric-value price-up" dir="ltr">
+                  <data value="102">102</data>
+                </dd>
+              </div>
+
+              <div class="market-dashboard__metric">
+                <dt class="market-dashboard__metric-label price-down">
+                  Symbols Down
+                </dt>
+                <dd class="market-dashboard__metric-value price-down" dir="ltr">
+                  <data value="122">122</data>
+                </dd>
+              </div>
+
+              <div class="market-dashboard__metric">
+                <dt class="market-dashboard__metric-label">Symbols Listed</dt>
+                <dd class="market-dashboard__metric-value" dir="ltr">
+                  <data value="250">250</data>
+                </dd>
+              </div>
+            </dl>
+
+            <!-- ===============================================================
+           Dashboard note
+           =============================================================== -->
+
+            <aside class="chart-notes" aria-label="Chart information">
+              <ul class="chart-notes__list">
+                <li class="chart-notes__item">
+                  <span
+                    class="chart-notes__status has-icon icon-check"
+                    aria-hidden="true"
+                  ></span>
+
+                  <span class="chart-notes__text">
+                    Prices are delayed by a minimum of five minutes.
+                  </span>
+                </li>
+              </ul>
+            </aside>
           </div>
         </div>
       </section>
@@ -6588,7 +6592,7 @@
 
               <li class="indices-heatmap__grid-item">
                 <button
-                  class="heatmap-item minus2 "
+                  class="heatmap-item minus2"
                   type="button"
                   aria-current="true"
                   data-heatmap-item
@@ -8982,4 +8986,199 @@
       title="Back to top"
     ></button>
   </body>
+  <script>
+    (() => {
+      "use strict";
+
+      /* ======================================================================
+       Main Market Dummy Data
+       ====================================================================== */
+
+      const mainMarketData = {
+        symbol: "TASI",
+        name: "Tadawul All Share Index",
+        currency: "SAR",
+
+        ranges: {
+          "1D": {
+            trend: [
+              [1767258000000, 10842.31],
+              [1767258900000, 10847.62],
+              [1767259800000, 10839.18],
+              [1767260700000, 10855.44],
+              [1767261600000, 10861.23],
+              [1767262500000, 10857.91],
+              [1767263400000, 10870.42],
+              [1767264300000, 10866.84],
+              [1767265200000, 10874.15],
+              [1767266100000, 10881.62],
+            ],
+
+            candlestick: [
+              [1767258000000, 10838.1, 10846.2, 10835.8, 10842.31],
+              [1767258900000, 10842.31, 10850.45, 10840.62, 10847.62],
+              [1767259800000, 10847.62, 10849.14, 10836.72, 10839.18],
+              [1767260700000, 10839.18, 10858.25, 10837.91, 10855.44],
+              [1767261600000, 10855.44, 10864.8, 10853.71, 10861.23],
+              [1767262500000, 10861.23, 10864.12, 10854.35, 10857.91],
+              [1767263400000, 10857.91, 10873.24, 10856.44, 10870.42],
+              [1767264300000, 10870.42, 10872.17, 10863.2, 10866.84],
+              [1767265200000, 10866.84, 10877.61, 10865.48, 10874.15],
+              [1767266100000, 10874.15, 10884.92, 10872.64, 10881.62],
+            ],
+          },
+
+          "1W": {
+            trend: [
+              [1766707200000, 10792.45],
+              [1766793600000, 10814.22],
+              [1766880000000, 10801.67],
+              [1766966400000, 10836.48],
+              [1767052800000, 10852.19],
+              [1767139200000, 10868.54],
+              [1767225600000, 10881.62],
+            ],
+
+            candlestick: [
+              [1766707200000, 10782.3, 10801.42, 10774.18, 10792.45],
+              [1766793600000, 10792.45, 10819.75, 10788.2, 10814.22],
+              [1766880000000, 10814.22, 10820.38, 10796.41, 10801.67],
+              [1766966400000, 10801.67, 10842.15, 10799.53, 10836.48],
+              [1767052800000, 10836.48, 10858.62, 10831.44, 10852.19],
+              [1767139200000, 10852.19, 10873.46, 10847.82, 10868.54],
+              [1767225600000, 10868.54, 10889.25, 10864.13, 10881.62],
+            ],
+          },
+
+          "1M": {
+            trend: [
+              [1764633600000, 10648.32],
+              [1765238400000, 10695.44],
+              [1765843200000, 10741.18],
+              [1766448000000, 10796.25],
+              [1767052800000, 10852.19],
+              [1767225600000, 10881.62],
+            ],
+
+            candlestick: [
+              [1764633600000, 10624.4, 10662.51, 10610.35, 10648.32],
+              [1765238400000, 10648.32, 10708.66, 10638.14, 10695.44],
+              [1765843200000, 10695.44, 10755.28, 10682.71, 10741.18],
+              [1766448000000, 10741.18, 10805.73, 10728.36, 10796.25],
+              [1767052800000, 10796.25, 10861.45, 10782.9, 10852.19],
+              [1767225600000, 10852.19, 10889.25, 10846.32, 10881.62],
+            ],
+          },
+        },
+      };
+
+      /*
+       * Longer ranges temporarily reuse the monthly dummy dataset. They can be
+       * replaced independently when real page data becomes available.
+       */
+
+      mainMarketData.ranges["3M"] = mainMarketData.ranges["1M"];
+      mainMarketData.ranges["6M"] = mainMarketData.ranges["1M"];
+      mainMarketData.ranges["1Y"] = mainMarketData.ranges["1M"];
+      mainMarketData.ranges["5Y"] = mainMarketData.ranges["1M"];
+      mainMarketData.ranges.ALL = mainMarketData.ranges["1M"];
+
+      /* ======================================================================
+       Initialization
+       ====================================================================== */
+
+      function initializeMainMarketChart() {
+        const chartElement = document.querySelector("#main-market-chart");
+
+        if (!chartElement) {
+          return;
+        }
+
+        const chartSection = chartElement.closest(".performance-chart");
+
+        const chartAPI = window.SEMarketCharts;
+
+        if (!chartAPI) {
+          chartElement.setAttribute("data-chart-state", "error");
+
+          chartSection?.setAttribute("aria-busy", "false");
+
+          console.error(
+            "Main Market chart could not initialize because " +
+              "SEMarketCharts is unavailable.",
+          );
+
+          return;
+        }
+
+        try {
+          const controller = chartAPI.create(chartElement, {
+            context: "performance",
+
+            symbol: mainMarketData.symbol,
+            name: mainMarketData.name,
+            currency: mainMarketData.currency,
+
+            mode: "trend",
+            range: "1D",
+
+            /*
+             * The generic component owns range and chart-type changes.
+             */
+
+            ranges: mainMarketData.ranges,
+
+            controls: {
+              root: chartSection,
+              rangeSelector: "[data-chart-range]",
+              typeSelector: "[data-chart-type]",
+              compareTrigger: "[data-chart-compare]",
+              exportTrigger: ".chart-export__trigger",
+              exportMenu: ".chart-export-menu",
+            },
+          });
+
+          if (!controller) {
+            throw new Error("The Market Chart controller was not created.");
+          }
+
+          chartElement.setAttribute("data-chart-state", "ready");
+
+          chartSection?.setAttribute("aria-busy", "false");
+
+          /*
+           * Keep a local reference for page-specific updates or debugging.
+           * The generic registry remains the authoritative owner.
+           */
+
+          chartSection.marketChartController = controller;
+        } catch (error) {
+          chartElement.setAttribute("data-chart-state", "error");
+
+          chartSection?.setAttribute("aria-busy", "false");
+
+          console.error("Main Market chart initialization failed.", error);
+        }
+      }
+
+      /* ======================================================================
+       Readiness
+       ====================================================================== */
+
+      /*
+       * If main.js has already installed the public API, initialize
+       * immediately. Otherwise, wait for its readiness event.
+       */
+
+      if (window.SEMarketCharts) {
+        initializeMainMarketChart();
+      } else {
+        window.addEventListener(
+          "semarketchartsready",
+          initializeMainMarketChart,
+          { once: true },
+        );
+      }
+    })();
+  </script>
 </html>
