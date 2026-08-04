@@ -1,1771 +1,1283 @@
-/* =========================================================
-Chart Module
-========================================================= */
-const DEFAULT_RANGE = "1W";
-let isApplyingRange = false;
-let chartInstance = null;
-let companies = [];
-let chartInitState = null;
-let seriesOptions = [];
-let seriesOptionsMore = [];
-let seriesOptionsIntraday = [];
-const MARKET_TIME_OFFSET_MS = 3 * 60 * 60 * 1000; // +3 hours
-let chartTrend = "neutral";
-let xAxisLabel = "";
-let yAxisLabel = "";
-let tAxisLabel = "";
-let emptyLabel = "";
-/* ======================= On Load ======================= */
+<section class="market-updates section" aria-labelledby="market-updates-title" data-market-updates="">
+		<h2 id="market-updates-title" class="visually-hidden">Market
+			updates</h2>
+		<div class="container market-updates__container">
+			<div class="market-updates__surface">
+				<div class="market-updates__grid">
+						<div class="component-container id-Z7_CJ69SUGORIIOIBI17HSETC7FJ7" name="container3"><div class="component-control id-Z7_IH821B805HIL706FNSRNET0003"><span id="Z7_IH821B805HIL706FNSRNET0003"></span><section class="ibmPortalControl wpthemeControl wpthemeHidden a11yRegionTarget" role="region">
  
-$(window).on("load", () => {
-  const chartRoot = document.querySelector("[data-chart]");
-  if (!chartRoot) return;
- 
-  const company = {
-    name: chartRoot.dataset.chartCompanyName,
-    symbol: chartRoot.dataset.chartCompanySymbol,
-  };
- 
-  companies.push(company);
- 
-  const pageName = chartRoot.dataset.chartPageName;
-  const getToken = chartRoot.dataset.chartToken;
-  const chartChange = parseFloat(chartRoot.dataset.chartChange || "0");
-  xAxisLabel = chartRoot?.dataset.chartXLabel || "Date";
-  yAxisLabel = chartRoot?.dataset.chartYLabel || "Price";
-  tAxisLabel = chartRoot?.dataset.chartTLabel || "Time";
-  emptyLabel = chartRoot?.dataset.chartEmptyLabel || "No data available";
-  
-  chartTrend = chartChange >= 0 ? "up" : "down";
-  
-  initChart("SQL_CI_CV_COM", "SQL_CI_DV", company.symbol, pageName, getToken);
-  bindRangeControls();
- 
-  var activeBtn = document.querySelector(".chart-range.is-active");
-  if (activeBtn) moveRangeIndicator(activeBtn);
-});
- 
-/* ======================= Init Chart ======================= */
- 
-async function initChart(
-  chartTypeCom,
-  chartTypeDv,
-  symbol,
-  pageName,
-  getToken,
-) {
-  try {
-    console.log("Initializing chart for:", symbol);
- 
-    /*
-	 * ===================================================== STEP 1: Load all
-	 * data ONCE =====================================================
-	 */
-    await getFullSeries(chartTypeDv, pageName, getToken); // intraday
-    await getFullSeries(chartTypeCom, pageName, getToken); // historical
- 
-    /*
-	 * ===================================================== STEP 2: Select
-	 * initial active dataset
-	 * =====================================================
-	 */
-    const activeRange = DEFAULT_RANGE;
-    setActiveSeriesByRange(activeRange);
- 
-    /*
-	 * ===================================================== STEP 3: Check if
-	 * ANY data exists for default range
-	 * =====================================================
-	 */
-    const hasData = seriesOptions.some(
-      (s) => Array.isArray(s.data) && s.data.length > 0,
-    );
- 
-    /*
-	 * ===================================================== STEP 4: Determine
-	 * logical endTime =====================================================
-	 */
-    let endTime = 0;
-    seriesOptions.forEach((series) => {
-      if (!Array.isArray(series.data) || !series.data.length) return;
-      endTime = Math.max(endTime, series.data[series.data.length - 1][0]);
-    });
- 
-    if (!endTime) {
-      endTime = Date.now();
-    }
- 
-    /*
-	 * ===================================================== STEP 5: Resolve
-	 * X-axis window for default range
-	 * =====================================================
-	 */
-    const selectedRange = getSelectedRange(activeRange, endTime);
- 
-    /*
-	 * ===================================================== STEP 6: Compute
-	 * Y-axis bounds =====================================================
-	 */
-    const yAxis = hasData
-    ? calculateYAxisBounds(seriesOptions, activeRange, selectedRange)
-    : { min: 0, max: 1, tickInterval: 0.2 };
- 
-    /*
-	 * ===================================================== STEP 7: Freeze
-	 * chart initialization state
-	 * =====================================================
-	 */
-    chartInitState = {
-      range: activeRange,
-      endTime: endTime,
-      selectedRange: selectedRange,
-      yAxis: yAxis,
-      empty: !hasData,
-    };
- 
-    /*
-	 * ===================================================== STEP 8: Draw chart
-	 * ONCE =====================================================
-	 */
-    drawChart();
- 
-    /*
-	 * ===================================================== STEP 9: Apply
-	 * default range after chart exists
-	 * =====================================================
-	 */
-    applyRange(activeRange);
- 
-    var btn = document.querySelector(
-      '.chart-range[data-range="' + activeRange + '"]',
-    );
-    if (btn) {
-      setActiveRangeButton(btn);
-      moveRangeIndicator(btn);
-    }
-  } catch (error) {
-    console.error("Chart initialization failed:", error);
-  }
-}
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-const MAX_X_AXIS_TICKS = 7;
-
-function getVisibleUniqueTradingDates(min, max) {
-  const seen = new Set();
-  const dates = [];
-
-  seriesOptions.forEach((series) => {
-    if (!Array.isArray(series.data)) return;
-
-    series.data.forEach(([ts]) => {
-      if (ts < min || ts > max) return;
-
-      // Stable key instead of toLocaleDateString()
-      const key = Highcharts.dateFormat("%Y-%m-%d", ts);
-
-      if (!seen.has(key)) {
-        seen.add(key);
-        dates.push(ts);
-      }
-    });
-  });
-
-  return dates.sort((a, b) => a - b);
-}
-
-function buildTickPositions(min, max, maxTicks = MAX_X_AXIS_TICKS) {
-  const visibleDates = getVisibleUniqueTradingDates(min, max);
-
-  if (!visibleDates.length) return undefined;
-
-  // If visible trading dates are already few, use them directly
-  if (visibleDates.length <= maxTicks) {
-    return visibleDates;
-  }
-
-  // Evenly sample visible trading dates so max tick count stays <= 7
-  const positions = [];
-  const lastIndex = visibleDates.length - 1;
-
-  for (let i = 0; i < maxTicks; i++) {
-    const index = Math.round((i * lastIndex) / (maxTicks - 1));
-    const ts = visibleDates[index];
-
-    if (positions[positions.length - 1] !== ts) {
-      positions.push(ts);
-    }
-  }
-
-  return positions;
-}
-
- 
-/*
-* ========================================================= DRAW CHART - Pure
-* rendering - NO business logic
-* =========================================================
-*/
- 
-function drawChart() {
-	  const styles = getChartStyles();
-	 
-	  chartInstance = Highcharts.stockChart("drawGraph", {
-	    chart: {
-	      height: 420,
-	      backgroundColor: "transparent",
-	      spacing: [12, 8, 12, 8],
-	      marginLeft: 60,
-	    },
-	 
-	    credits: {
-	      enabled: false,
-	    },
-	 
-	    accessibility: {
-	      enabled: false,
-	    },
-	 
-	    rangeSelector: {
-	      enabled: false,
-	    },
-	 
-	    exporting: {
-	      enabled: true,
-	      local: false,
-	      sourceWidth: 1200,
-	      sourceHeight: 850,
-	      scale: 1,
-	      buttons: {
-	        contextButton: {
-	          enabled: false,
-	        },
-	      },
-	    },
-	 
-	    xAxis: {
-	      title: {
-	        text: getCurrentXAxisLabel(
-	          chartInitState?.range || DEFAULT_RANGE,
-	        ),
-	        style: {
-	          color: styles.axisText,
-	          fontSize: "12px",
-	          fontWeight: "normal",
-	        },
-	      },
-	 
-	      type: "datetime",
-	      ordinal: true,
-	      reversed: false,
-	 
-	      lineColor: styles.gridLine,
-	      tickColor: styles.gridLine,
-	 
-	      labels: {
-	        rotation: -40,
-	        align: "right",
-	 
-	        style: {
-	          color: styles.axisText,
-	          fontSize: "11px",
-	          whiteSpace: "nowrap",
-	        },
-	 
-	        formatter: function () {
-	          const span = this.axis.max - this.axis.min;
-	 
-	          if (span <= 2 * DAY_MS) {
-	            return Highcharts.dateFormat("%H:%M", this.value);
-	          }
-	 
-	          return Highcharts.dateFormat("%d-%m-%y", this.value);
-	        },
-	      },
-	 
-	      tickPositioner: function () {
-	        if (this.min == null || this.max == null) {
-	          return undefined;
-	        }
-	 
-	        const span = this.max - this.min;
-	        const isIntraday = span <= 2 * DAY_MS;
-	 
-	        // Let Highcharts calculate intraday/hourly ticks.
-	        if (isIntraday) {
-	          return undefined;
-	        }
-	 
-	        return buildTickPositions(
-	          this.min,
-	          this.max,
-	          MAX_X_AXIS_TICKS,
-	        );
-	      },
-	 
-	      events: {
-	        afterSetExtremes: function (event) {
-	          if (event.min == null || event.max == null) {
-	            return;
-	          }
-	 
-	          if (isApplyingRange) {
-	            return;
-	          }
-	 
-	          applyVisibleTrendStyle(event.min, event.max);
-	          updateYAxisForVisibleRange(event.min, event.max);
-	          syncActiveRangeButtonFromNavigator(
-	            event.min,
-	            event.max,
-	          );
-	        },
-	      },
-	    },
-	 
-	    yAxis: {
-	      title: {
-	        text: yAxisLabel,
-	        style: {
-	          color: styles.axisText,
-	          fontSize: "12px",
-	          fontWeight: "normal",
-	        },
-	      },
-	 
-	      min: chartInitState.yAxis.min,
-	      max: chartInitState.yAxis.max,
-	      tickInterval: chartInitState.yAxis.tickInterval,
-	 
-	      allowDecimals: true,
-	      opposite: true,
-	 
-	      lineColor: styles.gridLine,
-	      tickColor: styles.gridLine,
-	      gridLineColor: styles.gridLine,
-	      gridLineWidth: 1,
-	 
-	      labels: {
-	        reserveSpace: true,
-	        align: "right",
-	 
-	        style: {
-	          color: styles.axisText,
-	          fontSize: "12px",
-	          whiteSpace: "nowrap",
-	        },
-	 
-	        formatter: function () {
-	          return Highcharts.numberFormat(
-	            this.value,
-	            2,
-	            ".",
-	            ",",
-	          );
-	        },
-	      },
-	    },
-	 
-	    tooltip: {
-	      split: true,
-	      backgroundColor: styles.tooltipBg,
-	      borderColor: styles.tooltipBorder,
-	 
-	      style: {
-	        color: styles.tooltipText,
-	        fontSize: "12px",
-	      },
-	 
-	      shadow: false,
-	 
-	      formatter: function () {
-	        const axis =
-	          this.points && this.points[0]
-	            ? this.points[0].series.xAxis
-	            : this.series.xAxis;
-	 
-	        const span = axis.max - axis.min;
-	        const isIntraday = span <= 2 * DAY_MS;
-	 
-	        const header = isIntraday
-	          ? Highcharts.dateFormat(
-	              "%A, %b %e, %H:%M",
-	              this.x,
-	            )
-	          : Highcharts.dateFormat(
-	              "%A, %b %e, %Y",
-	              this.x,
-	            );
-	 
-	        const points = this.points || [this.point];
-	 
-	        const rows = points.map(function (point) {
-	          return (
-	            '<span style="color:' +
-	            point.color +
-	            '">●</span> ' +
-	            point.series.name +
-	            ": <b>" +
-	            Highcharts.numberFormat(
-	              point.y,
-	              2,
-	              ".",
-	              ",",
-	            ) +
-	            "</b>"
-	          );
-	        });
-	 
-	        return [header].concat(rows);
-	      },
-	    },
-	 
-	    plotOptions: {
-	      series: {
-	        animation: {
-	          duration: 350,
-	          easing: "easeOutCubic",
-	        },
-	      },
-	 
-	      area: {
-	        lineWidth: 2,
-	        color: styles.seriesLine,
-	        lineColor: styles.seriesLine,
-	 
-	        marker: {
-	          enabled: false,
-	        },
-	 
-	        threshold: null,
-	 
-	        fillColor: {
-	          linearGradient: [0, 0, 0, 300],
-	 
-	          stops: [
-	            [0, styles.seriesFillStart],
-	            [1, styles.seriesFillEnd],
-	          ],
-	        },
-	      },
-	    },
-	 
-	    navigator: {
-	      enabled: true,
-	      height: 56,
-	      margin: 12,
-	      outlineWidth: 0,
-	      maskFill: "rgba(44, 129, 255, 0.16)",
-	      liveRedraw: true,
-	 
-	      xAxis: {
-	        ordinal: true,
-	        reversed: false,
-	 
-	            dateTimeLabelFormats: {
-	                minute: '%H:%M',
-	                hour: '%H:%M',
-	                day: '%e %b' // Keeps the date clean when zooming out
-	            },
-	    
-	        labels: {
-	          style: {
-	        	  textOutline: 'none', // Removes the text shadow
-                
-	            color: styles.mutedText,
-	            fontSize: "10px",
-	          },
-	        },
-	      },
-	    },
-	 
-	    scrollbar: {
-	      enabled: true,
-	      liveRedraw: true,
-	      height: 0,
-	    },
-	 
-	    series: [],
-	  });
-	 
-	  bindExportButton();
-	 
-	  if (chartInitState.empty) {
-	    setEmptyState(
-	      true,
-	      emptyLabel
-	    );
-	  } else {
-	    setEmptyState(false);
-	  }
-	}
-	 
-	 
-	 
-	 
 	
- 
-document.addEventListener("theme:changed", () => {
-  if (!chartInstance) return;
- 
-  const styles = getChartStyles();
- 
-  chartInstance.update(
-		  
-		  
-    {
-      xAxis: {
-    	  title: { 
-			  style: {
-				  
-				  color: styles.axisText,
-				  textOutline: 'none' // Removes the text shadow
+	<!-- start header markup -->
+	<header class="wpthemeControlHeader">
+		<div class="wpthemeInner">
+			<h2>
+				<img class="dndHandle" draggable="true" ondragstart="wpModules.dnd.util.portletDragStart(event, this, this.parentNode, 30, 0);" ondragend="wpModules.dnd.util.portletDragEnd(event);" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
+				<!-- lm-dynamic-title node marks location for dynamic title support -->
+ 				<span class="lm-dynamic-title asa.portlet.title a11yRegionLabel"><span lang="en" dir="ltr">NewsPortletV3</span></span>
+			</h2>
+			<a aria-haspopup="true" aria-label="Display menu" role="button" href="javascript:;" class="wpthemeIcon wpthemeMenuFocus" tabindex="0" onclick="if (typeof wptheme != 'undefined') wptheme.contextMenu.init({ 'node': this, menuId: 'skinAction', jsonQuery: {'navID':ibmCfg.portalConfig.currentPageOID,'windowID':wptheme.getWindowIDFromSkin(this)}, params: {'alignment':'right'}});" onkeydown="javascript:if (typeof i$ != 'undefined' &amp;&amp; typeof wptheme != 'undefined') {if (event.keyCode ==13 || event.keyCode ==32 || event.keyCode==38 || event.keyCode ==40) {wptheme.contextMenu.init(this, 'skinAction', {'navID':ibmCfg.portalConfig.currentPageOID,'windowID':wptheme.getWindowIDFromSkin(this)}); return false;}}">
+				<span title="Display menu"><img aria-label="Display menu" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></span>
+				<span class="wpthemeAltText">Actions</span>
+			</a>
+		</div>
+	</header>
+	
+	<!-- <div class="wpthemeControlBody wpthemeOverflowAuto wpthemeClear"> <!-- lm:control dynamic spot injects markup of layout control -->
+	<!-- asa.overlay marks the node that the AsaOverlayWidget will be placed in -->
+		
+		<!-- <div class="wpthemeClear"></div>
+	</div> -->
+	<div style="position:relative; z-index: 1;">
+		<div class="analytics.overlay"></div>
+	</div>
+	
+
+
+
+
+	
+	
+<script> if(typeof dojo=='undefined') {
+  document.writeln("<scr"+"ipt src='/wps/portal_dojo/v1.4.3/dojo/dojo.js' ></scr"+"ipt>");
+} </script>
+<script>dojo.require('ibm.portal.xml.xpath'); dojo.require('ibm.portal.xml.xslt');</script>
+<script>dojo.require('ibm.portal.portlet.portlet');</script>
+<script>if(typeof(ibmPortalConfig) == "undefined") {ibmPortalConfig = {contentHandlerURI: "/wps/contenthandler/!ut/p/digest!Xfv_6wksuK0o6M5Rg0mXvw/nm/oid:wps.portal.root"};} else if(!ibmPortalConfig["contentHandlerURI"]) {ibmPortalConfig["contentHandlerURI"] = "/wps/contenthandler/!ut/p/digest!Xfv_6wksuK0o6M5Rg0mXvw/nm/oid:wps.portal.root";} </script><div id="com.ibm.wps.web2.portlet.root.Z7_IH821B805HIL706FNSRNET0003" style="display: none;">/wps/contenthandler/!ut/p/digest!Xfv_6wksuK0o6M5Rg0mXvw/pm/oid:--portletwindowid--@oid:Z6_IH821B8059N3406TT68L4I38M3</div>
+<div id="com.ibm.wps.web2.portlet.preferences.Z7_IH821B805HIL706FNSRNET0003" style="display: none;" pageid="Z6_IH821B8059N3406TT68L4I38M3" configid="Z3_IH821B8059N3406TT68L4I38U3" editdefaultsid="Z5_IH821B805HIL706FNSRNET0007"></div>
+<div id="com.ibm.wps.web2.portlet.user.Z7_IH821B805HIL706FNSRNET0003" style="display: none;">/wps/contenthandler/!ut/p/digest!Xfv_6wksuK0o6M5Rg0mXvw/um/secure/currentuser/profile?expandRefs=true</div>
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+	
+
+
+	
+
+
+
+
+
+<!-- ===============================================================
+     Latest News
+================================================================ -->
+
+<!-- ===============================================================
+     Latest News
+================================================================ -->
+
+<section class="market-updates__column" aria-labelledby="market-news-title">
+  <h3 id="market-news-title" class="section-heading section-heading--lg">
+    <span class="section-heading__icon has-icon icon-tadawul" aria-hidden="true"></span>
+
+    <span class="section-heading__text">
+      Latest News
+    </span>
+  </h3>
+
+  <div class="market-news surface-insights" data-market-news="">
+    <!-- ===========================================================
+         News Tabs
+    ============================================================ -->
+
+    <div class="tabs tabs--pill tabs--full market-news__tabs" data-tabs="">
+      <div class="tabs-nav" role="tablist" aria-label="Latest news categories">
+        <button class="tab-link active" id="market-news-tab-market-news" type="button" role="tab" aria-selected="true" aria-controls="market-news-panel-market-news" tabindex="0" data-tab-target="market-news-panel-market-news">
+          Market News
+        </button>
+
+        <button class="tab-link" id="market-news-tab-announcements" type="button" role="tab" aria-selected="false" aria-controls="market-news-panel-announcements" tabindex="-1" data-tab-target="market-news-panel-announcements">
+          Company Announcements
+        </button>
+
+        <button class="tab-link" id="market-news-tab-trending" type="button" role="tab" aria-selected="false" aria-controls="market-news-panel-trending" tabindex="-1" data-tab-target="market-news-panel-trending">
+          Trending News
+        </button>
+      </div>
+
+      <div class="tabs-content">
+        <!-- =======================================================
+             Market News Panel
+        ======================================================== -->
+
+        <div class="tab-pane active" id="market-news-panel-market-news" role="tabpanel" aria-labelledby="market-news-tab-market-news" aria-hidden="false">
+          
+            
+              <div class="market-news-list" role="list" data-market-news-list="">
                 
-			  }
-		  },
-        labels: { style: { color: styles.axisText } },
-        lineColor: styles.gridLine,
-        tickColor: styles.gridLine,
-      },
-      yAxis: {
-    	  title: { 
-			  style: { color: styles.axisText }
-		  },
-        labels: { style: { color: styles.axisText } },
-        gridLineColor: styles.gridLine,
-      },
-      tooltip: {
-        backgroundColor: styles.tooltipBg,
-        borderColor: styles.tooltipBorder,
-        style: { color: styles.tooltipText },
-      },
-      plotOptions: {
-        area: {
-          lineColor: styles.seriesLine,
-          fillColor: {
-            linearGradient: [0, 0, 0, 300],
-            stops: [
-              [0, styles.seriesFillStart],
-              [1, styles.seriesFillEnd],
-            ],
-          },
-        },
-      },
-      navigator: {
-        maskFill: "rgba(44, 129, 255, 0.16)",
-        xAxis: {
-          labels: { style: { color: styles.mutedText } },
-        },
-      },
-    },
-    true,
-  );
-  const axis = chartInstance.xAxis[0];
-  
-  if (axis && axis.min != null && axis.max != null) {
-    applyVisibleTrendStyle(axis.min, axis.max);
-    chartInstance.redraw();
-  }
-  
-});
- 
-function updateYAxisForVisibleRange(min, max) {
-	  if (!chartInstance) return;
-	 
-	  const yAxis = calculateYAxisBounds(
-	    seriesOptions,
-	    chartInitState.range,
-	    { start: min, end: max }
-	  );
-	 
-	  if (!yAxis) return;
-	 
-	  chartInstance.yAxis[0].update({
-	    min: yAxis.min,
-	    max: yAxis.max,
-	    tickInterval: yAxis.tickInterval
-	  }, true);
-	}
-/*
-* ========================================================= Y-AXIS CALCULATION
-* RULE: - ALL => full historical Y range - Other ranges => visible window only
-* =========================================================
-*/
- 
-function calculateYAxisBounds(series, range, selectedRange) {
-	  let minValue = Infinity;
-	  let maxValue = -Infinity;
-	 
-	  series.forEach((s) => {
-	    if (!Array.isArray(s.data)) return;
-	 
-	    s.data.forEach(([time, value]) => {
-	      const include =
-	        range === "ALL" ||
-	        (time >= selectedRange.start && time <= selectedRange.end);
-	 
-	      if (include) {
-	        if (value < minValue) minValue = value;
-	        if (value > maxValue) maxValue = value;
-	      }
-	    });
-	  });
-	 
-	  if (!isFinite(minValue) || !isFinite(maxValue)) {
-	    return null;
-	  }
-	 
-	  /*
-		 * ===================================================== Legacy exact
-		 * behavior: min = actual min max = actual max tickInterval = (max -
-		 * min) / 5 =====================================================
-		 */
-	  let tickInterval = (maxValue - minValue) / 5;
-	 
-	  /*
-		 * Prevent invalid tick interval when all values are equal
-		 */
-	  if (!isFinite(tickInterval) || tickInterval <= 0) {
-	    tickInterval = 1;
-	  }
-	 
-	  return {
-	    min: minValue,
-	    max: maxValue,
-	    tickInterval: tickInterval
-	  };
-	}
- 
-/* ======================= Data Fetch ======================= */
- 
-async function getFullSeries(chartType, pageName, getToken) {
-  const tokenResponse = await $.ajax({
-    url: getToken,
-    type: "GET",
-    data: { pageName },
-  });
- 
-  const { jwtToken } = JSON.parse(tokenResponse);
- 
-  const requests = companies.map((company) =>
-    ajaxCall(chartType, jwtToken, company, pageName),
-  );
- 
-  const responses = await Promise.all(requests);
- 
-  return buildSeries(chartType, responses);
-}
- 
-/* ======================= Ajax Call ======================= */
- 
-function ajaxCall(chartType, jwtToken, company, pageName) {
-  return $.ajax({
-    url:
-        "/" +
-      chartType +
-      "&chart-parameter=" +
-      company.symbol +
-      "&pageName=" +
-      pageName +
-      "&jwtToken=" +
-      jwtToken,
-    type: "GET",
-    dataType: "json",
-  });
-}
- 
-/* ======================= Build Series ======================= */
- 
-function buildSeries(chartType, responses) {
-  const target =
-    chartType === "SQL_CI_DV"
-      ? (seriesOptionsIntraday = [])
-      : (seriesOptionsMore = []);
- 
-  responses.forEach((data, index) => {
-    target.push({
-    	data: getFormattedGraphJson(data, chartType === "SQL_CI_DV"),
-    	name: companies[index].name,
-      type: "area",
-    });
-  });
- 
-  return target;
-}
- 
-/* ======================= Slide Range on Select ======================= */
- 
-function moveRangeIndicator(activeBtn) {
-  var container = activeBtn.parentElement;
-  var indicator = container.querySelector(".chart-range-indicator");
- 
-  if (!indicator) return;
- 
-  var btnRect = activeBtn.getBoundingClientRect();
-  var containerRect = container.getBoundingClientRect();
- 
-  var offsetX = btnRect.left - containerRect.left;
-  indicator.style.inlineSize = btnRect.width + "px";
-  indicator.style.transform = "translateX(" + offsetX + "px)";
-}
- 
-/* ======================= Range Controls ======================= */
- 
-function bindRangeControls() {
-  document.querySelectorAll(".chart-range").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      const range = this.dataset.range;
-      setActiveRangeButton(this);
-      moveRangeIndicator(this);
-      applyRange(range);
-    });
-  });
-}
- 
-/* ======================= Select which series to use ======================= */
- 
-function setActiveSeriesByRange(range) {
-  const useIntraday = range === "1D";
-  seriesOptions = useIntraday ? seriesOptionsIntraday : seriesOptionsMore;
-  return seriesOptions;
-}
- 
-/* ======================= Apply Range ======================= */
- 
-function getRangeFromVisibleSpan(start, end) {
-	  const DAY = 24 * 3600 * 1000;
-	  const span = end - start;
-	 
-	  if (span <= 1.5 * DAY) return "1D";
-	  if (span <= 5.5 * DAY) return "5D";
-	  if (span <= 8 * DAY) return "1W";
-	  if (span <= 35 * DAY) return "1M";
-	  if (span <= 100 * DAY) return "3M";
-	  if (span <= 400 * DAY) return "1Y";
-	  if (span <= 3.3 * 365 * DAY) return "3Y";
-	 
-	  return "ALL";
-	}
- 
-function syncActiveRangeButtonFromNavigator(start, end) {
-	  const range = getRangeFromVisibleSpan(start, end);
-	 
-	  chartInitState.range = range;
-	 
-	  const btn = document.querySelector(
-	    '.chart-range[data-range="' + range + '"]'
-	  );
-	 
-	  if (!btn) return;
-	 
-	  setActiveRangeButton(btn);
-	  moveRangeIndicator(btn);
-	}
- 
-function applyRange(range) {
-	  if (!chartInstance) return;
-	 
-	  chartInitState.range = range;
-	 
-	  const styles = getChartStyles();
-	 
-	  chartInstance.xAxis[0].update(
-	    {
-	      title: {
-	        text: getCurrentXAxisLabel(range),
-	        style: {
-	          color: styles.axisText,
-	          fontSize: "12px",
-	          fontWeight: "normal",
-	        },
-	      },
-	    },
-	    false,
-	  );
-	 
-	  setActiveSeriesByRange(range);
-	 
-	  const hasData = seriesOptions.some(function (series) {
-	    return (
-	      series &&
-	      Array.isArray(series.data) &&
-	      series.data.length > 0
-	    );
-	  });
-	 
-	  if (!hasData) {
-	    setEmptyState(
-	      true,
-	      emptyLabel
-	    );
-	    return;
-	  }
-	 
-	  setEmptyState(false);
-	 
-	  const bounds = getSeriesBounds(seriesOptions);
-	 
-	  if (!bounds) {
-	    setEmptyState(
-	      true,
-	      emptyLabel
-	    );
-	    return;
-	  }
-	 
-	  const end = bounds.max;
-	  let start;
-	 
-	  if (range === "ALL") {
-	    start = bounds.min;
-	  } else {
-	    const selectedRange = getSelectedRange(range, end);
-	    start = selectedRange.start;
-	 
-	    if (start < bounds.min) {
-	      start = bounds.min;
-	    }
-	  }
-	 
-	  const yAxis = calculateYAxisBounds(
-	    seriesOptions,
-	    range,
-	    {
-	      start,
-	      end,
-	    },
-	  );
-	 
-	  if (!yAxis) {
-	    setEmptyState(
-	      true,
-	      emptyLabel
-	    );
-	    return;
-	  }
-	 
-	  while (chartInstance.series.length) {
-	    chartInstance.series[0].remove(false);
-	  }
-	 
-	  seriesOptions.forEach(function (series) {
-	    chartInstance.addSeries(series, false);
-	  });
-	 
-	  chartInstance.yAxis[0].update(
-	    {
-	      min: yAxis.min,
-	      max: yAxis.max,
-	      tickInterval: yAxis.tickInterval,
-	    },
-	    false,
-	  );
-	 
-	  setTimeout(function () {
-	    if (
-	      !chartInstance ||
-	      !chartInstance.xAxis ||
-	      !chartInstance.xAxis[0]
-	    ) {
-	      return;
-	    }
-	 
-	    isApplyingRange = true;
-	 
-	    chartInstance.xAxis[0].setExtremes(
-	      start,
-	      end,
-	      false,
-	      false,
-	    );
-	 
-	    isApplyingRange = false;
-	 
-	    updateYAxisForVisibleRange(start, end);
-	    applyVisibleTrendStyle(start, end);
-	 
-	    chartInstance.redraw();
-	    chartInstance.reflow();
-	  }, 0);
-	}
- 
-function applyVisibleTrendStyle(start, end) {
-	  if (!chartInstance) return;
-	 
-	  const points = seriesOptions
-	    .flatMap(function (s) {
-	      return Array.isArray(s.data) ? s.data : [];
-	    })
-	    .filter(function (point) {
-	      return point[0] >= start && point[0] <= end;
-	    })
-	    .sort(function (a, b) {
-	      return a[0] - b[0];
-	    });
-	 
-	  if (points.length < 2) return;
-	 
-	  chartTrend = points[points.length - 1][1] >= points[0][1] ? "up" : "down";
-	 
-	  const styles = getChartStyles();
-	 
-	  chartInstance.series.forEach(function (series) {
-	    series.update({
-	      color: styles.seriesLine,
-	      lineColor: styles.seriesLine,
-	      fillColor: {
-	        linearGradient: [0, 0, 0, 300],
-	        stops: [
-	          [0, styles.seriesFillStart],
-	          [1, styles.seriesFillEnd],
-	        ],
-	      },
-	    }, false);
-	  });
-	}
- 
-/* ======================= Active Button ======================= */
- 
-function setActiveRangeButton(activeBtn) {
-  document.querySelectorAll(".chart-range").forEach((btn) => {
-    btn.classList.remove("is-active");
-    btn.setAttribute("aria-selected", "false");
-  });
- 
-  activeBtn.classList.add("is-active");
-  activeBtn.setAttribute("aria-selected", "true");
-}
- 
-/* ======================= Data Formatter ======================= */
- 
-function parseChartDateTime(dateTimeString, isIntraday) {
-	  if (!dateTimeString) return NaN;
-	 
-	  const raw = String(dateTimeString).trim();
-	 
-	  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
-	    const dateParts = raw.split("-");
-	    const year = parseInt(dateParts[0], 10);
-	    const month = parseInt(dateParts[1], 10) - 1;
-	    const day = parseInt(dateParts[2], 10);
-	 
-	    return new Date(year, month, day, 12, 0, 0).getTime();
-	    
-	  }
-	 
-	  const parts = raw.split(" ");
-	  if (parts.length === 2) {
-	    const dateParts = parts[0].split("-");
-	    const timeParts = parts[1].split(":");
-	 
-	    if (dateParts.length === 3 && timeParts.length >= 2) {
-	      const year = parseInt(dateParts[0], 10);
-	      const month = parseInt(dateParts[1], 10) - 1;
-	      const day = parseInt(dateParts[2], 10);
-	      const hour = parseInt(timeParts[0], 10);
-	      const minute = parseInt(timeParts[1], 10);
-	      const second = timeParts.length > 2 ? parseInt(timeParts[2], 10) : 0;
-	 
-	      let timestamp;
-	      
-	      if (isIntraday) {
-	        timestamp =
-	          new Date(year, month, day, hour, minute, second).getTime() +
-	          MARKET_TIME_OFFSET_MS;
-	      } else {
-	        timestamp = new Date(year, month, day, 12, 0, 0).getTime();
-	      }
-	       
-	      return timestamp;
-	    }
-	  }
-	 
-	  return NaN;
-	}
- 
-function getFormattedGraphJson(data, isIntraday) {
-	  if (!Array.isArray(data)) return [];
-	 
-	  return data
-	    .map((point) => {
-	      const timestamp = parseChartDateTime(point.dateTime, isIntraday);
-	      const value = parseFloat(point.indexPrice);
-	 
-	      return !isNaN(timestamp) && !isNaN(value) && value!==0 ? [timestamp, value] : null;
-	    })
-	    .filter(Boolean)
-	    .sort((a, b) => a[0] - b[0]);
-	}
- 
-function getSelectedRange(range, endTime) {
-  const DAY = 24 * 3600 * 1000;
-  let start;
-  const end = endTime;
- 
-  switch (range) {
-    case "1D":
-      start = end - 1 * DAY;
-      break;
-    case "5D":
-      start = end - 5 * DAY;
-      break;
-    case "1W":
-      start = end - 6 * DAY;
-      break;
-    case "1M":
-      start = end - 30 * DAY;
-      break;
-    case "3M":
-      start = end - 90 * DAY;
-      break;
-    case "1Y":
-      start = end - 365 * DAY;
-      break;
-    case "3Y":
-      start = end - 3 * 365 * DAY;
-      break;
-    case "ALL":
-    default:
-      start = 0;
-  }
- 
-  return { start, end };
-}
- 
-/* ======================= Chart Styles ======================= */
- 
-function getChartStyles() {
-  const css = getComputedStyle(document.documentElement);
-  const read = (v) => css.getPropertyValue(v).trim();
- 
-  return {
-    bg: read("--chart-bg"),
-    surface: read("--chart-surface"),
-    border: read("--chart-border"),
- 
-    text: read("--chart-text"),
-    mutedText: read("--chart-muted-text"),
- 
-    axisText: read("--chart-axis-text"),
-    gridLine: read("--chart-grid-line"),
- 
-    seriesLine:
-	  chartTrend === "down"
-	    ? read("--chart-series-negative")
-	    : read("--chart-series-positive"),
-	 
-	seriesFillStart:
-	  chartTrend === "down"
-	    ? read("--chart-series-negative-fill-start")
-	    : read("--chart-series-positive-fill-start"),
-	 
-	seriesFillEnd:
-	  chartTrend === "down"
-	    ? read("--chart-series-negative-fill-end")
-	    : read("--chart-series-positive-fill-end"),
- 
-    tooltipBg: read("--chart-tooltip-bg"),
-    tooltipText: read("--chart-tooltip-text"),
-    tooltipBorder: read("--chart-border"),
-  };
-}
- 
-function toggleChartAxes(showAxes) {
-	  if (!chartInstance) return;
-	 
-	  const styles = getChartStyles();
-	  const currentRange = chartInitState?.range || DEFAULT_RANGE;
-	  const currentXAxisLabel =
-	    currentRange === "1D" ? tAxisLabel : xAxisLabel;
-	 
-	  chartInstance.xAxis[0].update(
-	    {
-	      title: {
-	        text: showAxes ? currentXAxisLabel : null,
-	        style: {
-	          color: styles.axisText,
-	          fontSize: "12px",
-	          fontWeight: "normal",
-	        },
-	      },
-	      labels: {
-	        enabled: showAxes,
-	        rotation: -40,
-	        align: "right",
-	        style: {
-	          color: styles.axisText,
-	          fontSize: "11px",
-	          whiteSpace: "nowrap",
-	        },
-	      },
-	      lineColor: styles.gridLine,
-	      tickColor: styles.gridLine,
-	      lineWidth: showAxes ? 1 : 0,
-	      tickLength: showAxes ? 5 : 0,
-	    },
-	    false,
-	  );
-	 
-	  chartInstance.yAxis[0].update(
-	    {
-	      title: {
-	        text: showAxes ? yAxisLabel : null,
-	        margin: 16,
-	        style: {
-	          color: styles.axisText,
-	          fontSize: "12px",
-	          fontWeight: "normal",
-	        },
-	      },
-	      labels: {
-	        enabled: showAxes,
-	        reserveSpace: true,
-	        align: "right",
-	        style: {
-	          color: styles.axisText,
-	          fontSize: "12px",
-	          whiteSpace: "nowrap",
-	        },
-	        formatter: function () {
-	          return Highcharts.numberFormat(this.value, 2, ".", ",");
-	        },
-	      },
-	      lineColor: styles.gridLine,
-	      tickColor: styles.gridLine,
-	      gridLineColor: styles.gridLine,
-	      gridLineWidth: showAxes ? 1 : 0,
-	      lineWidth: showAxes ? 1 : 0,
-	      tickLength: showAxes ? 5 : 0,
-	    },
-	    false,
-	  );
-	}
- 
-function setEmptyState(isEmpty, message) {
-  if (!chartInstance) return;
- 
-  if (isEmpty) {
-    chartInstance.showLoading(
-      message || "No data available for selected range",
+                  
+                    
+                      
+                    
+
+                    
+                  
+
+                  <article class="market-news-list__item" role="listitem">
+                    <a class="market-news-list__link track-news-click" href="/wps/portal/saudiexchange_v3/newsandreports/issuer-news/news-detail-wcm/?newsId=9497&amp;locale=en" data-news-id="9497" data-news-type="M">
+                      <img class="market-news-list__logo" src="https://betauat.saudiexchange.sa/Resources/SEImage/SE.png" alt="" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/default-Logo.png';">
+
+                      <div class="market-news-list__content">
+                        <h4 class="market-news-list__title">
+                          Announcement Regarding The Approval On Listing and Trading Government Debt Instruments
+                        </h4>
+
+                        <footer class="market-news-list__footer">
+                          <div class="market-news-list__datetime" dir="ltr">
+                            <div class="market-news-list__dates">
+                              <span class="market-news-list__date market-news-list__date--gregorian">
+                                16/07/2026 15:43:58
+                              </span>
+
+                              <span class="market-news-list__date-separator" aria-hidden="true">
+                                |
+                              </span>
+
+                              <span class="market-news-list__date market-news-list__date--hijri">
+                                1448/02/02
+                              </span>
+                            </div>
+                          </div>
+                        </footer>
+                      </div>
+                    </a>
+                  </article>
+                
+                  
+                    
+                      
+                    
+
+                    
+                  
+
+                  <article class="market-news-list__item" role="listitem">
+                    <a class="market-news-list__link track-news-click" href="/wps/portal/saudiexchange_v3/newsandreports/issuer-news/news-detail-wcm/?newsId=9496&amp;locale=en" data-news-id="9496" data-news-type="M">
+                      <img class="market-news-list__logo" src="https://betauat.saudiexchange.sa/Resources/SEImage/SE.png" alt="" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/default-Logo.png';">
+
+                      <div class="market-news-list__content">
+                        <h4 class="market-news-list__title">
+                          Saudi Exchange announces that the fluctuation limits for Mulkia Investment Co. will be based on a share price of <span class="sar-symbol">^</span>37.26 
+                        </h4>
+
+                        <footer class="market-news-list__footer">
+                          <div class="market-news-list__datetime" dir="ltr">
+                            <div class="market-news-list__dates">
+                              <span class="market-news-list__date market-news-list__date--gregorian">
+                                16/07/2026 08:39:59
+                              </span>
+
+                              <span class="market-news-list__date-separator" aria-hidden="true">
+                                |
+                              </span>
+
+                              <span class="market-news-list__date market-news-list__date--hijri">
+                                1448/02/02
+                              </span>
+                            </div>
+                          </div>
+                        </footer>
+                      </div>
+                    </a>
+                  </article>
+                
+                  
+                    
+                      
+                    
+
+                    
+                  
+
+                  <article class="market-news-list__item" role="listitem">
+                    <a class="market-news-list__link track-news-click" href="/wps/portal/saudiexchange_v3/newsandreports/issuer-news/news-detail-wcm/?newsId=9495&amp;locale=en" data-news-id="9495" data-news-type="M">
+                      <img class="market-news-list__logo" src="https://betauat.saudiexchange.sa/Resources/SEImage/SE.png" alt="" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/default-Logo.png';">
+
+                      <div class="market-news-list__content">
+                        <h4 class="market-news-list__title">
+                          Saudi Exchange announces that the fluctuation limits for Methanol Chemicals Co. will be based on a share price of <span class="sar-symbol">^</span>39.88 
+                        </h4>
+
+                        <footer class="market-news-list__footer">
+                          <div class="market-news-list__datetime" dir="ltr">
+                            <div class="market-news-list__dates">
+                              <span class="market-news-list__date market-news-list__date--gregorian">
+                                15/07/2026 08:52:32
+                              </span>
+
+                              <span class="market-news-list__date-separator" aria-hidden="true">
+                                |
+                              </span>
+
+                              <span class="market-news-list__date market-news-list__date--hijri">
+                                1448/02/01
+                              </span>
+                            </div>
+                          </div>
+                        </footer>
+                      </div>
+                    </a>
+                  </article>
+                
+                  
+                    
+                      
+                    
+
+                    
+                  
+
+                  <article class="market-news-list__item" role="listitem">
+                    <a class="market-news-list__link track-news-click" href="/wps/portal/saudiexchange_v3/newsandreports/issuer-news/news-detail-wcm/?newsId=9494&amp;locale=en" data-news-id="9494" data-news-type="M">
+                      <img class="market-news-list__logo" src="https://betauat.saudiexchange.sa/Resources/SEImage/CMA.png" alt="" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/default-Logo.png';">
+
+                      <div class="market-news-list__content">
+                        <h4 class="market-news-list__title">
+                          Change the name of Pinnacle Capital Company 
+                        </h4>
+
+                        <footer class="market-news-list__footer">
+                          <div class="market-news-list__datetime" dir="ltr">
+                            <div class="market-news-list__dates">
+                              <span class="market-news-list__date market-news-list__date--gregorian">
+                                14/07/2026 17:29:46
+                              </span>
+
+                              <span class="market-news-list__date-separator" aria-hidden="true">
+                                |
+                              </span>
+
+                              <span class="market-news-list__date market-news-list__date--hijri">
+                                1448/01/29
+                              </span>
+                            </div>
+                          </div>
+                        </footer>
+                      </div>
+                    </a>
+                  </article>
+                
+                  
+                    
+                      
+                    
+
+                    
+                  
+
+                  <article class="market-news-list__item" role="listitem">
+                    <a class="market-news-list__link track-news-click" href="/wps/portal/saudiexchange_v3/newsandreports/issuer-news/news-detail-wcm/?newsId=9493&amp;locale=en" data-news-id="9493" data-news-type="M">
+                      <img class="market-news-list__logo" src="https://betauat.saudiexchange.sa/Resources/SEImage/SE.png" alt="" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/default-Logo.png';">
+
+                      <div class="market-news-list__content">
+                        <h4 class="market-news-list__title">
+                          Saudi Exchange Company announces the approval of Morgan Stanley Saudi Arabia to conduct Market Making activities on Jazan Development and Investment Co. (6090) and Salama Cooperative Insurance Co. (8050) and LIVA Insurance Co. (8280)
+                        </h4>
+
+                        <footer class="market-news-list__footer">
+                          <div class="market-news-list__datetime" dir="ltr">
+                            <div class="market-news-list__dates">
+                              <span class="market-news-list__date market-news-list__date--gregorian">
+                                14/07/2026 17:22:49
+                              </span>
+
+                              <span class="market-news-list__date-separator" aria-hidden="true">
+                                |
+                              </span>
+
+                              <span class="market-news-list__date market-news-list__date--hijri">
+                                1448/01/29
+                              </span>
+                            </div>
+                          </div>
+                        </footer>
+                      </div>
+                    </a>
+                  </article>
+                
+              </div>
+            
+
+            
+          
+
+          <div class="market-news__actions">
+            <a class="btn btn-sm btn-outline-primary has-icon icon-chevron-right icon-end icon-flip-rtl" href="/wps/portal/saudiexchange_v3/newsandreports/issuer-news?locale=en">
+              <span>
+                View All
+              </span>
+            </a>
+          </div>
+        </div>
+
+        <!-- =======================================================
+             Announcements Panel
+        ======================================================== -->
+
+        <div class="tab-pane" id="market-news-panel-announcements" role="tabpanel" aria-labelledby="market-news-tab-announcements" aria-hidden="true" tabindex="0" hidden="">
+          
+            
+
+            
+              <div class="market-news__empty" role="status">
+                <p class="market-news__empty-text">
+                  ???common.no.data.available???
+                </p>
+              </div>
+            
+          
+
+          <div class="market-news__actions">
+            <a class="btn btn-sm btn-outline-primary has-icon icon-chevron-right icon-end icon-flip-rtl" href="/wps/portal/saudiexchange_v3/newsandreports/issuer-news/issuer-announcements?locale=en">
+              <span>
+                View All
+              </span>
+            </a>
+          </div>
+        </div>
+
+        <!-- =======================================================
+             Trending News Panel
+        ======================================================== -->
+
+        <div class="tab-pane" id="market-news-panel-trending" role="tabpanel" aria-labelledby="market-news-tab-trending" aria-hidden="true" tabindex="0" hidden="">
+          
+            
+
+            
+              <div class="market-news__empty" role="status">
+                <p class="market-news__empty-text">
+                  ???common.no.data.available???
+                </p>
+              </div>
+            
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const marketNewsComponents = document.querySelectorAll(
+      "[data-market-news]"
     );
- 
-    // Remove existing series so no stale chart remains
-    while (chartInstance.series.length) {
-      chartInstance.series[0].remove(false);
-    }
- 
-    // Hide X and Y axes when there is no data
-    toggleChartAxes(false);
- 
-    chartInstance.redraw();
-    chartInstance.reflow();
-  } else {
-    chartInstance.hideLoading();
- 
-    // Restore X and Y axes when data exists
-    toggleChartAxes(true);
- 
-    chartInstance.redraw();
-    chartInstance.reflow();
-  }
-}
- 
-function getSeriesBounds(seriesArr) {
-  var min = Infinity;
-  var max = -Infinity;
- 
-  seriesArr.forEach(function (s) {
-    if (!s || !Array.isArray(s.data) || !s.data.length) return;
-    min = Math.min(min, s.data[0][0]);
-    max = Math.max(max, s.data[s.data.length - 1][0]);
-  });
- 
-  if (!isFinite(min) || !isFinite(max)) return null;
-  return { min: min, max: max };
-}
 
-function bindExportButton() {
-	  const exportBtn = document.getElementById("exportBtn");
-	  const exportMenu = document.getElementById("exportMenu");
-	 
-	  if (!exportBtn || !exportMenu || !chartInstance) return;
-	 
-	  exportBtn.onclick = function (event) {
-	    event.preventDefault();
-	    event.stopPropagation();
-	 
-	    const isHidden = exportMenu.hasAttribute("hidden");
-	 
-	    if (isHidden) {
-	      exportMenu.removeAttribute("hidden");
-	      exportBtn.setAttribute("aria-expanded", "true");
-	    } else {
-	      exportMenu.setAttribute("hidden", "");
-	      exportBtn.setAttribute("aria-expanded", "false");
-	    }
-	  };
-	 
-	  exportMenu.addEventListener("click", function (event) {
-	    const actionBtn = event.target.closest("[data-export-action]");
-	    if (!actionBtn || !chartInstance) return;
-	 
-	    const action = actionBtn.dataset.exportAction;
-	 
-	    exportMenu.setAttribute("hidden", "");
-	    exportBtn.setAttribute("aria-expanded", "false");
-	 
-	    if (action === "fullscreen") {
-	      chartInstance.fullscreen.toggle();
-	      return;
-	    }
-	 
-	    if (action === "print") {
-	      chartInstance.print();
-	      return;
-	    }
-	 
-	    const fileName = getChartExportFileName();
-	 
-	    if (action === "png") {
-	      chartInstance.exportChart({ type: "image/png", filename: fileName });
-	    }
-	 
-	    if (action === "jpeg") {
-	      chartInstance.exportChart({ type: "image/jpeg", filename: fileName });
-	    }
-	 
-	    if (action === "pdf") {
-	      chartInstance.exportChart({ type: "application/pdf", filename: fileName });
-	    }
-	 
-	    if (action === "svg") {
-	      chartInstance.exportChart({ type: "image/svg+xml", filename: fileName });
-	    }
-	  });
-	 
-	  document.addEventListener("click", function () {
-	    exportMenu.setAttribute("hidden", "");
-	    exportBtn.setAttribute("aria-expanded", "false");
-	  });
-	}
-function getChartExportFileName() {
-  const chartRoot = document.querySelector("[data-chart]");
-  const companyName = chartRoot?.dataset.chartCompanyName || "company";
- 
-  return companyName
-    .toString()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^\u0600-\u06FFa-zA-Z0-9-_]/g, "")
-    .toLowerCase() + "-performance-chart";
-}
-
-
-function getCurrentXAxisLabel(range){
-	return range === "1D" ? tAxisLabel : xAxisLabel;
-}
-
-
-<script type="text/javascript">
-
-/**
- * Renders financial charts using Highcharts
- * Compatible with JSP environments (avoids EL conflicts)
- */
-
-// Language translations
-const chartTranslations = {
-  en: {
-    time: "Time",
-    index: "Index",
-    chartError: " Chart Loading Error",
-    noData: "Empty chart for {CHART} index (no data available)",
-    priceChart: "Price chart for {CHART} index",
-    tasi: "Tadawul All Share Index (TASI)",
-    nomuc: "Parallel Market Capped Index (NomuC)",
-    sukuk: "Sukuk/Bonds Market Index",
-    reits: "REITs", 
-    mt30: "MT30"
-  },
-  ar: {
-    time: "الوقت",
-    index: "المؤشر",
-    chartError: " خطأ في تحميل الرسم البياني",
-    noData: "مخطط فارغ لمؤشر {CHART} (لا توجد بيانات متاحة)",
-    priceChart: "الرسم البياني للسعر لمؤشر {CHART}",
-    tasi: "مؤشر السوق الرئيسية (تاسي)",
-    nomuc: "مؤشر السوق الموازية (نمو حد أعلى)",
-    sukuk: "مؤشر سوق الصكوك / السندات",
-    reits: "صناديق الإستثمار العقارية",
-     mt30: "إم تي 30"
-  }
-};
-
-
-// Detect language (from <html lang="..."> or fallback to English)
-let chartLang = document.documentElement.lang === "ar" ? "ar" : "en";
-
-function renderChart(chartId, targetElement) {
-  const safeId = String(chartId || 'tasi').trim().toLowerCase();
-  if (!safeId) {
-    console.error('Invalid chartId received');
-    renderErrorState(targetElement, chartTranslations[chartLang].chartError);
-    return;
-  }
-
-  const apiUrl = buildApiUrl(safeId);
-  if (!apiUrl) {
-    console.warn('Failed to build API URL, rendering empty chart');
-    drawEmptyChart(safeId, targetElement);
-    return;
-  }
-
-  console.log('Fetching data for:', safeId);
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-  fetch(apiUrl, { signal: controller.signal })
-    .then(response => {
-      clearTimeout(timeoutId);
-      if (!response.ok) throw new Error('HTTP ' + response.status);
-      return response.json();
-    })
-    .then(data => {
-      if (!isValidData(data)) {
-        console.warn('Invalid data structure, rendering empty chart');
-        drawEmptyChart(safeId, targetElement);
-      } else {
-        drawChart(data, safeId, targetElement);
-      }
-    })
-    .catch(error => {
-      console.error('Fetch failed:', error.message);
-      drawEmptyChart(safeId, targetElement);
+    marketNewsComponents.forEach(function (component) {
+      initializeMarketNewsTabs(component);
+      initializeMarketNewsTracking(component);
     });
-}
+  });
 
-// Helper Functions ============================================
+  /* ===============================================================
+     Market News Tabs
+  ================================================================ */
 
-function buildApiUrl(safeId) {
-  try {
-    const params = new URLSearchParams();
-    params.append('methodType', 'parsingMethod');
+  function initializeMarketNewsTabs(component) {
+    const tabsRoot = component.querySelector("[data-tabs]");
 
-    const sid = safeId.toLowerCase();
-    let chartType = "SQL_MI_MSPV";
-    if (sid === "nomuc") {
-      chartType = "SQL_MI_MSPV_SME";
-    } else if (sid === "sukuk") {
-      chartType = "SQL_MI_MSPV_SUKUK";
+    if (!tabsRoot) {
+      return;
     }
-    params.append('chart-type', chartType);
 
-    let chartParam;
-    if (sid === "sukuk") {
-      chartParam = "tsbi";
-    } else if (sid === "reits") {
-      chartParam = "trti";
-    } else {
-      chartParam = safeId;
+    const tabs = Array.from(
+      tabsRoot.querySelectorAll(
+        '[role="tab"][data-tab-target]'
+      )
+    );
+
+    if (!tabs.length) {
+      return;
     }
-    params.append('chart-parameter', chartParam);
 
-    params.append('format', 'json');
-    params.append('pageName', 'MarketSummaryHomePageGraph');
-    params.append('jwtToken', '<%=JwtBean.getJwtToken("marketStatusHomeGraph")%>');
+    const panels = tabs
+      .map(function (tab) {
+        const panelId = tab.getAttribute("data-tab-target");
 
-    return '/tadawul.eportal.charts.v2/ChartGenerator?' + params.toString();
-  } catch (e) {
-    console.error('URL build failed:', e);
-    return null;
-  }
-}
-
-function isValidData(data) {
-  return Array.isArray(data) && data.length > 0 && 
-         data.every(item => item.dateTime && item.indexPrice !== undefined);
-}
-
-function renderErrorState(element, message) {
-  element.innerHTML = '<div class="chart-error">' +
-    '<p>' + chartTranslations[chartLang].chartError + '</p>' +
-    '<small>' + message + '</small>' +
-    '</div>';
-}
-
-// Empty Chart Rendering ======================================
-function drawEmptyChart(chartId, targetElement) {
-  try {
-    Highcharts.chart(targetElement, getEmptyChartConfig(chartId));
-  } catch (e) {
-    console.error('Empty chart render failed:', e);
-    renderErrorState(targetElement, 'Technical error in chart rendering');
-  }
-}
-
-function getEmptyChartConfig(chartId) {
-  const style = getChartStyles();
-  const t = chartTranslations[chartLang];
-  
-  const now = new Date();
-  const categories = [];
-  for (let i = 6; i >= 0; i--) {
-    const time = new Date(now.getTime() - i * 3600000);
-    categories.push(formatTime(time));
-  }
-  var chartName = t[chartId] || chartId.toUpperCase();
-  
-  return {
-    chart: {
-      type: 'area',
-      backgroundColor: 'transparent',
-      spacing: [10, 10, 10, 10]
-    },
-    exporting: {
-	  enabled: false
-	},
-	navigation: {
-	  buttonOptions: {
-	    enabled: false
-	  }
-	},
-    title: { text: null },
-    xAxis: {
-      categories: categories,
-      labels: {
-        style: { color: style.axisText },
-        step: 1
-      },
-      lineColor: style.axisLine,
-      title: {
-        text: t.time, 
-        style: { color: style.axisText }
-      }
-    },
-    yAxis: {
-      min: 0,
-      max: 100,
-      opposite: true,
-      title: { 
-        text: t.index,
-        style: { color: style.axisText } 
-      },
-      labels: {
-        style: { color: style.axisText },
-        formatter: function() {
-          return Highcharts.numberFormat(this.value, 0, '.', ',');
+        if (!panelId) {
+          return null;
         }
-      },
-      gridLineColor: style.gridLine
-    },
-    tooltip: { enabled: false },
-    plotOptions: {
-      area: {
-        fillOpacity: 0,
-        lineWidth: 0
-      }
-    },
-    
-    series: [{
-    
-      name: chartName,
-      data: []
-    }],
-    legend: {
-      itemStyle: {
-        color: 'rgb(156, 179, 201)',
-        fontWeight: 'normal'
-      },
-      itemHoverStyle: {
-        color: 'rgb(156, 179, 201)',
-        cursor: 'pointer'
-      }
-    },
-    credits: { enabled: false },
-    accessibility: {
-      enabled: true,
-      description: t.noData.replace("{CHART}", chartId.toUpperCase())
-    },
-    rangeSelector: {
-      buttonSpacing: 70
-    },
-    responsive: {
-      rules: [{
-        condition: { maxWidth: 1400 },
-        chartOptions: {
-          rangeSelector: {
-            dropdown: "always",
-            buttonSpacing: 50
-          }
-        }
-      }]
-    }
-  };
-}
 
-// Chart Rendering ============================================
-function drawChart(data, chartId, targetElement) {
-  try {
-    const formattedData = data.map(item => ({
-      x: new Date(item.dateTime).getTime(), // timestamp
-      y: item.indexPrice,
-      //name: chartId.toUpperCase()
-    }));
-    
-    Highcharts.setOptions({
-	  time: {
-	    useUTC: false
-	  }
-	});
+        return tabsRoot.querySelector(
+          "#" + CSS.escape(panelId)
+        );
+      })
+      .filter(Boolean);
 
-    Highcharts.chart(targetElement, getChartConfig(formattedData, chartId));
-    
-  } catch (e) {
-    console.error('Chart render failed:', e);
-    renderErrorState(targetElement, 'Technical error in chart rendering');
-  }
-}
+    function activateTab(selectedTab, moveFocus) {
+      const selectedPanelId =
+        selectedTab.getAttribute("data-tab-target");
 
-function getChartConfig(data, chartId) {
-  const range = calculateAxisRange(data.map(item => item.y));
-  const style = getChartStyles();
-  const t = chartTranslations[chartLang];
-  var chartName = t[chartId] || chartId.toUpperCase();
+      tabs.forEach(function (tab) {
+        const isActive = tab === selectedTab;
 
-  return {
-    chart: {
-      type: 'area',
-      backgroundColor: 'transparent',
-      spacing: [10, 10, 10, 10]
-    },
-    exporting: {
-  enabled: false
-},
-navigation: {
-  buttonOptions: {
-    enabled: false
-  }
-},
-    title: { text: null },
-    xAxis: {
-  type: 'datetime',
-  labels: {
-    style: { color: style.axisText },
-    formatter: function () {
-      const date = new Date(this.value);
-      return date.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
+        tab.classList.toggle("active", isActive);
+        tab.setAttribute(
+          "aria-selected",
+          String(isActive)
+        );
+        tab.setAttribute(
+          "tabindex",
+          isActive ? "0" : "-1"
+        );
       });
+
+      panels.forEach(function (panel) {
+        const isActive = panel.id === selectedPanelId;
+
+        panel.classList.toggle("active", isActive);
+        panel.setAttribute(
+          "aria-hidden",
+          String(!isActive)
+        );
+        panel.hidden = !isActive;
+      });
+
+      if (moveFocus) {
+        selectedTab.focus();
+      }
     }
-  },
-  lineColor: style.axisLine,
-  title: {
-    text: t.time,
-    style: { color: style.axisText }
-  },
-  crosshair: {
-    width: 1,
-    color: style.gridLine,
-    label: {
-      enabled: true,
-      backgroundColor: style.tooltipBackground,
-      borderColor: style.lineColor,
-      borderRadius: 3,
-      padding: 5,
-      style: {
-        color: '#ffffff',
-        fontSize: '11px'
-      },
-      format: '{value:%A, %b %e, %H:%M}'
-    }
-  }
-},
-      yAxis: {
-      min: range.min,
-      max: range.max,
-      opposite: true,
-      title: {
-        text: t.index,
-        style: { color: style.axisText }
-      },
-      labels: {
-        style: { color: style.axisText },
-        formatter: function () {
-          // Automatically sets 2 decimal places if the axis value is a fraction
-          const decimals = (this.value % 1 !== 0) ? 2 : 0;
-          return Highcharts.numberFormat(this.value, decimals, '.', ',');
+
+    tabs.forEach(function (tab, index) {
+      tab.addEventListener("click", function () {
+        activateTab(tab, false);
+      });
+
+      tab.addEventListener("keydown", function (event) {
+        let nextIndex = index;
+
+        switch (event.key) {
+          case "ArrowRight":
+            nextIndex = (index + 1) % tabs.length;
+            break;
+
+          case "ArrowLeft":
+            nextIndex =
+              (index - 1 + tabs.length) % tabs.length;
+            break;
+
+          case "Home":
+            nextIndex = 0;
+            break;
+
+          case "End":
+            nextIndex = tabs.length - 1;
+            break;
+
+          case "Enter":
+          case " ":
+            event.preventDefault();
+            activateTab(tab, false);
+            return;
+
+          default:
+            return;
         }
-      },
-      gridLineColor: style.gridLine
-    },
-  
-tooltip: {
-  split: true,
-  useHTML: true,
-  backgroundColor: style.tooltipBackground,
-  borderColor: style.lineColor,
-  style: { color: '#ffffff' },
-  
-  headerFormat: '<span style="font-size:11px;">{point.key:%A, %b %e, %H:%M}</span><br/>',
-  
-  pointFormatter: function () {
-  
-    return '<b>' + this.series.name  + ':</b> ' + Highcharts.numberFormat(this.y, 2);
+
+        event.preventDefault();
+        activateTab(tabs[nextIndex], true);
+      });
+    });
+
+    const initialTab =
+      tabs.find(function (tab) {
+        return (
+          tab.getAttribute("aria-selected") === "true"
+        );
+      }) || tabs[0];
+
+    activateTab(initialTab, false);
   }
-},
-    plotOptions: {
-      area: {
-        fillOpacity: 0.3,
-        lineColor: style.lineColor,
-        fillColor: {
-          linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
-          stops: [
-            [0, style.fillColor],
-            [1, style.fillColorEnd]
-          ]
-        },
-        marker: { radius: 0 },
-        lineWidth: 2
-      }
-    },
-    series: [{
-   
-      name: chartName,
-      data: data
-    }],
-    legend: {
-      itemStyle: {
-        color: 'rgb(156, 179, 201)',
-        fontWeight: 'normal'
-      },
-      itemHoverStyle: {
-        color: 'rgb(156, 179, 201)',
-        cursor: 'pointer'
-      }
-    },
-    credits: { enabled: false },
-    accessibility: {
-      enabled: true,
-      description: t.priceChart.replace("{CHART}", chartId.toUpperCase())
-    },
-    navigator: {
-      enabled: true,
-      adaptToUpdatedData: false,
-     backgroundColor: '#f0f0f0',  
-      maskFill: 'rgba(0, 0, 0, 0.1)',
-     outlineColor: '#677985',
-     
-     xAxis: {
-            labels: {
-                style: {
-                    textOutline: 'none', // Removes the text shadow
-                    color: '#ffffff'     // Optional: Set a clean text color
-                }
+
+  /* ===============================================================
+     News Click Tracking
+  ================================================================ */
+
+  function initializeMarketNewsTracking(component) {
+    const newsLinks = component.querySelectorAll(
+      ".track-news-click"
+    );
+
+    if (!newsLinks.length) {
+      return;
+    }
+
+    const trackNewsClickURL = "p0/IZ7_IH821B805HIL706FNSRNET0003=CZ6_IH821B8059N3406TT68L4I38M3=NJtrackNewsClick=/";
+    const currentLanguage =
+      "en";
+
+    newsLinks.forEach(function (link) {
+      link.addEventListener("click", function (event) {
+        const newsId = link.dataset.newsId;
+        const newsType = (
+          link.dataset.newsType || "M"
+        ).toUpperCase();
+
+        const originalHref = link.href;
+
+        if (!newsId || !trackNewsClickURL) {
+          return;
+        }
+
+        event.preventDefault();
+
+        const requestBody =
+          "newsId=" +
+          encodeURIComponent(newsId) +
+          "&newsType=" +
+          encodeURIComponent(newsType) +
+          "&language=" +
+          encodeURIComponent(currentLanguage);
+
+        fetch(trackNewsClickURL, {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/x-www-form-urlencoded;charset=UTF-8"
+          },
+          body: requestBody,
+          credentials: "same-origin",
+          keepalive: true
+        })
+          .then(function (response) {
+            if (!response.ok) {
+              console.error(
+                "Failed to track news click:",
+                response.status,
+                response.statusText
+              );
             }
-        }
-     
-    },
-    rangeSelector: {
-      buttonSpacing: 70
-    },
-    responsive: {
-      rules: [{
-        condition: { maxWidth: 1400 },
-        chartOptions: {
-          rangeSelector: {
-            dropdown: "always",
-            buttonSpacing: 50
-          }
-        }
-      }]
-    }
-  };
-}
-
-
-function getChartStyles() {
-  const css = getComputedStyle(document.documentElement);
-  return {
-    lineColor: css.getPropertyValue('--highcharts-line-color') || '#00e0b5',
-    fillColor: css.getPropertyValue('--highcharts-fill-color') || 'rgba(0, 224, 181, 0.35)',
-    fillColorEnd: 'rgba(0, 224, 181, 0)',
-    axisText: '#9cb3c9',
-    axisLine: '#435c72',
-    gridLine: '#2f3e4e',
-    tooltipBackground: '#1a3c5f'
-  };
-}
-
-function formatTime(date) {
-  return isNaN(date) ? '' : date.toLocaleTimeString([], { 
-    hour: '2-digit', 
-    minute: '2-digit',
-    hour12: true
-  });
-}
-
-function calculateAxisRange(values) {
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const delta = max - min;
-  const padding = delta * 0.05;
-
-  // If the total variation is less than 2 points, preserve exact decimal ranges
-  if (delta < 2) {
-    return {
-      min: Number((min - (padding || 0.01)).toFixed(4)),
-      max: Number((max + (padding || 0.01)).toFixed(4))
-    };
+          })
+          .catch(function (error) {
+            console.error(
+              "Error tracking news click:",
+              error
+            );
+          })
+          .finally(function () {
+            window.location.href = originalHref;
+          });
+      });
+    });
   }
-
-  // Otherwise, safely continue using whole numbers for large-scale charts
-  return {
-    min: Math.floor(min - padding),
-    max: Math.ceil(max + padding)
-  };
-}
-
-
-
-
-function showTab(targetId, dataKey) {
-    console.log('inside showTab');
- 
-    const allCharts = ['tasi', 'nomuc', 'mt30', 'sukuk', 'reits'];
- 
-    allCharts.forEach(function(id) {
-        const el = document.getElementById(id);
-        if (el) {
-            el.style.display = (id === targetId) ? 'block' : 'none';
-        }
-    });
-    const targetElement = document.getElementById(targetId);
- renderChart(dataKey, targetElement);
-    console.log("after allCharts.forEach(id)");
-    
-    console.log('targetElement: ' + targetElement);
- 
- 
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  // Default to first tab
-  showTab('tasi', 'tasi');
- 
-  document.querySelectorAll('.tab-button').forEach(button => {
-  console.log('before button.addEventListener');
-    button.addEventListener('click', () => {
-    console.log('after button.addEventListener');
-      const key = button.getAttribute('data-key');
-      const target = button.getAttribute('data-target');
-      showTab(target, key);
-    });
-  });
-});
-
-
-
 </script>
+
+</section></div></div><div class="component-container id-Z7_6JFAQ5SDLTGQARDLRSFPSSHCE5" name="container4"><div class="component-control id-Z7_IH821B8051MQ406VTNUJ8R30A2"><span id="Z7_IH821B8051MQ406VTNUJ8R30A2"></span><section class="ibmPortalControl wpthemeControl wpthemeHidden a11yRegionTarget" role="region">
+ 
+	
+	<!-- start header markup -->
+	<header class="wpthemeControlHeader">
+		<div class="wpthemeInner">
+			<h2>
+				<img class="dndHandle" draggable="true" ondragstart="wpModules.dnd.util.portletDragStart(event, this, this.parentNode, 30, 0);" ondragend="wpModules.dnd.util.portletDragEnd(event);" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
+				<!-- lm-dynamic-title node marks location for dynamic title support -->
+ 				<span class="lm-dynamic-title asa.portlet.title a11yRegionLabel"><span lang="en" dir="ltr">FinanceCalenderPortletV3</span></span>
+			</h2>
+			<a aria-haspopup="true" aria-label="Display menu" role="button" href="javascript:;" class="wpthemeIcon wpthemeMenuFocus" tabindex="0" onclick="if (typeof wptheme != 'undefined') wptheme.contextMenu.init({ 'node': this, menuId: 'skinAction', jsonQuery: {'navID':ibmCfg.portalConfig.currentPageOID,'windowID':wptheme.getWindowIDFromSkin(this)}, params: {'alignment':'right'}});" onkeydown="javascript:if (typeof i$ != 'undefined' &amp;&amp; typeof wptheme != 'undefined') {if (event.keyCode ==13 || event.keyCode ==32 || event.keyCode==38 || event.keyCode ==40) {wptheme.contextMenu.init(this, 'skinAction', {'navID':ibmCfg.portalConfig.currentPageOID,'windowID':wptheme.getWindowIDFromSkin(this)}); return false;}}">
+				<span title="Display menu"><img aria-label="Display menu" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></span>
+				<span class="wpthemeAltText">Actions</span>
+			</a>
+		</div>
+	</header>
+	
+	<!-- <div class="wpthemeControlBody wpthemeOverflowAuto wpthemeClear"> <!-- lm:control dynamic spot injects markup of layout control -->
+	<!-- asa.overlay marks the node that the AsaOverlayWidget will be placed in -->
+		
+		<!-- <div class="wpthemeClear"></div>
+	</div> -->
+	<div style="position:relative; z-index: 1;">
+		<div class="analytics.overlay"></div>
+	</div>
+	
+
+
+
+
+
+
+
+
+	
+	
+<script> if(typeof dojo=='undefined') {
+  document.writeln("<scr"+"ipt src='/wps/portal_dojo/v1.4.3/dojo/dojo.js' ></scr"+"ipt>");
+} </script>
+<script>dojo.require('ibm.portal.xml.xpath'); dojo.require('ibm.portal.xml.xslt');</script>
+<script>dojo.require('ibm.portal.portlet.portlet');</script>
+<script>if(typeof(ibmPortalConfig) == "undefined") {ibmPortalConfig = {contentHandlerURI: "/wps/contenthandler/!ut/p/digest!Xfv_6wksuK0o6M5Rg0mXvw/nm/oid:wps.portal.root"};} else if(!ibmPortalConfig["contentHandlerURI"]) {ibmPortalConfig["contentHandlerURI"] = "/wps/contenthandler/!ut/p/digest!Xfv_6wksuK0o6M5Rg0mXvw/nm/oid:wps.portal.root";} </script><div id="com.ibm.wps.web2.portlet.root.Z7_IH821B8051MQ406VTNUJ8R30A2" style="display: none;">/wps/contenthandler/!ut/p/digest!Xfv_6wksuK0o6M5Rg0mXvw/pm/oid:--portletwindowid--@oid:Z6_IH821B8059N3406TT68L4I38M3</div>
+<div id="com.ibm.wps.web2.portlet.preferences.Z7_IH821B8051MQ406VTNUJ8R30A2" style="display: none;" pageid="Z6_IH821B8059N3406TT68L4I38M3" configid="Z3_IH821B8051MQ406VTNUJ8R30I1" editdefaultsid="Z5_IH821B8051MQ406VTNUJ8R30A6"></div>
+<div id="com.ibm.wps.web2.portlet.user.Z7_IH821B8051MQ406VTNUJ8R30A2" style="display: none;">/wps/contenthandler/!ut/p/digest!Xfv_6wksuK0o6M5Rg0mXvw/um/secure/currentuser/profile?expandRefs=true</div>
+
+
+
+
+
+
+<input id="langugageValue" value="en" style="display: none;" type="text">
+<input type="hidden" id="requestLocale" name="requestLocale" value="en">
+
+
+
+<!-- ===============================================================
+     Market Calendar
+================================================================ -->
+ 
+<section class="market-updates__column" aria-labelledby="market-calendar-title">
+  <h3 id="market-calendar-title" class="section-heading section-heading--lg">
+    <span class="section-heading__icon has-icon icon-tadawul" aria-hidden="true"></span>
+ 
+    <span class="section-heading__text">
+      Market Calendar
+    </span>
+  </h3>
+ 
+  <div id="calendar-main-container" class="market-calendar surface-insights" data-market-calendar="" data-url="p0/IZ7_IH821B8051MQ406VTNUJ8R30A2=CZ6_IH821B8059N3406TT68L4I38M3=N/">
+    
+ 
+    <!-- ===========================================================
+         Calendar Header
+    ============================================================ -->
+ 
+    <div class="market-calendar__header">
+      <div class="market-calendar__navigation" aria-label="Calendar navigation">
+        <button class="market-calendar__nav-button has-icon icon-chevron-left icon-flip-rtl" type="button" aria-label="Previous month" data-calendar-prev=""></button>
+ 
+        <button class="market-calendar__nav-button has-icon icon-chevron-right icon-flip-rtl" type="button" aria-label="Next month" data-calendar-next=""></button>
+      </div>
+ 
+      <div class="market-calendar__controls">
+        <label class="visually-hidden" for="market-calendar-month">
+          Month
+        </label>
+ 
+        <select id="market-calendar-month" class="market-calendar__select" aria-label="Select month" data-calendar-month=""></select>
+ 
+        <label class="visually-hidden" for="market-calendar-year">
+          Year
+        </label>
+ 
+        <select id="market-calendar-year" class="market-calendar__select" aria-label="Select year" data-calendar-year=""></select>
+      </div>
+    </div>
+ 
+    <!-- ===========================================================
+         Calendar Grid
+    ============================================================ -->
+ 
+    <div class="market-calendar__weekdays" role="row" aria-label="Days of the week" data-calendar-weekdays=""></div>
+ 
+    <div class="market-calendar__grid" role="grid" aria-labelledby="market-calendar-title" data-calendar-grid=""></div>
+ 
+    <!-- ===========================================================
+         Selected Date Events
+    ============================================================ -->
+ 
+    <div class="market-calendar__events">
+      <h4 class="market-calendar__events-title" data-calendar-title="">
+        Loading eventsâ¦
+      </h4>
+ 
+      <div class="market-calendar__event-list" aria-live="polite" data-calendar-events=""></div>
+    </div>
+ 
+    <!-- ===========================================================
+         Calendar Actions
+    ============================================================ -->
+ 
+    <div class="market-calendar__actions">
+      <a class="btn btn-sm btn-outline-primary has-icon icon-chevron-right icon-end icon-flip-rtl" href="/wps/portal/saudiexchange_v3/newsandreports/issuer-financial-calendars">
+        <span>
+          View All
+        </span>
+      </a>
+    </div>
+  </div>
+</section>
+<script>
+	(function() {
+		var xmlRequest;
+		var eventListByDate = null;
+		var today = new Date(); //  new
+		var currentYear = today.getFullYear();
+		var currentMonth = today.getMonth(); // 0..11
+		var selectedDateKey = parseDateToString(today); //  new: default active date
+
+		// DOM refs
+		var container, grid, weekdaysRow, eventTitleEl, eventListEl, monthSelect, yearSelect;
+
+		//i18n helpers
+		function getLang() {
+			var el = document.getElementById('langugageValue');
+			if (el && el.value)
+				return el.value;
+			var root = (document.documentElement.getAttribute('lang') || 'en')
+					.toLowerCase();
+			return root.indexOf('ar') === 0 ? 'ar' : 'en';
+		}
+		function noDataText() {
+			return getLang() === 'ar' ? "\u0644\u0627\u0020\u062a\u0648\u062c\u062f\u0020\u0628\u064a\u0627\u0646\u0627\u062a"
+					: "No data";
+		}
+		function noEventsText() {
+			return getLang() === 'ar' ? "\u0644\u0627\u0020\u062a\u0648\u062c\u062f\u0020\u0627\u062d\u062f\u0627\u062b"
+					: "No events";
+		}
+		function showNoData() {
+			eventTitleEl.textContent = noDataText();
+			eventListEl.innerHTML = '';
+		}
+		function showNoEvents() {
+			eventTitleEl.textContent = noEventsText();
+			eventListEl.innerHTML = '';
+		}
+
+		function nth(d) {
+			var s = String(d), last = +s.slice(-2);
+			if (last > 3 && last < 21)
+				return 'th';
+			switch (last % 10) {
+			case 1:
+				return 'st';
+			case 2:
+				return 'nd';
+			case 3:
+				return 'rd';
+			default:
+				return 'th';
+			}
+		}
+
+		function getRequestLocale() {
+			var el = document.getElementById('requestLocale');
+			if (el && el.value)
+				return (el.value === 'ar') ? 'ar' : 'en';
+			return getLang();
+		}
+
+		function parseDateToString(date) {
+			var y = String(date.getFullYear());
+			var m = String(date.getMonth() + 1);
+			if (m.length < 2)
+				m = '0' + m;
+			var d = String(date.getDate());
+			if (d.length < 2)
+				d = '0' + d;
+			return y + m + d + 'T000000';
+		}
+
+		function getMonthNames(lang) {
+			if (lang === 'ar') {
+				return [ "\u064a\u0646\u0627\u064a\u0631",
+						"\u0641\u0628\u0631\u0627\u064a\u0631",
+						"\u0645\u0627\u0631\u0633",
+						"\u0627\u0628\u0631\u064a\u0644",
+						"\u0645\u0627\u064a\u0648",
+						"\u064a\u0648\u0646\u064a\u0648",
+						"\u064a\u0648\u0644\u064a\u0648",
+						"\u0623\u063a\u0633\u0637\u0633",
+						"\u0633\u0628\u062a\u0645\u0628\u0631",
+						"\u0623\u0643\u062a\u0648\u0628\u0631",
+						"\u0646\u0648\u0641\u0645\u0628\u0631",
+						"\u062f\u064a\u0633\u0645\u0628\u0631" ];
+			}
+			return [ "January", "February", "March", "April", "May", "June",
+					"July", "August", "September", "October", "November",
+					"December" ];
+		}
+		function getWeekdays() {
+			return (getLang() === 'ar') ? [ "\u062d", "\u0646", "\u062b",
+					"\u0631", "\u062e", "\u062c", "\u0633" ] : [ "Su", "Mo",
+					"Tu", "We", "Th", "Fr", "Sa" ];
+		}
+
+		// display text (old behavior)
+		var monthsNames = getMonthNames(getLang()), eventForText = " events for ", displayDate = "", eventDate = "";
+		function setEventInfo(year, month1, day) {
+			var lang = getLang();
+			monthsNames = getMonthNames(lang);
+			if (lang === 'en') {
+				eventForText = " events for ";
+				displayDate = String(day) + nth(day) + " of "
+						+ monthsNames[month1 - 1] + " " + year;
+			} else {
+				eventForText = " \u0623\u062d\u062f\u0627\u062b \u0641\u064a  ";
+				displayDate = String(day) + " " + monthsNames[month1 - 1] + " "
+						+ year;
+			}
+			eventDate = monthsNames[month1 - 1] + " " + day + ", " + year;
+		}
+
+		//STRICT: only render items that actually exist in service
+		function normalizeEvents(arr) {
+			if (!Array.isArray(arr))
+				return [];
+			// keep only entries with some meaningful content
+			var cleaned = [];
+			for (var i = 0; i < arr.length; i++) {
+				var e = arr[i];
+				if (!e)
+					continue;
+				var hasAny = (e.summary && String(e.summary).trim() !== "")
+						|| (e.companyCode && String(e.companyCode).trim() !== "")
+						|| (e.calendarType && String(e.calendarType).trim() !== "");
+				if (hasAny)
+					cleaned.push(e);
+			}
+			return cleaned;
+		}
+
+		// rendering
+		function populateDropdowns() {
+			var months = getMonthNames(getLang());
+			var monthHtml = '';
+			for (var i = 0; i < months.length; i++) {
+				monthHtml += '<option value="' + i + '"'
+						+ (i === currentMonth ? ' selected' : '') + '>'
+						+ months[i] + '</option>';
+			}
+			monthSelect.innerHTML = monthHtml;
+
+			var s = currentYear - 5, e = currentYear + 5, yearHtml = '';
+			for (var y = s; y <= e; y++) {
+				yearHtml += '<option value="' + y + '"'
+						+ (y === currentYear ? ' selected' : '') + '>' + y
+						+ '</option>';
+			}
+			yearSelect.innerHTML = yearHtml;
+		}
+		function populateWeekdays() {
+			var w = getWeekdays();
+			var html = '';
+			for (var i = 0; i < w.length; i++)
+				html += '<div>' + w[i] + '</div>';
+			weekdaysRow.innerHTML = html;
+		}
+		function highlightSelectedDate(key) {
+			var nodes = document.querySelectorAll('.calendar-day');
+			for (var i = 0; i < nodes.length; i++)
+				nodes[i].classList.remove('selected');
+			var el = document.querySelector('.calendar-day[data-date-key="'
+					+ key + '"]');
+			if (el)
+				el.classList.add('selected');
+		}
+		function renderCalendar() {
+			grid.innerHTML = '';
+			var first = new Date(currentYear, currentMonth, 1);
+			var last = new Date(currentYear, currentMonth + 1, 0);
+			var offset = first.getDay();
+
+			for (var i = 0; i < offset; i++)
+				grid.appendChild(document.createElement('div'));
+
+			for (var d = 1; d <= last.getDate(); d++) {
+				(function(day) {
+					var date = new Date(currentYear, currentMonth, day);
+					var key = parseDateToString(date);
+					var cell = document.createElement('div');
+					cell.className = 'calendar-day';
+					cell.setAttribute('data-date-key', key);
+					cell.textContent = String(day);
+
+					if (eventListByDate && eventListByDate[key]
+							&& eventListByDate[key].length) {
+						var dot = document.createElement('div');
+						dot.className = 'event-dot';
+						cell.appendChild(dot);
+					}
+
+					// Mark today as selected on initial load
+					if (key === selectedDateKey)
+						cell.classList.add('selected');
+
+					cell
+							.addEventListener(
+									'click',
+									function() {
+										selectedDateKey = key;
+										setEventInfo(currentYear,
+												currentMonth + 1, day);
+
+										// Always activate date, even if no events
+										highlightSelectedDate(key); // new: highlight clicked date
+
+										var events = normalizeEvents(eventListByDate ? (eventListByDate[key] || [])
+												: []);
+										if (!events.length) {
+											showNoEvents();
+											return;
+										}
+
+										displayEvent(events);
+									});
+
+					grid.appendChild(cell);
+				})(d);
+			}
+
+			// ensure the right date is highlighted when re-rendering (month change etc.)
+			highlightSelectedDate(selectedDateKey);
+		}
+		function refreshDots() {
+			if (!eventListByDate)
+				return;
+			var cells = document.querySelectorAll('.calendar-day');
+			for (var i = 0; i < cells.length; i++) {
+				var cell = cells[i];
+				var dot = cell.querySelector('.event-dot');
+				if (dot && dot.parentNode)
+					dot.parentNode.removeChild(dot);
+				var key = cell.getAttribute('data-date-key');
+				if (eventListByDate[key] && eventListByDate[key].length) {
+					var d = document.createElement('div');
+					d.className = 'event-dot';
+					cell.appendChild(d);
+				}
+			}
+		}
+
+		function displayEvent(events) {
+			if (!events || !events.length) {
+				showNoEvents();
+				return;
+			}
+
+			eventTitleEl.textContent = String(events.length) + eventForText
+					+ displayDate;
+			eventListEl.innerHTML = ''; // always wipe any static content
+
+			for (var i = 0; i <= 1 && i < events.length; i++) {
+				var e = events[i] || {};
+				var companyCode = e.companyCode ? String(e.companyCode) : '';
+				var companyChangeRate = (e.companyChangeRate != null ? String(e.companyChangeRate)
+						: '');
+				var calendarType = e.calendarType ? String(e.calendarType) : '';
+				var calDate = e.eventDate ? String(e.eventDate) : '';
+				var summary = e.summary ? String(e.summary) : '';
+
+				// Skip rendering if nothing to show
+				if (!companyCode && !summary && !calendarType)
+					continue;
+
+				// Dividend text replacement (same as old)
+				var divTextEl = document.getElementById('dividentText');
+				var divText = divTextEl ? divTextEl.value
+						: (getLang() === 'ar' ? "\u062a\u0648\u0632\u064a\u0639\u0627\u062a"
+								: "Dividends");
+				var isDiv = summary.indexOf('_dividenttxt_') !== -1;
+				if (isDiv)
+					summary = summary.replace('_dividenttxt_', divText);
+				var adjustedSummary = isDiv ? "" : summary;
+
+				// Determine up/down class for change rate
+				var priceClass = '';
+				if (companyChangeRate !== '') {
+					priceClass = (Number(companyChangeRate) >= 0) ? 'price-up'
+							: 'price-down';
+				}
+
+				// === Build updated DOM structure (same data, new layout) ===
+				var card = document.createElement('div');
+				card.className = 'calendar-event-card';
+
+				var cardInner = document.createElement('div');
+				cardInner.className = 'event_card d-flex justify-content-between align-items-center';
+
+				//Left side: company info ---
+				var eventInfo = document.createElement('div');
+				eventInfo.className = 'event_info';
+
+				// Company name + rate (first line)
+				var headerLine = document.createElement('div');
+				headerLine.className = 'd-flex align-items-center mb-1 nameUpDown';
+
+				var nm = document.createElement('div');
+				nm.className = 'name';
+				nm.textContent = companyCode;
+
+				var rate = document.createElement('div');
+				rate.className = (priceClass ? priceClass + ' ms-2 me-2'
+						: 'ms-2 me-2');
+				rate.innerHTML = (companyChangeRate !== '' ? companyChangeRate
+						: '')
+						+ ' <i></i>';
+
+				headerLine.appendChild(nm);
+				headerLine.appendChild(rate);
+
+				// Summary + date (second line)
+				var infoLine = document.createElement('div');
+				infoLine.className = 'eventinfo';
+				infoLine.appendChild(document.createTextNode(summary + ' | '
+						+ eventDate + ' '));
+
+				//Right side: calendar icon ---
+				var calBox = document.createElement('div');
+				calBox.className = 'calendar_box';
+
+				var btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className = 'btn btn-link p-0 addCalender';
+				btn.title = 'Add to calendar';
+				btn.innerHTML = '<svg class="pc-icon me-2 calendar-icon" width="16" height="16" aria-hidden="true" style="fill:white;color:white;"><use xlink:href="#custom-calendar-1"></use></svg>';
+
+				(function(sd, ed, loc, code, ctype, adj) {
+					btn.addEventListener('click', function() {
+						downloadCalendar(sd, ed, loc, code, ctype, adj);
+					});
+				})(calDate, calDate, ' ', companyCode, calendarType,
+						adjustedSummary);
+
+				calBox.appendChild(btn);
+
+				// Assemble card
+				eventInfo.appendChild(headerLine);
+				eventInfo.appendChild(infoLine);
+				cardInner.appendChild(eventInfo);
+				cardInner.appendChild(calBox);
+				card.appendChild(cardInner);
+				eventListEl.appendChild(card);
+			}
+
+			// If after normalization nothing rendered, show "No events"
+			if (!eventListEl.firstChild) {
+				showNoEvents();
+			}
+		}
+
+		//On load, mark today active and show its events (or "No events")
+		function initDefaultSelection() {
+			setEventInfo(currentYear, currentMonth + 1, today.getDate());
+			highlightSelectedDate(selectedDateKey);
+
+			var todayEvents = normalizeEvents(eventListByDate ? (eventListByDate[selectedDateKey] || [])
+					: []);
+			if (!todayEvents.length)
+				showNoEvents();
+			else
+				displayEvent(todayEvents);
+		}
+
+		// Once data arrives, call initDefaultSelection
+		function onEventsLoaded() {
+			renderCalendar();
+			refreshDots();
+			initDefaultSelection(); // highlight today and show default events
+		}
+
+		window.changeMonth = function(offset) {
+			currentMonth += offset;
+			if (currentMonth < 0) {
+				currentMonth = 11;
+				currentYear--;
+			} else if (currentMonth > 11) {
+				currentMonth = 0;
+				currentYear++;
+			}
+			monthSelect.value = String(currentMonth);
+			yearSelect.value = String(currentYear);
+			renderCalendar();
+			setEventInfo(currentYear, currentMonth + 1, 1);
+			sendRequest(currentYear, currentMonth + 1);
+		};
+		window.selectMonth = function() {
+			currentMonth = +monthSelect.value;
+			renderCalendar();
+			setEventInfo(currentYear, currentMonth + 1, 1);
+			sendRequest(currentYear, currentMonth + 1);
+		};
+		window.selectYear = function() {
+			currentYear = +yearSelect.value;
+			renderCalendar();
+			setEventInfo(currentYear, currentMonth + 1, 1);
+			sendRequest(currentYear, currentMonth + 1);
+		};
+
+		function getXMLHttpRequest() {
+			if (window.XMLHttpRequest)
+				return new XMLHttpRequest();
+			if (typeof ActiveXObject !== "undefined")
+				return new ActiveXObject("Microsoft.XMLHTTP");
+			return null;
+		}
+
+		function sendRequest(year, month1) {
+			var baseEl = document.getElementById('calendar-main-container');
+			var base = (baseEl && baseEl.getAttribute('data-url')) ? baseEl
+					.getAttribute('data-url') : '';
+			if (!base) {
+				console
+						.error('Calendar resource URL missing on #calendar-main-container');
+				return;
+			}
+
+			var requestLocale = getRequestLocale();
+			var url = base + '?year=' + encodeURIComponent(year) + '&month='
+					+ encodeURIComponent(month1) + '&requestLocale='
+					+ encodeURIComponent(requestLocale);
+
+			var body = 'year=' + encodeURIComponent(year) + '&month='
+					+ encodeURIComponent(month1) + '&NOCACHE='
+					+ (new Date().getTime());
+
+			eventTitleEl.textContent = (getLang() === 'ar' ? "\u0644\u0627\u0020\u062a\u0648\u062c\u062f\u0020\u0627\u062d\u062f\u0627\u062b"
+					: "No events");
+			eventListEl.innerHTML = ''; // wipe any stray static markup before load
+
+			xmlRequest = getXMLHttpRequest();
+			if (!xmlRequest)
+				return;
+
+			xmlRequest.onreadystatechange = function() {
+				if (xmlRequest.readyState !== 4)
+					return;
+				if (xmlRequest.status === 200) {
+					try {
+						var parsed = JSON.parse(xmlRequest.responseText);
+
+						// Must be a plain object map
+						if (!parsed
+								|| Object.prototype.toString.call(parsed) !== '[object Object]') {
+							eventListByDate = {};
+							showNoData();
+							return;
+						}
+						// No keys => no data at all
+						if (Object.keys(parsed).length === 0) {
+							eventListByDate = {};
+							showNoData();
+							return;
+						}
+
+						eventListByDate = parsed;
+
+						var initial = (selectedDateKey == null);
+						if (initial) {
+							var today = new Date(new Date().toDateString());
+							var todayKey = parseDateToString(today);
+							if (eventListByDate[todayKey]
+									&& eventListByDate[todayKey].length) {
+								selectedDateKey = todayKey;
+								setEventInfo(today.getFullYear(), today
+										.getMonth() + 1, today.getDate());
+								displayEvent(normalizeEvents(eventListByDate[todayKey]));
+							} else {
+								// fallback: first key in the visible month
+								var keys = Object.keys(eventListByDate);
+								var firstKey = null;
+								for (var i = 0; i < keys.length; i++) {
+									var k = keys[i];
+									var y = +k.slice(0, 4), m = +k.slice(4, 6) - 1;
+									if (y === currentYear && m === currentMonth) {
+										firstKey = k;
+										break;
+									}
+								}
+								selectedDateKey = firstKey || null;
+								if (selectedDateKey) {
+									var d = new Date(+selectedDateKey.slice(0,
+											4),
+											+selectedDateKey.slice(4, 6) - 1,
+											+selectedDateKey.slice(6, 8));
+									setEventInfo(d.getFullYear(),
+											d.getMonth() + 1, d.getDate());
+									displayEvent(normalizeEvents(eventListByDate[selectedDateKey]));
+								} else {
+									// Month has no entries at all from service
+									showNoData();
+								}
+							}
+						} else if (selectedDateKey
+								&& eventListByDate[selectedDateKey]) {
+							var sd = new Date(+selectedDateKey.slice(0, 4),
+									+selectedDateKey.slice(4, 6) - 1,
+									+selectedDateKey.slice(6, 8));
+							setEventInfo(sd.getFullYear(), sd.getMonth() + 1,
+									sd.getDate());
+							displayEvent(normalizeEvents(eventListByDate[selectedDateKey]));
+						}
+
+						refreshDots();
+					} catch (e) {
+						console.error('JSON parse error', e,
+								xmlRequest.responseText);
+						showNoData();
+					}
+					return;
+				}
+
+				console.error('Calendar request failed', xmlRequest.status,
+						xmlRequest.statusText, url);
+				showNoData();
+			};
+
+			xmlRequest.open('GET', url, true);
+			try {
+				xmlRequest.setRequestHeader('Content-Type',
+						'application/x-www-form-urlencoded; charset=UTF-8');
+			} catch (e) {
+			}
+			xmlRequest.send(body);
+		}
+		document.addEventListener('DOMContentLoaded', function() {
+			container = document.getElementById('calendar-main-container');
+			grid = document.getElementById('calendar-grid');
+			weekdaysRow = document.getElementById('calendar-weekdays');
+			eventTitleEl = document.getElementById('event-title');
+			eventListEl = document.getElementById('event-list');
+			monthSelect = document.getElementById('month-select');
+			yearSelect = document.getElementById('year-select');
+
+			if (!container || !grid || !weekdaysRow || !eventTitleEl
+					|| !eventListEl || !monthSelect || !yearSelect) {
+				console.error('Calendar: missing required DOM elements');
+				return;
+			}
+
+			// Kill any static sample *before* first load
+			eventTitleEl.textContent = '';
+			eventListEl.innerHTML = '';
+
+			populateDropdowns();
+			populateWeekdays();
+			renderCalendar();
+
+			var today = new Date();
+			setEventInfo(today.getFullYear(), today.getMonth() + 1, today
+					.getDate());
+			sendRequest(currentYear, currentMonth + 1);
+		});
+	})();
+
+	// ICS generator (unchanged)
+	function downloadCalendar(startDate, endDate, location, companyCode,
+			calendarType, adjustedSummary) {
+		if (adjustedSummary) {
+			adjustedSummary = " - " + adjustedSummary;
+		}
+		var filedata = "BEGIN:VCALENDAR\n" + "BEGIN:VEVENT\n"
+				+ "DESCRIPTION:\n" + "DTEND;TZID=\"Arab Standard Time\":"
+				+ endDate + "\n" + "DTSTART;TZID=\"Arab Standard Time\":"
+				+ startDate + "\n" + "LOCATION:" + "\n"
+				+ "SUMMARY;LANGUAGE=en-us:" + companyCode + " - "
+				+ calendarType + adjustedSummary + "\n" + "END:VEVENT\n"
+				+ "END:VCALENDAR";
+		window.open("data:text/calendar;charset=utf8,"
+				+ encodeURIComponent(filedata));
+	}
+</script>
+
+</section></div></div></div>
+			</div>
+		</div>
+	</section>
