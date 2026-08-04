@@ -74,7 +74,7 @@ function syncLanguageButtons(language) {
     );
 
     element.setAttribute("hreflang", nextLanguage);
-    element.setAttribute("data-current-language", language);
+    //element.setAttribute("data-current-language", language);
     element.setAttribute("data-next-language", nextLanguage);
   });
 }

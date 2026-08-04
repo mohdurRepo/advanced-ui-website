@@ -5,9 +5,9 @@
    ========================================================================== */
 
 .site-header {
-  --site-header-bg: var(--color-surface);
-  --site-header-color: var(--color-text);
-  --site-header-border: var(--color-border);
+  --site-header-bg: #0b2233;//var(--color-surface);
+  --site-header-color: #f5f6f8;//var(--color-text);
+  --site-header-border: #1e3d52; //var(--color-border);
   --site-header-shadow: none;
 
   position: sticky;

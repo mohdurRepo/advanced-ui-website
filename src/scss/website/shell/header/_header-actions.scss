@@ -124,11 +124,11 @@
   min-block-size: 2.5rem;
   padding-inline: 0.75rem;
 
-  border: 1px solid var(--color-border);
+  border: 1px solid #1e3d52;//var(--color-border);
   border-radius: var(--radius-pill);
 
-  background: var(--color-surface);
-  color: var(--color-text);
+  background: #0b2233;//var(--color-surface);
+  color: #f5f6f8;//var(--color-text);
 
   font: inherit;
   font-size: var(--text-xs);
