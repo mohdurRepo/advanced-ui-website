@@ -16,7 +16,7 @@
   --exchange-stat-card-pattern-opacity: 0.2;
   --exchange-stat-card-glow-opacity: 0.12;
 
-  --exchange-stat-card-pattern: url("../../../../assets/images/financial-bg-pattern.png");
+  --exchange-stat-card-pattern: url("/assets/images/financial-bg-pattern.png");
 
   --exchange-stat-card-pattern-position: right bottom;
 
@@ -43,7 +43,6 @@
       var(--exchange-stat-card-accent),
       var(--exchange-stat-card-border) 30%
     );
-
 
   background: linear-gradient(
     145deg,

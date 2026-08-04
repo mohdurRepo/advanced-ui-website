@@ -5,9 +5,8 @@
 @font-face {
   font-family: "SEFont";
   src:
-    url("../../../assets/fonts/english-avenir/Avenir-Roman.woff2")
-      format("woff2"),
-    url("../../../assets/fonts/english-avenir/Avenir-Roman.woff") format("woff");
+    url("/assets/fonts/english-avenir/Avenir-Roman.woff2") format("woff2"),
+    url("/assets/fonts/english-avenir/Avenir-Roman.woff") format("woff");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -17,10 +16,8 @@
 @font-face {
   font-family: "SEFont";
   src:
-    url("../../../assets/fonts/english-avenir/Avenir-Medium.woff2")
-      format("woff2"),
-    url("../../../assets/fonts/english-avenir/Avenir-Medium.woff")
-      format("woff");
+    url("/assets/fonts/english-avenir/Avenir-Medium.woff2") format("woff2"),
+    url("/assets/fonts/english-avenir/Avenir-Medium.woff") format("woff");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -30,9 +27,8 @@
 @font-face {
   font-family: "SEFont";
   src:
-    url("../../../assets/fonts/english-avenir/Avenir-heavy.woff2")
-      format("woff2"),
-    url("../../../assets/fonts/english-avenir/Avenir-heavy.woff") format("woff");
+    url("/assets/fonts/english-avenir/Avenir-heavy.woff2") format("woff2"),
+    url("/assets/fonts/english-avenir/Avenir-heavy.woff") format("woff");
   font-weight: 800;
   font-style: normal;
   font-display: swap;
@@ -42,9 +38,8 @@
 @font-face {
   font-family: "SEFont";
   src:
-    url("../../../assets/fonts/english-avenir/Avenir-Black.woff2")
-      format("woff2"),
-    url("../../../assets/fonts/english-avenir/Avenir-Black.woff") format("woff");
+    url("/assets/fonts/english-avenir/Avenir-Black.woff2") format("woff2"),
+    url("/assets/fonts/english-avenir/Avenir-Black.woff") format("woff");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
@@ -57,7 +52,7 @@
 
 @font-face {
   font-family: "SEFont";
-  src: url("../../../assets/fonts/arabic-avenir/AvenirArabic-Book.otf")
+  src: url("/assets/fonts/arabic-avenir/AvenirArabic-Book.otf")
     format("opentype");
   font-weight: 400;
   font-style: normal;
@@ -69,9 +64,8 @@
 @font-face {
   font-family: "SEFont";
   src:
-    url("../../../assets/fonts/arabic-avenir/AvenirArabic-Medium.woff")
-      format("woff"),
-    url("../../../assets/fonts/arabic-avenir/AvenirArabic-Medium.otf")
+    url("/assets/fonts/arabic-avenir/AvenirArabic-Medium.woff") format("woff"),
+    url("/assets/fonts/arabic-avenir/AvenirArabic-Medium.otf")
       format("opentype");
   font-weight: 500;
   font-style: normal;
@@ -83,10 +77,8 @@
 @font-face {
   font-family: "SEFont";
   src:
-    url("../../../assets/fonts/arabic-avenir/AvenirArabic-Heavy.woff")
-      format("woff"),
-    url("../../../assets/fonts/arabic-avenir/AvenirArabic-Heavy.otf")
-      format("opentype");
+    url("/assets/fonts/arabic-avenir/AvenirArabic-Heavy.woff") format("woff"),
+    url("/assets/fonts/arabic-avenir/AvenirArabic-Heavy.otf") format("opentype");
   font-weight: 800;
   font-style: normal;
   font-display: swap;

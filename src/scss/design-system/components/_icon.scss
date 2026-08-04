@@ -119,7 +119,7 @@ $icons: (
 
 @each $name, $file in $icons {
   .icon-#{$name} {
-    --icon-svg: url("../../../assets/icons/#{$file}.svg");
+    --icon-svg: url("/assets/icons/#{$file}.svg");
   }
 }
 
