@@ -9,15 +9,19 @@
   --market-dashboard-fg: var(--color-text);
 
   --market-dashboard-surface-bg: var(--color-surface-alt);
+
   --market-dashboard-surface-border: var(--color-border);
+
   --market-dashboard-surface-space: clamp(1rem, 2vw, 1.5rem);
 
   --market-dashboard-gap: clamp(1.25rem, 2.5vw, 2rem);
-  --market-dashboard-section-gap: clamp(0.785rem, 2vw, 0.785rem);
+
+  --market-dashboard-section-gap: clamp(0.875rem, 1.5vw, 1.25rem);
 
   position: relative;
 
   min-inline-size: 0;
+  min-block-size: 0;
 
   background: var(--market-dashboard-bg);
   color: var(--market-dashboard-fg);
@@ -35,6 +39,7 @@
   gap: var(--market-dashboard-section-gap);
 
   min-inline-size: 0;
+  min-block-size: 0;
 
   padding: var(--market-dashboard-surface-space);
 
@@ -48,15 +53,24 @@
    Main Grid
    ========================================================================== */
 
+/*
+ * CSS Grid owns equal-height behavior.
+ *
+ * No child uses percentage block sizes, preventing circular height
+ * calculations between the dashboard, Performance Chart and Highcharts.
+ */
+
 .market-dashboard__grid {
   display: grid;
   grid-template-columns:
     minmax(0, 3fr)
     minmax(26rem, 2fr);
+
   align-items: stretch;
   gap: var(--market-dashboard-gap);
 
   min-inline-size: 0;
+  min-block-size: 0;
 }
 
 .market-dashboard__grid > :only-child {
@@ -71,18 +85,43 @@
 .market-dashboard__secondary {
   min-inline-size: 0;
   min-block-size: 0;
+
+  align-self: stretch;
 }
+
+/* ==========================================================================
+   Primary Region
+   ========================================================================== */
+
+/*
+ * The Primary region is itself a one-cell grid. Its Performance Chart
+ * stretches naturally without block-size: 100%.
+ */
 
 .market-dashboard__primary {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
 }
 
-.market-dashboard__primary > .performance-chart,
-.market-dashboard__secondary.market-activity {
-  flex: 1 1 auto;
+.market-dashboard__primary > .performance-chart {
+  min-inline-size: 0;
+  min-block-size: 0;
 
-  block-size: 100%;
+  align-self: stretch;
+}
+
+/* ==========================================================================
+   Secondary Region
+   ========================================================================== */
+
+.market-dashboard__secondary {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+.market-dashboard__secondary.market-activity {
+  align-self: stretch;
 }
 
 /* ==========================================================================
@@ -91,8 +130,11 @@
 
 .market-dashboard__metrics {
   --market-dashboard-metric-border: var(--color-border);
+
   --market-dashboard-metric-bg: var(--color-surface);
+
   --market-dashboard-metric-label: var(--color-text-muted);
+
   --market-dashboard-metric-value: var(--color-heading);
 
   display: grid;
@@ -181,11 +223,14 @@
   color: var(--market-dashboard-metric-value);
 
   font-size: clamp(var(--text-sm), 0.8rem + 0.25vw, var(--text-lg));
+
   font-weight: font-weight("bold");
   line-height: var(--line-height-tight);
 
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  unicode-bidi: isolate;
 }
 
 .market-dashboard__metric-value.price-up {
@@ -205,6 +250,7 @@
 .market-dashboard__primary > *,
 .market-dashboard__secondary > * {
   min-inline-size: 0;
+  min-block-size: 0;
 }
 
 /* ==========================================================================
@@ -220,14 +266,9 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .market-dashboard__primary > .performance-chart,
-  .market-dashboard__secondary.market-activity {
-    block-size: auto;
-  }
-
   /*
-   * The dashboard is now one column, so the metrics retain a wide six-item
-   * row while sufficient horizontal space remains available.
+   * The dashboard is one column at this width, leaving sufficient horizontal
+   * room for all six summary metrics.
    */
 
   .market-dashboard__metrics {
@@ -255,10 +296,11 @@
     padding: 0.875rem 1rem;
 
     border-block-start: 1px solid var(--market-dashboard-metric-border);
+
     border-inline-start: 1px solid var(--market-dashboard-metric-border);
 
     /*
-     * Remove the top border from the first row.
+     * First tablet row.
      */
 
     &:nth-child(-n + 3) {
@@ -266,7 +308,7 @@
     }
 
     /*
-     * Remove the inline-start border from the first item in each row.
+     * First metric in each tablet row.
      */
 
     &:nth-child(3n + 1) {
@@ -296,14 +338,15 @@
     padding: 0.75rem;
 
     /*
-     * Reset the tablet 3-column border pattern.
+     * Reset tablet border placement.
      */
 
     border-block-start: 1px solid var(--market-dashboard-metric-border);
+
     border-inline-start: 1px solid var(--market-dashboard-metric-border);
 
     /*
-     * Remove the top border from the first mobile row.
+     * First mobile row.
      */
 
     &:nth-child(-n + 2) {
@@ -311,7 +354,7 @@
     }
 
     /*
-     * Remove the inline-start border from the first item in each row.
+     * First metric in each mobile row.
      */
 
     &:nth-child(odd) {
@@ -389,6 +432,12 @@ html[data-contrast="high"] {
 
   .market-dashboard__grid {
     grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .market-dashboard__primary,
+  .market-dashboard__secondary {
+    align-self: start;
   }
 
   .market-dashboard__metrics {

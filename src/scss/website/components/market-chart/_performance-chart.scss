@@ -4,6 +4,16 @@
    Performance Chart
    ========================================================================== */
 
+/*
+ * Height contract:
+ *
+ * 1. .performance-chart may stretch with its dashboard column.
+ * 2. .performance-chart__body receives the available card space.
+ * 3. [data-chart-viewport] is the only chart-height owner.
+ * 4. .market-chart is positioned inside the viewport and cannot contribute
+ *    to the parent’s calculated height.
+ */
+
 .performance-chart {
   --performance-chart-bg: var(--color-surface);
   --performance-chart-fg: var(--color-text);
@@ -12,7 +22,7 @@
   --performance-chart-shadow: var(--shadow-md);
 
   --performance-chart-space: clamp(1rem, 2vw, 1.5rem);
-  --performance-chart-height: clamp(18rem, 25vw, 23rem);
+  --performance-chart-height: clamp(19rem, 28vw, 24rem);
 
   display: flex;
   flex-direction: column;
@@ -49,6 +59,7 @@
    ========================================================================== */
 
 .performance-chart__body {
+  display: flex;
   flex: 1 1 auto;
 
   min-inline-size: 0;
@@ -58,21 +69,28 @@
 }
 
 /* ==========================================================================
-   Chart Surface
+   Chart Viewport
    ========================================================================== */
 
-.chart-surface {
+/*
+ * This viewport is the only chart-height owner.
+ *
+ * Highcharts must never increase this element’s block size.
+ */
+
+.chart-surface,
+[data-chart-viewport] {
   position: relative;
   isolation: isolate;
 
-  display: grid;
-  place-items: stretch;
+  flex: 1 1 auto;
 
   inline-size: 100%;
   block-size: var(--performance-chart-height);
 
   min-inline-size: 0;
-  min-block-size: 0;
+  min-block-size: var(--performance-chart-height);
+  max-inline-size: 100%;
 
   overflow: hidden;
 
@@ -85,21 +103,54 @@
       transparent 34%
     ),
     var(--color-surface);
+
+  /*
+   * Prevent layout and paint changes inside Highcharts from escaping into
+   * surrounding dashboard layout.
+   */
+
+  contain: layout paint;
 }
 
 /* ==========================================================================
-   Chart Canvas
+   Chart Host
    ========================================================================== */
 
-.chart-canvas {
-  position: relative;
+/*
+ * The host is removed from normal flow. Highcharts can modify its generated
+ * content without changing the viewport or dashboard height.
+ */
+
+.chart-surface > .chart-canvas,
+[data-chart-viewport] > .market-chart {
+  position: absolute;
+
+  inset: 0;
   z-index: 1;
 
   display: block;
 
-  inline-size: 100%;
-  block-size: 100%;
+  inline-size: auto;
+  block-size: auto;
 
+  min-inline-size: 0;
+  min-block-size: 0;
+  max-inline-size: none;
+  max-block-size: none;
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Legacy Chart Canvas
+   ========================================================================== */
+
+/*
+ * Retained for chart instances that still use .chart-canvas outside the
+ * generic Market Chart component.
+ */
+
+.chart-canvas {
   min-inline-size: 0;
   min-block-size: 0;
 
@@ -107,44 +158,25 @@
 }
 
 /* ==========================================================================
-   Generic Market Chart Integration
+   Highcharts Generated Content
    ========================================================================== */
 
 /*
- * The chart surface owns the rendered height. The generic chart must fill
- * that surface without applying its standalone minimum height.
+ * Do not force block-size: 100% on Highcharts-generated elements.
+ *
+ * Highcharts owns the pixel dimensions of these nodes through chart.setSize().
  */
 
-.chart-surface > .market-chart,
-.chart-canvas.market-chart {
-  --market-chart-min-height: 0;
-
-  inline-size: 100%;
-  block-size: 100%;
-
-  min-inline-size: 0;
-  min-block-size: 0;
-}
-
-/* ==========================================================================
-   Highcharts Integration
-   ========================================================================== */
-
 .chart-canvas > .highcharts-container,
-.chart-canvas .highcharts-root {
-  inline-size: 100% !important;
-  block-size: 100% !important;
-
+.market-chart > .highcharts-container {
   max-inline-size: 100%;
   max-block-size: 100%;
 }
 
-.chart-canvas > .highcharts-container {
-  position: relative !important;
-}
-
 .chart-canvas canvas,
-.chart-canvas svg {
+.chart-canvas svg,
+.market-chart canvas,
+.market-chart svg {
   display: block;
 
   max-inline-size: 100%;
@@ -155,104 +187,81 @@
    Loading State
    ========================================================================== */
 
-.performance-chart[aria-busy="true"] .chart-surface {
-  cursor: progress;
-}
+.performance-chart[aria-busy="true"] {
+  .chart-surface,
+  [data-chart-viewport] {
+    cursor: progress;
+  }
 
-.performance-chart[aria-busy="true"] .chart-toolbar {
-  pointer-events: none;
-}
+  .chart-toolbar {
+    pointer-events: none;
+  }
 
-.performance-chart[aria-busy="true"] .chart-toolbar__bottom {
-  opacity: 0.6;
+  .chart-toolbar__bottom {
+    opacity: 0.6;
+  }
 }
 
 /* ==========================================================================
    Fullscreen
    ========================================================================== */
 
-.performance-chart:fullscreen {
+.performance-chart:fullscreen,
+.performance-chart.is-fullscreen {
+  --performance-chart-height: auto;
+
   inline-size: 100vw;
   block-size: 100dvh;
 
-  overflow-y: auto;
+  min-block-size: 0;
+
+  overflow: hidden;
 
   border: 0;
 
   background: var(--performance-chart-bg);
 }
 
-.performance-chart:fullscreen .performance-chart__header {
-  position: sticky;
-
-  inset-block-start: 0;
+.performance-chart:fullscreen .performance-chart__header,
+.performance-chart.is-fullscreen .performance-chart__header {
+  position: relative;
   z-index: var(--z-sticky);
+
+  flex: 0 0 auto;
 
   background: var(--performance-chart-bg);
 }
 
-.performance-chart:fullscreen .performance-chart__body {
+.performance-chart:fullscreen .performance-chart__body,
+.performance-chart.is-fullscreen .performance-chart__body {
   flex: 1 1 auto;
 
-  display: flex;
-
   min-block-size: 0;
+
+  overflow: hidden;
 }
 
-.performance-chart:fullscreen .chart-surface {
+.performance-chart:fullscreen .chart-surface,
+.performance-chart:fullscreen [data-chart-viewport],
+.performance-chart.is-fullscreen .chart-surface,
+.performance-chart.is-fullscreen [data-chart-viewport] {
   flex: 1 1 auto;
 
   block-size: auto;
-  min-block-size: 20rem;
+  min-block-size: 0;
+
+  contain: layout paint;
 }
 
 /* ==========================================================================
    Fullscreen Fallback
    ========================================================================== */
 
-/*
- * JavaScript may use this class when the native Fullscreen API is
- * unavailable or unsuitable.
- */
-
 .performance-chart.is-fullscreen {
   position: fixed;
 
   inset: 0;
   z-index: var(--z-modal);
-
-  inline-size: 100vw;
-  block-size: 100dvh;
-
-  overflow-y: auto;
-
-  border: 0;
-
-  background: var(--performance-chart-bg);
-}
-
-.performance-chart.is-fullscreen .performance-chart__header {
-  position: sticky;
-
-  inset-block-start: 0;
-  z-index: var(--z-sticky);
-
-  background: var(--performance-chart-bg);
-}
-
-.performance-chart.is-fullscreen .performance-chart__body {
-  flex: 1 1 auto;
-
-  display: flex;
-
-  min-block-size: 0;
-}
-
-.performance-chart.is-fullscreen .chart-surface {
-  flex: 1 1 auto;
-
-  block-size: auto;
-  min-block-size: 20rem;
 }
 
 /* ==========================================================================
@@ -294,11 +303,14 @@
   .performance-chart:fullscreen,
   .performance-chart.is-fullscreen {
     --performance-chart-space: 0.75rem;
+    --performance-chart-height: auto;
   }
 
   .performance-chart:fullscreen .chart-surface,
-  .performance-chart.is-fullscreen .chart-surface {
-    min-block-size: 16rem;
+  .performance-chart:fullscreen [data-chart-viewport],
+  .performance-chart.is-fullscreen .chart-surface,
+  .performance-chart.is-fullscreen [data-chart-viewport] {
+    min-block-size: 0;
   }
 }
 
@@ -309,6 +321,11 @@
 @media (max-width: 360px) {
   .performance-chart {
     --performance-chart-height: 16rem;
+  }
+
+  .performance-chart:fullscreen,
+  .performance-chart.is-fullscreen {
+    --performance-chart-height: auto;
   }
 }
 
@@ -321,7 +338,8 @@ html[data-theme="dark"] {
     --performance-chart-shadow: none;
   }
 
-  .chart-surface {
+  .chart-surface,
+  [data-chart-viewport] {
     background:
       linear-gradient(
         to bottom,
@@ -338,7 +356,8 @@ html[data-theme="dark"] {
 
 html[data-contrast="high"] {
   .performance-chart,
-  .chart-surface {
+  .chart-surface,
+  [data-chart-viewport] {
     border-width: 2px;
     border-color: currentColor;
 
@@ -350,7 +369,8 @@ html[data-contrast="high"] {
     border-color: currentColor;
   }
 
-  .chart-surface {
+  .chart-surface,
+  [data-chart-viewport] {
     background: var(--color-surface);
   }
 }
@@ -393,15 +413,23 @@ html[data-motion="reduce"] {
   }
 
   .performance-chart__body {
+    display: block;
+
     padding-block: 1rem;
   }
 
-  .chart-surface {
+  .chart-surface,
+  [data-chart-viewport] {
+    display: block;
+
     block-size: var(--performance-chart-height);
+    min-block-size: var(--performance-chart-height);
 
     border-color: #000000;
 
     background: transparent;
+
+    contain: layout paint;
   }
 
   .performance-chart:fullscreen,

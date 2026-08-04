@@ -1,7 +1,15 @@
 import {
-  getMarketChartSeriesTheme,
-  getMarketChartTheme,
-} from "./market-chart-theme";
+  getMarketChartDirection,
+  mergeMarketChartLivePoint,
+  normalizeMarketChartData,
+  normalizeMarketChartRanges,
+} from "./market-chart-data";
+
+import { createMarketChartExportController } from "./market-chart-export";
+
+import { createMarketChartLiveController } from "./market-chart-live";
+
+import { createMarketChartOptions } from "./market-chart-options";
 
 /* ==========================================================================
    Registry
@@ -15,10 +23,38 @@ const chartRegistry = new Map();
 
 const CHART_MODES = new Set(["trend", "line", "candlestick"]);
 
-const EXPORT_ACTIONS = new Set(["fullscreen", "print", "png", "pdf"]);
+const DEFAULT_CONFIGURATION = Object.freeze({
+  context: "performance",
+
+  symbol: "",
+  name: "",
+  currency: "",
+
+  mode: "trend",
+  range: "1D",
+
+  language: "",
+  timeZone: "Asia/Riyadh",
+
+  decimals: 2,
+  maxPoints: 500,
+
+  xAxisTitle: null,
+  yAxisTitle: null,
+
+  data: [],
+  ranges: {},
+
+  controls: {},
+  live: null,
+
+  emptyMessage: "Chart data is currently unavailable.",
+
+  errorMessage: "The chart could not be loaded.",
+});
 
 /* ==========================================================================
-   Element Helpers
+   Element Resolution
    ========================================================================== */
 
 function resolveElement(target) {
@@ -45,7 +81,24 @@ function resolveControlsRoot(element, target) {
   return (
     element.closest("[data-performance-chart]") ||
     element.closest(".performance-chart") ||
+    element.closest("[data-market-detail-panel]") ||
     element.parentElement
+  );
+}
+
+function resolveViewport(element) {
+  return (
+    element.closest("[data-chart-viewport]") ||
+    element.closest(".chart-surface") ||
+    element.parentElement
+  );
+}
+
+function resolveSection(element) {
+  return (
+    element.closest("[data-performance-chart]") ||
+    element.closest(".performance-chart") ||
+    element.closest("[data-market-detail-panel]")
   );
 }
 
@@ -84,120 +137,62 @@ function prefersReducedMotion() {
   );
 }
 
-function getAnimationDuration() {
-  return prefersReducedMotion() ? false : 200;
+function getChartAnimation() {
+  return prefersReducedMotion()
+    ? false
+    : {
+        duration: 180,
+      };
 }
 
 /* ==========================================================================
-   Data Normalization
+   State Message
    ========================================================================== */
 
-function normalizeTrendData(data) {
-  if (!Array.isArray(data)) {
-    return [];
-  }
-
-  return data
-    .filter((point) => {
-      return (
-        Array.isArray(point) &&
-        point.length >= 2 &&
-        Number.isFinite(Number(point[0])) &&
-        Number.isFinite(Number(point[1]))
-      );
-    })
-    .map(([timestamp, value]) => {
-      return [Number(timestamp), Number(value)];
-    })
-    .sort((first, second) => first[0] - second[0]);
-}
-
-function normalizeCandlestickData(data) {
-  if (!Array.isArray(data)) {
-    return [];
-  }
-
-  return data
-    .filter((point) => {
-      if (!Array.isArray(point) || point.length < 5) {
-        return false;
-      }
-
-      return point.slice(0, 5).every((value) => {
-        return Number.isFinite(Number(value));
-      });
-    })
-    .map(([timestamp, open, high, low, close]) => {
-      return [
-        Number(timestamp),
-        Number(open),
-        Number(high),
-        Number(low),
-        Number(close),
-      ];
-    })
-    .filter((point) => {
-      const [, open, high, low, close] = point;
-
-      return (
-        high >= low &&
-        high >= open &&
-        high >= close &&
-        low <= open &&
-        low <= close
-      );
-    })
-    .sort((first, second) => first[0] - second[0]);
-}
-
-function normalizeData(data, mode) {
-  return mode === "candlestick"
-    ? normalizeCandlestickData(data)
-    : normalizeTrendData(data);
-}
-
-function normalizeRanges(ranges) {
-  if (!ranges || typeof ranges !== "object") {
-    return {};
-  }
-
-  return Object.entries(ranges).reduce((result, [range, record]) => {
-    if (!record || typeof record !== "object") {
-      return result;
-    }
-
-    result[range] = {
-      trend: normalizeTrendData(record.trend),
-      line: normalizeTrendData(record.line || record.trend),
-
-      candlestick: normalizeCandlestickData(record.candlestick),
-    };
-
-    return result;
-  }, {});
-}
-
-/* ==========================================================================
-   State Messages
-   ========================================================================== */
-
-function removeMessage(element) {
+function removeStateMessage(element) {
   element.querySelector(":scope > .market-chart__message")?.remove();
 }
 
-function setMessage(element, message) {
-  removeMessage(element);
+function setStateMessage(element, message, state) {
+  removeStateMessage(element);
 
-  const messageElement = document.createElement("p");
+  const wrapper = document.createElement("div");
 
-  messageElement.className = "market-chart__message";
-  messageElement.textContent = message;
+  wrapper.className = `market-chart__message market-chart__message--${state}`;
 
-  element.append(messageElement);
+  wrapper.setAttribute("role", "status");
+
+  const text = document.createElement("p");
+
+  text.className = "market-chart__message-text";
+
+  text.textContent = message;
+
+  wrapper.append(text);
+  element.append(wrapper);
 }
 
 /* ==========================================================================
-   Market Chart Controller
+   Date Formatting
+   ========================================================================== */
+
+function formatUpdatedTime(timestamp, { language, timeZone }) {
+  const date = new Date(timestamp);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat(language, {
+    timeZone,
+
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+/* ==========================================================================
+   Controller
    ========================================================================== */
 
 class MarketChartController {
@@ -206,47 +201,66 @@ class MarketChartController {
     this.Highcharts = Highcharts;
 
     this.configuration = {
-      context: "performance",
-
-      symbol: "",
-      name: "",
-      currency: "",
-
-      mode: "trend",
-      range: "1D",
-
-      data: [],
-      ranges: {},
-
-      controls: {},
-
+      ...DEFAULT_CONFIGURATION,
       ...configuration,
+
+      controls: {
+        ...DEFAULT_CONFIGURATION.controls,
+        ...configuration.controls,
+      },
     };
 
-    this.configuration.mode = CHART_MODES.has(this.configuration.mode)
+    this.configuration.language =
+      this.configuration.language || document.documentElement.lang || "en";
+
+    this.currentMode = CHART_MODES.has(this.configuration.mode)
       ? this.configuration.mode
       : "trend";
 
-    this.ranges = normalizeRanges(this.configuration.ranges);
+    this.currentRange = this.configuration.range || "1D";
 
-    this.currentMode = this.configuration.mode;
-    this.currentRange = this.configuration.range;
+    this.baseData = normalizeMarketChartData(
+      this.configuration.data,
+      this.currentMode,
+    );
+
+    this.ranges = normalizeMarketChartRanges(this.configuration.ranges);
 
     this.chart = null;
-    this.themeObserver = null;
-    this.resizeObserver = null;
-    this.abortController = new AbortController();
 
     this.controlsRoot = resolveControlsRoot(
       element,
-      this.configuration.controls?.root,
+      this.configuration.controls.root,
     );
 
+    this.viewport = resolveViewport(element);
+
+    this.section = resolveSection(element);
+
+    this.abortController = new AbortController();
+
+    this.themeObserver = null;
+    this.resizeObserver = null;
+
+    this.liveController = null;
+    this.exportController = null;
+
+    this.resizeFrame = null;
+    this.themeFrame = null;
+
+    this.lastViewportWidth = 0;
+    this.lastViewportHeight = 0;
+
     this.isComparing = false;
+    this.destroyed = false;
 
-    this.handleThemeChange = this.handleThemeChange.bind(this);
+    this.rangeButtons = [];
+    this.modeButtons = [];
+    this.compareButton = null;
 
-    this.handleDocumentClick = this.handleDocumentClick.bind(this);
+    this.handleThemeMutation = this.handleThemeMutation.bind(this);
+
+    this.handleViewportResize = this.handleViewportResize.bind(this);
   }
 
   /* ========================================================================
@@ -256,32 +270,38 @@ class MarketChartController {
   initialize() {
     this.setState("loading");
 
-    const initialData = this.getActiveData();
+    const data = this.getActiveData();
 
-    if (!initialData.length) {
-      this.setState("empty", "Chart data is currently unavailable.");
+    if (!data.length) {
+      this.setState("empty", this.configuration.emptyMessage);
+
+      this.bindControls();
+      this.updateControls();
 
       return this;
     }
 
     try {
-      const theme = getMarketChartTheme(this.element);
-
       this.chart = this.Highcharts.stockChart(
         this.element,
-        this.createOptions(initialData, theme),
+        this.createOptions(data),
       );
 
       this.bindControls();
+      this.initializeExport();
       this.observeTheme();
       this.observeResize();
+      this.initializeLiveUpdates();
+
       this.updateControls();
+      this.updateDirection(data);
 
       this.setState("ready");
+      this.scheduleResize();
 
       return this;
     } catch (error) {
-      this.setState("error", "The chart could not be loaded.");
+      this.setState("error", this.configuration.errorMessage);
 
       console.error("Market chart initialization failed.", error);
 
@@ -290,239 +310,91 @@ class MarketChartController {
   }
 
   /* ========================================================================
-     Data Resolution
+     Options
      ===================================================================== */
 
-  getActiveData() {
-    const rangeRecord = this.ranges[this.currentRange];
+  createOptions(data = this.getActiveData()) {
+    const direction = getMarketChartDirection(data, this.currentMode);
 
-    if (rangeRecord) {
-      const rangeData = rangeRecord[this.currentMode];
+    return createMarketChartOptions({
+      Highcharts: this.Highcharts,
+      element: this.element,
 
-      if (Array.isArray(rangeData)) {
-        return rangeData;
-      }
-    }
+      mode: this.currentMode,
+      range: this.currentRange,
+      direction,
 
-    return normalizeData(this.configuration.data, this.currentMode);
-  }
+      symbol: this.configuration.symbol,
 
-  hasModeData(mode, range = this.currentRange) {
-    const rangeRecord = this.ranges[range];
-
-    if (rangeRecord) {
-      return Boolean(rangeRecord[mode]?.length);
-    }
-
-    return Boolean(normalizeData(this.configuration.data, mode).length);
-  }
-
-  /* ========================================================================
-     Highcharts Options
-     ===================================================================== */
-
-  createOptions(data, theme) {
-    const { context, currency, name, symbol } = this.configuration;
-
-    const compact = context === "overview";
-    const animation = getAnimationDuration();
-
-    return {
-      chart: {
-        animation,
-        backgroundColor: theme.background,
-
-        spacing: compact ? [8, 8, 8, 8] : [16, 12, 8, 8],
-      },
-
-      accessibility: {
-        enabled: true,
-
-        description: name
-          ? `${name} market performance over time.`
-          : "Market performance over time.",
-
-        keyboardNavigation: {
-          enabled: true,
-        },
-
-        series: {
-          describeSingleSeries: true,
-        },
-      },
-
-      credits: {
-        enabled: false,
-      },
-
-      exporting: {
-        enabled: false,
-
-        fallbackToExportServer: false,
-
-        filename: symbol
-          ? `${symbol.toLowerCase()}-${this.currentRange.toLowerCase()}`
-          : "market-chart",
-      },
-
-      legend: {
-        enabled: false,
-      },
-
-      navigator: {
-        enabled: false,
-      },
-
-      rangeSelector: {
-        enabled: false,
-      },
-
-      scrollbar: {
-        enabled: false,
-      },
-
-      title: {
-        text: null,
-      },
-
-      time: {
-        useUTC: false,
-      },
-
-      xAxis: {
-        ordinal: true,
-
-        lineColor: theme.border,
-        tickColor: theme.border,
-
-        labels: {
-          style: {
-            color: theme.muted,
-            fontSize: "11px",
-          },
-        },
-
-        crosshair: {
-          color: theme.crosshair,
-          dashStyle: "ShortDot",
-        },
-      },
-
-      yAxis: {
-        opposite: false,
-
-        gridLineColor: theme.grid,
-        gridLineDashStyle: "ShortDot",
-
-        title: {
-          text: null,
-        },
-
-        labels: {
-          align: "end",
-
-          style: {
-            color: theme.muted,
-            fontSize: "11px",
-          },
-        },
-      },
-
-      tooltip: {
-        animation: false,
-
-        backgroundColor: theme.tooltipBackground,
-        borderColor: theme.tooltipBorder,
-        borderRadius: 8,
-
-        shared: false,
-
-        style: {
-          color: theme.text,
-          fontSize: "12px",
-        },
-
-        valueDecimals: 2,
-        valueSuffix: currency ? ` ${currency}` : "",
-
-        xDateFormat: "%A, %e %B %Y, %H:%M",
-      },
-
-      plotOptions: {
-        series: {
-          animation,
-
-          dataGrouping: {
-            enabled: true,
-          },
-
-          marker: {
-            enabled: false,
-
-            states: {
-              hover: {
-                enabled: true,
-                radius: 4,
-              },
-            },
-          },
-
-          states: {
-            inactive: {
-              opacity: 1,
-            },
-          },
-        },
-
-        area: {
-          lineWidth: 2,
-          threshold: null,
-
-          states: {
-            hover: {
-              lineWidth: 2,
-            },
-          },
-        },
-
-        line: {
-          lineWidth: 2,
-
-          states: {
-            hover: {
-              lineWidth: 2,
-            },
-          },
-        },
-
-        candlestick: {
-          lineWidth: 1,
-
-          dataGrouping: {
-            enabled: true,
-          },
-        },
-      },
-
-      series: [this.createSeriesOptions(data, theme)],
-    };
-  }
-
-  createSeriesOptions(data, theme) {
-    const { name, symbol } = this.configuration;
-
-    const mode = this.currentMode;
-    const type = mode === "trend" ? "area" : mode;
-
-    return {
-      id: symbol || "market-series",
-      name: name || symbol || "Market",
-      type,
+      seriesName:
+        this.configuration.name || this.configuration.symbol || "Market",
 
       data,
 
-      ...getMarketChartSeriesTheme(this.Highcharts, theme, mode),
-    };
+      language: this.configuration.language,
+
+      timeZone: this.configuration.timeZone,
+
+      decimals: this.configuration.decimals,
+
+      xAxisTitle: this.configuration.xAxisTitle,
+
+      yAxisTitle: this.configuration.yAxisTitle,
+
+      animation: getChartAnimation(),
+
+      accessibilityDescription:
+        this.configuration.accessibilityDescription ||
+        (this.configuration.name
+          ? `${this.configuration.name} market performance over time.`
+          : "Market performance over time."),
+    });
+  }
+
+  /* ========================================================================
+     Data Resolution
+     ===================================================================== */
+
+  getRangeRecord(range = this.currentRange) {
+    return this.ranges[range] || null;
+  }
+
+  getActiveData() {
+    const rangeRecord = this.getRangeRecord();
+
+    if (rangeRecord) {
+      const data = rangeRecord[this.currentMode];
+
+      if (Array.isArray(data)) {
+        return data;
+      }
+
+      if (this.currentMode === "line" && Array.isArray(rangeRecord.trend)) {
+        return rangeRecord.trend;
+      }
+    }
+
+    return normalizeMarketChartData(this.baseData, this.currentMode);
+  }
+
+  hasRange(range) {
+    return Boolean(this.ranges[range]);
+  }
+
+  hasModeData(mode, range = this.currentRange) {
+    const record = this.getRangeRecord(range);
+
+    if (record) {
+      if (record[mode]?.length) {
+        return true;
+      }
+
+      return Boolean(mode === "line" && record.trend?.length);
+    }
+
+    return Boolean(
+      normalizeMarketChartData(this.configuration.data, mode).length,
+    );
   }
 
   /* ========================================================================
@@ -532,23 +404,114 @@ class MarketChartController {
   setState(state, message = "") {
     this.element.dataset.chartState = state;
 
-    const section = this.element.closest(".performance-chart");
+    /*
+     * The shared controller uses data-chart-state exclusively. Remove any
+     * classes left by a legacy chart implementation.
+     */
 
-    if (section) {
-      section.setAttribute("aria-busy", String(state === "loading"));
+    this.element.classList.remove("is-loading", "loading");
+
+    if (this.section) {
+      this.section.setAttribute("aria-busy", String(state === "loading"));
     }
 
     if (state === "empty" || state === "error") {
-      setMessage(this.element, message);
+      setStateMessage(this.element, message, state);
     } else {
-      removeMessage(this.element);
+      removeStateMessage(this.element);
     }
 
     if (state === "ready") {
       this.element.dataset.chartReady = "true";
-    } else {
+    } else if (state === "empty" || state === "error") {
       this.element.removeAttribute("data-chart-ready");
     }
+
+    this.element.dispatchEvent(
+      new CustomEvent("marketchartstatechange", {
+        bubbles: true,
+
+        detail: {
+          state,
+          message,
+          controller: this,
+        },
+      }),
+    );
+  }
+
+  /* ========================================================================
+     Rendering
+     ===================================================================== */
+
+  render({ preserveExtremes = false, animate = true } = {}) {
+    const data = this.getActiveData();
+
+    if (!data.length) {
+      this.chart?.destroy();
+      this.chart = null;
+
+      this.setState("empty", this.configuration.emptyMessage);
+
+      this.updateControls();
+
+      return false;
+    }
+
+    const previousExtremes =
+      preserveExtremes && this.chart?.xAxis?.[0]
+        ? this.chart.xAxis[0].getExtremes()
+        : null;
+
+    this.setState("loading");
+
+    const options = this.createOptions(data);
+
+    if (!this.chart) {
+      this.element.replaceChildren();
+
+      this.chart = this.Highcharts.stockChart(this.element, options);
+
+      this.exportController?.destroy();
+      this.exportController = null;
+
+      this.initializeExport();
+    } else {
+      this.chart.update(options, false, true, false);
+
+      if (
+        previousExtremes &&
+        Number.isFinite(previousExtremes.min) &&
+        Number.isFinite(previousExtremes.max)
+      ) {
+        this.chart.xAxis[0]?.setExtremes(
+          previousExtremes.min,
+          previousExtremes.max,
+          false,
+          false,
+        );
+      }
+
+      this.chart.redraw(animate ? getChartAnimation() : false);
+    }
+
+    this.updateDirection(data);
+    this.updateControls();
+
+    this.setState("ready");
+    this.scheduleResize();
+
+    return true;
+  }
+
+  getMainSeries() {
+    if (!this.chart) {
+      return null;
+    }
+
+    return (
+      this.chart.series.find((series) => !series.options.isInternal) || null
+    );
   }
 
   /* ========================================================================
@@ -556,43 +519,47 @@ class MarketChartController {
      ===================================================================== */
 
   setRange(range) {
-    if (!range || !Object.hasOwn(this.ranges, range)) {
+    if (!range || range === this.currentRange || !this.hasRange(range)) {
       return false;
     }
 
-    const requestedData = this.ranges[range][this.currentMode];
+    const record = this.getRangeRecord(range);
 
-    if (!requestedData?.length) {
-      return false;
+    let nextMode = this.currentMode;
+
+    if (!record[nextMode]?.length) {
+      if (nextMode === "line" && record.trend?.length) {
+        nextMode = "line";
+      } else if (record.trend?.length) {
+        nextMode = "trend";
+      } else if (record.candlestick?.length && !this.isComparing) {
+        nextMode = "candlestick";
+      } else {
+        return false;
+      }
     }
 
     this.currentRange = range;
+    this.currentMode = nextMode;
+
     this.configuration.range = range;
+    this.configuration.mode = nextMode;
 
-    this.replaceSeries(requestedData);
-    this.updateControls();
+    const rendered = this.render();
 
-    this.element.dispatchEvent(
-      new CustomEvent("marketchartchange", {
-        bubbles: true,
+    if (rendered) {
+      this.dispatchChange("range");
+    }
 
-        detail: {
-          range: this.currentRange,
-          mode: this.currentMode,
-          symbol: this.configuration.symbol,
-        },
-      }),
-    );
-
-    return true;
+    return rendered;
   }
 
   /* ========================================================================
-     Chart Mode
+     Mode
      ===================================================================== */
 
   setMode(mode) {
-    if (!CHART_MODES.has(mode)) {
+    if (!CHART_MODES.has(mode) || mode === this.currentMode) {
       return false;
     }
 
@@ -600,54 +567,51 @@ class MarketChartController {
       return false;
     }
 
-    const rangeRecord = this.ranges[this.currentRange];
-
-    const requestedData = rangeRecord
-      ? rangeRecord[mode]
-      : normalizeData(this.configuration.data, mode);
-
-    if (!requestedData?.length) {
+    if (!this.hasModeData(mode)) {
       return false;
     }
 
     this.currentMode = mode;
     this.configuration.mode = mode;
 
-    this.replaceSeries(requestedData);
-    this.updateControls();
+    const rendered = this.render({
+      preserveExtremes: true,
+    });
 
-    this.element.dispatchEvent(
-      new CustomEvent("marketchartchange", {
-        bubbles: true,
+    if (rendered) {
+      this.dispatchChange("mode");
+    }
 
-        detail: {
-          range: this.currentRange,
-          mode: this.currentMode,
-          symbol: this.configuration.symbol,
-        },
-      }),
-    );
-
-    return true;
+    return rendered;
   }
 
   /* ========================================================================
      Comparison
      ===================================================================== */
 
-  setComparing(comparing) {
-    this.isComparing = Boolean(comparing);
+  setComparing(active) {
+    const nextState = Boolean(active);
 
-    const section = this.element.closest(
-      ".market-index-chart, .performance-chart",
+    if (nextState === this.isComparing) {
+      return;
+    }
+
+    this.isComparing = nextState;
+
+    this.section?.classList.toggle("is-comparing", this.isComparing);
+
+    this.section?.setAttribute(
+      "data-chart-comparing",
+      String(this.isComparing),
     );
 
-    section?.classList.toggle("is-comparing", this.isComparing);
-
-    section?.setAttribute("data-chart-comparing", String(this.isComparing));
-
     if (this.isComparing && this.currentMode === "candlestick") {
-      this.setMode("trend");
+      this.currentMode = "trend";
+      this.configuration.mode = "trend";
+
+      this.render({
+        preserveExtremes: true,
+      });
     }
 
     this.updateControls();
@@ -658,6 +622,7 @@ class MarketChartController {
 
         detail: {
           active: this.isComparing,
+          symbol: this.configuration.symbol,
           controller: this,
         },
       }),
@@ -665,11 +630,17 @@ class MarketChartController {
   }
 
   /* ========================================================================
-     Data Update
+     Static Data
      ===================================================================== */
 
   setData(data, options = {}) {
-    const normalized = normalizeData(data, options.mode || this.currentMode);
+    const mode = options.mode || this.currentMode;
+
+    if (!CHART_MODES.has(mode)) {
+      return false;
+    }
+
+    const normalized = normalizeMarketChartData(data, mode);
 
     if (!normalized.length) {
       return false;
@@ -687,236 +658,276 @@ class MarketChartController {
       this.configuration.currency = options.currency;
     }
 
-    if (options.mode && CHART_MODES.has(options.mode)) {
-      this.currentMode = options.mode;
-    }
+    this.currentMode = mode;
+    this.configuration.mode = mode;
 
+    this.baseData = normalized;
     this.configuration.data = normalized;
 
-    this.replaceSeries(normalized);
-    this.updateControls();
+    if (options.clearRanges) {
+      this.ranges = {};
+      this.configuration.ranges = {};
+    }
 
-    return true;
+    return this.render({
+      preserveExtremes: options.preserveExtremes ?? false,
+
+      animate: options.animate ?? true,
+    });
   }
 
   setRanges(ranges, options = {}) {
-    const normalizedRanges = normalizeRanges(ranges);
+    const normalized = normalizeMarketChartRanges(ranges);
 
-    if (!Object.keys(normalizedRanges).length) {
+    const names = Object.keys(normalized);
+
+    if (!names.length) {
       return false;
     }
 
-    this.ranges = normalizedRanges;
+    this.ranges = normalized;
     this.configuration.ranges = ranges;
 
-    const requestedRange =
-      options.range || this.currentRange || Object.keys(normalizedRanges)[0];
+    const requestedRange = options.range || this.currentRange || names[0];
 
-    if (!normalizedRanges[requestedRange]) {
-      this.currentRange = Object.keys(normalizedRanges)[0];
-    } else {
-      this.currentRange = requestedRange;
-    }
+    this.currentRange = normalized[requestedRange] ? requestedRange : names[0];
 
     if (!this.hasModeData(this.currentMode, this.currentRange)) {
-      this.currentMode = "trend";
+      this.currentMode = this.hasModeData("trend", this.currentRange)
+        ? "trend"
+        : "candlestick";
     }
 
-    const data = this.getActiveData();
+    this.configuration.range = this.currentRange;
 
-    if (!data.length) {
+    this.configuration.mode = this.currentMode;
+
+    return this.render({
+      animate: options.animate ?? true,
+    });
+  }
+
+  /* ========================================================================
+     Live Updates
+     ===================================================================== */
+
+  initializeLiveUpdates() {
+    const live = this.configuration.live;
+
+    if (
+      !live ||
+      live.enabled === false ||
+      typeof live.fetchPoint !== "function"
+    ) {
+      return;
+    }
+
+    this.liveController = createMarketChartLiveController({
+      interval: live.interval || 60000,
+
+      alignToInterval: live.alignToInterval ?? true,
+
+      immediate: live.immediate ?? false,
+
+      retry: live.retry ?? true,
+
+      fetchPoint: async ({ signal }) => {
+        return live.fetchPoint({
+          signal,
+
+          symbol: this.configuration.symbol,
+
+          range: this.currentRange,
+
+          mode: this.currentMode,
+
+          controller: this,
+        });
+      },
+
+      onPoint: (point, metadata = {}) => {
+        this.applyLivePoint(point, metadata);
+      },
+
+      onStateChange: (state) => {
+        this.updateLiveState(state);
+      },
+
+      onError: (error) => {
+        this.element.dispatchEvent(
+          new CustomEvent("marketchartliveerror", {
+            bubbles: true,
+
+            detail: {
+              error,
+              controller: this,
+            },
+          }),
+        );
+      },
+    });
+
+    if (live.autostart !== false) {
+      this.liveController.start();
+    }
+  }
+
+  applyLivePoint(point, metadata = {}) {
+    const result = mergeMarketChartLivePoint(this.getActiveData(), point, {
+      mode: this.currentMode,
+
+      maxPoints: this.configuration.maxPoints,
+    });
+
+    if (!result || !result.data?.length) {
       return false;
     }
 
-    this.replaceSeries(data);
-    this.updateControls();
+    const record = this.getRangeRecord();
+
+    if (record) {
+      record[this.currentMode] = result.data;
+
+      if (this.currentMode === "trend") {
+        record.line = result.data.map((item) => [...item]);
+      } else if (this.currentMode === "line") {
+        record.trend = result.data.map((item) => [...item]);
+      }
+    } else {
+      this.baseData = result.data;
+      this.configuration.data = result.data;
+    }
+
+    const series = this.getMainSeries();
+
+    if (!series) {
+      return this.render({
+        preserveExtremes: true,
+      });
+    }
+
+    const timestamp = result.point[0];
+
+    const existingPoint = series.data.find(
+      (seriesPoint) => seriesPoint.x === timestamp,
+    );
+
+    if (result.replaced && existingPoint) {
+      existingPoint.update(result.point, false, false);
+    } else if (result.appended) {
+      series.addPoint(result.point, false, Boolean(result.shifted), false);
+    } else {
+      series.setData(result.data, false, false, false);
+    }
+
+    this.chart.redraw(getChartAnimation());
+
+    this.updateDirection(result.data);
+
+    this.updateLastUpdated(metadata.updatedAt || timestamp || Date.now());
+
+    this.element.dispatchEvent(
+      new CustomEvent("marketchartliveupdate", {
+        bubbles: true,
+
+        detail: {
+          point: result.point,
+          metadata,
+
+          symbol: this.configuration.symbol,
+
+          controller: this,
+        },
+      }),
+    );
 
     return true;
   }
 
-  /* ========================================================================
-     Series Replacement
-     ===================================================================== */
+  updateLiveState(state) {
+    const value = typeof state === "string" ? state : state?.state || "idle";
 
-  replaceSeries(data) {
-    if (!this.chart || !data.length) {
-      return;
+    this.section?.setAttribute("data-chart-live-state", value);
+
+    const status = this.controlsRoot?.querySelector("[data-chart-live-status]");
+
+    if (status) {
+      status.dataset.liveState = value;
     }
-
-    const theme = getMarketChartTheme(this.element);
-
-    const existingSeries = this.chart.series.find((series) => {
-      return !series.options.isInternal;
-    });
-
-    if (existingSeries) {
-      existingSeries.remove(false);
-    }
-
-    this.chart.addSeries(this.createSeriesOptions(data, theme), false);
-
-    this.updateTooltip();
-
-    this.chart.redraw(getAnimationDuration());
-
-    this.chart.xAxis[0]?.setExtremes(
-      undefined,
-      undefined,
-      true,
-      getAnimationDuration(),
-    );
   }
 
-  updateTooltip() {
-    if (!this.chart) {
+  updateLastUpdated(timestamp) {
+    const time = this.controlsRoot?.querySelector("[data-chart-updated-time]");
+
+    if (!time) {
       return;
     }
 
-    const isCandlestick = this.currentMode === "candlestick";
+    const date = new Date(timestamp);
 
-    this.chart.update(
-      {
-        tooltip: {
-          shared: false,
+    if (Number.isNaN(date.getTime())) {
+      return;
+    }
 
-          pointFormat: isCandlestick
-            ? [
-                '<span style="color:{point.color}">●</span> ',
-                "<b>{series.name}</b><br/>",
-                "Open: <b>{point.open:,.2f}</b><br/>",
-                "High: <b>{point.high:,.2f}</b><br/>",
-                "Low: <b>{point.low:,.2f}</b><br/>",
-                "Close: <b>{point.close:,.2f}</b>",
-              ].join("")
-            : undefined,
-        },
-      },
-      false,
-      false,
-      false,
-    );
+    time.dateTime = date.toISOString();
+
+    time.textContent = formatUpdatedTime(timestamp, {
+      language: this.configuration.language,
+
+      timeZone: this.configuration.timeZone,
+    });
+  }
+
+  startLive() {
+    this.liveController?.start();
+  }
+
+  pauseLive() {
+    this.liveController?.pause("manual");
+  }
+
+  resumeLive() {
+    this.liveController?.resume();
+  }
+
+  stopLive() {
+    this.liveController?.stop();
   }
 
   /* ========================================================================
-     Theme
+     Direction
      ===================================================================== */
 
-  updateTheme() {
-    if (!this.chart) {
-      return;
-    }
+  updateDirection(data = this.getActiveData()) {
+    const direction = getMarketChartDirection(data, this.currentMode);
 
-    const theme = getMarketChartTheme(this.element);
+    this.element.dataset.chartDirection = direction;
 
-    this.chart.update(
-      {
-        chart: {
-          backgroundColor: theme.background,
-        },
-
-        xAxis: {
-          lineColor: theme.border,
-          tickColor: theme.border,
-
-          labels: {
-            style: {
-              color: theme.muted,
-            },
-          },
-
-          crosshair: {
-            color: theme.crosshair,
-          },
-        },
-
-        yAxis: {
-          gridLineColor: theme.grid,
-
-          labels: {
-            style: {
-              color: theme.muted,
-            },
-          },
-        },
-
-        tooltip: {
-          backgroundColor: theme.tooltipBackground,
-
-          borderColor: theme.tooltipBorder,
-
-          style: {
-            color: theme.text,
-          },
-        },
-      },
-      false,
-      false,
-      false,
-    );
-
-    const series = this.chart.series.find((item) => !item.options.isInternal);
-
-    series?.update(
-      getMarketChartSeriesTheme(this.Highcharts, theme, this.currentMode),
-      false,
-    );
-
-    this.chart.redraw(false);
-  }
-
-  handleThemeChange(mutations) {
-    const relevantChange = mutations.some((mutation) => {
-      return [
-        "data-theme",
-        "data-accent",
-        "data-contrast",
-        "data-motion",
-      ].includes(mutation.attributeName);
-    });
-
-    if (relevantChange) {
-      this.updateTheme();
-    }
-  }
-
-  observeTheme() {
-    this.themeObserver = new MutationObserver(this.handleThemeChange);
-
-    this.themeObserver.observe(document.documentElement, {
-      attributes: true,
-
-      attributeFilter: [
-        "data-theme",
-        "data-accent",
-        "data-contrast",
-        "data-motion",
-      ],
-    });
+    this.section?.setAttribute("data-chart-direction", direction);
   }
 
   /* ========================================================================
-     Resize
+     Events
      ===================================================================== */
 
-  observeResize() {
-    if ("ResizeObserver" in window) {
-      this.resizeObserver = new ResizeObserver(() => {
-        this.chart?.reflow();
-      });
+  dispatchChange(source) {
+    this.element.dispatchEvent(
+      new CustomEvent("marketchartchange", {
+        bubbles: true,
 
-      this.resizeObserver.observe(this.element);
+        detail: {
+          source,
 
-      return;
-    }
+          range: this.currentRange,
 
-    window.addEventListener("resize", () => this.chart?.reflow(), {
-      passive: true,
-      signal: this.abortController.signal,
-    });
-  }
+          mode: this.currentMode,
 
-  reflow() {
-    this.chart?.reflow();
+          symbol: this.configuration.symbol,
+
+          controller: this,
+        },
+      }),
+    );
   }
 
   /* ========================================================================
@@ -930,39 +941,39 @@ class MarketChartController {
 
     const signal = this.abortController.signal;
 
-    const {
-      rangeSelector = "[data-chart-range]",
-      typeSelector = "[data-chart-type]",
-      compareTrigger = "[data-chart-compare]",
-      exportTrigger = ".chart-export__trigger",
-      exportMenu = ".chart-export-menu",
-    } = this.configuration.controls || {};
+    const controls = this.configuration.controls;
 
-    this.rangeButtons = this.controlsRoot.querySelectorAll(rangeSelector);
+    const rangeSelector = controls.rangeSelector || "[data-chart-range]";
 
-    this.typeButtons = this.controlsRoot.querySelectorAll(typeSelector);
+    const modeSelector =
+      controls.modeSelector || controls.typeSelector || "[data-chart-type]";
 
-    this.compareButton = this.controlsRoot.querySelector(compareTrigger);
+    const compareSelector =
+      controls.compareSelector ||
+      controls.compareTrigger ||
+      "[data-chart-compare]";
 
-    this.exportTrigger = this.controlsRoot.querySelector(exportTrigger);
+    this.rangeButtons = [...this.controlsRoot.querySelectorAll(rangeSelector)];
 
-    this.exportMenu = this.controlsRoot.querySelector(exportMenu);
+    this.modeButtons = [...this.controlsRoot.querySelectorAll(modeSelector)];
+
+    this.compareButton = this.controlsRoot.querySelector(compareSelector);
 
     this.rangeButtons.forEach((button) => {
       button.addEventListener(
         "click",
         () => {
-          this.setRange(button.dataset.chartRange);
+          this.setRange(button.dataset.chartRange || button.dataset.range);
         },
         { signal },
       );
     });
 
-    this.typeButtons.forEach((button) => {
+    this.modeButtons.forEach((button) => {
       button.addEventListener(
         "click",
         () => {
-          this.setMode(button.dataset.chartType);
+          this.setMode(button.dataset.chartType || button.dataset.chartMode);
         },
         { signal },
       );
@@ -975,65 +986,32 @@ class MarketChartController {
       },
       { signal },
     );
-
-    this.exportTrigger?.addEventListener(
-      "click",
-      (event) => {
-        event.stopPropagation();
-
-        this.toggleExportMenu();
-      },
-      { signal },
-    );
-
-    this.exportMenu
-      ?.querySelectorAll("[data-export-action]")
-      .forEach((button) => {
-        button.addEventListener(
-          "click",
-          () => {
-            this.handleExport(button.dataset.exportAction);
-
-            this.closeExportMenu();
-          },
-          { signal },
-        );
-      });
-
-    document.addEventListener("click", this.handleDocumentClick, { signal });
-
-    document.addEventListener(
-      "keydown",
-      (event) => {
-        if (event.key === "Escape") {
-          this.closeExportMenu();
-
-          this.exportTrigger?.focus();
-        }
-      },
-      { signal },
-    );
   }
 
   updateControls() {
-    this.rangeButtons?.forEach((button) => {
-      const active = button.dataset.chartRange === this.currentRange;
+    this.rangeButtons.forEach((button) => {
+      const range = button.dataset.chartRange || button.dataset.range;
+
+      const active = range === this.currentRange;
+
+      const available = this.hasModeData(this.currentMode, range);
 
       button.classList.toggle("is-active", active);
 
+      button.setAttribute("aria-selected", String(active));
+
       button.setAttribute("aria-pressed", String(active));
 
-      const available = this.hasModeData(
-        this.currentMode,
-        button.dataset.chartRange,
-      );
+      button.tabIndex = active ? 0 : -1;
 
       button.disabled = !available;
+
       button.setAttribute("aria-disabled", String(!available));
     });
 
-    this.typeButtons?.forEach((button) => {
-      const mode = button.dataset.chartType;
+    this.modeButtons.forEach((button) => {
+      const mode = button.dataset.chartType || button.dataset.chartMode;
+
       const active = mode === this.currentMode;
 
       const available =
@@ -1043,7 +1021,10 @@ class MarketChartController {
 
       button.setAttribute("aria-pressed", String(active));
 
+      button.setAttribute("aria-selected", String(active));
+
       button.disabled = !available;
+
       button.setAttribute("aria-disabled", String(!available));
     });
 
@@ -1055,112 +1036,151 @@ class MarketChartController {
   }
 
   /* ========================================================================
-     Export Menu
+     Export
      ===================================================================== */
 
-  toggleExportMenu() {
-    if (!this.exportMenu) {
+  initializeExport() {
+    if (!this.controlsRoot || !this.chart) {
       return;
     }
 
-    const opening = this.exportMenu.hidden;
+    const controls = this.configuration.controls;
 
-    this.exportMenu.hidden = !opening;
+    this.exportController = createMarketChartExportController({
+      chart: this.chart,
 
-    this.exportTrigger?.setAttribute("aria-expanded", String(opening));
+      chartElement: this.element,
+      root: this.controlsRoot,
 
-    if (opening) {
-      this.exportMenu
-        .querySelector('[role="menuitem"]:not(:disabled)')
-        ?.focus();
-    }
-  }
+      trigger: controls.exportTrigger || ".chart-export__trigger",
 
-  closeExportMenu() {
-    if (!this.exportMenu) {
-      return;
-    }
+      menu: controls.exportMenu || ".chart-export-menu",
 
-    this.exportMenu.hidden = true;
-
-    this.exportTrigger?.setAttribute("aria-expanded", "false");
-  }
-
-  handleDocumentClick(event) {
-    const exportControl = this.exportTrigger?.closest(".chart-export");
-
-    if (exportControl && !exportControl.contains(event.target)) {
-      this.closeExportMenu();
-    }
+      onAfterFullscreen: () => {
+        this.scheduleResize();
+      },
+    });
   }
 
   /* ========================================================================
-     Export Actions
+     Theme
      ===================================================================== */
 
-  async handleExport(action) {
-    if (!this.chart || !EXPORT_ACTIONS.has(action)) {
-      return;
-    }
+  observeTheme() {
+    this.themeObserver = new MutationObserver(this.handleThemeMutation);
 
-    switch (action) {
-      case "fullscreen":
-        await this.toggleFullscreen();
-        break;
+    this.themeObserver.observe(document.documentElement, {
+      attributes: true,
 
-      case "print":
-        this.chart.print();
-        break;
-
-      case "png":
-        this.chart.exportChart({
-          type: "image/png",
-        });
-        break;
-
-      case "pdf":
-        this.chart.exportChart({
-          type: "application/pdf",
-        });
-        break;
-
-      default:
-        break;
-    }
+      attributeFilter: [
+        "data-theme",
+        "data-accent",
+        "data-contrast",
+        "data-motion",
+        "dir",
+        "lang",
+      ],
+    });
   }
 
-  async toggleFullscreen() {
-    const container = this.element.closest(".performance-chart");
+  handleThemeMutation(mutations) {
+    const relevant = mutations.some((mutation) =>
+      [
+        "data-theme",
+        "data-accent",
+        "data-contrast",
+        "data-motion",
+        "dir",
+        "lang",
+      ].includes(mutation.attributeName),
+    );
 
-    if (!container) {
+    if (!relevant || this.themeFrame) {
       return;
     }
 
-    try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
+    this.themeFrame = requestAnimationFrame(() => {
+      this.themeFrame = null;
 
-        return;
-      }
+      this.configuration.language =
+        document.documentElement.lang || this.configuration.language;
 
-      if (container.requestFullscreen) {
-        await container.requestFullscreen();
-
-        requestAnimationFrame(() => {
-          this.reflow();
-        });
-
-        return;
-      }
-
-      container.classList.toggle("is-fullscreen");
-
-      requestAnimationFrame(() => {
-        this.reflow();
+      this.render({
+        preserveExtremes: true,
+        animate: false,
       });
-    } catch (error) {
-      console.error("Chart fullscreen action failed.", error);
+    });
+  }
+
+  /* ========================================================================
+     Stable Resize
+     ===================================================================== */
+
+  observeResize() {
+    if (!this.viewport) {
+      return;
     }
+
+    if ("ResizeObserver" in window) {
+      this.resizeObserver = new ResizeObserver(this.handleViewportResize);
+
+      this.resizeObserver.observe(this.viewport);
+
+      return;
+    }
+
+    window.addEventListener("resize", this.handleViewportResize, {
+      passive: true,
+      signal: this.abortController.signal,
+    });
+  }
+
+  handleViewportResize() {
+    this.scheduleResize();
+  }
+
+  scheduleResize() {
+    if (this.destroyed || !this.chart || !this.viewport || this.resizeFrame) {
+      return;
+    }
+
+    this.resizeFrame = requestAnimationFrame(() => {
+      this.resizeFrame = null;
+
+      this.resizeToViewport();
+    });
+  }
+
+  resizeToViewport() {
+    if (this.destroyed || !this.chart || !this.viewport) {
+      return;
+    }
+
+    const rectangle = this.viewport.getBoundingClientRect();
+
+    const width = Math.round(rectangle.width);
+
+    const height = Math.round(rectangle.height);
+
+    if (width <= 0 || height <= 0) {
+      return;
+    }
+
+    if (
+      width === this.lastViewportWidth &&
+      height === this.lastViewportHeight
+    ) {
+      return;
+    }
+
+    this.lastViewportWidth = width;
+    this.lastViewportHeight = height;
+
+    this.chart.setSize(width, height, false);
+  }
+
+  reflow() {
+    this.scheduleResize();
   }
 
   /* ========================================================================
@@ -1168,20 +1188,47 @@ class MarketChartController {
      ===================================================================== */
 
   destroy() {
+    if (this.destroyed) {
+      return;
+    }
+
+    this.destroyed = true;
+
     this.abortController.abort();
 
     this.themeObserver?.disconnect();
     this.resizeObserver?.disconnect();
 
+    if (this.resizeFrame) {
+      cancelAnimationFrame(this.resizeFrame);
+    }
+
+    if (this.themeFrame) {
+      cancelAnimationFrame(this.themeFrame);
+    }
+
+    this.liveController?.destroy();
+    this.exportController?.destroy();
+
     this.chart?.destroy();
 
     this.chart = null;
+    this.liveController = null;
+    this.exportController = null;
 
-    removeMessage(this.element);
+    removeStateMessage(this.element);
+
+    this.element.classList.remove("is-loading", "loading");
 
     this.element.removeAttribute("data-chart-ready");
 
     this.element.removeAttribute("data-chart-state");
+
+    this.element.removeAttribute("data-chart-direction");
+
+    this.element.removeAttribute("data-chart-hover");
+
+    this.section?.removeAttribute("data-chart-live-state");
 
     chartRegistry.delete(this.element);
   }
@@ -1193,7 +1240,6 @@ class MarketChartController {
 
 export function createMarketChart(target, configuration = {}) {
   const element = resolveElement(target);
-  const Highcharts = getHighcharts();
 
   if (!element) {
     console.error("Market chart target could not be found.");
@@ -1201,17 +1247,21 @@ export function createMarketChart(target, configuration = {}) {
     return null;
   }
 
+  const Highcharts = getHighcharts();
+
   if (!Highcharts) {
     element.dataset.chartState = "error";
 
-    setMessage(element, "The chart could not be loaded.");
+    setStateMessage(
+      element,
+      configuration.errorMessage || DEFAULT_CONFIGURATION.errorMessage,
+      "error",
+    );
 
     return null;
   }
 
-  const existingController = chartRegistry.get(element);
-
-  existingController?.destroy();
+  chartRegistry.get(element)?.destroy();
 
   const controller = new MarketChartController(
     element,

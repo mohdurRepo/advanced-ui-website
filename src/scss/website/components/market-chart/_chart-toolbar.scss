@@ -21,7 +21,7 @@
 
 .chart-toolbar__top {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--chart-toolbar-gap);
 
@@ -35,7 +35,7 @@
 .chart-toolbar__heading {
   display: flex;
   flex: 1 1 auto;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.75rem;
 
   min-inline-size: 0;
@@ -44,10 +44,29 @@
 .chart-toolbar__title-icon {
   --icon-size: 2rem;
 
+  display: inline-flex;
+
   flex: 0 0 auto;
+
+  margin-block-start: 0.125rem;
 
   color: var(--color-primary);
 }
+
+/* ==========================================================================
+   Heading Content
+   ========================================================================== */
+
+.chart-toolbar__heading-content {
+  display: grid;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
 
 .chart-toolbar__title {
   min-inline-size: 0;
@@ -63,6 +82,84 @@
 
   overflow-wrap: anywhere;
   text-wrap: balance;
+}
+
+/* ==========================================================================
+   Live Metadata
+   ========================================================================== */
+
+.chart-toolbar__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+
+  min-inline-size: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: font-weight("medium");
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Live Indicator
+   ========================================================================== */
+
+.chart-toolbar__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  flex: 0 0 auto;
+
+  color: var(--color-success);
+
+  font-weight: font-weight("semibold");
+  white-space: nowrap;
+}
+
+.chart-toolbar__live .market-status {
+  --market-status-indicator-size: 0.4375rem;
+
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+/* ==========================================================================
+   Metadata Separator
+   ========================================================================== */
+
+.chart-toolbar__meta-separator {
+  inline-size: 0.1875rem;
+  block-size: 0.1875rem;
+
+  flex: 0 0 auto;
+
+  border-radius: var(--radius-pill);
+
+  background: var(--color-text-muted);
+
+  opacity: 0.65;
+}
+
+/* ==========================================================================
+   Updated Time
+   ========================================================================== */
+
+.chart-toolbar__updated {
+  min-inline-size: 0;
+
+  white-space: nowrap;
+}
+
+.chart-toolbar__updated time {
+  color: var(--color-text);
+
+  font-weight: font-weight("semibold");
+
+  unicode-bidi: isolate;
 }
 
 /* ==========================================================================
@@ -84,7 +181,7 @@
     @include transition(transform, fast);
   }
 
-  &:hover .has-icon {
+  &:hover .icon-flip-rtl {
     transform: translateX(0.125rem);
   }
 }
@@ -94,8 +191,8 @@
    ========================================================================== */
 
 /*
- * The range selector consumes the available space.
- * Chart type and action controls remain compact.
+ * The range selector receives the available horizontal space.
+ * Utilities remain compact and aligned at the inline end.
  */
 
 .chart-toolbar__bottom {
@@ -108,35 +205,30 @@
 }
 
 /* ==========================================================================
-   Utility Controls
+   Utilities
    ========================================================================== */
 
 .chart-toolbar__utilities {
   display: flex;
   flex: 0 0 auto;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.625rem;
+  gap: 0.5rem;
 
   min-inline-size: 0;
 }
 
 /* ==========================================================================
-   Chart-Type Control
+   Chart Type
    ========================================================================== */
 
 .chart-toolbar__type {
+  display: inline-flex;
+
   flex: 0 0 auto;
 
   min-inline-size: 0;
-}
-
-.chart-toolbar__type .market-chart-toggle {
-  inline-size: auto;
-}
-
-.chart-toolbar__type .market-chart-toggle__button {
-  min-inline-size: 4.75rem;
 }
 
 /* ==========================================================================
@@ -147,7 +239,7 @@
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: 0.625rem;
+  gap: 0.5rem;
 
   min-inline-size: 0;
 }
@@ -160,11 +252,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.4375rem;
 
   min-block-size: 2.5rem;
 
-  padding-inline: 0.875rem;
+  padding-inline: 0.75rem;
+
+  appearance: none;
 
   border: 1px solid transparent;
   border-radius: var(--radius-md);
@@ -181,14 +275,16 @@
   white-space: nowrap;
 
   cursor: pointer;
+  touch-action: manipulation;
 
   @include transition(
-    (background-color, border-color, color, box-shadow),
+    (background-color, border-color, color, box-shadow, transform),
     fast
   );
 
   .has-icon {
     --icon-size: 0.8125rem;
+    --icon-gap: 0;
 
     flex: 0 0 auto;
   }
@@ -203,11 +299,16 @@
   }
 
   &:focus-visible {
+    position: relative;
+    z-index: 1;
+
     @include focus-ring;
   }
 
   &:active:not(:disabled) {
     background: color-mix(in oklab, var(--color-primary), transparent 90%);
+
+    transform: translateY(1px);
   }
 
   &:disabled,
@@ -216,6 +317,7 @@
 
     cursor: not-allowed;
     pointer-events: none;
+    transform: none;
   }
 }
 
@@ -237,26 +339,42 @@
 }
 
 /* ==========================================================================
+   Export Trigger
+   ========================================================================== */
+
+.chart-export__trigger[aria-expanded="true"] {
+  border-color: color-mix(in oklab, var(--color-primary), transparent 60%);
+
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
    RTL
    ========================================================================== */
 
 html[dir="rtl"] {
-  .chart-toolbar__historical:hover .has-icon {
+  .chart-toolbar__historical:hover .icon-flip-rtl {
     transform: translateX(-0.125rem);
   }
 }
 
 /* ==========================================================================
-   Large Tablet
+   Constrained Desktop
    ========================================================================== */
 
-@include respond-down(lg) {
+@media (min-width: 992px) and (max-width: 1180px) {
+  .chart-toolbar {
+    --chart-toolbar-gap: 0.75rem;
+  }
+
   .chart-toolbar__bottom {
-    align-items: start;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
   }
 
   .chart-toolbar__utilities {
-    align-items: center;
+    justify-content: flex-end;
   }
 }
 
@@ -265,23 +383,23 @@ html[dir="rtl"] {
    ========================================================================== */
 
 @include respond-down(md) {
+  .chart-toolbar {
+    --chart-toolbar-row-gap: 0.875rem;
+  }
+
   .chart-toolbar__top {
     align-items: flex-start;
   }
 
   .chart-toolbar__bottom {
     grid-template-columns: minmax(0, 1fr);
-    gap: 0.875rem;
+    gap: 0.75rem;
   }
 
   .chart-toolbar__utilities {
     justify-content: space-between;
 
     inline-size: 100%;
-  }
-
-  .chart-toolbar__actions {
-    justify-content: flex-end;
   }
 }
 
@@ -292,11 +410,11 @@ html[dir="rtl"] {
 @include respond-down(sm) {
   .chart-toolbar {
     --chart-toolbar-gap: 0.75rem;
-    --chart-toolbar-row-gap: 0.875rem;
+    --chart-toolbar-row-gap: 0.75rem;
   }
 
   .chart-toolbar__top {
-    align-items: center;
+    align-items: flex-start;
   }
 
   .chart-toolbar__heading {
@@ -305,14 +423,26 @@ html[dir="rtl"] {
 
   .chart-toolbar__title-icon {
     --icon-size: 1.5rem;
+
+    margin-block-start: 0.0625rem;
+  }
+
+  .chart-toolbar__heading-content {
+    gap: 0.25rem;
   }
 
   .chart-toolbar__title {
     font-size: var(--text-lg);
   }
 
+  .chart-toolbar__meta {
+    gap: 0.375rem;
+
+    font-size: 0.6875rem;
+  }
+
   .chart-toolbar__historical {
-    min-block-size: 2.375rem;
+    min-block-size: 2.25rem;
 
     padding-inline: 0.625rem;
 
@@ -320,39 +450,18 @@ html[dir="rtl"] {
   }
 
   .chart-toolbar__utilities {
-    align-items: stretch;
-    gap: 0.5rem;
-  }
-
-  .chart-toolbar__type {
-    flex: 1 1 auto;
-  }
-
-  /*
-   * Override the generic mobile full-width toggle behavior inside the
-   * toolbar. It fills the available utility space without forcing the action
-   * buttons onto another row.
-   */
-
-  .chart-toolbar__type .market-chart-toggle {
-    inline-size: 100%;
-  }
-
-  .chart-toolbar__type .market-chart-toggle__button {
-    min-inline-size: 0;
-
-    padding-inline: 0.625rem;
+    flex-wrap: wrap;
+    justify-content: flex-start;
   }
 
   .chart-toolbar__actions {
-    flex: 0 0 auto;
-    justify-content: flex-end;
+    margin-inline-start: auto;
   }
 
   .chart-btn {
-    min-block-size: 2.375rem;
+    min-block-size: 2.25rem;
 
-    padding-inline: 0.75rem;
+    padding-inline: 0.625rem;
 
     font-size: var(--text-xs);
   }
@@ -363,18 +472,29 @@ html[dir="rtl"] {
    ========================================================================== */
 
 @media (max-width: 440px) {
-  .chart-toolbar__utilities {
+  .chart-toolbar__top {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+
+    justify-items: start;
+  }
+
+  .chart-toolbar__historical {
+    justify-self: start;
+  }
+
+  .chart-toolbar__utilities {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+
+    inline-size: 100%;
   }
 
   .chart-toolbar__actions {
-    justify-content: flex-start;
-  }
+    justify-content: flex-end;
 
-  .chart-toolbar__type,
-  .chart-toolbar__type .market-chart-toggle {
-    inline-size: 100%;
+    margin-inline-start: 0;
   }
 }
 
@@ -383,23 +503,21 @@ html[dir="rtl"] {
    ========================================================================== */
 
 @media (max-width: 360px) {
-  .chart-toolbar__top {
-    display: grid;
-    justify-items: start;
+  .chart-toolbar__utilities {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .chart-toolbar__historical {
+  .chart-toolbar__type {
     justify-self: start;
   }
 
   .chart-toolbar__actions {
+    justify-content: flex-start;
+
     inline-size: 100%;
   }
 
-  .chart-btn {
-    flex: 1 1 auto;
-  }
-
+  .chart-btn--compare,
   .chart-export {
     flex: 1 1 auto;
   }
@@ -414,6 +532,21 @@ html[dir="rtl"] {
    ========================================================================== */
 
 html[data-contrast="high"] {
+  .chart-toolbar__meta-separator {
+    inline-size: 0.25rem;
+    block-size: 0.25rem;
+
+    background: currentColor;
+
+    opacity: 1;
+  }
+
+  .chart-toolbar__live {
+    color: currentColor;
+
+    font-weight: font-weight("heavy");
+  }
+
   .chart-btn {
     border-width: 2px;
     border-color: currentColor;
@@ -437,7 +570,11 @@ html[data-contrast="high"] {
     transition: none;
   }
 
-  .chart-toolbar__historical:hover .has-icon {
+  .chart-btn:active {
+    transform: none;
+  }
+
+  .chart-toolbar__historical:hover .icon-flip-rtl {
     transform: none;
   }
 }
@@ -448,7 +585,11 @@ html[data-motion="reduce"] {
     transition: none;
   }
 
-  .chart-toolbar__historical:hover .has-icon {
+  .chart-btn:active {
+    transform: none;
+  }
+
+  .chart-toolbar__historical:hover .icon-flip-rtl {
     transform: none;
   }
 }
@@ -458,6 +599,7 @@ html[data-motion="reduce"] {
    ========================================================================== */
 
 @media print {
+  .chart-toolbar__meta,
   .chart-toolbar__historical,
   .chart-toolbar__utilities {
     display: none !important;

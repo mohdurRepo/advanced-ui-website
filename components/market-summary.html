@@ -9,11 +9,38 @@
       (function () {
         var root = document.documentElement;
 
-        var lang = localStorage.getItem("se-lang") || "en";
+        var supportedLanguages = ["en", "ar"];
+
+        function normalizeLanguage(language) {
+          return String(language || "")
+            .trim()
+            .toLowerCase()
+            .split(/[-_]/)[0];
+        }
+
+        var storedLanguage = normalizeLanguage(localStorage.getItem("se-lang"));
+
+        var portalLanguage = normalizeLanguage(root.getAttribute("lang"));
+
+        var lang = supportedLanguages.includes(storedLanguage)
+          ? storedLanguage
+          : supportedLanguages.includes(portalLanguage)
+            ? portalLanguage
+            : "en";
+
+        /*
+         * Create se-lang if it is not already available.
+         */
+        localStorage.setItem("se-lang", lang);
+
         var themeChoice = localStorage.getItem("se-theme") || "system";
+
         var accent = localStorage.getItem("se-accent") || "blue";
+
         var fontSize = localStorage.getItem("se-font-size") || "0";
+
         var contrast = localStorage.getItem("se-contrast") || "normal";
+
         var motion = localStorage.getItem("se-motion") || "normal";
 
         var systemTheme =
@@ -25,8 +52,8 @@
         var resolvedTheme =
           themeChoice === "system" ? systemTheme : themeChoice;
 
-        root.lang = lang === "ar" ? "ar" : "en";
-        root.dir = lang === "ar" ? "rtl" : "ltr";
+        root.setAttribute("lang", lang);
+        root.setAttribute("dir", lang === "ar" ? "rtl" : "ltr");
 
         root.setAttribute("data-theme", resolvedTheme);
         root.setAttribute("data-theme-choice", themeChoice);
@@ -36,12 +63,15 @@
         root.setAttribute("data-motion", motion);
       })();
     </script>
+    <!-- Highcharts Stock -->
     <script src="https://code.highcharts.com/stock/highstock.js"></script>
 
+    <!-- Export support -->
     <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
-
     <script src="https://code.highcharts.com/stock/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
 
+    <!-- Accessibility -->
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
     <script type="module" src="/src/js/main.js"></script>
@@ -5556,7 +5586,9 @@
          =============================================================== -->
 
                   <header class="performance-chart__header chart-toolbar">
-                    <!-- Top Row -->
+                    <!-- =============================================================
+           Top Row
+           ============================================================= -->
 
                     <div class="chart-toolbar__top">
                       <div class="chart-toolbar__heading">
@@ -5565,12 +5597,44 @@
                           aria-hidden="true"
                         ></span>
 
-                        <h3
-                          id="market-performance-title"
-                          class="chart-toolbar__title"
-                        >
-                          Main Market Performance
-                        </h3>
+                        <div class="chart-toolbar__heading-content">
+                          <h3
+                            id="market-performance-title"
+                            class="chart-toolbar__title"
+                          >
+                            Main Market Performance
+                          </h3>
+
+                          <div
+                            class="chart-toolbar__meta"
+                            aria-label="Live chart status"
+                          >
+                            <span class="chart-toolbar__live">
+                              <span
+                                class="market-status market-status--open"
+                                aria-hidden="true"
+                              ></span>
+
+                              <span>Live</span>
+                            </span>
+
+                            <span
+                              class="chart-toolbar__meta-separator"
+                              aria-hidden="true"
+                            ></span>
+
+                            <span class="chart-toolbar__updated">
+                              Updated
+
+                              <time
+                                datetime="2026-08-04T14:32:00+03:00"
+                                data-chart-updated-time
+                              >
+                                14:32
+                              </time>
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
                       <a
@@ -5586,15 +5650,19 @@
                       </a>
                     </div>
 
-                    <!-- Bottom Row -->
+                    <!-- =============================================================
+           Bottom Row
+           ============================================================= -->
 
                     <div class="chart-toolbar__bottom">
-                      <!-- Chart Range -->
+                      <!-- ===========================================================
+             Chart Range
+             =========================================================== -->
 
                       <div
                         class="chart-toolbar__ranges"
                         role="group"
-                        aria-label="Chart range"
+                        aria-label="Chart time range"
                       >
                         <button
                           class="chart-range is-active"
@@ -5663,16 +5731,21 @@
                           class="chart-range"
                           type="button"
                           aria-pressed="false"
+                          title="Since inception"
                           data-chart-range="ALL"
                         >
-                          Inception
+                          All
                         </button>
                       </div>
 
-                      <!-- Chart Utilities -->
+                      <!-- ===========================================================
+             Chart Utilities
+             =========================================================== -->
 
                       <div class="chart-toolbar__utilities">
-                        <!-- Chart Type -->
+                        <!-- =========================================================
+               Chart Type
+               ========================================================= -->
 
                         <div class="chart-toolbar__type">
                           <div
@@ -5683,24 +5756,40 @@
                             <button
                               class="market-chart-toggle__button is-active"
                               type="button"
+                              aria-label="Show trend chart"
                               aria-pressed="true"
+                              title="Trend chart"
                               data-chart-type="trend"
                             >
-                              Trend
+                              <span
+                                class="has-icon icon-trend-up"
+                                aria-hidden="true"
+                              ></span>
+
+                              <span class="visually-hidden"> Trend </span>
                             </button>
 
                             <button
                               class="market-chart-toggle__button"
                               type="button"
+                              aria-label="Show candlestick chart"
                               aria-pressed="false"
+                              title="Candlestick chart"
                               data-chart-type="candlestick"
                             >
-                              Candles
+                              <span
+                                class="has-icon icon-chart-bar"
+                                aria-hidden="true"
+                              ></span>
+
+                              <span class="visually-hidden"> Candles </span>
                             </button>
                           </div>
                         </div>
 
-                        <!-- Chart Actions -->
+                        <!-- =========================================================
+               Chart Actions
+               ========================================================= -->
 
                         <div
                           class="chart-toolbar__actions"
@@ -5720,7 +5809,9 @@
                             ></span>
                           </button>
 
-                          <!-- Export -->
+                          <!-- =======================================================
+                 Export
+                 ======================================================= -->
 
                           <div class="chart-export">
                             <button
@@ -5818,18 +5909,18 @@
                   </header>
 
                   <!-- ===============================================================
-         Chart Surface
+         Chart Viewport
          =============================================================== -->
 
                   <div class="performance-chart__body">
-                    <div class="chart-surface">
+                    <div class="chart-surface" data-chart-viewport>
                       <div
                         id="main-market-chart"
                         class="chart-canvas market-chart market-chart--performance"
                         data-market-chart
                         data-chart-context="performance"
                         data-chart-state="loading"
-                        aria-label="Main Market index performance chart"
+                        aria-label="Live Main Market index performance chart"
                       ></div>
                     </div>
                   </div>

@@ -4,37 +4,83 @@
    Main Market Index Chart
    ========================================================================== */
 
+/*
+ * Main Market specialization of the shared Performance Chart.
+ *
+ * This file controls only:
+ * - Main Market chart height tokens
+ * - Main Market responsive dimensions
+ * - Page-specific theme adjustments
+ *
+ * Shared Performance Chart controls viewport sizing and flex behavior.
+ * Generic Market Chart controls Highcharts presentation.
+ */
+
 .market-index-chart {
-  --performance-chart-height: auto;
-
-  flex: 1 1 auto;
-
-  min-inline-size: 0;
-  min-block-size: 32rem;
-}
-
-/* ==========================================================================
-   Chart Body
-   ========================================================================== */
-
-.market-index-chart .performance-chart__body {
-  flex: 1 1 auto;
-
-  display: flex;
+  --performance-chart-height: clamp(20rem, 24vw, 23rem);
 
   min-inline-size: 0;
   min-block-size: 0;
 }
 
 /* ==========================================================================
-   Chart Surface
+   Chart Viewport
    ========================================================================== */
 
-.market-index-chart .chart-surface {
-  flex: 1 1 auto;
+/*
+ * The viewport has a stable minimum height but may grow when the dashboard
+ * stretches this card to match Today’s Activity.
+ *
+ * Its absolutely positioned Market Chart child cannot affect this height.
+ */
 
-  block-size: auto;
-  min-block-size: 20rem;
+.market-index-chart [data-chart-viewport] {
+  min-block-size: var(--performance-chart-height);
+}
+
+/* ==========================================================================
+   Chart Theme
+   ========================================================================== */
+
+.market-index-chart .market-chart {
+  --chart-bg: transparent;
+
+  --chart-text: var(--color-text);
+  --chart-heading: var(--color-heading);
+  --chart-muted: var(--color-text-muted);
+
+  --chart-border: var(--color-border);
+  --chart-border-strong: var(--color-border-strong);
+
+  --chart-grid: var(--color-border);
+
+  --chart-crosshair: var(--color-border-strong);
+
+  --chart-line: var(--color-primary);
+
+  --chart-success: var(--color-success);
+  --chart-danger: var(--color-danger);
+
+  --chart-tooltip-bg: var(--color-surface);
+  --chart-tooltip-border: var(--color-border);
+}
+
+/* ==========================================================================
+   Comparison State
+   ========================================================================== */
+
+/*
+ * Candlesticks are unavailable while comparing multiple series.
+ */
+
+.market-index-chart.is-comparing,
+.market-index-chart[data-chart-comparing="true"] {
+  .market-chart-toggle__button[data-chart-type="candlestick"] {
+    opacity: 0.45;
+
+    cursor: not-allowed;
+    pointer-events: none;
+  }
 }
 
 /* ==========================================================================
@@ -43,18 +89,7 @@
 
 @include respond-down(lg) {
   .market-index-chart {
-    min-block-size: 0;
-
     --performance-chart-height: clamp(19rem, 47vw, 25rem);
-  }
-
-  .market-index-chart .performance-chart__body {
-    display: block;
-  }
-
-  .market-index-chart .chart-surface {
-    block-size: var(--performance-chart-height);
-    min-block-size: 0;
   }
 }
 
@@ -89,21 +124,66 @@
 }
 
 /* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] {
+  .market-index-chart .market-chart {
+    --chart-tooltip-bg: var(--color-surface-alt);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-index-chart .market-chart {
+    --chart-border: currentColor;
+    --chart-border-strong: currentColor;
+    --chart-grid: currentColor;
+    --chart-crosshair: currentColor;
+  }
+
+  .market-index-chart.is-comparing,
+  .market-index-chart[data-chart-comparing="true"] {
+    .market-chart-toggle__button[data-chart-type="candlestick"] {
+      opacity: 0.65;
+
+      text-decoration: line-through;
+    }
+  }
+}
+
+/* ==========================================================================
    Print
    ========================================================================== */
 
 @media print {
   .market-index-chart {
+    --performance-chart-height: 18rem;
+
     min-block-size: 0;
 
-    --performance-chart-height: 18rem;
+    break-inside: avoid;
   }
 
-  .market-index-chart .performance-chart__body {
-    display: block;
-  }
-
-  .market-index-chart .chart-surface {
+  .market-index-chart [data-chart-viewport] {
     block-size: var(--performance-chart-height);
+
+    min-block-size: var(--performance-chart-height);
+  }
+
+  .market-index-chart .market-chart {
+    --chart-bg: transparent;
+    --chart-text: #000000;
+    --chart-heading: #000000;
+    --chart-muted: #333333;
+    --chart-border: #777777;
+    --chart-border-strong: #000000;
+    --chart-grid: #777777;
+    --chart-crosshair: #000000;
+    --chart-line: #000000;
+    --chart-tooltip-bg: #ffffff;
   }
 }

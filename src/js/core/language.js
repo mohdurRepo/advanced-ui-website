@@ -4,14 +4,37 @@ const DEFAULT_LANGUAGE = "en";
 
 const root = document.documentElement;
 
+/* ==========================================================================
+   Helpers
+   ========================================================================== */
+
+function normalizeLanguage(language) {
+  return String(language || "")
+    .trim()
+    .toLowerCase()
+    .split(/[-_]/)[0];
+}
+
 function isValidLanguage(language) {
   return SUPPORTED_LANGUAGES.includes(language);
 }
 
-function getStoredLanguage() {
-  const storedLanguage = localStorage.getItem(STORAGE_KEY);
+function getDocumentLanguage() {
+  const language = normalizeLanguage(root.lang);
 
-  return isValidLanguage(storedLanguage) ? storedLanguage : DEFAULT_LANGUAGE;
+  return isValidLanguage(language) ? language : DEFAULT_LANGUAGE;
+}
+
+function getStoredLanguage() {
+  const storedLanguage = normalizeLanguage(localStorage.getItem(STORAGE_KEY));
+
+  /*
+   * On the first visit, use the portal-rendered language instead of
+   * incorrectly defaulting an Arabic page to English.
+   */
+  return isValidLanguage(storedLanguage)
+    ? storedLanguage
+    : getDocumentLanguage();
 }
 
 function getDirection(language) {
@@ -26,39 +49,61 @@ function getLanguageLabel(language) {
   return language.toUpperCase();
 }
 
-function syncLanguageButtons(language) {
-  document.querySelectorAll("[data-lang-toggle]").forEach((button) => {
-    const nextLanguage = getNextLanguage(language);
-    const currentLabel = button.querySelector(".header-lang-switch__current");
+/* ==========================================================================
+   Language switch UI
+   ========================================================================== */
 
-    if (currentLabel) {
-      currentLabel.textContent = getLanguageLabel(language);
+function syncLanguageButtons(language) {
+  const nextLanguage = getNextLanguage(language);
+
+  document.querySelectorAll("[data-lang-toggle]").forEach((element) => {
+    const label = element.querySelector(".header-lang-switch__current");
+
+    /*
+     * Display the language that the link will switch to.
+     */
+    if (label) {
+      label.textContent = getLanguageLabel(nextLanguage);
     }
 
-    button.setAttribute(
+    element.setAttribute(
       "aria-label",
       nextLanguage === "ar"
         ? "Switch language to Arabic"
         : "Switch language to English",
     );
 
-    button.setAttribute("data-current-language", language);
+    element.setAttribute("hreflang", nextLanguage);
+    element.setAttribute("data-current-language", language);
+    element.setAttribute("data-next-language", nextLanguage);
   });
 }
 
-function applyLanguage(language) {
-  const direction = getDirection(language);
+/* ==========================================================================
+   Apply language
+   ========================================================================== */
 
-  root.lang = language;
+function applyLanguage(language) {
+  const normalizedLanguage = normalizeLanguage(language);
+
+  if (!isValidLanguage(normalizedLanguage)) {
+    return false;
+  }
+
+  const direction = getDirection(normalizedLanguage);
+
+  root.lang = normalizedLanguage;
   root.dir = direction;
 
   window.APP_LOCALE = {
     ...(window.APP_LOCALE || {}),
-    lang: language,
+    lang: normalizedLanguage,
     dir: direction,
   };
 
-  syncLanguageButtons(language);
+  syncLanguageButtons(normalizedLanguage);
+
+  return true;
 }
 
 function emitLanguageChange(language) {
@@ -72,20 +117,26 @@ function emitLanguageChange(language) {
   );
 }
 
+/* ==========================================================================
+   Public API
+   ========================================================================== */
+
 export function getLanguage() {
   return getStoredLanguage();
 }
 
 export function setLanguage(language) {
-  if (!isValidLanguage(language)) {
+  const normalizedLanguage = normalizeLanguage(language);
+
+  if (!isValidLanguage(normalizedLanguage)) {
     console.warn(`Unsupported language: "${language}"`);
     return false;
   }
 
-  localStorage.setItem(STORAGE_KEY, language);
+  localStorage.setItem(STORAGE_KEY, normalizedLanguage);
 
-  applyLanguage(language);
-  emitLanguageChange(language);
+  applyLanguage(normalizedLanguage);
+  emitLanguageChange(normalizedLanguage);
 
   return true;
 }
@@ -94,19 +145,47 @@ export function toggleLanguage() {
   const currentLanguage = getStoredLanguage();
   const nextLanguage = getNextLanguage(currentLanguage);
 
-  setLanguage(nextLanguage);
+  return setLanguage(nextLanguage);
 }
+
+/* ==========================================================================
+   Events
+   ========================================================================== */
 
 function handleLanguageClick(event) {
   const trigger = event.target.closest("[data-lang-toggle]");
 
   if (!trigger) return;
 
-  toggleLanguage();
+  /*
+   * Do not call preventDefault().
+   * Save the selected language and allow the portal URL to navigate.
+   */
+  const nextLanguage = normalizeLanguage(
+    trigger.getAttribute("data-next-language"),
+  );
+
+  setLanguage(
+    isValidLanguage(nextLanguage)
+      ? nextLanguage
+      : getNextLanguage(getStoredLanguage()),
+  );
 }
 
-export function initLanguage() {
-  applyLanguage(getStoredLanguage());
+/* ==========================================================================
+   Initialization
+   ========================================================================== */
 
+export function initLanguage() {
+  const language = getStoredLanguage();
+
+  /*
+   * Ensure se-lang exists after the first page visit.
+   */
+  localStorage.setItem(STORAGE_KEY, language);
+
+  applyLanguage(language);
+
+  document.removeEventListener("click", handleLanguageClick);
   document.addEventListener("click", handleLanguageClick);
 }

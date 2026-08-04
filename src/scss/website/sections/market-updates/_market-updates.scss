@@ -28,7 +28,6 @@
 
   min-inline-size: 0;
 
-
   color: var(--market-updates-fg);
 }
 
@@ -86,6 +85,81 @@
   gap: var(--market-updates-gap);
 
   min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Direct Grid Items
+   ========================================================================== */
+
+/*
+ * Supports both markup structures:
+ *
+ * 1. Clean markup:
+ *    .market-updates__grid > .market-updates__column
+ *
+ * 2. IBM Portal markup:
+ *    .market-updates__grid > .component-container > ...
+ */
+
+.market-updates__grid > .market-updates__column,
+.market-updates__grid > .component-container {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   IBM Portal Wrappers
+   ========================================================================== */
+
+/*
+ * The portal inserts wrappers between the CSS Grid and the actual column.
+ * The flex chain propagates the stretched grid-item height down to
+ * .market-updates__column.
+ */
+
+.market-updates__grid > .component-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.market-updates__grid > .component-container > .component-control {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+.market-updates__grid
+  > .component-container
+  > .component-control
+  > .ibmPortalControl {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/*
+ * Portal markup may place additional structural wrappers between
+ * .ibmPortalControl and the component column.
+ */
+
+.market-updates__grid
+  > .component-container
+  > .component-control
+  > .ibmPortalControl
+  > .wpthemeControlBody {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 0;
 }
 
 /* ==========================================================================
@@ -95,10 +169,13 @@
 .market-updates__column {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  align-content: start;
+  align-content: stretch;
   gap: 1rem;
 
+  flex: 1 1 auto;
+
   min-inline-size: 0;
+  min-block-size: 0;
 }
 
 .market-updates__column > .surface-insights {
@@ -156,7 +233,6 @@ html[dir="rtl"] {
   .market-updates {
     --market-updates-space: clamp(1rem, 3vw, 1.5rem);
     --market-updates-gap: 1.75rem;
-
   }
 }
 
@@ -168,7 +244,6 @@ html[dir="rtl"] {
   .market-updates {
     --market-updates-space: 1rem;
     --market-updates-gap: 1.5rem;
-
   }
 
   .market-updates__surface {

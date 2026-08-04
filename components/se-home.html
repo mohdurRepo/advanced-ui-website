@@ -36,9 +36,15 @@
         root.setAttribute("data-motion", motion);
       })();
     </script>
+    <!-- Highcharts Stock -->
     <script src="https://code.highcharts.com/stock/highstock.js"></script>
+
+    <!-- Export support -->
     <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
     <script src="https://code.highcharts.com/stock/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
+
+    <!-- Accessibility -->
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
     <script type="module" src="/src/js/main.js"></script>
   </head>
@@ -1696,14 +1702,18 @@
          Chart
     ====================================================================== -->
 
-                    <div class="market-details-panel__main">
+                    <div
+                      class="market-details-panel__chart"
+                      data-chart-viewport
+                    >
                       <div
                         id="tasi-chart"
-                        class="market-details-panel__chart market-chart market-chart--overview"
-                        data-market-chart
+                        class="market-chart market-chart--overview"
+                        data-tasi-live-chart
                         data-chart-context="overview"
                         data-chart-state="loading"
-                        aria-label="TASI intraday market performance chart"
+                        role="img"
+                        aria-label="TASI live intraday market performance chart"
                       ></div>
                     </div>
 
@@ -9107,126 +9117,229 @@
        TASI Overview Dummy Data
        ====================================================================== */
 
-      const tasiOverviewData = [
-        [1767258000000, 10842.31],
-        [1767258900000, 10847.62],
-        [1767259800000, 10839.18],
-        [1767260700000, 10855.44],
-        [1767261600000, 10861.23],
-        [1767262500000, 10857.91],
-        [1767263400000, 10870.42],
-        [1767264300000, 10866.84],
-        [1767265200000, 10874.15],
-        [1767266100000, 10881.62],
-        [1767267000000, 10876.44],
-        [1767267900000, 10892.38],
-        [1767268800000, 10898.72],
-        [1767269700000, 10894.16],
-        [1767270600000, 10907.45],
-        [1767271500000, 10914.82],
-      ];
+      const tasiOverviewData = {
+        symbol: "TASI",
+        name: "Tadawul All Share Index",
+        currency: "SAR",
+
+        trend: [
+          [1767258000000, 12402.18],
+          [1767258900000, 12408.64],
+          [1767259800000, 12404.25],
+          [1767260700000, 12415.72],
+          [1767261600000, 12411.38],
+          [1767262500000, 12420.46],
+          [1767263400000, 12417.91],
+          [1767264300000, 12424.35],
+          [1767265200000, 12427.84],
+          [1767266100000, 12430.18],
+        ],
+      };
 
       /* ======================================================================
-       Direction
+       Test Live Feed
        ====================================================================== */
 
-      function getMarketDirection(data) {
-        if (!Array.isArray(data) || data.length < 2) {
-          return "neutral";
-        }
+      /*
+       * Five seconds is used only for development testing. Change this to
+       * 60000 when connecting the production live endpoint.
+       */
 
-        const firstValue = Number(data[0][1]);
-        const lastValue = Number(data[data.length - 1][1]);
+      const TEST_LIVE_INTERVAL = 5000;
 
-        if (lastValue > firstValue) {
-          return "positive";
-        }
+      const liveState = {
+        lastTimestamp: tasiOverviewData.trend.at(-1)[0],
 
-        if (lastValue < firstValue) {
-          return "negative";
-        }
+        lastPrice: tasiOverviewData.trend.at(-1)[1],
 
-        return "neutral";
+        sequence: 0,
+      };
+
+      const liveMovements = [
+        1.25, 0.64, -0.82, 1.48, -0.36, 0.91, -1.14, 1.67, 0.42, -0.73,
+      ];
+
+      function roundPrice(value) {
+        return Math.round(value * 100) / 100;
       }
 
-      function applyMarketDirection(chartElement, direction) {
-        chartElement.classList.remove(
-          "market-chart--positive",
-          "market-chart--negative",
-        );
+      function createDummyLivePoint() {
+        const movement =
+          liveMovements[liveState.sequence % liveMovements.length];
 
-        if (direction === "positive") {
-          chartElement.classList.add("market-chart--positive");
-        }
+        const timestamp = liveState.lastTimestamp + TEST_LIVE_INTERVAL;
 
-        if (direction === "negative") {
-          chartElement.classList.add("market-chart--negative");
-        }
+        const price = roundPrice(liveState.lastPrice + movement);
+
+        liveState.lastTimestamp = timestamp;
+
+        liveState.lastPrice = price;
+
+        liveState.sequence += 1;
+
+        return [timestamp, price];
+      }
+
+      /* ======================================================================
+       Error State
+       ====================================================================== */
+
+      function renderChartError(chartElement, panel, message) {
+        chartElement.dataset.chartState = "error";
+
+        chartElement.replaceChildren();
+
+        const messageElement = document.createElement("div");
+
+        messageElement.className =
+          "market-chart__message market-chart__message--error";
+
+        messageElement.setAttribute("role", "status");
+
+        const textElement = document.createElement("p");
+
+        textElement.className = "market-chart__message-text";
+
+        textElement.textContent = message;
+
+        messageElement.append(textElement);
+        chartElement.append(messageElement);
+
+        panel?.setAttribute("aria-busy", "false");
       }
 
       /* ======================================================================
        Initialization
        ====================================================================== */
 
-      function initializeTasiOverviewChart() {
+      function initializeTasiOverviewChart(chartAPI = window.SEMarketCharts) {
         const chartElement = document.querySelector("#tasi-chart");
 
         if (!chartElement) {
           return;
         }
 
-        const overviewPanel = chartElement.closest(
-          "[data-market-detail-panel]",
-        );
-
-        const chartAPI = window.SEMarketCharts;
+        const panel = chartElement.closest("#market-panel-tasi");
 
         if (!chartAPI) {
-          chartElement.setAttribute("data-chart-state", "error");
-
-          overviewPanel?.setAttribute("aria-busy", "false");
+          renderChartError(
+            chartElement,
+            panel,
+            "TASI market performance could not be loaded.",
+          );
 
           console.error(
-            "TASI Overview chart could not initialize because " +
+            "TASI chart could not initialize because " +
               "SEMarketCharts is unavailable.",
           );
 
           return;
         }
 
-        const direction = getMarketDirection(tasiOverviewData);
-
-        applyMarketDirection(chartElement, direction);
-
         try {
           const controller = chartAPI.create(chartElement, {
             context: "overview",
 
-            symbol: "TASI",
-            name: "Tadawul All Share Index",
-            currency: "SAR",
+            symbol: tasiOverviewData.symbol,
+
+            name: tasiOverviewData.name,
+
+            currency: tasiOverviewData.currency,
+
+            /*
+             * Market Overview intentionally remains a compact trend chart.
+             * Analytical controls stay in Main Market Performance.
+             */
 
             mode: "trend",
             range: "1D",
 
-            data: tasiOverviewData,
+            language: document.documentElement.lang || "en",
+
+            timeZone: "Asia/Riyadh",
+
+            decimals: 2,
+            maxPoints: 120,
+
+            xAxisTitle: null,
+            yAxisTitle: null,
+
+            ranges: {
+              "1D": {
+                trend: tasiOverviewData.trend,
+
+                line: tasiOverviewData.trend.map((point) => [...point]),
+
+                candlestick: [],
+              },
+            },
+
+            /*
+             * The TASI panel is the local root. No range, mode, compare or
+             * export controls are queried outside this panel.
+             */
+
+            controls: {
+              root: panel,
+            },
+
+            live: {
+              enabled: true,
+
+              interval: TEST_LIVE_INTERVAL,
+
+              alignToInterval: false,
+              immediate: false,
+
+              retry: true,
+              autostart: true,
+
+              async fetchPoint({ signal }) {
+                if (signal?.aborted) {
+                  throw (
+                    signal.reason ||
+                    new DOMException(
+                      "The live update was cancelled.",
+                      "AbortError",
+                    )
+                  );
+                }
+
+                return createDummyLivePoint();
+              },
+            },
+
+            accessibilityDescription:
+              "Live intraday Tadawul All Share Index trend.",
+
+            emptyMessage:
+              "TASI market performance data is currently unavailable.",
+
+            errorMessage: "TASI market performance could not be loaded.",
           });
 
-          if (!controller?.chart) {
-            throw new Error("The TASI Overview chart was not created.");
+          if (!controller) {
+            throw new Error(
+              "The TASI Market Chart controller was not created.",
+            );
           }
 
-          chartElement.setAttribute("data-chart-state", "ready");
+          /*
+           * MarketChartController currently treats .performance-chart as its
+           * section owner. The Overview panel clears its own busy state here.
+           */
 
-          overviewPanel?.setAttribute("aria-busy", "false");
+          panel?.setAttribute("aria-busy", "false");
 
-          overviewPanel.marketChartController = controller;
+          panel.marketChartController = controller;
         } catch (error) {
-          chartElement.setAttribute("data-chart-state", "error");
-
-          overviewPanel?.setAttribute("aria-busy", "false");
-
           console.error("TASI Overview chart initialization failed.", error);
+
+          renderChartError(
+            chartElement,
+            panel,
+            "TASI market performance could not be loaded.",
+          );
         }
       }
 
@@ -9234,13 +9347,21 @@
        Readiness
        ====================================================================== */
 
+      function getChartAPIFromEvent(event) {
+        return event?.detail?.api || window.SEMarketCharts || null;
+      }
+
       if (window.SEMarketCharts) {
-        initializeTasiOverviewChart();
+        initializeTasiOverviewChart(window.SEMarketCharts);
       } else {
         window.addEventListener(
           "semarketchartsready",
-          initializeTasiOverviewChart,
-          { once: true },
+          (event) => {
+            initializeTasiOverviewChart(getChartAPIFromEvent(event));
+          },
+          {
+            once: true,
+          },
         );
       }
     })();
