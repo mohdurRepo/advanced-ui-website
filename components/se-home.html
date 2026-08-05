@@ -54,7 +54,7 @@
 ============================================================================ -->
 
     <header class="site-header" data-site-header>
-      <div class="site-header__inner">
+      <div class="site-header__inner container">
         <!-- Brand -->
 
         <a
@@ -1204,7 +1204,7 @@
      Market Summary
 ============================================================================ -->
 
-          <div class="market-summary__container">
+          <div class="market-summary__container container">
             <!-- =====================================================================
          Market Clock
     ====================================================================== -->
@@ -1702,18 +1702,16 @@
          Chart
     ====================================================================== -->
 
-                    <div
-                      class="market-details-panel__chart"
-                      data-chart-viewport
-                    >
+                    <div class="market-details-panel__main" data-chart-viewport>
                       <div
                         id="tasi-chart"
                         class="market-chart market-chart--overview"
                         data-tasi-live-chart
                         data-chart-context="overview"
                         data-chart-state="loading"
+                        data-chart-id="tasi"
                         role="img"
-                        aria-label="TASI live intraday market performance chart"
+                        aria-label="TASI market performance chart"
                       ></div>
                     </div>
 

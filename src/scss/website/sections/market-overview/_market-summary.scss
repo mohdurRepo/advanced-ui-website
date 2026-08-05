@@ -65,10 +65,7 @@
   align-items: stretch;
   gap: var(--market-summary-gap);
 
-  inline-size: min(
-    100% - var(--market-summary-container-space),
-    var(--market-summary-container-width)
-  );
+  //inline-size: min(100% - var(--market-summary-container-space), var(--market-summary-container-width));
 
   min-inline-size: 0;
 

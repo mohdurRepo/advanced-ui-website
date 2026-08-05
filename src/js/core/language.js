@@ -4,37 +4,14 @@ const DEFAULT_LANGUAGE = "en";
 
 const root = document.documentElement;
 
-/* ==========================================================================
-   Helpers
-   ========================================================================== */
-
-function normalizeLanguage(language) {
-  return String(language || "")
-    .trim()
-    .toLowerCase()
-    .split(/[-_]/)[0];
-}
-
 function isValidLanguage(language) {
   return SUPPORTED_LANGUAGES.includes(language);
 }
 
-function getDocumentLanguage() {
-  const language = normalizeLanguage(root.lang);
-
-  return isValidLanguage(language) ? language : DEFAULT_LANGUAGE;
-}
-
 function getStoredLanguage() {
-  const storedLanguage = normalizeLanguage(localStorage.getItem(STORAGE_KEY));
+  const storedLanguage = localStorage.getItem(STORAGE_KEY);
 
-  /*
-   * On the first visit, use the portal-rendered language instead of
-   * incorrectly defaulting an Arabic page to English.
-   */
-  return isValidLanguage(storedLanguage)
-    ? storedLanguage
-    : getDocumentLanguage();
+  return isValidLanguage(storedLanguage) ? storedLanguage : DEFAULT_LANGUAGE;
 }
 
 function getDirection(language) {
@@ -49,61 +26,35 @@ function getLanguageLabel(language) {
   return language.toUpperCase();
 }
 
-/* ==========================================================================
-   Language switch UI
-   ========================================================================== */
-
 function syncLanguageButtons(language) {
-  const nextLanguage = getNextLanguage(language);
+  document.querySelectorAll("[data-lang-toggle]").forEach((button) => {
+    const nextLanguage = getNextLanguage(language);
+    const currentLabel = button.querySelector(".header-lang-switch__current");
 
-  document.querySelectorAll("[data-lang-toggle]").forEach((element) => {
-    const label = element.querySelector(".header-lang-switch__current");
-
-    /*
-     * Display the language that the link will switch to.
-     */
-    if (label) {
-      label.textContent = getLanguageLabel(nextLanguage);
-    }
-
-    element.setAttribute(
+    button.setAttribute(
       "aria-label",
       nextLanguage === "ar"
         ? "Switch language to Arabic"
         : "Switch language to English",
     );
 
-    element.setAttribute("hreflang", nextLanguage);
-    //element.setAttribute("data-current-language", language);
-    element.setAttribute("data-next-language", nextLanguage);
+    button.setAttribute("data-current-language", language);
   });
 }
 
-/* ==========================================================================
-   Apply language
-   ========================================================================== */
-
 function applyLanguage(language) {
-  const normalizedLanguage = normalizeLanguage(language);
+  const direction = getDirection(language);
 
-  if (!isValidLanguage(normalizedLanguage)) {
-    return false;
-  }
-
-  const direction = getDirection(normalizedLanguage);
-
-  root.lang = normalizedLanguage;
+  root.lang = language;
   root.dir = direction;
 
   window.APP_LOCALE = {
     ...(window.APP_LOCALE || {}),
-    lang: normalizedLanguage,
+    lang: language,
     dir: direction,
   };
 
-  syncLanguageButtons(normalizedLanguage);
-
-  return true;
+  syncLanguageButtons(language);
 }
 
 function emitLanguageChange(language) {
@@ -117,26 +68,20 @@ function emitLanguageChange(language) {
   );
 }
 
-/* ==========================================================================
-   Public API
-   ========================================================================== */
-
 export function getLanguage() {
   return getStoredLanguage();
 }
 
 export function setLanguage(language) {
-  const normalizedLanguage = normalizeLanguage(language);
-
-  if (!isValidLanguage(normalizedLanguage)) {
+  if (!isValidLanguage(language)) {
     console.warn(`Unsupported language: "${language}"`);
     return false;
   }
 
-  localStorage.setItem(STORAGE_KEY, normalizedLanguage);
+  localStorage.setItem(STORAGE_KEY, language);
 
-  applyLanguage(normalizedLanguage);
-  emitLanguageChange(normalizedLanguage);
+  applyLanguage(language);
+  emitLanguageChange(language);
 
   return true;
 }
@@ -145,47 +90,19 @@ export function toggleLanguage() {
   const currentLanguage = getStoredLanguage();
   const nextLanguage = getNextLanguage(currentLanguage);
 
-  return setLanguage(nextLanguage);
+  setLanguage(nextLanguage);
 }
-
-/* ==========================================================================
-   Events
-   ========================================================================== */
 
 function handleLanguageClick(event) {
   const trigger = event.target.closest("[data-lang-toggle]");
 
   if (!trigger) return;
 
-  /*
-   * Do not call preventDefault().
-   * Save the selected language and allow the portal URL to navigate.
-   */
-  const nextLanguage = normalizeLanguage(
-    trigger.getAttribute("data-next-language"),
-  );
-
-  setLanguage(
-    isValidLanguage(nextLanguage)
-      ? nextLanguage
-      : getNextLanguage(getStoredLanguage()),
-  );
+  toggleLanguage();
 }
 
-/* ==========================================================================
-   Initialization
-   ========================================================================== */
-
 export function initLanguage() {
-  const language = getStoredLanguage();
+  applyLanguage(getStoredLanguage());
 
-  /*
-   * Ensure se-lang exists after the first page visit.
-   */
-  localStorage.setItem(STORAGE_KEY, language);
-
-  applyLanguage(language);
-
-  document.removeEventListener("click", handleLanguageClick);
   document.addEventListener("click", handleLanguageClick);
 }

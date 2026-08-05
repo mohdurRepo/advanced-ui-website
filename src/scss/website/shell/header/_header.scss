@@ -38,7 +38,7 @@
   align-items: center;
   gap: clamp(0.5rem, 1vw, 1rem);
 
-  inline-size: min(100% - 2rem, 82.5rem);
+  //inline-size: min(100% - 2rem, 82.5rem);
   min-inline-size: 0;
   min-block-size: var(--app-header-height);
 
