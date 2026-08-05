@@ -166,9 +166,13 @@ function updateClockText(elements, date) {
     timeZone: RIYADH_TIME_ZONE,
     hour: "2-digit",
     minute: "2-digit",
-    second: "2-digit",
     hour12: false,
   }).format(date);
+
+  const timeMarkup = timeText.replace(
+    ":",
+    '<span class="market-summary__time-colon" aria-hidden="true">:</span>',
+  );
 
   const dayText = new Intl.DateTimeFormat(locale, {
     timeZone: RIYADH_TIME_ZONE,
@@ -187,7 +191,8 @@ function updateClockText(elements, date) {
   }
 
   if (elements.time) {
-    elements.time.textContent = timeText;
+    elements.time.innerHTML = timeMarkup;
+    elements.time.setAttribute("aria-label", timeText);
     elements.time.dateTime = getRiyadhDateTime(date);
   }
 

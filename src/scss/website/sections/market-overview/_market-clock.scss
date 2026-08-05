@@ -350,6 +350,26 @@
   unicode-bidi: isolate;
 }
 
+.market-summary__time-colon {
+  animation: market-clock-colon-blink 1.6s ease-in-out infinite;
+}
+
+@keyframes market-clock-colon-blink {
+  0%,
+  35% {
+    opacity: 1;
+  }
+
+  50%,
+  85% {
+    opacity: 0.2;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
 /* ==========================================================================
    Date
    ========================================================================== */
@@ -492,20 +512,22 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-/*
- * The hands update once per second through JavaScript and do not use CSS
- * transitions or animations, so there is no continuous interpolation to
- * disable. Reduced-motion users still receive the correct current time.
- */
-
 @media (prefers-reduced-motion: reduce) {
   .clock-hand {
     transition: none;
+  }
+
+  .market-summary__time-colon {
+    animation: none;
   }
 }
 
 html[data-motion="reduce"] {
   .clock-hand {
     transition: none;
+  }
+
+  .market-summary__time-colon {
+    animation: none;
   }
 }

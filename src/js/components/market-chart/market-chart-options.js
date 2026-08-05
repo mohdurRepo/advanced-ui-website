@@ -7,18 +7,57 @@ import {
    Constants
    ========================================================================== */
 
-const DEFAULT_TIME_ZONE = "Asia/Riyadh";
-
 const DEFAULT_LANGUAGE = "en";
-
+const DEFAULT_TIME_ZONE = "Asia/Riyadh";
 const DEFAULT_DECIMALS = 2;
 
-const MOBILE_BREAKPOINT = 576;
+const HOUR_MS = 60 * 60 * 1000;
 
+const MOBILE_BREAKPOINT = 576;
 const TABLET_BREAKPOINT = 768;
 
+const CONTEXT_LAYOUT = Object.freeze({
+  overview: Object.freeze({
+    spacingTop: 8,
+    spacingRight: 16,
+    spacingBottom: 8,
+    spacingLeft: 28,
+
+    marginTop: 8,
+    marginRight: 72,
+    marginLeft: 28,
+
+    yAxisTickPixelInterval: 54,
+    yAxisMinPadding: 0.05,
+    yAxisMaxPadding: 0.06,
+
+    navigatorHeight: 36,
+    navigatorMargin: 10,
+    navigatorHandleHeight: 18,
+  }),
+
+  performance: Object.freeze({
+    spacingTop: 6,
+    spacingRight: 12,
+    spacingBottom: 6,
+    spacingLeft: 20,
+
+    marginTop: 6,
+    marginRight: 64,
+    marginLeft: 20,
+
+    yAxisTickPixelInterval: 58,
+    yAxisMinPadding: 0.03,
+    yAxisMaxPadding: 0.04,
+
+    navigatorHeight: 34,
+    navigatorMargin: 8,
+    navigatorHandleHeight: 17,
+  }),
+});
+
 /* ==========================================================================
-   Text Helpers
+   Text
    ========================================================================== */
 
 function escapeHTML(value) {
@@ -31,10 +70,14 @@ function escapeHTML(value) {
 }
 
 /* ==========================================================================
-   Numeric Helpers
+   Numbers
    ========================================================================== */
 
 function toFiniteNumber(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
   const number = Number(value);
 
   return Number.isFinite(number) ? number : null;
@@ -56,67 +99,120 @@ function formatNumber(
   }).format(number);
 }
 
-function formatCompactNumber(
-  value,
-  { language = DEFAULT_LANGUAGE, decimals = DEFAULT_DECIMALS } = {},
-) {
-  const number = toFiniteNumber(value);
+function getAxisDecimals(value, configuredDecimals) {
+  const number = Math.abs(Number(value));
 
-  if (number === null) {
-    return "—";
+  if (!Number.isFinite(number)) {
+    return configuredDecimals;
   }
 
-  const absoluteValue = Math.abs(number);
-
-  if (absoluteValue < 1000) {
-    return formatNumber(number, {
-      language,
-      decimals,
-    });
+  if (number >= 1000) {
+    return 0;
   }
 
-  return new Intl.NumberFormat(language, {
-    notation: "compact",
-    compactDisplay: "short",
-    maximumFractionDigits: 1,
-  }).format(number);
+  if (number >= 100) {
+    return Math.min(configuredDecimals, 1);
+  }
+
+  return Math.min(configuredDecimals, 2);
 }
 
-/* ==========================================================================
-   Date Helpers
-   ========================================================================== */
+function formatAxisNumber(value, { language, decimals }) {
+  return formatNumber(value, {
+    language,
 
-function createDateFormatter({
-  language = DEFAULT_LANGUAGE,
-  timeZone = DEFAULT_TIME_ZONE,
-  range = "1D",
-} = {}) {
-  const intraday = range === "1D";
-
-  return new Intl.DateTimeFormat(language, {
-    timeZone,
-
-    ...(intraday
-      ? {
-          hour: "2-digit",
-          minute: "2-digit",
-        }
-      : {
-          day: "2-digit",
-          month: "short",
-          year:
-            range === "1Y" || range === "5Y" || range === "ALL"
-              ? "numeric"
-              : undefined,
-        }),
+    decimals: getAxisDecimals(value, decimals),
   });
 }
 
-function createTooltipDateFormatter({
-  language = DEFAULT_LANGUAGE,
-  timeZone = DEFAULT_TIME_ZONE,
-  range = "1D",
-} = {}) {
+/* ==========================================================================
+   Context
+   ========================================================================== */
+
+function resolveContext(element, context) {
+  if (context === "overview" || context === "performance") {
+    return context;
+  }
+
+  return element.classList.contains("market-chart--overview")
+    ? "overview"
+    : "performance";
+}
+
+/* ==========================================================================
+   Directional Theme
+   ========================================================================== */
+
+function getDirectionColor(theme, direction) {
+  if (direction === "up") {
+    return theme.success;
+  }
+
+  if (direction === "down") {
+    return theme.danger;
+  }
+
+  return theme.line;
+}
+
+function resolveTheme(element, direction) {
+  const theme = getMarketChartTheme(element);
+
+  return {
+    ...theme,
+
+    /*
+     * Highcharts writes series colors directly into the SVG. Resolve the
+     * semantic direction before creating the main and Navigator series.
+     */
+
+    line: getDirectionColor(theme, direction),
+  };
+}
+
+/* ==========================================================================
+   Date Formatters
+   ========================================================================== */
+
+function createIntradayFormatter({ language, timeZone }) {
+  return new Intl.DateTimeFormat(language, {
+    timeZone,
+
+    hour: "2-digit",
+    minute: "2-digit",
+
+    hourCycle: "h23",
+  });
+}
+
+function createDailyFormatter({ language, timeZone, includeYear = false }) {
+  return new Intl.DateTimeFormat(language, {
+    timeZone,
+
+    day: "2-digit",
+    month: "short",
+
+    year: includeYear ? "numeric" : undefined,
+  });
+}
+
+function createXAxisDateFormatter({ language, timeZone, range }) {
+  if (range === "1D") {
+    return createIntradayFormatter({
+      language,
+      timeZone,
+    });
+  }
+
+  return createDailyFormatter({
+    language,
+    timeZone,
+
+    includeYear: range === "1Y" || range === "5Y" || range === "ALL",
+  });
+}
+
+function createTooltipDateFormatter({ language, timeZone, range }) {
   return new Intl.DateTimeFormat(language, {
     timeZone,
 
@@ -129,13 +225,15 @@ function createTooltipDateFormatter({
           hour: "2-digit",
           minute: "2-digit",
           second: "2-digit",
+
+          hourCycle: "h23",
         }
       : {}),
   });
 }
 
 /* ==========================================================================
-   Point Helpers
+   Point Values
    ========================================================================== */
 
 function getPointTimestamp(point) {
@@ -143,33 +241,68 @@ function getPointTimestamp(point) {
 }
 
 function getPointValue(point, mode) {
-  if (mode === "candlestick") {
-    return toFiniteNumber(point?.close);
+  if (!point) {
+    return null;
   }
 
-  return toFiniteNumber(point?.y);
+  return mode === "candlestick"
+    ? toFiniteNumber(point.close)
+    : toFiniteNumber(point.y);
 }
 
-function getPreviousPoint(point) {
+function getPreviousVisiblePoint(point) {
   const points = point?.series?.points;
 
   if (!Array.isArray(points)) {
     return null;
   }
 
-  const pointIndex = points.indexOf(point);
+  const index = points.indexOf(point);
 
-  if (pointIndex <= 0) {
-    return null;
-  }
-
-  return points[pointIndex - 1];
+  return index > 0 ? points[index - 1] : null;
 }
 
-function getPointChange(point, mode) {
+function getRawPointTimestamp(point) {
+  if (Array.isArray(point)) {
+    return toFiniteNumber(point[0]);
+  }
+
+  return toFiniteNumber(point?.x);
+}
+
+function getRawPointValue(point, mode) {
+  if (Array.isArray(point)) {
+    return toFiniteNumber(mode === "candlestick" ? point[4] : point[1]);
+  }
+
+  return mode === "candlestick"
+    ? toFiniteNumber(point?.close)
+    : toFiniteNumber(point?.y);
+}
+
+/*
+ * Source data is preferred over series.points because Highcharts may crop
+ * series.points when the user changes the Navigator selection.
+ */
+
+function getPointChange(point, mode, previousClose, data = []) {
   const currentValue = getPointValue(point, mode);
-  const previousPoint = getPreviousPoint(point);
-  const previousValue = getPointValue(previousPoint, mode);
+
+  const timestamp = getPointTimestamp(point);
+
+  const rawIndex = Array.isArray(data)
+    ? data.findIndex((item) => getRawPointTimestamp(item) === timestamp)
+    : -1;
+
+  const precedingRawPoint = rawIndex > 0 ? data[rawIndex - 1] : null;
+
+  const precedingVisiblePoint = getPreviousVisiblePoint(point);
+
+  const previousValue = precedingRawPoint
+    ? getRawPointValue(precedingRawPoint, mode)
+    : precedingVisiblePoint
+      ? getPointValue(precedingVisiblePoint, mode)
+      : toFiniteNumber(previousClose);
 
   if (currentValue === null || previousValue === null) {
     return {
@@ -182,7 +315,7 @@ function getPointChange(point, mode) {
   const amount = currentValue - previousValue;
 
   const percentage =
-    previousValue === 0 ? null : (amount / previousValue) * 100;
+    previousValue === 0 ? null : (amount / Math.abs(previousValue)) * 100;
 
   let direction = "neutral";
 
@@ -200,7 +333,30 @@ function getPointChange(point, mode) {
 }
 
 /* ==========================================================================
-   Tooltip Markup
+   Tooltip Theme
+   ========================================================================== */
+
+function createTooltipVariables(theme) {
+  return [
+    `--chart-tooltip-bg:${theme.tooltipBackground}`,
+    `--chart-tooltip-border:${theme.tooltipBorder}`,
+
+    `--chart-text:${theme.text}`,
+    `--chart-heading:${theme.heading}`,
+    `--chart-muted:${theme.muted}`,
+
+    `--chart-success:${theme.success}`,
+    `--chart-danger:${theme.danger}`,
+    `--chart-neutral:${theme.neutral || theme.muted}`,
+
+    `--chart-border:${theme.border}`,
+  ]
+    .filter(Boolean)
+    .join(";");
+}
+
+/* ==========================================================================
+   Tooltip Change
    ========================================================================== */
 
 function createChangeMarkup(change, { language, decimals }) {
@@ -208,21 +364,23 @@ function createChangeMarkup(change, { language, decimals }) {
     return "";
   }
 
-  const sign = change.amount > 0 ? "+" : "";
+  const amountSign = change.amount > 0 ? "+" : "";
 
-  const percentage =
+  const percentageSign = change.percentage > 0 ? "+" : "";
+
+  const percentageMarkup =
     change.percentage === null
       ? ""
       : `
-      <span class="market-chart-tooltip__percentage">
-        (${sign}${escapeHTML(
-          formatNumber(change.percentage, {
-            language,
-            decimals: 2,
-          }),
-        )}%)
-      </span>
-    `;
+        <span class="market-chart-tooltip__percentage">
+          (${percentageSign}${escapeHTML(
+            formatNumber(change.percentage, {
+              language,
+              decimals: 2,
+            }),
+          )}%)
+        </span>
+      `;
 
   return `
     <div
@@ -231,31 +389,62 @@ function createChangeMarkup(change, { language, decimals }) {
         market-chart-tooltip__change--${change.direction}
       "
     >
-      <span>${sign}${escapeHTML(
-        formatNumber(change.amount, {
-          language,
-          decimals,
-        }),
-      )}</span>
+      <span>
+        ${amountSign}${escapeHTML(
+          formatNumber(change.amount, {
+            language,
+            decimals,
+          }),
+        )}
+      </span>
 
-      ${percentage}
+      ${percentageMarkup}
     </div>
   `;
 }
 
+/* ==========================================================================
+   Trend Tooltip
+   ========================================================================== */
+
 function createTrendTooltip(
   point,
-  { symbol, language, decimals, dateFormatter },
+  {
+    symbol,
+    currency,
+
+    previousClose,
+    data,
+
+    language,
+    decimals,
+
+    dateFormatter,
+    theme,
+  },
 ) {
   const timestamp = getPointTimestamp(point);
+
   const value = getPointValue(point, "trend");
-  const change = getPointChange(point, "trend");
+
+  const change = getPointChange(point, "trend", previousClose, data);
 
   const date =
     timestamp === null ? "" : dateFormatter.format(new Date(timestamp));
 
+  const currencyMarkup = currency
+    ? `
+      <span class="market-chart-tooltip__currency">
+        ${escapeHTML(currency)}
+      </span>
+    `
+    : "";
+
   return `
-    <div class="market-chart-tooltip">
+    <div
+      class="market-chart-tooltip"
+      style="${escapeHTML(createTooltipVariables(theme))}"
+    >
       <div class="market-chart-tooltip__header">
         <span class="market-chart-tooltip__symbol">
           ${escapeHTML(symbol)}
@@ -267,12 +456,16 @@ function createTrendTooltip(
       </div>
 
       <div class="market-chart-tooltip__primary">
-        ${escapeHTML(
-          formatNumber(value, {
-            language,
-            decimals,
-          }),
-        )}
+        ${currencyMarkup}
+
+        <span>
+          ${escapeHTML(
+            formatNumber(value, {
+              language,
+              decimals,
+            }),
+          )}
+        </span>
       </div>
 
       ${createChangeMarkup(change, {
@@ -283,12 +476,29 @@ function createTrendTooltip(
   `;
 }
 
+/* ==========================================================================
+   Candlestick Tooltip
+   ========================================================================== */
+
 function createCandlestickTooltip(
   point,
-  { symbol, language, decimals, dateFormatter },
+  {
+    symbol,
+    currency,
+
+    previousClose,
+    data,
+
+    language,
+    decimals,
+
+    dateFormatter,
+    theme,
+  },
 ) {
   const timestamp = getPointTimestamp(point);
-  const change = getPointChange(point, "candlestick");
+
+  const change = getPointChange(point, "candlestick", previousClose, data);
 
   const date =
     timestamp === null ? "" : dateFormatter.format(new Date(timestamp));
@@ -301,14 +511,24 @@ function createCandlestickTooltip(
   ];
 
   const rows = values
-    .map(
-      ([label, value]) => `
+    .map(([label, value]) => {
+      return `
         <div class="market-chart-tooltip__row">
           <span class="market-chart-tooltip__label">
             ${escapeHTML(label)}
           </span>
 
           <span class="market-chart-tooltip__value">
+            ${
+              currency
+                ? `
+                  <span class="market-chart-tooltip__currency">
+                    ${escapeHTML(currency)}
+                  </span>
+                `
+                : ""
+            }
+
             ${escapeHTML(
               formatNumber(value, {
                 language,
@@ -317,12 +537,15 @@ function createCandlestickTooltip(
             )}
           </span>
         </div>
-      `,
-    )
+      `;
+    })
     .join("");
 
   return `
-    <div class="market-chart-tooltip">
+    <div
+      class="market-chart-tooltip"
+      style="${escapeHTML(createTooltipVariables(theme))}"
+    >
       <div class="market-chart-tooltip__header">
         <span class="market-chart-tooltip__symbol">
           ${escapeHTML(symbol)}
@@ -346,11 +569,11 @@ function createCandlestickTooltip(
 }
 
 /* ==========================================================================
-   Axis Labels
+   Axis Formatters
    ========================================================================== */
 
 function createXAxisLabelFormatter({ language, timeZone, range }) {
-  const formatter = createDateFormatter({
+  const formatter = createXAxisDateFormatter({
     language,
     timeZone,
     range,
@@ -369,7 +592,7 @@ function createXAxisLabelFormatter({ language, timeZone, range }) {
 
 function createYAxisLabelFormatter({ language, decimals }) {
   return function yAxisLabelFormatter() {
-    return formatCompactNumber(this.value, {
+    return formatAxisNumber(this.value, {
       language,
       decimals,
     });
@@ -377,41 +600,136 @@ function createYAxisLabelFormatter({ language, decimals }) {
 }
 
 /* ==========================================================================
-   Tick Configuration
+   X-Axis Ticks
    ========================================================================== */
 
-function getXAxisTickPixelInterval(range) {
-  switch (range) {
-    case "1D":
-      return 90;
+function getXAxisTickOptions(range) {
+  if (range === "1D") {
+    return {
+      tickInterval: HOUR_MS,
+      tickPixelInterval: undefined,
+    };
+  }
 
+  switch (range) {
     case "1W":
-      return 100;
+      return {
+        tickInterval: undefined,
+        tickPixelInterval: 90,
+      };
 
     case "1M":
     case "3M":
-      return 110;
+      return {
+        tickInterval: undefined,
+        tickPixelInterval: 100,
+      };
 
     case "6M":
     case "1Y":
-      return 120;
+      return {
+        tickInterval: undefined,
+        tickPixelInterval: 110,
+      };
 
     case "5Y":
     case "ALL":
-      return 130;
+      return {
+        tickInterval: undefined,
+        tickPixelInterval: 120,
+      };
 
     default:
-      return 100;
+      return {
+        tickInterval: undefined,
+        tickPixelInterval: 100,
+      };
   }
 }
 
 /* ==========================================================================
-   Shared Highcharts Options
+   Navigator
+   ========================================================================== */
+
+function createNavigatorOptions({ Highcharts, layout, enabled, theme }) {
+  return {
+    enabled,
+
+    height: layout.navigatorHeight,
+
+    margin: layout.navigatorMargin,
+
+    adaptToUpdatedData: true,
+
+    maskInside: true,
+
+    maskFill: Highcharts.color(theme.line).setOpacity(0.1).get("rgba"),
+
+    outlineColor: theme.borderStrong,
+
+    outlineWidth: 1,
+
+    handles: {
+      enabled: true,
+
+      width: 7,
+
+      height: layout.navigatorHandleHeight,
+
+      backgroundColor: theme.tooltipBackground,
+
+      borderColor: theme.borderStrong,
+
+      lineWidth: 1,
+    },
+
+    xAxis: {
+      ordinal: false,
+
+      gridLineWidth: 0,
+
+      labels: {
+        enabled: false,
+      },
+
+      lineColor: theme.border,
+      lineWidth: 1,
+
+      tickLength: 0,
+    },
+
+    series: {
+      type: "areaspline",
+
+      color: theme.line,
+
+      lineColor: theme.line,
+      lineWidth: 1.5,
+
+      fillColor: Highcharts.color(theme.line).setOpacity(0.14).get("rgba"),
+
+      fillOpacity: 0.14,
+
+      dataGrouping: {
+        enabled: false,
+      },
+
+      marker: {
+        enabled: false,
+      },
+    },
+  };
+}
+
+/* ==========================================================================
+   Options Factory
    ========================================================================== */
 
 export function createMarketChartOptions({
   Highcharts,
   element,
+
+  context = null,
 
   mode = "trend",
   range = "1D",
@@ -419,10 +737,14 @@ export function createMarketChartOptions({
 
   symbol = "TASI",
   seriesName = symbol,
+  currency = "",
+
+  previousClose = null,
 
   data = [],
 
   language = document.documentElement.lang || DEFAULT_LANGUAGE,
+
   timeZone = DEFAULT_TIME_ZONE,
 
   decimals = DEFAULT_DECIMALS,
@@ -431,6 +753,8 @@ export function createMarketChartOptions({
   yAxisTitle = null,
 
   animation = true,
+
+  navigatorEnabled = null,
 
   accessibilityDescription = "",
 } = {}) {
@@ -444,20 +768,26 @@ export function createMarketChartOptions({
     );
   }
 
-  const theme = getMarketChartTheme(element);
+  const resolvedContext = resolveContext(element, context);
 
-  const seriesTheme = getMarketChartSeriesTheme(
-    Highcharts,
-    theme,
-    mode,
-    direction,
-  );
+  const overview = resolvedContext === "overview";
+
+  const layout = CONTEXT_LAYOUT[resolvedContext];
+
+  const showNavigator =
+    navigatorEnabled === null ? overview : Boolean(navigatorEnabled);
+
+  const theme = resolveTheme(element, direction);
+
+  const seriesTheme = getMarketChartSeriesTheme(Highcharts, theme, mode);
 
   const tooltipDateFormatter = createTooltipDateFormatter({
     language,
     timeZone,
     range,
   });
+
+  const xAxisTicks = getXAxisTickOptions(range);
 
   const seriesType =
     mode === "candlestick"
@@ -466,34 +796,52 @@ export function createMarketChartOptions({
         ? "line"
         : "areaspline";
 
+  const navigator = createNavigatorOptions({
+    Highcharts,
+    layout,
+    enabled: showNavigator,
+    theme,
+  });
+
   return {
+    /* ----------------------------------------------------------------------
+       Chart
+       ------------------------------------------------------------------- */
+
     chart: {
       backgroundColor: theme.background,
 
-      spacingTop: 18,
-      spacingRight: 18,
-      spacingBottom: 12,
-      spacingLeft: 10,
+      spacingTop: layout.spacingTop,
 
-      marginRight: 72,
-      marginLeft: 10,
+      spacingRight: layout.spacingRight,
+
+      spacingBottom: showNavigator ? layout.spacingBottom : 10,
+
+      spacingLeft: layout.spacingLeft,
+
+      marginTop: layout.marginTop,
+
+      marginRight: layout.marginRight,
+
+      marginBottom: undefined,
+
+      marginLeft: layout.marginLeft,
 
       animation,
 
       reflow: false,
-
       styledMode: false,
+
+      alignTicks: false,
     },
 
-    accessibility: {
-      enabled: true,
-
-      description: accessibilityDescription || undefined,
-
-      keyboardNavigation: {
-        enabled: true,
-      },
+    time: {
+      timezone: timeZone,
     },
+
+    /* ----------------------------------------------------------------------
+       Built-in Highcharts UI
+       ------------------------------------------------------------------- */
 
     credits: {
       enabled: false,
@@ -503,21 +851,39 @@ export function createMarketChartOptions({
       enabled: false,
 
       fallbackToExportServer: false,
+
+      buttons: {
+        contextButton: {
+          enabled: false,
+        },
+      },
+
+      filename: symbol
+        ? `${String(symbol).toLowerCase()}-${String(range).toLowerCase()}`
+        : "market-chart",
+    },
+
+    navigation: {
+      buttonOptions: {
+        enabled: false,
+      },
+    },
+
+    stockTools: {
+      gui: {
+        enabled: false,
+      },
     },
 
     legend: {
       enabled: false,
     },
 
-    navigator: {
+    rangeSelector: {
       enabled: false,
     },
 
     scrollbar: {
-      enabled: false,
-    },
-
-    rangeSelector: {
       enabled: false,
     },
 
@@ -529,29 +895,67 @@ export function createMarketChartOptions({
       text: null,
     },
 
+    /* ----------------------------------------------------------------------
+       Accessibility
+       ------------------------------------------------------------------- */
+
+    accessibility: {
+      enabled: true,
+
+      description: accessibilityDescription || undefined,
+
+      keyboardNavigation: {
+        enabled: true,
+      },
+
+      series: {
+        describeSingleSeries: true,
+      },
+    },
+
+    /* ----------------------------------------------------------------------
+       Navigator
+       ------------------------------------------------------------------- */
+
+    navigator,
+
+    /* ----------------------------------------------------------------------
+       X Axis
+       ------------------------------------------------------------------- */
+
     xAxis: {
       type: "datetime",
 
-      ordinal: true,
+      ordinal: false,
+      reversed: false,
 
       lineColor: theme.border,
       lineWidth: 1,
 
       tickColor: theme.border,
-      tickLength: 5,
+      tickLength: 4,
       tickWidth: 1,
 
-      tickPixelInterval: getXAxisTickPixelInterval(range),
+      tickInterval: xAxisTicks.tickInterval,
 
-      minPadding: 0.015,
-      maxPadding: 0.015,
+      tickPixelInterval: xAxisTicks.tickPixelInterval,
+
+      minPadding: 0,
+      maxPadding: 0,
+
+      overscroll: 0,
 
       startOnTick: false,
       endOnTick: false,
 
+      showFirstLabel: true,
+      showLastLabel: true,
+
       crosshair: {
         color: theme.crosshair,
+
         dashStyle: "ShortDash",
+
         width: 1,
 
         snap: true,
@@ -569,14 +973,18 @@ export function createMarketChartOptions({
 
         reserveSpace: true,
 
-        step: 1,
+        allowOverlap: false,
 
-        y: 22,
+        crop: false,
+        overflow: "allow",
+
+        y: 20,
 
         style: {
           color: theme.muted,
 
           fontFamily: "var(--font-sans)",
+
           fontSize: "11px",
           fontWeight: "500",
 
@@ -593,20 +1001,27 @@ export function createMarketChartOptions({
       title: {
         text: xAxisTitle,
 
-        margin: 14,
+        margin: 12,
 
         style: {
           color: theme.muted,
 
           fontFamily: "var(--font-sans)",
+
           fontSize: "11px",
           fontWeight: "600",
         },
       },
     },
 
+    /* ----------------------------------------------------------------------
+       Y Axis
+       ------------------------------------------------------------------- */
+
     yAxis: {
       opposite: true,
+
+      alignTicks: false,
 
       gridLineColor: theme.grid,
       gridLineDashStyle: "ShortDot",
@@ -619,17 +1034,22 @@ export function createMarketChartOptions({
       tickLength: 0,
       tickWidth: 0,
 
-      tickAmount: 5,
+      tickPixelInterval: layout.yAxisTickPixelInterval,
 
       startOnTick: false,
       endOnTick: false,
 
-      minPadding: 0.08,
-      maxPadding: 0.12,
+      softThreshold: false,
+
+      minPadding: layout.yAxisMinPadding,
+
+      maxPadding: layout.yAxisMaxPadding,
 
       crosshair: {
         color: theme.crosshair,
+
         dashStyle: "ShortDash",
+
         width: 1,
 
         snap: false,
@@ -641,18 +1061,20 @@ export function createMarketChartOptions({
 
           align: "left",
 
-          backgroundColor: theme.heading,
-          borderColor: theme.heading,
-          borderRadius: 4,
+          backgroundColor: theme.tooltipBackground,
+
+          borderColor: theme.tooltipBorder,
+
+          borderRadius: 5,
           borderWidth: 1,
 
           padding: 5,
 
           style: {
-            color:
-              theme.background === "transparent" ? "#ffffff" : theme.background,
+            color: theme.heading,
 
             fontFamily: "var(--font-sans)",
+
             fontSize: "11px",
             fontWeight: "700",
 
@@ -660,7 +1082,7 @@ export function createMarketChartOptions({
           },
 
           formatter(value) {
-            return formatNumber(value, {
+            return formatAxisNumber(value, {
               language,
               decimals,
             });
@@ -680,6 +1102,7 @@ export function createMarketChartOptions({
           color: theme.muted,
 
           fontFamily: "var(--font-sans)",
+
           fontSize: "11px",
           fontWeight: "500",
 
@@ -695,26 +1118,29 @@ export function createMarketChartOptions({
       title: {
         text: yAxisTitle,
 
-        margin: 16,
-
+        margin: 14,
         rotation: 90,
 
         style: {
           color: theme.muted,
 
           fontFamily: "var(--font-sans)",
+
           fontSize: "11px",
           fontWeight: "600",
         },
       },
     },
 
+    /* ----------------------------------------------------------------------
+       Tooltip
+       ------------------------------------------------------------------- */
+
     tooltip: {
       enabled: true,
 
       useHTML: true,
-
-      outside: false,
+      outside: true,
 
       shared: false,
       split: false,
@@ -727,18 +1153,22 @@ export function createMarketChartOptions({
       animation,
 
       backgroundColor: theme.tooltipBackground,
+
       borderColor: theme.tooltipBorder,
+
       borderRadius: 10,
       borderWidth: 1,
 
       padding: 0,
 
       shadow: {
-        color: "rgb(0 0 0 / 0.18)",
+        color: "rgb(0 0 0 / 0.2)",
+
         offsetX: 0,
-        offsetY: 8,
-        opacity: 0.16,
-        width: 18,
+        offsetY: 7,
+
+        opacity: 0.18,
+        width: 16,
       },
 
       className: "market-chart-highcharts-tooltip",
@@ -747,6 +1177,7 @@ export function createMarketChartOptions({
         color: theme.text,
 
         fontFamily: "var(--font-sans)",
+
         fontSize: "12px",
 
         pointerEvents: "none",
@@ -759,49 +1190,30 @@ export function createMarketChartOptions({
           return false;
         }
 
-        const tooltipOptions = {
+        const options = {
           symbol,
+          currency,
+
+          previousClose,
+          data,
+
           language,
           decimals,
+
           dateFormatter: tooltipDateFormatter,
+
+          theme,
         };
 
-        if (mode === "candlestick") {
-          return createCandlestickTooltip(point, tooltipOptions);
-        }
-
-        return createTrendTooltip(point, tooltipOptions);
-      },
-
-      positioner(labelWidth, labelHeight, point) {
-        const chart = this.chart;
-
-        const plotLeft = chart.plotLeft;
-        const plotTop = chart.plotTop;
-        const plotRight = plotLeft + chart.plotWidth;
-        const plotBottom = plotTop + chart.plotHeight;
-
-        const preferredX = point.plotX + plotLeft + 16;
-        const alternateX = point.plotX + plotLeft - labelWidth - 16;
-
-        const x =
-          preferredX + labelWidth <= plotRight
-            ? preferredX
-            : Math.max(plotLeft, alternateX);
-
-        const centeredY = point.plotY + plotTop - labelHeight / 2;
-
-        const y = Math.min(
-          Math.max(centeredY, plotTop),
-          Math.max(plotTop, plotBottom - labelHeight),
-        );
-
-        return {
-          x,
-          y,
-        };
+        return mode === "candlestick"
+          ? createCandlestickTooltip(point, options)
+          : createTrendTooltip(point, options);
       },
     },
+
+    /* ----------------------------------------------------------------------
+       Plot
+       ------------------------------------------------------------------- */
 
     plotOptions: {
       series: {
@@ -814,7 +1226,6 @@ export function createMarketChartOptions({
         },
 
         stickyTracking: true,
-
         findNearestPointBy: "x",
 
         cropThreshold: 5000,
@@ -822,7 +1233,7 @@ export function createMarketChartOptions({
         point: {
           events: {
             mouseOver() {
-              element.setAttribute("data-chart-hover", "true");
+              element.dataset.chartHover = "true";
             },
 
             mouseOut() {
@@ -842,7 +1253,9 @@ export function createMarketChartOptions({
 
               attributes: {
                 fill: theme.line,
+
                 "fill-opacity": 0.12,
+
                 stroke: theme.line,
                 "stroke-width": 1,
               },
@@ -853,6 +1266,11 @@ export function createMarketChartOptions({
 
       areaspline: {
         threshold: null,
+        softThreshold: false,
+      },
+
+      line: {
+        softThreshold: false,
       },
 
       candlestick: {
@@ -860,6 +1278,10 @@ export function createMarketChartOptions({
         groupPadding: 0.08,
       },
     },
+
+    /* ----------------------------------------------------------------------
+       Series
+       ------------------------------------------------------------------- */
 
     series: [
       {
@@ -871,9 +1293,15 @@ export function createMarketChartOptions({
 
         data,
 
+        showInNavigator: showNavigator,
+
         ...seriesTheme,
       },
     ],
+
+    /* ----------------------------------------------------------------------
+       Responsive
+       ------------------------------------------------------------------- */
 
     responsive: {
       rules: [
@@ -884,16 +1312,26 @@ export function createMarketChartOptions({
 
           chartOptions: {
             chart: {
+              spacingTop: 8,
               spacingRight: 12,
-              spacingLeft: 8,
+              spacingLeft: 22,
 
-              marginRight: 62,
-              marginLeft: 8,
+              marginTop: 8,
+              marginRight: 64,
+              marginLeft: 22,
+            },
+
+            navigator: {
+              height: 32,
+              margin: 8,
+
+              handles: {
+                width: 7,
+                height: 16,
+              },
             },
 
             xAxis: {
-              tickPixelInterval: 105,
-
               labels: {
                 style: {
                   fontSize: "10px",
@@ -902,6 +1340,8 @@ export function createMarketChartOptions({
             },
 
             yAxis: {
+              tickPixelInterval: 50,
+
               labels: {
                 x: 8,
 
@@ -920,25 +1360,35 @@ export function createMarketChartOptions({
 
           chartOptions: {
             chart: {
-              spacingTop: 12,
-              spacingRight: 8,
-              spacingBottom: 18,
-              spacingLeft: 6,
+              spacingTop: 8,
+              spacingRight: 10,
+              spacingBottom: 10,
+              spacingLeft: 18,
 
-              marginRight: 56,
-              marginLeft: 6,
+              marginTop: 8,
+              marginRight: 60,
+              marginLeft: 18,
+            },
+
+            navigator: {
+              height: 30,
+              margin: 7,
+
+              handles: {
+                width: 6,
+                height: 15,
+              },
             },
 
             xAxis: {
-              tickPixelInterval: 115,
-
               labels: {
-                align: "right",
+                align: range === "1D" ? "center" : "right",
 
-                rotation: -45,
+                rotation: range === "1D" ? 0 : -45,
 
-                x: -3,
-                y: 19,
+                x: range === "1D" ? 0 : -3,
+
+                y: range === "1D" ? 19 : 18,
 
                 style: {
                   fontSize: "10px",
@@ -947,7 +1397,10 @@ export function createMarketChartOptions({
             },
 
             yAxis: {
-              tickAmount: 4,
+              tickPixelInterval: 46,
+
+              minPadding: 0.05,
+              maxPadding: 0.06,
 
               labels: {
                 x: 7,
@@ -955,38 +1408,6 @@ export function createMarketChartOptions({
                 style: {
                   fontSize: "10px",
                 },
-              },
-            },
-
-            tooltip: {
-              positioner(labelWidth, labelHeight, point) {
-                const chart = this.chart;
-
-                const plotLeft = chart.plotLeft;
-                const plotTop = chart.plotTop;
-                const plotRight = plotLeft + chart.plotWidth;
-
-                const centeredX = point.plotX + plotLeft - labelWidth / 2;
-
-                const x = Math.min(
-                  Math.max(centeredX, plotLeft),
-                  Math.max(plotLeft, plotRight - labelWidth),
-                );
-
-                const abovePoint = point.plotY + plotTop - labelHeight - 14;
-
-                const y =
-                  abovePoint >= plotTop
-                    ? abovePoint
-                    : Math.min(
-                        point.plotY + plotTop + 14,
-                        chart.chartHeight - labelHeight - 8,
-                      );
-
-                return {
-                  x,
-                  y,
-                };
               },
             },
           },

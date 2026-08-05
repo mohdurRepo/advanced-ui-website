@@ -18,6 +18,7 @@
   align-items: center;
 
   inline-size: min(100%, 36rem);
+  min-inline-size: 0;
   min-block-size: 3.25rem;
 
   border: 1px solid var(--home-discovery-search-border);
@@ -167,6 +168,7 @@
 
 @include ds.respond-down(sm) {
   .home-discovery-search {
+    inline-size: 100%;
     min-block-size: 3rem;
   }
 

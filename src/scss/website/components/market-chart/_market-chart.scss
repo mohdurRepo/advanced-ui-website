@@ -5,9 +5,7 @@
    ========================================================================== */
 
 .market-chart {
-  /* -----------------------------------------------------------------------
-     Semantic Theme
-     -------------------------------------------------------------------- */
+  /* Theme */
 
   --chart-bg: transparent;
 
@@ -35,7 +33,6 @@
 
   --chart-candle-up: var(--chart-success);
   --chart-candle-up-line: var(--chart-success);
-
   --chart-candle-down: var(--chart-danger);
   --chart-candle-down-line: var(--chart-danger);
 
@@ -45,9 +42,42 @@
   --chart-area-start-opacity: 0.2;
   --chart-area-end-opacity: 0;
 
-  /* -----------------------------------------------------------------------
-     Layout
-     -------------------------------------------------------------------- */
+  /* Navigator */
+
+  --chart-navigator-bg: color-mix(
+    in oklab,
+    var(--color-surface-alt),
+    transparent 28%
+  );
+
+  --chart-navigator-mask: color-mix(
+    in oklab,
+    var(--color-primary),
+    transparent 88%
+  );
+
+  --chart-navigator-line: color-mix(
+    in oklab,
+    var(--chart-line),
+    transparent 16%
+  );
+
+  --chart-navigator-fill: color-mix(
+    in oklab,
+    var(--chart-line),
+    transparent 82%
+  );
+
+  --chart-navigator-border: color-mix(
+    in oklab,
+    var(--chart-border-strong),
+    transparent 28%
+  );
+
+  --chart-navigator-handle-bg: var(--color-surface);
+  --chart-navigator-handle-fg: var(--color-text-muted);
+
+  /* Layout */
 
   --market-chart-height: 18rem;
   --market-chart-min-height: 16rem;
@@ -81,8 +111,8 @@
    ========================================================================== */
 
 /*
- * The viewport is the only element allowed to own the rendered chart height.
- * The chart host cannot increase its parent during Highcharts resizing.
+ * The viewport exclusively owns the rendered height. The chart is positioned
+ * inside it and therefore cannot increase the parent height during reflow.
  */
 
 [data-chart-viewport] {
@@ -114,11 +144,6 @@
    Highcharts Root
    ========================================================================== */
 
-/*
- * Highcharts receives explicit pixel dimensions from JavaScript.
- * Never force generated elements to block-size: 100%.
- */
-
 .market-chart > .highcharts-container {
   position: absolute !important;
 
@@ -140,95 +165,198 @@
 }
 
 /* ==========================================================================
-   Highcharts Typography
+   Typography
    ========================================================================== */
 
-.market-chart .highcharts-axis-labels text,
-.market-chart .highcharts-axis-title,
-.market-chart .highcharts-data-label text,
-.market-chart .highcharts-legend-item text,
-.market-chart .highcharts-tooltip text {
-  font-family: var(--font-sans) !important;
-}
+.market-chart {
+  .highcharts-axis-labels text,
+  .highcharts-axis-title,
+  .highcharts-data-label text,
+  .highcharts-legend-item text,
+  .highcharts-tooltip text,
+  .highcharts-navigator-xaxis text {
+    font-family: var(--font-sans) !important;
+  }
 
-.market-chart .highcharts-axis-labels text,
-.market-chart .highcharts-axis-title {
-  fill: var(--chart-muted);
-}
+  .highcharts-axis-labels text,
+  .highcharts-axis-title,
+  .highcharts-navigator-xaxis text {
+    fill: var(--chart-muted);
+  }
 
-.market-chart .highcharts-data-label text,
-.market-chart .highcharts-legend-item text {
-  fill: var(--chart-text);
+  .highcharts-data-label text,
+  .highcharts-legend-item text {
+    fill: var(--chart-text);
+  }
 }
 
 /* ==========================================================================
    Axes and Grid
    ========================================================================== */
 
-.market-chart .highcharts-axis-line,
-.market-chart .highcharts-tick {
-  stroke: var(--chart-border);
+.market-chart {
+  .highcharts-axis-line,
+  .highcharts-tick {
+    stroke: var(--chart-border);
 
-  shape-rendering: crispEdges;
-}
+    shape-rendering: crispEdges;
+  }
 
-.market-chart .highcharts-grid-line {
-  stroke: var(--chart-grid);
+  .highcharts-grid-line {
+    stroke: var(--chart-grid);
 
-  shape-rendering: crispEdges;
-}
+    shape-rendering: crispEdges;
+  }
 
-.market-chart .highcharts-crosshair {
-  stroke: var(--chart-crosshair);
+  .highcharts-crosshair {
+    stroke: var(--chart-crosshair);
+  }
+
+  .highcharts-crosshair-label {
+    text {
+      fill: var(--chart-heading) !important;
+
+      font-weight: ds.font-weight("bold");
+    }
+
+    .highcharts-label-box {
+      fill: var(--chart-tooltip-bg);
+      stroke: var(--chart-tooltip-border);
+    }
+  }
 }
 
 /* ==========================================================================
    Series
    ========================================================================== */
 
-.market-chart .highcharts-series {
-  pointer-events: auto;
+.market-chart {
+  .highcharts-series {
+    pointer-events: auto;
+  }
+
+  .highcharts-graph {
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .highcharts-point {
+    @include ds.transition((fill, stroke, opacity), fast);
+  }
+
+  .highcharts-tracker {
+    cursor: crosshair;
+  }
+
+  .highcharts-halo {
+    fill-opacity: 0.12;
+  }
 }
 
-.market-chart .highcharts-graph {
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
+/* ==========================================================================
+   Navigator
+   ========================================================================== */
 
-.market-chart .highcharts-point {
-  @include ds.transition((fill, stroke, opacity), fast);
-}
+.market-chart {
+  .highcharts-navigator {
+    .highcharts-navigator-outline {
+      fill: none;
+      stroke: var(--chart-navigator-border);
 
-.market-chart .highcharts-tracker {
-  cursor: crosshair;
+      shape-rendering: crispEdges;
+    }
+
+    .highcharts-navigator-mask-inside {
+      fill: var(--chart-navigator-mask);
+    }
+
+    .highcharts-navigator-mask-outside {
+      fill: var(--chart-navigator-bg);
+      fill-opacity: 0.72;
+    }
+  }
+
+  /*
+   * Navigator series groups are not guaranteed to be nested inside the
+   * .highcharts-navigator group in every Highcharts Stock release.
+   */
+
+  .highcharts-navigator-series .highcharts-graph {
+    stroke: var(--chart-navigator-line);
+    stroke-width: 1.5px;
+  }
+
+  .highcharts-navigator-series .highcharts-area {
+    fill: var(--chart-navigator-fill);
+    fill-opacity: 1;
+  }
+
+  .highcharts-navigator-handle {
+    cursor: ew-resize;
+
+    rect {
+      fill: var(--chart-navigator-handle-bg);
+      stroke: var(--chart-navigator-border);
+
+      rx: 2px;
+      ry: 2px;
+    }
+
+    path {
+      fill: none;
+      stroke: var(--chart-navigator-handle-fg);
+      stroke-width: 1px;
+    }
+  }
+
+  .highcharts-navigator-xaxis {
+    text {
+      font-size: 0.625rem !important;
+    }
+
+    .highcharts-axis-line {
+      stroke: var(--chart-navigator-border);
+    }
+  }
 }
 
 /* ==========================================================================
    SVG Tooltip Fallback
    ========================================================================== */
 
-.market-chart .highcharts-tooltip-box {
-  fill: var(--chart-tooltip-bg);
-  stroke: var(--chart-tooltip-border);
+.market-chart {
+  .highcharts-tooltip-box {
+    fill: var(--chart-tooltip-bg);
+    stroke: var(--chart-tooltip-border);
 
-  filter: drop-shadow(0 0.5rem 1rem rgb(0 0 0 / 0.14));
-}
+    filter: drop-shadow(0 0.5rem 1rem rgb(0 0 0 / 0.14));
+  }
 
-.market-chart .highcharts-tooltip text {
-  fill: var(--chart-text);
+  .highcharts-tooltip text {
+    fill: var(--chart-text);
+  }
 }
 
 /* ==========================================================================
-   HTML Tooltip Host
+   Outside HTML Tooltip Host
    ========================================================================== */
 
-.market-chart-highcharts-tooltip {
+.market-chart-highcharts-tooltip,
+.highcharts-tooltip-container.market-chart-highcharts-tooltip {
+  z-index: calc(var(--z-popover) + 1) !important;
+
+  overflow: visible !important;
+
   filter: none;
+
+  pointer-events: none !important;
 }
 
 .market-chart-highcharts-tooltip > span {
-  inline-size: max-content;
-  max-inline-size: min(18rem, calc(100vw - 2rem));
+  inline-size: max-content !important;
+  max-inline-size: min(18rem, calc(100vw - 1rem));
+
+  overflow: visible !important;
 
   white-space: normal !important;
 
@@ -240,15 +368,22 @@
    ========================================================================== */
 
 .market-chart-tooltip {
+  box-sizing: border-box;
+
   min-inline-size: 11.5rem;
-  max-inline-size: 18rem;
+  max-inline-size: min(18rem, calc(100vw - 1rem));
 
   overflow: hidden;
 
-  border-radius: calc(var(--radius-lg) - 1px);
+  border: 1px solid var(--chart-tooltip-border);
+  border-radius: var(--radius-lg);
 
   background: var(--chart-tooltip-bg);
   color: var(--chart-text);
+
+  box-shadow:
+    0 0.75rem 1.75rem rgb(0 0 0 / 0.18),
+    0 1px 0 rgb(255 255 255 / 0.05) inset;
 
   font-family: var(--font-sans);
   font-size: var(--text-xs);
@@ -308,6 +443,10 @@
    ========================================================================== */
 
 .market-chart-tooltip__primary {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+
   padding: 0.75rem 0.875rem 0.25rem;
 
   color: var(--chart-heading);
@@ -318,6 +457,28 @@
 
   letter-spacing: -0.01em;
   white-space: nowrap;
+}
+
+.market-chart-tooltip__currency {
+  flex: 0 0 auto;
+
+  font-size: 0.72em;
+  font-weight: ds.font-weight("bold");
+
+  opacity: 0.78;
+}
+
+/*
+ * The first point has no preceding value and therefore may not contain a
+ * change row. Give the primary value its own bottom padding in that state.
+ */
+
+.market-chart-tooltip__primary:last-child,
+.market-chart-tooltip:not(
+    :has(.market-chart-tooltip__change, .market-chart-tooltip__ohlc)
+  )
+  .market-chart-tooltip__primary {
+  padding-block-end: 0.75rem;
 }
 
 /* ==========================================================================
@@ -401,17 +562,19 @@
    Accessibility
    ========================================================================== */
 
-.market-chart .highcharts-a11y-proxy-button {
-  border-radius: var(--radius-sm);
+.market-chart {
+  .highcharts-a11y-proxy-button {
+    border-radius: var(--radius-sm);
 
-  &:focus-visible {
-    @include ds.focus-ring;
+    &:focus-visible {
+      @include ds.focus-ring;
+    }
   }
-}
 
-.market-chart .highcharts-focus-border {
-  stroke: var(--focus-ring);
-  stroke-width: var(--focus-ring-width);
+  .highcharts-focus-border {
+    stroke: var(--focus-ring);
+    stroke-width: var(--focus-ring-width);
+  }
 }
 
 /* ==========================================================================
@@ -461,11 +624,6 @@
    Loading State
    ========================================================================== */
 
-/*
- * data-chart-state is the only loading contract. Legacy .is-loading classes
- * are intentionally unsupported.
- */
-
 .market-chart[data-chart-state="loading"]::before {
   content: "";
 
@@ -506,7 +664,7 @@
 }
 
 /*
- * Do not obscure a rendered chart during range, theme, or live updates.
+ * Preserve the rendered chart during range, theme, and live updates.
  */
 
 .market-chart[data-chart-state="loading"][data-chart-ready="true"]::before,
@@ -533,14 +691,19 @@
    ========================================================================== */
 
 .market-chart-toggle {
-  --market-chart-toggle-bg: transparent;
+  --market-chart-toggle-bg: color-mix(
+    in oklab,
+    var(--color-surface-alt),
+    transparent 12%
+  );
+
   --market-chart-toggle-border: var(--color-border);
   --market-chart-toggle-fg: var(--color-text-muted);
 
   --market-chart-toggle-hover-bg: color-mix(
     in oklab,
     var(--color-primary),
-    transparent 93%
+    transparent 91%
   );
 
   --market-chart-toggle-hover-fg: var(--color-primary);
@@ -657,6 +820,23 @@
 }
 
 /* ==========================================================================
+   Live-Following State
+   ========================================================================== */
+
+/*
+ * Hooks are provided for a future “Return to live” control. No visual overlay
+ * is imposed on charts that do not expose such a control.
+ */
+
+.market-chart[data-chart-follow-live="false"] {
+  cursor: grab;
+}
+
+.market-chart[data-chart-follow-live="false"]:active {
+  cursor: grabbing;
+}
+
+/* ==========================================================================
    Performance Context
    ========================================================================== */
 
@@ -675,9 +855,7 @@
   --chart-bg: transparent;
 
   --chart-text: var(--market-details-fg, #ffffff);
-
   --chart-heading: var(--market-details-heading, #ffffff);
-
   --chart-muted: var(--market-details-muted, #a9bdca);
 
   --chart-border: var(--market-details-border, rgb(255 255 255 / 0.14));
@@ -711,6 +889,36 @@
     --market-details-border-strong,
     rgb(255 255 255 / 0.42)
   );
+
+  --chart-navigator-bg: color-mix(
+    in oklab,
+    var(--market-details-side-bg, #0d1e2b),
+    transparent 20%
+  );
+
+  --chart-navigator-mask: color-mix(
+    in oklab,
+    var(--chart-line),
+    transparent 86%
+  );
+
+  --chart-navigator-line: color-mix(in oklab, var(--chart-line), white 8%);
+
+  --chart-navigator-fill: color-mix(
+    in oklab,
+    var(--chart-line),
+    transparent 80%
+  );
+
+  --chart-navigator-border: color-mix(
+    in oklab,
+    var(--market-details-border-strong, rgb(255 255 255 / 0.42)),
+    transparent 22%
+  );
+
+  --chart-navigator-handle-bg: var(--market-details-insights-bg, #254456);
+
+  --chart-navigator-handle-fg: var(--market-details-muted-strong, #c4d2da);
 
   --chart-area-start-opacity: 0.26;
 }
@@ -747,6 +955,10 @@
   --chart-line: var(--chart-danger);
 }
 
+.market-chart[data-chart-direction="neutral"] {
+  --chart-line: var(--chart-neutral);
+}
+
 /* ==========================================================================
    RTL
    ========================================================================== */
@@ -754,6 +966,8 @@
 html[dir="rtl"] {
   .market-chart-tooltip,
   .market-chart-tooltip__header {
+    direction: rtl;
+
     text-align: start;
   }
 
@@ -763,6 +977,17 @@ html[dir="rtl"] {
 
   .market-chart-tooltip__value {
     text-align: end;
+  }
+
+  /*
+   * The financial timeline remains chronologically left-to-right. Only the
+   * textual tooltip content follows the document direction.
+   */
+
+  .market-chart .highcharts-navigator,
+  .market-chart .highcharts-series-group,
+  .market-chart .highcharts-axis {
+    direction: ltr;
   }
 }
 
@@ -775,6 +1000,14 @@ html[data-theme="dark"] {
     --chart-grid: color-mix(in oklab, var(--color-border), transparent 32%);
 
     --chart-area-start-opacity: 0.24;
+
+    --chart-navigator-bg: color-mix(
+      in oklab,
+      var(--color-surface-alt),
+      transparent 18%
+    );
+
+    --chart-navigator-handle-bg: var(--color-surface-alt);
   }
 
   .market-chart-tooltip__header {
@@ -805,6 +1038,10 @@ html[data-theme="dark"] {
     --market-chart-height: auto;
     --market-chart-min-height: 0;
   }
+
+  .market-chart .highcharts-navigator-xaxis text {
+    font-size: 0.5625rem !important;
+  }
 }
 
 /* ==========================================================================
@@ -825,7 +1062,7 @@ html[data-theme="dark"] {
 
   .market-chart-tooltip {
     min-inline-size: 10.5rem;
-    max-inline-size: min(16rem, calc(100vw - 1.5rem));
+    max-inline-size: min(16rem, calc(100vw - 1rem));
   }
 
   .market-chart-tooltip__header {
@@ -836,6 +1073,14 @@ html[data-theme="dark"] {
     padding: 0.625rem 0.75rem 0.25rem;
 
     font-size: var(--text-base);
+  }
+
+  .market-chart-tooltip__primary:last-child,
+  .market-chart-tooltip:not(
+      :has(.market-chart-tooltip__change, .market-chart-tooltip__ohlc)
+    )
+    .market-chart-tooltip__primary {
+    padding-block-end: 0.625rem;
   }
 
   .market-chart-tooltip__change {
@@ -860,6 +1105,10 @@ html[data-theme="dark"] {
       --icon-size: 0.875rem;
     }
   }
+
+  .market-chart .highcharts-navigator-xaxis text {
+    display: none;
+  }
 }
 
 /* ==========================================================================
@@ -873,20 +1122,28 @@ html[data-contrast="high"] {
     --chart-grid: currentColor;
     --chart-crosshair: currentColor;
     --chart-tooltip-border: currentColor;
+
+    --chart-navigator-border: currentColor;
+    --chart-navigator-handle-fg: currentColor;
   }
 
-  .market-chart .highcharts-grid-line,
-  .market-chart .highcharts-axis-line,
-  .market-chart .highcharts-tick {
-    stroke-width: 2px;
-  }
+  .market-chart {
+    .highcharts-grid-line,
+    .highcharts-axis-line,
+    .highcharts-tick,
+    .highcharts-navigator-outline {
+      stroke-width: 2px;
+    }
 
-  .market-chart .highcharts-graph {
-    stroke-width: 3px;
+    .highcharts-graph {
+      stroke-width: 3px;
+    }
   }
 
   .market-chart-tooltip {
     border: 2px solid currentColor;
+
+    box-shadow: none;
   }
 
   .market-chart-tooltip__header,
@@ -1001,12 +1258,10 @@ html[data-motion="reduce"] {
     --market-chart-min-height: 0;
   }
 
-  .market-chart-toggle {
-    display: none !important;
-  }
-
+  .market-chart-toggle,
   .market-chart-highcharts-tooltip,
-  .market-chart .highcharts-tooltip {
+  .market-chart .highcharts-tooltip,
+  .market-chart .highcharts-navigator {
     display: none !important;
   }
 

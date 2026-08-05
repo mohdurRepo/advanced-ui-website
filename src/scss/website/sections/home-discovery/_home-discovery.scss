@@ -9,16 +9,14 @@
   --home-discovery-muted: var(--color-text-muted);
   --home-discovery-accent: var(--color-primary);
 
-  --home-discovery-promotion-width: 17rem;
-  --home-discovery-content-width: 48rem;
-
   --home-discovery-gap: clamp(1rem, 2vw, 2rem);
   --home-discovery-main-gap: clamp(1rem, 2vw, 1.5rem);
+
+  --home-discovery-content-width: 48rem;
 
   position: relative;
 
   min-inline-size: 0;
-
 
   background: transparent;
   color: var(--home-discovery-fg);
@@ -33,40 +31,112 @@
 }
 
 /* ==========================================================================
-   Layout
+   Grid
    ========================================================================== */
 
 .home-discovery__grid {
   display: grid;
 
+  /*
+   * The fractional columns keep the complete layout within the standard
+   * container width.
+   *
+   * Promotion | Main discovery | Promotion
+   */
+
   grid-template-columns:
-    minmax(0, var(--home-discovery-promotion-width))
-    minmax(0, var(--home-discovery-content-width))
-    minmax(0, var(--home-discovery-promotion-width));
+    minmax(0, 0.9fr)
+    minmax(0, 1.8fr)
+    minmax(0, 0.9fr);
 
   grid-template-areas: "promotion-start main promotion-end";
 
   align-items: stretch;
-  justify-content: center;
   gap: var(--home-discovery-gap);
 
+  inline-size: 100%;
   min-inline-size: 0;
 }
 
 /* ==========================================================================
-   Main Content
+   IBM Portal Wrapper Normalization
+
+   The static template renders the three discovery sections as direct grid
+   children. IBM Portal inserts component-container, component-control and
+   ibmPortalControl wrappers around those sections.
+
+   display: contents removes the generated wrapper boxes so the three actual
+   sections can participate directly in the discovery grid.
    ========================================================================== */
+
+.home-discovery__grid {
+  > .component-container,
+  > .component-container > .component-control,
+  > .component-container > .component-control > .ibmPortalControl {
+    display: contents;
+  }
+
+  /*
+   * Portal administration and analytics elements must not become grid items
+   * after display: contents is applied.
+   */
+
+  > .component-container
+    > .component-control
+    > .ibmPortalControl
+    > :not(
+      .home-discovery__promotion--start,
+      .home-discovery__main,
+      .home-discovery__promotion--end
+    ) {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Grid Items
+   ========================================================================== */
+
+.home-discovery__promotion,
+.home-discovery__main {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+.home-discovery__promotion--start {
+  grid-area: promotion-start;
+}
 
 .home-discovery__main {
   grid-area: main;
+}
 
+.home-discovery__promotion--end {
+  grid-area: promotion-end;
+}
+
+/* ==========================================================================
+   Promotion Sections
+   ========================================================================== */
+
+.home-discovery__promotion {
+  display: flex;
+  align-items: stretch;
+
+  inline-size: 100%;
+}
+
+/* ==========================================================================
+   Main Discovery Section
+   ========================================================================== */
+
+.home-discovery__main {
   display: grid;
   align-content: center;
   justify-items: center;
   gap: var(--home-discovery-main-gap);
 
   inline-size: 100%;
-  min-inline-size: 0;
 
   text-align: center;
 }
@@ -105,41 +175,51 @@
 
 @media (min-width: 992px) and (max-width: 1200px) {
   .home-discovery {
-    --home-discovery-promotion-width: 14rem;
     --home-discovery-gap: 1rem;
+  }
+
+  .home-discovery__grid {
+    grid-template-columns:
+      minmax(0, 0.8fr)
+      minmax(0, 1.7fr)
+      minmax(0, 0.8fr);
   }
 }
 
 /* ==========================================================================
-   Tablet
+   Tablet — Below 992px
+
+   Stack order:
+   1. add1
+   2. Main discovery and search
+   3. add2
    ========================================================================== */
 
-/* ==========================================================================
-   Tablet and Mobile Stack
-   ========================================================================== */
-
-@include ds.respond-down(md) {
+@media (max-width: 991.98px) {
   .home-discovery {
+    --home-discovery-gap: clamp(2rem, 4vw, 3rem);
     --home-discovery-content-width: 42rem;
-    --home-discovery-gap: 1.5rem;
   }
 
   .home-discovery__grid {
     grid-template-columns: minmax(0, 1fr);
 
-    /*
-     * One promotion above the discovery content and one below it.
-     */
     grid-template-areas:
       "promotion-start"
       "main"
       "promotion-end";
 
-    justify-items: center;
+    align-items: start;
+    justify-items: stretch;
+
+    row-gap: var(--home-discovery-gap);
   }
 
+  .home-discovery__promotion,
   .home-discovery__main {
     inline-size: min(100%, var(--home-discovery-content-width));
+
+    justify-self: center;
   }
 }
 
@@ -150,8 +230,12 @@
 @include ds.respond-down(sm) {
   .home-discovery {
     --home-discovery-main-gap: 1rem;
-    --home-discovery-gap: 1.25rem;
+    --home-discovery-gap: 1.5rem;
+  }
 
+  .home-discovery__promotion,
+  .home-discovery__main {
+    inline-size: 100%;
   }
 
   .home-discovery__title {

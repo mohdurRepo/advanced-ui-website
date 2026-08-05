@@ -5413,35 +5413,54 @@
 
       <section
         class="home-discovery section"
-        aria-labelledby="home-discovery-title"
+        aria-labelledby="home-discovery-section-title"
         data-home-discovery
       >
+        <h2 id="home-discovery-section-title" class="visually-hidden">
+          Market discovery
+        </h2>
+
         <div class="container home-discovery__container">
           <div class="home-discovery__grid">
             <!-- ===================================================================
-           Inline-start Promotion
+           Promotion Section — add1
       ==================================================================== -->
 
-            <a
-              class="home-discovery-promotion home-discovery-promotion--start"
-              href="#"
-              aria-label="Explore featured investment content"
+            <section
+              class="home-discovery__promotion home-discovery__promotion--start"
+              aria-labelledby="home-discovery-promotion-start-title"
             >
-              <img
-                class="home-discovery-promotion__image"
-                src="/assets/images/add1.png"
-                alt=""
-                loading="lazy"
-                decoding="async"
-              />
-            </a>
+              <h3
+                id="home-discovery-promotion-start-title"
+                class="visually-hidden"
+              >
+                Featured investment content
+              </h3>
+
+              <a
+                class="home-discovery-promotion"
+                href="#"
+                aria-label="Explore featured investment content"
+              >
+                <img
+                  class="home-discovery-promotion__image"
+                  src="/assets/images/add1.png"
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+              </a>
+            </section>
 
             <!-- ===================================================================
-           Main Discovery Content
+           Main Discovery Section
       ==================================================================== -->
 
-            <div class="home-discovery__main">
-              <h2 id="home-discovery-title" class="home-discovery__title">
+            <section
+              class="home-discovery__main"
+              aria-labelledby="home-discovery-title"
+            >
+              <h3 id="home-discovery-title" class="home-discovery__title">
                 <span class="home-discovery__title-line">
                   From Our Beginnings to Our Present…
                 </span>
@@ -5449,7 +5468,7 @@
                 <span class="home-discovery__title-accent">
                   Where Heritage Fuels the Future
                 </span>
-              </h2>
+              </h3>
 
               <!-- ===============================================================
              Search
@@ -5502,6 +5521,8 @@
                 aria-label="Market tools"
               >
                 <ul class="home-discovery__quick-links-list">
+                  <!-- Panel Dashboard -->
+
                   <li class="home-discovery__quick-links-item">
                     <a
                       class="btn btn-outline-primary btn-sm home-discovery__quick-link"
@@ -5518,6 +5539,8 @@
                     </a>
                   </li>
 
+                  <!-- Network Radar -->
+
                   <li class="home-discovery__quick-links-item">
                     <a
                       class="btn btn-outline-primary btn-sm home-discovery__quick-link"
@@ -5533,6 +5556,8 @@
                       </span>
                     </a>
                   </li>
+
+                  <!-- Analytics Steps -->
 
                   <li class="home-discovery__quick-links-item">
                     <a
@@ -5551,25 +5576,37 @@
                   </li>
                 </ul>
               </nav>
-            </div>
+            </section>
 
             <!-- ===================================================================
-           Inline-end Promotion
+           Promotion Section — add2
       ==================================================================== -->
 
-            <a
-              class="home-discovery-promotion home-discovery-promotion--end"
-              href="#"
-              aria-label="Watch featured market content"
+            <section
+              class="home-discovery__promotion home-discovery__promotion--end"
+              aria-labelledby="home-discovery-promotion-end-title"
             >
-              <img
-                class="home-discovery-promotion__image"
-                src="/assets/images/add2.png"
-                alt=""
-                loading="lazy"
-                decoding="async"
-              />
-            </a>
+              <h3
+                id="home-discovery-promotion-end-title"
+                class="visually-hidden"
+              >
+                Featured market content
+              </h3>
+
+              <a
+                class="home-discovery-promotion"
+                href="#"
+                aria-label="Watch featured market content"
+              >
+                <img
+                  class="home-discovery-promotion__image"
+                  src="/assets/images/add2.png"
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+              </a>
+            </section>
           </div>
         </div>
       </section>
@@ -9112,13 +9149,24 @@
       "use strict";
 
       /* ======================================================================
-       TASI Overview Dummy Data
+       TASI Overview Test Data
        ====================================================================== */
 
       const tasiOverviewData = {
         symbol: "TASI",
+
         name: "Tadawul All Share Index",
+
         currency: "SAR",
+
+        /*
+         * Required comparison baseline for the first visible intraday point.
+         *
+         * First point:
+         * 12,402.18 - 12,398.69 = +3.49 (+0.03%)
+         */
+
+        previousClose: 12398.69,
 
         trend: [
           [1767258000000, 12402.18],
@@ -9135,15 +9183,22 @@
       };
 
       /* ======================================================================
-       Test Live Feed
+       Development Live Feed
        ====================================================================== */
 
       /*
-       * Five seconds is used only for development testing. Change this to
-       * 60000 when connecting the production live endpoint.
+       * Five seconds is for development testing only.
+       * Replace with 60_000 for a one-minute production feed.
        */
 
-      const TEST_LIVE_INTERVAL = 5000;
+      const TEST_LIVE_INTERVAL = 5_000;
+
+      /*
+       * Preserve the initially visible intraday duration as new points arrive.
+       */
+
+      const LIVE_WINDOW_DURATION =
+        tasiOverviewData.trend.at(-1)[0] - tasiOverviewData.trend[0][0];
 
       const liveState = {
         lastTimestamp: tasiOverviewData.trend.at(-1)[0],
@@ -9152,6 +9207,11 @@
 
         sequence: 0,
       };
+
+      /*
+       * The movements contain positive and negative updates so live rendering,
+       * adaptive scaling, tooltips, and point replacement can be validated.
+       */
 
       const liveMovements = [
         1.25, 0.64, -0.82, 1.48, -0.36, 0.91, -1.14, 1.67, 0.42, -0.73,
@@ -9170,9 +9230,7 @@
         const price = roundPrice(liveState.lastPrice + movement);
 
         liveState.lastTimestamp = timestamp;
-
         liveState.lastPrice = price;
-
         liveState.sequence += 1;
 
         return [timestamp, price];
@@ -9190,9 +9248,9 @@
         const messageElement = document.createElement("div");
 
         messageElement.className =
-          "market-chart__message market-chart__message--error";
+          "market-chart__message " + "market-chart__message--error";
 
-        messageElement.setAttribute("role", "status");
+        messageElement.setAttribute("role", "alert");
 
         const textElement = document.createElement("p");
 
@@ -9214,7 +9272,7 @@
         const chartElement = document.querySelector("#tasi-chart");
 
         if (!chartElement) {
-          return;
+          return null;
         }
 
         const panel = chartElement.closest("#market-panel-tasi");
@@ -9231,8 +9289,17 @@
               "SEMarketCharts is unavailable.",
           );
 
-          return;
+          return null;
         }
+
+        /*
+         * Protect against duplicate initialization during Vite hot updates or
+         * repeated page-fragment initialization.
+         */
+
+        panel?.marketChartController?.destroy();
+
+        panel?.setAttribute("aria-busy", "true");
 
         try {
           const controller = chartAPI.create(chartElement, {
@@ -9244,9 +9311,11 @@
 
             currency: tasiOverviewData.currency,
 
+            previousClose: tasiOverviewData.previousClose,
+
             /*
-             * Market Overview intentionally remains a compact trend chart.
-             * Analytical controls stay in Main Market Performance.
+             * Overview remains a compact trend chart. Range, chart-type,
+             * comparison, and export controls belong to Performance.
              */
 
             mode: "trend",
@@ -9262,19 +9331,23 @@
             xAxisTitle: null,
             yAxisTitle: null,
 
+            navigatorEnabled: true,
+
+            followLive: true,
+
+            liveWindowDuration: LIVE_WINDOW_DURATION,
+
             ranges: {
               "1D": {
-                trend: tasiOverviewData.trend,
+                trend: tasiOverviewData.trend.map((point) => [...point]),
 
                 line: tasiOverviewData.trend.map((point) => [...point]),
-
-                candlestick: [],
               },
             },
 
             /*
-             * The TASI panel is the local root. No range, mode, compare or
-             * export controls are queried outside this panel.
+             * The TASI panel is the local component root. The Overview has no
+             * external range, mode, comparison, or export controls.
              */
 
             controls: {
@@ -9290,6 +9363,11 @@
               immediate: false,
 
               retry: true,
+
+              maxRetryDelay: 30_000,
+
+              requestTimeout: 4_000,
+
               autostart: true,
 
               async fetchPoint({ signal }) {
@@ -9322,14 +9400,20 @@
             );
           }
 
-          /*
-           * MarketChartController currently treats .performance-chart as its
-           * section owner. The Overview panel clears its own busy state here.
-           */
-
           panel?.setAttribute("aria-busy", "false");
 
-          panel.marketChartController = controller;
+          if (panel) {
+            panel.marketChartController = controller;
+          }
+
+          /*
+           * Optional development reference. Remove this assignment when it is
+           * no longer needed for manual testing.
+           */
+
+          window.tasiOverviewChart = controller;
+
+          return controller;
         } catch (error) {
           console.error("TASI Overview chart initialization failed.", error);
 
@@ -9338,6 +9422,8 @@
             panel,
             "TASI market performance could not be loaded.",
           );
+
+          return null;
         }
       }
 

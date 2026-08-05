@@ -90,10 +90,24 @@
 }
 
 /* ==========================================================================
+   Tablet — Below 992px
+   ========================================================================== */
+
+@media (max-width: 991.98px) {
+  .home-discovery__quick-links {
+    inline-size: min(100%, 36rem);
+  }
+}
+
+/* ==========================================================================
    Mobile
    ========================================================================== */
 
 @include ds.respond-down(sm) {
+  .home-discovery__quick-links {
+    inline-size: 100%;
+  }
+
   .home-discovery__quick-links-list {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -118,6 +132,10 @@
     overflow-wrap: anywhere;
   }
 }
+
+/* ==========================================================================
+   Small Mobile
+   ========================================================================== */
 
 @media (max-width: 420px) {
   .home-discovery__quick-links-list {
