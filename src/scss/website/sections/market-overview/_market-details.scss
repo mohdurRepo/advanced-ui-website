@@ -52,11 +52,6 @@
      Layout
      -------------------------------------------------------------------- */
 
-  --market-details-container-width: var(
-    --market-overview-container-width,
-    1320px
-  );
-
   --market-details-container-space: var(
     --market-overview-container-space,
     2rem
@@ -153,11 +148,6 @@
   isolation: isolate;
 
   display: block;
-
-  inline-size: min(
-    calc(100% - var(--market-details-container-space)),
-    var(--market-details-container-width)
-  );
 
   max-inline-size: none;
   min-inline-size: 0;
