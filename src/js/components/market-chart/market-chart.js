@@ -6,7 +6,9 @@ import {
 } from "./market-chart-data";
 
 import { createMarketChartExportController } from "./market-chart-export";
+
 import { createMarketChartLiveController } from "./market-chart-live";
+
 import { createMarketChartOptions } from "./market-chart-options";
 
 import {
@@ -56,19 +58,28 @@ const DEFAULT_CONFIGURATION = Object.freeze({
   xAxisTitle: null,
   yAxisTitle: null,
 
+  axis: {},
+  xAxis: {},
+  yAxis: {},
+
+  dateFormats: {},
+  tooltipDateFormats: {},
+
   navigatorEnabled: null,
+  navigator: {},
 
   /*
-   * When enabled, incoming live points advance the visible X-axis window.
-   * User interaction with the Navigator, zoom, scrollbar, or pan temporarily
-   * disables following until resumeLiveFollow() is called.
+   * Incoming live points advance the visible X-axis window until the user
+   * manually changes the Navigator, zoom, scrollbar, or pan position.
    */
+
   followLive: true,
 
   /*
-   * Optional fixed live window in milliseconds.
-   * When omitted, the current visible X-axis span is preserved.
+   * Optional fixed live window in milliseconds. When omitted, the chart
+   * preserves the current visible X-axis duration.
    */
+
   liveWindowDuration: null,
 
   data: [],
@@ -78,6 +89,7 @@ const DEFAULT_CONFIGURATION = Object.freeze({
   live: null,
 
   emptyMessage: "Chart data is currently unavailable.",
+
   errorMessage: "The chart could not be loaded.",
 });
 
@@ -172,6 +184,52 @@ function getPointTimestamp(point) {
   return Number.NaN;
 }
 
+function getPointCloseValue(point, mode) {
+  if (Array.isArray(point)) {
+    return Number(mode === "candlestick" ? point[4] : point[1]);
+  }
+
+  if (point && typeof point === "object") {
+    return Number(mode === "candlestick" ? (point.close ?? point.y) : point.y);
+  }
+
+  return Number.NaN;
+}
+
+function getEffectiveDirection(data, mode) {
+  if (Array.isArray(data) && data.length) {
+    const closes = data
+      .map((point) => getPointCloseValue(point, mode))
+      .filter(isFiniteNumber);
+
+    if (closes.length >= 2) {
+      const first = closes[0];
+      const last = closes.at(-1);
+
+      if (last > first) {
+        return "up";
+      }
+
+      if (last < first) {
+        return "down";
+      }
+
+      return "neutral";
+    }
+  }
+
+  const direction = getMarketChartDirection(data, mode);
+
+  if (direction === "positive") {
+    return "up";
+  }
+
+  if (direction === "negative") {
+    return "down";
+  }
+
+  return direction === "up" || direction === "down" ? direction : "neutral";
+}
 function prefersReducedMotion() {
   return (
     document.documentElement.dataset.motion === "reduce" ||
@@ -188,7 +246,7 @@ function getChartAnimation() {
 }
 
 /* ==========================================================================
-   State Message
+   State Messages
    ========================================================================== */
 
 function removeStateMessage(element) {
@@ -201,11 +259,13 @@ function setStateMessage(element, message, state) {
   const wrapper = document.createElement("div");
 
   wrapper.className = `market-chart__message market-chart__message--${state}`;
+
   wrapper.setAttribute("role", state === "error" ? "alert" : "status");
 
   const text = document.createElement("p");
 
   text.className = "market-chart__message-text";
+
   text.textContent = message;
 
   wrapper.append(text);
@@ -274,6 +334,7 @@ class MarketChartController {
     );
 
     this.viewport = resolveViewport(element);
+
     this.section = resolveSection(element);
 
     this.abortController = new AbortController();
@@ -294,14 +355,24 @@ class MarketChartController {
     this.destroyed = false;
 
     this.followLive = this.configuration.followLive !== false;
+
     this.internalAxisUpdate = false;
+
+    /*
+     * Stores the closest UI range while the user changes Navigator extremes.
+     * It does not replace currentRange or load another dataset.
+     */
+
+    this.navigatorRange = null;
 
     this.rangeButtons = [];
     this.modeButtons = [];
     this.compareButton = null;
 
     this.handleThemeMutation = this.handleThemeMutation.bind(this);
+
     this.handleViewportResize = this.handleViewportResize.bind(this);
+
     this.handleAxisExtremes = this.handleAxisExtremes.bind(this);
   }
 
@@ -358,13 +429,14 @@ class MarketChartController {
      ===================================================================== */
 
   createOptions(data = this.getActiveData()) {
-    const direction = getMarketChartDirection(data, this.currentMode);
+    const direction = getEffectiveDirection(data, this.currentMode);
 
     return createMarketChartOptions({
       Highcharts: this.Highcharts,
       element: this.element,
 
       context: this.configuration.context,
+
       currency: this.configuration.currency,
 
       mode: this.currentMode,
@@ -381,14 +453,37 @@ class MarketChartController {
       previousClose: this.configuration.previousClose,
 
       language: this.configuration.language,
+
       timeZone: this.configuration.timeZone,
 
       decimals: this.configuration.decimals,
 
       xAxisTitle: this.configuration.xAxisTitle,
+
       yAxisTitle: this.configuration.yAxisTitle,
 
+      axis: this.configuration.axis,
+
+      xAxis: this.configuration.xAxis,
+
+      yAxis: this.configuration.yAxis,
+
+      dateFormats: this.configuration.dateFormats,
+
+      tooltipDateFormats: this.configuration.tooltipDateFormats,
+
       navigatorEnabled: this.configuration.navigatorEnabled,
+
+      navigator: this.configuration.navigator,
+
+      /*
+       * 1D supplies intraday data and formatting.
+       * Every other selected range supplies ALL-history Navigator data.
+       */
+
+      navigatorData: this.getNavigatorData(),
+
+      navigatorRange: this.getNavigatorRange(),
 
       animation: getChartAnimation(),
 
@@ -426,6 +521,58 @@ class MarketChartController {
     return normalizeMarketChartData(this.baseData, this.currentMode);
   }
 
+  getNavigatorData() {
+    /*
+     * Intraday charts use the intraday timeline so the Navigator displays
+     * trading hours instead of unrelated historical dates.
+     */
+
+    if (this.currentRange === "1D") {
+      const intradayRange = this.ranges["1D"];
+
+      if (intradayRange?.trend?.length) {
+        return intradayRange.trend;
+      }
+
+      if (intradayRange?.line?.length) {
+        return intradayRange.line;
+      }
+
+      return this.getActiveData();
+    }
+
+    /*
+     * All non-intraday views use a stable ALL-history Navigator. This keeps
+     * the Navigator useful as a global timeline while the primary chart
+     * displays the selected 1W, 1M, 3M, 1Y, or 5Y dataset.
+     */
+
+    const allRange = this.ranges.ALL;
+
+    if (!allRange) {
+      return this.getActiveData();
+    }
+
+    /*
+     * The Navigator remains mode-independent. A compact trend series is more
+     * readable than duplicating the active candlestick presentation.
+     */
+
+    if (allRange.trend?.length) {
+      return allRange.trend;
+    }
+
+    if (allRange.line?.length) {
+      return allRange.line;
+    }
+
+    return this.getActiveData();
+  }
+
+  getNavigatorRange() {
+    return this.currentRange === "1D" ? "1D" : "ALL";
+  }
+
   hasRange(range) {
     return Boolean(this.ranges[range]);
   }
@@ -454,8 +601,8 @@ class MarketChartController {
     this.element.dataset.chartState = state;
 
     /*
-     * Remove state classes from any previous chart implementation. The shared
-     * component uses data-chart-state as its only visual state contract.
+     * Remove classes retained by older chart implementations. The shared
+     * component uses data-chart-state as its visual state contract.
      */
 
     this.element.classList.remove("is-loading", "loading");
@@ -493,7 +640,7 @@ class MarketChartController {
      Rendering
      ===================================================================== */
 
-  render({ preserveExtremes = false, animate = true } = {}) {
+  render({ preserveExtremes = false, animate = true, recreate = false } = {}) {
     if (this.destroyed) {
       return false;
     }
@@ -505,6 +652,7 @@ class MarketChartController {
       this.chart = null;
 
       this.setState("empty", this.configuration.emptyMessage);
+
       this.updateControls();
 
       return false;
@@ -520,6 +668,25 @@ class MarketChartController {
     try {
       const options = this.createOptions(data);
 
+      /*
+       * Range and mode changes recreate Highcharts Stock. This prevents stale
+       * internal Navigator series, axis formats, and candlestick state from
+       * surviving a dataset change.
+       */
+
+      if (recreate && this.chart) {
+        const axis = this.chart.xAxis?.[0];
+
+        axis?.marketChartExtremesUnbind?.();
+
+        this.chart.destroy();
+        this.chart = null;
+
+        this.exportController?.destroy();
+
+        this.exportController = null;
+      }
+
       if (!this.chart) {
         this.element.replaceChildren();
 
@@ -527,7 +694,22 @@ class MarketChartController {
 
         this.bindAxisEvents();
 
+        if (
+          previousExtremes &&
+          isFiniteNumber(previousExtremes.min) &&
+          isFiniteNumber(previousExtremes.max)
+        ) {
+          this.setAxisExtremes(
+            Number(previousExtremes.min),
+            Number(previousExtremes.max),
+            false,
+          );
+
+          this.chart.redraw(animate ? getChartAnimation() : false);
+        }
+
         this.exportController?.destroy();
+
         this.exportController = null;
 
         this.initializeExport();
@@ -584,7 +766,7 @@ class MarketChartController {
   }
 
   /* ========================================================================
-     X-Axis Following
+     Axis Synchronization
      ===================================================================== */
 
   bindAxisEvents() {
@@ -608,8 +790,122 @@ class MarketChartController {
 
     if (USER_AXIS_TRIGGERS.has(event.trigger)) {
       this.followLive = false;
+
+      this.syncRangeControlFromExtremes(event);
+
       this.updateLiveFollowState();
     }
+  }
+
+  getDataBounds(data = this.getActiveData()) {
+    if (!Array.isArray(data) || data.length === 0) {
+      return null;
+    }
+
+    const timestamps = data
+      .map(getPointTimestamp)
+      .filter(isFiniteNumber)
+      .sort((left, right) => left - right);
+
+    if (!timestamps.length) {
+      return null;
+    }
+
+    const minimum = timestamps[0];
+    const maximum = timestamps.at(-1);
+
+    return {
+      min: minimum,
+      max: maximum,
+
+      duration: Math.max(0, maximum - minimum),
+    };
+  }
+
+  getRangeDurations() {
+    return Object.entries(this.ranges)
+      .map(([range, record]) => {
+        const data =
+          record[this.currentMode] ||
+          (this.currentMode === "line" ? record.trend : null) ||
+          record.trend ||
+          record.candlestick;
+
+        const bounds = this.getDataBounds(data);
+
+        return bounds?.duration > 0
+          ? {
+              range,
+              duration: bounds.duration,
+            }
+          : null;
+      })
+      .filter(Boolean)
+      .sort((left, right) => left.duration - right.duration);
+  }
+
+  findClosestRange(duration) {
+    if (!isFiniteNumber(duration) || duration <= 0) {
+      return null;
+    }
+
+    const ranges = this.getRangeDurations();
+
+    if (!ranges.length) {
+      return null;
+    }
+
+    return ranges.reduce((closest, candidate) => {
+      const candidateDifference = Math.abs(
+        Math.log(candidate.duration / duration),
+      );
+
+      const closestDifference = Math.abs(Math.log(closest.duration / duration));
+
+      return candidateDifference < closestDifference ? candidate : closest;
+    }).range;
+  }
+
+  syncRangeControlFromExtremes(event) {
+    if (this.configuration.navigator?.synchronizeRange === false) {
+      return null;
+    }
+
+    const minimum = Number(event?.min);
+    const maximum = Number(event?.max);
+
+    if (!isFiniteNumber(minimum) || !isFiniteNumber(maximum)) {
+      return null;
+    }
+
+    const range = this.findClosestRange(maximum - minimum);
+
+    if (!range || range === this.navigatorRange) {
+      return range;
+    }
+
+    /*
+     * Update only the visual range control. Dragging the Navigator must not
+     * replace the primary dataset or recreate the chart.
+     */
+
+    this.navigatorRange = range;
+    this.updateControls();
+
+    this.element.dispatchEvent(
+      new CustomEvent("marketchartnavigatorrangechange", {
+        bubbles: true,
+
+        detail: {
+          range,
+          minimum,
+          maximum,
+          controller: this,
+        },
+      }),
+    );
+
+    return range;
   }
 
   setAxisExtremes(minimum, maximum, redraw = false) {
@@ -683,10 +979,12 @@ class MarketChartController {
 
   resumeLiveFollow() {
     this.followLive = true;
+
     this.updateLiveFollowState();
 
     const data = this.getActiveData();
     const lastPoint = data.at(-1);
+
     const timestamp = getPointTimestamp(lastPoint);
 
     if (isFiniteNumber(timestamp)) {
@@ -698,6 +996,7 @@ class MarketChartController {
 
   pauseLiveFollow() {
     this.followLive = false;
+
     this.updateLiveFollowState();
 
     return this.followLive;
@@ -710,13 +1009,19 @@ class MarketChartController {
 
     this.section?.setAttribute("data-chart-follow-live", value);
   }
-
   /* ========================================================================
      Range
      ===================================================================== */
 
   setRange(range) {
-    if (!range || range === this.currentRange || !this.hasRange(range)) {
+    if (!range || !this.hasRange(range)) {
+      return false;
+    }
+
+    const restoresCurrentRange =
+      range === this.currentRange && Boolean(this.navigatorRange);
+
+    if (range === this.currentRange && !restoresCurrentRange) {
       return false;
     }
 
@@ -739,17 +1044,27 @@ class MarketChartController {
     this.currentRange = range;
     this.currentMode = nextMode;
 
+    /*
+     * Clear the temporary Navigator selection so the clicked range becomes
+     * the authoritative active control.
+     */
+
+    this.navigatorRange = null;
+
     this.configuration.range = range;
     this.configuration.mode = nextMode;
 
     /*
-     * A range selection returns the chart to its latest point. Further
-     * Navigator, pan, or zoom interaction can pause live following again.
+     * Selecting a range returns the chart to the latest available point.
+     * Subsequent Navigator, pan, zoom, or scrollbar interaction can pause
+     * live following again.
      */
 
     this.followLive = this.configuration.followLive !== false;
 
-    const rendered = this.render();
+    const rendered = this.render({
+      recreate: true,
+    });
 
     if (rendered) {
       this.updateLiveFollowState();
@@ -781,6 +1096,7 @@ class MarketChartController {
 
     const rendered = this.render({
       preserveExtremes: true,
+      recreate: true,
     });
 
     if (rendered) {
@@ -810,12 +1126,17 @@ class MarketChartController {
       String(this.isComparing),
     );
 
+    /*
+     * Candlesticks cannot represent multiple comparison series consistently.
+     * Return to trend mode before comparison begins.
+     */
+
     if (this.isComparing && this.currentMode === "candlestick") {
       this.currentMode = "trend";
       this.configuration.mode = "trend";
 
       this.render({
-        preserveExtremes: true,
+        recreate: true,
       });
     }
 
@@ -827,7 +1148,9 @@ class MarketChartController {
 
         detail: {
           active: this.isComparing,
+
           symbol: this.configuration.symbol,
+
           controller: this,
         },
       }),
@@ -870,6 +1193,8 @@ class MarketChartController {
     this.currentMode = mode;
     this.configuration.mode = mode;
 
+    this.navigatorRange = null;
+
     this.baseData = normalized;
     this.configuration.data = normalized;
 
@@ -882,11 +1207,14 @@ class MarketChartController {
       preserveExtremes: options.preserveExtremes ?? false,
 
       animate: options.animate ?? true,
+
+      recreate: options.recreate ?? true,
     });
   }
 
   setRanges(ranges, options = {}) {
     const normalized = normalizeMarketChartRanges(ranges);
+
     const names = Object.keys(normalized);
 
     if (!names.length) {
@@ -894,6 +1222,7 @@ class MarketChartController {
     }
 
     this.ranges = normalized;
+
     this.configuration.ranges = ranges;
 
     const requestedRange = options.range || this.currentRange || names[0];
@@ -907,12 +1236,18 @@ class MarketChartController {
     }
 
     this.configuration.range = this.currentRange;
+
     this.configuration.mode = this.currentMode;
+
+    this.navigatorRange = null;
 
     return this.render({
       animate: options.animate ?? true,
+
+      recreate: options.recreate ?? true,
     });
   }
+
   /* ========================================================================
      Live Updates
      ===================================================================== */
@@ -931,12 +1266,16 @@ class MarketChartController {
     this.liveController?.destroy();
 
     this.liveController = createMarketChartLiveController({
-      interval: live.interval ?? 60000,
+      interval: live.interval ?? 60_000,
+
       alignToInterval: live.alignToInterval ?? true,
+
       immediate: live.immediate ?? false,
 
       retry: live.retry ?? true,
+
       maxRetryDelay: live.maxRetryDelay,
+
       requestTimeout: live.requestTimeout,
 
       fetchPoint: ({ signal, requestedAt, sequence }) => {
@@ -946,7 +1285,9 @@ class MarketChartController {
           sequence,
 
           symbol: this.configuration.symbol,
+
           range: this.currentRange,
+
           mode: this.currentMode,
 
           controller: this,
@@ -998,6 +1339,7 @@ class MarketChartController {
 
     const result = mergeMarketChartLivePoint(currentData, point, {
       mode: this.currentMode,
+
       maxPoints: this.configuration.maxPoints,
     });
 
@@ -1030,9 +1372,8 @@ class MarketChartController {
     }
 
     /*
-     * Keep the current visible duration while advancing its endpoint to the
-     * latest live timestamp. Navigator, scrollbar, pan, and zoom interaction
-     * can suspend this behavior.
+     * Keep the visible duration while advancing its endpoint. Manual
+     * Navigator, scrollbar, pan, and zoom interaction can suspend this.
      */
 
     if (isFiniteNumber(timestamp)) {
@@ -1040,9 +1381,8 @@ class MarketChartController {
     }
 
     /*
-     * Returning the Y-axis to automatic extremes makes the scale adapt to the
-     * newly visible points. Highcharts then applies the configured min/max
-     * padding from market-chart-options.js.
+     * Return the visible Y-axis to automatic extremes so live values remain
+     * inside the scale. Ignore Highcharts' internal Navigator axis.
      */
 
     this.chart.yAxis.forEach((axis) => {
@@ -1054,9 +1394,8 @@ class MarketChartController {
     });
 
     /*
-     * Direction must be applied before the redraw. Highcharts stores series
-     * colors directly in its SVG, so changing data-chart-direction alone is
-     * insufficient to recolor an existing live series.
+     * Apply direction before redraw. Highcharts stores series colors in SVG,
+     * so updating only data-chart-direction would not recolor the line.
      */
 
     this.updateDirection(result.data);
@@ -1075,7 +1414,9 @@ class MarketChartController {
           metadata,
 
           symbol: this.configuration.symbol,
+
           range: this.currentRange,
+
           mode: this.currentMode,
 
           controller: this,
@@ -1091,6 +1432,7 @@ class MarketChartController {
 
     if (!record) {
       this.baseData = data;
+
       this.configuration.data = data;
 
       return;
@@ -1099,9 +1441,8 @@ class MarketChartController {
     record[this.currentMode] = data;
 
     /*
-     * Trend and line modes share the same two-value point structure. Keeping
-     * both synchronized allows the user to switch type without losing live
-     * updates.
+     * Trend and line share the same [timestamp, value] point structure.
+     * Synchronize them so switching type does not discard live points.
      */
 
     if (this.currentMode === "trend") {
@@ -1142,6 +1483,7 @@ class MarketChartController {
 
     time.textContent = formatUpdatedTime(timestamp, {
       language: this.configuration.language,
+
       timeZone: this.configuration.timeZone,
     });
   }
@@ -1178,8 +1520,8 @@ class MarketChartController {
     const direction = getMarketChartDirection(data, this.currentMode);
 
     /*
-     * Set the semantic attributes first so getComputedStyle() resolves the
-     * direction-specific --chart-line value.
+     * Set semantic attributes before reading the theme. This lets CSS resolve
+     * the direction-specific --chart-line variable.
      */
 
     this.element.dataset.chartDirection = direction;
@@ -1201,14 +1543,15 @@ class MarketChartController {
     const mainSeries = this.getMainSeries();
 
     /*
-     * Do not call Series.update() here. Highcharts rebuilds the series during
-     * update(), and rebuilding either the base or internal Navigator series
-     * can break the Navigator-to-X-axis relationship. Persist the new colors
-     * in the series options and update the existing SVG graphics directly.
+     * Do not use Series.update() here. Rebuilding the main or internal
+     * Navigator series can break Navigator-to-X-axis synchronization.
+     *
+     * Update stored options and current SVG graphics directly.
      */
 
     if (mainSeries) {
       Object.assign(mainSeries.options || {}, seriesTheme);
+
       Object.assign(mainSeries.userOptions || {}, seriesTheme);
 
       mainSeries.color = seriesTheme.color || theme.line;
@@ -1234,14 +1577,18 @@ class MarketChartController {
             : seriesTheme.lineColor;
 
           point.color = fill;
-          point.graphic?.attr({ fill, stroke });
+
+          point.graphic?.attr({
+            fill,
+            stroke,
+          });
         });
       }
     }
 
     /*
-     * Keep the Stock Navigator synchronized even when its generated series
-     * contains inline SVG colors from the previous direction.
+     * Keep the Navigator synchronized with the semantic direction color,
+     * including after live updates and theme/accent changes.
      */
 
     const navigatorSeries = this.chart.navigator?.series;
@@ -1288,7 +1635,6 @@ class MarketChartController {
 
     return direction;
   }
-
   /* ========================================================================
      Events
      ===================================================================== */
@@ -1300,9 +1646,13 @@ class MarketChartController {
 
         detail: {
           source,
+
           range: this.currentRange,
+
           mode: this.currentMode,
+
           symbol: this.configuration.symbol,
+
           controller: this,
         },
       }),
@@ -1319,6 +1669,7 @@ class MarketChartController {
     }
 
     const signal = this.abortController.signal;
+
     const controls = this.configuration.controls;
 
     const rangeSelector = controls.rangeSelector || "[data-chart-range]";
@@ -1343,7 +1694,9 @@ class MarketChartController {
         () => {
           this.setRange(button.dataset.chartRange || button.dataset.range);
         },
-        { signal },
+        {
+          signal,
+        },
       );
     });
 
@@ -1353,7 +1706,9 @@ class MarketChartController {
         () => {
           this.setMode(button.dataset.chartType || button.dataset.chartMode);
         },
-        { signal },
+        {
+          signal,
+        },
       );
     });
 
@@ -1362,23 +1717,35 @@ class MarketChartController {
       () => {
         this.setComparing(!this.isComparing);
       },
-      { signal },
+      {
+        signal,
+      },
     );
   }
 
   updateControls() {
+    /*
+     * Navigator interaction can temporarily highlight the closest available
+     * range. A direct range-button selection resets navigatorRange.
+     */
+
+    const selectedRange = this.navigatorRange || this.currentRange;
+
     this.rangeButtons.forEach((button) => {
       const range = button.dataset.chartRange || button.dataset.range;
 
-      const active = range === this.currentRange;
+      const active = range === selectedRange;
+
       const available = this.hasModeData(this.currentMode, range);
 
       button.classList.toggle("is-active", active);
 
       button.setAttribute("aria-selected", String(active));
+
       button.setAttribute("aria-pressed", String(active));
 
       button.tabIndex = active ? 0 : -1;
+
       button.disabled = !available;
 
       button.setAttribute("aria-disabled", String(!available));
@@ -1395,6 +1762,7 @@ class MarketChartController {
       button.classList.toggle("is-active", active);
 
       button.setAttribute("aria-pressed", String(active));
+
       button.setAttribute("aria-selected", String(active));
 
       button.disabled = !available;
@@ -1424,6 +1792,7 @@ class MarketChartController {
       chart: this.chart,
 
       chartElement: this.element,
+
       root: this.controlsRoot,
 
       trigger: controls.exportTrigger || ".chart-export__trigger",
@@ -1483,6 +1852,11 @@ class MarketChartController {
       this.configuration.language =
         document.documentElement.lang || this.configuration.language;
 
+      /*
+       * Preserve the user's current Navigator/zoom position during theme,
+       * contrast, language, direction, or accent changes.
+       */
+
       this.render({
         preserveExtremes: true,
         animate: false,
@@ -1509,6 +1883,7 @@ class MarketChartController {
 
     window.addEventListener("resize", this.handleViewportResize, {
       passive: true,
+
       signal: this.abortController.signal,
     });
   }
@@ -1537,11 +1912,17 @@ class MarketChartController {
     const rectangle = this.viewport.getBoundingClientRect();
 
     const width = Math.round(rectangle.width);
+
     const height = Math.round(rectangle.height);
 
     if (width <= 0 || height <= 0) {
       return;
     }
+
+    /*
+     * Prevent ResizeObserver feedback loops and the previously reported
+     * continuously growing dashboard height.
+     */
 
     if (
       width === this.lastViewportWidth &&
@@ -1602,13 +1983,19 @@ class MarketChartController {
     this.element.classList.remove("is-loading", "loading");
 
     this.element.removeAttribute("data-chart-ready");
+
     this.element.removeAttribute("data-chart-state");
+
     this.element.removeAttribute("data-chart-direction");
+
     this.element.removeAttribute("data-chart-hover");
+
     this.element.removeAttribute("data-chart-live-state");
+
     this.element.removeAttribute("data-chart-follow-live");
 
     this.section?.removeAttribute("data-chart-live-state");
+
     this.section?.removeAttribute("data-chart-follow-live");
 
     chartRegistry.delete(this.element);
@@ -1635,12 +2022,19 @@ export function createMarketChart(target, configuration = {}) {
 
     setStateMessage(
       element,
+
       configuration.errorMessage || DEFAULT_CONFIGURATION.errorMessage,
+
       "error",
     );
 
     return null;
   }
+
+  /*
+   * Creating a chart for an existing element first destroys its previous
+   * controller, listeners, observers, timers, and Highcharts instance.
+   */
 
   chartRegistry.get(element)?.destroy();
 

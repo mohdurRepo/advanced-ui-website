@@ -302,16 +302,24 @@
       ry: 2px;
     }
 
+    /*
+     * The final JavaScript uses custom inward-facing SVG path handles.
+     */
+
     path {
-      fill: none;
-      stroke: var(--chart-navigator-handle-fg);
+      fill: var(--chart-navigator-handle-bg);
+      stroke: var(--chart-navigator-border);
       stroke-width: 1px;
+
+      filter: none;
     }
   }
 
   .highcharts-navigator-xaxis {
     text {
-      font-size: 0.625rem !important;
+      text-shadow: none !important;
+
+      filter: none !important;
     }
 
     .highcharts-axis-line {
@@ -338,7 +346,7 @@
 }
 
 /* ==========================================================================
-   Outside HTML Tooltip Host
+   HTML Tooltip Host
    ========================================================================== */
 
 .market-chart-highcharts-tooltip,
@@ -354,6 +362,7 @@
 
 .market-chart-highcharts-tooltip > span {
   inline-size: max-content !important;
+
   max-inline-size: min(18rem, calc(100vw - 1rem));
 
   overflow: visible !important;
@@ -371,6 +380,7 @@
   box-sizing: border-box;
 
   min-inline-size: 11.5rem;
+
   max-inline-size: min(18rem, calc(100vw - 1rem));
 
   overflow: hidden;
@@ -409,7 +419,20 @@
   background: color-mix(in oklab, var(--color-surface-alt), transparent 14%);
 }
 
-.market-chart-tooltip__symbol {
+.market-chart-tooltip__header > strong,
+.market-chart-tooltip__header > time {
+  display: block;
+
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.market-chart-tooltip__symbol,
+.market-chart-tooltip__header > strong {
   min-inline-size: 0;
 
   overflow: hidden;
@@ -424,7 +447,8 @@
   white-space: nowrap;
 }
 
-.market-chart-tooltip__date {
+.market-chart-tooltip__date,
+.market-chart-tooltip__header > time {
   min-inline-size: 0;
 
   overflow: hidden;
@@ -459,6 +483,42 @@
   white-space: nowrap;
 }
 
+.market-chart-tooltip__body > .market-chart-tooltip__value {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+
+  padding: 0.75rem 0.875rem 0.25rem;
+
+  color: var(--chart-heading);
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("heavy");
+  line-height: 1.1;
+
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.market-chart-tooltip__body > .market-chart-tooltip__value > span {
+  flex: 0 0 auto;
+
+  font-size: 0.72em;
+  font-weight: ds.font-weight("bold");
+
+  opacity: 0.78;
+}
+
+.market-chart-tooltip__body > .market-chart-tooltip__value > strong {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
 .market-chart-tooltip__currency {
   flex: 0 0 auto;
 
@@ -469,15 +529,21 @@
 }
 
 /*
- * The first point has no preceding value and therefore may not contain a
- * change row. Give the primary value its own bottom padding in that state.
+ * The first point can use previousClose as its comparison baseline. If no
+ * comparison exists, provide complete bottom padding for the primary value.
  */
 
 .market-chart-tooltip__primary:last-child,
+.market-chart-tooltip__body > .market-chart-tooltip__value:last-child,
 .market-chart-tooltip:not(
     :has(.market-chart-tooltip__change, .market-chart-tooltip__ohlc)
   )
-  .market-chart-tooltip__primary {
+  .market-chart-tooltip__primary,
+.market-chart-tooltip:not(
+    :has(.market-chart-tooltip__change, .market-chart-tooltip__rows)
+  )
+  .market-chart-tooltip__body
+  > .market-chart-tooltip__value {
   padding-block-end: 0.75rem;
 }
 
@@ -500,6 +566,13 @@
   font-weight: ds.font-weight("bold");
 
   white-space: nowrap;
+}
+
+.market-chart-tooltip__change > span:last-child {
+  opacity: 0.82;
+
+  font-size: 0.6875rem;
+  font-weight: ds.font-weight("semibold");
 }
 
 .market-chart-tooltip__change--up {
@@ -527,6 +600,23 @@
   padding-block: 0.375rem;
 }
 
+.market-chart-tooltip__body > .market-chart-tooltip__currency {
+  display: block;
+
+  padding: 0.625rem 0.875rem 0.25rem;
+
+  color: var(--chart-muted);
+
+  font-size: 0.6875rem;
+  font-weight: ds.font-weight("bold");
+}
+
+.market-chart-tooltip__rows {
+  display: grid;
+
+  padding-block: 0.25rem 0.375rem;
+}
+
 .market-chart-tooltip__row {
   display: flex;
   align-items: center;
@@ -536,6 +626,21 @@
   min-inline-size: 0;
 
   padding: 0.3125rem 0.875rem;
+}
+
+.market-chart-tooltip__row > span {
+  color: var(--chart-muted);
+
+  font-weight: ds.font-weight("medium");
+}
+
+.market-chart-tooltip__row > strong {
+  color: var(--chart-heading);
+
+  font-weight: ds.font-weight("bold");
+
+  text-align: end;
+  white-space: nowrap;
 }
 
 .market-chart-tooltip__row + .market-chart-tooltip__row {
@@ -557,7 +662,6 @@
   text-align: end;
   white-space: nowrap;
 }
-
 /* ==========================================================================
    Accessibility
    ========================================================================== */
@@ -713,6 +817,7 @@
 
   display: inline-grid;
   grid-template-columns: repeat(2, 2.125rem);
+
   align-items: center;
   gap: 0.125rem;
 
@@ -723,6 +828,7 @@
   padding: 0.1875rem;
 
   border: 1px solid var(--market-chart-toggle-border);
+
   border-radius: var(--radius-pill);
 
   background: var(--market-chart-toggle-bg);
@@ -855,7 +961,9 @@
   --chart-bg: transparent;
 
   --chart-text: var(--market-details-fg, #ffffff);
+
   --chart-heading: var(--market-details-heading, #ffffff);
+
   --chart-muted: var(--market-details-muted, #a9bdca);
 
   --chart-border: var(--market-details-border, rgb(255 255 255 / 0.14));
@@ -1062,6 +1170,7 @@ html[data-theme="dark"] {
 
   .market-chart-tooltip {
     min-inline-size: 10.5rem;
+
     max-inline-size: min(16rem, calc(100vw - 1rem));
   }
 
@@ -1069,17 +1178,24 @@ html[data-theme="dark"] {
     padding: 0.625rem 0.75rem 0.5rem;
   }
 
-  .market-chart-tooltip__primary {
+  .market-chart-tooltip__primary,
+  .market-chart-tooltip__body > .market-chart-tooltip__value {
     padding: 0.625rem 0.75rem 0.25rem;
 
     font-size: var(--text-base);
   }
 
   .market-chart-tooltip__primary:last-child,
+  .market-chart-tooltip__body > .market-chart-tooltip__value:last-child,
   .market-chart-tooltip:not(
       :has(.market-chart-tooltip__change, .market-chart-tooltip__ohlc)
     )
-    .market-chart-tooltip__primary {
+    .market-chart-tooltip__primary,
+  .market-chart-tooltip:not(
+      :has(.market-chart-tooltip__change, .market-chart-tooltip__rows)
+    )
+    .market-chart-tooltip__body
+    > .market-chart-tooltip__value {
     padding-block-end: 0.625rem;
   }
 
@@ -1088,6 +1204,10 @@ html[data-theme="dark"] {
   }
 
   .market-chart-tooltip__row {
+    padding-inline: 0.75rem;
+  }
+
+  .market-chart-tooltip__body > .market-chart-tooltip__currency {
     padding-inline: 0.75rem;
   }
 
@@ -1105,6 +1225,11 @@ html[data-theme="dark"] {
       --icon-size: 0.875rem;
     }
   }
+
+  /*
+   * Navigator labels are intentionally hidden on narrow screens. The
+   * Navigator remains draggable while the main X-axis provides dates.
+   */
 
   .market-chart .highcharts-navigator-xaxis text {
     display: none;
@@ -1178,6 +1303,7 @@ html[data-contrast="high"] {
     &.is-active,
     &[aria-pressed="true"] {
       outline: 2px solid currentColor;
+
       outline-offset: -2px;
 
       box-shadow: none;

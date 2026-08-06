@@ -152,36 +152,6 @@
 }
 
 /* ==========================================================================
-   Clock Brand
-   ========================================================================== */
-
-.clock-brand {
-  position: absolute;
-  z-index: 2;
-
-  top: 35%;
-  left: 50%;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  color: var(--clock-number-color);
-
-  opacity: 0.82;
-
-  pointer-events: none;
-
-  transform: translate(-50%, -50%);
-}
-
-.clock-brand__icon {
-  --icon-size: 0.65rem;
-
-  flex: 0 0 auto;
-}
-
-/* ==========================================================================
    Clock Hands
    ========================================================================== */
 
@@ -214,33 +184,56 @@
   block-size: calc(var(--clock-size) * 0.32);
 }
 
+/* ==========================================================================
+   Branded Second Hand
+   ========================================================================== */
+
+/* ==========================================================================
+   Branded Second Hand
+   ========================================================================== */
+
 .clock-hand--second {
-  z-index: 2;
+  z-index: 5;
 
-  inline-size: 0.0625rem;
-  block-size: calc(var(--clock-size) * 0.42);
+  inline-size: 0;
+  block-size: calc(var(--clock-size) * 0.27);
 
-  background: var(--clock-second-color);
+  border-radius: 0;
 
-  &::before {
-    content: "";
+  background: transparent;
 
-    position: absolute;
-
-    top: 100%;
-    left: 50%;
-
-    inline-size: 0.0625rem;
-    block-size: calc(var(--clock-size) * 0.1);
-
-    border-radius: inherit;
-
-    background: inherit;
-
-    transform: translateX(-50%);
-  }
+  box-shadow: none;
 }
 
+.clock-hand__brand-icon {
+  --icon-size: calc(var(--clock-size) * 0.1);
+
+  position: absolute;
+  z-index: 2;
+
+  top: 0;
+  left: 50%;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: var(--icon-size);
+  block-size: var(--icon-size);
+
+  color: var(--clock-hand-color);
+
+  filter: drop-shadow(0 0.0625rem 0.0625rem rgb(0 0 0 / 0.35));
+
+  /*
+   * Center the brand at the end of the invisible rotating container
+   * and point it outward.
+   */
+  transform: translate(-50%, -50%) rotate(-45deg);
+  transform-origin: center;
+
+  pointer-events: none;
+}
 /* ==========================================================================
    Clock Center
    ========================================================================== */
@@ -439,6 +432,11 @@ html[data-contrast="high"] {
   .clock-hand,
   .clock-center {
     box-shadow: none;
+  }
+
+  .clock-hand__brand-icon {
+    color: #ffffff;
+    filter: none;
   }
 
   .clock-tick--major {

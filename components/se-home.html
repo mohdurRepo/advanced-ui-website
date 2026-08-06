@@ -1219,13 +1219,6 @@
               <div class="clock-face" aria-hidden="true">
                 <div class="clock-ticks" data-clock-ticks></div>
 
-                <div class="clock-brand">
-                  <span
-                    class="clock-brand__icon has-icon icon-tadawul"
-                    aria-hidden="true"
-                  ></span>
-                </div>
-
                 <span
                   class="clock-number clock-number--12"
                   style="--clock-angle: 0deg"
@@ -1264,10 +1257,17 @@
                   data-clock-minute-hand
                 ></span>
 
+                <!-- Second hand with rotating Tadawul brand icon -->
+
                 <span
                   class="clock-hand clock-hand--second"
                   data-clock-second-hand
-                ></span>
+                >
+                  <span
+                    class="clock-hand__brand-icon has-icon icon-tadawul"
+                    aria-hidden="true"
+                  ></span>
+                </span>
 
                 <span class="clock-center"></span>
               </div>
@@ -1295,7 +1295,7 @@
                     data-market-clock-time
                     datetime=""
                   >
-                    --:--:--
+                    --:--
                   </time>
                 </div>
 
@@ -9149,8 +9149,13 @@
       "use strict";
 
       /* ======================================================================
-       TASI Overview Test Data
+       Configuration
        ====================================================================== */
+
+      const CHART_SELECTOR = "#tasi-chart";
+      const PANEL_SELECTOR = "#market-panel-tasi";
+
+      const TEST_LIVE_INTERVAL = 5_000;
 
       const tasiOverviewData = {
         symbol: "TASI",
@@ -9160,58 +9165,36 @@
         currency: "SAR",
 
         /*
-         * Required comparison baseline for the first visible intraday point.
-         *
-         * First point:
-         * 12,402.18 - 12,398.69 = +3.49 (+0.03%)
+         * Used as the first point’s comparison baseline.
          */
 
-        previousClose: 12398.69,
+        previousClose: 12_398.75,
 
         trend: [
-          [1767258000000, 12402.18],
-          [1767258900000, 12408.64],
-          [1767259800000, 12404.25],
-          [1767260700000, 12415.72],
-          [1767261600000, 12411.38],
-          [1767262500000, 12420.46],
-          [1767263400000, 12417.91],
-          [1767264300000, 12424.35],
-          [1767265200000, 12427.84],
-          [1767266100000, 12430.18],
+          [1767258000000, 12_402.18],
+          [1767258900000, 12_408.64],
+          [1767259800000, 12_404.25],
+          [1767260700000, 12_415.72],
+          [1767261600000, 12_411.38],
+          [1767262500000, 12_420.46],
+          [1767263400000, 12_417.91],
+          [1767264300000, 12_424.35],
+          [1767265200000, 12_427.84],
+          [1767266100000, 12_430.18],
         ],
       };
 
       /* ======================================================================
-       Development Live Feed
+       Dummy Live Feed
        ====================================================================== */
 
-      /*
-       * Five seconds is for development testing only.
-       * Replace with 60_000 for a one-minute production feed.
-       */
-
-      const TEST_LIVE_INTERVAL = 5_000;
-
-      /*
-       * Preserve the initially visible intraday duration as new points arrive.
-       */
-
-      const LIVE_WINDOW_DURATION =
-        tasiOverviewData.trend.at(-1)[0] - tasiOverviewData.trend[0][0];
-
       const liveState = {
-        lastTimestamp: tasiOverviewData.trend.at(-1)[0],
+        timestamp: tasiOverviewData.trend.at(-1)[0],
 
-        lastPrice: tasiOverviewData.trend.at(-1)[1],
+        price: tasiOverviewData.trend.at(-1)[1],
 
         sequence: 0,
       };
-
-      /*
-       * The movements contain positive and negative updates so live rendering,
-       * adaptive scaling, tooltips, and point replacement can be validated.
-       */
 
       const liveMovements = [
         1.25, 0.64, -0.82, 1.48, -0.36, 0.91, -1.14, 1.67, 0.42, -0.73,
@@ -9225,12 +9208,12 @@
         const movement =
           liveMovements[liveState.sequence % liveMovements.length];
 
-        const timestamp = liveState.lastTimestamp + TEST_LIVE_INTERVAL;
+        const timestamp = liveState.timestamp + TEST_LIVE_INTERVAL;
 
-        const price = roundPrice(liveState.lastPrice + movement);
+        const price = roundPrice(liveState.price + movement);
 
-        liveState.lastTimestamp = timestamp;
-        liveState.lastPrice = price;
+        liveState.timestamp = timestamp;
+        liveState.price = price;
         liveState.sequence += 1;
 
         return [timestamp, price];
@@ -9245,39 +9228,233 @@
 
         chartElement.replaceChildren();
 
-        const messageElement = document.createElement("div");
+        const wrapper = document.createElement("div");
 
-        messageElement.className =
-          "market-chart__message " + "market-chart__message--error";
+        wrapper.className =
+          "market-chart__message market-chart__message--error";
 
-        messageElement.setAttribute("role", "alert");
+        wrapper.setAttribute("role", "alert");
 
-        const textElement = document.createElement("p");
+        const text = document.createElement("p");
 
-        textElement.className = "market-chart__message-text";
+        text.className = "market-chart__message-text";
 
-        textElement.textContent = message;
+        text.textContent = message;
 
-        messageElement.append(textElement);
-        chartElement.append(messageElement);
+        wrapper.append(text);
+        chartElement.append(wrapper);
 
         panel?.setAttribute("aria-busy", "false");
+      }
+
+      /* ======================================================================
+       Chart Options
+       ====================================================================== */
+
+      function createOverviewOptions(chartElement, panel) {
+        const trend = tasiOverviewData.trend.map((point) => [...point]);
+
+        return {
+          context: "overview",
+
+          symbol: tasiOverviewData.symbol,
+
+          name: tasiOverviewData.name,
+
+          currency: tasiOverviewData.currency,
+
+          previousClose: tasiOverviewData.previousClose,
+
+          mode: "trend",
+          range: "1D",
+
+          language: document.documentElement.lang || "en",
+
+          timeZone: "Asia/Riyadh",
+
+          decimals: 2,
+          maxPoints: 120,
+
+          followLive: true,
+
+          /*
+           * Keep approximately ten minutes visible during this accelerated
+           * five-second test.
+           */
+
+          liveWindowDuration: 10 * 60 * 1_000,
+
+          xAxisTitle: "Time",
+          yAxisTitle: "Index Value",
+
+          axis: {
+            x: {
+              title: {
+                "1D": "Time",
+                default: "Date",
+              },
+
+              rotation: {
+                "1D": 0,
+                default: -25,
+              },
+
+              labels: true,
+
+              showFirstLabel: true,
+              showLastLabel: true,
+
+              minPadding: 0,
+              maxPadding: 0,
+            },
+
+            y: {
+              title: "Index Value",
+
+              opposite: true,
+              labels: true,
+
+              includeBoundaryTicks: true,
+
+              minPadding: 0.04,
+              maxPadding: 0.06,
+
+              format: {
+                decimals: 0,
+                useGrouping: true,
+              },
+            },
+          },
+
+          dateFormats: {
+            "1D": {
+              hour: "2-digit",
+              minute: "2-digit",
+              hourCycle: "h23",
+            },
+          },
+
+          tooltipDateFormats: {
+            "1D": {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+
+              hourCycle: "h23",
+            },
+          },
+
+          ranges: {
+            "1D": {
+              trend,
+
+              line: trend.map((point) => [...point]),
+
+              candlestick: [],
+            },
+          },
+
+          controls: {
+            root: panel,
+          },
+
+          navigatorEnabled: true,
+
+          navigator: {
+            enabled: true,
+
+            labels: true,
+            labelsInside: true,
+
+            insideLabelOffset: -7,
+
+            height: 38,
+            margin: 10,
+
+            handleWidth: 7,
+            handleHeight: 20,
+
+            tickPixelInterval: 105,
+
+            dataGrouping: false,
+
+            formats: {
+              "1D": {
+                hour: "2-digit",
+                minute: "2-digit",
+                hourCycle: "h23",
+              },
+
+              ALL: {
+                year: "numeric",
+              },
+            },
+          },
+
+          live: {
+            enabled: true,
+
+            interval: TEST_LIVE_INTERVAL,
+
+            alignToInterval: false,
+            immediate: false,
+
+            retry: true,
+            autostart: true,
+
+            async fetchPoint({ signal }) {
+              if (signal?.aborted) {
+                throw (
+                  signal.reason ||
+                  new DOMException(
+                    "The live update was cancelled.",
+                    "AbortError",
+                  )
+                );
+              }
+
+              return createDummyLivePoint();
+            },
+          },
+
+          accessibilityDescription:
+            "Live intraday Tadawul All Share Index performance.",
+
+          emptyMessage:
+            "TASI market performance data is currently unavailable.",
+
+          errorMessage: "TASI market performance could not be loaded.",
+        };
       }
 
       /* ======================================================================
        Initialization
        ====================================================================== */
 
-      function initializeTasiOverviewChart(chartAPI = window.SEMarketCharts) {
-        const chartElement = document.querySelector("#tasi-chart");
+      let initializationStarted = false;
 
-        if (!chartElement) {
-          return null;
+      function initializeTasiOverviewChart(chartAPI = window.SEMarketCharts) {
+        if (initializationStarted) {
+          return;
         }
 
-        const panel = chartElement.closest("#market-panel-tasi");
+        const chartElement = document.querySelector(CHART_SELECTOR);
+
+        if (!chartElement) {
+          return;
+        }
+
+        initializationStarted = true;
+
+        const panel = chartElement.closest(PANEL_SELECTOR);
 
         if (!chartAPI) {
+          initializationStarted = false;
+
           renderChartError(
             chartElement,
             panel,
@@ -9285,114 +9462,17 @@
           );
 
           console.error(
-            "TASI chart could not initialize because " +
-              "SEMarketCharts is unavailable.",
+            "TASI chart could not initialize because SEMarketCharts is unavailable.",
           );
 
-          return null;
+          return;
         }
 
-        /*
-         * Protect against duplicate initialization during Vite hot updates or
-         * repeated page-fragment initialization.
-         */
-
-        panel?.marketChartController?.destroy();
-
-        panel?.setAttribute("aria-busy", "true");
-
         try {
-          const controller = chartAPI.create(chartElement, {
-            context: "overview",
-
-            symbol: tasiOverviewData.symbol,
-
-            name: tasiOverviewData.name,
-
-            currency: tasiOverviewData.currency,
-
-            previousClose: tasiOverviewData.previousClose,
-
-            /*
-             * Overview remains a compact trend chart. Range, chart-type,
-             * comparison, and export controls belong to Performance.
-             */
-
-            mode: "trend",
-            range: "1D",
-
-            language: document.documentElement.lang || "en",
-
-            timeZone: "Asia/Riyadh",
-
-            decimals: 2,
-            maxPoints: 120,
-
-            xAxisTitle: null,
-            yAxisTitle: null,
-
-            navigatorEnabled: true,
-
-            followLive: true,
-
-            liveWindowDuration: LIVE_WINDOW_DURATION,
-
-            ranges: {
-              "1D": {
-                trend: tasiOverviewData.trend.map((point) => [...point]),
-
-                line: tasiOverviewData.trend.map((point) => [...point]),
-              },
-            },
-
-            /*
-             * The TASI panel is the local component root. The Overview has no
-             * external range, mode, comparison, or export controls.
-             */
-
-            controls: {
-              root: panel,
-            },
-
-            live: {
-              enabled: true,
-
-              interval: TEST_LIVE_INTERVAL,
-
-              alignToInterval: false,
-              immediate: false,
-
-              retry: true,
-
-              maxRetryDelay: 30_000,
-
-              requestTimeout: 4_000,
-
-              autostart: true,
-
-              async fetchPoint({ signal }) {
-                if (signal?.aborted) {
-                  throw (
-                    signal.reason ||
-                    new DOMException(
-                      "The live update was cancelled.",
-                      "AbortError",
-                    )
-                  );
-                }
-
-                return createDummyLivePoint();
-              },
-            },
-
-            accessibilityDescription:
-              "Live intraday Tadawul All Share Index trend.",
-
-            emptyMessage:
-              "TASI market performance data is currently unavailable.",
-
-            errorMessage: "TASI market performance could not be loaded.",
-          });
+          const controller = chartAPI.create(
+            chartElement,
+            createOverviewOptions(chartElement, panel),
+          );
 
           if (!controller) {
             throw new Error(
@@ -9400,21 +9480,14 @@
             );
           }
 
+          chartElement.dataset.chartState = "ready";
+
           panel?.setAttribute("aria-busy", "false");
 
-          if (panel) {
-            panel.marketChartController = controller;
-          }
-
-          /*
-           * Optional development reference. Remove this assignment when it is
-           * no longer needed for manual testing.
-           */
-
-          window.tasiOverviewChart = controller;
-
-          return controller;
+          panel.marketChartController = controller;
         } catch (error) {
+          initializationStarted = false;
+
           console.error("TASI Overview chart initialization failed.", error);
 
           renderChartError(
@@ -9422,8 +9495,6 @@
             panel,
             "TASI market performance could not be loaded.",
           );
-
-          return null;
         }
       }
 
@@ -9431,17 +9502,15 @@
        Readiness
        ====================================================================== */
 
-      function getChartAPIFromEvent(event) {
-        return event?.detail?.api || window.SEMarketCharts || null;
-      }
-
       if (window.SEMarketCharts) {
         initializeTasiOverviewChart(window.SEMarketCharts);
       } else {
         window.addEventListener(
           "semarketchartsready",
           (event) => {
-            initializeTasiOverviewChart(getChartAPIFromEvent(event));
+            initializeTasiOverviewChart(
+              event?.detail?.api || window.SEMarketCharts,
+            );
           },
           {
             once: true,
@@ -9450,4 +9519,741 @@
       }
     })();
   </script>
-</html>
+  <!--
+<script>
+  (() => {
+    "use strict";
+
+    /* ======================================================================
+       Configuration
+       ====================================================================== */
+
+    const CHART_SELECTOR = "#tasi-chart";
+    const PANEL_SELECTOR = "#market-panel-tasi";
+
+    const CHART_ENDPOINT =
+      "/tadawul.eportal.charts.v2/ChartGenerator";
+
+    const CHART_TYPE =
+      "SQL_MI_MSPV";
+
+    const CHART_PARAMETER =
+      "tasi";
+
+    const PAGE_NAME =
+      "MarketSummaryHomePageGraph";
+
+    const JWT_TOKEN =
+      '<%=JwtBean.getJwtToken("marketStatusHomeGraph")%>';
+
+    const LIVE_INTERVAL =
+      60_000;
+
+    const REQUEST_TIMEOUT =
+      12_000;
+
+    /* ======================================================================
+       Response Normalization
+       ====================================================================== */
+
+    function parsePayload(payload) {
+      let value = payload;
+
+      for (
+        let attempt = 0;
+        attempt < 2;
+        attempt += 1
+      ) {
+        if (typeof value !== "string") {
+          break;
+        }
+
+        try {
+          value = JSON.parse(value);
+        } catch {
+          break;
+        }
+      }
+
+      return value;
+    }
+
+    function extractRecords(payload) {
+      const value =
+        parsePayload(payload);
+
+      if (Array.isArray(value)) {
+        return value;
+      }
+
+      if (
+        Array.isArray(value?.data)
+      ) {
+        return value.data;
+      }
+
+      if (
+        Array.isArray(value?.results)
+      ) {
+        return value.results;
+      }
+
+      if (
+        Array.isArray(value?.items)
+      ) {
+        return value.items;
+      }
+
+      if (
+        Array.isArray(value?.series)
+      ) {
+        return value.series;
+      }
+
+      return [];
+    }
+
+    function parseTimestamp(value) {
+      if (
+        typeof value === "number" &&
+        Number.isFinite(value)
+      ) {
+        return value;
+      }
+
+      if (typeof value !== "string") {
+        return Number.NaN;
+      }
+
+      const dotNetMatch =
+        value.match(
+          /\/Date\((\d+)(?:[+-]\d+)?\)\//,
+        );
+
+      if (dotNetMatch) {
+        return Number(
+          dotNetMatch[1],
+        );
+      }
+
+      const timestamp =
+        Date.parse(value);
+
+      return Number.isFinite(timestamp)
+        ? timestamp
+        : Number.NaN;
+    }
+
+    function getRecordTimestamp(record) {
+      return parseTimestamp(
+        record?.dateTime ??
+          record?.datetime ??
+          record?.timestamp ??
+          record?.time ??
+          record?.date ??
+          record?.x,
+      );
+    }
+
+    function getRecordPrice(record) {
+      const value = Number(
+        record?.indexPrice ??
+          record?.indexValue ??
+          record?.price ??
+          record?.close ??
+          record?.value ??
+          record?.y,
+      );
+
+      return Number.isFinite(value)
+        ? value
+        : Number.NaN;
+    }
+
+    function normalizeRecords(payload) {
+      const points = extractRecords(
+        payload,
+      )
+        .map((record) => [
+          getRecordTimestamp(record),
+          getRecordPrice(record),
+        ])
+        .filter(
+          ([timestamp, price]) =>
+            Number.isFinite(timestamp) &&
+            Number.isFinite(price),
+        )
+        .sort(
+          (left, right) =>
+            left[0] - right[0],
+        );
+
+      /*
+       * Keep the latest value for duplicate timestamps.
+       */
+
+      const unique = new Map();
+
+      points.forEach((point) => {
+        unique.set(point[0], point);
+      });
+
+      return [
+        ...unique.values(),
+      ];
+    }
+
+    function getPreviousClose(
+      payload,
+      points,
+    ) {
+      const parsed =
+        parsePayload(payload);
+
+      const candidate = Number(
+        parsed?.previousClose ??
+          parsed?.previousClosingPrice ??
+          parsed?.priorClose,
+      );
+
+      if (Number.isFinite(candidate)) {
+        return candidate;
+      }
+
+      /*
+       * If the endpoint does not provide a previous close, use the first
+       * intraday value as a neutral baseline for the first tooltip.
+       */
+
+      return points[0]?.[1] ?? null;
+    }
+
+    /* ======================================================================
+       Request
+       ====================================================================== */
+
+    function buildChartURL() {
+      const url = new URL(
+        CHART_ENDPOINT,
+        window.location.origin,
+      );
+
+      url.searchParams.set(
+        "methodType",
+        "parsingMethod",
+      );
+
+      url.searchParams.set(
+        "chart-type",
+        CHART_TYPE,
+      );
+
+      url.searchParams.set(
+        "chart-parameter",
+        CHART_PARAMETER,
+      );
+
+      url.searchParams.set(
+        "format",
+        "json",
+      );
+
+      url.searchParams.set(
+        "pageName",
+        PAGE_NAME,
+      );
+
+      url.searchParams.set(
+        "jwtToken",
+        JWT_TOKEN,
+      );
+
+      return url;
+    }
+
+    async function requestChartData({
+      signal,
+    } = {}) {
+      const timeoutController =
+        new AbortController();
+
+      const timeout = window.setTimeout(
+        () => {
+          timeoutController.abort(
+            new DOMException(
+              "The chart request timed out.",
+              "TimeoutError",
+            ),
+          );
+        },
+        REQUEST_TIMEOUT,
+      );
+
+      const abortRequest = () => {
+        timeoutController.abort(
+          signal?.reason,
+        );
+      };
+
+      signal?.addEventListener(
+        "abort",
+        abortRequest,
+        {
+          once: true,
+        },
+      );
+
+      try {
+        const url =
+          buildChartURL();
+
+        /*
+         * Avoid cached responses during live polling.
+         */
+
+        url.searchParams.set(
+          "_",
+          String(Date.now()),
+        );
+
+        const response = await fetch(
+          url,
+          {
+            method: "GET",
+
+            headers: {
+              Accept:
+                "application/json",
+            },
+
+            cache: "no-store",
+
+            signal:
+              timeoutController.signal,
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            `Chart request failed with HTTP ${response.status}.`,
+          );
+        }
+
+        return await response.json();
+      } finally {
+        window.clearTimeout(timeout);
+
+        signal?.removeEventListener(
+          "abort",
+          abortRequest,
+        );
+      }
+    }
+
+    /* ======================================================================
+       Error State
+       ====================================================================== */
+
+    function renderChartError(
+      chartElement,
+      panel,
+      message,
+    ) {
+      chartElement.dataset.chartState =
+        "error";
+
+      chartElement.replaceChildren();
+
+      const wrapper =
+        document.createElement("div");
+
+      wrapper.className =
+        "market-chart__message market-chart__message--error";
+
+      wrapper.setAttribute(
+        "role",
+        "alert",
+      );
+
+      const text =
+        document.createElement("p");
+
+      text.className =
+        "market-chart__message-text";
+
+      text.textContent = message;
+
+      wrapper.append(text);
+      chartElement.append(wrapper);
+
+      panel?.setAttribute(
+        "aria-busy",
+        "false",
+      );
+    }
+
+    /* ======================================================================
+       Initialization
+       ====================================================================== */
+
+    let initializationPromise = null;
+
+    function initializeTasiOverviewChart(
+      chartAPI =
+        window.SEMarketCharts,
+    ) {
+      if (initializationPromise) {
+        return initializationPromise;
+      }
+
+      initializationPromise =
+        (async () => {
+          const chartElement =
+            document.querySelector(
+              CHART_SELECTOR,
+            );
+
+          if (!chartElement) {
+            return null;
+          }
+
+          const panel =
+            chartElement.closest(
+              PANEL_SELECTOR,
+            );
+
+          if (!chartAPI) {
+            throw new Error(
+              "SEMarketCharts is unavailable.",
+            );
+          }
+
+          panel?.setAttribute(
+            "aria-busy",
+            "true",
+          );
+
+          chartElement.dataset.chartState =
+            "loading";
+
+          const payload =
+            await requestChartData();
+
+          const trend =
+            normalizeRecords(payload);
+
+          if (!trend.length) {
+            throw new Error(
+              "The TASI endpoint returned no valid chart points.",
+            );
+          }
+
+          const previousClose =
+            getPreviousClose(
+              payload,
+              trend,
+            );
+
+          const controller =
+            chartAPI.create(
+              chartElement,
+              {
+                context: "overview",
+
+                symbol: "TASI",
+
+                name:
+                  "Tadawul All Share Index",
+
+                currency: "SAR",
+
+                previousClose,
+
+                mode: "trend",
+                range: "1D",
+
+                language:
+                  document.documentElement
+                    .lang ||
+                  "en",
+
+                timeZone:
+                  "Asia/Riyadh",
+
+                decimals: 2,
+                maxPoints: 500,
+
+                followLive: true,
+
+                /*
+                 * Preserve the current visible duration while new points
+                 * arrive. Set a numeric duration here if a fixed window is
+                 * required.
+                 */
+
+                liveWindowDuration:
+                  null,
+
+                xAxisTitle: "Time",
+
+                yAxisTitle:
+                  "Index Value",
+
+                axis: {
+                  x: {
+                    title: {
+                      "1D": "Time",
+                      default: "Date",
+                    },
+
+                    rotation: {
+                      "1D": 0,
+                      default: -25,
+                    },
+
+                    labels: true,
+
+                    showFirstLabel: true,
+                    showLastLabel: true,
+
+                    minPadding: 0,
+                    maxPadding: 0,
+                  },
+
+                  y: {
+                    title:
+                      "Index Value",
+
+                    opposite: true,
+                    labels: true,
+
+                    includeBoundaryTicks:
+                      true,
+
+                    minPadding: 0.04,
+                    maxPadding: 0.06,
+
+                    format: {
+                      decimals: 0,
+                      useGrouping: true,
+                    },
+                  },
+                },
+
+                dateFormats: {
+                  "1D": {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hourCycle: "h23",
+                  },
+                },
+
+                tooltipDateFormats: {
+                  "1D": {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+
+                    hourCycle: "h23",
+                  },
+                },
+
+                ranges: {
+                  "1D": {
+                    trend,
+
+                    line: trend.map(
+                      (point) => [
+                        ...point,
+                      ],
+                    ),
+
+                    candlestick: [],
+                  },
+                },
+
+                controls: {
+                  root: panel,
+                },
+
+                navigatorEnabled: true,
+
+                navigator: {
+                  enabled: true,
+
+                  labels: true,
+                  labelsInside: true,
+
+                  insideLabelOffset:
+                    -7,
+
+                  height: 38,
+                  margin: 10,
+
+                  handleWidth: 7,
+                  handleHeight: 20,
+
+                  tickPixelInterval:
+                    105,
+
+                  dataGrouping: false,
+
+                  formats: {
+                    "1D": {
+                      hour:
+                        "2-digit",
+
+                      minute:
+                        "2-digit",
+
+                      hourCycle:
+                        "h23",
+                    },
+
+                    ALL: {
+                      year:
+                        "numeric",
+                    },
+                  },
+                },
+
+                live: {
+                  enabled: true,
+
+                  interval:
+                    LIVE_INTERVAL,
+
+                  alignToInterval:
+                    true,
+
+                  immediate: false,
+
+                  retry: true,
+                  autostart: true,
+
+                  requestTimeout:
+                    REQUEST_TIMEOUT,
+
+                  async fetchPoint({
+                    signal,
+                  }) {
+                    const livePayload =
+                      await requestChartData({
+                        signal,
+                      });
+
+                    const points =
+                      normalizeRecords(
+                        livePayload,
+                      );
+
+                    return (
+                      points.at(-1) ||
+                      null
+                    );
+                  },
+
+                  onError(
+                    error,
+                    metadata,
+                  ) {
+                    console.error(
+                      "TASI live update failed.",
+                      {
+                        error,
+                        metadata,
+                      },
+                    );
+                  },
+                },
+
+                accessibilityDescription:
+                  "Live intraday Tadawul All Share Index performance.",
+
+                emptyMessage:
+                  "TASI market performance data is currently unavailable.",
+
+                errorMessage:
+                  "TASI market performance could not be loaded.",
+              },
+            );
+
+          if (!controller) {
+            throw new Error(
+              "The TASI Market Chart controller was not created.",
+            );
+          }
+
+          chartElement.dataset.chartState =
+            "ready";
+
+          panel?.setAttribute(
+            "aria-busy",
+            "false",
+          );
+
+          panel.marketChartController =
+            controller;
+
+          return controller;
+        })().catch((error) => {
+          initializationPromise = null;
+
+          const chartElement =
+            document.querySelector(
+              CHART_SELECTOR,
+            );
+
+          const panel =
+            chartElement?.closest(
+              PANEL_SELECTOR,
+            );
+
+          console.error(
+            "TASI Overview chart initialization failed.",
+            error,
+          );
+
+          if (chartElement) {
+            renderChartError(
+              chartElement,
+              panel,
+              "TASI market performance could not be loaded.",
+            );
+          }
+
+          return null;
+        });
+
+      return initializationPromise;
+    }
+
+    /* ======================================================================
+       Readiness
+       ====================================================================== */
+
+    if (window.SEMarketCharts) {
+      initializeTasiOverviewChart(
+        window.SEMarketCharts,
+      );
+    } else {
+      window.addEventListener(
+        "semarketchartsready",
+        (event) => {
+          initializeTasiOverviewChart(
+            event?.detail?.api ||
+              window.SEMarketCharts,
+          );
+        },
+        {
+          once: true,
+        },
+      );
+    }
+  })();
+</script>
+--></html>
