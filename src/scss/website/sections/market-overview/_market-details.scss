@@ -10,11 +10,8 @@
      -------------------------------------------------------------------- */
 
   --market-details-bg: var(--market-overview-connected-bg, #334c5c);
-
   --market-details-bg-hover: var(--market-overview-connected-bg-hover, #3d596a);
-
   --market-details-side-bg: var(--market-overview-side-bg, #0d1e2b);
-
   --market-details-insights-bg: var(--market-overview-insights-bg, #254456);
 
   /* -----------------------------------------------------------------------
@@ -22,11 +19,8 @@
      -------------------------------------------------------------------- */
 
   --market-details-fg: var(--market-overview-fg, #ffffff);
-
   --market-details-heading: var(--market-overview-heading, #ffffff);
-
   --market-details-muted: var(--market-overview-muted, #a9bdca);
-
   --market-details-muted-strong: var(--market-overview-muted-strong, #c4d2da);
 
   /* -----------------------------------------------------------------------
@@ -37,12 +31,10 @@
     --market-overview-border,
     rgb(255 255 255 / 0.14)
   );
-
   --market-details-border-hover: var(
     --market-overview-border-hover,
     rgb(255 255 255 / 0.28)
   );
-
   --market-details-border-strong: var(
     --market-overview-border-strong,
     rgb(255 255 255 / 0.42)
@@ -56,30 +48,22 @@
     --market-overview-container-width,
     1320px
   );
-
   --market-details-container-space: var(
     --market-overview-container-space,
     2rem
   );
-
   --market-details-space: var(
     --market-overview-panel-space,
     clamp(1rem, 2vw, 1.5rem)
   );
-
   --market-details-space-sm: var(--market-overview-panel-space-sm, 1rem);
-
   --market-details-gap: var(--market-overview-panel-gap, 1rem);
-
   --market-details-radius: var(
     --market-overview-panel-radius,
     var(--radius-lg)
   );
 
-  /*
-   * Transparent separation between the contained market panel and the next
-   * page section.
-   */
+  /* Transparent separation from the next page section. */
   --market-details-after-space: clamp(1.5rem, 3vw, 2.5rem);
 
   /* -----------------------------------------------------------------------
@@ -97,8 +81,8 @@
      -------------------------------------------------------------------- */
 
   /*
-   * The contained Market Details panel remains dark in both page themes.
-   * Shared tables, buttons, and controls inherit these local semantic tokens.
+   * Market Details remains dark in both page themes. Shared components
+   * inherit these local semantic tokens instead of the global page tokens.
    */
 
   --color-bg: var(--market-details-bg);
@@ -112,6 +96,11 @@
 
   --color-border: var(--market-details-border);
   --color-border-strong: var(--market-details-border-strong);
+
+  /* Permanent dark-surface financial states. */
+  --color-market-positive: #4ade80;
+  --color-market-negative: #fb7185;
+  --color-market-neutral: var(--market-details-muted);
 
   --color-disabled: #536b79;
   --color-on-disabled: #c2cdd3;
@@ -127,7 +116,7 @@
   scroll-margin-block-start: calc(var(--app-header-height) + 1rem);
 
   /*
-   * The outer section must remain transparent. Page background is visible
+   * The outer section remains transparent so the page background is visible
    * around the contained details panel.
    */
   background: transparent;
@@ -158,17 +147,13 @@
     calc(100% - var(--market-details-container-space)),
     var(--market-details-container-width)
   );
-
   max-inline-size: none;
   min-inline-size: 0;
   min-block-size: 0;
 
   margin-inline: auto;
 
-  /*
-   * Override the shared .container utility so this surface uses precisely the
-   * same width calculation as Market Summary and the bridge.
-   */
+  /* Override the shared container utility for exact surface alignment. */
   padding: 0;
 
   overflow: hidden;
@@ -261,5 +246,4 @@ html[data-contrast="high"] {
     --market-details-radius: var(--radius-md);
     --market-details-after-space: 1.5rem;
   }
-
 }

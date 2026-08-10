@@ -1162,853 +1162,616 @@
     </aside>
     <main id="main-content">
       <div class="page__background" aria-hidden="true"></div>
-      <section
-        class="market-summary"
-        aria-labelledby="market-summary-title"
-        data-market-summary
-      >
-        <h2 id="market-summary-title" class="visually-hidden">
-          Market summary
-        </h2>
+      <!-- ==========================================================================
+     Breadcrumb
+     ========================================================================== -->
 
-        <div class="market-summary__container container">
-          <!-- =====================================================================
-         Market Clock
-    ====================================================================== -->
+      <div class="page-breadcrumb">
+        <div class="container">
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <ol class="breadcrumb__list">
+              <li class="breadcrumb__item">
+                <a class="breadcrumb__link" href="/"> Home </a>
+              </li>
 
-          <section
-            class="market-summary__clock"
-            aria-label="Saudi Arabia market time"
-            data-market-clock
-          >
-            <!-- Decorative analog clock -->
-
-            <div class="clock-face" aria-hidden="true">
-              <div class="clock-ticks" data-clock-ticks></div>
-
-              <div class="clock-brand">
+              <li class="breadcrumb__item">
                 <span
-                  class="has-icon icon-tadawul clock-brand__icon"
+                  class="breadcrumb__separator has-icon icon-chevron-right icon-flip-rtl"
                   aria-hidden="true"
                 ></span>
-              </div>
 
-              <span
-                class="clock-number clock-number--12"
-                style="--clock-angle: 0deg"
-              >
-                12
-              </span>
-
-              <span
-                class="clock-number clock-number--3"
-                style="--clock-angle: 90deg"
-              >
-                3
-              </span>
-
-              <span
-                class="clock-number clock-number--6"
-                style="--clock-angle: 180deg"
-              >
-                6
-              </span>
-
-              <span
-                class="clock-number clock-number--9"
-                style="--clock-angle: 270deg"
-              >
-                9
-              </span>
-
-              <span
-                class="clock-hand clock-hand--hour"
-                data-clock-hour-hand
-              ></span>
-
-              <span
-                class="clock-hand clock-hand--minute"
-                data-clock-minute-hand
-              ></span>
-
-              <span
-                class="clock-hand clock-hand--second"
-                data-clock-second-hand
-              ></span>
-
-              <span class="clock-center"></span>
-            </div>
-
-            <!-- Accessible time information -->
-
-            <div class="clock-info">
-              <div class="clock-info__time-group">
-                <div class="market-summary__location">
-                  <span
-                    class="has-icon icon-location-pin icon-accent market-summary__location-icon"
-                    aria-hidden="true"
-                  ></span>
-
-                  <span
-                    class="market-summary__location-text"
-                    data-market-clock-location
-                  >
-                    Riyadh, Saudi Arabia
-                  </span>
-                </div>
-
-                <time
-                  class="market-summary__time"
-                  data-market-clock-time
-                  datetime=""
-                >
-                  --:--:--
-                </time>
-              </div>
-
-              <div class="clock-info__date-group">
-                <span class="market-summary__day" data-market-clock-day>
-                  —
+                <span class="breadcrumb__current" aria-current="page">
+                  Register
                 </span>
-
-                <time
-                  class="market-summary__date"
-                  data-market-clock-date
-                  datetime=""
-                >
-                  —
-                </time>
-              </div>
-            </div>
-          </section>
-
-          <!-- =====================================================================
-         Market Cards
-    ====================================================================== -->
-
-          <div class="market-summary__cards-wrap">
-            <div
-              class="market-summary__cards"
-              role="tablist"
-              aria-label="Markets"
-              aria-orientation="horizontal"
-              data-market-tabs
-            >
-              <!-- Main Market -->
-
-              <button
-                class="market-card is-active"
-                id="market-tab-tasi"
-                type="button"
-                role="tab"
-                aria-selected="true"
-                aria-controls="market-panel-tasi"
-                tabindex="0"
-                data-market-card
-                data-market="M"
-              >
-                <span class="market-card__top">
-                  <span
-                    class="market-status market-status--open"
-                    aria-hidden="true"
-                  ></span>
-
-                  <span class="market-card__market"> Main Market </span>
-                </span>
-
-                <span class="market-card__body">
-                  <span class="market-card__main">
-                    <span class="market-card__title"> TASI </span>
-
-                    <span class="market-card__status"> Open </span>
-                  </span>
-
-                  <span class="market-card__divider" aria-hidden="true"></span>
-
-                  <span class="market-card__metrics">
-                    <data class="market-card__value" value="12430.18">
-                      12,430.18
-                    </data>
-
-                    <span
-                      class="market-card__change market-change market-change--up"
-                    >
-                      +84.22 (+0.68%)
-                    </span>
-                  </span>
-                </span>
-
-                <time
-                  class="market-card__timer"
-                  datetime="PT2H14M32S"
-                  data-market-countdown
-                >
-                  Closes in 02:14:32
-                </time>
-              </button>
-
-              <!-- Parallel Market -->
-
-              <button
-                class="market-card"
-                id="market-tab-nomu"
-                type="button"
-                role="tab"
-                aria-selected="false"
-                aria-controls="market-panel-nomu"
-                tabindex="-1"
-                data-market-card
-                data-market="N"
-              >
-                <span class="market-card__top">
-                  <span
-                    class="market-status market-status--auction"
-                    aria-hidden="true"
-                  ></span>
-
-                  <span class="market-card__market"> Parallel Market </span>
-                </span>
-
-                <span class="market-card__body">
-                  <span class="market-card__main">
-                    <span class="market-card__title"> NomuC </span>
-
-                    <span class="market-card__status"> Auction </span>
-                  </span>
-
-                  <span class="market-card__divider" aria-hidden="true"></span>
-
-                  <span class="market-card__metrics">
-                    <data class="market-card__value" value="27918.44">
-                      27,918.44
-                    </data>
-
-                    <span
-                      class="market-card__change market-change market-change--down"
-                    >
-                      −41.10 (−0.15%)
-                    </span>
-                  </span>
-                </span>
-
-                <time
-                  class="market-card__timer"
-                  datetime="PT8M45S"
-                  data-market-countdown
-                >
-                  Auction ends in 00:08:45
-                </time>
-              </button>
-
-              <!-- Sukuk and Bonds -->
-
-              <button
-                class="market-card"
-                id="market-tab-sukuk"
-                type="button"
-                role="tab"
-                aria-selected="false"
-                aria-controls="market-panel-sukuk"
-                tabindex="-1"
-                data-market-card
-                data-market="S"
-              >
-                <span class="market-card__top">
-                  <span
-                    class="market-status market-status--halted"
-                    aria-hidden="true"
-                  ></span>
-
-                  <span class="market-card__market"> Sukuk &amp; Bonds </span>
-                </span>
-
-                <span class="market-card__body">
-                  <span class="market-card__main">
-                    <span class="market-card__title"> Sukuk </span>
-
-                    <span class="market-card__status"> Halted </span>
-                  </span>
-
-                  <span class="market-card__divider" aria-hidden="true"></span>
-
-                  <span class="market-card__metrics">
-                    <data class="market-card__value" value="982.34">
-                      982.34
-                    </data>
-
-                    <span
-                      class="market-card__change market-change market-change--neutral"
-                    >
-                      0.00 (0.00%)
-                    </span>
-                  </span>
-                </span>
-
-                <span class="market-card__timer" data-market-countdown>
-                  Awaiting update
-                </span>
-              </button>
-
-              <!-- Funds -->
-
-              <button
-                class="market-card"
-                id="market-tab-funds"
-                type="button"
-                role="tab"
-                aria-selected="false"
-                aria-controls="market-panel-funds"
-                tabindex="-1"
-                data-market-card
-                data-market="F"
-              >
-                <span class="market-card__top">
-                  <span
-                    class="market-status market-status--closed"
-                    aria-hidden="true"
-                  ></span>
-
-                  <span class="market-card__market"> Funds </span>
-                </span>
-
-                <span class="market-card__body">
-                  <span class="market-card__main">
-                    <span class="market-card__title"> Funds </span>
-
-                    <span class="market-card__status"> Closed </span>
-                  </span>
-
-                  <span class="market-card__divider" aria-hidden="true"></span>
-
-                  <span class="market-card__metrics">
-                    <data class="market-card__value" value="1204.76">
-                      1,204.76
-                    </data>
-
-                    <span
-                      class="market-card__change market-change market-change--up"
-                    >
-                      +3.20 (+0.27%)
-                    </span>
-                  </span>
-                </span>
-
-                <span class="market-card__timer" data-market-countdown>
-                  Opens tomorrow
-                </span>
-              </button>
-
-              <!-- Derivatives -->
-
-              <button
-                class="market-card market-card--compact"
-                id="market-tab-derivatives"
-                type="button"
-                role="tab"
-                aria-selected="false"
-                aria-controls="market-panel-derivatives"
-                tabindex="-1"
-                data-market-card
-                data-market="D"
-              >
-                <span class="market-card__top">
-                  <span
-                    class="market-status market-status--pre-open"
-                    aria-hidden="true"
-                  ></span>
-
-                  <span class="market-card__market"> Derivatives </span>
-                </span>
-
-                <span class="market-card__body">
-                  <span class="market-card__main">
-                    <span class="market-card__title"> MT30 </span>
-
-                    <span class="market-card__status"> Pre-open </span>
-                  </span>
-                </span>
-
-                <time
-                  class="market-card__timer"
-                  datetime="PT22M10S"
-                  data-market-countdown
-                >
-                  Opens in 00:22:10
-                </time>
-              </button>
-            </div>
-
-            <!-- Selected market return control -->
-
-            <button
-              class="market-summary__selected-market"
-              type="button"
-              data-selected-market
-              aria-label="Return to selected market"
-              hidden
-            >
-              <span class="market-summary__selected-market-label">
-                Selected
-              </span>
-
-              <strong
-                class="market-summary__selected-market-name"
-                data-selected-market-name
-              >
-                TASI
-              </strong>
-            </button>
-          </div>
+              </li>
+            </ol>
+          </nav>
         </div>
-      </section>
+      </div>
 
-      <!-- =================================================================
-       Breadcrumb
-  ================================================================== -->
-
-      <section class="page-breadcrumb container" aria-label="Page location">
-        <nav class="breadcrumb" aria-label="Breadcrumb">
-          <ol class="breadcrumb__list">
-            <li class="breadcrumb__item">
-              <a class="breadcrumb__link" href="/"> Home </a>
-            </li>
-
-            <li class="breadcrumb__item">
-              <span
-                class="breadcrumb__separator has-icon icon-chevron-right icon-flip-rtl"
-                aria-hidden="true"
-              ></span>
-
-              <span class="breadcrumb__current" aria-current="page">
-                Company Profile Main Market
-              </span>
-            </li>
-          </ol>
-        </nav>
-      </section>
-
-      <!-- =================================================================
-       Hero
-  ================================================================== -->
+      <!-- ==========================================================================
+     Registration Hero
+     ========================================================================== -->
 
       <section
-        class="hero-section container"
-        aria-labelledby="watchlist-page-title"
+        class="hero-section market-summary-section"
+        aria-labelledby="registration-page-title"
+        aria-describedby="registration-page-description"
       >
         <div class="hero-section__background" aria-hidden="true"></div>
 
-        <div class="hero-section__content">
-          <div class="watchlist-hero">
-            <span
-              class="watchlist-hero__icon has-icon icon-star-outline"
-              aria-hidden="true"
-            ></span>
+        <div class="container hero-section__content">
+          <div class="market-summary market-summary--hero">
+            <header class="market-summary__header">
+              <div class="market-summary__brand">
+                <span
+                  class="market-summary__brand-icon has-icon icon-tadawul"
+                  aria-hidden="true"
+                ></span>
 
-            <h1 id="watchlist-page-title" class="watchlist-hero__title">
-              My Watchlist
-            </h1>
+                <h1 id="registration-page-title" class="market-summary__title">
+                  Register
+                </h1>
+              </div>
+
+              <p
+                id="registration-page-description"
+                class="market-summary__description"
+              >
+                Create your Saudi Exchange account to build watchlists, save
+                content, and receive notifications about the companies and
+                market information you follow.
+              </p>
+            </header>
           </div>
         </div>
       </section>
-      <!-- ================================================================
-     Register Content
-     ================================================================ -->
+      <!-- ==========================================================================
+     Registration Content
+     ========================================================================== -->
 
-      <section class="section" aria-labelledby="register-form-title">
+      <section
+        class="section account-page"
+        aria-labelledby="create-account-title"
+      >
         <div class="container">
-          <div
-            class="split-layout split-layout--wide-primary split-layout--start"
-          >
-            <!-- ============================================================
+          <div class="sticky-layout sticky-layout--wide">
+            <!-- ====================================================================
            Registration Form
-           ============================================================ -->
+           ==================================================================== -->
 
-            <div class="split-layout__primary">
-              <section class="auth-panel" aria-labelledby="register-form-title">
-                <h2 id="register-form-title" class="visually-hidden">
-                  Registration form
-                </h2>
-
+            <div class="sticky-layout__content">
+              <div class="account-page__panel">
                 <form
-                  class="form stack stack--lg"
-                  action="/auth/otp-method/"
+                  class="form account-form stack stack--xl"
+                  action="/register"
                   method="post"
-                  data-register-form
                   novalidate
                 >
-                  <!-- General form error -->
-                  <div
-                    class="alert alert-danger"
-                    role="alert"
-                    hidden
-                    data-form-error
+                  <!-- ==============================================================
+                 Form Introduction
+                 ============================================================== -->
+
+                  <header class="account-page__header stack stack--sm">
+                    <h2 id="create-account-title" class="account-page__title">
+                      Create Your Account
+                    </h2>
+
+                    <p class="account-page__description">
+                      Enter your information to create a Saudi Exchange account
+                      and access personalized services.
+                    </p>
+
+                    <p class="account-page__required-note">
+                      Fields marked with
+                      <span class="form-required" aria-hidden="true">*</span>
+                      are required.
+                    </p>
+                  </header>
+
+                  <!-- ==============================================================
+                 Personal Information
+                 ============================================================== -->
+
+                  <fieldset
+                    class="form-fieldset account-form__section"
+                    aria-describedby="personal-information-description"
                   >
-                    <div class="stack stack--xs">
-                      <strong> We could not submit your registration. </strong>
-
-                      <p>Review the highlighted fields and try again.</p>
-                    </div>
-                  </div>
-
-                  <!-- First name -->
-                  <div class="form-group">
-                    <label class="form-label" for="register-first-name">
-                      First name
-                      <span aria-hidden="true">*</span>
-                    </label>
-
-                    <input
-                      class="form-control"
-                      id="register-first-name"
-                      name="firstName"
-                      type="text"
-                      autocomplete="given-name"
-                      maxlength="50"
-                      placeholder="Enter your name"
-                      required
-                      aria-describedby="register-first-name-error"
-                    />
-
-                    <p class="form-error" id="register-first-name-error" hidden>
-                      Enter your first name.
-                    </p>
-                  </div>
-
-                  <!-- User ID -->
-                  <div class="form-group">
-                    <label class="form-label" for="register-user-id">
-                      User ID
-                      <span aria-hidden="true">*</span>
-                    </label>
-
-                    <input
-                      class="form-control"
-                      id="register-user-id"
-                      name="userId"
-                      type="text"
-                      autocomplete="username"
-                      minlength="4"
-                      maxlength="30"
-                      placeholder="Enter your User ID"
-                      required
-                      aria-describedby="
-                  register-user-id-hint
-                  register-user-id-error
-                "
-                    />
-
-                    <p class="form-text" id="register-user-id-hint">
-                      Choose a unique User ID for signing in to your account.
-                    </p>
-
-                    <p class="form-error" id="register-user-id-error" hidden>
-                      Enter a valid User ID.
-                    </p>
-                  </div>
-
-                  <!-- Email address -->
-                  <div class="form-group">
-                    <label class="form-label" for="register-email">
-                      E-mail address
-                      <span aria-hidden="true">*</span>
-                    </label>
-
-                    <input
-                      class="form-control"
-                      id="register-email"
-                      name="email"
-                      type="email"
-                      inputmode="email"
-                      autocomplete="email"
-                      spellcheck="false"
-                      placeholder="Enter your e-mail"
-                      required
-                      aria-describedby="register-email-error"
-                    />
-
-                    <p class="form-error" id="register-email-error" hidden>
-                      Enter a valid e-mail address.
-                    </p>
-                  </div>
-
-                  <!-- Phone -->
-                  <div class="form-group">
-                    <label class="form-label" for="register-phone">
-                      Phone
-                      <span aria-hidden="true">*</span>
-                    </label>
-
-                    <input
-                      class="form-control"
-                      id="register-phone"
-                      name="phone"
-                      type="tel"
-                      inputmode="tel"
-                      autocomplete="tel"
-                      maxlength="20"
-                      placeholder="Enter your phone"
-                      required
-                      aria-describedby="register-phone-error"
-                    />
-
-                    <p class="form-error" id="register-phone-error" hidden>
-                      Enter a valid phone number.
-                    </p>
-                  </div>
-
-                  <!-- Password -->
-                  <div class="form-group">
-                    <label class="form-label" for="register-password">
-                      Password
-                      <span aria-hidden="true">*</span>
-                    </label>
-
-                    <div class="input-group">
-                      <input
-                        class="form-control"
-                        id="register-password"
-                        name="password"
-                        type="password"
-                        autocomplete="new-password"
-                        minlength="8"
-                        placeholder="Enter your password"
-                        required
-                        aria-describedby="
-                    register-password-hint
-                    register-password-error
-                  "
-                      />
-
-                      <button
-                        class="input-group__action btn btn-icon btn-link"
-                        type="button"
-                        aria-label="Show password"
-                        aria-controls="register-password"
-                        aria-pressed="false"
-                        data-password-toggle="register-password"
-                      >
-                        <span aria-hidden="true"> ◉ </span>
-                      </button>
-                    </div>
-
-                    <p class="form-text" id="register-password-hint">
-                      Use at least 8 characters, including uppercase, lowercase,
-                      numbers, and special characters.
-                    </p>
-
-                    <p class="form-error" id="register-password-error" hidden>
-                      Enter a valid password.
-                    </p>
-                  </div>
-
-                  <!-- Confirm password -->
-                  <div class="form-group">
-                    <label class="form-label" for="register-confirm-password">
-                      Confirm password
-                      <span aria-hidden="true">*</span>
-                    </label>
-
-                    <div class="input-group">
-                      <input
-                        class="form-control"
-                        id="register-confirm-password"
-                        name="confirmPassword"
-                        type="password"
-                        autocomplete="new-password"
-                        placeholder="Confirm your password"
-                        required
-                        aria-describedby="register-confirm-password-error"
-                      />
-
-                      <button
-                        class="input-group__action btn btn-icon btn-link"
-                        type="button"
-                        aria-label="Show confirmed password"
-                        aria-controls="register-confirm-password"
-                        aria-pressed="false"
-                        data-password-toggle="register-confirm-password"
-                      >
-                        <span aria-hidden="true"> ◉ </span>
-                      </button>
-                    </div>
-
-                    <p
-                      class="form-error"
-                      id="register-confirm-password-error"
-                      hidden
-                    >
-                      The passwords must match.
-                    </p>
-                  </div>
-
-                  <!-- Security code -->
-                  <fieldset class="form-fieldset">
-                    <legend class="visually-hidden">
-                      Security verification
+                    <legend class="account-form__section-title">
+                      Personal Information
                     </legend>
 
-                    <div class="grid grid--2">
-                      <div class="form-group">
-                        <span
-                          class="form-label"
-                          id="register-security-code-label"
-                        >
-                          Security code
-                          <span aria-hidden="true">*</span>
-                        </span>
+                    <p
+                      class="account-form__section-description"
+                      id="personal-information-description"
+                    >
+                      Provide your primary contact and account information.
+                    </p>
 
-                        <div
-                          class="captcha"
-                          aria-labelledby="register-security-code-label"
-                        >
-                          <div
-                            class="captcha__image"
-                            role="img"
-                            aria-label="Security code ENZVD"
-                            data-captcha-image
-                          >
-                            <span aria-hidden="true"> ENZVD </span>
-                          </div>
+                    <div class="form-fieldset-body">
+                      <div class="form-row grid-2">
+                        <!-- Full Name -->
 
-                          <button
-                            class="captcha__refresh btn btn-icon btn-outline-primary"
-                            type="button"
-                            aria-label="Generate a new security code"
-                            data-captcha-refresh
-                          >
-                            <span aria-hidden="true"> ↻ </span>
-                          </button>
+                        <div class="form-group">
+                          <label class="form-label" for="registration-name">
+                            Full Name
+                            <span class="form-required" aria-hidden="true"
+                              >*</span
+                            >
+                          </label>
+
+                          <input
+                            class="form-control"
+                            id="registration-name"
+                            name="name"
+                            type="text"
+                            autocomplete="name"
+                            maxlength="100"
+                            placeholder="Enter your full name"
+                            required
+                          />
+                        </div>
+
+                        <!-- User ID -->
+
+                        <div class="form-group">
+                          <label class="form-label" for="registration-user-id">
+                            User ID
+                            <span class="form-required" aria-hidden="true"
+                              >*</span
+                            >
+                          </label>
+
+                          <input
+                            class="form-control"
+                            id="registration-user-id"
+                            name="username"
+                            type="text"
+                            autocomplete="username"
+                            autocapitalize="none"
+                            spellcheck="false"
+                            minlength="4"
+                            maxlength="40"
+                            placeholder="Create a User ID"
+                            aria-describedby="registration-user-id-help"
+                            required
+                          />
+
+                          <p class="form-help" id="registration-user-id-help">
+                            Use 4–40 letters, numbers, periods, underscores, or
+                            hyphens.
+                          </p>
                         </div>
                       </div>
 
-                      <div class="form-group">
-                        <label class="form-label" for="register-security-code">
-                          Verify code
-                          <span aria-hidden="true">*</span>
-                        </label>
+                      <div class="form-row grid-2">
+                        <!-- Email -->
 
-                        <input
-                          class="form-control"
-                          id="register-security-code"
-                          name="securityCode"
-                          type="text"
-                          autocomplete="off"
-                          maxlength="6"
-                          placeholder="Enter the characters"
-                          required
-                          aria-describedby="register-security-code-error"
-                        />
+                        <div class="form-group">
+                          <label class="form-label" for="registration-email">
+                            Email Address
+                            <span class="form-required" aria-hidden="true"
+                              >*</span
+                            >
+                          </label>
 
-                        <p
-                          class="form-error"
-                          id="register-security-code-error"
-                          hidden
-                        >
-                          Enter the security code shown in the image.
-                        </p>
+                          <input
+                            class="form-control"
+                            id="registration-email"
+                            name="email"
+                            type="email"
+                            inputmode="email"
+                            autocomplete="email"
+                            autocapitalize="none"
+                            spellcheck="false"
+                            maxlength="254"
+                            placeholder="name@example.com"
+                            required
+                          />
+                        </div>
+
+                        <!-- Phone -->
+
+                        <div class="form-group">
+                          <label class="form-label" for="registration-phone">
+                            Mobile Number
+                            <span class="form-required" aria-hidden="true"
+                              >*</span
+                            >
+                          </label>
+
+                          <input
+                            class="form-control"
+                            id="registration-phone"
+                            name="phone"
+                            type="tel"
+                            inputmode="tel"
+                            autocomplete="tel"
+                            maxlength="20"
+                            placeholder="+966 5X XXX XXXX"
+                            aria-describedby="registration-phone-help"
+                            required
+                          />
+
+                          <p class="form-help" id="registration-phone-help">
+                            Include the country code with your mobile number.
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </fieldset>
 
-                  <!-- Submit -->
-                  <div class="cluster cluster--sm">
-                    <button
-                      class="btn btn-primary btn-rounded"
-                      type="submit"
-                      data-register-submit
-                    >
-                      <span> Submit request </span>
+                  <!-- ==============================================================
+                 Account Security
+                 ============================================================== -->
 
-                      <span aria-hidden="true"> › </span>
+                  <fieldset
+                    class="form-fieldset account-form__section"
+                    aria-describedby="account-security-description"
+                  >
+                    <legend class="account-form__section-title">
+                      Account Security
+                    </legend>
+
+                    <p
+                      class="account-form__section-description"
+                      id="account-security-description"
+                    >
+                      Create a strong password to protect your account.
+                    </p>
+
+                    <div class="form-fieldset-body stack stack--md">
+                      <div class="form-row grid-2">
+                        <!-- Password -->
+
+                        <div class="form-group account-form__password">
+                          <label class="form-label" for="registration-password">
+                            Password
+                            <span class="form-required" aria-hidden="true"
+                              >*</span
+                            >
+                          </label>
+
+                          <div class="form-field form-field-content-end">
+                            <input
+                              class="form-control"
+                              id="registration-password"
+                              name="password"
+                              type="password"
+                              autocomplete="new-password"
+                              minlength="12"
+                              maxlength="128"
+                              placeholder="Create a password"
+                              aria-describedby="password-requirements-title"
+                              required
+                            />
+
+                            <button
+                              class="form-field-action"
+                              type="button"
+                              aria-controls="registration-password"
+                              aria-pressed="false"
+                              data-password-toggle
+                            >
+                              Show
+                            </button>
+                          </div>
+                        </div>
+
+                        <!-- Confirm Password -->
+
+                        <div class="form-group account-form__password">
+                          <label
+                            class="form-label"
+                            for="registration-password-confirmation"
+                          >
+                            Confirm Password
+                            <span class="form-required" aria-hidden="true"
+                              >*</span
+                            >
+                          </label>
+
+                          <div class="form-field form-field-content-end">
+                            <input
+                              class="form-control"
+                              id="registration-password-confirmation"
+                              name="passwordConfirmation"
+                              type="password"
+                              autocomplete="new-password"
+                              minlength="12"
+                              maxlength="128"
+                              placeholder="Re-enter your password"
+                              required
+                            />
+
+                            <button
+                              class="form-field-action"
+                              type="button"
+                              aria-controls="registration-password-confirmation"
+                              aria-pressed="false"
+                              data-password-toggle
+                            >
+                              Show
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Password Requirements -->
+
+                      <div
+                        class="password-requirements"
+                        aria-labelledby="password-requirements-title"
+                      >
+                        <p
+                          class="password-requirements__title"
+                          id="password-requirements-title"
+                        >
+                          Your password must contain:
+                        </p>
+
+                        <ul class="password-requirements">
+                          <li
+                            class="password-requirements__item"
+                            data-password-requirement="length"
+                          >
+                            At least 12 characters
+                          </li>
+
+                          <li
+                            class="password-requirements__item"
+                            data-password-requirement="uppercase"
+                          >
+                            At least one uppercase letter
+                          </li>
+
+                          <li
+                            class="password-requirements__item"
+                            data-password-requirement="lowercase"
+                          >
+                            At least one lowercase letter
+                          </li>
+
+                          <li
+                            class="password-requirements__item"
+                            data-password-requirement="number"
+                          >
+                            At least one number
+                          </li>
+
+                          <li
+                            class="password-requirements__item"
+                            data-password-requirement="symbol"
+                          >
+                            At least one special character
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <!-- ==============================================================
+                 Security Verification
+                 ============================================================== -->
+
+                  <fieldset
+                    class="form-fieldset account-form__section"
+                    aria-describedby="verification-description"
+                  >
+                    <legend class="account-form__section-title">
+                      Security Verification
+                    </legend>
+
+                    <p
+                      class="account-form__section-description"
+                      id="verification-description"
+                    >
+                      Enter the characters shown in the security image.
+                    </p>
+
+                    <div class="form-fieldset-body">
+                      <div class="account-verification">
+                        <!-- Security Image -->
+
+                        <div class="form-group account-verification__challenge">
+                          <span
+                            class="form-label-static"
+                            id="security-code-label"
+                          >
+                            Security Code
+                          </span>
+
+                          <div
+                            class="account-verification__media"
+                            aria-labelledby="security-code-label"
+                          >
+                            <img
+                              class="account-verification__image"
+                              src="/captcha"
+                              alt="Security verification code"
+                              width="260"
+                              height="48"
+                              data-captcha-image
+                            />
+
+                            <button
+                              class="account-verification__refresh"
+                              type="button"
+                              aria-label="Generate a new security code"
+                              data-captcha-refresh
+                            >
+                              <span
+                                class="has-icon icon-sync-refresh"
+                                aria-hidden="true"
+                              ></span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <!-- Verification Input -->
+
+                        <div class="form-group account-verification__input">
+                          <label
+                            class="form-label"
+                            for="registration-verification-code"
+                          >
+                            Verification Code
+                            <span class="form-required" aria-hidden="true"
+                              >*</span
+                            >
+                          </label>
+
+                          <input
+                            class="form-control"
+                            id="registration-verification-code"
+                            name="verificationCode"
+                            type="text"
+                            inputmode="text"
+                            autocomplete="off"
+                            autocapitalize="characters"
+                            spellcheck="false"
+                            maxlength="10"
+                            placeholder="Enter the characters"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <!-- ==============================================================
+                 Terms
+                 ============================================================== -->
+
+                  <fieldset class="form-fieldset account-form__section">
+                    <legend class="visually-hidden">
+                      Registration Agreement
+                    </legend>
+
+                    <label class="form-check">
+                      <input
+                        class="form-check-input"
+                        id="registration-terms"
+                        name="termsAccepted"
+                        type="checkbox"
+                        value="true"
+                        required
+                      />
+
+                      <span class="form-check-label">
+                        I agree to the
+                        <a href="/terms-and-conditions">
+                          Terms and Conditions
+                        </a>
+                        and acknowledge the
+                        <a href="/privacy-policy"> Privacy Policy </a>.
+                      </span>
+                    </label>
+                  </fieldset>
+
+                  <!-- ==============================================================
+                 Submission Status
+                 ============================================================== -->
+
+                  <div
+                    class="form-status"
+                    role="status"
+                    aria-live="polite"
+                    data-registration-status
+                  ></div>
+
+                  <!-- ==============================================================
+                 Actions
+                 ============================================================== -->
+
+                  <div class="account-page__actions">
+                    <button
+                      class="btn btn-primary btn-rounded has-icon icon-chevron-right-bold icon-end icon-flip-rtl"
+                      type="submit"
+                    >
+                      Create Account
                     </button>
                   </div>
 
-                  <p class="auth-panel__alternate-action">
-                    Already have an account?
+                  <p class="account-page__login">
+                    <span>Already have an account?</span>
 
-                    <a href="/auth/login/"> Log in </a>
+                    <a href="/login"> Sign in </a>
                   </p>
                 </form>
-              </section>
+              </div>
             </div>
 
-            <!-- ============================================================
+            <!-- ====================================================================
            Registration Benefits
-           ============================================================ -->
+           ==================================================================== -->
 
             <aside
-              class="split-layout__secondary"
-              aria-labelledby="register-benefits-title"
+              class="sticky-layout__aside"
+              aria-labelledby="registration-benefits-title"
             >
-              <section class="auth-support">
-                <div class="stack stack--lg">
-                  <header class="auth-support__header">
-                    <div class="stack stack--sm">
-                      <h2
-                        id="register-benefits-title"
-                        class="auth-support__title"
-                      >
-                        Benefits of registering to the watchlist
-                      </h2>
+              <div class="sticky-layout__sticky">
+                <section class="account-page__benefits stack stack--lg">
+                  <header class="stack stack--sm">
+                    <h2
+                      class="account-page__benefits-title"
+                      id="registration-benefits-title"
+                    >
+                      Benefits of Registering
+                    </h2>
 
-                      <p class="auth-support__description">
-                        Log in or register now to access personalized services
-                        and receive custom notifications on your mobile device.
-                      </p>
-                    </div>
+                    <p class="account-page__benefits-description">
+                      Create an account to access personalized market tools and
+                      notifications.
+                    </p>
                   </header>
 
-                  <ul class="auth-support__list">
-                    <li class="auth-support__item">
-                      <span class="auth-support__icon" aria-hidden="true">
-                        ●
-                      </span>
+                  <ul class="account-benefits">
+                    <li class="account-benefits__item">
+                      <span
+                        class="account-benefits__icon has-icon icon-alert-bell"
+                        aria-hidden="true"
+                      ></span>
 
-                      <p class="auth-support__item-title">
-                        Get notified about the companies you want to track
-                      </p>
+                      <span>
+                        Receive notifications about the companies you want to
+                        track.
+                      </span>
                     </li>
 
-                    <li class="auth-support__item">
-                      <span class="auth-support__icon" aria-hidden="true">
-                        ■
-                      </span>
+                    <li class="account-benefits__item">
+                      <span
+                        class="account-benefits__icon has-icon icon-bookmark-ribbon"
+                        aria-hidden="true"
+                      ></span>
 
-                      <p class="auth-support__item-title">
-                        Save the press releases you are interested in
-                      </p>
+                      <span>
+                        Save press releases and market content for later.
+                      </span>
                     </li>
 
-                    <li class="auth-support__item">
-                      <span class="auth-support__icon" aria-hidden="true">
-                        ★
-                      </span>
+                    <li class="account-benefits__item">
+                      <span
+                        class="account-benefits__icon has-icon icon-star-filled"
+                        aria-hidden="true"
+                      ></span>
 
-                      <p class="auth-support__item-title">
-                        Create your watchlist and keep an eye on the latest
-                        changes
-                      </p>
+                      <span>
+                        Create a watchlist and monitor the latest market
+                        changes.
+                      </span>
                     </li>
                   </ul>
 
-                  <div class="auth-support__contact">
-                    <div class="stack stack--xs">
-                      <p>
-                        For any technical issues during login, contact our
-                        customer service at
-                        <a href="mailto:csc@saudiexchange.sa">
-                          csc@saudiexchange.sa </a
-                        >.
-                      </p>
-
-                      <p>
-                        Please include your registered e-mail address in the
-                        subject line.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </section>
+                  <p class="account-page__support">
+                    For technical assistance, contact
+                    <a href="mailto:csc@saudiexchange.sa">
+                      csc@saudiexchange.sa </a
+                    >. Include your registered email address in the subject
+                    line.
+                  </p>
+                </section>
+              </div>
             </aside>
           </div>
         </div>

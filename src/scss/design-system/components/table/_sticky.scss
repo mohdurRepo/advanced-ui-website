@@ -1,0 +1,368 @@
+/* ========================================================================== 
+   Sticky Table Tokens
+   ========================================================================== */
+
+.table-sticky,
+.table-sticky-head,
+.table-fixed-column,
+.table-fixed-columns {
+  --table-sticky-body-z: 2;
+  --table-sticky-header-z: 4;
+  --table-sticky-intersection-z: 6;
+
+  --table-sticky-bg: var(--table-bg);
+  --table-sticky-head-bg: var(--table-head-bg);
+  --table-sticky-foot-bg: var(--table-foot-bg);
+  --table-sticky-hover-bg: var(--table-row-hover-bg);
+  --table-sticky-selected-bg: var(--table-row-selected-bg);
+  --table-sticky-disabled-bg: var(--table-bg);
+
+  --table-sticky-boundary-color: var(--table-border-strong);
+  --table-sticky-shadow: 0.375rem 0 0.75rem rgb(0 0 0 / 0.05);
+  --table-sticky-shadow-rtl: -0.375rem 0 0.75rem rgb(0 0 0 / 0.05);
+
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/*
+ * Sticky cells must use opaque surfaces because scrolling content physically
+ * moves underneath them.
+ */
+
+@supports (background: color-mix(in oklab, white, black)) {
+  .table-sticky,
+  .table-sticky-head,
+  .table-fixed-column,
+  .table-fixed-columns {
+    --table-sticky-hover-bg: color-mix(
+      in oklab,
+      var(--color-primary) 8%,
+      var(--table-bg)
+    );
+    --table-sticky-selected-bg: color-mix(
+      in oklab,
+      var(--color-primary) 12%,
+      var(--table-bg)
+    );
+  }
+}
+
+/* ========================================================================== 
+   Sticky Header
+   ========================================================================== */
+
+.table-sticky-head thead th,
+.table-sticky-head thead td {
+  position: sticky;
+  inset-block-start: var(--table-sticky-block-offset, 0);
+
+  z-index: var(--table-sticky-header-z);
+
+  background: var(--table-sticky-head-bg);
+}
+
+/* ========================================================================== 
+   Explicit Sticky Cell API
+   ========================================================================== */
+
+/*
+ * Add `.table-sticky` to the table and `.table-sticky-start` to every cell in
+ * a sticky column. Additional columns set their accumulated logical offset:
+ *
+ * style="--table-sticky-offset: 7rem; --table-sticky-size: 15rem"
+ */
+
+.table-sticky-start {
+  position: sticky;
+  inset-inline-start: var(--table-sticky-offset, 0);
+
+  z-index: var(--table-sticky-body-z);
+
+  inline-size: var(--table-sticky-size, auto);
+  min-inline-size: var(--table-sticky-size, auto);
+  max-inline-size: var(--table-sticky-size, none);
+
+  background: var(--table-sticky-bg);
+  background-clip: border-box;
+
+  isolation: isolate;
+}
+
+thead .table-sticky-start {
+  z-index: var(--table-sticky-intersection-z);
+
+  background: var(--table-sticky-head-bg);
+}
+
+tfoot .table-sticky-start {
+  z-index: var(--table-sticky-intersection-z);
+
+  background: var(--table-sticky-foot-bg);
+}
+
+/* ========================================================================== 
+   Explicit Sticky Boundary
+   ========================================================================== */
+
+.table-sticky-boundary {
+  box-shadow: var(--table-sticky-shadow);
+}
+
+.table-sticky-boundary::after {
+  content: "";
+
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: -1px;
+
+  z-index: 1;
+
+  inline-size: 1px;
+
+  background: var(--table-sticky-boundary-color);
+
+  pointer-events: none;
+}
+
+html[dir="rtl"] .table-sticky-boundary {
+  box-shadow: var(--table-sticky-shadow-rtl);
+}
+
+/* ========================================================================== 
+   Compatibility: Fixed First Column
+   ========================================================================== */
+
+.table-fixed-column th:first-child,
+.table-fixed-column td:first-child {
+  position: sticky;
+  inset-inline-start: 0;
+
+  z-index: var(--table-sticky-body-z);
+
+  background: var(--table-sticky-bg);
+  background-clip: border-box;
+
+  isolation: isolate;
+}
+
+.table-fixed-column thead th:first-child,
+.table-fixed-column thead td:first-child {
+  z-index: var(--table-sticky-intersection-z);
+
+  background: var(--table-sticky-head-bg);
+}
+
+.table-fixed-column tfoot th:first-child,
+.table-fixed-column tfoot td:first-child {
+  z-index: var(--table-sticky-intersection-z);
+
+  background: var(--table-sticky-foot-bg);
+}
+
+/* ========================================================================== 
+   Compatibility: Fixed First Two Columns
+   ========================================================================== */
+
+.table-fixed-columns {
+  --table-fixed-column-1-width: 7rem;
+  --table-fixed-column-2-width: 15rem;
+}
+
+.table-fixed-columns th:nth-child(1),
+.table-fixed-columns td:nth-child(1),
+.table-fixed-columns th:nth-child(2),
+.table-fixed-columns td:nth-child(2) {
+  position: sticky;
+
+  z-index: var(--table-sticky-body-z);
+
+  background: var(--table-sticky-bg);
+  background-clip: border-box;
+
+  isolation: isolate;
+}
+
+.table-fixed-columns th:nth-child(1),
+.table-fixed-columns td:nth-child(1) {
+  inset-inline-start: 0;
+
+  inline-size: var(--table-fixed-column-1-width);
+  min-inline-size: var(--table-fixed-column-1-width);
+  max-inline-size: var(--table-fixed-column-1-width);
+}
+
+.table-fixed-columns th:nth-child(2),
+.table-fixed-columns td:nth-child(2) {
+  inset-inline-start: var(--table-fixed-column-1-width);
+
+  inline-size: var(--table-fixed-column-2-width);
+  min-inline-size: var(--table-fixed-column-2-width);
+  max-inline-size: var(--table-fixed-column-2-width);
+}
+
+.table-fixed-columns thead th:nth-child(1),
+.table-fixed-columns thead th:nth-child(2),
+.table-fixed-columns thead td:nth-child(1),
+.table-fixed-columns thead td:nth-child(2) {
+  z-index: var(--table-sticky-intersection-z);
+
+  background: var(--table-sticky-head-bg);
+}
+
+.table-fixed-columns tfoot th:nth-child(1),
+.table-fixed-columns tfoot th:nth-child(2),
+.table-fixed-columns tfoot td:nth-child(1),
+.table-fixed-columns tfoot td:nth-child(2) {
+  z-index: var(--table-sticky-intersection-z);
+
+  background: var(--table-sticky-foot-bg);
+}
+
+/* ========================================================================== 
+   Compatibility Boundaries
+   ========================================================================== */
+
+.table-fixed-column th:first-child,
+.table-fixed-column td:first-child,
+.table-fixed-columns th:nth-child(2),
+.table-fixed-columns td:nth-child(2) {
+  box-shadow: var(--table-sticky-shadow);
+}
+
+.table-fixed-column th:first-child::after,
+.table-fixed-column td:first-child::after,
+.table-fixed-columns th:nth-child(2)::after,
+.table-fixed-columns td:nth-child(2)::after {
+  content: "";
+
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: -1px;
+
+  z-index: 1;
+
+  inline-size: 1px;
+
+  background: var(--table-sticky-boundary-color);
+
+  pointer-events: none;
+}
+
+html[dir="rtl"] .table-fixed-column th:first-child,
+html[dir="rtl"] .table-fixed-column td:first-child,
+html[dir="rtl"] .table-fixed-columns th:nth-child(2),
+html[dir="rtl"] .table-fixed-columns td:nth-child(2) {
+  box-shadow: var(--table-sticky-shadow-rtl);
+}
+
+/* ========================================================================== 
+   Row Surface Preservation
+   ========================================================================== */
+
+.table-striped tbody tr:nth-child(even) > .table-sticky-start,
+.table-striped.table-fixed-column tbody tr:nth-child(even) > :first-child,
+.table-striped.table-fixed-columns tbody tr:nth-child(even) > :nth-child(1),
+.table-striped.table-fixed-columns tbody tr:nth-child(even) > :nth-child(2) {
+  background: var(--table-striped-bg);
+}
+
+.table-hover tbody tr:hover > .table-sticky-start,
+.table-hover.table-fixed-column tbody tr:hover > :first-child,
+.table-hover.table-fixed-columns tbody tr:hover > :nth-child(1),
+.table-hover.table-fixed-columns tbody tr:hover > :nth-child(2) {
+  background: var(--table-sticky-hover-bg);
+}
+
+.table tbody tr.is-selected > .table-sticky-start,
+.table tbody tr[aria-selected="true"] > .table-sticky-start,
+.table-fixed-column tbody tr.is-selected > :first-child,
+.table-fixed-column tbody tr[aria-selected="true"] > :first-child,
+.table-fixed-columns tbody tr.is-selected > :nth-child(1),
+.table-fixed-columns tbody tr.is-selected > :nth-child(2),
+.table-fixed-columns tbody tr[aria-selected="true"] > :nth-child(1),
+.table-fixed-columns tbody tr[aria-selected="true"] > :nth-child(2) {
+  background: var(--table-sticky-selected-bg);
+}
+
+.table tbody tr.is-disabled > .table-sticky-start,
+.table tbody tr[aria-disabled="true"] > .table-sticky-start,
+.table-fixed-column tbody tr.is-disabled > :first-child,
+.table-fixed-column tbody tr[aria-disabled="true"] > :first-child,
+.table-fixed-columns tbody tr.is-disabled > :nth-child(1),
+.table-fixed-columns tbody tr.is-disabled > :nth-child(2),
+.table-fixed-columns tbody tr[aria-disabled="true"] > :nth-child(1),
+.table-fixed-columns tbody tr[aria-disabled="true"] > :nth-child(2) {
+  background: var(--table-sticky-disabled-bg);
+}
+
+/* ========================================================================== 
+   Group and Summary Surface Preservation
+   ========================================================================== */
+
+.table-group-row > .table-sticky-start,
+.table-group-row > .table-group-label-sticky,
+.table-fixed-column .table-group-row > :first-child,
+.table-fixed-columns .table-group-row > :nth-child(1),
+.table-fixed-columns .table-group-row > :nth-child(2) {
+  background: var(--table-group-bg);
+  color: var(--table-group-color);
+}
+
+.table-total-row > .table-sticky-start,
+.table-fixed-column .table-total-row > :first-child,
+.table-fixed-columns .table-total-row > :nth-child(1),
+.table-fixed-columns .table-total-row > :nth-child(2) {
+  background: var(--table-summary-bg);
+  color: var(--table-summary-color);
+}
+
+/* ========================================================================== 
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .table-sticky,
+html[data-contrast="high"] .table-sticky-head,
+html[data-contrast="high"] .table-fixed-column,
+html[data-contrast="high"] .table-fixed-columns {
+  --table-sticky-shadow: none;
+  --table-sticky-shadow-rtl: none;
+  --table-sticky-boundary-color: var(--color-border-strong);
+}
+
+html[data-contrast="high"] .table-sticky-boundary::after,
+html[data-contrast="high"] .table-fixed-column th:first-child::after,
+html[data-contrast="high"] .table-fixed-column td:first-child::after,
+html[data-contrast="high"] .table-fixed-columns th:nth-child(2)::after,
+html[data-contrast="high"] .table-fixed-columns td:nth-child(2)::after {
+  inline-size: 2px;
+}
+
+/* ========================================================================== 
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .table-sticky,
+  .table-sticky-head,
+  .table-fixed-column,
+  .table-fixed-columns {
+    --table-sticky-bg: Canvas;
+    --table-sticky-head-bg: Canvas;
+    --table-sticky-foot-bg: Canvas;
+    --table-sticky-hover-bg: Canvas;
+    --table-sticky-selected-bg: Canvas;
+    --table-sticky-disabled-bg: Canvas;
+    --table-sticky-boundary-color: CanvasText;
+    --table-sticky-shadow: none;
+    --table-sticky-shadow-rtl: none;
+  }
+
+  .table-sticky-boundary::after,
+  .table-fixed-column th:first-child::after,
+  .table-fixed-column td:first-child::after,
+  .table-fixed-columns th:nth-child(2)::after,
+  .table-fixed-columns td:nth-child(2)::after {
+    inline-size: 2px;
+  }
+}

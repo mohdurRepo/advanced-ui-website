@@ -14,8 +14,7 @@
   --chart-notes-fg: var(--color-text);
   --chart-notes-muted: var(--color-text-muted);
   --chart-notes-border: var(--color-border);
-
-  --chart-notes-icon-fg: var(--color-primary);
+  --chart-notes-accent: var(--color-primary);
 
   position: relative;
   z-index: 1;
@@ -27,16 +26,15 @@
   margin-block-start: 1rem;
   padding: 1rem;
 
-  overflow: visible;
-
   border: 1px solid var(--chart-notes-border);
+  border-radius: var(--radius-lg);
 
   background: var(--chart-notes-bg);
   color: var(--chart-notes-fg);
 }
 
 /* ==========================================================================
-   List
+   Notes List
    ========================================================================== */
 
 .chart-notes__list {
@@ -52,7 +50,7 @@
 }
 
 /* ==========================================================================
-   Item
+   Note Item
    ========================================================================== */
 
 .chart-notes__item {
@@ -69,10 +67,6 @@
   line-height: var(--line-height-normal);
 }
 
-/* ==========================================================================
-   Text
-   ========================================================================== */
-
 .chart-notes__text {
   min-inline-size: 0;
 
@@ -83,33 +77,33 @@
 }
 
 /* ==========================================================================
-   Status Icon
+   Status Indicator
    ========================================================================== */
 
 .chart-notes__status {
   --icon-size: 0.6875rem;
 
   display: inline-grid;
+  flex: 0 0 auto;
   place-items: center;
 
   inline-size: 1.5rem;
   block-size: 1.5rem;
 
-  flex: 0 0 auto;
-
   margin-block-start: 0.05rem;
 
-  border: 1px solid color-mix(in oklab, var(--color-primary), transparent 74%);
+  border: 1px solid
+    color-mix(in oklab, var(--chart-notes-accent), transparent 74%);
 
   border-radius: var(--radius-pill);
 
-  background: color-mix(in oklab, var(--color-primary), transparent 94%);
+  background: color-mix(in oklab, var(--chart-notes-accent), transparent 94%);
 
-  color: var(--chart-notes-icon-fg);
+  color: var(--chart-notes-accent);
 }
 
 /* ==========================================================================
-   Tooltip Wrapper
+   Information Tooltip
    ========================================================================== */
 
 .chart-notes__tooltip {
@@ -117,10 +111,6 @@
 
   margin-inline-start: 0.125rem;
 }
-
-/* ==========================================================================
-   Information Trigger
-   ========================================================================== */
 
 .chart-notes__info {
   --icon-size: 0.6875rem;
@@ -135,23 +125,29 @@
 
   appearance: none;
 
-  border: 1px solid color-mix(in oklab, var(--color-primary), transparent 72%);
+  border: 1px solid
+    color-mix(in oklab, var(--chart-notes-accent), transparent 72%);
 
   border-radius: var(--radius-pill);
 
-  background: color-mix(in oklab, var(--color-primary), transparent 92%);
+  background: color-mix(in oklab, var(--chart-notes-accent), transparent 92%);
 
-  color: var(--color-primary);
+  color: var(--chart-notes-accent);
+
+  font: inherit;
 
   cursor: help;
   touch-action: manipulation;
 
-  @include transition((background-color, border-color, color, transform), fast);
+  @include transition(
+    (background-color, border-color, color, transform, opacity),
+    fast
+  );
 
-  &:hover {
-    border-color: var(--color-primary);
+  &:hover:not(:disabled):not([aria-disabled="true"]) {
+    border-color: var(--chart-notes-accent);
 
-    background: var(--color-primary);
+    background: var(--chart-notes-accent);
     color: var(--color-on-primary);
 
     transform: translateY(-0.0625rem);
@@ -165,8 +161,18 @@
     @include focus-ring;
   }
 
-  &:active {
+  &:active:not(:disabled):not([aria-disabled="true"]) {
     transform: translateY(0);
+  }
+
+  &:disabled,
+  &[aria-disabled="true"] {
+    opacity: 0.5;
+
+    cursor: not-allowed;
+    pointer-events: none;
+
+    transform: none;
   }
 }
 
@@ -174,15 +180,9 @@
    Dashboard Placement
    ========================================================================== */
 
-/*
- * The dashboard surface already controls vertical spacing through its grid
- * gap, so the dashboard note does not require additional outer margin.
- */
-
 .market-dashboard__surface > .chart-notes {
   margin-block-start: 0;
 }
-
 /* ==========================================================================
    Mobile
    ========================================================================== */
@@ -240,28 +240,73 @@ html[data-contrast="high"] {
 }
 
 /* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .chart-notes {
+    border: 2px solid CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .chart-notes__text {
+    color: CanvasText;
+  }
+
+  .chart-notes__status,
+  .chart-notes__info {
+    border: 2px solid ButtonText;
+
+    background: ButtonFace;
+    color: ButtonText;
+
+    forced-color-adjust: auto;
+  }
+
+  .chart-notes__info {
+    &:hover:not(:disabled):not([aria-disabled="true"]),
+    &:focus-visible {
+      border-color: Highlight;
+
+      background: Highlight;
+      color: HighlightText;
+
+      forced-color-adjust: none;
+    }
+
+    &:disabled,
+    &[aria-disabled="true"] {
+      border-color: GrayText;
+      color: GrayText;
+    }
+  }
+}
+
+/* ==========================================================================
    Reduced Motion
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
   .chart-notes__info {
     transition: none;
-  }
 
-  .chart-notes__info:hover,
-  .chart-notes__info:active {
-    transform: none;
+    &:hover,
+    &:active {
+      transform: none;
+    }
   }
 }
 
 html[data-motion="reduce"] {
   .chart-notes__info {
     transition: none;
-  }
 
-  .chart-notes__info:hover,
-  .chart-notes__info:active {
-    transform: none;
+    &:hover,
+    &:active {
+      transform: none;
+    }
   }
 }
 
@@ -292,6 +337,6 @@ html[data-motion="reduce"] {
 
   .chart-notes__info,
   .chart-notes__tooltip {
-    display: none;
+    display: none !important;
   }
 }

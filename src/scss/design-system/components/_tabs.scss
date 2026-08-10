@@ -21,7 +21,7 @@
   --tab-active-border: var(--color-primary);
 
   inline-size: 100%;
-  min-width: 0;
+  min-inline-size: 0;
 }
 
 /* ==========================================================================
@@ -32,16 +32,20 @@
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
+
   gap: var(--tabs-gap);
 
-  border-block-end: 1px solid var(--tabs-nav-border);
+  min-inline-size: 0;
 
   overflow-x: auto;
   overflow-y: hidden;
 
+  border-block-end: 1px solid var(--tabs-nav-border);
+
   scrollbar-width: none;
   scroll-behavior: smooth;
 
+  overscroll-behavior-inline: contain;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -60,10 +64,12 @@
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
+
   gap: 0.5rem;
 
   min-block-size: 2.75rem;
-  padding: 0.75rem 1rem;
+  padding-block: 0.75rem;
+  padding-inline: 1rem;
 
   border: 0;
   border-block-end: 2px solid var(--tab-border);
@@ -76,31 +82,66 @@
   font-weight: ds.font-weight("bold");
   line-height: 1;
 
-  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
   white-space: nowrap;
 
+  cursor: pointer;
+  user-select: none;
+
   @include ds.transition(
-    (background-color, color, border-color, outline-color),
+    (
+      background-color,
+      border-color,
+      color,
+      box-shadow,
+      outline-color,
+      transform
+    ),
     "fast"
   );
 }
+
+/* ==========================================================================
+   Tab Hover
+   ========================================================================== */
 
 .tab-link:hover:not(:disabled):not(.is-disabled) {
   background: var(--tab-hover-bg);
   color: var(--tab-hover-color);
 }
 
+/* ==========================================================================
+   Tab Focus
+   ========================================================================== */
+
+.tab-link:focus {
+  outline: none;
+}
+
 .tab-link:focus-visible {
+  position: relative;
+  z-index: 1;
+
   @include ds.focus-ring;
 }
+
+/* ==========================================================================
+   Tab Active
+   ========================================================================== */
 
 .tab-link.active,
 .tab-link.is-active,
 .tab-link[aria-selected="true"] {
   border-color: var(--tab-active-border);
+
   background: var(--tab-active-bg);
   color: var(--tab-active-color);
 }
+
+/* ==========================================================================
+   Tab Disabled
+   ========================================================================== */
 
 .tab-link:disabled,
 .tab-link.is-disabled,
@@ -109,6 +150,8 @@
 
   cursor: not-allowed;
   pointer-events: none;
+
+  opacity: 0.7;
 }
 
 /* ==========================================================================
@@ -116,17 +159,28 @@
    ========================================================================== */
 
 .tabs-content {
+  min-inline-size: 0;
   padding-block-start: var(--tabs-content-space);
 }
 
+/* ==========================================================================
+   Panel
+   ========================================================================== */
+
 .tab-pane {
   display: none;
+
+  min-inline-size: 0;
 }
 
 .tab-pane.active,
 .tab-pane.is-active,
 .tab-pane[data-active="true"] {
   display: block;
+}
+
+.tab-pane[hidden] {
+  display: none !important;
 }
 
 /* ==========================================================================
@@ -150,12 +204,13 @@
   --tab-active-border: transparent;
 }
 
-.tabs--pill .tabs-nav {
+.tabs--pill > .tabs-nav {
   padding-block: 0.5rem;
+
   border-block-end: 0;
 }
 
-.tabs--pill .tab-link {
+.tabs--pill > .tabs-nav > .tab-link {
   min-block-size: 2.5rem;
 
   border: 1px solid transparent;
@@ -172,9 +227,10 @@
   --tabs-content-space: 1rem;
 }
 
-.tabs--compact .tab-link {
+.tabs--compact > .tabs-nav > .tab-link {
   min-block-size: 2.25rem;
-  padding: 0.5rem 0.875rem;
+  padding-block: 0.5rem;
+  padding-inline: 0.875rem;
 
   font-size: var(--text-xs);
 }
@@ -183,17 +239,336 @@
    Full-width Variant
    ========================================================================== */
 
-.tabs--full .tab-link {
+.tabs--full > .tabs-nav > .tab-link {
   flex: 1 1 0;
+}
+
+/* ==========================================================================
+   Secondary Tabs
+   ========================================================================== */
+
+/*
+ * Secondary tabs are intended for navigation nested inside a primary
+ * tab panel.
+ *
+ * They intentionally differ from primary tabs through:
+ *
+ * - a contained navigation surface
+ * - pill-shaped controls
+ * - a filled active state
+ * - an inset content panel
+ *
+ * Direct-child selectors prevent this variant from styling any deeper
+ * nested tabs.
+ */
+
+.tabs--secondary {
+  --tabs-content-space: 0;
+
+  --secondary-tabs-nav-bg: var(--color-surface-alt);
+  --secondary-tabs-nav-border: var(--color-border);
+
+  --secondary-tab-bg: transparent;
+  --secondary-tab-color: var(--color-text-muted);
+  --secondary-tab-border: transparent;
+
+  --secondary-tab-hover-bg: var(--color-surface);
+  --secondary-tab-hover-color: var(--color-heading);
+  --secondary-tab-hover-border: var(--color-border-strong);
+
+  --secondary-tab-active-bg: var(--color-primary);
+  --secondary-tab-active-color: var(--color-on-primary);
+  --secondary-tab-active-border: var(--color-primary);
+
+  --secondary-tabs-panel-bg: var(--color-surface-alt);
+  --secondary-tabs-panel-color: var(--color-text);
+  --secondary-tabs-panel-border: var(--color-border);
+  --secondary-tabs-panel-radius: var(--radius-lg);
+  --secondary-tabs-panel-padding: clamp(1rem, 2vw, 1.5rem);
+}
+
+/* ==========================================================================
+   Secondary Navigation
+   ========================================================================== */
+
+.tabs--secondary > .tabs-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+
+  gap: ds.space(2);
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  padding: ds.space(1);
+
+  border: 1px solid var(--secondary-tabs-nav-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--secondary-tabs-nav-bg);
+}
+
+/* ==========================================================================
+   Secondary Tab
+   ========================================================================== */
+
+.tabs--secondary > .tabs-nav > .tab-link {
+  position: relative;
+
+  flex: 0 0 auto;
+
+  min-block-size: 2.5rem;
+  padding-block: 0.5rem;
+  padding-inline: 1rem;
+
+  border: 1px solid var(--secondary-tab-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--secondary-tab-bg);
+  color: var(--secondary-tab-color);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("semibold");
+  line-height: 1.2;
+
+  box-shadow: none;
+}
+
+/*
+ * The secondary variant uses a filled active state rather than the
+ * underline indicator used by primary tabs.
+ */
+
+.tabs--secondary > .tabs-nav > .tab-link::after {
+  content: none;
+}
+
+/* ==========================================================================
+   Secondary Tab Hover
+   ========================================================================== */
+
+.tabs--secondary
+  > .tabs-nav
+  > .tab-link:hover:not(:disabled):not(.is-disabled):not(.active):not(
+    [aria-selected="true"]
+  ) {
+  border-color: var(--secondary-tab-hover-border);
+
+  background: var(--secondary-tab-hover-bg);
+  color: var(--secondary-tab-hover-color);
+}
+
+/* ==========================================================================
+   Secondary Tab Active
+   ========================================================================== */
+
+.tabs--secondary > .tabs-nav > .tab-link.active,
+.tabs--secondary > .tabs-nav > .tab-link.is-active,
+.tabs--secondary > .tabs-nav > .tab-link[aria-selected="true"] {
+  border-color: var(--secondary-tab-active-border);
+
+  background: var(--secondary-tab-active-bg);
+  color: var(--secondary-tab-active-color);
+
+  box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   Secondary Tab Active Hover
+   ========================================================================== */
+
+.tabs--secondary > .tabs-nav > .tab-link.active:hover:not(:disabled),
+.tabs--secondary > .tabs-nav > .tab-link.is-active:hover:not(:disabled),
+.tabs--secondary
+  > .tabs-nav
+  > .tab-link[aria-selected="true"]:hover:not(:disabled) {
+  border-color: var(--secondary-tab-active-border);
+
+  background: var(--secondary-tab-active-bg);
+  color: var(--secondary-tab-active-color);
+}
+
+/* ==========================================================================
+   Secondary Tab Active Press
+   ========================================================================== */
+
+.tabs--secondary
+  > .tabs-nav
+  > .tab-link:active:not(:disabled):not(.is-disabled) {
+  transform: translateY(1px);
+}
+
+/* ==========================================================================
+   Secondary Content
+   ========================================================================== */
+
+.tabs--secondary > .tabs-content {
+  min-inline-size: 0;
+  margin-block-start: ds.space(4);
+  padding-block-start: 0;
+}
+
+/* ==========================================================================
+   Secondary Panel
+   ========================================================================== */
+
+.tabs--secondary > .tabs-content > .tab-pane {
+  min-inline-size: 0;
+}
+
+.tabs--secondary > .tabs-content > .tab-pane.active,
+.tabs--secondary > .tabs-content > .tab-pane.is-active,
+.tabs--secondary > .tabs-content > .tab-pane[data-active="true"] {
+  padding: var(--secondary-tabs-panel-padding);
+
+  border: 1px solid var(--secondary-tabs-panel-border);
+  border-radius: var(--secondary-tabs-panel-radius);
+
+  background: var(--secondary-tabs-panel-bg);
+  color: var(--secondary-tabs-panel-color);
+}
+
+/* ==========================================================================
+   Secondary Panel Content
+   ========================================================================== */
+
+.tabs--secondary > .tabs-content > .tab-pane > :first-child {
+  margin-block-start: 0;
+}
+
+.tabs--secondary > .tabs-content > .tab-pane > :last-child {
+  margin-block-end: 0;
+}
+
+/* ==========================================================================
+   Secondary Panel Tables
+   ========================================================================== */
+
+.tabs--secondary > .tabs-content > .tab-pane .table-shell,
+.tabs--secondary > .tabs-content > .tab-pane .table-responsive {
+  min-inline-size: 0;
+}
+
+.tabs--secondary > .tabs-content > .tab-pane .table-responsive {
+  border-radius: var(--radius-md);
 }
 
 /* ==========================================================================
    Responsive
    ========================================================================== */
 
+@include ds.respond-down("md") {
+  .tabs--secondary > .tabs-nav {
+    flex-wrap: nowrap;
+
+    inline-size: 100%;
+
+    border-radius: var(--radius-lg);
+  }
+
+  .tabs--secondary > .tabs-nav > .tab-link {
+    min-block-size: 2.75rem;
+  }
+}
+
+/* ==========================================================================
+   Small Mobile
+   ========================================================================== */
+
 @include ds.respond-down("sm") {
-  .tabs--full .tab-link {
+  .tabs--full > .tabs-nav > .tab-link {
     flex: 0 0 auto;
+  }
+
+  .tabs--secondary {
+    --secondary-tabs-panel-padding: 1rem;
+  }
+
+  .tabs--secondary > .tabs-content {
+    margin-block-start: ds.space(3);
+  }
+
+  .tabs--secondary > .tabs-content > .tab-pane.active,
+  .tabs--secondary > .tabs-content > .tab-pane.is-active,
+  .tabs--secondary > .tabs-content > .tab-pane[data-active="true"] {
+    border-radius: var(--radius-md);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .tabs-nav {
+    border-color: var(--color-border-strong);
+  }
+
+  .tab-link.active,
+  .tab-link.is-active,
+  .tab-link[aria-selected="true"] {
+    border-color: currentColor;
+  }
+
+  .tabs--secondary > .tabs-nav,
+  .tabs--secondary > .tabs-content > .tab-pane.active,
+  .tabs--secondary > .tabs-content > .tab-pane.is-active,
+  .tabs--secondary > .tabs-content > .tab-pane[data-active="true"] {
+    border-width: 2px;
+    border-color: var(--color-border-strong);
+  }
+
+  .tabs--secondary > .tabs-nav > .tab-link.active,
+  .tabs--secondary > .tabs-nav > .tab-link.is-active,
+  .tabs--secondary > .tabs-nav > .tab-link[aria-selected="true"] {
+    border-width: 2px;
+    border-color: currentColor;
+
+    background: var(--color-text);
+    color: var(--color-bg);
+
+    box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .tabs-nav {
+    border-color: CanvasText;
+  }
+
+  .tab-link {
+    color: ButtonText;
+  }
+
+  .tab-link.active,
+  .tab-link.is-active,
+  .tab-link[aria-selected="true"] {
+    border-color: Highlight;
+    color: Highlight;
+  }
+
+  .tabs--secondary > .tabs-nav,
+  .tabs--secondary > .tabs-content > .tab-pane.active,
+  .tabs--secondary > .tabs-content > .tab-pane.is-active,
+  .tabs--secondary > .tabs-content > .tab-pane[data-active="true"] {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .tabs--secondary > .tabs-nav > .tab-link.active,
+  .tabs--secondary > .tabs-nav > .tab-link.is-active,
+  .tabs--secondary > .tabs-nav > .tab-link[aria-selected="true"] {
+    border-color: Highlight;
+
+    background: Highlight;
+    color: HighlightText;
   }
 }
 
@@ -209,6 +584,12 @@
   .tab-link {
     transition: none;
   }
+
+  .tabs--secondary
+    > .tabs-nav
+    > .tab-link:active:not(:disabled):not(.is-disabled) {
+    transform: none;
+  }
 }
 
 html[data-motion="reduce"] {
@@ -218,5 +599,11 @@ html[data-motion="reduce"] {
 
   .tab-link {
     transition: none;
+  }
+
+  .tabs--secondary
+    > .tabs-nav
+    > .tab-link:active:not(:disabled):not(.is-disabled) {
+    transform: none;
   }
 }

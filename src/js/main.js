@@ -17,18 +17,19 @@ import { initIndicesHeatmap } from "./components/market-summary";
 import { initForms } from "./components/form";
 import { initCustomSelects } from "./components/custom-select";
 import { initCustomDates } from "./components/custom-date";
+import { initTables } from "./components/table";
 import { initTextAnimation } from "./components/text-animation";
 import { initMarketOverview } from "./components/market-overview";
 import { initMarketCharts } from "./components/market-chart";
-
-import { renderDataTable } from "./vendors/datatables/datatable.core";
-import { initDataTables } from "./vendors/datatables/datatable.init";
+import { initDataViews } from "./components/data-view";
+//import { renderDataTable } from "./vendors/datatables/datatable.core";
+//import { initDataTables } from "./vendors/datatables/datatable.init";
 
 /* ==========================================================================
    Public API
    ========================================================================== */
 
-window.renderDataTable = renderDataTable;
+//window.renderDataTable = renderDataTable;
 
 /* ==========================================================================
    Application Initialization
@@ -55,7 +56,8 @@ function initApp() {
   /*
    * Vendor integrations
    */
-  initDataTables();
+  //initDataTables();
+  initTables();
 
   /*
    * Market components
@@ -68,7 +70,7 @@ function initApp() {
    * Homepage introduction components
    */
   initHomeSpotlight();
-
+  initDataViews();
   /*
    * Page sections
    */

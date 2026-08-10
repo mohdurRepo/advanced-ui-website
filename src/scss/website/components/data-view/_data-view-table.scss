@@ -1,0 +1,70 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Data View Table
+   ========================================================================== */
+
+/*
+ * Adapter between the generic data-view workspace and the design-system
+ * table component.
+ *
+ * The table system itself still owns:
+ *
+ * - table typography
+ * - borders
+ * - responsive overflow
+ * - fixed columns
+ * - DataTables integration
+ */
+
+.data-view__table {
+  overflow: hidden;
+
+  border-radius: inherit;
+}
+
+/* ==========================================================================
+   Table Shell
+   ========================================================================== */
+
+.data-view__table > .table-shell,
+.data-view__table > .dt-container {
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Direct Table
+   ========================================================================== */
+
+.data-view__table > table,
+.data-view__table .table {
+  margin-block: 0;
+}
+
+/* ==========================================================================
+   Connected Filter Bar
+   ========================================================================== */
+
+/*
+ * Optional pattern:
+ *
+ * filter-bar--connected
+ * data-view--connected
+ */
+
+.data-view--connected .data-view__workspace {
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .data-view__table {
+    outline: 0;
+  }
+}

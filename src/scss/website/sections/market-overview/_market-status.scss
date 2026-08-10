@@ -6,7 +6,6 @@
 
 .market-status {
   --market-status-color: var(--market-overview-neutral, #a9bdca);
-
   --market-status-glow: rgb(169 189 202 / 0.38);
 
   --market-status-indicator-size: 0.6875rem;
@@ -19,10 +18,10 @@
   display: inline-grid;
   place-items: center;
 
+  flex: 0 0 auto;
+
   inline-size: calc(var(--market-status-indicator-size) * 2.25);
   block-size: calc(var(--market-status-indicator-size) * 2.25);
-
-  flex: 0 0 auto;
 
   color: var(--market-status-color);
 
@@ -90,12 +89,10 @@
  */
 
 .market-status--open {
-  --market-status-color: var(--market-overview-success, #48df8b);
-
-  --market-status-glow: rgb(72 223 139 / 0.46);
+  --market-status-color: var(--market-overview-success, #4ade80);
+  --market-status-glow: rgb(74 222 128 / 0.46);
 
   --market-status-dot-animation: market-status-dot 1.8s ease-in-out infinite;
-
   --market-status-halo-animation: market-status-halo 1.8s ease-out infinite;
 }
 
@@ -104,13 +101,12 @@
    ========================================================================== */
 
 /*
- * A closed market is a stable state, not a live alert, so it remains static.
+ * Closed markets remain visually stable while retaining a restrained pulse.
  */
 
 .market-status--closed {
-  --market-status-color: var(--market-overview-danger, #ff7186);
-
-  --market-status-glow: rgb(255 113 134 / 0.38);
+  --market-status-color: var(--market-overview-danger, #fb7185);
+  --market-status-glow: rgb(251 113 133 / 0.38);
 
   --market-status-dot-animation: market-status-dot 2.2s ease-in-out infinite;
   --market-status-halo-animation: market-status-halo 2.2s ease-out infinite;
@@ -126,12 +122,10 @@
 
 .market-status--pre-open,
 .market-status--auction {
-  --market-status-color: var(--market-overview-warning, #ffb84d);
-
-  --market-status-glow: rgb(255 184 77 / 0.42);
+  --market-status-color: var(--market-overview-warning, #fbbf24);
+  --market-status-glow: rgb(251 191 36 / 0.42);
 
   --market-status-dot-animation: market-status-dot 2.4s ease-in-out infinite;
-
   --market-status-halo-animation: market-status-halo 2.4s ease-out infinite;
 }
 
@@ -140,7 +134,7 @@
    ========================================================================== */
 
 /*
- * A halted market receives a restrained attention pulse.
+ * Halted markets receive a restrained attention pulse.
  */
 
 .market-status--halted {
@@ -152,7 +146,6 @@
   --market-status-glow: rgb(242 220 85 / 0.42);
 
   --market-status-dot-animation: market-status-dot 2.2s ease-in-out infinite;
-
   --market-status-halo-animation: market-status-halo 2.2s ease-out infinite;
 }
 
@@ -173,42 +166,82 @@
    Market Change
    ========================================================================== */
 
-.market-change {
-  --market-change-color: inherit;
+/*
+ * Market Change owns layout and its direction indicator.
+ *
+ * Semantic colors are owned by:
+ *
+ * - .price-up
+ * - .price-down
+ * - .price-neutral
+ */
 
+.market-change {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.25rem;
+  gap: 0.375rem;
 
   min-inline-size: 0;
+  max-inline-size: 100%;
 
-  color: var(--market-change-color);
+  color: var(--price-state-color, currentColor);
 
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-.market-change--up {
-  --market-change-color: var(--market-overview-success, var(--color-success));
+/* ==========================================================================
+   Market Change Value
+   ========================================================================== */
+
+.market-change__value {
+  min-inline-size: 0;
+
+  color: inherit;
+
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+
+  white-space: nowrap;
 }
 
-.market-change--down {
-  --market-change-color: var(--market-overview-danger, var(--color-danger));
-}
+/* ==========================================================================
+   Market Change Direction Icon
+   ========================================================================== */
 
-.market-change--neutral {
-  --market-change-color: var(
-    --market-status-neutral,
-    var(--market-overview-neutral, #a9bdca)
-  );
-}
+/*
+ * The icon remains in the markup, but its shape is rendered with CSS.
+ * This avoids missing icon-font glyphs appearing as empty squares.
+ */
 
 .market-change__icon {
-  --icon-size: 0.75rem;
-
   flex: 0 0 auto;
 
+  inline-size: 0;
+  block-size: 0;
+
+  border-inline: 0.25rem solid transparent;
+
   color: currentColor;
+}
+
+/* Positive */
+
+.market-change.price-up .market-change__icon {
+  border-block-end: 0.4rem solid currentColor;
+}
+
+/* Negative */
+
+.market-change.price-down .market-change__icon {
+  border-block-start: 0.4rem solid currentColor;
+}
+
+/* Neutral */
+
+.market-change.price-neutral .market-change__icon {
+  display: none;
 }
 
 /* ==========================================================================
@@ -251,6 +284,22 @@
 }
 
 /* ==========================================================================
+   RTL
+   ========================================================================== */
+
+/*
+ * Financial signs and direction indicators retain their numeric direction
+ * inside RTL interfaces.
+ */
+
+html[dir="rtl"] {
+  .market-change {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+}
+
+/* ==========================================================================
    High Contrast
    ========================================================================== */
 
@@ -267,6 +316,8 @@ html[data-contrast="high"] {
   }
 
   .market-change {
+    color: currentColor;
+
     font-weight: ds.font-weight("bold");
   }
 
@@ -274,18 +325,22 @@ html[data-contrast="high"] {
    * Direction remains understandable without relying only on color.
    */
 
-  .market-change--up {
+  .market-change.price-up {
     text-decoration-line: underline;
     text-decoration-style: double;
     text-decoration-thickness: 2px;
     text-underline-offset: 0.18em;
   }
 
-  .market-change--down {
+  .market-change.price-down {
     text-decoration-line: underline;
     text-decoration-style: solid;
     text-decoration-thickness: 2px;
     text-underline-offset: 0.18em;
+  }
+
+  .market-change.price-neutral {
+    text-decoration: none;
   }
 }
 

@@ -12,7 +12,6 @@
   );
 
   --chart-range-border: var(--color-border);
-
   --chart-range-fg: var(--color-text-muted);
 
   --chart-range-hover-bg: color-mix(
@@ -25,7 +24,6 @@
 
   --chart-range-active-bg: var(--color-primary);
   --chart-range-active-fg: var(--color-on-primary);
-
   --chart-range-active-border: var(--color-primary);
 
   display: flex;
@@ -46,6 +44,7 @@
   background: var(--chart-range-bg);
 
   overscroll-behavior-inline: contain;
+  scroll-padding-inline: 0.1875rem;
   scroll-snap-type: inline proximity;
 
   scrollbar-width: none;
@@ -64,6 +63,8 @@
    ========================================================================== */
 
 .chart-range {
+  position: relative;
+
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
@@ -88,6 +89,7 @@
   line-height: 1;
 
   text-align: center;
+  text-decoration: none;
   white-space: nowrap;
 
   cursor: pointer;
@@ -96,13 +98,13 @@
   scroll-snap-align: start;
 
   @include transition(
-    (background-color, border-color, color, box-shadow, transform),
+    (background-color, border-color, color, box-shadow, transform, opacity),
     fast
   );
 
   &:hover:not(.is-active):not([aria-selected="true"]):not(
       [aria-pressed="true"]
-    ):not(:disabled) {
+    ):not(:disabled):not([aria-disabled="true"]) {
     background: var(--chart-range-hover-bg);
     color: var(--chart-range-hover-fg);
   }
@@ -112,7 +114,6 @@
   }
 
   &:focus-visible {
-    position: relative;
     z-index: 1;
 
     @include focus-ring;
@@ -124,7 +125,6 @@
     border-color: var(--chart-range-active-border);
 
     background: var(--chart-range-active-bg);
-
     color: var(--chart-range-active-fg);
 
     box-shadow:
@@ -132,7 +132,7 @@
       inset 0 1px 0 rgb(255 255 255 / 0.14);
   }
 
-  &:active:not(:disabled) {
+  &:active:not(:disabled):not([aria-disabled="true"]) {
     transform: scale(0.97);
   }
 
@@ -142,20 +142,38 @@
 
     cursor: not-allowed;
     pointer-events: none;
+
     transform: none;
+  }
+
+  &[aria-busy="true"],
+  &.is-pending {
+    cursor: progress;
   }
 }
 
 /* ==========================================================================
-   Loading State
+   Chart Loading
    ========================================================================== */
 
-.performance-chart[aria-busy="true"] {
+.performance-chart[aria-busy="true"],
+.performance-chart[data-chart-loading="true"],
+[data-performance-chart][aria-busy="true"],
+[data-performance-chart][data-chart-loading="true"] {
   .chart-range {
     cursor: progress;
   }
 }
 
+/* ==========================================================================
+   Pointer Sizing
+   ========================================================================== */
+
+@media (pointer: coarse) {
+  .chart-range {
+    min-block-size: 2.75rem;
+  }
+}
 /* ==========================================================================
    Constrained Desktop
    ========================================================================== */
@@ -194,17 +212,12 @@
 
   .chart-range {
     min-inline-size: 2.5rem;
-    min-block-size: 2.125rem;
 
     padding-inline: 0.5625rem;
 
     font-size: 0.6875rem;
   }
 }
-
-/* ==========================================================================
-   Extra Small Screens
-   ========================================================================== */
 
 @media (max-width: 360px) {
   .chart-range {
@@ -227,14 +240,10 @@ html[data-theme="dark"] {
     );
   }
 
-  .chart-range {
-    &.is-active,
-    &[aria-selected="true"],
-    &[aria-pressed="true"] {
-      box-shadow:
-        0 0.25rem 0.625rem rgb(0 0 0 / 0.2),
-        inset 0 1px 0 rgb(255 255 255 / 0.1);
-    }
+  .chart-range:is(.is-active, [aria-selected="true"], [aria-pressed="true"]) {
+    box-shadow:
+      0 0.25rem 0.625rem rgb(0 0 0 / 0.2),
+      inset 0 1px 0 rgb(255 255 255 / 0.1);
   }
 }
 
@@ -248,16 +257,47 @@ html[data-contrast="high"] {
     border-color: currentColor;
   }
 
+  .chart-range:is(.is-active, [aria-selected="true"], [aria-pressed="true"]) {
+    border-width: 2px;
+    border-color: currentColor;
+
+    box-shadow: none;
+
+    font-weight: font-weight("heavy");
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .chart-toolbar__ranges {
+    border-color: CanvasText;
+
+    background: Canvas;
+  }
+
   .chart-range {
-    &.is-active,
-    &[aria-selected="true"],
-    &[aria-pressed="true"] {
-      border-width: 2px;
-      border-color: currentColor;
+    color: ButtonText;
 
-      box-shadow: none;
+    &:is(.is-active, [aria-selected="true"], [aria-pressed="true"]) {
+      border-color: Highlight;
 
-      font-weight: font-weight("heavy");
+      background: Highlight;
+      color: HighlightText;
+
+      forced-color-adjust: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: 2px;
+    }
+
+    &:disabled,
+    &[aria-disabled="true"] {
+      color: GrayText;
     }
   }
 }
@@ -269,20 +309,20 @@ html[data-contrast="high"] {
 @media (prefers-reduced-motion: reduce) {
   .chart-range {
     transition: none;
-  }
 
-  .chart-range:active {
-    transform: none;
+    &:active {
+      transform: none;
+    }
   }
 }
 
 html[data-motion="reduce"] {
   .chart-range {
     transition: none;
-  }
 
-  .chart-range:active {
-    transform: none;
+    &:active {
+      transform: none;
+    }
   }
 }
 

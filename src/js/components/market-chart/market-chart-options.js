@@ -1,54 +1,76 @@
 import {
+  createColorWithOpacity,
+  getMarketChartNavigatorTheme,
   getMarketChartSeriesTheme,
   getMarketChartTheme,
 } from "./market-chart-theme";
+
+import {
+  normalizeMarketChartMode,
+  normalizeMarketChartRange,
+} from "./market-chart-data";
 
 /* ==========================================================================
    Constants
    ========================================================================== */
 
 const DEFAULT_LANGUAGE = "en";
+
 const DEFAULT_TIME_ZONE = "Asia/Riyadh";
+
 const DEFAULT_DECIMALS = 2;
 
-const MINUTE_MS = 60_000;
-const HOUR_MS = 60 * MINUTE_MS;
+const DEFAULT_RANGE = "1D";
+
+const DEFAULT_ANIMATION_DURATION = 420;
+
+const MAXIMUM_ANIMATION_DURATION = 2_000;
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
 
 const CONTEXT_LAYOUT = Object.freeze({
   overview: Object.freeze({
     spacingTop: 8,
-    spacingRight: 16,
+    spacingRight: 14,
     spacingBottom: 8,
-    spacingLeft: 28,
+    spacingLeft: 18,
 
     marginTop: 8,
-    marginRight: 72,
-    marginLeft: 28,
+    marginRight: 64,
+    marginLeft: 18,
 
-    yAxisTickPixelInterval: 54,
+    yAxisTickPixelInterval: 52,
 
-    navigatorHeight: 38,
-    navigatorMargin: 10,
-    navigatorHandleHeight: 20,
+    navigatorHeight: 36,
+    navigatorMargin: 9,
+
+    navigatorHandleHeight: 18,
   }),
 
   performance: Object.freeze({
     spacingTop: 8,
     spacingRight: 14,
     spacingBottom: 8,
-    spacingLeft: 22,
+    spacingLeft: 20,
 
     marginTop: 8,
     marginRight: 72,
-    marginLeft: 22,
+    marginLeft: 20,
 
-    yAxisTickPixelInterval: 58,
+    yAxisTickPixelInterval: 56,
 
     navigatorHeight: 38,
     navigatorMargin: 10,
+
     navigatorHandleHeight: 20,
   }),
 });
+
+/* ==========================================================================
+   Date Formats
+   ========================================================================== */
 
 const DEFAULT_X_AXIS_FORMATS = Object.freeze({
   "1D": Object.freeze({
@@ -89,55 +111,23 @@ const DEFAULT_X_AXIS_FORMATS = Object.freeze({
   ALL: Object.freeze({
     year: "numeric",
   }),
+});
 
-  default: Object.freeze({
+const DEFAULT_TOOLTIP_DATE_FORMATS = Object.freeze({
+  "1D": Object.freeze({
     day: "2-digit",
     month: "short",
     year: "numeric",
-  }),
-});
 
-const DEFAULT_NAVIGATOR_FORMATS = Object.freeze({
-  "1D": Object.freeze({
     hour: "2-digit",
     minute: "2-digit",
+    second: "2-digit",
+
     hourCycle: "h23",
   }),
 
-  "1W": Object.freeze({
-    weekday: "short",
-    day: "2-digit",
-  }),
-
-  "1M": Object.freeze({
-    day: "2-digit",
-    month: "short",
-  }),
-
-  "3M": Object.freeze({
-    month: "short",
-    year: "2-digit",
-  }),
-
-  "6M": Object.freeze({
-    month: "short",
-    year: "2-digit",
-  }),
-
-  "1Y": Object.freeze({
-    month: "short",
-    year: "numeric",
-  }),
-
-  "5Y": Object.freeze({
-    year: "numeric",
-  }),
-
-  ALL: Object.freeze({
-    year: "numeric",
-  }),
-
   default: Object.freeze({
+    day: "2-digit",
     month: "short",
     year: "numeric",
   }),
@@ -152,15 +142,18 @@ const DEFAULT_ROTATIONS = Object.freeze({
   "1Y": -35,
   "5Y": -35,
   ALL: -35,
-  default: 0,
 });
 
 /* ==========================================================================
-   General Helpers
+   Generic Helpers
    ========================================================================== */
 
 function isPlainObject(value) {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function isElement(element) {
+  return Boolean(element && element.nodeType === 1 && element.ownerDocument);
 }
 
 function toFiniteNumber(value) {
@@ -169,306 +162,17 @@ function toFiniteNumber(value) {
   return Number.isFinite(number) ? number : null;
 }
 
-function toBoolean(value, fallback) {
-  return typeof value === "boolean" ? value : fallback;
+function toNonNegativeNumber(value, fallback) {
+  const number = Number(value);
+
+  return Number.isFinite(number) && number >= 0 ? number : fallback;
 }
 
-function resolveContext(element, context) {
-  if (context === "overview" || context === "performance") {
-    return context;
-  }
-
-  return element.closest("[data-market-detail-panel]")
-    ? "overview"
-    : "performance";
+function clamp(value, minimum, maximum) {
+  return Math.min(Math.max(value, minimum), Math.max(minimum, maximum));
 }
 
-function resolveRangeValue(value, range, fallback) {
-  if (typeof value === "function") {
-    return value;
-  }
-
-  if (!isPlainObject(value)) {
-    return value ?? fallback;
-  }
-
-  return value[range] ?? value.default ?? fallback;
-}
-
-function mergeRangeFormats(defaults, customFormats = {}) {
-  const result = {};
-
-  const names = new Set([
-    ...Object.keys(defaults),
-    ...Object.keys(customFormats || {}),
-  ]);
-
-  names.forEach((name) => {
-    result[name] = {
-      ...(defaults[name] || defaults.default || {}),
-      ...(customFormats?.[name] || {}),
-    };
-  });
-
-  return result;
-}
-
-/* ==========================================================================
-   Theme
-   ========================================================================== */
-
-function resolveTheme(element, direction) {
-  const previousDirection = element.dataset.chartDirection;
-
-  element.dataset.chartDirection = direction;
-
-  const theme = getMarketChartTheme(element);
-
-  if (previousDirection === undefined) {
-    delete element.dataset.chartDirection;
-  } else {
-    element.dataset.chartDirection = previousDirection;
-  }
-
-  return theme;
-}
-
-/* ==========================================================================
-   Number Formatting
-   ========================================================================== */
-
-function createNumberFormatter(language, options = {}) {
-  return new Intl.NumberFormat(language, {
-    useGrouping: true,
-    ...options,
-  });
-}
-
-function normalizeNumberFormat(format, fallbackDecimals = DEFAULT_DECIMALS) {
-  return {
-    decimals: format?.decimals ?? fallbackDecimals,
-    useGrouping: format?.useGrouping ?? true,
-    prefix: format?.prefix ?? "",
-    suffix: format?.suffix ?? "",
-  };
-}
-
-function formatNumber(
-  value,
-  { language, decimals, useGrouping = true, prefix = "", suffix = "" },
-) {
-  const number = toFiniteNumber(value);
-
-  if (number === null) {
-    return "—";
-  }
-
-  const formatted = createNumberFormatter(language, {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-    useGrouping,
-  }).format(number);
-
-  return `${prefix}${formatted}${suffix}`;
-}
-
-function formatAxisNumber(value, configuration) {
-  return formatNumber(value, configuration);
-}
-
-function formatSignedNumber(value, { language, decimals }) {
-  const number = toFiniteNumber(value);
-
-  if (number === null) {
-    return "—";
-  }
-
-  const formatted = formatNumber(Math.abs(number), {
-    language,
-    decimals,
-  });
-
-  if (number > 0) {
-    return `+${formatted}`;
-  }
-
-  if (number < 0) {
-    return `−${formatted}`;
-  }
-
-  return formatted;
-}
-
-function formatPercentage(value, { language, decimals }) {
-  const number = toFiniteNumber(value);
-
-  if (number === null) {
-    return "—";
-  }
-
-  return `${formatSignedNumber(number, {
-    language,
-    decimals,
-  })}%`;
-}
-
-/* ==========================================================================
-   Date Formatting
-   ========================================================================== */
-
-function createDateFormatter(language, timeZone, format) {
-  return new Intl.DateTimeFormat(language, {
-    timeZone,
-    ...format,
-  });
-}
-
-function resolveDateFormat(formats, range) {
-  return formats[range] || formats.default;
-}
-
-function formatTimestamp(timestamp, formatter) {
-  const value = toFiniteNumber(timestamp);
-
-  if (value === null) {
-    return "";
-  }
-
-  const date = new Date(value);
-
-  return Number.isNaN(date.getTime()) ? "" : formatter.format(date);
-}
-
-function createDateLabelFormatter({
-  language,
-  timeZone,
-  range,
-  formats,
-  customFormatter,
-}) {
-  const formatter = createDateFormatter(
-    language,
-    timeZone,
-    resolveDateFormat(formats, range),
-  );
-
-  return function dateLabelFormatter() {
-    const timestamp = toFiniteNumber(this.value);
-
-    if (timestamp === null) {
-      return "";
-    }
-
-    if (typeof customFormatter === "function") {
-      const result = customFormatter.call(this, {
-        value: timestamp,
-        date: new Date(timestamp),
-        range,
-        language,
-        timeZone,
-      });
-
-      if (result !== undefined && result !== null) {
-        return String(result);
-      }
-    }
-
-    return formatTimestamp(timestamp, formatter);
-  };
-}
-
-function createTooltipDateFormatter({ language, timeZone, range, formats }) {
-  const defaultFormat =
-    range === "1D"
-      ? {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hourCycle: "h23",
-        }
-      : {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        };
-
-  const customFormat = resolveRangeValue(formats, range, {});
-
-  return createDateFormatter(language, timeZone, {
-    ...defaultFormat,
-    ...(isPlainObject(customFormat) ? customFormat : {}),
-  });
-}
-
-/* ==========================================================================
-   Point Helpers
-   ========================================================================== */
-
-function getPointClose(point, mode) {
-  if (!point) {
-    return null;
-  }
-
-  if (Array.isArray(point)) {
-    return toFiniteNumber(mode === "candlestick" ? point[4] : point[1]);
-  }
-
-  return toFiniteNumber(
-    mode === "candlestick" ? (point.close ?? point.y) : point.y,
-  );
-}
-
-function getPointIndex(point, data) {
-  const timestamp = toFiniteNumber(point?.x);
-
-  if (timestamp === null) {
-    return -1;
-  }
-
-  return data.findIndex((item) => {
-    const itemTimestamp = Array.isArray(item) ? item[0] : item?.x;
-
-    return Number(itemTimestamp) === timestamp;
-  });
-}
-
-function getPointChange(point, mode, previousClose, data) {
-  const close = getPointClose(point, mode);
-
-  if (close === null) {
-    return null;
-  }
-
-  const index = getPointIndex(point, data);
-
-  const reference =
-    index > 0
-      ? getPointClose(data[index - 1], mode)
-      : toFiniteNumber(previousClose);
-
-  if (reference === null) {
-    return null;
-  }
-
-  const value = close - reference;
-
-  const percentage = reference === 0 ? 0 : (value / reference) * 100;
-
-  return {
-    value,
-    percentage,
-    direction: value > 0 ? "up" : value < 0 ? "down" : "neutral",
-  };
-}
-
-/* ==========================================================================
-   Tooltip Markup
-   ========================================================================== */
-
-function escapeMarkup(value) {
+function escapeHTML(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -477,245 +181,1065 @@ function escapeMarkup(value) {
     .replaceAll("'", "&#039;");
 }
 
-function createChangeMarkup(change, { language, decimals }) {
-  if (!change) {
-    return "";
+function resolveContext(element, context) {
+  const resolvedContext = String(
+    context || element?.dataset?.chartContext || "performance",
+  ).toLowerCase();
+
+  return CONTEXT_LAYOUT[resolvedContext] ? resolvedContext : "performance";
+}
+
+function resolveRangeValue(value, range, fallback) {
+  if (!isPlainObject(value)) {
+    return value ?? fallback;
   }
 
-  return `
-    <div
-      class="
-        market-chart-tooltip__change
-        market-chart-tooltip__change--${change.direction}
-      "
-    >
-      <span>
-        ${formatSignedNumber(change.value, {
-          language,
-          decimals,
-        })}
-      </span>
+  const normalizedRange = normalizeMarketChartRange(range);
 
-      <span>
-        (${formatPercentage(change.percentage, {
-          language,
-          decimals,
-        })})
-      </span>
-    </div>
-  `;
+  return value[normalizedRange] ?? value.default ?? fallback;
 }
 
-function createTrendTooltip(point, options) {
-  const {
-    currency,
-    data,
-    dateFormatter,
-    decimals,
-    language,
-    previousClose,
-    seriesName,
-  } = options;
+function mergeRangeFormats(defaults, customFormats) {
+  const merged = {
+    ...defaults,
+  };
 
-  const value = getPointClose(point, "trend");
+  if (!isPlainObject(customFormats)) {
+    return merged;
+  }
 
-  const change = getPointChange(point, "trend", previousClose, data);
+  Object.entries(customFormats).forEach(([range, format]) => {
+    const normalizedRange =
+      range === "default" ? "default" : normalizeMarketChartRange(range);
 
-  const formattedDate = formatTimestamp(point.x, dateFormatter);
+    merged[normalizedRange] = {
+      ...(defaults[normalizedRange] || {}),
 
-  const formattedValue = formatNumber(value, {
-    language,
-    decimals,
+      ...(isPlainObject(format) ? format : {}),
+    };
   });
 
-  return `
-    <div class="market-chart-tooltip">
-      <div class="market-chart-tooltip__header">
-        <strong>${escapeMarkup(seriesName)}</strong>
-
-        <time>${escapeMarkup(formattedDate)}</time>
-      </div>
-
-      <div class="market-chart-tooltip__body">
-        <div class="market-chart-tooltip__value">
-          ${currency ? `<span>${escapeMarkup(currency)}</span>` : ""}
-
-          <strong>${formattedValue}</strong>
-        </div>
-
-        ${createChangeMarkup(change, {
-          language,
-          decimals,
-        })}
-      </div>
-    </div>
-  `;
+  return merged;
 }
 
-function createCandlestickTooltip(point, options) {
-  const {
-    currency,
-    data,
-    dateFormatter,
-    decimals,
+/* ==========================================================================
+   Motion
+   ========================================================================== */
+
+function prefersReducedMotion(element) {
+  const view = element?.ownerDocument?.defaultView || globalThis;
+
+  const root = element?.ownerDocument?.documentElement;
+
+  if (root?.dataset?.motion === "reduce") {
+    return true;
+  }
+
+  try {
+    return (
+      view.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches === true
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function normalizeMarketChartAnimation(
+  animation,
+  { element = null, mode = "trend" } = {},
+) {
+  if (
+    animation === false ||
+    normalizeMarketChartMode(mode) === "candlestick" ||
+    prefersReducedMotion(element)
+  ) {
+    return false;
+  }
+
+  if (isPlainObject(animation)) {
+    const duration = clamp(
+      toNonNegativeNumber(animation.duration, DEFAULT_ANIMATION_DURATION),
+      0,
+      MAXIMUM_ANIMATION_DURATION,
+    );
+
+    if (duration === 0) {
+      return false;
+    }
+
+    return {
+      duration,
+
+      ...(animation.easing
+        ? {
+            easing: animation.easing,
+          }
+        : {}),
+    };
+  }
+
+  const duration =
+    typeof animation === "number"
+      ? clamp(animation, 0, MAXIMUM_ANIMATION_DURATION)
+      : DEFAULT_ANIMATION_DURATION;
+
+  return duration === 0
+    ? false
+    : {
+        duration,
+      };
+}
+
+/* ==========================================================================
+   Theme
+   ========================================================================== */
+
+function resolveTheme(element, direction) {
+  const theme = getMarketChartTheme(element);
+
+  return {
+    ...theme,
+
+    directionColor:
+      direction === "up"
+        ? theme.success
+        : direction === "down"
+          ? theme.danger
+          : theme.line,
+  };
+}
+
+/* ==========================================================================
+   Number Formatting
+   ========================================================================== */
+
+function createNumberFormatter({ language, decimals, useGrouping = true }) {
+  const parsedDecimals = Number.parseInt(decimals, 10);
+
+  const safeDecimals = Number.isFinite(parsedDecimals)
+    ? clamp(parsedDecimals, 0, 8)
+    : 0;
+
+  let formatter;
+
+  try {
+    formatter = new Intl.NumberFormat(language || DEFAULT_LANGUAGE, {
+      minimumFractionDigits: safeDecimals,
+
+      maximumFractionDigits: safeDecimals,
+
+      useGrouping: useGrouping !== false,
+    });
+  } catch {
+    formatter = new Intl.NumberFormat(DEFAULT_LANGUAGE, {
+      minimumFractionDigits: safeDecimals,
+
+      maximumFractionDigits: safeDecimals,
+
+      useGrouping: useGrouping !== false,
+    });
+  }
+
+  return (value) => {
+    const number = toFiniteNumber(value);
+
+    return number === null ? "—" : formatter.format(number);
+  };
+}
+
+/* ==========================================================================
+   Date Formatting
+   ========================================================================== */
+
+function createDateFormatter({ language, timeZone, options }) {
+  let formatter;
+
+  try {
+    formatter = new Intl.DateTimeFormat(language || DEFAULT_LANGUAGE, {
+      timeZone: timeZone || DEFAULT_TIME_ZONE,
+
+      ...options,
+    });
+  } catch {
+    formatter = new Intl.DateTimeFormat(DEFAULT_LANGUAGE, options);
+  }
+
+  return (timestamp) => {
+    const number = toFiniteNumber(timestamp);
+
+    if (number === null) {
+      return "";
+    }
+
+    return formatter.format(new Date(number));
+  };
+}
+
+function createRangeDateFormatter({ language, timeZone, range, formats }) {
+  const normalizedRange = normalizeMarketChartRange(range);
+
+  const format =
+    formats[normalizedRange] ||
+    formats.default ||
+    DEFAULT_X_AXIS_FORMATS[normalizedRange] ||
+    DEFAULT_X_AXIS_FORMATS.ALL;
+
+  return createDateFormatter({
     language,
-    previousClose,
-    seriesName,
-  } = options;
-
-  const change = getPointChange(point, "candlestick", previousClose, data);
-
-  const rows = [
-    ["Open", point.open],
-    ["High", point.high],
-    ["Low", point.low],
-    ["Close", point.close],
-  ]
-    .map(
-      ([label, value]) => `
-        <div class="market-chart-tooltip__row">
-          <span>${label}</span>
-
-          <strong>
-            ${formatNumber(value, {
-              language,
-              decimals,
-            })}
-          </strong>
-        </div>
-      `,
-    )
-    .join("");
-
-  return `
-    <div
-      class="
-        market-chart-tooltip
-        market-chart-tooltip--candlestick
-      "
-    >
-      <div class="market-chart-tooltip__header">
-        <strong>${escapeMarkup(seriesName)}</strong>
-
-        <time>
-          ${escapeMarkup(formatTimestamp(point.x, dateFormatter))}
-        </time>
-      </div>
-
-      <div class="market-chart-tooltip__body">
-        ${
-          currency
-            ? `
-              <div class="market-chart-tooltip__currency">
-                ${escapeMarkup(currency)}
-              </div>
-            `
-            : ""
-        }
-
-        <div class="market-chart-tooltip__rows">
-          ${rows}
-        </div>
-
-        ${createChangeMarkup(change, {
-          language,
-          decimals,
-        })}
-      </div>
-    </div>
-  `;
+    timeZone,
+    options: format,
+  });
 }
 
 /* ==========================================================================
    Axis Configuration
    ========================================================================== */
 
-function getXAxisTickOptions(range) {
-  switch (range) {
-    case "1D":
-      return {
-        tickInterval: HOUR_MS,
-        tickPixelInterval: undefined,
-      };
+function normalizeAxisConfiguration({
+  axis = {},
+  xAxis = {},
+  yAxis = {},
 
-    case "1W":
-      return {
-        tickInterval: undefined,
-        tickPixelInterval: 88,
-      };
+  xAxisTitle = null,
+  yAxisTitle = null,
 
-    case "1M":
-      return {
-        tickInterval: undefined,
-        tickPixelInterval: 94,
-      };
+  decimals = DEFAULT_DECIMALS,
+} = {}) {
+  const axisConfiguration = isPlainObject(axis) ? axis : {};
 
-    case "3M":
-      return {
-        tickInterval: undefined,
-        tickPixelInterval: 100,
-      };
+  const normalizedXAxis = {
+    ...(isPlainObject(axisConfiguration.x) ? axisConfiguration.x : {}),
 
-    case "6M":
-    case "1Y":
-      return {
-        tickInterval: undefined,
-        tickPixelInterval: 108,
-      };
+    ...(isPlainObject(xAxis) ? xAxis : {}),
+  };
 
-    case "5Y":
-    case "ALL":
-      return {
-        tickInterval: undefined,
-        tickPixelInterval: 116,
-      };
+  const normalizedYAxis = {
+    ...(isPlainObject(axisConfiguration.y) ? axisConfiguration.y : {}),
 
-    default:
-      return {
-        tickInterval: undefined,
-        tickPixelInterval: 100,
-      };
+    ...(isPlainObject(yAxis) ? yAxis : {}),
+  };
+
+  if (xAxisTitle !== null && xAxisTitle !== undefined) {
+    normalizedXAxis.title = xAxisTitle;
   }
+
+  if (yAxisTitle !== null && yAxisTitle !== undefined) {
+    normalizedYAxis.title = yAxisTitle;
+  }
+
+  normalizedYAxis.format = {
+    decimals,
+
+    ...(isPlainObject(normalizedYAxis.format) ? normalizedYAxis.format : {}),
+  };
+
+  return {
+    x: normalizedXAxis,
+    y: normalizedYAxis,
+  };
 }
 
-function normalizeAxisConfiguration({
-  axis,
-  xAxis,
-  yAxis,
-  xAxisTitle,
-  yAxisTitle,
-  decimals,
+/* ==========================================================================
+   X Axis
+   ========================================================================== */
+function createCrosshairOptions(configuration, theme, { formatValue } = {}) {
+  if (configuration === false || configuration?.enabled === false) {
+    return false;
+  }
+
+  const {
+    enabled: ignoredEnabled,
+
+    label: labelConfiguration = {},
+
+    ...customOptions
+  } = isPlainObject(configuration) ? configuration : {};
+
+  const normalizedLabel = isPlainObject(labelConfiguration)
+    ? labelConfiguration
+    : {};
+
+  return {
+    width: 1,
+
+    color: theme.crosshair,
+
+    dashStyle: "ShortDot",
+
+    snap: true,
+
+    zIndex: 4,
+
+    ...customOptions,
+
+    label:
+      labelConfiguration === false
+        ? {
+            enabled: false,
+          }
+        : {
+            enabled: normalizedLabel.enabled !== false,
+
+            backgroundColor: theme.tooltipBackground,
+
+            borderColor: theme.tooltipBorder,
+
+            borderWidth: 1,
+
+            borderRadius: 6,
+
+            padding: 5,
+
+            formatter(value) {
+              return typeof formatValue === "function"
+                ? formatValue(value)
+                : String(value ?? "");
+            },
+
+            style: {
+              color: theme.heading,
+
+              fontSize: "10px",
+
+              fontWeight: "600",
+
+              textOutline: "none",
+
+              ...(isPlainObject(normalizedLabel.style)
+                ? normalizedLabel.style
+                : {}),
+            },
+
+            ...normalizedLabel,
+          },
+  };
+}
+function createXAxisOptions({
+  range,
+
+  language,
+  timeZone,
+
+  theme,
+
+  configuration,
+  dateFormats,
 }) {
-  const resolvedXAxis = {
-    ...(axis?.x || {}),
-    ...(xAxis || {}),
-  };
+  const normalizedRange = normalizeMarketChartRange(range);
 
-  const resolvedYAxis = {
-    ...(axis?.y || {}),
-    ...(yAxis || {}),
-  };
+  const formatDate = createRangeDateFormatter({
+    language,
+    timeZone,
 
-  if (resolvedXAxis.title === undefined) {
-    resolvedXAxis.title = xAxisTitle;
-  }
+    range: normalizedRange,
 
-  if (resolvedYAxis.title === undefined) {
-    resolvedYAxis.title = yAxisTitle;
-  }
+    formats: dateFormats,
+  });
 
-  if (resolvedYAxis.decimals === undefined) {
-    resolvedYAxis.decimals = decimals;
-  }
+  const title = resolveRangeValue(
+    configuration.title,
+    normalizedRange,
 
-  resolvedYAxis.format = normalizeNumberFormat(
-    resolvedYAxis.format,
-    resolvedYAxis.decimals,
+    normalizedRange === "1D" ? "Time" : "Date",
+  );
+
+  const rotation = resolveRangeValue(
+    configuration.rotation,
+    normalizedRange,
+
+    DEFAULT_ROTATIONS[normalizedRange] ?? 0,
   );
 
   return {
-    x: resolvedXAxis,
-    y: resolvedYAxis,
+    type: "datetime",
+
+    ordinal: normalizedRange !== "1D",
+
+    minPadding: toNonNegativeNumber(configuration.minPadding, 0),
+
+    maxPadding: toNonNegativeNumber(configuration.maxPadding, 0),
+
+    startOnTick: configuration.startOnTick === true,
+
+    endOnTick: configuration.endOnTick === true,
+
+    lineWidth: 1,
+    lineColor: theme.border,
+
+    tickWidth: 1,
+    tickLength: 4,
+    tickColor: theme.border,
+
+    gridLineWidth: configuration.gridLineWidth ?? 0,
+
+    gridLineColor: theme.grid,
+
+    crosshair: createCrosshairOptions(configuration.crosshair, theme, {
+      formatValue: formatDate,
+    }),
+
+    labels: {
+      enabled: configuration.labels !== false,
+
+      autoRotation: false,
+
+      rotation,
+
+      align: rotation === 0 ? "center" : "right",
+
+      reserveSpace: true,
+
+      y: rotation === 0 ? 18 : 22,
+
+      style: {
+        color: theme.muted,
+
+        fontSize: "11px",
+
+        textOverflow: "none",
+      },
+
+      formatter() {
+        return formatDate(this.value);
+      },
+
+      ...(isPlainObject(configuration.labelOptions)
+        ? configuration.labelOptions
+        : {}),
+    },
+
+    showFirstLabel: configuration.showFirstLabel !== false,
+
+    showLastLabel: configuration.showLastLabel !== false,
+
+    title: {
+      text: title === false ? null : title,
+
+      margin: 16,
+
+      style: {
+        color: theme.muted,
+
+        fontSize: "11px",
+
+        fontWeight: "500",
+      },
+    },
+  };
+}
+
+/* ==========================================================================
+   Y Axis
+   ========================================================================== */
+
+function createYAxisOptions({ language, theme, layout, configuration }) {
+  const formatConfiguration = isPlainObject(configuration.format)
+    ? configuration.format
+    : {};
+
+  const decimals = Number.parseInt(formatConfiguration.decimals, 10);
+
+  const formatNumber = createNumberFormatter({
+    language,
+
+    decimals: Number.isFinite(decimals) ? decimals : DEFAULT_DECIMALS,
+
+    useGrouping: formatConfiguration.useGrouping !== false,
+  });
+
+  const title = resolveRangeValue(
+    configuration.title,
+    DEFAULT_RANGE,
+    "Index Value",
+  );
+
+  return {
+    opposite: configuration.opposite !== false,
+
+    minPadding: toNonNegativeNumber(configuration.minPadding, 0.04),
+
+    maxPadding: toNonNegativeNumber(configuration.maxPadding, 0.06),
+
+    startOnTick: configuration.startOnTick !== false,
+
+    endOnTick: configuration.endOnTick !== false,
+
+    tickPixelInterval:
+      configuration.tickPixelInterval ?? layout.yAxisTickPixelInterval,
+
+    minRange: configuration.minRange ?? undefined,
+
+    lineWidth: 0,
+    tickWidth: 0,
+
+    gridLineWidth: configuration.gridLineWidth ?? 1,
+
+    gridLineColor: theme.grid,
+
+    gridLineDashStyle: "ShortDot",
+
+    /*
+     * This is the horizontal guide that was
+     * missing from the original chart.
+     */
+    crosshair: createCrosshairOptions(configuration.crosshair, theme, {
+      formatValue: formatNumber,
+    }),
+
+    labels: {
+      enabled: configuration.labels !== false,
+
+      align: configuration.opposite === false ? "right" : "left",
+
+      x: configuration.opposite === false ? -8 : 8,
+
+      reserveSpace: true,
+
+      style: {
+        color: theme.muted,
+
+        fontSize: "11px",
+
+        textOverflow: "none",
+      },
+
+      formatter() {
+        return formatNumber(this.value);
+      },
+
+      ...(isPlainObject(configuration.labelOptions)
+        ? configuration.labelOptions
+        : {}),
+    },
+
+    title: {
+      text: title === false ? null : title,
+
+      margin: 14,
+
+      style: {
+        color: theme.muted,
+
+        fontSize: "11px",
+
+        fontWeight: "600",
+      },
+    },
+
+    plotLines: [],
+  };
+}
+
+/* ==========================================================================
+   Tooltip Helpers
+   ========================================================================== */
+
+function getTooltipValues(point, mode) {
+  if (!point) {
+    return null;
+  }
+
+  if (mode === "candlestick") {
+    const open = toFiniteNumber(point.open);
+
+    const high = toFiniteNumber(point.high);
+
+    const low = toFiniteNumber(point.low);
+
+    const close = toFiniteNumber(point.close);
+
+    if (open === null || high === null || low === null || close === null) {
+      return null;
+    }
+
+    return {
+      open,
+      high,
+      low,
+      close,
+
+      value: close,
+    };
+  }
+
+  const value = toFiniteNumber(point.y);
+
+  if (value === null) {
+    return null;
+  }
+
+  return {
+    value,
+  };
+}
+
+function calculateChange(value, reference) {
+  const normalizedValue = toFiniteNumber(value);
+
+  const normalizedReference = toFiniteNumber(reference);
+
+  if (normalizedValue === null || normalizedReference === null) {
+    return null;
+  }
+
+  const amount = normalizedValue - normalizedReference;
+
+  const percent =
+    normalizedReference === 0
+      ? null
+      : (amount / Math.abs(normalizedReference)) * 100;
+
+  return {
+    amount,
+    percent,
+
+    direction: amount > 0 ? "up" : amount < 0 ? "down" : "neutral",
+  };
+}
+
+function resolveTooltipLabels(configuration) {
+  const labels = isPlainObject(configuration.labels)
+    ? configuration.labels
+    : {};
+
+  return {
+    open: labels.open || "Open",
+
+    high: labels.high || "High",
+
+    low: labels.low || "Low",
+
+    close: labels.close || "Close",
+
+    value: labels.value || "Value",
+  };
+}
+
+function createTooltipRow(label, value, formatPrice) {
+  return [
+    '<div class="market-chart-tooltip__row">',
+
+    '<span class="market-chart-tooltip__label">',
+    escapeHTML(label),
+    "</span>",
+
+    '<span class="market-chart-tooltip__value">',
+    escapeHTML(formatPrice(value)),
+    "</span>",
+
+    "</div>",
+  ].join("");
+}
+
+/* ==========================================================================
+   Tooltip
+   ========================================================================== */
+
+function createTooltipOptions({
+  range,
+  mode,
+
+  seriesName,
+  currency,
+  previousClose,
+
+  language,
+  timeZone,
+  decimals,
+
+  theme,
+
+  tooltipDateFormats,
+
+  configuration,
+}) {
+  const normalizedRange = normalizeMarketChartRange(range);
+
+  const normalizedMode = normalizeMarketChartMode(mode);
+
+  const dateFormats = mergeRangeFormats(
+    DEFAULT_TOOLTIP_DATE_FORMATS,
+    tooltipDateFormats,
+  );
+
+  const formatDate = createRangeDateFormatter({
+    language,
+    timeZone,
+
+    range: normalizedRange,
+
+    formats: dateFormats,
+  });
+
+  const formatPrice = createNumberFormatter({
+    language,
+    decimals,
+    useGrouping: true,
+  });
+
+  const formatPercent = createNumberFormatter({
+    language,
+    decimals: 2,
+    useGrouping: false,
+  });
+
+  const labels = resolveTooltipLabels(configuration);
+
+  return {
+    enabled: configuration.enabled !== false,
+
+    useHTML: true,
+
+    outside: configuration.outside === true,
+
+    /*
+     * Shared tracking makes Highcharts search
+     * by X throughout the plot instead of
+     * requiring direct contact with the line.
+     */
+    shared: configuration.shared !== false,
+
+    split: false,
+
+    followPointer: false,
+
+    followTouchMove: configuration.followTouchMove !== false,
+
+    snap: toNonNegativeNumber(configuration.snap, 24),
+
+    hideDelay: toNonNegativeNumber(configuration.hideDelay, 80),
+
+    borderWidth: 1,
+
+    borderRadius: toNonNegativeNumber(configuration.borderRadius, 12),
+
+    borderColor: theme.tooltipBorder,
+
+    backgroundColor: theme.tooltipBackground,
+
+    padding: 0,
+
+    shadow: {
+      color: "rgb(0 0 0 / 0.14)",
+
+      offsetX: 0,
+      offsetY: 6,
+
+      opacity: 0.14,
+      width: 12,
+
+      ...(isPlainObject(configuration.shadow) ? configuration.shadow : {}),
+    },
+
+    style: {
+      color: theme.text,
+
+      fontSize: "12px",
+
+      pointerEvents: "none",
+
+      ...(isPlainObject(configuration.style) ? configuration.style : {}),
+    },
+
+    positioner(labelWidth, labelHeight, point) {
+      const chart = this.chart;
+
+      const spacing = toNonNegativeNumber(configuration.spacing, 12);
+
+      const plotX = Number.isFinite(point?.plotX)
+        ? point.plotX
+        : chart.plotWidth / 2;
+
+      const plotY = Number.isFinite(point?.plotY)
+        ? point.plotY
+        : chart.plotHeight / 2;
+
+      let x = chart.plotLeft + plotX + spacing;
+
+      let y = chart.plotTop + plotY - labelHeight / 2;
+
+      const minimumX = spacing;
+
+      const maximumX = Math.max(
+        minimumX,
+        chart.chartWidth - labelWidth - spacing,
+      );
+
+      if (x > maximumX) {
+        x = chart.plotLeft + plotX - labelWidth - spacing;
+      }
+
+      x = clamp(x, minimumX, maximumX);
+
+      const minimumY = spacing;
+
+      const maximumY = Math.max(
+        minimumY,
+        chart.chartHeight - labelHeight - spacing,
+      );
+
+      y = clamp(y, minimumY, maximumY);
+
+      return {
+        x,
+        y,
+      };
+    },
+
+    formatter() {
+      /*
+       * Highcharts versions expose shared
+       * formatter context in slightly different
+       * shapes. Support all relevant forms.
+       */
+      const point = this.point || this.points?.[0]?.point || this;
+
+      const values = getTooltipValues(point, normalizedMode);
+
+      if (!values) {
+        return false;
+      }
+
+      const date = formatDate(point.x);
+
+      const change = calculateChange(values.value, previousClose);
+
+      const body =
+        normalizedMode === "candlestick"
+          ? [
+              createTooltipRow(labels.open, values.open, formatPrice),
+
+              createTooltipRow(labels.high, values.high, formatPrice),
+
+              createTooltipRow(labels.low, values.low, formatPrice),
+
+              createTooltipRow(labels.close, values.close, formatPrice),
+            ].join("")
+          : createTooltipRow(labels.value, values.value, formatPrice);
+
+      let changeHTML = "";
+
+      if (change) {
+        const sign = change.amount > 0 ? "+" : "";
+
+        const percent =
+          change.percent === null
+            ? ""
+            : ` (${sign}${formatPercent(change.percent)}%)`;
+
+        changeHTML = [
+          '<div class="market-chart-tooltip__change ',
+
+          `market-chart-tooltip__change--${escapeHTML(change.direction)}">`,
+
+          escapeHTML(`${sign}${formatPrice(change.amount)}${percent}`),
+
+          "</div>",
+        ].join("");
+      }
+
+      /*
+       * Highcharts-safe div and span elements
+       * prevent AST warning #33.
+       */
+      return [
+        '<div class="market-chart-tooltip">',
+
+        '<div class="market-chart-tooltip__header">',
+
+        '<div class="market-chart-tooltip__title">',
+        escapeHTML(seriesName),
+        "</div>",
+
+        '<div class="market-chart-tooltip__date">',
+        escapeHTML(date),
+        "</div>",
+
+        "</div>",
+
+        '<div class="market-chart-tooltip__body">',
+
+        '<div class="market-chart-tooltip__currency">',
+        escapeHTML(currency),
+        "</div>",
+
+        body,
+
+        "</div>",
+
+        changeHTML,
+
+        "</div>",
+      ].join("");
+    },
+  };
+}
+
+/* ==========================================================================
+   Main Series
+   ========================================================================== */
+function createMainSeries({
+  mode,
+  symbol,
+  seriesName,
+  data,
+  seriesTheme,
+  animation,
+}) {
+  const normalizedMode = normalizeMarketChartMode(mode);
+
+  const type =
+    normalizedMode === "candlestick"
+      ? "candlestick"
+      : normalizedMode === "line"
+        ? "line"
+        : "areaspline";
+
+  return {
+    name: seriesName || symbol || "Market",
+
+    animation,
+
+    dataGrouping: {
+      enabled: false,
+    },
+
+    ...seriesTheme,
+
+    /*
+     * Structural options remain after the
+     * theme spread so a theme cannot replace
+     * series identity, type, or data.
+     */
+    id: `market-chart-${String(symbol || "series").toLowerCase()}`,
+
+    type,
+
+    data: Array.isArray(data) ? data : [],
+
+    showInNavigator: false,
+
+    showInLegend: false,
+  };
+}
+
+/* ==========================================================================
+   Plot Options
+   ========================================================================== */
+
+function createPlotOptions({ seriesTheme, animation, tooltip }) {
+  const trackAcrossPlot = tooltip.trackAcrossPlot !== false;
+
+  return {
+    series: {
+      animation,
+
+      enableMouseTracking: tooltip.enabled !== false,
+
+      dataGrouping: {
+        enabled: false,
+      },
+
+      cropThreshold: 1_000,
+
+      turboThreshold: 0,
+
+      /*
+       * Shared tooltip tracking performs a
+       * nearest-X search anywhere in the plot.
+       */
+      stickyTracking: trackAcrossPlot,
+
+      findNearestPointBy: trackAcrossPlot ? "x" : "xy",
+
+      trackByArea: trackAcrossPlot,
+
+      states: {
+        inactive: {
+          opacity: 1,
+        },
+
+        hover: {
+          enabled: true,
+
+          halo: {
+            size: 0,
+          },
+        },
+      },
+    },
+
+    line: {
+      ...seriesTheme,
+
+      marker: {
+        enabled: false,
+
+        states: {
+          hover: {
+            enabled: true,
+
+            radius: toNonNegativeNumber(tooltip.markerRadius, 3),
+
+            lineWidth: 1,
+          },
+        },
+      },
+    },
+
+    areaspline: {
+      ...seriesTheme,
+
+      threshold: null,
+
+      marker: {
+        enabled: false,
+
+        states: {
+          hover: {
+            enabled: true,
+
+            radius: toNonNegativeNumber(tooltip.markerRadius, 3),
+
+            lineWidth: 1,
+          },
+        },
+      },
+    },
+
+    candlestick: {
+      ...seriesTheme,
+
+      /*
+       * Candle width derives from real bucket
+       * spacing rather than a fixed pixel width.
+       */
+      pointPadding: 0.08,
+
+      groupPadding: 0.08,
+
+      dataGrouping: {
+        enabled: false,
+      },
+
+      states: {
+        hover: {
+          enabled: true,
+
+          lineWidth: 2,
+        },
+      },
+    },
+
+    ohlc: {
+      dataGrouping: {
+        enabled: false,
+      },
+    },
+
+    flags: {
+      enableMouseTracking: false,
+    },
   };
 }
 
@@ -726,194 +1250,281 @@ function normalizeAxisConfiguration({
 function normalizeNavigatorConfiguration({
   navigator,
   navigatorEnabled,
+  capabilities,
+  layout,
   overview,
 }) {
   const configuration = isPlainObject(navigator) ? navigator : {};
 
+  const capabilityEnabled = capabilities.navigator !== false;
+
   const enabled =
-    navigatorEnabled === null
-      ? toBoolean(configuration.enabled, overview)
-      : Boolean(navigatorEnabled);
+    navigatorEnabled === null || navigatorEnabled === undefined
+      ? capabilityEnabled
+      : Boolean(navigatorEnabled && capabilityEnabled);
 
   return {
-    ...configuration,
-
     enabled,
 
-    labels: toBoolean(configuration.labels, true),
+    height: toNonNegativeNumber(configuration.height, layout.navigatorHeight),
+
+    margin: toNonNegativeNumber(configuration.margin, layout.navigatorMargin),
+
+    labels: configuration.labels !== false,
+
+    labelsInside: configuration.labelsInside !== false,
+
+    insideLabelOffset: Number.isFinite(Number(configuration.insideLabelOffset))
+      ? Number(configuration.insideLabelOffset)
+      : -7,
+
+    handles: configuration.handles !== false,
+
+    handleWidth: toNonNegativeNumber(configuration.handleWidth, 7),
+
+    handleHeight: toNonNegativeNumber(
+      configuration.handleHeight,
+      layout.navigatorHandleHeight,
+    ),
+
+    tickPixelInterval: toNonNegativeNumber(
+      configuration.tickPixelInterval,
+      overview ? 92 : 108,
+    ),
+
+    dataGrouping: configuration.dataGrouping === true,
+
+    /*
+     * Visual intensity defaults belong to
+     * market-chart-theme.js.
+     */
+    lineWidth: toNonNegativeNumber(configuration.lineWidth, 1.25),
+
+    lineOpacity: configuration.lineOpacity,
+
+    maskOpacity: configuration.maskOpacity,
+
+    fillStartOpacity: configuration.fillStartOpacity,
+
+    fillEndOpacity: configuration.fillEndOpacity,
+
+    outlineOpacity: configuration.outlineOpacity,
+
+    handleBorderOpacity: configuration.handleBorderOpacity,
+
+    handleBackground: configuration.handleBackground,
+
+    outlineWidth: toNonNegativeNumber(configuration.outlineWidth, 0),
+
+    formats: isPlainObject(configuration.formats) ? configuration.formats : {},
+
+    rotation: configuration.rotation ?? 0,
   };
 }
 
+/* ==========================================================================
+   Navigator
+   ========================================================================== */
+
 function createNavigatorOptions({
   Highcharts,
-  layout,
-  theme,
+
+  enabled,
+  range,
+
+  data,
+  direction,
+
   language,
   timeZone,
-  range,
-  configuration,
-  data,
-}) {
-  //const handleSymbols = registerNavigatorHandleSymbols(Highcharts);
 
-  const formats = mergeRangeFormats(
-    DEFAULT_NAVIGATOR_FORMATS,
-    configuration.formats || configuration.labelFormat,
+  theme,
+  configuration,
+}) {
+  if (!enabled || !Array.isArray(data) || !data.length) {
+    return {
+      enabled: false,
+    };
+  }
+
+  const navigatorTheme = getMarketChartNavigatorTheme(
+    Highcharts,
+    theme,
+    direction,
+    {
+      lineWidth: configuration.lineWidth,
+
+      lineOpacity: configuration.lineOpacity,
+
+      maskOpacity: configuration.maskOpacity,
+
+      fillStartOpacity: configuration.fillStartOpacity,
+
+      fillEndOpacity: configuration.fillEndOpacity,
+
+      outlineOpacity: configuration.outlineOpacity,
+
+      handleBorderOpacity: configuration.handleBorderOpacity,
+
+      handleBackground: configuration.handleBackground,
+    },
   );
 
+  const formats = mergeRangeFormats(
+    DEFAULT_X_AXIS_FORMATS,
+    configuration.formats,
+  );
+
+  const formatDate = createRangeDateFormatter({
+    language,
+    timeZone,
+    range,
+    formats,
+  });
+
   return {
-    enabled: configuration.enabled,
+    enabled: true,
 
-    height: configuration.height ?? layout.navigatorHeight,
+    adaptToUpdatedData: false,
 
-    margin: configuration.margin ?? layout.navigatorMargin,
+    height: configuration.height,
 
-    adaptToUpdatedData: true,
+    margin: configuration.margin,
 
     maskInside: true,
 
-    maskFill: Highcharts.color(theme.line)
-      .setOpacity(configuration.maskOpacity ?? 0.1)
-      .get("rgba"),
+    maskFill: navigatorTheme.maskFill,
 
-    outlineColor: theme.borderStrong,
-    outlineWidth: 1,
+    outlineWidth: configuration.outlineWidth,
+
+    outlineColor:
+      configuration.outlineWidth > 0
+        ? navigatorTheme.outlineColor
+        : "transparent",
 
     handles: {
-      enabled: configuration.handles !== false,
+      enabled: configuration.handles,
 
-      width: configuration.handleWidth ?? 7,
+      width: configuration.handleWidth,
 
-      height: configuration.handleHeight ?? layout.navigatorHandleHeight,
+      height: configuration.handleHeight,
 
-      backgroundColor: theme.tooltipBackground,
+      borderWidth: 1,
 
-      borderColor: theme.borderStrong,
+      backgroundColor: navigatorTheme.handles.backgroundColor,
 
-      lineWidth: 1,
+      borderColor: navigatorTheme.handles.borderColor,
+
+      lineColor: navigatorTheme.handles.borderColor,
     },
 
     xAxis: {
-      ordinal: false,
+      type: "datetime",
 
+      ordinal: normalizeMarketChartRange(range) !== "1D",
+
+      overscroll: 0,
+
+      minPadding: 0,
+      maxPadding: 0,
+
+      startOnTick: false,
+      endOnTick: false,
+
+      lineWidth: 0,
+      tickWidth: 0,
       gridLineWidth: 0,
 
-      lineColor: theme.border,
-      lineWidth: 1,
-
-      tickColor: theme.border,
-
-      tickLength: configuration.labels ? 3 : 0,
-
-      tickPixelInterval: configuration.tickPixelInterval ?? 110,
-
-      /*
-       * Boundary labels sit underneath the Navigator handles and become clipped.
-       * Internal labels remain available.
-       */
-
-      showFirstLabel: false,
-      showLastLabel: false,
+      tickPixelInterval: configuration.tickPixelInterval,
 
       labels: {
         enabled: configuration.labels,
 
-        align: "center",
+        inside: configuration.labelsInside,
+
+        y: configuration.labelsInside ? configuration.insideLabelOffset : 12,
 
         rotation: resolveRangeValue(configuration.rotation, range, 0),
 
-        y:
-          configuration.labelsInside !== false
-            ? (configuration.insideLabelOffset ?? -7)
-            : (configuration.labelOffset ?? 15),
+        align: "center",
+
+        reserveSpace: !configuration.labelsInside,
 
         style: {
           color: theme.muted,
-          fontFamily: "var(--font-sans)",
+
           fontSize: "10px",
-          fontWeight: "500",
-          textOverflow: "none",
-          textShadow: "none",
+
+          textOutline: "none",
         },
 
-        formatter: createDateLabelFormatter({
-          language,
-          timeZone,
-          range,
-          formats,
-
-          customFormatter: configuration.formatter,
-        }),
+        formatter() {
+          return formatDate(this.value);
+        },
       },
     },
+
+    yAxis: {
+      gridLineWidth: 0,
+
+      startOnTick: false,
+      endOnTick: false,
+
+      minPadding: 0.08,
+      maxPadding: 0.08,
+
+      labels: {
+        enabled: false,
+      },
+
+      title: {
+        text: null,
+      },
+    },
+
     series: {
-      type: "areaspline",
+      id: "market-chart-navigator-series",
+
+      name: "Navigator",
 
       /*
-       * Navigator interaction is owned by its mask and handles. Disabling series
-       * tracking prevents Highcharts from applying hover state to its internally
-       * generated Navigator series.
+       * Navigator remains a lightweight trend,
+       * including for candlestick mode.
        */
-
-      enableMouseTracking: false,
-      stickyTracking: false,
+      type: "areaspline",
 
       data,
 
-      color: theme.line,
-      lineColor: theme.line,
-      lineWidth: 1.5,
+      color: navigatorTheme.color,
 
-      fillColor: Highcharts.color(theme.line)
-        .setOpacity(configuration.fillOpacity ?? 0.14)
-        .get("rgba"),
+      lineColor: navigatorTheme.lineColor,
 
-      fillOpacity: configuration.fillOpacity ?? 0.14,
+      lineWidth: navigatorTheme.lineWidth,
 
-      dataGrouping: {
-        enabled: configuration.dataGrouping ?? false,
-      },
+      fillColor: navigatorTheme.fillColor,
+
+      threshold: null,
 
       marker: {
         enabled: false,
+      },
 
-        states: {
-          hover: {
-            enabled: false,
-          },
+      enableMouseTracking: false,
 
-          select: {
-            enabled: false,
-          },
-        },
+      showInLegend: false,
+
+      animation: false,
+
+      dataGrouping: {
+        enabled: configuration.dataGrouping,
       },
 
       states: {
-        normal: {
-          animation: false,
-          lineWidth: 1.5,
-          opacity: 1,
-        },
-
         hover: {
           enabled: false,
-          animation: false,
-          lineWidth: 1.5,
-          lineWidthPlus: 0,
-          opacity: 1,
         },
 
         inactive: {
-          enabled: false,
-          animation: false,
-          lineWidth: 1.5,
-          opacity: 1,
-        },
-
-        select: {
-          enabled: false,
-          animation: false,
-          lineWidth: 1.5,
           opacity: 1,
         },
       },
@@ -922,28 +1533,183 @@ function createNavigatorOptions({
 }
 
 /* ==========================================================================
-   Options Factory
+   Exporting
    ========================================================================== */
 
+function createExportingOptions(exporting) {
+  const configuration = isPlainObject(exporting) ? exporting : {};
+
+  return {
+    /*
+     * The native context button remains hidden;
+     * the custom accessible menu owns actions.
+     */
+    enabled: false,
+
+    fallbackToExportServer: configuration.fallbackToExportServer ?? false,
+
+    libURL: configuration.libURL || "https://code.highcharts.com/12.4.0/lib/",
+
+    filename: configuration.filename || "market-chart",
+
+    sourceWidth: toNonNegativeNumber(configuration.sourceWidth, 1_200),
+
+    sourceHeight: toNonNegativeNumber(configuration.sourceHeight, 675),
+
+    scale: toNonNegativeNumber(configuration.scale, 2),
+
+    printMaxWidth: toNonNegativeNumber(configuration.printMaxWidth, 1_200),
+
+    chartOptions: {
+      chart: {
+        backgroundColor: configuration.exportBackground || "#ffffff",
+      },
+
+      ...(isPlainObject(configuration.chartOptions)
+        ? configuration.chartOptions
+        : {}),
+    },
+
+    buttons: {
+      contextButton: {
+        enabled: false,
+      },
+    },
+  };
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+function createResponsiveOptions() {
+  return {
+    rules: [
+      {
+        condition: {
+          maxWidth: 640,
+        },
+
+        chartOptions: {
+          chart: {
+            spacingLeft: 8,
+            spacingRight: 8,
+
+            marginLeft: 8,
+            marginRight: 56,
+          },
+
+          xAxis: {
+            labels: {
+              style: {
+                fontSize: "10px",
+              },
+            },
+
+            title: {
+              margin: 12,
+            },
+          },
+
+          yAxis: {
+            tickPixelInterval: 48,
+
+            labels: {
+              x: 6,
+
+              style: {
+                fontSize: "10px",
+              },
+            },
+
+            title: {
+              margin: 10,
+
+              style: {
+                fontSize: "10px",
+              },
+            },
+          },
+
+          navigator: {
+            height: 34,
+            margin: 8,
+
+            handles: {
+              width: 7,
+              height: 18,
+            },
+
+            xAxis: {
+              tickPixelInterval: 92,
+
+              labels: {
+                style: {
+                  fontSize: "9px",
+                },
+              },
+            },
+          },
+        },
+      },
+
+      {
+        condition: {
+          maxWidth: 420,
+        },
+
+        chartOptions: {
+          chart: {
+            marginRight: 50,
+          },
+
+          yAxis: {
+            labels: {
+              style: {
+                fontSize: "9px",
+              },
+            },
+          },
+
+          navigator: {
+            xAxis: {
+              tickPixelInterval: 112,
+            },
+          },
+        },
+      },
+    ],
+  };
+}
+
+/* ==========================================================================
+   Options Factory
+   ========================================================================== */
 export function createMarketChartOptions({
   Highcharts,
   element,
 
   context = null,
 
+  capabilities = {},
+
   mode = "trend",
-  range = "1D",
+  range = DEFAULT_RANGE,
   direction = "neutral",
 
   symbol = "TASI",
+
   seriesName = symbol,
+
   currency = "",
 
   previousClose = null,
 
   data = [],
 
-  language = document.documentElement.lang || DEFAULT_LANGUAGE,
+  navigatorData = null,
+
+  language = globalThis.document?.documentElement?.lang || DEFAULT_LANGUAGE,
 
   timeZone = DEFAULT_TIME_ZONE,
 
@@ -957,24 +1723,20 @@ export function createMarketChartOptions({
   yAxis = {},
 
   dateFormats = {},
+
   tooltipDateFormats = {},
+
+  tooltip = {},
 
   animation = true,
 
   navigatorEnabled = null,
+
   navigator = {},
 
-  /*
-   * The Navigator can use a dataset and formatting range independent of the
-   * primary series.
-   *
-   * Expected behavior:
-   * - 1D: intraday Navigator data and time labels.
-   * - Other ranges: ALL-history data and date/year labels.
-   */
+  exporting = {},
 
-  navigatorData = null,
-  navigatorRange = range,
+  accessibilityEnabled = true,
 
   accessibilityDescription = "",
 } = {}) {
@@ -982,11 +1744,17 @@ export function createMarketChartOptions({
     throw new TypeError("createMarketChartOptions() requires Highcharts.");
   }
 
-  if (!(element instanceof Element)) {
+  if (!isElement(element)) {
     throw new TypeError(
       "createMarketChartOptions() requires a valid chart element.",
     );
   }
+
+  const normalizedMode = normalizeMarketChartMode(mode);
+
+  const normalizedRange = normalizeMarketChartRange(range);
+
+  const hasData = Array.isArray(data) && data.length > 0;
 
   const resolvedContext = resolveContext(element, context);
 
@@ -994,133 +1762,162 @@ export function createMarketChartOptions({
 
   const layout = CONTEXT_LAYOUT[resolvedContext];
 
+  const resolvedCapabilities = {
+    navigator: true,
+
+    ...(isPlainObject(capabilities) ? capabilities : {}),
+  };
+
   const axisConfiguration = normalizeAxisConfiguration({
     axis,
     xAxis,
     yAxis,
+
     xAxisTitle,
     yAxisTitle,
+
     decimals,
   });
 
   const navigatorConfiguration = normalizeNavigatorConfiguration({
     navigator,
     navigatorEnabled,
+
+    capabilities: resolvedCapabilities,
+
+    layout,
     overview,
   });
 
+  const tooltipConfiguration = isPlainObject(tooltip) ? tooltip : {};
+
   const theme = resolveTheme(element, direction);
 
-  const seriesTheme = getMarketChartSeriesTheme(Highcharts, theme, mode);
-
-  const xAxisFormats = mergeRangeFormats(DEFAULT_X_AXIS_FORMATS, dateFormats);
-
-  const tooltipFormatter = createTooltipDateFormatter({
-    language,
-    timeZone,
-    range,
-
-    formats: tooltipDateFormats,
-  });
-
-  const xAxisTicks = getXAxisTickOptions(range);
-
-  const xAxisRotation = Number(
-    resolveRangeValue(
-      axisConfiguration.x.rotation,
-      range,
-
-      DEFAULT_ROTATIONS[range] ?? DEFAULT_ROTATIONS.default,
-    ),
-  );
-
-  const seriesType =
-    mode === "candlestick"
-      ? "candlestick"
-      : mode === "line"
-        ? "line"
-        : "areaspline";
-
-  const seriesLineWidth = mode === "candlestick" ? 1 : 2;
-
-  const navigatorOptions = createNavigatorOptions({
+  const seriesTheme = getMarketChartSeriesTheme(
     Highcharts,
-    layout,
     theme,
-    language,
-    timeZone,
+    normalizedMode,
+    direction,
+  );
 
-    /*
-     * This is intentionally independent from the selected chart range.
-     */
+  const resolvedAnimation = normalizeMarketChartAnimation(animation, {
+    element,
 
-    range: navigatorRange,
-
-    configuration: navigatorConfiguration,
-
-    data:
-      Array.isArray(navigatorData) && navigatorData.length
-        ? navigatorData
-        : data,
+    mode: normalizedMode,
   });
 
-  const resolvedXAxisTitle = resolveRangeValue(
-    axisConfiguration.x.title,
-    range,
-    null,
+  const resolvedDateFormats = mergeRangeFormats(
+    DEFAULT_X_AXIS_FORMATS,
+    dateFormats,
   );
 
-  const resolvedYAxisTitle = resolveRangeValue(
-    axisConfiguration.y.title,
-    range,
-    null,
-  );
+  const mainSeries = createMainSeries({
+    mode: normalizedMode,
 
-  const chartMarginRight = layout.marginRight + (resolvedYAxisTitle ? 20 : 0);
+    symbol,
+    seriesName,
+
+    data,
+    seriesTheme,
+
+    animation: resolvedAnimation,
+  });
+
+  const resolvedNavigatorData = Array.isArray(navigatorData)
+    ? navigatorData
+    : data;
+
+  const normalizedLanguage = String(language || DEFAULT_LANGUAGE).toLowerCase();
+
+  const arabic =
+    normalizedLanguage === "ar" || normalizedLanguage.startsWith("ar-");
 
   return {
     chart: {
       backgroundColor: theme.background,
 
+      animation: resolvedAnimation,
+
       spacingTop: layout.spacingTop,
+
       spacingRight: layout.spacingRight,
+
       spacingBottom: layout.spacingBottom,
+
       spacingLeft: layout.spacingLeft,
 
       marginTop: layout.marginTop,
-      marginRight: chartMarginRight,
+
+      marginRight: layout.marginRight,
+
       marginLeft: layout.marginLeft,
 
-      animation,
+      marginBottom: null,
 
-      style: {
-        fontFamily: "var(--font-sans)",
+      reflow: true,
+
+      styledMode: false,
+
+      zooming: {
+        type: "x",
+
+        mouseWheel: {
+          enabled: false,
+        },
+
+        pinchType: "x",
+
+        resetButton: {
+          theme: {
+            display: "none",
+          },
+        },
       },
-    },
 
-    accessibility: {
-      enabled: true,
-
-      description: accessibilityDescription,
-
-      keyboardNavigation: {
+      panning: {
         enabled: true,
+
+        type: "x",
       },
 
-      series: {
-        describeSingleSeries: true,
-      },
+      panKey: "shift",
+
+      className: [
+        "market-chart-highstock",
+
+        overview
+          ? "market-chart-highstock--overview"
+          : "market-chart-highstock--performance",
+      ].join(" "),
     },
 
-    boost: {
-      enabled: false,
+    time: {
+      useUTC: true,
+
+      timezone: timeZone || DEFAULT_TIME_ZONE,
+    },
+
+    lang: {
+      noData: arabic ? "لا تتوفر بيانات للسوق." : "No market data available.",
+
+      loading: arabic ? "جارٍ تحميل بيانات السوق…" : "Loading market data…",
+
+      resetZoom: arabic ? "إعادة ضبط التكبير" : "Reset zoom",
+
+      resetZoomTitle: arabic
+        ? "إعادة ضبط مستوى تكبير الرسم البياني"
+        : "Reset chart zoom",
+    },
+
+    title: {
+      text: null,
+    },
+
+    subtitle: {
+      text: null,
     },
 
     credits: {
-      enabled: false,
-    },
-
-    exporting: {
       enabled: false,
     },
 
@@ -1136,592 +1933,150 @@ export function createMarketChartOptions({
       enabled: false,
     },
 
-    navigator: navigatorOptions,
+    /*
+     * Do not render empty navigator chrome.
+     */
+    navigator: createNavigatorOptions({
+      Highcharts,
 
-    /* ======================================================================
-       X Axis
-       ====================================================================== */
+      enabled: navigatorConfiguration.enabled && hasData,
 
+      range: normalizedRange,
+
+      data: resolvedNavigatorData,
+
+      direction,
+
+      language,
+      timeZone,
+
+      theme,
+
+      configuration: navigatorConfiguration,
+    }),
+
+    /*
+     * Empty charts retain their dimensions but
+     * do not display misleading chart chrome.
+     */
     xAxis: {
-      type: "datetime",
+      ...createXAxisOptions({
+        range: normalizedRange,
 
-      ordinal: false,
-      reversed: false,
+        language,
+        timeZone,
 
-      lineColor: theme.border,
-      lineWidth: 1,
+        theme,
 
-      tickColor: theme.border,
-      tickLength: 4,
-      tickWidth: 1,
+        configuration: axisConfiguration.x,
 
-      tickInterval: axisConfiguration.x.tickInterval ?? xAxisTicks.tickInterval,
+        dateFormats: resolvedDateFormats,
+      }),
 
-      tickPixelInterval:
-        axisConfiguration.x.tickPixelInterval ?? xAxisTicks.tickPixelInterval,
-
-      minPadding: axisConfiguration.x.minPadding ?? 0,
-
-      maxPadding: axisConfiguration.x.maxPadding ?? 0,
-
-      overscroll: axisConfiguration.x.overscroll ?? 0,
-
-      startOnTick: axisConfiguration.x.startOnTick ?? false,
-
-      endOnTick: axisConfiguration.x.endOnTick ?? false,
-
-      showFirstLabel: axisConfiguration.x.showFirstLabel ?? true,
-
-      showLastLabel: axisConfiguration.x.showLastLabel ?? true,
-
-      crosshair: {
-        color: theme.crosshair,
-        dashStyle: "ShortDash",
-        width: 1,
-        snap: true,
-        zIndex: 3,
-      },
-
-      labels: {
-        enabled: axisConfiguration.x.labels !== false,
-
-        align: xAxisRotation === 0 ? "center" : "right",
-
-        autoRotation: false,
-        rotation: xAxisRotation,
-
-        reserveSpace: true,
-
-        allowOverlap: axisConfiguration.x.allowOverlap ?? false,
-
-        crop: false,
-        overflow: "allow",
-
-        x: xAxisRotation === 0 ? 0 : -3,
-
-        y: axisConfiguration.x.labelOffset ?? 20,
-
-        style: {
-          color: theme.muted,
-          fontFamily: "var(--font-sans)",
-
-          fontSize: axisConfiguration.x.fontSize ?? "11px",
-
-          fontWeight: "500",
-          textOverflow: "none",
-          textShadow: "none",
-        },
-
-        formatter: createDateLabelFormatter({
-          language,
-          timeZone,
-          range,
-
-          formats: xAxisFormats,
-
-          customFormatter: axisConfiguration.x.formatter,
-        }),
-      },
-
-      title: {
-        text: resolvedXAxisTitle,
-
-        margin: axisConfiguration.x.titleMargin ?? 14,
-
-        style: {
-          color: theme.muted,
-          fontFamily: "var(--font-sans)",
-          fontSize: "11px",
-          fontWeight: "600",
-        },
-      },
+      visible: hasData,
     },
-
-    /* ======================================================================
-       Y Axis
-       ====================================================================== */
 
     yAxis: {
-      opposite: axisConfiguration.y.opposite ?? true,
+      ...createYAxisOptions({
+        language,
 
-      alignTicks: false,
+        theme,
+        layout,
 
-      gridLineColor: theme.grid,
-      gridLineDashStyle: "ShortDot",
-      gridLineWidth: 1,
+        configuration: axisConfiguration.y,
+      }),
 
-      lineColor: theme.border,
-      lineWidth: 0,
-
-      tickColor: theme.border,
-      tickLength: 0,
-      tickWidth: 0,
-
-      tickAmount: axisConfiguration.y.tickAmount,
-
-      tickInterval: axisConfiguration.y.tickInterval,
-
-      tickPixelInterval:
-        axisConfiguration.y.tickPixelInterval ?? layout.yAxisTickPixelInterval,
-
-      startOnTick:
-        axisConfiguration.y.includeBoundaryTicks ??
-        axisConfiguration.y.startOnTick ??
-        true,
-
-      endOnTick:
-        axisConfiguration.y.includeBoundaryTicks ??
-        axisConfiguration.y.endOnTick ??
-        true,
-
-      softThreshold: false,
-
-      minPadding: axisConfiguration.y.minPadding ?? 0.02,
-
-      maxPadding: axisConfiguration.y.maxPadding ?? 0.02,
-
-      softMin: axisConfiguration.y.softMin,
-
-      softMax: axisConfiguration.y.softMax,
-
-      min: axisConfiguration.y.min,
-      max: axisConfiguration.y.max,
-
-      crosshair: {
-        color: theme.crosshair,
-        dashStyle: "ShortDash",
-        width: 1,
-        snap: false,
-        zIndex: 3,
-
-        label: {
-          enabled: true,
-
-          align: axisConfiguration.y.opposite === false ? "right" : "left",
-
-          backgroundColor: theme.tooltipBackground,
-
-          borderColor: theme.tooltipBorder,
-
-          borderRadius: 5,
-          borderWidth: 1,
-          padding: 5,
-
-          style: {
-            color: theme.heading,
-            fontFamily: "var(--font-sans)",
-            fontSize: "11px",
-            fontWeight: "700",
-            textOutline: "none",
-            textShadow: "none",
-          },
-
-          formatter(value) {
-            return formatAxisNumber(value, {
-              language,
-
-              ...axisConfiguration.y.format,
-            });
-          },
-        },
-      },
-
-      labels: {
-        enabled: axisConfiguration.y.labels !== false,
-
-        align: axisConfiguration.y.opposite === false ? "right" : "left",
-
-        reserveSpace: true,
-
-        x: axisConfiguration.y.opposite === false ? -10 : 10,
-
-        y: 4,
-
-        style: {
-          color: theme.muted,
-          fontFamily: "var(--font-sans)",
-
-          fontSize: axisConfiguration.y.fontSize ?? "11px",
-
-          fontWeight: "500",
-          textOverflow: "none",
-          textShadow: "none",
-        },
-
-        formatter() {
-          if (typeof axisConfiguration.y.formatter === "function") {
-            const result = axisConfiguration.y.formatter.call(this, {
-              value: this.value,
-              range,
-              language,
-            });
-
-            if (result !== undefined && result !== null) {
-              return String(result);
-            }
-          }
-
-          return formatAxisNumber(this.value, {
-            language,
-
-            ...axisConfiguration.y.format,
-          });
-        },
-      },
-
-      title: {
-        text: resolvedYAxisTitle,
-
-        margin: axisConfiguration.y.titleMargin ?? 16,
-
-        rotation: axisConfiguration.y.titleRotation ?? 90,
-
-        style: {
-          color: theme.muted,
-          fontFamily: "var(--font-sans)",
-          fontSize: "11px",
-          fontWeight: "600",
-        },
-      },
+      visible: hasData,
     },
-
-    /* ======================================================================
-       Tooltip
-       ====================================================================== */
 
     tooltip: {
-      enabled: true,
+      ...createTooltipOptions({
+        range: normalizedRange,
 
-      useHTML: true,
-      outside: false,
+        mode: normalizedMode,
 
-      animation,
+        seriesName,
+        currency,
+        previousClose,
 
-      /*
-       * The component markup owns the complete tooltip appearance.
-       */
+        language,
+        timeZone,
+        decimals,
 
-      backgroundColor: "transparent",
+        theme,
 
-      borderWidth: 0,
-      borderRadius: 0,
+        tooltipDateFormats,
 
-      padding: 0,
-      shadow: false,
+        configuration: tooltipConfiguration,
+      }),
 
-      shared: false,
-      split: false,
-
-      hideDelay: 60,
-
-      followPointer: false,
-      followTouchMove: true,
-
-      positioner(labelWidth, labelHeight, point) {
-        const chart = this.chart;
-
-        const anchorX = chart.plotLeft + Number(point?.plotX || 0);
-
-        const anchorY = chart.plotTop + Number(point?.plotY || 0);
-
-        const minimumX = chart.plotLeft + 6;
-
-        const maximumX = chart.chartWidth - labelWidth - 6;
-
-        const minimumY = chart.plotTop + 6;
-
-        const maximumY = chart.chartHeight - labelHeight - 6;
-
-        let x = anchorX + 14;
-
-        /*
-         * Move the tooltip to the opposite side when it would overflow.
-         */
-
-        if (x > maximumX) {
-          x = anchorX - labelWidth - 14;
-        }
-
-        return {
-          x: Math.max(minimumX, Math.min(x, maximumX)),
-
-          y: Math.max(
-            minimumY,
-
-            Math.min(
-              anchorY - labelHeight / 2,
-
-              maximumY,
-            ),
-          ),
-        };
-      },
-
-      formatter() {
-        const point = this.point;
-
-        if (!point) {
-          return false;
-        }
-
-        const options = {
-          currency,
-          data,
-
-          dateFormatter: tooltipFormatter,
-
-          decimals,
-          language,
-          previousClose,
-          seriesName,
-        };
-
-        return mode === "candlestick"
-          ? createCandlestickTooltip(point, options)
-          : createTrendTooltip(point, options);
-      },
+      enabled: hasData && tooltipConfiguration.enabled !== false,
     },
 
-    /* ======================================================================
-       Plot Options
-       ====================================================================== */
+    plotOptions: createPlotOptions({
+      seriesTheme,
 
-    plotOptions: {
-      series: {
-        animation,
+      animation: resolvedAnimation,
 
-        boostThreshold: 0,
-        turboThreshold: 0,
+      tooltip: tooltipConfiguration,
+    }),
 
-        stickyTracking: true,
+    series: [mainSeries],
 
-        dataGrouping: {
-          enabled: false,
-        },
+    loading: {
+      labelStyle: {
+        color: theme.text,
 
-        states: {
-          inactive: {
-            opacity: 1,
-          },
+        fontSize: "13px",
 
-          hover: {
-            enabled: true,
-
-            halo: {
-              size: 0,
-              opacity: 0,
-            },
-          },
-
-          select: {
-            enabled: false,
-          },
-        },
-
-        /*
-         * Disabling both normal and state markers prevents dots remaining
-         * visible after hovering or switching ranges.
-         */
-
-        marker: {
-          enabled: false,
-          radius: 0,
-          lineWidth: 0,
-
-          states: {
-            normal: {
-              enabled: false,
-              radius: 0,
-            },
-
-            hover: {
-              enabled: false,
-              radius: 0,
-              lineWidth: 0,
-            },
-
-            select: {
-              enabled: false,
-              radius: 0,
-              lineWidth: 0,
-            },
-          },
-        },
+        fontWeight: "600",
       },
 
-      areaspline: {
-        lineWidth: 2,
-        threshold: null,
+      style: {
+        backgroundColor: createColorWithOpacity(
+          Highcharts,
 
-        marker: {
-          enabled: false,
-        },
-      },
+          theme.background === "transparent"
+            ? theme.tooltipBackground
+            : theme.background,
 
-      line: {
-        lineWidth: 2,
-
-        marker: {
-          enabled: false,
-        },
-      },
-
-      candlestick: {
-        lineWidth: 1,
-      },
-    },
-
-    /* ======================================================================
-       Main Series
-       ====================================================================== */
-
-    series: [
-      {
-        id: [String(symbol).toLowerCase(), String(range).toLowerCase()].join(
-          "-",
+          0.82,
         ),
 
-        name: seriesName,
-        type: seriesType,
-
-        data,
-
-        color: seriesTheme.color,
-
-        lineColor: seriesTheme.lineColor || seriesTheme.color,
-
-        fillColor: seriesTheme.fillColor,
-
-        upColor: seriesTheme.upColor,
-
-        upLineColor: seriesTheme.upLineColor,
-
-        threshold: null,
-
-        /*
-         * The Navigator owns a dedicated series and dataset.
-         */
-
-        showInNavigator: false,
-
-        dataGrouping: {
-          enabled: false,
-        },
-
-        marker: {
-          enabled: false,
-          radius: 0,
-          lineWidth: 0,
-
-          states: {
-            hover: {
-              enabled: false,
-              radius: 0,
-              lineWidth: 0,
-            },
-
-            select: {
-              enabled: false,
-              radius: 0,
-              lineWidth: 0,
-            },
-          },
-        },
+        opacity: 1,
       },
-    ],
 
-    /* ======================================================================
-       Responsive
-       ====================================================================== */
+      showDuration: 0,
 
-    responsive: {
-      rules: [
-        {
-          condition: {
-            maxWidth: 768,
-          },
-
-          chartOptions: {
-            chart: {
-              spacingLeft: 12,
-              spacingRight: 10,
-
-              marginLeft: 12,
-              marginRight: 64,
-            },
-
-            navigator: {
-              height: 34,
-              margin: 8,
-
-              handles: {
-                height: 18,
-              },
-            },
-
-            xAxis: {
-              labels: {
-                style: {
-                  fontSize: "10px",
-                },
-              },
-            },
-
-            yAxis: {
-              tickPixelInterval: 50,
-
-              labels: {
-                style: {
-                  fontSize: "10px",
-                },
-              },
-            },
-          },
-        },
-
-        {
-          condition: {
-            maxWidth: 576,
-          },
-
-          chartOptions: {
-            chart: {
-              spacingLeft: 8,
-              spacingRight: 8,
-
-              marginLeft: 8,
-              marginRight: 58,
-            },
-
-            navigator: {
-              height: 32,
-              margin: 7,
-
-              handles: {
-                height: 17,
-              },
-            },
-
-            xAxis: {
-              labels: {
-                style: {
-                  fontSize: "9px",
-                },
-              },
-            },
-
-            yAxis: {
-              tickPixelInterval: 46,
-
-              labels: {
-                style: {
-                  fontSize: "9px",
-                },
-              },
-            },
-          },
-        },
-      ],
+      hideDuration: 0,
     },
+
+    accessibility: {
+      enabled: accessibilityEnabled !== false,
+
+      description: accessibilityDescription || "",
+
+      landmarkVerbosity: "one",
+
+      keyboardNavigation: {
+        enabled: true,
+
+        order: ["series", "zoom"],
+      },
+
+      announceNewData: {
+        enabled: false,
+      },
+    },
+
+    exporting: createExportingOptions(exporting),
+
+    responsive: createResponsiveOptions(),
   };
 }
+
+/* ==========================================================================
+   Exports
+   ========================================================================== */
+
+export { CONTEXT_LAYOUT, DEFAULT_TOOLTIP_DATE_FORMATS, DEFAULT_X_AXIS_FORMATS };

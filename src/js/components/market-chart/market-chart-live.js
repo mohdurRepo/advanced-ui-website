@@ -20,12 +20,35 @@ function isAbortError(error) {
   return error?.name === "AbortError" || error?.code === 20;
 }
 
+function isTimeoutError(error) {
+  return error?.name === "TimeoutError";
+}
+
 function createAbortError(message) {
   return new DOMException(message, "AbortError");
 }
 
+function createTimeoutError(message) {
+  return new DOMException(message, "TimeoutError");
+}
+
+function createEnvironment(environment = {}) {
+  const root = typeof globalThis === "object" ? globalThis : {};
+
+  return {
+    window: environment.window ?? root.window ?? null,
+    document: environment.document ?? root.document ?? null,
+    navigator: environment.navigator ?? root.navigator ?? null,
+    now: typeof environment.now === "function" ? environment.now : Date.now,
+    setTimeout:
+      environment.setTimeout ?? root.setTimeout?.bind(root) ?? (() => null),
+    clearTimeout:
+      environment.clearTimeout ?? root.clearTimeout?.bind(root) ?? (() => {}),
+  };
+}
+
 /* ==========================================================================
-   Controller
+   Live Controller
    ========================================================================== */
 
 class MarketChartLiveController {
@@ -39,12 +62,39 @@ class MarketChartLiveController {
     this.configuration = {
       interval: DEFAULT_INTERVAL,
 
+      /*
+       * Align requests to clock boundaries.
+       *
+       * Example:
+       * interval: 5_000
+       *
+       * Requests occur near:
+       * 10:00:00
+       * 10:00:05
+       * 10:00:10
+       */
       alignToInterval: true,
+
+      /*
+       * When true, the first request runs immediately after start().
+       */
       immediate: false,
+
+      /*
+       * Keep attempting background polling.
+       *
+       * Browsers may throttle background timers, but this controller does not
+       * intentionally stop them. It also performs an immediate catch-up
+       * request when the page becomes visible again.
+       */
+      pauseWhenHidden: false,
 
       retry: true,
       maxRetryDelay: DEFAULT_MAX_RETRY_DELAY,
 
+      /*
+       * Zero disables request timeout handling.
+       */
       requestTimeout: 0,
 
       onPoint: null,
@@ -54,21 +104,20 @@ class MarketChartLiveController {
       ...configuration,
     };
 
+    this.environment = createEnvironment(this.configuration.environment);
+
     this.interval = Math.max(
       MINIMUM_INTERVAL,
-
       toPositiveNumber(this.configuration.interval, DEFAULT_INTERVAL),
     );
 
     this.maxRetryDelay = toPositiveNumber(
       this.configuration.maxRetryDelay,
-
       DEFAULT_MAX_RETRY_DELAY,
     );
 
     this.requestTimeout = Math.max(
       0,
-
       Number(this.configuration.requestTimeout) || 0,
     );
 
@@ -86,6 +135,9 @@ class MarketChartLiveController {
 
     this.failureCount = 0;
     this.sequence = 0;
+    this.lifecycle = 0;
+    this.requestSequence = 0;
+    this.refreshPending = false;
 
     this.state = "idle";
 
@@ -104,33 +156,38 @@ class MarketChartLiveController {
   }
 
   /* ========================================================================
-     Environment
-     ===================================================================== */
+     Environment Events
+     ======================================================================== */
 
   bindEnvironment() {
-    const signal = this.listenerController.signal;
+    const { document, window } = this.environment;
+    const { signal } = this.listenerController;
 
-    document.addEventListener("visibilitychange", this.handleVisibilityChange, {
-      signal,
-    });
+    document?.addEventListener?.(
+      "visibilitychange",
+      this.handleVisibilityChange,
+      { signal },
+    );
 
-    window.addEventListener("online", this.handleOnline, { signal });
+    window?.addEventListener?.("online", this.handleOnline, { signal });
 
-    window.addEventListener("offline", this.handleOffline, { signal });
+    window?.addEventListener?.("offline", this.handleOffline, { signal });
 
-    window.addEventListener("pagehide", this.handlePageHide, { signal });
+    window?.addEventListener?.("pagehide", this.handlePageHide, { signal });
 
-    window.addEventListener("pageshow", this.handlePageShow, { signal });
+    window?.addEventListener?.("pageshow", this.handlePageShow, { signal });
   }
 
   synchronizeEnvironment() {
-    if (document.hidden) {
+    const { document, navigator } = this.environment;
+
+    if (this.configuration.pauseWhenHidden && document?.hidden) {
       this.pauseReasons.add("document-hidden");
     } else {
       this.pauseReasons.delete("document-hidden");
     }
 
-    if ("onLine" in navigator && !navigator.onLine) {
+    if (navigator && "onLine" in navigator && !navigator.onLine) {
       this.pauseReasons.add("offline");
     } else {
       this.pauseReasons.delete("offline");
@@ -138,13 +195,30 @@ class MarketChartLiveController {
   }
 
   handleVisibilityChange() {
-    if (document.hidden) {
-      this.addPauseReason("document-hidden");
+    const { document } = this.environment;
+
+    /*
+     * Optional mode for projects that explicitly want hidden-tab pausing.
+     */
+    if (this.configuration.pauseWhenHidden) {
+      if (document?.hidden) {
+        this.addPauseReason("document-hidden");
+      } else {
+        this.removePauseReason("document-hidden");
+      }
 
       return;
     }
 
-    this.removePauseReason("document-hidden");
+    /*
+     * Background timers may have been throttled.
+     *
+     * Do not pause when hidden. When the page becomes visible again, request
+     * the latest point immediately instead of waiting for the next interval.
+     */
+    if (!document?.hidden && this.active && this.pauseReasons.size === 0) {
+      this.refresh();
+    }
   }
 
   handleOnline() {
@@ -156,6 +230,10 @@ class MarketChartLiveController {
   }
 
   handlePageHide() {
+    /*
+     * pagehide normally means navigation, unload, or entry into the
+     * back-forward cache. Requests should not continue in that state.
+     */
     this.addPauseReason("page-hidden");
   }
 
@@ -165,13 +243,14 @@ class MarketChartLiveController {
 
   /* ========================================================================
      State
-     ===================================================================== */
+     ======================================================================== */
 
   setState(state, detail = {}) {
-    if (this.destroyed || state === this.state) {
+    if (this.destroyed) {
       return;
     }
 
+    const previousState = this.state;
     this.state = state;
 
     if (typeof this.configuration.onStateChange !== "function") {
@@ -181,16 +260,16 @@ class MarketChartLiveController {
     try {
       this.configuration.onStateChange({
         state,
+        previousState,
 
         active: this.active,
+        destroyed: this.destroyed,
         inFlight: this.inFlight,
 
         paused: this.pauseReasons.size > 0,
-
         pauseReasons: [...this.pauseReasons],
 
         failureCount: this.failureCount,
-
         sequence: this.sequence,
 
         ...detail,
@@ -217,7 +296,7 @@ class MarketChartLiveController {
 
   /* ========================================================================
      Pause Reasons
-     ===================================================================== */
+     ======================================================================== */
 
   addPauseReason(reason) {
     if (this.destroyed || !reason || this.pauseReasons.has(reason)) {
@@ -227,10 +306,13 @@ class MarketChartLiveController {
     this.pauseReasons.add(reason);
 
     this.clearTimer();
+
     this.abortRequest(`Live chart paused: ${reason}.`);
 
     if (this.active) {
-      this.setState(this.resolvePausedState());
+      this.setState(this.resolvePausedState(), {
+        reason,
+      });
     }
   }
 
@@ -241,34 +323,40 @@ class MarketChartLiveController {
 
     this.pauseReasons.delete(reason);
 
-    if (!this.active || this.pauseReasons.size > 0) {
-      if (this.active) {
-        this.setState(this.resolvePausedState());
-      }
+    if (!this.active) {
+      return;
+    }
+
+    if (this.pauseReasons.size > 0) {
+      this.setState(this.resolvePausedState(), {
+        reason,
+      });
 
       return;
     }
 
-    this.setState("waiting");
-
     /*
-     * Refresh quickly after returning to the page instead of waiting for one
-     * complete interval.
+     * Catch up immediately after reconnecting or returning from pagehide.
      */
+    this.setState("waiting", {
+      reason,
+      nextUpdateIn: 0,
+    });
 
     this.schedule(0);
   }
 
   /* ========================================================================
      Timer
-     ===================================================================== */
+     ======================================================================== */
 
   clearTimer() {
     if (this.timer === null) {
       return;
     }
 
-    window.clearTimeout(this.timer);
+    this.environment.clearTimeout(this.timer);
+
     this.timer = null;
   }
 
@@ -277,7 +365,7 @@ class MarketChartLiveController {
       return this.interval;
     }
 
-    const remainder = Date.now() % this.interval;
+    const remainder = this.environment.now() % this.interval;
 
     return remainder === 0 ? this.interval : this.interval - remainder;
   }
@@ -286,21 +374,23 @@ class MarketChartLiveController {
     this.clearTimer();
 
     if (this.destroyed || !this.active || this.pauseReasons.size > 0) {
-      return;
+      return false;
     }
 
     const resolvedDelay =
-      delay === null ? this.getAlignedDelay() : Math.max(0, delay);
+      delay === null ? this.getAlignedDelay() : Math.max(0, Number(delay) || 0);
 
     this.setState("waiting", {
       nextUpdateIn: resolvedDelay,
     });
 
-    this.timer = window.setTimeout(() => {
+    this.timer = this.environment.setTimeout(() => {
       this.timer = null;
 
       this.execute();
     }, resolvedDelay);
+
+    return true;
   }
 
   getRetryDelay() {
@@ -310,15 +400,15 @@ class MarketChartLiveController {
   }
 
   /* ========================================================================
-     Request
-     ===================================================================== */
+     Request Management
+     ======================================================================== */
 
   clearRequestTimeout() {
     if (this.requestTimer === null) {
       return;
     }
 
-    window.clearTimeout(this.requestTimer);
+    this.environment.clearTimeout(this.requestTimer);
 
     this.requestTimer = null;
   }
@@ -338,22 +428,35 @@ class MarketChartLiveController {
       "A newer live chart request replaced the previous request.",
     );
 
-    this.requestController = new AbortController();
+    const controller = new AbortController();
+
+    this.requestController = controller;
+    this.requestSequence += 1;
+
+    const requestId = this.requestSequence;
 
     if (this.requestTimeout > 0) {
-      this.requestTimer = window.setTimeout(() => {
-        this.requestController?.abort(
-          new DOMException("The live chart request timed out.", "TimeoutError"),
+      this.requestTimer = this.environment.setTimeout(() => {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        controller.abort(
+          createTimeoutError("The live chart request timed out."),
         );
       }, this.requestTimeout);
     }
 
-    return this.requestController;
+    return {
+      controller,
+      requestId,
+      lifecycle: this.lifecycle,
+    };
   }
 
   /* ========================================================================
-     Execute
-     ===================================================================== */
+     Update Execution
+     ======================================================================== */
 
   async execute() {
     if (
@@ -362,80 +465,123 @@ class MarketChartLiveController {
       this.inFlight ||
       this.pauseReasons.size > 0
     ) {
-      return;
+      return false;
     }
 
     this.inFlight = true;
 
     const request = this.createRequestController();
+    const { controller } = request;
 
-    const requestedAt = Date.now();
+    const requestedAt = this.environment.now();
+    const nextSequence = this.sequence + 1;
 
     this.setState("updating", {
       requestedAt,
+      sequence: nextSequence,
     });
 
     try {
       const point = await this.configuration.fetchPoint({
-        signal: request.signal,
+        signal: controller.signal,
 
         requestedAt,
-
-        sequence: this.sequence + 1,
+        sequence: nextSequence,
+        requestId: request.requestId,
       });
 
-      if (request.signal.aborted || this.destroyed || !this.active) {
-        return;
+      /*
+       * The timeout protects transport latency only. Applying a valid point
+       * may include an asynchronous renderer and must not turn a successful
+       * response into a timeout failure.
+       */
+      this.clearRequestTimeout();
+
+      if (
+        controller.signal.aborted ||
+        request.lifecycle !== this.lifecycle ||
+        this.requestController !== controller ||
+        this.destroyed ||
+        !this.active
+      ) {
+        return false;
       }
 
-      if (point === null || point === undefined) {
-        throw new Error("The live chart request returned no point.");
-      }
-
-      const updatedAt = Date.now();
-
-      if (typeof this.configuration.onPoint === "function") {
+      /*
+       * null means the endpoint responded successfully but there is no new
+       * market point yet. This is not treated as a network failure.
+       */
+      if (
+        point !== null &&
+        point !== undefined &&
+        typeof this.configuration.onPoint === "function"
+      ) {
         await this.configuration.onPoint(point, {
           requestedAt,
-          updatedAt,
+          updatedAt: this.environment.now(),
 
-          sequence: this.sequence + 1,
+          sequence: nextSequence,
+          requestId: request.requestId,
         });
       }
 
-      this.sequence += 1;
+      if (
+        request.lifecycle !== this.lifecycle ||
+        this.requestController !== controller ||
+        this.destroyed ||
+        !this.active
+      ) {
+        return false;
+      }
+
+      this.sequence = nextSequence;
       this.failureCount = 0;
 
       this.setState("live", {
         requestedAt,
-        updatedAt,
+        updatedAt: this.environment.now(),
 
         point,
+        sequence: this.sequence,
+        requestId: request.requestId,
       });
+
+      return true;
     } catch (error) {
+      const resolvedError = controller.signal.aborted
+        ? controller.signal.reason || error
+        : error;
+
+      const cancelled =
+        !isTimeoutError(resolvedError) &&
+        (isAbortError(resolvedError) || controller.signal.aborted);
+
       if (
-        isAbortError(error) ||
-        request.signal.aborted ||
+        cancelled ||
+        request.lifecycle !== this.lifecycle ||
         this.destroyed ||
         !this.active
       ) {
-        return;
+        return false;
       }
 
       this.failureCount += 1;
 
       this.setState("error", {
-        error,
+        error: resolvedError,
+        requestedAt,
+        failureCount: this.failureCount,
+        requestId: request.requestId,
       });
 
       if (typeof this.configuration.onError === "function") {
         try {
-          this.configuration.onError(error, {
+          this.configuration.onError(resolvedError, {
             requestedAt,
 
             failureCount: this.failureCount,
-
             sequence: this.sequence,
+            requestId: request.requestId,
           });
         } catch (callbackError) {
           console.error(
@@ -447,20 +593,26 @@ class MarketChartLiveController {
 
       if (!this.configuration.retry) {
         this.active = false;
-
-        return;
       }
+
+      return false;
     } finally {
       this.clearRequestTimeout();
 
-      if (this.requestController === request) {
+      if (this.requestController === controller) {
         this.requestController = null;
       }
 
       this.inFlight = false;
 
       if (!this.destroyed && this.active && this.pauseReasons.size === 0) {
-        const delay = this.failureCount > 0 ? this.getRetryDelay() : null;
+        const delay = this.refreshPending
+          ? 0
+          : this.failureCount > 0
+            ? this.getRetryDelay()
+            : null;
+
+        this.refreshPending = false;
 
         this.schedule(delay);
       }
@@ -469,7 +621,7 @@ class MarketChartLiveController {
 
   /* ========================================================================
      Public Lifecycle
-     ===================================================================== */
+     ======================================================================== */
 
   start() {
     if (this.destroyed) {
@@ -482,6 +634,8 @@ class MarketChartLiveController {
 
     this.active = true;
     this.failureCount = 0;
+    this.lifecycle += 1;
+    this.refreshPending = false;
 
     this.synchronizeEnvironment();
 
@@ -524,8 +678,11 @@ class MarketChartLiveController {
     }
 
     this.active = false;
+    this.lifecycle += 1;
+    this.refreshPending = false;
 
     this.clearTimer();
+
     this.abortRequest("Live chart stopped.");
 
     this.failureCount = 0;
@@ -538,10 +695,8 @@ class MarketChartLiveController {
   }
 
   /*
-   * Runs one immediate update without creating a second recurring timer.
-   * Useful for testing from the browser console.
+   * Runs one immediate request without creating a second polling loop.
    */
-
   refresh() {
     if (this.destroyed || !this.active || this.pauseReasons.size > 0) {
       return false;
@@ -549,9 +704,16 @@ class MarketChartLiveController {
 
     this.clearTimer();
 
-    if (!this.inFlight) {
-      this.execute();
+    if (this.inFlight) {
+      /*
+       * The current request will schedule the next update when it finishes.
+       */
+      this.refreshPending = true;
+
+      return true;
     }
+
+    this.execute();
 
     return true;
   }
@@ -562,14 +724,20 @@ class MarketChartLiveController {
     }
 
     this.active = false;
+    this.lifecycle += 1;
+    this.refreshPending = false;
 
     this.clearTimer();
+
     this.abortRequest("Live chart controller destroyed.");
 
     this.listenerController.abort();
 
     this.pauseReasons.clear();
 
+    /*
+     * Mark destroyed after the final state callback has been emitted.
+     */
     this.setState("destroyed");
 
     this.destroyed = true;
@@ -577,7 +745,7 @@ class MarketChartLiveController {
 
   /* ========================================================================
      Public State
-     ===================================================================== */
+     ======================================================================== */
 
   getState() {
     return {
@@ -588,13 +756,12 @@ class MarketChartLiveController {
       inFlight: this.inFlight,
 
       paused: this.pauseReasons.size > 0,
-
       pauseReasons: [...this.pauseReasons],
 
       interval: this.interval,
+      requestTimeout: this.requestTimeout,
 
       failureCount: this.failureCount,
-
       sequence: this.sequence,
     };
   }

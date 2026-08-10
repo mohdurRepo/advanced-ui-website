@@ -4,6 +4,18 @@
    Container
    ========================================================================== */
 
+/*
+ * Shared constrained-width containers.
+ *
+ * Width is calculated from:
+ *
+ * - viewport width
+ * - responsive inline page padding
+ * - the selected maximum container width
+ *
+ * All variants remain horizontally centered.
+ */
+
 .container,
 .container-sm,
 .container-md,
@@ -17,9 +29,21 @@
   margin-inline: auto;
 }
 
+/* ==========================================================================
+   Default Container
+   ========================================================================== */
+
+/*
+ * The default website container uses the largest constrained width.
+ */
+
 .container {
   --container-max: #{ds.$container-xxxl};
 }
+
+/* ==========================================================================
+   Size Variants
+   ========================================================================== */
 
 .container-sm {
   --container-max: #{ds.$container-sm};
@@ -41,13 +65,21 @@
   --container-max: #{ds.$container-xxl};
 }
 
-.container-xxl {
+.container-xxxl {
   --container-max: #{ds.$container-xxxl};
 }
+
+/* ==========================================================================
+   Fluid Container
+   ========================================================================== */
 
 .container-fluid {
   --container-max: 100%;
 }
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
 
 @include ds.respond-down("sm") {
   .container,

@@ -6,61 +6,166 @@ import {
 } from "./market-chart";
 
 /* ==========================================================================
-   Events
+   Public Contract
    ========================================================================== */
 
+export const MARKET_CHARTS_API_NAME = "SEMarketCharts";
+
+export const MARKET_CHARTS_API_VERSION = "2.0.0";
+
 export const MARKET_CHARTS_READY_EVENT = "semarketchartsready";
+
+export const MARKET_CHARTS_REMOVED_EVENT = "semarketchartsremoved";
+
+const API_MARKER = Symbol.for("se.market-charts.api");
 
 /* ==========================================================================
    Public API
    ========================================================================== */
 
-/**
- * Stable browser API used by page-level scripts.
- *
- * Chart datasets remain inside each page and are passed to create().
- */
-const marketChartAPI = Object.freeze({
-  create: createMarketChart,
-  get: getMarketChart,
-  destroy: destroyMarketChart,
-  destroyAll: destroyAllMarketCharts,
-});
+export function createMarketChartPublicAPI(bindings = {}) {
+  const api = {
+    version: MARKET_CHARTS_API_VERSION,
 
-/* ==========================================================================
-   API Getter
-   ========================================================================== */
+    create: bindings.create || createMarketChart,
+
+    get: bindings.get || getMarketChart,
+
+    destroy: bindings.destroy || destroyMarketChart,
+
+    destroyAll: bindings.destroyAll || destroyAllMarketCharts,
+  };
+
+  Object.defineProperty(api, API_MARKER, {
+    value: true,
+    enumerable: false,
+  });
+
+  return Object.freeze(api);
+}
+
+const marketChartAPI = createMarketChartPublicAPI();
 
 export function getMarketChartAPI() {
   return marketChartAPI;
 }
 
 /* ==========================================================================
-   Initialization
+   Browser Events
    ========================================================================== */
 
-/**
- * Installs the Market Chart browser API.
- *
- * The function is idempotent. Repeated calls return the existing API without
- * dispatching duplicate readiness events.
- */
-export function initMarketCharts() {
-  if (window.SEMarketCharts === marketChartAPI) {
+function createBrowserEvent(browserWindow, name, detail) {
+  if (typeof browserWindow.CustomEvent === "function") {
+    return new browserWindow.CustomEvent(name, {
+      detail,
+    });
+  }
+
+  const event = new browserWindow.Event(name);
+
+  Object.defineProperty(event, "detail", {
+    value: detail,
+    enumerable: true,
+  });
+
+  return event;
+}
+
+function dispatchBrowserEvent(browserWindow, name, detail) {
+  if (typeof browserWindow?.dispatchEvent !== "function") {
+    return;
+  }
+
+  browserWindow.dispatchEvent(createBrowserEvent(browserWindow, name, detail));
+}
+
+function safelyDestroyPreviousAPI(previousAPI) {
+  if (!previousAPI || typeof previousAPI.destroyAll !== "function") {
+    return;
+  }
+
+  try {
+    previousAPI.destroyAll();
+  } catch (error) {
+    console.error(
+      "Previous Market Chart instances could not be destroyed.",
+      error,
+    );
+  }
+}
+
+/* ==========================================================================
+   Installation
+   ========================================================================== */
+
+export function initMarketCharts(browserWindow = globalThis.window) {
+  if (!browserWindow) {
     return marketChartAPI;
   }
 
-  window.SEMarketCharts = marketChartAPI;
+  const currentAPI = browserWindow[MARKET_CHARTS_API_NAME];
 
-  window.dispatchEvent(
-    new CustomEvent(MARKET_CHARTS_READY_EVENT, {
-      detail: {
-        api: marketChartAPI,
-      },
-    }),
+  if (currentAPI === marketChartAPI) {
+    return marketChartAPI;
+  }
+
+  const descriptor = Object.getOwnPropertyDescriptor(
+    browserWindow,
+    MARKET_CHARTS_API_NAME,
   );
 
+  if (descriptor && descriptor.configurable === false) {
+    console.error(
+      `${MARKET_CHARTS_API_NAME} is already installed as a non-configurable browser property.`,
+    );
+
+    return currentAPI || marketChartAPI;
+  }
+
+  safelyDestroyPreviousAPI(currentAPI);
+
+  Object.defineProperty(browserWindow, MARKET_CHARTS_API_NAME, {
+    value: marketChartAPI,
+
+    configurable: true,
+    enumerable: true,
+    writable: false,
+  });
+
+  dispatchBrowserEvent(browserWindow, MARKET_CHARTS_READY_EVENT, {
+    api: marketChartAPI,
+    version: MARKET_CHARTS_API_VERSION,
+  });
+
   return marketChartAPI;
+}
+
+/* ==========================================================================
+   Uninstallation
+   ========================================================================== */
+
+export function uninstallMarketCharts(
+  browserWindow = globalThis.window,
+  { destroy = true } = {},
+) {
+  if (
+    !browserWindow ||
+    browserWindow[MARKET_CHARTS_API_NAME] !== marketChartAPI
+  ) {
+    return false;
+  }
+
+  if (destroy) {
+    safelyDestroyPreviousAPI(marketChartAPI);
+  }
+
+  delete browserWindow[MARKET_CHARTS_API_NAME];
+
+  dispatchBrowserEvent(browserWindow, MARKET_CHARTS_REMOVED_EVENT, {
+    version: MARKET_CHARTS_API_VERSION,
+  });
+
+  return true;
 }
 
 /* ==========================================================================

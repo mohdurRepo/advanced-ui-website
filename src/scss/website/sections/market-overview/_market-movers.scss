@@ -148,6 +148,8 @@
    ========================================================================== */
 
 .market-movers__panel {
+  display: none;
+
   flex: 1 1 auto;
 
   min-inline-size: 0;
@@ -156,8 +158,9 @@
   overflow-x: hidden;
   overflow-y: auto;
 
-  overscroll-behavior-y: auto;
+  overscroll-behavior-block: contain;
 
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: var(--market-movers-scrollbar) transparent;
 
@@ -169,7 +172,8 @@
     display: none !important;
   }
 
-  &.is-active {
+  &.is-active,
+  &[aria-hidden="false"] {
     display: block;
   }
 
@@ -330,7 +334,7 @@
 }
 
 .market-movers__indicator--success {
-  --market-movers-indicator-color: var(--market-overview-success, #48df8b);
+  --market-movers-indicator-color: var(--color-market-positive);
 
   --market-movers-indicator-glow: rgb(72 223 139 / 0.38);
 }
@@ -348,7 +352,7 @@
 }
 
 .market-movers__indicator--danger {
-  --market-movers-indicator-color: var(--market-overview-danger, #ff7186);
+  --market-movers-indicator-color: var(--color-market-negative);
 
   --market-movers-indicator-glow: rgb(255 113 134 / 0.38);
 }
@@ -444,11 +448,20 @@
   }
 
   .market-movers__panel {
+    display: none;
+
     max-block-size: none;
 
     padding-inline: var(--market-panel-space-sm);
 
     overflow: visible;
+
+    scrollbar-gutter: auto;
+  }
+
+  .market-movers__panel.is-active,
+  .market-movers__panel[aria-hidden="false"] {
+    display: block;
   }
 }
 

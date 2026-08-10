@@ -1,0 +1,503 @@
+@use "../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Content Page
+   ========================================================================== */
+
+/*
+ * Reusable presentation for editorial and informational pages.
+ *
+ * Layout remains owned by:
+ *
+ * - container
+ * - sticky-layout
+ * - stack
+ *
+ * This component owns:
+ *
+ * - article surface
+ * - editorial typography
+ * - section rhythm
+ * - supporting contact panel
+ * - informational table composition
+ */
+
+.content-page {
+  /* Panel */
+  --content-page-panel-bg: var(--color-surface);
+  --content-page-panel-color: var(--color-text);
+  --content-page-panel-border: var(--color-border);
+  --content-page-panel-radius: var(--radius-lg);
+  --content-page-panel-shadow: var(--shadow-sm);
+
+  /* Spacing */
+  --content-page-padding-block: clamp(1.25rem, 2vw, 2rem);
+  --content-page-padding-inline: clamp(1.25rem, 2.5vw, 2.5rem);
+
+  /* Typography */
+  --content-page-title-size: var(--text-2xl);
+  --content-page-section-title-size: var(--text-xl);
+  --content-page-support-title-size: var(--text-lg);
+
+  /* Tables */
+  --content-page-table-min-width: 42rem;
+  --content-page-table-label-width: 32%;
+  --content-page-table-label-min-width: 12rem;
+}
+
+/* ==========================================================================
+   Main Article Panel
+   ========================================================================== */
+
+.content-page__panel {
+  min-inline-size: 0;
+  padding-block: var(--content-page-padding-block, clamp(1.25rem, 2vw, 2rem));
+  padding-inline: var(
+    --content-page-padding-inline,
+    clamp(1.25rem, 2.5vw, 2.5rem)
+  );
+
+  border: 1px solid var(--content-page-panel-border, var(--color-border));
+  border-radius: var(--content-page-panel-radius, var(--radius-lg));
+
+  background: var(--content-page-panel-bg, var(--color-surface));
+  color: var(--content-page-panel-color, var(--color-text));
+
+  box-shadow: var(--content-page-panel-shadow, var(--shadow-sm));
+}
+
+/* ==========================================================================
+   Article
+   ========================================================================== */
+
+.content-page__article {
+  min-inline-size: 0;
+}
+
+.content-page__article p {
+  max-inline-size: 75ch;
+  margin: 0;
+
+  color: var(--color-text);
+
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   Introduction
+   ========================================================================== */
+
+.content-page__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--content-page-title-size, var(--text-2xl));
+  font-weight: ds.font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Content Sections
+   ========================================================================== */
+
+.content-page__section {
+  min-inline-size: 0;
+}
+
+.content-page__section-title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--content-page-section-title-size, var(--text-xl));
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Icon Lists
+   ========================================================================== */
+
+.content-page .icon-list {
+  gap: ds.space(2);
+}
+
+.content-page .icon-list li {
+  line-height: var(--line-height-normal);
+}
+
+.content-page .icon-list li.has-icon::before {
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Supporting Panel
+   ========================================================================== */
+
+.content-page__support {
+  min-inline-size: 0;
+  padding: clamp(1.25rem, 2vw, 1.75rem);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  box-shadow: var(--shadow-sm);
+}
+
+.content-page__support-title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--content-page-support-title-size, var(--text-lg));
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/*
+ * Keep the support icon consistent with list markers and action accents.
+ */
+
+.content-page__support-title.has-icon {
+  align-items: flex-start;
+}
+
+.content-page__support-title.has-icon::before {
+  margin-block-start: 0.12em;
+
+  color: var(--color-primary);
+}
+
+.content-page__support p {
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.content-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+
+  gap: ds.space(2);
+}
+
+.content-page__actions .btn {
+  inline-size: fit-content;
+  max-inline-size: 100%;
+}
+
+/* ==========================================================================
+   Informational Table Shell
+   ========================================================================== */
+
+/*
+ * The design-system table remains responsible for:
+ *
+ * - table colors
+ * - borders
+ * - cell spacing
+ * - striped rows
+ * - responsive overflow
+ *
+ * This component only establishes the proportions needed by editorial
+ * two-column comparison tables.
+ */
+
+.content-page__table-shell {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Informational Table
+   ========================================================================== */
+
+/*
+ * Apply this class alongside the design-system table classes:
+ *
+ * <table
+ *   class="
+ *     table
+ *     table-bordered
+ *     table-striped
+ *     table-comfortable
+ *     content-page__table
+ *   "
+ * >
+ */
+
+.content-page__table {
+  min-inline-size: var(--content-page-table-min-width, 42rem);
+}
+
+/* ==========================================================================
+   Informational Table Header
+   ========================================================================== */
+
+.content-page__table thead th {
+  vertical-align: middle;
+}
+
+/* ==========================================================================
+   Informational Table Label Column
+   ========================================================================== */
+
+.content-page__table tbody th[scope="row"] {
+  inline-size: var(--content-page-table-label-width, 32%);
+  min-inline-size: var(--content-page-table-label-min-width, 12rem);
+
+  color: var(--color-heading);
+
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  text-align: start;
+  vertical-align: top;
+}
+
+/* ==========================================================================
+   Informational Table Content
+   ========================================================================== */
+
+.content-page__table tbody td {
+  line-height: var(--line-height-relaxed);
+  vertical-align: top;
+}
+
+.content-page__table tbody td > :first-child {
+  margin-block-start: 0;
+}
+
+.content-page__table tbody td > :last-child {
+  margin-block-end: 0;
+}
+
+/* ==========================================================================
+   Informational Table Lists
+   ========================================================================== */
+
+.content-page__table .icon-list {
+  margin: 0;
+}
+
+.content-page__table .icon-list li {
+  line-height: var(--line-height-relaxed);
+}
+
+.content-page__table .icon-list li.has-icon::before {
+  margin-block-start: 0.3em;
+
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Informational Table Stacked Content
+   ========================================================================== */
+
+.content-page__table .stack {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Wide Informational Table
+   ========================================================================== */
+
+/*
+ * Wide matrix tables contain several related value columns and grouped
+ * headers. They retain natural text wrapping while the responsive wrapper
+ * owns horizontal overflow.
+ */
+
+.content-page__table--wide {
+  --content-page-table-min-width: 68rem;
+
+  table-layout: auto;
+}
+
+/* ==========================================================================
+   Wide Table Header
+   ========================================================================== */
+
+.content-page__table--wide thead th {
+  min-inline-size: 7rem;
+
+  text-align: center;
+}
+
+.content-page__table--wide thead th:first-child,
+.content-page__table--wide thead th:nth-child(2) {
+  min-inline-size: 11rem;
+
+  text-align: start;
+}
+
+/* ==========================================================================
+   Wide Table Row Headers
+   ========================================================================== */
+
+/*
+ * Reset the proportional label width used by standard two-column content
+ * tables. Matrix tables must size both row-header columns from their content.
+ */
+
+.content-page__table--wide tbody th[scope="row"],
+.content-page__table--wide tbody th[scope="rowgroup"] {
+  inline-size: auto;
+  min-inline-size: 10rem;
+
+  text-align: start;
+  vertical-align: top;
+}
+
+.content-page__table--wide tbody th[scope="rowgroup"] {
+  background: var(--color-surface-alt);
+  color: var(--color-heading);
+
+  font-weight: ds.font-weight("bold");
+}
+
+/* ==========================================================================
+   Wide Table Values
+   ========================================================================== */
+
+.content-page__table--wide td[data-numeric] {
+  white-space: nowrap;
+}
+
+.content-page__table--wide abbr[title] {
+  text-decoration-style: dotted;
+  text-underline-offset: 0.15em;
+}
+
+/* ==========================================================================
+   Wide Table Group Boundaries
+   ========================================================================== */
+
+/*
+ * Each semantic tbody represents one liquidity classification. A stronger
+ * boundary makes the groups easy to scan without introducing page-specific
+ * group classes.
+ */
+
+.content-page__table--wide tbody + tbody {
+  border-block-start: 2px solid var(--color-border-strong);
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .content-page {
+    --content-page-title-size: var(--text-xl);
+    --content-page-section-title-size: var(--text-lg);
+  }
+
+  .content-page__support {
+    max-inline-size: 40rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .content-page {
+    --content-page-padding-block: 1rem;
+    --content-page-padding-inline: 1rem;
+
+    --content-page-table-min-width: 38rem;
+    --content-page-table-label-min-width: 10rem;
+  }
+
+  .content-page__table--wide {
+    --content-page-table-min-width: 62rem;
+  }
+
+  /*
+   * Component-level values keep standalone elements responsive even when a
+   * content-page ancestor is accidentally omitted.
+   */
+
+  .content-page__panel {
+    --content-page-padding-block: 1rem;
+    --content-page-padding-inline: 1rem;
+  }
+
+  .content-page__table:not(.content-page__table--wide) {
+    --content-page-table-min-width: 38rem;
+    --content-page-table-label-min-width: 10rem;
+  }
+
+  .content-page__panel,
+  .content-page__support {
+    border-radius: var(--radius-md);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .content-page__panel,
+  .content-page__support {
+    border-width: 2px;
+    border-color: var(--color-border-strong);
+
+    box-shadow: none;
+  }
+
+  .content-page__table thead th,
+  .content-page__table tbody th,
+  .content-page__table tbody td {
+    border-color: var(--color-border-strong);
+  }
+
+  .content-page__table--wide tbody + tbody {
+    border-block-start-color: var(--color-border-strong);
+  }
+
+  .content-page__support-title.has-icon::before,
+  .content-page .icon-list li.has-icon::before {
+    color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .content-page__panel,
+  .content-page__support {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+  }
+
+  .content-page__support-title.has-icon::before,
+  .content-page .icon-list li.has-icon::before {
+    background-color: currentColor;
+  }
+}

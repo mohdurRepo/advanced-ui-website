@@ -1,106 +1,69 @@
-@use "../abstracts" as *;
+@use "../../design-system/abstracts" as ds;
 
 /* ==========================================================================
    Price State Utilities
    ========================================================================== */
 
 /*
- * Global semantic value states.
+ * Semantic financial-value states.
  *
- * These utilities control only:
- * - semantic foreground color
- * - numeric alignment
- *
- * Components continue to own their layout, icon size, spacing, and typography.
+ * These utilities own only foreground color and numeric presentation.
+ * Components remain responsible for layout, spacing, icons, and typography.
+ * The surrounding theme or contextual surface supplies the market tokens.
  */
 
-.price-up {
-  --price-state-color: var(--color-success);
+.price-up,
+.price-down,
+.price-neutral {
+  color: var(--price-state-color);
 
-  color: var(--price-state-color) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.price-up {
+  --price-state-color: var(--color-market-positive);
 }
 
 .price-down {
-  --price-state-color: var(--color-danger);
-
-  color: var(--price-state-color) !important;
+  --price-state-color: var(--color-market-negative);
 }
 
 .price-neutral {
-  --price-state-color: var(--color-text-muted);
-
-  color: var(--price-state-color);
+  --price-state-color: var(--color-market-neutral);
 }
 
 /* ==========================================================================
-   Hero Surface
+   Icons
    ========================================================================== */
 
-/*
- * The standard semantic colors are designed for regular page surfaces.
- * Brighter values are required on the fixed blue hero background.
- */
-
-.hero-section {
-  .price-up {
-    --price-state-color: #59ff9e;
-  }
-
-  .price-down {
-    --price-state-color: #ff7085;
-  }
-
-  .price-neutral {
-    --price-state-color: rgb(255 255 255 / 0.74);
-  }
-}
-
-/* ==========================================================================
-   Dark Theme
-   ========================================================================== */
-
-html[data-theme="dark"] {
-  .price-up {
-    --price-state-color: #4ade80;
-  }
-
-  .price-down {
-    --price-state-color: #fb7185;
-  }
-
-  .price-neutral {
-    --price-state-color: var(--color-text-muted);
-  }
-
-  .hero-section {
-    .price-up {
-      --price-state-color: #59ff9e;
-    }
-
-    .price-down {
-      --price-state-color: #ff8295;
-    }
-
-    .price-neutral {
-      --price-state-color: rgb(255 255 255 / 0.78);
-    }
-  }
+.price-up .has-icon,
+.price-up .svg-icon,
+.price-down .has-icon,
+.price-down .svg-icon,
+.price-neutral .has-icon,
+.price-neutral .svg-icon {
+  color: currentColor;
 }
 
 /* ==========================================================================
    High Contrast
    ========================================================================== */
 
+/*
+ * High-contrast mode does not rely on color alone. Positive and negative
+ * values use distinct underline patterns; neutral values remain undecorated.
+ */
+
 html[data-contrast="high"] {
   .price-up,
   .price-down,
   .price-neutral {
-    font-weight: font-weight("bold");
+    --price-state-color: currentColor;
+
+    font-weight: ds.font-weight("bold");
   }
 
   .price-up {
-    --price-state-color: currentColor;
-
     text-decoration-line: underline;
     text-decoration-style: double;
     text-decoration-thickness: 2px;
@@ -108,8 +71,6 @@ html[data-contrast="high"] {
   }
 
   .price-down {
-    --price-state-color: currentColor;
-
     text-decoration-line: underline;
     text-decoration-style: solid;
     text-decoration-thickness: 2px;
@@ -117,6 +78,6 @@ html[data-contrast="high"] {
   }
 
   .price-neutral {
-    --price-state-color: currentColor;
+    text-decoration: none;
   }
 }

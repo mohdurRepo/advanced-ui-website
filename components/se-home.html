@@ -1705,12 +1705,11 @@
                     <div class="market-details-panel__main" data-chart-viewport>
                       <div
                         id="tasi-chart"
-                        class="market-chart market-chart--overview"
+                        class="market-chart market-chart--overview market-chart--dark-surface"
                         data-tasi-live-chart
                         data-chart-context="overview"
                         data-chart-state="loading"
                         data-chart-id="tasi"
-                        role="img"
                         aria-label="TASI market performance chart"
                       ></div>
                     </div>
@@ -9155,68 +9154,130 @@
       const CHART_SELECTOR = "#tasi-chart";
       const PANEL_SELECTOR = "#market-panel-tasi";
 
-      const TEST_LIVE_INTERVAL = 5_000;
+      const LIVE_INTERVAL = 5_000;
+      const LIVE_WINDOW_DURATION = 10 * 60 * 1_000;
+      const MAX_POINTS = 240;
 
-      const tasiOverviewData = {
+      const MARKET = Object.freeze({
         symbol: "TASI",
-
         name: "Tadawul All Share Index",
-
         currency: "SAR",
 
         /*
-         * Used as the first point’s comparison baseline.
+         * This is the semantic comparison baseline.
+         * The chart remains green above this value and red below it.
          */
-
-        previousClose: 12_398.75,
-
-        trend: [
-          [1767258000000, 12_402.18],
-          [1767258900000, 12_408.64],
-          [1767259800000, 12_404.25],
-          [1767260700000, 12_415.72],
-          [1767261600000, 12_411.38],
-          [1767262500000, 12_420.46],
-          [1767263400000, 12_417.91],
-          [1767264300000, 12_424.35],
-          [1767265200000, 12_427.84],
-          [1767266100000, 12_430.18],
-        ],
-      };
+        previousClose: 10_838.1,
+      });
 
       /* ======================================================================
-       Dummy Live Feed
+       Riyadh Trading Session
        ====================================================================== */
 
+      function getRiyadhDateParts(date = new Date()) {
+        const formatter = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Asia/Riyadh",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
+
+        const parts = Object.create(null);
+
+        for (const part of formatter.formatToParts(date)) {
+          if (part.type !== "literal") {
+            parts[part.type] = part.value;
+          }
+        }
+
+        return {
+          year: Number(parts.year),
+          month: Number(parts.month),
+          day: Number(parts.day),
+        };
+      }
+
+      function createRiyadhTimestamp(
+        year,
+        month,
+        day,
+        hour = 0,
+        minute = 0,
+        second = 0,
+      ) {
+        /*
+         * Riyadh is UTC+03:00 and does not currently use daylight saving time.
+         */
+        return (
+          Date.UTC(year, month - 1, day, hour, minute, second, 0) -
+          3 * 60 * 60 * 1_000
+        );
+      }
+
+      function getSessionStartTimestamp() {
+        const { year, month, day } = getRiyadhDateParts();
+
+        return createRiyadhTimestamp(year, month, day, 10, 0, 0);
+      }
+
+      /* ======================================================================
+       Deterministic Dummy Feed
+       ====================================================================== */
+
+      function createSeededRandom(seed) {
+        let state = seed >>> 0;
+
+        return function random() {
+          state += 0x6d2b79f5;
+
+          let value = state;
+
+          value = Math.imul(value ^ (value >>> 15), value | 1);
+          value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+
+          return ((value ^ (value >>> 14)) >>> 0) / 4_294_967_296;
+        };
+      }
+
+      const random = createSeededRandom(8_080_826);
+
       const liveState = {
-        timestamp: tasiOverviewData.trend.at(-1)[0],
-
-        price: tasiOverviewData.trend.at(-1)[1],
-
+        timestamp: getSessionStartTimestamp() - LIVE_INTERVAL,
+        price: MARKET.previousClose,
         sequence: 0,
       };
-
-      const liveMovements = [
-        1.25, 0.64, -0.82, 1.48, -0.36, 0.91, -1.14, 1.67, 0.42, -0.73,
-      ];
 
       function roundPrice(value) {
         return Math.round(value * 100) / 100;
       }
 
       function createDummyLivePoint() {
-        const movement =
-          liveMovements[liveState.sequence % liveMovements.length];
+        const sequence = liveState.sequence;
 
-        const timestamp = liveState.timestamp + TEST_LIVE_INTERVAL;
+        /*
+         * The target deliberately moves above and below previousClose.
+         * This makes it possible to verify both green and red states.
+         */
+        const targetOffset =
+          Math.sin(sequence * 0.18) * 7.5 + Math.sin(sequence * 0.047) * 2.75;
 
-        const price = roundPrice(liveState.price + movement);
+        const targetPrice = MARKET.previousClose + targetOffset;
 
-        liveState.timestamp = timestamp;
-        liveState.price = price;
+        const meanReversion = (targetPrice - liveState.price) * 0.34;
+
+        const marketNoise = (random() - 0.5) * 1.35;
+
+        const nextTimestamp = liveState.timestamp + LIVE_INTERVAL;
+
+        const nextPrice = roundPrice(
+          Math.max(0.01, liveState.price + meanReversion + marketNoise),
+        );
+
+        liveState.timestamp = nextTimestamp;
+        liveState.price = nextPrice;
         liveState.sequence += 1;
 
-        return [timestamp, price];
+        return [nextTimestamp, nextPrice];
       }
 
       /* ======================================================================
@@ -9225,7 +9286,6 @@
 
       function renderChartError(chartElement, panel, message) {
         chartElement.dataset.chartState = "error";
-
         chartElement.replaceChildren();
 
         const wrapper = document.createElement("div");
@@ -9238,7 +9298,6 @@
         const text = document.createElement("p");
 
         text.className = "market-chart__message-text";
-
         text.textContent = message;
 
         wrapper.append(text);
@@ -9248,22 +9307,35 @@
       }
 
       /* ======================================================================
+       Range Data
+       ====================================================================== */
+
+      function createIntradayRange() {
+        return {
+          /*
+           * This value must remain available even while every series is empty.
+           */
+          comparisonValue: MARKET.previousClose,
+
+          trend: [],
+          line: [],
+          candlestick: [],
+        };
+      }
+
+      /* ======================================================================
        Chart Options
        ====================================================================== */
 
-      function createOverviewOptions(chartElement, panel) {
-        const trend = tasiOverviewData.trend.map((point) => [...point]);
-
+      function createOverviewOptions(panel) {
         return {
           context: "overview",
 
-          symbol: tasiOverviewData.symbol,
+          symbol: MARKET.symbol,
+          name: MARKET.name,
+          currency: MARKET.currency,
 
-          name: tasiOverviewData.name,
-
-          currency: tasiOverviewData.currency,
-
-          previousClose: tasiOverviewData.previousClose,
+          previousClose: MARKET.previousClose,
 
           mode: "trend",
           range: "1D",
@@ -9273,19 +9345,24 @@
           timeZone: "Asia/Riyadh",
 
           decimals: 2,
-          maxPoints: 120,
+          maxPoints: MAX_POINTS,
 
           followLive: true,
-
-          /*
-           * Keep approximately ten minutes visible during this accelerated
-           * five-second test.
-           */
-
-          liveWindowDuration: 10 * 60 * 1_000,
+          liveWindowDuration: LIVE_WINDOW_DURATION,
 
           xAxisTitle: "Time",
           yAxisTitle: "Index Value",
+
+          capabilities: {
+            ranges: false,
+            modes: false,
+            compare: false,
+            historical: false,
+            live: true,
+            navigator: true,
+            export: true,
+            fullscreen: true,
+          },
 
           axis: {
             x: {
@@ -9330,6 +9407,7 @@
             "1D": {
               hour: "2-digit",
               minute: "2-digit",
+              second: "2-digit",
               hourCycle: "h23",
             },
           },
@@ -9349,13 +9427,7 @@
           },
 
           ranges: {
-            "1D": {
-              trend,
-
-              line: trend.map((point) => [...point]),
-
-              candlestick: [],
-            },
+            "1D": createIntradayRange(),
           },
 
           controls: {
@@ -9382,6 +9454,10 @@
 
             dataGrouping: false,
 
+            /*
+             * Navigator colors and opacity are intentionally absent.
+             * market-chart-theme.js owns those visual values.
+             */
             formats: {
               "1D": {
                 hour: "2-digit",
@@ -9398,15 +9474,20 @@
           live: {
             enabled: true,
 
-            interval: TEST_LIVE_INTERVAL,
+            interval: LIVE_INTERVAL,
 
             alignToInterval: false,
-            immediate: false,
+
+            /*
+             * Add the first simulated point immediately. The following points
+             * are added every five seconds.
+             */
+            immediate: true,
 
             retry: true,
             autostart: true,
 
-            async fetchPoint({ signal }) {
+            async fetchPoint({ signal } = {}) {
               if (signal?.aborted) {
                 throw (
                   signal.reason ||
@@ -9424,35 +9505,41 @@
           accessibilityDescription:
             "Live intraday Tadawul All Share Index performance.",
 
-          emptyMessage:
-            "TASI market performance data is currently unavailable.",
+          emptyMessage: "Waiting for live TASI market performance data.",
 
           errorMessage: "TASI market performance could not be loaded.",
         };
       }
 
       /* ======================================================================
-       Initialization
+       Controller State
        ====================================================================== */
 
       let initializationStarted = false;
+      let chartController = null;
+
+      /* ======================================================================
+       Initialization
+       ====================================================================== */
 
       function initializeTasiOverviewChart(chartAPI = window.SEMarketCharts) {
-        if (initializationStarted) {
-          return;
+        if (initializationStarted || chartController) {
+          return chartController;
         }
 
         const chartElement = document.querySelector(CHART_SELECTOR);
 
         if (!chartElement) {
-          return;
+          return null;
         }
 
         initializationStarted = true;
 
         const panel = chartElement.closest(PANEL_SELECTOR);
 
-        if (!chartAPI) {
+        panel?.setAttribute("aria-busy", "true");
+
+        if (!chartAPI || typeof chartAPI.create !== "function") {
           initializationStarted = false;
 
           renderChartError(
@@ -9465,16 +9552,16 @@
             "TASI chart could not initialize because SEMarketCharts is unavailable.",
           );
 
-          return;
+          return null;
         }
 
         try {
-          const controller = chartAPI.create(
+          chartController = chartAPI.create(
             chartElement,
-            createOverviewOptions(chartElement, panel),
+            createOverviewOptions(panel),
           );
 
-          if (!controller) {
+          if (!chartController) {
             throw new Error(
               "The TASI Market Chart controller was not created.",
             );
@@ -9484,9 +9571,12 @@
 
           panel?.setAttribute("aria-busy", "false");
 
-          panel.marketChartController = controller;
+          panel.marketChartController = chartController;
+
+          return chartController;
         } catch (error) {
           initializationStarted = false;
+          chartController = null;
 
           console.error("TASI Overview chart initialization failed.", error);
 
@@ -9495,7 +9585,34 @@
             panel,
             "TASI market performance could not be loaded.",
           );
+
+          return null;
         }
+      }
+
+      /* ======================================================================
+       Destruction
+       ====================================================================== */
+
+      function destroyTasiOverviewChart() {
+        if (chartController && typeof chartController.destroy === "function") {
+          try {
+            chartController.destroy();
+          } catch (error) {
+            console.error("TASI Overview chart destruction failed.", error);
+          }
+        }
+
+        const chartElement = document.querySelector(CHART_SELECTOR);
+
+        const panel = chartElement?.closest(PANEL_SELECTOR);
+
+        if (panel?.marketChartController === chartController) {
+          delete panel.marketChartController;
+        }
+
+        chartController = null;
+        initializationStarted = false;
       }
 
       /* ======================================================================
@@ -9517,6 +9634,10 @@
           },
         );
       }
+
+      window.addEventListener("pagehide", destroyTasiOverviewChart, {
+        once: true,
+      });
     })();
   </script>
   <!--

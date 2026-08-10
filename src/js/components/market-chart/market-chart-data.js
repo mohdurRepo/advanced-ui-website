@@ -4,11 +4,37 @@
 
 const CHART_MODES = new Set(["trend", "line", "candlestick"]);
 
-const DEFAULT_MAX_POINTS = 500;
+const DEFAULT_MODE = "trend";
+
+const DEFAULT_RANGE = "1D";
+
+const DEFAULT_INTRADAY_RANGE = "1D";
+
+const DEFAULT_MAX_POINTS = 1_000;
+
+const DEFAULT_CANDLE_BUCKET_SIZE = 60_000;
+
+const DEFAULT_CAPABILITIES = Object.freeze({
+  intraday: true,
+  historical: true,
+  live: false,
+  navigator: true,
+
+  intradayRange: DEFAULT_INTRADAY_RANGE,
+});
 
 /* ==========================================================================
-   Numeric Helpers
+   Generic Helpers
    ========================================================================== */
+
+function isPlainObject(value) {
+  return Boolean(
+    value &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    !(value instanceof Date),
+  );
+}
 
 function toFiniteNumber(value) {
   if (value === null || value === undefined || value === "") {
@@ -20,11 +46,125 @@ function toFiniteNumber(value) {
   return Number.isFinite(number) ? number : null;
 }
 
+function toPositiveInteger(value, fallback) {
+  const number = Number.parseInt(value, 10);
+
+  return Number.isFinite(number) && number > 0 ? number : fallback;
+}
+
+function createEmptyRangeRecord() {
+  return {
+    comparisonValue: null,
+
+    trend: [],
+    line: [],
+    candlestick: [],
+  };
+}
+
+function clonePoint(point) {
+  return Array.isArray(point) ? [...point] : point;
+}
+
+function clonePoints(points) {
+  return Array.isArray(points) ? points.map(clonePoint) : [];
+}
+
 /* ==========================================================================
-   Timestamp Helpers
+   Mode and Range
    ========================================================================== */
 
-function normalizeTimestamp(value) {
+export function normalizeMarketChartMode(mode, fallback = DEFAULT_MODE) {
+  const normalizedMode = String(mode ?? "")
+    .trim()
+    .toLowerCase();
+
+  if (CHART_MODES.has(normalizedMode)) {
+    return normalizedMode;
+  }
+
+  const normalizedFallback = String(fallback ?? "")
+    .trim()
+    .toLowerCase();
+
+  return CHART_MODES.has(normalizedFallback)
+    ? normalizedFallback
+    : DEFAULT_MODE;
+}
+
+export function normalizeMarketChartRange(range, fallback = DEFAULT_RANGE) {
+  if (range === null || range === undefined || range === "") {
+    return String(fallback || DEFAULT_RANGE)
+      .trim()
+      .toUpperCase();
+  }
+
+  const normalizedRange = String(range).trim().toUpperCase();
+
+  return (
+    normalizedRange ||
+    String(fallback || DEFAULT_RANGE)
+      .trim()
+      .toUpperCase()
+  );
+}
+
+/* ==========================================================================
+   Capabilities
+   ========================================================================== */
+
+export function normalizeMarketChartCapabilities(capabilities = {}) {
+  const configuration = isPlainObject(capabilities) ? capabilities : {};
+
+  const intradayRange = normalizeMarketChartRange(
+    configuration.intradayRange,
+    DEFAULT_INTRADAY_RANGE,
+  );
+
+  return {
+    intraday: configuration.intraday !== false,
+
+    historical: configuration.historical !== false,
+
+    live: configuration.live === true,
+
+    navigator: configuration.navigator !== false,
+
+    intradayRange,
+  };
+}
+
+export function isMarketChartIntradayRange(
+  range,
+  capabilities = DEFAULT_CAPABILITIES,
+) {
+  const normalizedCapabilities = normalizeMarketChartCapabilities(capabilities);
+
+  return (
+    normalizeMarketChartRange(range) === normalizedCapabilities.intradayRange
+  );
+}
+
+export function isMarketChartRangeSupported(
+  range,
+  capabilities = DEFAULT_CAPABILITIES,
+) {
+  const normalizedRange = normalizeMarketChartRange(range);
+
+  const normalizedCapabilities = normalizeMarketChartCapabilities(capabilities);
+
+  if (normalizedRange === normalizedCapabilities.intradayRange) {
+    return normalizedCapabilities.intraday;
+  }
+
+  return normalizedCapabilities.historical;
+}
+
+/* ==========================================================================
+   Timestamp
+   ========================================================================== */
+
+export function normalizeMarketChartTimestamp(value) {
   if (value === null || value === undefined || value === "") {
     return null;
   }
@@ -35,14 +175,19 @@ function normalizeTimestamp(value) {
     return Number.isFinite(timestamp) ? timestamp : null;
   }
 
-  const numericValue = Number(value);
+  const numericValue =
+    typeof value === "string" && value.trim() === ""
+      ? Number.NaN
+      : Number(value);
 
   if (Number.isFinite(numericValue)) {
     /*
-     * Values below one trillion are normally Unix seconds.
+     * Values below 100 billion are treated as
+     * Unix seconds. Larger values are treated
+     * as Unix milliseconds.
      */
-    return numericValue < 1_000_000_000_000
-      ? numericValue * 1000
+    return Math.abs(numericValue) < 100_000_000_000
+      ? numericValue * 1_000
       : numericValue;
   }
 
@@ -57,7 +202,8 @@ function normalizeTimestamp(value) {
 
 function normalizeTrendPoint(point) {
   if (Array.isArray(point)) {
-    const timestamp = normalizeTimestamp(point[0]);
+    const timestamp = normalizeMarketChartTimestamp(point[0]);
+
     const value = toFiniteNumber(point[1]);
 
     if (timestamp === null || value === null) {
@@ -67,11 +213,11 @@ function normalizeTrendPoint(point) {
     return [timestamp, value];
   }
 
-  if (!point || typeof point !== "object") {
+  if (!isPlainObject(point)) {
     return null;
   }
 
-  const timestamp = normalizeTimestamp(
+  const timestamp = normalizeMarketChartTimestamp(
     point.x ??
       point.timestamp ??
       point.time ??
@@ -86,6 +232,7 @@ function normalizeTrendPoint(point) {
       point.price ??
       point.indexPrice ??
       point.close ??
+      point.closePrice ??
       point.lastPrice,
   );
 
@@ -109,7 +256,7 @@ function normalizeCandlestickPoint(point) {
 
   if (Array.isArray(point)) {
     [timestamp, open, high, low, close] = point;
-  } else if (point && typeof point === "object") {
+  } else if (isPlainObject(point)) {
     timestamp =
       point.x ??
       point.timestamp ??
@@ -130,7 +277,7 @@ function normalizeCandlestickPoint(point) {
     return null;
   }
 
-  const normalizedTimestamp = normalizeTimestamp(timestamp);
+  const normalizedTimestamp = normalizeMarketChartTimestamp(timestamp);
 
   const normalizedOpen = toFiniteNumber(open);
 
@@ -150,6 +297,9 @@ function normalizeCandlestickPoint(point) {
     return null;
   }
 
+  /*
+   * Reject impossible OHLC geometry.
+   */
   if (
     normalizedHigh < normalizedLow ||
     normalizedHigh < normalizedOpen ||
@@ -177,6 +327,10 @@ function sortAndDeduplicate(points) {
   const pointsByTimestamp = new Map();
 
   points.forEach((point) => {
+    /*
+     * The final point for a duplicate timestamp
+     * wins, matching live replacement behavior.
+     */
     pointsByTimestamp.set(point[0], point);
   });
 
@@ -185,16 +339,38 @@ function sortAndDeduplicate(points) {
   );
 }
 
+function findTimestampIndex(points, timestamp) {
+  let low = 0;
+
+  let high = points.length;
+
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+
+    if (points[middle][0] < timestamp) {
+      low = middle + 1;
+    } else {
+      high = middle;
+    }
+  }
+
+  return {
+    index: low,
+
+    found: low < points.length && points[low][0] === timestamp,
+  };
+}
+
 /* ==========================================================================
    Data Normalization
    ========================================================================== */
 
-export function normalizeMarketChartData(data, mode = "trend") {
+export function normalizeMarketChartData(data, mode = DEFAULT_MODE) {
   if (!Array.isArray(data)) {
     return [];
   }
 
-  const normalizedMode = CHART_MODES.has(mode) ? mode : "trend";
+  const normalizedMode = normalizeMarketChartMode(mode);
 
   const normalizePoint =
     normalizedMode === "candlestick"
@@ -215,32 +391,52 @@ function normalizeRangeRecord(record) {
     const trend = normalizeMarketChartData(record, "trend");
 
     return {
+      comparisonValue: null,
+
       trend,
-      line: [...trend],
+
+      line: clonePoints(trend),
+
       candlestick: [],
     };
   }
 
-  if (!record || typeof record !== "object") {
+  if (!isPlainObject(record)) {
     return null;
   }
 
+  const sharedData = record.data ?? [];
+
+  /*
+   * `comparisonValue` represents the official
+   * value immediately before the range.
+   * `previousClose` remains a supported alias.
+   */
+  const comparisonValue = toFiniteNumber(
+    record.comparisonValue ?? record.previousClose,
+  );
+
   const trend = normalizeMarketChartData(
-    record.trend ?? record.line ?? record.data ?? [],
+    record.trend ?? record.line ?? sharedData,
+
     "trend",
   );
 
   const line = normalizeMarketChartData(
-    record.line ?? record.trend ?? record.data ?? [],
+    record.line ?? record.trend ?? sharedData,
+
     "line",
   );
 
   const candlestick = normalizeMarketChartData(
     record.candlestick ?? record.candles ?? record.ohlc ?? [],
+
     "candlestick",
   );
 
   return {
+    comparisonValue,
+
     trend,
     line,
     candlestick,
@@ -250,75 +446,494 @@ function normalizeRangeRecord(record) {
 /* ==========================================================================
    Range Normalization
    ========================================================================== */
-
-export function normalizeMarketChartRanges(ranges) {
-  if (!ranges || typeof ranges !== "object") {
+export function normalizeMarketChartRanges(ranges, options = {}) {
+  if (!isPlainObject(ranges)) {
     return {};
   }
 
+  const capabilities = normalizeMarketChartCapabilities(options.capabilities);
+
   return Object.entries(ranges).reduce((normalizedRanges, [range, record]) => {
+    const normalizedRange = normalizeMarketChartRange(range);
+
+    if (!isMarketChartRangeSupported(normalizedRange, capabilities)) {
+      return normalizedRanges;
+    }
+
     const normalizedRecord = normalizeRangeRecord(record);
 
     if (!normalizedRecord) {
       return normalizedRanges;
     }
 
-    normalizedRanges[String(range)] = normalizedRecord;
+    normalizedRanges[normalizedRange] = normalizedRecord;
 
     return normalizedRanges;
   }, {});
 }
 
 /* ==========================================================================
+   Available Ranges
+   ========================================================================== */
+
+export function getAvailableMarketChartRanges(
+  ranges,
+  capabilities = DEFAULT_CAPABILITIES,
+) {
+  if (!isPlainObject(ranges)) {
+    return [];
+  }
+
+  return Object.keys(ranges).reduce((availableRanges, range) => {
+    const normalizedRange = normalizeMarketChartRange(range);
+
+    if (
+      !availableRanges.includes(normalizedRange) &&
+      isMarketChartRangeSupported(normalizedRange, capabilities)
+    ) {
+      availableRanges.push(normalizedRange);
+    }
+
+    return availableRanges;
+  }, []);
+}
+
+export function getFirstAvailableMarketChartRange(
+  ranges,
+  preferredRange = DEFAULT_RANGE,
+  capabilities = DEFAULT_CAPABILITIES,
+) {
+  const availableRanges = getAvailableMarketChartRanges(ranges, capabilities);
+
+  const normalizedPreferredRange = normalizeMarketChartRange(preferredRange);
+
+  if (availableRanges.includes(normalizedPreferredRange)) {
+    return normalizedPreferredRange;
+  }
+
+  return availableRanges[0] || null;
+}
+
+/* ==========================================================================
+   Range Data
+   ========================================================================== */
+
+export function getMarketChartRangeData(ranges, range, mode = DEFAULT_MODE) {
+  if (!isPlainObject(ranges)) {
+    return [];
+  }
+
+  const normalizedRange = normalizeMarketChartRange(range);
+
+  const normalizedMode = normalizeMarketChartMode(mode);
+
+  const record = ranges[normalizedRange];
+
+  if (!record) {
+    return [];
+  }
+
+  const directData = normalizeMarketChartData(
+    record[normalizedMode],
+    normalizedMode,
+  );
+
+  if (directData.length) {
+    return directData;
+  }
+
+  /*
+   * Trend and line share the same point
+   * representation and may safely fall back
+   * to each other. Candlesticks never fall
+   * back to trend data.
+   */
+  if (normalizedMode === "trend") {
+    return normalizeMarketChartData(record.line, "trend");
+  }
+
+  if (normalizedMode === "line") {
+    return normalizeMarketChartData(record.trend, "line");
+  }
+
+  return [];
+}
+
+/* ==========================================================================
+   Official Comparison Value
+   ========================================================================== */
+
+/**
+ * Returns the official value immediately before
+ * the named range.
+ *
+ * This value is used for tooltip amount and
+ * percentage calculations. It is intentionally
+ * separate from visible series direction.
+ */
+export function getMarketChartRangeComparisonValue(
+  ranges,
+  range,
+  fallback = null,
+) {
+  const fallbackValue = toFiniteNumber(fallback);
+
+  if (!isPlainObject(ranges)) {
+    return fallbackValue;
+  }
+
+  const normalizedRange = normalizeMarketChartRange(range);
+
+  const comparisonValue = toFiniteNumber(
+    ranges[normalizedRange]?.comparisonValue,
+  );
+
+  return comparisonValue ?? fallbackValue;
+}
+
+/* ==========================================================================
    Point Value
    ========================================================================== */
 
-function getPointValue(point, mode) {
+export function getMarketChartPointValue(point, mode = DEFAULT_MODE) {
   if (!Array.isArray(point)) {
     return null;
   }
 
-  if (mode === "candlestick") {
-    return toFiniteNumber(point[4]);
-  }
+  const normalizedMode = normalizeMarketChartMode(mode);
 
-  return toFiniteNumber(point[1]);
+  return normalizedMode === "candlestick"
+    ? toFiniteNumber(point[4])
+    : toFiniteNumber(point[1]);
 }
 
 /* ==========================================================================
    Direction
    ========================================================================== */
 
-export function getMarketChartDirection(data, mode = "trend") {
-  const normalizedData = normalizeMarketChartData(data, mode);
+/**
+ * Resolves the visible series direction.
+ *
+ * Default behavior compares the final visible
+ * value with the first visible value:
+ *
+ * - final > first: up
+ * - final < first: down
+ * - final === first: neutral
+ *
+ * The official comparison value remains
+ * available for tooltip change calculations.
+ *
+ * Set `baseline: "comparison"` when an
+ * integration explicitly wants the entire
+ * series colored against previous close.
+ */
+export function getMarketChartDirection(
+  data,
+  mode = DEFAULT_MODE,
+  comparisonValue = null,
+  options = {},
+) {
+  const normalizedMode = normalizeMarketChartMode(mode);
+
+  const normalizedData = normalizeMarketChartData(data, normalizedMode);
 
   if (normalizedData.length < 2) {
     return "neutral";
   }
 
-  const previousValue = getPointValue(
-    normalizedData[normalizedData.length - 2],
-    mode,
+  const firstValue = getMarketChartPointValue(
+    normalizedData[0],
+    normalizedMode,
   );
 
-  const currentValue = getPointValue(
+  const endValue = getMarketChartPointValue(
     normalizedData[normalizedData.length - 1],
-    mode,
+    normalizedMode,
   );
 
-  if (previousValue === null || currentValue === null) {
+  if (firstValue === null || endValue === null) {
     return "neutral";
   }
 
-  if (currentValue > previousValue) {
+  const useOfficialComparison = options?.baseline === "comparison";
+
+  const officialComparison = toFiniteNumber(comparisonValue);
+
+  const baseline =
+    useOfficialComparison && officialComparison !== null
+      ? officialComparison
+      : firstValue;
+
+  if (endValue > baseline) {
     return "up";
   }
 
-  if (currentValue < previousValue) {
+  if (endValue < baseline) {
     return "down";
   }
 
   return "neutral";
+}
+
+/* ==========================================================================
+   Maximum Points
+   ========================================================================== */
+
+function limitMarketChartPoints(data, maxPoints) {
+  const safeMaxPoints = toPositiveInteger(maxPoints, DEFAULT_MAX_POINTS);
+
+  if (data.length <= safeMaxPoints) {
+    return {
+      data,
+      removed: 0,
+    };
+  }
+
+  const removed = data.length - safeMaxPoints;
+
+  return {
+    data: data.slice(removed),
+
+    removed,
+  };
+}
+
+/* ==========================================================================
+   Trend Live Merge
+   ========================================================================== */
+function mergeTrendLivePoint(currentData, incomingPoint, options) {
+  const data = normalizeMarketChartData(currentData, options.mode);
+
+  const normalizedIncoming = normalizeMarketChartData(
+    [incomingPoint],
+    options.mode,
+  );
+
+  if (!normalizedIncoming.length) {
+    return null;
+  }
+
+  const point = normalizedIncoming[0];
+
+  const timestamp = point[0];
+
+  const location = findTimestampIndex(data, timestamp);
+
+  const replaced = location.found;
+
+  const appended = !replaced && location.index === data.length;
+
+  const inserted = !replaced && !appended;
+
+  if (replaced) {
+    data[location.index] = point;
+  } else {
+    data.splice(location.index, 0, point);
+  }
+
+  const limited = limitMarketChartPoints(data, options.maxPoints);
+
+  const retainedIndex = location.index - limited.removed;
+
+  const index =
+    retainedIndex >= 0 &&
+    retainedIndex < limited.data.length &&
+    limited.data[retainedIndex][0] === timestamp
+      ? retainedIndex
+      : -1;
+
+  return {
+    data: limited.data,
+
+    point,
+
+    index,
+
+    replaced,
+    appended,
+    inserted,
+
+    shifted: appended && limited.removed > 0,
+
+    bucketUpdated: false,
+
+    bucketAppended: false,
+  };
+}
+
+/* ==========================================================================
+   Live Candlestick Input
+   ========================================================================== */
+
+function normalizeLiveCandlestickInput(incomingPoint) {
+  const candle = normalizeCandlestickPoint(incomingPoint);
+
+  if (candle) {
+    return {
+      type: "candle",
+
+      timestamp: candle[0],
+
+      open: candle[1],
+      high: candle[2],
+      low: candle[3],
+      close: candle[4],
+    };
+  }
+
+  const trendPoint = normalizeTrendPoint(incomingPoint);
+
+  if (!trendPoint) {
+    return null;
+  }
+
+  return {
+    type: "tick",
+
+    timestamp: trendPoint[0],
+
+    price: trendPoint[1],
+  };
+}
+
+/* ==========================================================================
+   Candlestick Live Merge
+   ========================================================================== */
+
+/**
+ * Frequent price ticks must not create one
+ * full-width candle for every request.
+ *
+ * Incoming ticks are aggregated into a
+ * configurable candle bucket. The active
+ * candle is updated until the next bucket
+ * begins.
+ */
+function mergeCandlestickLivePoint(currentData, incomingPoint, options) {
+  const data = normalizeMarketChartData(currentData, "candlestick");
+
+  const incoming = normalizeLiveCandlestickInput(incomingPoint);
+
+  if (!incoming) {
+    return null;
+  }
+
+  const bucketSize = toPositiveInteger(
+    options.candleBucketSize,
+    DEFAULT_CANDLE_BUCKET_SIZE,
+  );
+
+  const bucketTimestamp =
+    Math.floor(incoming.timestamp / bucketSize) * bucketSize;
+
+  const location = findTimestampIndex(data, bucketTimestamp);
+
+  const existingIndex = location.found ? location.index : -1;
+
+  const previousCandle = location.index > 0 ? data[location.index - 1] : null;
+
+  const previousClose = previousCandle ? previousCandle[4] : null;
+
+  let candle;
+
+  if (existingIndex >= 0) {
+    const existing = data[existingIndex];
+
+    const incomingHigh =
+      incoming.type === "candle" ? incoming.high : incoming.price;
+
+    const incomingLow =
+      incoming.type === "candle" ? incoming.low : incoming.price;
+
+    const incomingClose =
+      incoming.type === "candle" ? incoming.close : incoming.price;
+
+    candle = [
+      bucketTimestamp,
+
+      /*
+       * Preserve the bucket's original open.
+       */
+      existing[1],
+
+      Math.max(existing[2], incomingHigh),
+
+      Math.min(existing[3], incomingLow),
+
+      incomingClose,
+    ];
+
+    data[existingIndex] = candle;
+  } else if (incoming.type === "candle") {
+    candle = [
+      bucketTimestamp,
+
+      incoming.open,
+      incoming.high,
+      incoming.low,
+      incoming.close,
+    ];
+
+    data.splice(location.index, 0, candle);
+  } else {
+    const open = previousClose ?? incoming.price;
+
+    candle = [
+      bucketTimestamp,
+
+      open,
+
+      Math.max(open, incoming.price),
+
+      Math.min(open, incoming.price),
+
+      incoming.price,
+    ];
+
+    data.splice(location.index, 0, candle);
+  }
+
+  const limited = limitMarketChartPoints(data, options.maxPoints);
+
+  const retainedIndex = location.index - limited.removed;
+
+  const index =
+    retainedIndex >= 0 &&
+    retainedIndex < limited.data.length &&
+    limited.data[retainedIndex][0] === bucketTimestamp
+      ? retainedIndex
+      : -1;
+
+  const replaced = existingIndex >= 0;
+
+  const appended = !replaced && location.index === data.length - 1;
+
+  const inserted = !replaced && !appended;
+
+  return {
+    data: limited.data,
+
+    point: candle,
+
+    index,
+
+    replaced,
+    appended,
+    inserted,
+
+    shifted: appended && limited.removed > 0,
+
+    bucketUpdated: replaced,
+
+    bucketAppended: appended,
+
+    sourceTimestamp: incoming.timestamp,
+
+    bucketTimestamp,
+
+    bucketSize,
+  };
 }
 
 /* ==========================================================================
@@ -328,69 +943,78 @@ export function getMarketChartDirection(data, mode = "trend") {
 export function mergeMarketChartLivePoint(
   currentData,
   incomingPoint,
-  { mode = "trend", maxPoints = DEFAULT_MAX_POINTS } = {},
+  {
+    mode = DEFAULT_MODE,
+
+    maxPoints = DEFAULT_MAX_POINTS,
+
+    candleBucketSize = DEFAULT_CANDLE_BUCKET_SIZE,
+  } = {},
 ) {
-  const normalizedCurrentData = normalizeMarketChartData(currentData, mode);
+  const normalizedMode = normalizeMarketChartMode(mode);
 
-  const normalizedIncomingData = normalizeMarketChartData(
-    [incomingPoint],
-    mode,
-  );
+  const options = {
+    mode: normalizedMode,
 
-  if (!normalizedIncomingData.length) {
-    return null;
-  }
+    maxPoints,
 
-  const point = normalizedIncomingData[0];
-  const timestamp = point[0];
-
-  const nextData = [...normalizedCurrentData];
-
-  const existingIndex = nextData.findIndex(
-    (existingPoint) => existingPoint[0] === timestamp,
-  );
-
-  let replaced = false;
-  let appended = false;
-
-  if (existingIndex >= 0) {
-    nextData[existingIndex] = point;
-    replaced = true;
-  } else {
-    nextData.push(point);
-    appended = true;
-  }
-
-  nextData.sort((first, second) => first[0] - second[0]);
-
-  const parsedMaxPoints = Number.parseInt(maxPoints, 10);
-
-  const safeMaxPoints =
-    Number.isFinite(parsedMaxPoints) && parsedMaxPoints > 1
-      ? parsedMaxPoints
-      : DEFAULT_MAX_POINTS;
-
-  let shifted = false;
-
-  if (nextData.length > safeMaxPoints) {
-    const excess = nextData.length - safeMaxPoints;
-
-    nextData.splice(0, excess);
-
-    shifted = appended && excess > 0;
-  }
-
-  const index = nextData.findIndex(
-    (existingPoint) => existingPoint[0] === timestamp,
-  );
-
-  return {
-    data: nextData,
-    point,
-    index,
-
-    replaced,
-    appended,
-    shifted,
+    candleBucketSize,
   };
+
+  if (normalizedMode === "candlestick") {
+    return mergeCandlestickLivePoint(currentData, incomingPoint, options);
+  }
+
+  return mergeTrendLivePoint(currentData, incomingPoint, options);
 }
+
+/* ==========================================================================
+   Range Mutation
+   ========================================================================== */
+
+export function setMarketChartRangeData(ranges, range, mode, data) {
+  if (!isPlainObject(ranges)) {
+    return false;
+  }
+
+  const normalizedRange = normalizeMarketChartRange(range);
+
+  const normalizedMode = normalizeMarketChartMode(mode);
+
+  const normalizedData = normalizeMarketChartData(data, normalizedMode);
+
+  if (!ranges[normalizedRange]) {
+    ranges[normalizedRange] = createEmptyRangeRecord();
+  } else {
+    const normalizedRecord = normalizeRangeRecord(ranges[normalizedRange]);
+
+    ranges[normalizedRange] = normalizedRecord || createEmptyRangeRecord();
+  }
+
+  ranges[normalizedRange][normalizedMode] = normalizedData;
+
+  /*
+   * Trend and line share the same point
+   * representation. Synchronizing them allows
+   * a visual mode change without losing data.
+   */
+  if (normalizedMode === "trend") {
+    ranges[normalizedRange].line = clonePoints(normalizedData);
+  } else if (normalizedMode === "line") {
+    ranges[normalizedRange].trend = clonePoints(normalizedData);
+  }
+
+  return true;
+}
+
+/* ==========================================================================
+   Exports
+   ========================================================================== */
+
+export {
+  CHART_MODES,
+  DEFAULT_CAPABILITIES,
+  DEFAULT_CANDLE_BUCKET_SIZE,
+  DEFAULT_INTRADAY_RANGE,
+  DEFAULT_MAX_POINTS,
+};

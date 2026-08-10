@@ -4,32 +4,55 @@
 html[data-theme="light"] {
   color-scheme: light;
 
-  /* Backgrounds and surfaces */
+  /* ==========================================================================
+     Backgrounds and Surfaces
+     ========================================================================== */
+
   --color-bg: #{ds.brand("off-white")};
   --color-surface: #{ds.brand("white")};
   --color-surface-alt: #eef2f5;
 
-  /* Text */
+  /* Interactive surfaces */
+  --color-surface-hover: #f3f6f8;
+  --color-surface-active: #e8eef3;
+  --color-surface-selected: #eaf0ff;
+
+  /* ==========================================================================
+     Text
+     ========================================================================== */
+
   --color-text: #{ds.brand("navy")};
   --color-heading: #{ds.brand("navy")};
   --color-text-muted: #64707a;
 
-  /* Primary */
+  /* ==========================================================================
+     Primary
+     ========================================================================== */
+
   --color-primary: #{ds.brand("blue")};
   --color-primary-hover: #0038bb;
   --color-on-primary: #{ds.brand("white")};
 
-  /* Secondary */
+  /* ==========================================================================
+     Secondary
+     ========================================================================== */
+
   --color-secondary: #{ds.brand("cool-grey")};
   --color-secondary-hover: #8f9ba3;
   --color-on-secondary: #{ds.brand("navy")};
 
-  /* Accent */
+  /* ==========================================================================
+     Accent
+     ========================================================================== */
+
   --color-accent: #{ds.brand("teal")};
   --color-accent-hover: #00a889;
   --color-on-accent: #{ds.brand("navy")};
 
-  /* Status */
+  /* ==========================================================================
+     Status
+     ========================================================================== */
+
   --color-success: #15803d;
   --color-success-hover: #166534;
   --color-on-success: #{ds.brand("white")};
@@ -46,7 +69,10 @@ html[data-theme="light"] {
   --color-danger-hover: #b91c1c;
   --color-on-danger: #{ds.brand("white")};
 
-  /* Neutral actions */
+  /* ==========================================================================
+     Neutral Actions
+     ========================================================================== */
+
   --color-light: #{ds.brand("white")};
   --color-light-hover: #f3f4f6;
   --color-on-light: #{ds.brand("navy")};
@@ -55,22 +81,54 @@ html[data-theme="light"] {
   --color-dark-hover: #001524;
   --color-on-dark: #{ds.brand("white")};
 
-  /* Borders */
+  /* ==========================================================================
+     Borders
+     ========================================================================== */
+
   --color-border: #d7dde3;
   --color-border-strong: #b7c1c9;
 
-  /* Links */
+  /* ==========================================================================
+     Links
+     ========================================================================== */
+
   --color-link: var(--color-primary);
   --color-link-hover: var(--color-primary-hover);
 
-  /* Overlay */
+  /* ==========================================================================
+     Overlay
+     ========================================================================== */
+
   --color-overlay: rgb(0 0 0 / 0.55);
 
-  /* Disabled */
+  /* ==========================================================================
+     Disabled
+     ========================================================================== */
+
   --color-disabled: #cbd5e1;
   --color-on-disabled: #64748b;
 
-  /* Focus */
+  /* ==========================================================================
+     Focus
+     ========================================================================== */
+
   --focus-ring: var(--color-primary);
+
+  /* ==========================================================================
+     Warning Text
+     ========================================================================== */
+
   --color-warning-text: #92400e;
+
+  /* ==========================================================================
+     Market
+     ========================================================================== */
+
+  --color-market-positive: #15803d;
+  --color-market-negative: #dc2626;
+  --color-market-neutral: var(--color-text-muted);
+
+  --color-market-positive-bg: rgb(21 128 61 / 0.1);
+  --color-market-negative-bg: rgb(220 38 38 / 0.1);
+  --color-market-neutral-bg: rgb(100 112 122 / 0.1);
 }

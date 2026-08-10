@@ -1,0 +1,188 @@
+@use "../../abstracts" as ds;
+
+/* ========================================================================== 
+   Responsive Table Wrapper
+   ========================================================================== */
+
+/*
+ * This wrapper is the single horizontal-overflow owner for design-system
+ * tables. It prevents wide tables from increasing the document width.
+ *
+ * When keyboard scrolling is required, give the wrapper:
+ *
+ * - tabindex="0"
+ * - role="region"
+ * - an accessible name using aria-label or aria-labelledby
+ */
+
+.table-responsive {
+  position: relative;
+
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  overscroll-behavior-inline: contain;
+
+  scrollbar-color: var(--color-border-strong) transparent;
+  scrollbar-width: thin;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ========================================================================== 
+   Keyboard Focus
+   ========================================================================== */
+
+.table-responsive[tabindex]:focus {
+  outline: none;
+}
+
+.table-responsive[tabindex]:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ========================================================================== 
+   Wide Tables
+   ========================================================================== */
+
+/*
+ * A nowrap table may intentionally exceed the available width. `max-content`
+ * preserves its columns while the wrapper contains the resulting overflow.
+ */
+
+.table-responsive > .table-nowrap {
+  inline-size: max-content;
+  min-inline-size: 100%;
+}
+
+/*
+ * `.table-wide` provides a configurable minimum width without forcing nowrap.
+ * The value is defined by the variant and may be overridden per composition.
+ */
+
+.table-responsive > .table-wide {
+  inline-size: max(100%, var(--table-min-inline-size, 64rem));
+}
+
+.table-responsive > .table-wide.table-nowrap {
+  inline-size: max-content;
+  min-inline-size: max(100%, var(--table-min-inline-size, 64rem));
+}
+
+/* ========================================================================== 
+   Normal Tables
+   ========================================================================== */
+
+.table-responsive > .table:not(.table-nowrap):not(.table-wide) {
+  inline-size: 100%;
+  max-inline-size: 100%;
+}
+
+/* ========================================================================== 
+   Scrollbar
+   ========================================================================== */
+
+.table-responsive::-webkit-scrollbar {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+
+  background: var(--color-border-strong);
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ========================================================================== 
+   Default Responsive Density
+   ========================================================================== */
+
+/*
+ * Explicit compact and comfortable variants retain their chosen density.
+ * Only the default table density changes as the viewport becomes constrained.
+ */
+
+@include ds.respond-down("md") {
+  .table:not(.table-compact):not(.table-comfortable) {
+    --table-cell-padding-block: 0.625rem;
+    --table-cell-padding-inline: var(--space-3, 0.75rem);
+  }
+}
+
+@include ds.respond-down("sm") {
+  .table:not(.table-compact):not(.table-comfortable) {
+    --table-cell-padding-block: var(--space-2, 0.5rem);
+    --table-cell-padding-inline: 0.625rem;
+  }
+}
+
+/* ========================================================================== 
+   Touch Scrolling
+   ========================================================================== */
+
+@media (pointer: coarse) {
+  .table-responsive {
+    scroll-snap-type: none;
+  }
+}
+
+/* ========================================================================== 
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .table-responsive {
+  scrollbar-color: currentColor transparent;
+}
+
+html[data-contrast="high"] .table-responsive::-webkit-scrollbar-thumb {
+  background: currentColor;
+}
+
+html[data-contrast="high"] .table-responsive[tabindex]:focus-visible {
+  outline-width: var(--focus-ring-width, 4px);
+}
+
+/* ========================================================================== 
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .table-responsive {
+    scrollbar-color: CanvasText Canvas;
+  }
+
+  .table-responsive::-webkit-scrollbar-thumb {
+    background: CanvasText;
+  }
+
+  .table-responsive[tabindex]:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}
+
+/* ========================================================================== 
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .table-responsive {
+    scroll-behavior: auto;
+  }
+}
+
+html[data-motion="reduce"] .table-responsive {
+  scroll-behavior: auto;
+}

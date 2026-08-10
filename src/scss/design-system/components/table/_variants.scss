@@ -1,0 +1,291 @@
+/* ========================================================================== 
+   Header Variants
+   ========================================================================== */
+
+/*
+ * Branded header treatment.
+ *
+ * This variant changes semantic table tokens only. Base, sticky, and vendor
+ * adapters continue consuming the same --table-head-* contract.
+ */
+
+.table-header-primary {
+  --table-head-bg: #c8d8f5;
+  --table-head-color: var(--color-heading);
+  --table-head-border: rgb(0 31 51 / 0.2);
+  --table-head-border-strong: rgb(0 31 51 / 0.34);
+}
+
+@supports (background: color-mix(in oklab, white, black)) {
+  .table-header-primary {
+    --table-head-bg: color-mix(
+      in oklab,
+      var(--color-primary) 20%,
+      var(--color-surface)
+    );
+    --table-head-border: color-mix(
+      in oklab,
+      var(--color-primary) 26%,
+      var(--color-border)
+    );
+    --table-head-border-strong: color-mix(
+      in oklab,
+      var(--color-primary) 44%,
+      var(--color-border-strong)
+    );
+  }
+}
+
+html[data-theme="dark"] .table-header-primary,
+.surface-dark .table-header-primary {
+  --table-head-bg: #003b5c;
+  --table-head-color: #ffffff;
+  --table-head-border: rgb(255 255 255 / 0.12);
+  --table-head-border-strong: rgb(255 255 255 / 0.24);
+}
+
+/* ========================================================================== 
+   Grouped Header
+   ========================================================================== */
+
+/*
+ * Adds hierarchy to a multi-row table header without assuming any dataset.
+ * Use `.table-column-group` on cells that span related child columns and
+ * `.table-column-label` for labels intentionally split across lines.
+ */
+
+.table-header-grouped thead tr:first-child > th,
+.table-header-grouped thead tr:first-child > td {
+  border-block-end-color: var(--table-head-border-strong);
+
+  font-weight: var(--table-header-font-weight);
+}
+
+.table-header-grouped thead tr:not(:last-child) > th,
+.table-header-grouped thead tr:not(:last-child) > td {
+  border-block-end-width: 1px;
+}
+
+.table-header-grouped thead tr > th:not(:last-child),
+.table-header-grouped thead tr > td:not(:last-child) {
+  border-inline-end: 1px solid var(--table-head-border);
+}
+
+.table-header-grouped .table-column-group {
+  border-inline-start: 1px solid var(--table-head-border-strong);
+
+  text-align: center;
+  white-space: nowrap;
+}
+
+.table-column-label {
+  display: inline-flex;
+  align-items: center;
+  flex-direction: column;
+
+  gap: 0.0625rem;
+
+  line-height: 1.15;
+
+  text-align: center;
+  white-space: normal;
+}
+
+.table-column-label > span {
+  display: block;
+}
+
+/* ========================================================================== 
+   Hover
+   ========================================================================== */
+
+.table-hover tbody tr:hover {
+  background: var(--table-row-hover-bg);
+}
+
+@supports (background: color-mix(in oklab, white, black)) {
+  .table-hover {
+    /* Keep the surface opaque so sticky cells cannot show content beneath. */
+    --table-row-hover-bg: color-mix(
+      in oklab,
+      var(--color-primary) 8%,
+      var(--table-bg)
+    );
+  }
+}
+
+/* ========================================================================== 
+   Striped
+   ========================================================================== */
+
+.table-striped {
+  --table-striped-bg: var(--color-surface-alt);
+}
+
+.table-striped tbody tr:nth-child(even) {
+  background: var(--table-striped-bg);
+}
+
+.table-striped.table-hover tbody tr:hover {
+  background: var(--table-row-hover-bg);
+}
+
+/* ========================================================================== 
+   Bordered
+   ========================================================================== */
+
+.table-bordered {
+  border: 1px solid var(--table-border-color);
+}
+
+.table-bordered thead th,
+.table-bordered thead td {
+  border: 1px solid var(--table-head-border);
+}
+
+.table-bordered tbody th,
+.table-bordered tbody td {
+  border: 1px solid var(--table-body-border);
+}
+
+.table-bordered tfoot th,
+.table-bordered tfoot td {
+  border: 1px solid var(--table-foot-border);
+}
+
+/* ========================================================================== 
+   Density
+   ========================================================================== */
+
+.table-compact {
+  --table-cell-padding-block: var(--space-2, 0.5rem);
+  --table-cell-padding-inline: var(--space-3, 0.75rem);
+}
+
+.table-comfortable {
+  --table-cell-padding-block: var(--space-4, 1rem);
+  --table-cell-padding-inline: var(--space-5, 1.25rem);
+}
+
+/* ========================================================================== 
+   Wrapping and Layout
+   ========================================================================== */
+
+.table-nowrap thead th,
+.table-nowrap thead td,
+.table-nowrap tbody th,
+.table-nowrap tbody td,
+.table-nowrap tfoot th,
+.table-nowrap tfoot td {
+  white-space: nowrap;
+}
+
+.table-fixed-layout {
+  table-layout: fixed;
+}
+
+/*
+ * Reusable minimum-width configuration for dense datasets.
+ * Consumers may override --table-min-inline-size locally or through a
+ * product-level size utility.
+ */
+
+.table-wide {
+  min-inline-size: var(--table-min-inline-size, 64rem);
+}
+
+/* ========================================================================== 
+   Clickable Rows
+   ========================================================================== */
+
+/*
+ * This class is visual only. A row still requires a real link or button for
+ * keyboard access and activation behavior.
+ */
+
+.table-clickable tbody tr {
+  cursor: pointer;
+}
+
+.table-clickable tbody tr:focus-within {
+  background: var(--table-row-hover-bg);
+}
+
+/* ========================================================================== 
+   Summary Rows
+   ========================================================================== */
+
+.table-total-row {
+  background: var(--table-summary-bg);
+  color: var(--table-summary-color);
+}
+
+.table-total-row th,
+.table-total-row td {
+  border-color: var(--table-summary-border);
+
+  background: transparent;
+  color: inherit;
+
+  font-weight: var(--table-header-font-weight);
+}
+
+.table-total-row-primary {
+  --table-summary-bg: var(--color-primary);
+  --table-summary-color: var(--color-on-primary);
+  --table-summary-border: transparent;
+}
+
+/* ========================================================================== 
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .table-header-primary {
+  --table-head-bg: var(--color-text);
+  --table-head-color: var(--color-bg);
+  --table-head-border: currentColor;
+  --table-head-border-strong: currentColor;
+}
+
+html[data-contrast="high"] .table-hover tbody tr:hover,
+html[data-contrast="high"] .table-clickable tbody tr:focus-within {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: -1px;
+}
+
+html[data-contrast="high"] .table-bordered,
+html[data-contrast="high"] .table-bordered th,
+html[data-contrast="high"] .table-bordered td {
+  border-color: var(--color-border-strong);
+}
+
+html[data-contrast="high"] .table-total-row-primary {
+  --table-summary-bg: var(--color-text);
+  --table-summary-color: var(--color-bg);
+  --table-summary-border: currentColor;
+}
+
+/* ========================================================================== 
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .table-header-primary {
+    --table-head-bg: Canvas;
+    --table-head-color: CanvasText;
+    --table-head-border: CanvasText;
+    --table-head-border-strong: CanvasText;
+  }
+
+  .table-hover tbody tr:hover,
+  .table-clickable tbody tr:focus-within {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  .table-total-row-primary {
+    --table-summary-bg: Canvas;
+    --table-summary-color: CanvasText;
+    --table-summary-border: CanvasText;
+  }
+}

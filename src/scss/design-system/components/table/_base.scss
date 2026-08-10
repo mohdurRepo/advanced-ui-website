@@ -1,0 +1,335 @@
+@use "../../abstracts" as ds;
+
+/* ========================================================================== 
+   Table
+   ========================================================================== */
+
+/*
+ * Core table foundation.
+ *
+ * This file owns only:
+ *
+ * - the public table token contract
+ * - table structure
+ * - header, body, and footer cells
+ * - numeric alignment and bidirectional isolation
+ * - row headers
+ * - links
+ * - captions
+ *
+ * Variants, states, grouped rows, sticky positioning, responsive overflow,
+ * navigation, and rich cells live in their dedicated partials.
+ */
+
+.table {
+  /* Table surface */
+  --table-bg: var(--color-surface);
+  --table-color: var(--color-text);
+
+  /* Header */
+  --table-head-bg: #c8d8f5;
+  --table-head-color: var(--color-heading);
+  --table-head-border: rgb(0 31 51 / 0.2);
+  --table-head-border-strong: rgb(0 31 51 / 0.34);
+
+  /* Body */
+  --table-body-border: var(--color-border);
+  --table-row-header-color: var(--color-heading);
+
+  /* Footer */
+  --table-foot-bg: var(--table-head-bg);
+  --table-foot-color: var(--table-head-color);
+  --table-foot-border: var(--color-border-strong);
+
+  /* Interaction */
+  --table-row-hover-bg: var(--color-surface-alt);
+  --table-row-selected-bg: var(--color-surface-selected);
+
+  /* Grouped rows */
+  --table-group-bg: var(--color-primary);
+  --table-group-color: var(--color-on-primary);
+  --table-group-border: var(--color-primary);
+
+  /* Summary rows */
+  --table-summary-bg: var(--color-surface-alt);
+  --table-summary-color: var(--color-heading);
+  --table-summary-border: var(--color-border-strong);
+
+  /* Links */
+  --table-link-color: inherit;
+  --table-link-hover-color: var(--color-primary);
+
+  /* Caption */
+  --table-caption-color: var(--color-text-muted);
+
+  /* Spacing */
+  --table-cell-padding-block: var(--space-3, 0.75rem);
+  --table-cell-padding-inline: var(--space-4, 1rem);
+
+  /* Typography */
+  --table-font-size: var(--text-sm);
+  --table-line-height: var(--line-height-normal);
+  --table-header-font-weight: #{ds.font-weight("bold")};
+
+  /*
+   * Compatibility aliases.
+   *
+   * Existing table partials currently consume these names. They remain public
+   * until those partials are migrated to the more specific tokens above.
+   */
+  --table-border-color: var(--table-body-border);
+  --table-border-strong: var(--table-head-border-strong);
+
+  inline-size: 100%;
+
+  border-collapse: collapse;
+  border-spacing: 0;
+
+  background: var(--table-bg);
+  color: var(--table-color);
+
+  font-size: var(--table-font-size);
+  line-height: var(--table-line-height);
+}
+
+/* Derive the light header from the active primary color when supported. */
+
+@supports (background: color-mix(in oklab, white, black)) {
+  .table {
+    --table-head-bg: color-mix(
+      in oklab,
+      var(--color-primary) 20%,
+      var(--color-surface)
+    );
+    --table-head-border: color-mix(
+      in oklab,
+      var(--color-primary) 26%,
+      var(--color-border)
+    );
+    --table-head-border-strong: color-mix(
+      in oklab,
+      var(--color-primary) 44%,
+      var(--color-border-strong)
+    );
+    --table-group-border: color-mix(
+      in oklab,
+      var(--color-primary) 78%,
+      var(--color-on-primary)
+    );
+  }
+}
+
+/* Dark-theme table header shared by every table implementation. */
+
+html[data-theme="dark"] .table {
+  --table-head-bg: #003b5c;
+  --table-head-color: #ffffff;
+  --table-head-border: rgb(255 255 255 / 0.12);
+  --table-head-border-strong: rgb(255 255 255 / 0.24);
+}
+
+/* ========================================================================== 
+   Header
+   ========================================================================== */
+
+.table thead {
+  background: var(--table-head-bg);
+  color: var(--table-head-color);
+}
+
+.table thead th,
+.table thead td {
+  padding-block: var(--table-cell-padding-block);
+  padding-inline: var(--table-cell-padding-inline);
+
+  border-block-end: 1px solid var(--table-head-border);
+
+  background: var(--table-head-bg);
+  color: var(--table-head-color);
+
+  font-weight: var(--table-header-font-weight);
+
+  text-align: start;
+  vertical-align: middle;
+}
+
+/* ========================================================================== 
+   Body
+   ========================================================================== */
+
+.table tbody {
+  background: var(--table-bg);
+  color: var(--table-color);
+}
+
+.table tbody tr {
+  background: var(--table-bg);
+  color: inherit;
+
+  @include ds.transition(background-color, "fast");
+}
+
+.table tbody th,
+.table tbody td {
+  padding-block: var(--table-cell-padding-block);
+  padding-inline: var(--table-cell-padding-inline);
+
+  border-block-end: 1px solid var(--table-body-border);
+
+  background: transparent;
+  color: inherit;
+
+  text-align: start;
+  vertical-align: middle;
+}
+
+/* ========================================================================== 
+   Footer
+   ========================================================================== */
+
+.table tfoot {
+  background: var(--table-foot-bg);
+  color: var(--table-foot-color);
+}
+
+.table tfoot th,
+.table tfoot td {
+  padding-block: var(--table-cell-padding-block);
+  padding-inline: var(--table-cell-padding-inline);
+
+  border-block-start: 1px solid var(--table-foot-border);
+
+  background: transparent;
+  color: inherit;
+
+  font-weight: var(--table-header-font-weight);
+
+  text-align: start;
+  vertical-align: middle;
+}
+
+/* ========================================================================== 
+   Numeric Content
+   ========================================================================== */
+
+/*
+ * Tabular numbers improve column comparison.
+ *
+ * Direction isolation prevents signs, percentages, decimals, dates, and other
+ * left-to-right numeric content from being reordered in an RTL document.
+ *
+ * `.numeric` remains as a compatibility selector. New markup should prefer
+ * `.table-cell-numeric` or `[data-numeric]`.
+ */
+
+.table .numeric,
+.table .table-cell-numeric,
+.table [data-numeric] {
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  font-variant-numeric: tabular-nums;
+
+  text-align: end;
+}
+
+/* ========================================================================== 
+   Row Headers
+   ========================================================================== */
+
+.table tbody th[scope="row"] {
+  color: var(--table-row-header-color);
+
+  font-weight: var(--table-header-font-weight);
+}
+
+/* ========================================================================== 
+   Links
+   ========================================================================== */
+
+.table a {
+  color: var(--table-link-color);
+
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.2em;
+
+  @include ds.transition(color, "fast");
+}
+
+.table a:hover {
+  color: var(--table-link-hover-color);
+}
+
+.table a:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ========================================================================== 
+   Caption
+   ========================================================================== */
+
+.table caption {
+  padding-block-end: var(--space-2, #{ds.space(2)});
+
+  color: var(--table-caption-color);
+
+  font-size: var(--text-sm);
+
+  text-align: start;
+}
+
+/* ========================================================================== 
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .table {
+  --table-head-border: var(--color-border-strong);
+  --table-head-border-strong: var(--color-border-strong);
+  --table-body-border: var(--color-border-strong);
+  --table-foot-border: var(--color-border-strong);
+  --table-group-border: var(--color-border-strong);
+  --table-summary-border: var(--color-border-strong);
+}
+
+/* ========================================================================== 
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .table {
+    --table-bg: Canvas;
+    --table-color: CanvasText;
+
+    --table-head-bg: Canvas;
+    --table-head-color: CanvasText;
+    --table-head-border: CanvasText;
+    --table-head-border-strong: CanvasText;
+
+    --table-body-border: CanvasText;
+    --table-row-header-color: CanvasText;
+
+    --table-foot-bg: Canvas;
+    --table-foot-color: CanvasText;
+    --table-foot-border: CanvasText;
+
+    --table-link-color: LinkText;
+    --table-link-hover-color: LinkText;
+    --table-caption-color: CanvasText;
+  }
+}
+
+/* ========================================================================== 
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .table tbody tr,
+  .table a {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] .table tbody tr,
+html[data-motion="reduce"] .table a {
+  transition: none;
+}

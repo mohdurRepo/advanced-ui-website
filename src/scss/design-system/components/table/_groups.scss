@@ -1,0 +1,205 @@
+/* ========================================================================== 
+   Group Rows
+   ========================================================================== */
+
+/*
+ * Reusable category rows for visually grouping related records.
+ *
+ * Recommended markup:
+ *
+ * <tr class="table-group-row">
+ *   <th class="table-group-label" scope="rowgroup">Group name</th>
+ *   <td class="table-group-fill" colspan="..." aria-hidden="true"></td>
+ * </tr>
+ *
+ * The table base owns the --table-group-* token defaults. This partial owns
+ * group-row structure, optional visual variants, nesting, and sticky labels.
+ */
+
+.table-group-row {
+  background: var(--table-group-bg);
+  color: var(--table-group-color);
+}
+
+/*
+ * Cells paint an opaque surface of their own. This is required when the label
+ * becomes sticky and scrolling content moves underneath it.
+ */
+
+.table-group-row > th,
+.table-group-row > td {
+  padding-block: var(--table-cell-padding-block);
+  padding-inline: var(--table-cell-padding-inline);
+
+  border-block-start: 1px solid var(--table-group-border);
+  border-block-end: 1px solid var(--table-group-border);
+
+  background: var(--table-group-bg);
+  color: var(--table-group-color);
+
+  font-weight: var(--table-header-font-weight);
+
+  text-align: start;
+  vertical-align: middle;
+}
+
+/* Preserve the group treatment in hover-enabled tables. */
+
+.table-hover tbody .table-group-row:hover,
+.table-striped.table-hover tbody .table-group-row:hover {
+  background: var(--table-group-bg);
+}
+
+.table-hover tbody .table-group-row:hover > th,
+.table-hover tbody .table-group-row:hover > td,
+.table-striped.table-hover tbody .table-group-row:hover > th,
+.table-striped.table-hover tbody .table-group-row:hover > td {
+  background: var(--table-group-bg);
+  color: var(--table-group-color);
+}
+
+/* ========================================================================== 
+   Group Label
+   ========================================================================== */
+
+.table-group-label {
+  inline-size: var(--table-group-label-width, auto);
+  min-inline-size: var(--table-group-label-width, auto);
+
+  text-align: start;
+  white-space: nowrap;
+}
+
+/* ========================================================================== 
+   Group Continuation
+   ========================================================================== */
+
+.table-group-fill {
+  padding: 0;
+}
+
+/* ========================================================================== 
+   Primary Group Variant
+   ========================================================================== */
+
+/*
+ * Apply this modifier to the table when category rows need stronger branded
+ * emphasis. The structural group classes remain unchanged.
+ */
+
+.table-groups-primary {
+  --table-group-bg: var(--color-primary);
+  --table-group-color: var(--color-on-primary);
+  --table-group-border: var(--color-primary);
+}
+
+@supports (border-color: color-mix(in oklab, white, black)) {
+  .table-groups-primary {
+    --table-group-border: color-mix(
+      in oklab,
+      var(--color-primary) 78%,
+      var(--color-on-primary)
+    );
+  }
+}
+
+/* ========================================================================== 
+   Nested Groups
+   ========================================================================== */
+
+/*
+ * The grouping level is content metadata rather than a presentation-specific
+ * class. Override --table-group-indent when a different indentation step is
+ * required.
+ */
+
+.table-group-row[data-table-group-level="1"] .table-group-label {
+  padding-inline-start: calc(
+    var(--table-cell-padding-inline) + var(--table-group-indent, 1.5rem)
+  );
+}
+
+.table-group-row[data-table-group-level="2"] .table-group-label {
+  padding-inline-start: calc(
+    var(--table-cell-padding-inline) + var(--table-group-indent, 1.5rem) +
+      var(--table-group-indent, 1.5rem)
+  );
+}
+
+.table-group-row[data-table-group-level="3"] .table-group-label {
+  padding-inline-start: calc(
+    var(--table-cell-padding-inline) + var(--table-group-indent, 1.5rem) +
+      var(--table-group-indent, 1.5rem) + var(--table-group-indent, 1.5rem)
+  );
+}
+
+/* ========================================================================== 
+   Sticky Group Label
+   ========================================================================== */
+
+/*
+ * Sticky behavior is explicit so ordinary group rows do not unexpectedly
+ * create positioned cells. Set --table-group-label-width when a stable sticky
+ * column width is required.
+ */
+
+.table-group-label-sticky {
+  position: sticky;
+  inset-inline-start: var(--table-group-sticky-offset, 0);
+
+  z-index: var(--table-sticky-body-z, 2);
+
+  background: var(--table-group-bg);
+  background-clip: border-box;
+
+  isolation: isolate;
+}
+
+.table-group-label-sticky::after {
+  content: "";
+
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: -1px;
+
+  inline-size: 1px;
+
+  background: var(--table-group-border);
+
+  pointer-events: none;
+}
+
+/* ========================================================================== 
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .table-group-row {
+  --table-group-border: var(--color-border-strong);
+}
+
+html[data-contrast="high"] .table-groups-primary {
+  --table-group-bg: var(--color-text);
+  --table-group-color: var(--color-bg);
+  --table-group-border: currentColor;
+}
+
+html[data-contrast="high"] .table-group-label-sticky::after {
+  inline-size: 2px;
+}
+
+/* ========================================================================== 
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .table-group-row,
+  .table-groups-primary {
+    --table-group-bg: Canvas;
+    --table-group-color: CanvasText;
+    --table-group-border: CanvasText;
+  }
+
+  .table-group-label-sticky::after {
+    inline-size: 2px;
+  }
+}

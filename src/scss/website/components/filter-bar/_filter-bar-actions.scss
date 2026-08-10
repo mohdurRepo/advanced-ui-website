@@ -1,0 +1,215 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Filter Actions
+   ========================================================================== */
+
+/*
+ * Owns:
+ *
+ * - toolbar actions
+ * - disclosure-style controls
+ * - switches / checkboxes
+ * - secondary actions
+ * - responsive action composition
+ */
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.filter-bar__actions {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+
+  gap: ds.space(2);
+
+  flex: 0 0 auto;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Action Group
+   ========================================================================== */
+
+.filter-bar__action-group {
+  display: inline-flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Selection / Switch
+   ========================================================================== */
+
+.filter-bar__selection {
+  display: inline-flex;
+  align-items: center;
+
+  min-block-size: var(--filter-bar-control-block-size);
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   View Control
+   ========================================================================== */
+
+.filter-bar__view {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Columns Control
+   ========================================================================== */
+
+.filter-bar__columns {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: ds.space(3);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--filter-bar-control-block-size);
+
+  padding-inline: ds.space(3);
+
+  text-align: start;
+  white-space: nowrap;
+}
+
+/* Label */
+
+.filter-bar__columns > span:first-child {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Indicator */
+
+.filter-bar__columns > .has-icon:last-child {
+  flex: 0 0 auto;
+
+  margin-inline-start: auto;
+}
+
+/* Open State */
+
+.filter-bar__columns[aria-expanded="true"] {
+  border-color: var(--color-primary);
+
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Secondary Actions
+   ========================================================================== */
+
+.filter-bar__secondary-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: ds.space(2);
+
+  margin-inline-start: auto;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down(lg) {
+  .filter-bar__actions {
+    justify-content: flex-start;
+
+    inline-size: 100%;
+  }
+
+  .filter-bar__action-group {
+    inline-size: 100%;
+  }
+
+  .filter-bar__selection {
+    min-block-size: auto;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down(sm) {
+  .filter-bar__actions {
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: ds.space(2);
+
+    inline-size: 100%;
+  }
+
+  .filter-bar__action-group {
+    display: contents;
+  }
+
+  .filter-bar__actions > .btn,
+  .filter-bar__action-group > .btn {
+    inline-size: 100%;
+  }
+
+  .filter-bar__selection {
+    grid-column: 1 / -1;
+
+    justify-content: flex-start;
+
+    min-block-size: auto;
+  }
+
+  .filter-bar__secondary-actions {
+    margin-inline-start: 0;
+  }
+}
+
+/* ==========================================================================
+   Very Small Screens
+   ========================================================================== */
+
+@media (max-width: 24rem) {
+  .filter-bar__actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .filter-bar__selection {
+    grid-column: auto;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .filter-bar__columns[aria-expanded="true"] {
+    border-width: 2px;
+    border-color: currentColor;
+
+    background: var(--color-surface);
+    color: currentColor;
+  }
+}

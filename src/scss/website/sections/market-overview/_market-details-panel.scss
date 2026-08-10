@@ -5,16 +5,18 @@
    ========================================================================== */
 
 .market-details-panel {
-  --market-details-height: clamp(15rem, 25vw, 18.5rem);
+  --market-details-height: auto;
 
   position: relative;
 
-  display: block;
+  display: flex;
+  flex-direction: column;
 
   min-inline-size: 0;
   min-block-size: 0;
+  block-size: var(--market-details-height);
 
-  overflow: hidden;
+  overflow: visible;
 
   border-block-start: 0;
 
@@ -30,8 +32,20 @@
   }
 
   &.is-active {
-    display: block;
+    display: flex;
   }
+}
+
+/*
+ * Only the primary market overview needs a fixed desktop canvas so its
+ * chart, movers, and statistics remain aligned. Nested category views and
+ * analytics/dashboard panels stay content-sized.
+ */
+
+.market-details-panel[data-market-detail-panel].market-details-panel--overview {
+  --market-details-height: 21rem;
+
+  overflow: hidden;
 }
 
 /* ==========================================================================
@@ -114,8 +128,11 @@
 
   align-items: stretch;
 
+  flex: 1 1 auto;
+
+  block-size: 100%;
   min-inline-size: 0;
-  min-block-size: var(--market-details-height);
+  min-block-size: 0;
 
   background: var(--market-details-bg);
 }
@@ -276,78 +293,19 @@
 }
 
 /* ==========================================================================
-   Tables
+   Design-system Table Sizing
    ========================================================================== */
 
-.market-details-panel__table {
-  .table {
-    inline-size: 100%;
-    min-inline-size: 34rem;
+/*
+ * The design system owns table surfaces, typography, borders, interaction,
+ * links, focus treatment, and numeric alignment. This website wrapper owns
+ * only the minimum readable width that activates horizontal overflow.
+ */
 
-    margin: 0;
+.market-details-panel__table > .table {
+  min-inline-size: 34rem;
 
-    color: var(--market-details-fg);
-
-    font-size: var(--text-xs);
-  }
-
-  th,
-  td {
-    vertical-align: middle;
-  }
-
-  th {
-    color: var(--market-details-heading);
-  }
-
-  tbody th {
-    font-weight: ds.font-weight("bold");
-  }
-
-  tbody tr {
-    @include ds.transition(background-color, fast);
-
-    &:hover {
-      background: rgb(255 255 255 / 0.05);
-    }
-  }
-
-  a {
-    display: inline-block;
-
-    max-inline-size: 100%;
-
-    color: var(--market-details-fg);
-
-    font-weight: ds.font-weight("bold");
-    text-decoration: none;
-
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-
-    @include ds.transition(color, fast);
-
-    &:hover {
-      color: var(--color-primary);
-    }
-
-    &:focus {
-      outline: none;
-    }
-
-    &:focus-visible {
-      @include ds.focus-ring;
-    }
-  }
-
-  .numeric,
-  .table-cell-numeric {
-    text-align: end;
-
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
+  margin: 0;
 }
 
 /* ==========================================================================
@@ -491,7 +449,13 @@
    ========================================================================== */
 
 .market-view-panel {
+  flex: 1 1 auto;
+
+  block-size: auto;
   min-inline-size: 0;
+  min-block-size: 0;
+
+  overflow: hidden;
 
   &[hidden] {
     display: none !important;
@@ -500,6 +464,14 @@
   &.is-active {
     display: block;
   }
+}
+
+.market-details-panel > .market-views {
+  flex: 0 0 auto;
+}
+
+.market-view-panel > .market-details-panel__grid {
+  block-size: 100%;
 }
 
 /* ==========================================================================
@@ -544,6 +516,27 @@
 @include ds.respond-down(lg) {
   .market-details-panel {
     --market-details-height: auto;
+
+    block-size: auto;
+
+    overflow: visible;
+
+    &.is-active {
+      display: block;
+    }
+  }
+
+  .market-details-panel[data-market-detail-panel].market-details-panel--overview {
+    --market-details-height: auto;
+  }
+
+  .market-details-panel__grid,
+  .market-view-panel {
+    block-size: auto;
+  }
+
+  .market-view-panel {
+    overflow: visible;
   }
 
   .market-details-panel--overview {
@@ -674,13 +667,6 @@ html[dir="rtl"] {
   .market-panel {
     text-align: start;
   }
-
-  .market-details-panel__table {
-    .numeric,
-    .table-cell-numeric {
-      text-align: end;
-    }
-  }
 }
 
 /* ==========================================================================
@@ -728,17 +714,13 @@ html[data-contrast="high"] {
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  .market-details-panel__toggle::before,
-  .market-details-panel__table tbody tr,
-  .market-details-panel__table a {
+  .market-details-panel__toggle::before {
     transition: none;
   }
 }
 
 html[data-motion="reduce"] {
-  .market-details-panel__toggle::before,
-  .market-details-panel__table tbody tr,
-  .market-details-panel__table a {
+  .market-details-panel__toggle::before {
     transition: none;
   }
 }

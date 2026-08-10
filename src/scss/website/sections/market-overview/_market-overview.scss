@@ -10,6 +10,18 @@
    */
   --market-overview-connected-bg: #334c5c;
 
+  /* Permanent dark-surface semantic colors. */
+  --market-overview-success: #4ade80;
+  --market-overview-danger: #fb7185;
+  --market-overview-warning: #fbbf24;
+  --market-overview-caution: #f2dc55;
+  --market-overview-neutral: #a9bdca;
+
+  /* Shared price-state utilities consume these local tokens. */
+  --color-market-positive: var(--market-overview-success);
+  --color-market-negative: var(--market-overview-danger);
+  --color-market-neutral: var(--market-overview-neutral);
+
   --market-overview-container-width: 1320px;
   --market-overview-container-space: 2rem;
 

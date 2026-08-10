@@ -5578,18 +5578,10 @@
                 <section
                   class="performance-chart market-index-chart"
                   data-performance-chart
-                  aria-labelledby="market-performance-title"
+                  aria-labelledby="main-market-chart-title"
                   aria-busy="true"
                 >
-                  <!-- ===============================================================
-         Chart Toolbar
-         =============================================================== -->
-
                   <header class="performance-chart__header chart-toolbar">
-                    <!-- =============================================================
-           Top Row
-           ============================================================= -->
-
                     <div class="chart-toolbar__top">
                       <div class="chart-toolbar__heading">
                         <span
@@ -5599,7 +5591,7 @@
 
                         <div class="chart-toolbar__heading-content">
                           <h3
-                            id="market-performance-title"
+                            id="main-market-chart-title"
                             class="chart-toolbar__title"
                           >
                             Main Market Performance
@@ -5607,7 +5599,7 @@
 
                           <div
                             class="chart-toolbar__meta"
-                            aria-label="Live chart status"
+                            aria-label="Market status"
                           >
                             <span class="chart-toolbar__live">
                               <span
@@ -5615,7 +5607,7 @@
                                 aria-hidden="true"
                               ></span>
 
-                              <span>Live</span>
+                              <span data-chart-live-status>Live</span>
                             </span>
 
                             <span
@@ -5624,13 +5616,13 @@
                             ></span>
 
                             <span class="chart-toolbar__updated">
-                              Updated
+                              <span>Updated</span>
 
                               <time
-                                datetime="2026-08-04T14:32:00+03:00"
+                                datetime="2026-08-08T10:00:00+03:00"
                                 data-chart-updated-time
                               >
-                                14:32
+                                10:00:00
                               </time>
                             </span>
                           </div>
@@ -5639,7 +5631,7 @@
 
                       <a
                         class="btn btn-primary btn-sm chart-toolbar__historical"
-                        href="#"
+                        href="/market-data/historical"
                       >
                         <span>View Historical</span>
 
@@ -5650,19 +5642,12 @@
                       </a>
                     </div>
 
-                    <!-- =============================================================
-           Bottom Row
-           ============================================================= -->
-
                     <div class="chart-toolbar__bottom">
-                      <!-- ===========================================================
-             Chart Range
-             =========================================================== -->
-
                       <div
                         class="chart-toolbar__ranges"
                         role="group"
                         aria-label="Chart time range"
+                        data-chart-ranges
                       >
                         <button
                           class="chart-range is-active"
@@ -5738,27 +5723,19 @@
                         </button>
                       </div>
 
-                      <!-- ===========================================================
-             Chart Utilities
-             =========================================================== -->
-
                       <div class="chart-toolbar__utilities">
-                        <!-- =========================================================
-               Chart Type
-               ========================================================= -->
-
                         <div class="chart-toolbar__type">
                           <div
                             class="market-chart-toggle"
                             role="group"
                             aria-label="Chart type"
+                            data-chart-modes
                           >
                             <button
                               class="market-chart-toggle__button is-active"
                               type="button"
                               aria-label="Show trend chart"
                               aria-pressed="true"
-                              title="Trend chart"
                               data-chart-type="trend"
                             >
                               <span
@@ -5766,7 +5743,7 @@
                                 aria-hidden="true"
                               ></span>
 
-                              <span class="visually-hidden"> Trend </span>
+                              <span class="visually-hidden">Trend chart</span>
                             </button>
 
                             <button
@@ -5774,7 +5751,6 @@
                               type="button"
                               aria-label="Show candlestick chart"
                               aria-pressed="false"
-                              title="Candlestick chart"
                               data-chart-type="candlestick"
                             >
                               <span
@@ -5782,14 +5758,12 @@
                                 aria-hidden="true"
                               ></span>
 
-                              <span class="visually-hidden"> Candles </span>
+                              <span class="visually-hidden"
+                                >Candlestick chart</span
+                              >
                             </button>
                           </div>
                         </div>
-
-                        <!-- =========================================================
-               Chart Actions
-               ========================================================= -->
 
                         <div
                           class="chart-toolbar__actions"
@@ -5808,10 +5782,6 @@
                               aria-hidden="true"
                             ></span>
                           </button>
-
-                          <!-- =======================================================
-                 Export
-                 ======================================================= -->
 
                           <div class="chart-export">
                             <button
@@ -5834,7 +5804,7 @@
                               id="main-market-export-menu"
                               class="chart-export-menu"
                               role="menu"
-                              aria-label="Export chart"
+                              aria-labelledby="main-market-export-trigger"
                               hidden
                             >
                               <li role="none">
@@ -5859,7 +5829,7 @@
                                   data-export-action="print"
                                 >
                                   <span
-                                    class="has-icon icon-file-download"
+                                    class="has-icon icon-print"
                                     aria-hidden="true"
                                   ></span>
 
@@ -5907,10 +5877,6 @@
                       </div>
                     </div>
                   </header>
-
-                  <!-- ===============================================================
-         Chart Viewport
-         =============================================================== -->
 
                   <div class="performance-chart__body">
                     <div class="chart-surface" data-chart-viewport>
@@ -9087,309 +9053,400 @@
 
       const CHART_SELECTOR = "#main-market-chart";
 
-      const TEST_LIVE_INTERVAL = 5_000;
+      const TIME_ZONE = "Asia/Riyadh";
+
+      const LIVE_INTERVAL = 5_000;
+
+      const LIVE_WINDOW_DURATION = 10 * 60 * 1_000;
+
+      const CANDLE_BUCKET_SIZE = 60 * 1_000;
 
       const DAY_MS = 24 * 60 * 60 * 1_000;
 
-      const mainMarketData = {
+      const MARKET = Object.freeze({
         symbol: "TASI",
 
         name: "Tadawul All Share Index",
 
         currency: "SAR",
 
-        /*
-         * Baseline for the first intraday tooltip point.
-         */
-
         previousClose: 10_838.1,
-
-        ranges: {},
-      };
+      });
 
       /* ======================================================================
-       Data Helpers
+       Number Helpers
        ====================================================================== */
 
       function roundPrice(value) {
-        return Math.round(value * 100) / 100;
+        return Math.round(Number(value) * 100) / 100;
       }
 
       function clonePoints(points) {
         return points.map((point) => [...point]);
       }
 
-      function createTrend({
+      /* ======================================================================
+       Riyadh Date Helpers
+       ====================================================================== */
+
+      function getRiyadhDateParts(date = new Date()) {
+        const formatter = new Intl.DateTimeFormat("en-CA", {
+          timeZone: TIME_ZONE,
+
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
+
+        const parts = Object.fromEntries(
+          formatter
+            .formatToParts(date)
+            .filter((part) => part.type !== "literal")
+            .map((part) => [part.type, Number(part.value)]),
+        );
+
+        return {
+          year: parts.year,
+          month: parts.month,
+          day: parts.day,
+        };
+      }
+
+      /*
+       * Riyadh remains UTC+03:00 throughout the year.
+       */
+      function createRiyadhTimestamp(
+        { year, month, day },
+        hour = 0,
+        minute = 0,
+        second = 0,
+      ) {
+        return Date.UTC(
+          year,
+          month - 1,
+          day,
+
+          hour - 3,
+          minute,
+          second,
+        );
+      }
+
+      const RIYADH_TODAY = getRiyadhDateParts();
+
+      const TODAY_START = createRiyadhTimestamp(RIYADH_TODAY);
+
+      const SESSION_START = createRiyadhTimestamp(RIYADH_TODAY, 10, 0, 0);
+
+      /* ======================================================================
+       Deterministic Dummy Data
+       ====================================================================== */
+
+      function createRandomGenerator(seed) {
+        let state = seed >>> 0;
+
+        return () => {
+          state = (state * 1_664_525 + 1_013_904_223) >>> 0;
+
+          return state / 4_294_967_296;
+        };
+      }
+
+      function createTrendRange({
         start,
         count,
         interval,
+
         initialValue,
-        movements,
+
+        drift = 0,
+        volatility = 1,
+
+        seed = 1,
       }) {
-        const result = [];
+        const random = createRandomGenerator(seed);
+
+        const points = [];
 
         let value = initialValue;
 
         for (let index = 0; index < count; index += 1) {
           if (index > 0) {
-            value = roundPrice(
-              value + movements[(index - 1) % movements.length],
+            const noise = (random() - 0.5) * 2 * volatility;
+
+            const wave = Math.sin(index * 0.72) * volatility * 0.22;
+
+            value = Math.max(
+              1,
+
+              roundPrice(value + drift + noise + wave),
             );
           }
 
-          result.push([start + index * interval, value]);
+          points.push([start + index * interval, roundPrice(value)]);
         }
 
-        return result;
+        return points;
       }
 
-      function createCandlesticks(trend, previousClose) {
+      function createCandlesticks(trend, comparisonValue = null) {
         return trend.map(([timestamp, close], index) => {
           const open =
-            index === 0 ? (previousClose ?? close) : trend[index - 1][1];
+            index === 0 ? (comparisonValue ?? close) : trend[index - 1][1];
 
-          const volatility = Math.max(1, Math.abs(close - open));
+          const body = Math.abs(close - open);
+
+          const volatility = Math.max(
+            body,
+
+            Math.abs(close) * 0.0012,
+          );
 
           const high = roundPrice(
-            Math.max(open, close) + volatility * 0.42 + (index % 3) * 0.35,
+            Math.max(open, close) + volatility * (0.35 + (index % 4) * 0.08),
           );
 
           const low = roundPrice(
-            Math.min(open, close) - volatility * 0.38 - (index % 4) * 0.28,
+            Math.min(open, close) - volatility * (0.32 + (index % 3) * 0.09),
           );
 
           return [timestamp, roundPrice(open), high, low, roundPrice(close)];
         });
       }
 
-      function createRange(options, previousClose = null) {
-        const trend = createTrend(options);
+      function createRange(options, comparisonValue) {
+        const trend = createTrendRange(options);
 
         return {
+          comparisonValue: roundPrice(comparisonValue),
+
           trend,
 
           line: clonePoints(trend),
 
-          candlestick: createCandlesticks(trend, previousClose),
+          candlestick: createCandlesticks(trend, comparisonValue),
         };
       }
 
       /* ======================================================================
-       Intraday — Up
+       Market Ranges
        ====================================================================== */
 
-      mainMarketData.ranges["1D"] = createRange(
-        {
-          /*
-           * 01 January 2026, 10:00 Riyadh.
-           */
+      const ranges = {
+        /*
+         * Intraday starts empty. The first live point is inserted at 10:00:00.
+         */
+        "1D": {
+          comparisonValue: MARKET.previousClose,
 
-          start: Date.UTC(2026, 0, 1, 7, 0),
-
-          count: 21,
-
-          interval: 15 * 60 * 1_000,
-
-          initialValue: 10_842.31,
-
-          movements: [
-            5.31, -8.44, 16.26, 5.79, -3.32, 12.51, -3.58, 7.31, 7.47, -4.19,
-            9.36, -6.25, 11.82, 5.14, -2.67, 8.43, -3.18, 9.25, 4.62, 6.19,
-          ],
+          trend: [],
+          line: [],
+          candlestick: [],
         },
 
-        mainMarketData.previousClose,
-      );
+        "1W": createRange(
+          {
+            start: TODAY_START - 6 * DAY_MS,
+
+            count: 7,
+
+            interval: DAY_MS,
+
+            initialValue: 10_760,
+
+            drift: 18,
+
+            volatility: 34,
+
+            seed: 101,
+          },
+
+          /*
+           * Close immediately before the one-week period.
+           */
+          10_741.25,
+        ),
+
+        "1M": createRange(
+          {
+            start: TODAY_START - 30 * DAY_MS,
+
+            count: 31,
+
+            interval: DAY_MS,
+
+            initialValue: 11_190,
+
+            drift: -8,
+
+            volatility: 43,
+
+            seed: 202,
+          },
+
+          11_213.7,
+        ),
+
+        "3M": createRange(
+          {
+            start: TODAY_START - 13 * 7 * DAY_MS,
+
+            count: 14,
+
+            interval: 7 * DAY_MS,
+
+            initialValue: 10_260,
+
+            drift: 46,
+
+            volatility: 82,
+
+            seed: 303,
+          },
+
+          10_218.45,
+        ),
+
+        "6M": createRange(
+          {
+            start: TODAY_START - 13 * 14 * DAY_MS,
+
+            count: 14,
+
+            interval: 14 * DAY_MS,
+
+            initialValue: 11_720,
+
+            drift: -42,
+
+            volatility: 105,
+
+            seed: 404,
+          },
+
+          11_762.8,
+        ),
+
+        "1Y": createRange(
+          {
+            start: TODAY_START - 12 * 30 * DAY_MS,
+
+            count: 13,
+
+            interval: 30 * DAY_MS,
+
+            initialValue: 9_980,
+
+            drift: 115,
+
+            volatility: 146,
+
+            seed: 505,
+          },
+
+          9_891.35,
+        ),
+
+        "5Y": createRange(
+          {
+            start: TODAY_START - 20 * 91 * DAY_MS,
+
+            count: 21,
+
+            interval: 91 * DAY_MS,
+
+            initialValue: 8_720,
+
+            drift: 174,
+
+            volatility: 265,
+
+            seed: 606,
+          },
+
+          8_605.4,
+        ),
+
+        ALL: createRange(
+          {
+            start: TODAY_START - 20 * 365 * DAY_MS,
+
+            count: 21,
+
+            interval: 365 * DAY_MS,
+
+            initialValue: 18_150,
+
+            drift: -318,
+
+            volatility: 735,
+
+            seed: 707,
+          },
+
+          18_445.6,
+        ),
+      };
 
       /* ======================================================================
-       One Week — Up
+       Live Dummy Feed
        ====================================================================== */
 
-      mainMarketData.ranges["1W"] = createRange({
-        start: Date.UTC(2025, 11, 25),
-
-        count: 8,
-        interval: DAY_MS,
-
-        initialValue: 10_792.45,
-
-        movements: [21.77, -12.55, 34.81, 15.71, 16.35, 13.08, -5.42],
-      });
-
-      /* ======================================================================
-       One Month — Down
-       ====================================================================== */
-
-      mainMarketData.ranges["1M"] = createRange({
-        start: Date.UTC(2025, 11, 1),
-
-        count: 12,
-
-        interval: 3 * DAY_MS,
-
-        initialValue: 11_312.44,
-
-        movements: [
-          -74.2, -95.8, 38.6, -61.4, 42.7, -88.3, 31.5, -73.9, 24.6, -90.2,
-          -52.4,
-        ],
-      });
-
-      /* ======================================================================
-       Three Months — Up
-       ====================================================================== */
-
-      mainMarketData.ranges["3M"] = createRange({
-        start: Date.UTC(2025, 9, 1),
-
-        count: 14,
-
-        interval: 7 * DAY_MS,
-
-        initialValue: 10_215.62,
-
-        movements: [
-          88.4, -43.2, 126.8, 74.5, -52.1, 119.3, -31.7, 95.6, 67.2, -40.8,
-          108.5, 54.1, -22.3,
-        ],
-      });
-
-      /* ======================================================================
-       Six Months — Down
-       ====================================================================== */
-
-      mainMarketData.ranges["6M"] = createRange({
-        start: Date.UTC(2025, 6, 1),
-
-        count: 14,
-
-        interval: 14 * DAY_MS,
-
-        initialValue: 11_684.25,
-
-        movements: [
-          -142.5, 67.8, -188.4, 92.6, -153.1, 48.7, -126.9, 79.3, -171.6, 55.2,
-          -139.8, 31.4, -84.7,
-        ],
-      });
-
-      /* ======================================================================
-       One Year — Up
-       ====================================================================== */
-
-      mainMarketData.ranges["1Y"] = createRange({
-        start: Date.UTC(2025, 0, 1),
-
-        count: 13,
-
-        interval: 30 * DAY_MS,
-
-        initialValue: 9_985.4,
-
-        movements: [
-          164.8, -92.4, 218.6, 133.7, -106.2, 241.5, -74.8, 186.3, 95.2, -81.6,
-          202.7, 110.4,
-        ],
-      });
-
-      /* ======================================================================
-       Five Years — Up
-       ====================================================================== */
-
-      mainMarketData.ranges["5Y"] = createRange({
-        start: Date.UTC(2021, 0, 1),
-
-        count: 21,
-
-        interval: 91 * DAY_MS,
-
-        initialValue: 8_742.8,
-
-        movements: [
-          386.4, -174.2, 512.7, 238.5, -296.3, 448.6, -121.4, 392.8, 176.9,
-          -208.5, 354.2, 129.7, -165.8, 421.3, -142.6, 276.9, 188.4, -97.5,
-          243.8, 114.2,
-        ],
-      });
-
-      /* ======================================================================
-       Full History — Down
-       ====================================================================== */
-
-      mainMarketData.ranges.ALL = createRange({
-        start: Date.UTC(2006, 0, 1),
-
-        count: 21,
-
-        interval: 365 * DAY_MS,
-
-        initialValue: 18_150,
-
-        /*
-         * Overall decline ensures both main chart and Navigator become red.
-         */
-
-        movements: [
-          -780, -1_260, -1_540, -630, 420, 680, -310, -1_180, -1_420, -610, 740,
-          510, -830, -1_130, 620, 710, -540, -1_280, 760, 480,
-        ],
-      });
-
-      /* ======================================================================
-       Development Live Feed
-       ====================================================================== */
-
-      const intraday = mainMarketData.ranges["1D"];
-
-      const LIVE_WINDOW_DURATION =
-        intraday.trend.at(-1)[0] - intraday.trend[0][0];
+      const liveRandom = createRandomGenerator(8_080_826);
 
       const liveState = {
-        timestamp: intraday.trend.at(-1)[0],
+        /*
+         * The first generated timestamp becomes exactly 10:00:00.
+         */
+        timestamp: SESSION_START - LIVE_INTERVAL,
 
-        price: intraday.trend.at(-1)[1],
+        price: MARKET.previousClose,
 
         sequence: 0,
       };
 
-      const liveMovements = [
-        1.18, 0.74, -0.92, 1.36, -0.48, 0.86, -1.21, 1.54, 0.39, -0.69,
-      ];
+      function createDummyLivePoint() {
+        const sequence = liveState.sequence + 1;
 
-      function createLivePoint(mode) {
-        const movement =
-          liveMovements[liveState.sequence % liveMovements.length];
+        const timestamp = liveState.timestamp + LIVE_INTERVAL;
 
-        const timestamp = liveState.timestamp + TEST_LIVE_INTERVAL;
+        /*
+         * The target oscillates above and below the official previous close.
+         *
+         * This makes semantic direction testing explicit:
+         *
+         * latest > previous close → green
+         * latest < previous close → red
+         */
+        const targetOffset =
+          Math.sin(sequence * 0.18) * 7.5 + Math.sin(sequence * 0.047) * 2.75;
 
-        const open = liveState.price;
+        const targetPrice = MARKET.previousClose + targetOffset;
 
-        const close = roundPrice(open + movement);
+        const meanReversion = (targetPrice - liveState.price) * 0.34;
 
-        let point;
+        const microMovement = Math.sin(sequence * 0.71) * 0.42;
 
-        if (mode === "candlestick") {
-          const volatility = Math.max(0.75, Math.abs(close - open));
+        const noise = (liveRandom() - 0.5) * 0.72;
 
-          point = [
-            timestamp,
-            open,
+        const impulse =
+          sequence % 29 === 0 ? (liveRandom() > 0.5 ? 1.35 : -1.35) : 0;
 
-            roundPrice(Math.max(open, close) + volatility * 0.45),
+        const price = roundPrice(
+          Math.max(
+            1,
 
-            roundPrice(Math.min(open, close) - volatility * 0.4),
-
-            close,
-          ];
-        } else {
-          point = [timestamp, close];
-        }
+            liveState.price + meanReversion + microMovement + noise + impulse,
+          ),
+        );
 
         liveState.timestamp = timestamp;
-        liveState.price = close;
-        liveState.sequence += 1;
 
-        return point;
+        liveState.price = price;
+
+        liveState.sequence = sequence;
+
+        return [timestamp, price];
       }
 
       /* ======================================================================
@@ -9404,7 +9461,7 @@
         const wrapper = document.createElement("div");
 
         wrapper.className =
-          "market-chart__message market-chart__message--error";
+          "market-chart__message " + "market-chart__message--error";
 
         wrapper.setAttribute("role", "alert");
 
@@ -9415,6 +9472,7 @@
         text.textContent = message;
 
         wrapper.append(text);
+
         chartElement.append(wrapper);
 
         chartSection?.setAttribute("aria-busy", "false");
@@ -9428,51 +9486,88 @@
         return {
           context: "performance",
 
-          symbol: mainMarketData.symbol,
+          symbol: MARKET.symbol,
 
-          name: mainMarketData.name,
+          name: MARKET.name,
 
-          currency: mainMarketData.currency,
+          currency: MARKET.currency,
 
-          previousClose: mainMarketData.previousClose,
+          /*
+           * Global fallback used only when the intraday range does not provide
+           * its own comparisonValue.
+           */
+          previousClose: MARKET.previousClose,
+
+          range: "1D",
 
           mode: "trend",
-          range: "1D",
+
+          ranges,
+
+          capabilities: {
+            intraday: true,
+
+            historical: true,
+
+            live: true,
+
+            navigator: true,
+
+            intradayRange: "1D",
+          },
 
           language: document.documentElement.lang || "en",
 
-          timeZone: "Asia/Riyadh",
+          timeZone: TIME_ZONE,
 
           decimals: 2,
-          maxPoints: 500,
 
-          xAxisTitle: null,
-          yAxisTitle: null,
+          maxPoints: 1_000,
+
+          candleBucketSize: CANDLE_BUCKET_SIZE,
+
+          animation: {
+            duration: 420,
+          },
+
+          transition: {
+            rapidThreshold: 220,
+          },
 
           axis: {
             x: {
               title: {
                 "1D": "Time",
+
                 default: "Date",
               },
 
               rotation: {
                 "1D": 0,
+
                 "1W": -20,
+
                 "1M": -25,
+
                 "3M": -30,
+
                 "6M": -30,
+
                 "1Y": -35,
+
                 "5Y": -35,
+
                 ALL: -35,
               },
 
               labels: true,
 
               showFirstLabel: true,
+
               showLastLabel: true,
 
               minPadding: 0,
+
               maxPadding: 0,
             },
 
@@ -9480,15 +9575,18 @@
               title: "Index Value",
 
               opposite: true,
+
               labels: true,
 
               includeBoundaryTicks: true,
 
               minPadding: 0.04,
+
               maxPadding: 0.06,
 
               format: {
                 decimals: 0,
+
                 useGrouping: true,
               },
             },
@@ -9497,32 +9595,41 @@
           dateFormats: {
             "1D": {
               hour: "2-digit",
+
               minute: "2-digit",
+
+              second: "2-digit",
+
               hourCycle: "h23",
             },
 
             "1W": {
               weekday: "short",
+
               day: "2-digit",
             },
 
             "1M": {
               day: "2-digit",
+
               month: "short",
             },
 
             "3M": {
               day: "2-digit",
+
               month: "short",
             },
 
             "6M": {
               month: "short",
+
               year: "2-digit",
             },
 
             "1Y": {
               month: "short",
+
               year: "numeric",
             },
 
@@ -9538,11 +9645,15 @@
           tooltipDateFormats: {
             "1D": {
               day: "2-digit",
+
               month: "short",
+
               year: "numeric",
 
               hour: "2-digit",
+
               minute: "2-digit",
+
               second: "2-digit",
 
               hourCycle: "h23",
@@ -9550,12 +9661,12 @@
 
             default: {
               day: "2-digit",
+
               month: "short",
+
               year: "numeric",
             },
           },
-
-          ranges: mainMarketData.ranges,
 
           navigatorEnabled: true,
 
@@ -9563,14 +9674,17 @@
             enabled: true,
 
             labels: true,
+
             labelsInside: true,
 
             insideLabelOffset: -7,
 
             height: 38,
+
             margin: 10,
 
             handleWidth: 7,
+
             handleHeight: 20,
 
             tickPixelInterval: 108,
@@ -9579,11 +9693,26 @@
 
             synchronizeRange: true,
 
+            /*
+             * Navigator color intensity is now supplied by theme tokens.
+             */
+            liveWindowDuration: LIVE_WINDOW_DURATION,
+
             formats: {
               "1D": {
                 hour: "2-digit",
+
                 minute: "2-digit",
+
+                second: "2-digit",
+
                 hourCycle: "h23",
+              },
+
+              default: {
+                month: "short",
+
+                year: "2-digit",
               },
 
               ALL: {
@@ -9606,6 +9735,10 @@
             exportMenu: ".chart-export-menu",
           },
 
+          exporting: {
+            filename: "TASI-market-performance",
+          },
+
           followLive: true,
 
           liveWindowDuration: LIVE_WINDOW_DURATION,
@@ -9613,18 +9746,23 @@
           live: {
             enabled: true,
 
-            interval: TEST_LIVE_INTERVAL,
+            interval: LIVE_INTERVAL,
+
+            immediate: true,
 
             alignToInterval: false,
-            immediate: false,
+
+            pauseWhenHidden: true,
 
             retry: true,
+
             maxRetryDelay: 30_000,
+
             requestTimeout: 4_000,
 
             autostart: true,
 
-            async fetchPoint({ signal, range, mode }) {
+            async fetchPoint({ signal }) {
               if (signal?.aborted) {
                 throw (
                   signal.reason ||
@@ -9636,22 +9774,19 @@
               }
 
               /*
-               * Historical ranges remain static.
+               * Replace this with the real endpoint request later.
+               *
+               * Normalized return contract:
+               * [timestamp, price]
                */
-
-              if (range !== "1D") {
-                return null;
-              }
-
-              return createLivePoint(mode);
+              return createDummyLivePoint();
             },
           },
 
           accessibilityDescription:
-            "Live Main Market performance with selectable ranges and chart types.",
+            "Live Main Market performance chart with selectable time ranges and chart types.",
 
-          emptyMessage:
-            "Main Market performance data is currently unavailable.",
+          emptyMessage: "Waiting for the first live Main Market update.",
 
           errorMessage: "Main Market performance could not be loaded.",
         };
@@ -9663,9 +9798,11 @@
 
       let initializationStarted = false;
 
+      let mainMarketController = null;
+
       function initializeMainMarketChart(chartAPI = window.SEMarketCharts) {
         if (initializationStarted) {
-          return null;
+          return mainMarketController;
         }
 
         const chartElement = document.querySelector(CHART_SELECTOR);
@@ -9676,9 +9813,9 @@
 
         initializationStarted = true;
 
-        const chartSection = chartElement.closest(".performance-chart");
+        const chartSection = chartElement.closest("[data-performance-chart]");
 
-        if (!chartAPI) {
+        if (!chartAPI || typeof chartAPI.create !== "function") {
           initializationStarted = false;
 
           renderChartError(
@@ -9687,45 +9824,44 @@
             "Main Market performance could not be loaded.",
           );
 
-          console.error(
-            "Main Market chart could not initialize because SEMarketCharts is unavailable.",
-          );
+          console.error("SEMarketCharts is unavailable.");
 
           return null;
         }
 
-        chartSection?.marketChartController?.destroy();
-
         chartSection?.setAttribute("aria-busy", "true");
 
         try {
-          const controller = chartAPI.create(
+          chartAPI.destroy?.(chartElement);
+
+          mainMarketController = chartAPI.create(
             chartElement,
 
             createChartConfiguration(chartSection),
           );
 
-          if (!controller) {
+          if (!mainMarketController) {
             throw new Error(
-              "The Main Market Chart controller was not created.",
+              "The Main Market chart controller was not created.",
             );
+          }
+
+          if (chartSection) {
+            chartSection.marketChartController = mainMarketController;
           }
 
           chartSection?.setAttribute("aria-busy", "false");
 
-          if (chartSection) {
-            chartSection.marketChartController = controller;
-          }
-
           /*
-           * Development reference for regression testing.
+           * Development reference for console testing.
            */
+          window.mainMarketChart = mainMarketController;
 
-          window.mainMarketChart = controller;
-
-          return controller;
+          return mainMarketController;
         } catch (error) {
           initializationStarted = false;
+
+          mainMarketController = null;
 
           console.error("Main Market chart initialization failed.", error);
 
@@ -9740,7 +9876,7 @@
       }
 
       /* ======================================================================
-       Readiness
+       API Readiness
        ====================================================================== */
 
       if (window.SEMarketCharts) {
@@ -9748,16 +9884,40 @@
       } else {
         window.addEventListener(
           "semarketchartsready",
+
           (event) => {
             initializeMainMarketChart(
-              event?.detail?.api || window.SEMarketCharts,
+              event.detail?.api || window.SEMarketCharts,
             );
           },
+
           {
             once: true,
           },
         );
       }
+
+      /* ======================================================================
+       Cleanup
+       ====================================================================== */
+
+      window.addEventListener(
+        "pagehide",
+
+        () => {
+          mainMarketController?.destroy?.();
+
+          mainMarketController = null;
+
+          initializationStarted = false;
+
+          delete window.mainMarketChart;
+        },
+
+        {
+          once: true,
+        },
+      );
     })();
   </script>
   <!--

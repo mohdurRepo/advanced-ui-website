@@ -325,6 +325,19 @@
     text-align: center;
   }
 }
+/* Add these declarations to the existing .market-card token block. */
+.market-card {
+  --market-card-active-divider: var(
+    --market-overview-border-strong,
+    rgb(255 255 255 / 0.42)
+  );
+}
+
+/* Replace the existing active-divider rule with this rule. */
+.market-card.is-active .market-card__divider,
+.market-card[aria-selected="true"] .market-card__divider {
+  background: var(--market-card-active-divider);
+}
 
 /* ==========================================================================
    RTL

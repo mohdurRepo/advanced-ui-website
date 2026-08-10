@@ -1,0 +1,621 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Data View Cards
+   ========================================================================== */
+
+/*
+ * Generic mobile data presentation.
+ *
+ * Supports:
+ *
+ * - grouped and non-grouped datasets
+ * - compact record summary
+ * - identity + primary value
+ * - expandable details
+ * - inline-end expansion rail
+ * - RTL
+ * - dark theme through semantic tokens
+ * - high contrast
+ * - reduced motion
+ *
+ * The component does not know what the data means.
+ */
+
+/* ==========================================================================
+   Card Collection
+   ========================================================================== */
+
+.data-view__cards-inner {
+  display: flex;
+  flex-direction: column;
+
+  gap: ds.space(3);
+
+  padding: ds.space(3);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Optional Group
+   ========================================================================== */
+
+/*
+ * Grouping is optional.
+ *
+ * Grouped pages:
+ *
+ * .data-card-group
+ *   .data-card-group__title
+ *   .data-card-group__items
+ *
+ * Non-grouped pages can render .data-card directly inside
+ * .data-view__cards-inner.
+ */
+
+.data-card-group {
+  display: flex;
+  flex-direction: column;
+
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Group Title
+   ========================================================================== */
+
+.data-card-group__title {
+  margin: 0;
+
+  padding-block: ds.space(2);
+  padding-inline: ds.space(3);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface-alt);
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Group Items
+   ========================================================================== */
+
+.data-card-group__items {
+  display: flex;
+  flex-direction: column;
+
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Data Card
+   ========================================================================== */
+
+.data-card {
+  --data-card-bg: var(--color-surface);
+  --data-card-border-color: var(--color-border);
+
+  --data-card-padding-block: #{ds.space(3)};
+  --data-card-padding-inline: #{ds.space(3)};
+
+  --data-card-toggle-width: 3rem;
+
+  position: relative;
+  isolation: isolate;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  border: 1px solid var(--data-card-border-color);
+  border-radius: var(--radius-lg);
+
+  background: var(--data-card-bg);
+  color: var(--color-text);
+}
+
+/* ==========================================================================
+   Main Summary
+   ========================================================================== */
+
+/*
+ * Main record is intentionally compact:
+ *
+ * identity ---------------- primary value
+ * secondary identity ------ secondary value
+ *
+ * The expansion rail occupies the inline-end edge.
+ */
+
+.data-card__main {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+
+  padding-block: var(--data-card-padding-block);
+
+  padding-inline-start: var(--data-card-padding-inline);
+
+  padding-inline-end: calc(
+    var(--data-card-toggle-width) + var(--data-card-padding-inline)
+  );
+}
+
+/* ==========================================================================
+   Identity
+   ========================================================================== */
+
+.data-card__identity {
+  display: flex;
+  align-items: center;
+
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Favorite
+   ========================================================================== */
+
+.data-card__favorite {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+
+  inline-size: 2rem;
+  block-size: 2rem;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: var(--radius-pill);
+
+  background: transparent;
+  color: var(--color-text-muted);
+
+  cursor: pointer;
+
+  @include ds.transition((background-color, color, transform), "fast");
+}
+
+.data-card__favorite:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+}
+
+.data-card__favorite:focus-visible {
+  @include ds.focus-ring;
+}
+
+.data-card__favorite:active {
+  transform: scale(0.94);
+}
+
+.data-card__favorite[aria-pressed="true"] {
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Logo
+   ========================================================================== */
+
+.data-card__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+
+  overflow: hidden;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface-alt);
+}
+
+.data-card__logo img {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  object-fit: contain;
+}
+
+/* ==========================================================================
+   Identity Content
+   ========================================================================== */
+
+.data-card__identity-content {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.1875rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Symbol
+   ========================================================================== */
+
+.data-card__symbol {
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("semibold");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Company / Primary Label
+   ========================================================================== */
+
+.data-card__title {
+  margin: 0;
+
+  max-inline-size: 12rem;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-base);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  @include ds.truncate;
+}
+
+/* ==========================================================================
+   Primary Quote
+   ========================================================================== */
+
+.data-card__quote {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+
+  gap: ds.space(1);
+
+  min-inline-size: 5rem;
+
+  text-align: end;
+}
+
+/* ==========================================================================
+   Primary Value
+   ========================================================================== */
+
+.data-card__price {
+  color: var(--color-heading);
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Secondary Value
+   ========================================================================== */
+
+.data-card__change {
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("semibold");
+  line-height: var(--line-height-tight);
+
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Expand Rail
+   ========================================================================== */
+
+/*
+ * Occupies only the narrow inline-end edge.
+ *
+ * This saves an entire footer row compared with a full-width
+ * "More details" button.
+ */
+
+.data-card__toggle {
+  position: absolute;
+
+  inset-block: 0;
+  inset-inline-end: 0;
+
+  z-index: 3;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: var(--data-card-toggle-width);
+
+  padding: 0;
+
+  border: 0;
+  border-inline-start: 1px solid var(--color-border);
+
+  background: var(--color-surface-alt);
+  color: var(--color-heading);
+
+  cursor: pointer;
+
+  @include ds.transition((background-color, color), "fast");
+}
+
+.data-card__toggle:hover {
+  background: var(--color-bg);
+  color: var(--color-primary);
+}
+
+.data-card__toggle:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Toggle Icon
+   ========================================================================== */
+
+.data-card__toggle .has-icon {
+  transition: transform var(--transition-fast);
+}
+
+.data-card__toggle[aria-expanded="true"] .has-icon {
+  transform: rotate(180deg);
+}
+
+/* ==========================================================================
+   Accessible Toggle Label
+   ========================================================================== */
+
+/*
+ * Visual label is unnecessary because the rail communicates expansion
+ * through its chevron.
+ *
+ * The label remains available to assistive technology.
+ */
+
+.data-card__toggle-label {
+  position: absolute;
+
+  inline-size: 1px;
+  block-size: 1px;
+
+  overflow: hidden;
+
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Details
+   ========================================================================== */
+
+.data-card__details {
+  padding-block: var(--data-card-padding-block);
+
+  padding-inline-start: var(--data-card-padding-inline);
+
+  padding-inline-end: calc(
+    var(--data-card-toggle-width) + var(--data-card-padding-inline)
+  );
+
+  border-block-start: 1px solid var(--color-border);
+
+  background: var(--color-surface-alt);
+}
+
+/* ==========================================================================
+   Hidden Details
+   ========================================================================== */
+
+.data-card__details[hidden] {
+  display: none;
+}
+
+/* ==========================================================================
+   Detail Fields
+   ========================================================================== */
+
+.data-card__fields {
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: ds.space(3) ds.space(4);
+
+  margin: 0;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Field
+   ========================================================================== */
+
+.data-card__field {
+  min-inline-size: 0;
+}
+
+.data-card__field--full {
+  grid-column: 1 / -1;
+}
+
+/* ==========================================================================
+   Field Label
+   ========================================================================== */
+
+.data-card__label {
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("regular");
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Field Value
+   ========================================================================== */
+
+.data-card__value {
+  margin-block-start: ds.space(1);
+  margin-inline: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("semibold");
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Numeric Field
+   ========================================================================== */
+
+.data-card__value--numeric {
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Expanded State
+   ========================================================================== */
+
+.data-card.is-expanded,
+.data-card:has(.data-card__toggle[aria-expanded="true"]) {
+  border-color: var(--color-border-strong);
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.data-card--compact {
+  --data-card-padding-block: #{ds.space(2)};
+  --data-card-padding-inline: #{ds.space(3)};
+  --data-card-toggle-width: 2.75rem;
+}
+
+/* ==========================================================================
+   Very Small Screens
+   ========================================================================== */
+
+@media (max-width: 24rem) {
+  .data-card {
+    --data-card-padding-inline: #{ds.space(2)};
+    --data-card-toggle-width: 2.75rem;
+  }
+
+  .data-card__identity {
+    gap: ds.space(1);
+  }
+
+  .data-card__logo {
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+  }
+
+  .data-card__title {
+    max-inline-size: 8.5rem;
+  }
+
+  .data-card__fields {
+    gap: ds.space(3) ds.space(2);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .data-card,
+  .data-card-group__title {
+    border-width: 2px;
+    border-color: var(--color-border-strong);
+  }
+
+  .data-card__logo {
+    border-width: 2px;
+    border-color: currentColor;
+  }
+
+  .data-card__favorite {
+    color: currentColor;
+  }
+
+  .data-card__favorite[aria-pressed="true"] {
+    outline: 2px solid currentColor;
+  }
+
+  .data-card__toggle {
+    border-inline-start-width: 2px;
+    border-inline-start-color: currentColor;
+
+    background: var(--color-surface);
+    color: currentColor;
+  }
+
+  .data-card__details {
+    border-block-start-width: 2px;
+    border-block-start-color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .data-card__favorite,
+  .data-card__toggle,
+  .data-card__toggle .has-icon {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .data-card__favorite,
+  .data-card__toggle,
+  .data-card__toggle .has-icon {
+    transition: none;
+  }
+}

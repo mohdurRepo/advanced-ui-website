@@ -1,10 +1,16 @@
 <!doctype html>
+
 <html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Buttons | Abu Faisal Design System</title>
-    <link rel="stylesheet" href="/src/scss/main.scss" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Design System — Tables</title>
+
+    <!-- ================================================================
+         Initial Preferences
+         ================================================================ -->
 
     <script>
       (function () {
@@ -37,1222 +43,1557 @@
         root.setAttribute("data-motion", motion);
       })();
     </script>
-    <script type="module" src="/src/js/main.js"></script>
+
+    <!-- ================================================================
+         DataTables CSS
+         ================================================================ -->
+
+    <!-- DataTables Core -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/2.3.8/css/dataTables.dataTables.min.css"
+    />
+    <!-- DataTables: FixedHeader -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/fixedheader/4.0.6/css/fixedHeader.dataTables.min.css"
+    />
+
+    <!-- DataTables: FixedColumns -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/fixedcolumns/5.0.5/css/fixedColumns.dataTables.min.css"
+    />
+
+    <!-- DataTables: RowGroup -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/rowgroup/1.6.0/css/rowGroup.dataTables.min.css"
+    />
+
+    <!-- ================================================================
+         Design System
+         ================================================================ -->
+
+    <link rel="stylesheet" href="/src/scss/main.scss" />
   </head>
-  <header class="site-header" data-site-header>
-    <div class="site-header__inner container">
-      <a class="site-header__brand" href="/" aria-label="Homepage">
-        <img
-          class="site-header__logo"
-          src="assets/images/se-logo-dark.png"
-          alt="Site Logo"
-        />
-      </a>
 
-      <nav class="site-nav" aria-label="Main navigation">
-        <ul class="site-nav__list">
-          <li class="site-nav__item has-mega-menu">
-            <button
-              class="site-nav__trigger"
-              type="button"
-              aria-expanded="false"
-              aria-controls="mega-market"
-            >
-              <span class="site-nav__trigger-text">Our Market</span>
-              <span
-                class="has-icon icon-chevron site-nav__trigger-icon"
-                aria-hidden="true"
-              ></span>
-            </button>
-
-            <div class="mega-menu" id="mega-market">
-              <div class="mega-menu__container">
-                <div class="mega-menu__rail">
-                  <div
-                    class="mega-menu-nav"
-                    role="tablist"
-                    aria-label="Our Market categories"
-                  >
-                    <div class="mega-menu-nav__title">Categories</div>
-
-                    <button
-                      class="mega-menu-nav__item is-active"
-                      type="button"
-                      role="tab"
-                      aria-selected="true"
-                      aria-controls="mega-panel-main-market"
-                    >
-                      <span
-                        class="has-icon icon-home mega-menu-nav__icon"
-                        aria-hidden="true"
-                      ></span>
-                      <span class="mega-menu-nav__body">
-                        <span class="mega-menu-nav__heading">Main Market</span>
-                        <span class="mega-menu-nav__text"
-                          >Prices, indices, and trading tools</span
-                        >
-                      </span>
-                      <span
-                        class="has-icon icon-chevron mega-menu-nav__arrow"
-                        aria-hidden="true"
-                      ></span>
-                    </button>
-
-                    <button
-                      class="mega-menu-nav__item"
-                      type="button"
-                      role="tab"
-                      aria-selected="false"
-                      tabindex="-1"
-                      aria-controls="mega-panel-products"
-                    >
-                      <span
-                        class="has-icon icon-check mega-menu-nav__icon"
-                        aria-hidden="true"
-                      ></span>
-                      <span class="mega-menu-nav__body">
-                        <span class="mega-menu-nav__heading">Products</span>
-                        <span class="mega-menu-nav__text"
-                          >ETFs, REITs, sukuk, and funds</span
-                        >
-                      </span>
-                      <span
-                        class="has-icon icon-chevron mega-menu-nav__arrow"
-                        aria-hidden="true"
-                      ></span>
-                    </button>
-                  </div>
-                </div>
-
-                <div class="mega-menu__content">
-                  <section
-                    class="mega-menu-panel is-active"
-                    id="mega-panel-main-market"
-                    role="tabpanel"
-                  >
-                    <h2 class="mega-menu-panel__title">Main Market</h2>
-
-                    <div class="mega-menu-panel__layout">
-                      <div class="mega-menu-panel__column">
-                        <a class="mega-menu-panel__link" href="#"
-                          >Market Summary</a
-                        >
-                        <a class="mega-menu-panel__link" href="#"
-                          >Market Watch</a
-                        >
-                        <a class="mega-menu-panel__link" href="#"
-                          >Trading Calendar</a
-                        >
-
-                        <div class="mega-menu-flyout">
-                          <button
-                            class="mega-menu-flyout__trigger"
-                            type="button"
-                          >
-                            <span class="mega-menu-flyout__text">Indices</span>
-                            <span
-                              class="has-icon icon-chevron mega-menu-flyout__icon"
-                              aria-hidden="true"
-                            ></span>
-                          </button>
-
-                          <div class="mega-menu-flyout__menu">
-                            <a class="mega-menu-flyout__link" href="#">TASI</a>
-                            <a class="mega-menu-flyout__link" href="#"
-                              >Nomu Index</a
-                            >
-                            <a class="mega-menu-flyout__link" href="#"
-                              >Sector Indices</a
-                            >
-                            <a class="mega-menu-flyout__link" href="#"
-                              >MSCI Tadawul 30</a
-                            >
-                          </div>
-                        </div>
-
-                        <a class="mega-menu-panel__link" href="#"
-                          >Listed Companies</a
-                        >
-                        <a class="mega-menu-panel__link" href="#">IPO Center</a>
-                      </div>
-
-                      <div class="mega-menu-panel__column">
-                        <a class="mega-menu-panel__link" href="#"
-                          >Top Gainers</a
-                        >
-                        <a class="mega-menu-panel__link" href="#">Top Losers</a>
-                        <a class="mega-menu-panel__link" href="#"
-                          >Most Active</a
-                        >
-                        <a class="mega-menu-panel__link" href="#"
-                          >Announcements</a
-                        >
-                        <a class="mega-menu-panel__link" href="#"
-                          >Historical Data</a
-                        >
-                        <a class="mega-menu-panel__link" href="#"
-                          >Market Statistics</a
-                        >
-                      </div>
-
-                      <div class="mega-menu-panel__feature">
-                        <div class="mega-feature">
-                          <div class="mega-feature__media">
-                            <img
-                              class="mega-feature__image"
-                              src="assets/images/card-background.png"
-                              alt=""
-                              loading="lazy"
-                            />
-                          </div>
-                          <div class="mega-feature__body">
-                            <h3 class="mega-feature__title">
-                              Market Statistics
-                            </h3>
-                            <p class="mega-feature__text">
-                              Access daily snapshots and historical trading
-                              data.
-                            </p>
-                            <a class="mega-feature__link" href="#"
-                              >Explore statistics</a
-                            >
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-
-                  <section
-                    class="mega-menu-panel"
-                    id="mega-panel-products"
-                    role="tabpanel"
-                    hidden
-                  >
-                    <h2 class="mega-menu-panel__title">Products</h2>
-
-                    <div class="mega-menu-panel__layout">
-                      <div class="mega-menu-panel__column">
-                        <a class="mega-menu-panel__link" href="#">Equities</a>
-                        <a class="mega-menu-panel__link" href="#">ETFs</a>
-                        <a class="mega-menu-panel__link" href="#">REITs</a>
-                        <a class="mega-menu-panel__link" href="#">Funds</a>
-                        <a class="mega-menu-panel__link" href="#"
-                          >Sukuk & Bonds</a
-                        >
-                        <a class="mega-menu-panel__link" href="#"
-                          >Derivatives</a
-                        >
-                      </div>
-
-                      <div class="mega-menu-panel__column">
-                        <a class="mega-menu-panel__link" href="#"
-                          >Product Overview</a
-                        >
-                        <a class="mega-menu-panel__link" href="#"
-                          >Trading Services</a
-                        >
-                        <a class="mega-menu-panel__link" href="#">Clearing</a>
-                        <a class="mega-menu-panel__link" href="#">Settlement</a>
-                        <a class="mega-menu-panel__link" href="#">Fees</a>
-                        <a class="mega-menu-panel__link" href="#">Rules</a>
-                      </div>
-
-                      <div class="mega-menu-panel__feature">
-                        <div class="mega-feature">
-                          <div class="mega-feature__body">
-                            <h3 class="mega-feature__title">Product Center</h3>
-                            <p class="mega-feature__text">
-                              Learn about available investment products and
-                              services.
-                            </p>
-                            <a class="mega-feature__link" href="#"
-                              >View products</a
-                            >
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <li class="site-nav__item has-mega-menu">
-            <button
-              class="site-nav__trigger"
-              type="button"
-              aria-expanded="false"
-              aria-controls="mega-data"
-            >
-              <span class="site-nav__trigger-text">Data & Reports</span>
-              <span
-                class="has-icon icon-chevron site-nav__trigger-icon"
-                aria-hidden="true"
-              ></span>
-            </button>
-
-            <div class="mega-menu" id="mega-data">
-              <div class="mega-menu__container">
-                <div class="mega-menu__rail">
-                  <div
-                    class="mega-menu-nav"
-                    role="tablist"
-                    aria-label="Data categories"
-                  >
-                    <div class="mega-menu-nav__title">Categories</div>
-
-                    <button
-                      class="mega-menu-nav__item is-active"
-                      type="button"
-                      role="tab"
-                      aria-selected="true"
-                      aria-controls="mega-panel-reports"
-                    >
-                      <span
-                        class="has-icon icon-search mega-menu-nav__icon"
-                        aria-hidden="true"
-                      ></span>
-                      <span class="mega-menu-nav__body">
-                        <span class="mega-menu-nav__heading">Reports</span>
-                        <span class="mega-menu-nav__text"
-                          >Daily, monthly, and annual reports</span
-                        >
-                      </span>
-                      <span
-                        class="has-icon icon-chevron mega-menu-nav__arrow"
-                        aria-hidden="true"
-                      ></span>
-                    </button>
-                  </div>
-                </div>
-
-                <div class="mega-menu__content">
-                  <section
-                    class="mega-menu-panel is-active"
-                    id="mega-panel-reports"
-                    role="tabpanel"
-                  >
-                    <h2 class="mega-menu-panel__title">Reports</h2>
-
-                    <div class="mega-menu-panel__layout">
-                      <div class="mega-menu-panel__column">
-                        <a class="mega-menu-panel__link" href="#"
-                          >Daily Reports</a
-                        >
-                        <a class="mega-menu-panel__link" href="#"
-                          >Monthly Reports</a
-                        >
-                        <a class="mega-menu-panel__link" href="#"
-                          >Annual Reports</a
-                        >
-                        <a class="mega-menu-panel__link" href="#"
-                          >Financial Statements</a
-                        >
-                        <a class="mega-menu-panel__link" href="#">Statistics</a>
-                        <a class="mega-menu-panel__link" href="#">Archive</a>
-                      </div>
-
-                      <div class="mega-menu-panel__column">
-                        <a class="mega-menu-panel__link" href="#">Open Data</a>
-                        <a class="mega-menu-panel__link" href="#">Downloads</a>
-                        <a class="mega-menu-panel__link" href="#">Research</a>
-                        <a class="mega-menu-panel__link" href="#">Factsheets</a>
-                        <a class="mega-menu-panel__link" href="#"
-                          >Market Bulletins</a
-                        >
-                        <a class="mega-menu-panel__link" href="#"
-                          >Historical Files</a
-                        >
-                      </div>
-
-                      <div class="mega-menu-panel__feature">
-                        <div class="mega-feature">
-                          <div class="mega-feature__body">
-                            <h3 class="mega-feature__title">Data Library</h3>
-                            <p class="mega-feature__text">
-                              Browse downloadable market reports and datasets.
-                            </p>
-                            <a class="mega-feature__link" href="#"
-                              >Open library</a
-                            >
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <li class="site-nav__item">
-            <a class="site-nav__link" href="#"
-              ><span class="site-nav__link-text">Listings</span></a
-            >
-          </li>
-          <li class="site-nav__item">
-            <a class="site-nav__link" href="#"
-              ><span class="site-nav__link-text">Investors</span></a
-            >
-          </li>
-          <li class="site-nav__item">
-            <a class="site-nav__link" href="#"
-              ><span class="site-nav__link-text">Issuers</span></a
-            >
-          </li>
-          <li class="site-nav__item">
-            <a class="site-nav__link" href="#"
-              ><span class="site-nav__link-text">Rules</span></a
-            >
-          </li>
-          <li class="site-nav__item">
-            <a class="site-nav__link" href="#"
-              ><span class="site-nav__link-text">News</span></a
-            >
-          </li>
-          <li class="site-nav__item">
-            <a class="site-nav__link" href="#"
-              ><span class="site-nav__link-text">About</span></a
-            >
-          </li>
-        </ul>
-      </nav>
-
-      <div class="site-header__actions header-actions">
-        <div class="header-actions__desktop">
-          <button
-            class="header-action has-icon icon-theme"
-            type="button"
-            data-theme-toggle
-            aria-label="Toggle theme"
-          ></button>
-
-          <div class="header-lang" data-lang="en">
-            <span class="header-lang__label is-active">EN</span>
-            <button
-              class="header-lang__button has-icon icon-globe"
-              type="button"
-              data-lang-toggle
-              aria-label="Toggle language"
-            ></button>
-          </div>
-        </div>
-
-        <div class="header-actions__mobile">
-          <button
-            class="header-burger"
-            type="button"
-            data-mobile-nav-open
-            aria-label="Open menu"
-            aria-expanded="false"
-            aria-controls="mobile-nav"
-          >
-            <span class="header-burger__line"></span>
-            <span class="header-burger__line"></span>
-            <span class="header-burger__line"></span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <div
-    class="mobile-nav-overlay"
-    data-mobile-nav-overlay
-    aria-hidden="true"
-  ></div>
-
-  <aside
-    class="mobile-nav"
-    id="mobile-nav"
-    data-mobile-nav
-    aria-hidden="true"
-    aria-label="Mobile navigation"
-  >
-    <div class="mobile-nav__content">
-      <section
-        class="mobile-nav__panel is-active"
-        id="mobile-panel-main"
-        data-mobile-nav-panel="main"
-        aria-hidden="false"
-      >
-        <div class="mobile-nav__header">
-          <span></span>
-          <strong class="mobile-nav__title">Main Menu</strong>
-          <button
-            class="mobile-nav__close has-icon icon-close"
-            type="button"
-            data-mobile-nav-close
-            aria-label="Close menu"
-          ></button>
-        </div>
-
-        <div class="mobile-nav__body">
-          <div class="mobile-nav__actions">
-            <button
-              class="header-action has-icon icon-theme"
-              type="button"
-              data-theme-toggle
-              aria-label="Toggle theme"
-            ></button>
-            <button
-              class="header-action has-icon icon-globe"
-              type="button"
-              data-lang-toggle
-              aria-label="Toggle language"
-            ></button>
-          </div>
-
-          <ul class="mobile-nav__menu">
-            <li class="mobile-nav__item">
-              <button
-                class="mobile-nav__trigger"
-                type="button"
-                data-mobile-nav-target="mobile-panel-market"
-              >
-                <span class="mobile-nav__trigger-text">Our Market</span>
-                <span
-                  class="has-icon icon-chevron mobile-nav__arrow"
-                  aria-hidden="true"
-                ></span>
-              </button>
-            </li>
-
-            <li class="mobile-nav__item">
-              <button
-                class="mobile-nav__trigger"
-                type="button"
-                data-mobile-nav-target="mobile-panel-data"
-              >
-                <span class="mobile-nav__trigger-text">Data & Reports</span>
-                <span
-                  class="has-icon icon-chevron mobile-nav__arrow"
-                  aria-hidden="true"
-                ></span>
-              </button>
-            </li>
-
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Listings</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Investors</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Issuers</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Rules</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">News</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">About</a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <section
-        class="mobile-nav__panel"
-        id="mobile-panel-market"
-        aria-hidden="true"
-      >
-        <div class="mobile-nav__header">
-          <button
-            class="mobile-nav__back"
-            type="button"
-            data-mobile-nav-back="mobile-panel-main"
-          >
-            <span
-              class="has-icon icon-chevron mobile-nav__back-icon"
-              aria-hidden="true"
-            ></span>
-            Back
-          </button>
-          <strong class="mobile-nav__title">Our Market</strong>
-          <button
-            class="mobile-nav__close has-icon icon-close"
-            type="button"
-            data-mobile-nav-close
-            aria-label="Close menu"
-          ></button>
-        </div>
-
-        <div class="mobile-nav__body">
-          <ul class="mobile-nav__menu">
-            <li class="mobile-nav__item">
-              <button
-                class="mobile-nav__trigger"
-                type="button"
-                data-mobile-nav-target="mobile-panel-main-market"
-              >
-                <span class="mobile-nav__trigger-text">Main Market</span>
-                <span
-                  class="has-icon icon-chevron mobile-nav__arrow"
-                  aria-hidden="true"
-                ></span>
-              </button>
-            </li>
-
-            <li class="mobile-nav__item">
-              <button
-                class="mobile-nav__trigger"
-                type="button"
-                data-mobile-nav-target="mobile-panel-products"
-              >
-                <span class="mobile-nav__trigger-text">Products</span>
-                <span
-                  class="has-icon icon-chevron mobile-nav__arrow"
-                  aria-hidden="true"
-                ></span>
-              </button>
-            </li>
-          </ul>
-
-          <div class="mobile-nav__feature">
-            <div class="mega-feature">
-              <div class="mega-feature__media">
-                <img
-                  class="mega-feature__image"
-                  src="assets/images/card-background.png"
-                  alt=""
-                  loading="lazy"
-                />
-              </div>
-              <div class="mega-feature__body">
-                <h3 class="mega-feature__title">Market Statistics</h3>
-                <p class="mega-feature__text">
-                  Access daily snapshots and historical trading data.
-                </p>
-                <a class="mega-feature__link" href="#">Explore statistics</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section
-        class="mobile-nav__panel"
-        id="mobile-panel-main-market"
-        aria-hidden="true"
-      >
-        <div class="mobile-nav__header">
-          <button
-            class="mobile-nav__back"
-            type="button"
-            data-mobile-nav-back="mobile-panel-market"
-          >
-            <span
-              class="has-icon icon-chevron mobile-nav__back-icon"
-              aria-hidden="true"
-            ></span>
-            Back
-          </button>
-          <strong class="mobile-nav__title">Main Market</strong>
-          <button
-            class="mobile-nav__close has-icon icon-close"
-            type="button"
-            data-mobile-nav-close
-            aria-label="Close menu"
-          ></button>
-        </div>
-
-        <div class="mobile-nav__body">
-          <ul class="mobile-nav__menu">
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Market Summary</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Market Watch</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Trading Calendar</a>
-            </li>
-
-            <li class="mobile-nav__item">
-              <button
-                class="mobile-nav__trigger"
-                type="button"
-                data-mobile-nav-target="mobile-panel-indices"
-              >
-                <span class="mobile-nav__trigger-text">Indices</span>
-                <span
-                  class="has-icon icon-chevron mobile-nav__arrow"
-                  aria-hidden="true"
-                ></span>
-              </button>
-            </li>
-
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Listed Companies</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">IPO Center</a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <section
-        class="mobile-nav__panel"
-        id="mobile-panel-indices"
-        aria-hidden="true"
-      >
-        <div class="mobile-nav__header">
-          <button
-            class="mobile-nav__back"
-            type="button"
-            data-mobile-nav-back="mobile-panel-main-market"
-          >
-            <span
-              class="has-icon icon-chevron mobile-nav__back-icon"
-              aria-hidden="true"
-            ></span>
-            Back
-          </button>
-          <strong class="mobile-nav__title">Indices</strong>
-          <button
-            class="mobile-nav__close has-icon icon-close"
-            type="button"
-            data-mobile-nav-close
-            aria-label="Close menu"
-          ></button>
-        </div>
-
-        <div class="mobile-nav__body">
-          <ul class="mobile-nav__menu">
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">TASI</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Nomu Index</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Sector Indices</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">MSCI Tadawul 30</a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <section
-        class="mobile-nav__panel"
-        id="mobile-panel-products"
-        aria-hidden="true"
-      >
-        <div class="mobile-nav__header">
-          <button
-            class="mobile-nav__back"
-            type="button"
-            data-mobile-nav-back="mobile-panel-market"
-          >
-            <span
-              class="has-icon icon-chevron mobile-nav__back-icon"
-              aria-hidden="true"
-            ></span>
-            Back
-          </button>
-          <strong class="mobile-nav__title">Products</strong>
-          <button
-            class="mobile-nav__close has-icon icon-close"
-            type="button"
-            data-mobile-nav-close
-            aria-label="Close menu"
-          ></button>
-        </div>
-
-        <div class="mobile-nav__body">
-          <ul class="mobile-nav__menu">
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Equities</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">ETFs</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">REITs</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Funds</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Sukuk & Bonds</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Derivatives</a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <section
-        class="mobile-nav__panel"
-        id="mobile-panel-data"
-        aria-hidden="true"
-      >
-        <div class="mobile-nav__header">
-          <button
-            class="mobile-nav__back"
-            type="button"
-            data-mobile-nav-back="mobile-panel-main"
-          >
-            <span
-              class="has-icon icon-chevron mobile-nav__back-icon"
-              aria-hidden="true"
-            ></span>
-            Back
-          </button>
-          <strong class="mobile-nav__title">Data & Reports</strong>
-          <button
-            class="mobile-nav__close has-icon icon-close"
-            type="button"
-            data-mobile-nav-close
-            aria-label="Close menu"
-          ></button>
-        </div>
-
-        <div class="mobile-nav__body">
-          <ul class="mobile-nav__menu">
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Daily Reports</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Monthly Reports</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Annual Reports</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Open Data</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Downloads</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Archive</a>
-            </li>
-          </ul>
-
-          <div class="mobile-nav__feature">
-            <div class="mega-feature">
-              <div class="mega-feature__body">
-                <h3 class="mega-feature__title">Data Library</h3>
-                <p class="mega-feature__text">
-                  Browse reports, files, and market datasets.
-                </p>
-                <a class="mega-feature__link" href="#">Open library</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  </aside>
-
-  <div
-    class="mobile-nav-overlay"
-    data-mobile-nav-overlay
-    aria-hidden="true"
-  ></div>
-
-  <aside
-    class="mobile-nav"
-    id="mobile-nav"
-    data-mobile-nav
-    aria-hidden="true"
-    aria-label="Mobile navigation"
-  >
-    <div class="mobile-nav__content">
-      <section
-        class="mobile-nav__panel is-active"
-        data-mobile-nav-panel="main"
-        aria-hidden="false"
-      >
-        <div class="mobile-nav__header">
-          <span></span>
-          <strong class="mobile-nav__title">Main Menu</strong>
-          <button
-            class="mobile-nav__close has-icon icon-close"
-            type="button"
-            data-mobile-nav-close
-            aria-label="Close menu"
-          ></button>
-        </div>
-
-        <div class="mobile-nav__body">
-          <div class="mobile-nav__actions">
-            <button
-              class="header-action has-icon icon-theme"
-              type="button"
-              data-theme-toggle
-              aria-label="Toggle theme"
-            ></button>
-            <button
-              class="header-action has-icon icon-globe"
-              type="button"
-              data-lang-toggle
-              aria-label="Toggle language"
-            ></button>
-          </div>
-
-          <ul class="mobile-nav__menu">
-            <li class="mobile-nav__item">
-              <button
-                class="mobile-nav__trigger"
-                type="button"
-                data-mobile-nav-target="mobile-panel-market"
-              >
-                <span class="mobile-nav__trigger-text">Our Market</span>
-                <span
-                  class="has-icon icon-chevron mobile-nav__arrow"
-                  aria-hidden="true"
-                ></span>
-              </button>
-            </li>
-
-            <li class="mobile-nav__item">
-              <button
-                class="mobile-nav__trigger"
-                type="button"
-                data-mobile-nav-target="mobile-panel-data"
-              >
-                <span class="mobile-nav__trigger-text">Data & Reports</span>
-                <span
-                  class="has-icon icon-chevron mobile-nav__arrow"
-                  aria-hidden="true"
-                ></span>
-              </button>
-            </li>
-
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Listings</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Investors</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Issuers</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Rules</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">News</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">About</a>
-            </li>
-          </ul>
-
-          <div class="mobile-nav__feature">
-            <div class="mega-feature">
-              <div class="mega-feature__body">
-                <h3 class="mega-feature__title">Design System</h3>
-                <p class="mega-feature__text">
-                  Reusable components, themes, and RTL-ready layouts.
-                </p>
-                <a class="mega-feature__link" href="#">View components</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section
-        class="mobile-nav__panel"
-        id="mobile-panel-market"
-        aria-hidden="true"
-      >
-        <div class="mobile-nav__header">
-          <button
-            class="mobile-nav__back"
-            type="button"
-            data-mobile-nav-back="main"
-          >
-            <span
-              class="has-icon icon-chevron mobile-nav__back-icon"
-              aria-hidden="true"
-            ></span>
-            Back
-          </button>
-          <strong class="mobile-nav__title">Our Market</strong>
-          <button
-            class="mobile-nav__close has-icon icon-close"
-            type="button"
-            data-mobile-nav-close
-            aria-label="Close menu"
-          ></button>
-        </div>
-
-        <div class="mobile-nav__body">
-          <ul class="mobile-nav__menu">
-            <li class="mobile-nav__item">
-              <button
-                class="mobile-nav__trigger"
-                type="button"
-                data-mobile-nav-target="mobile-panel-main-market"
-              >
-                <span class="mobile-nav__trigger-text">Main Market</span>
-                <span
-                  class="has-icon icon-chevron mobile-nav__arrow"
-                  aria-hidden="true"
-                ></span>
-              </button>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Products</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Sukuk & Bonds</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Derivatives</a>
-            </li>
-          </ul>
-
-          <div class="mobile-nav__feature">
-            <div class="mega-feature">
-              <div class="mega-feature__media">
-                <img
-                  class="mega-feature__image"
-                  src="assets/images/card-background.png"
-                  alt=""
-                  loading="lazy"
-                />
-              </div>
-              <div class="mega-feature__body">
-                <h3 class="mega-feature__title">Market Statistics</h3>
-                <p class="mega-feature__text">
-                  Daily snapshots and historical trading data.
-                </p>
-                <a class="mega-feature__link" href="#">Explore statistics</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section
-        class="mobile-nav__panel"
-        id="mobile-panel-main-market"
-        aria-hidden="true"
-      >
-        <div class="mobile-nav__header">
-          <button
-            class="mobile-nav__back"
-            type="button"
-            data-mobile-nav-back="mobile-panel-market"
-          >
-            <span
-              class="has-icon icon-chevron mobile-nav__back-icon"
-              aria-hidden="true"
-            ></span>
-            Back
-          </button>
-          <strong class="mobile-nav__title">Main Market</strong>
-          <button
-            class="mobile-nav__close has-icon icon-close"
-            type="button"
-            data-mobile-nav-close
-            aria-label="Close menu"
-          ></button>
-        </div>
-
-        <div class="mobile-nav__body">
-          <ul class="mobile-nav__menu">
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Market Summary</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Market Watch</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Trading Calendar</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Listed Companies</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Announcements</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">IPO Center</a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <section
-        class="mobile-nav__panel"
-        id="mobile-panel-data"
-        aria-hidden="true"
-      >
-        <div class="mobile-nav__header">
-          <button
-            class="mobile-nav__back"
-            type="button"
-            data-mobile-nav-back="main"
-          >
-            <span
-              class="has-icon icon-chevron mobile-nav__back-icon"
-              aria-hidden="true"
-            ></span>
-            Back
-          </button>
-          <strong class="mobile-nav__title">Data & Reports</strong>
-          <button
-            class="mobile-nav__close has-icon icon-close"
-            type="button"
-            data-mobile-nav-close
-            aria-label="Close menu"
-          ></button>
-        </div>
-
-        <div class="mobile-nav__body">
-          <ul class="mobile-nav__menu">
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Daily Reports</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Monthly Reports</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Annual Reports</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Open Data</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Downloads</a>
-            </li>
-            <li class="mobile-nav__item">
-              <a class="mobile-nav__link" href="#">Archive</a>
-            </li>
-          </ul>
-
-          <div class="mobile-nav__feature">
-            <div class="mega-feature">
-              <div class="mega-feature__body">
-                <h3 class="mega-feature__title">Data Library</h3>
-                <p class="mega-feature__text">
-                  Browse reports, files, and market datasets.
-                </p>
-                <a class="mega-feature__link" href="#">Open library</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  </aside>
   <body>
-    <main class="section">
+    <main>
       <div class="container">
-        <div class="d-flex justify-between align-center flex-wrap gap-3 mb-8">
-          <div>
-            <h1>Button System</h1>
-            <p>
-              Testing sharp buttons, rounded buttons, colors, states, theme,
-              language, and RTL.
-            </p>
-          </div>
+        <!-- ================================================================
+           Page Header
+           ================================================================ -->
 
-          <div class="d-flex flex-wrap gap-2">
-            <button
-              class="btn btn-outline-primary btn-sm"
-              data-theme-set="light"
-            >
-              Light
-            </button>
+        <div class="mb-8">
+          <h1>Table System</h1>
 
-            <button
-              class="btn btn-outline-primary btn-sm"
-              data-theme-set="dark"
-            >
-              Dark
-            </button>
-
-            <button
-              class="btn btn-primary btn-sm btn-rounded"
-              data-theme-toggle
-            >
-              Toggle Theme
-            </button>
-
-            <button class="btn btn-outline-accent btn-sm" data-lang-set="en">
-              English
-            </button>
-
-            <button class="btn btn-outline-accent btn-sm" data-lang-set="ar">
-              العربية
-            </button>
-
-            <button class="btn btn-accent btn-sm btn-rounded" data-lang-toggle>
-              Toggle Lang
-            </button>
-          </div>
+          <p class="text-muted">
+            Reusable table foundations, states, and financial data patterns for
+            the design system.
+          </p>
         </div>
 
-        <section class="mt-8">
-          <div class="d-flex justify-between align-center flex-wrap gap-3 mb-6">
+        <!-- ================================================================
+           Basic Table
+           ================================================================ -->
+
+        <section class="card mb-6">
+          <div class="card-header">
             <div>
-              <h2>Table System</h2>
-              <p>
-                Base tables, responsive tables, range slider, and DataTables
-                examples.
+              <h2 class="card-title">Basic Table</h2>
+
+              <p class="text-muted">
+                Pure design-system table with responsive horizontal overflow.
               </p>
             </div>
+          </div>
 
-            <div class="d-flex flex-wrap gap-2">
-              <button
-                class="btn btn-outline-primary btn-sm"
-                data-theme-set="light"
-              >
-                Light
-              </button>
-              <button
-                class="btn btn-outline-primary btn-sm"
-                data-theme-set="dark"
-              >
-                Dark
-              </button>
-              <button
-                class="btn btn-primary btn-sm btn-rounded"
-                data-theme-toggle
-              >
-                Toggle Theme
-              </button>
-              <button class="btn btn-outline-accent btn-sm" data-lang-set="en">
-                English
-              </button>
-              <button class="btn btn-outline-accent btn-sm" data-lang-set="ar">
-                العربية
-              </button>
+          <div class="card-body">
+            <div class="table-responsive custom-scrollbar">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Symbol</th>
+                    <th scope="col">Company</th>
+                    <th scope="col">Sector</th>
+
+                    <th scope="col" class="numeric">Price</th>
+
+                    <th scope="col" class="numeric">Change</th>
+
+                    <th scope="col" class="numeric">Change %</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <td>2222</td>
+                    <td>Saudi Aramco</td>
+                    <td>Energy</td>
+
+                    <td class="numeric">31.20</td>
+
+                    <td class="numeric price-up">+0.37</td>
+
+                    <td class="numeric price-up">+1.20%</td>
+                  </tr>
+
+                  <tr>
+                    <td>1120</td>
+                    <td>Al Rajhi Bank</td>
+                    <td>Banks</td>
+
+                    <td class="numeric">87.40</td>
+
+                    <td class="numeric price-down">-0.40</td>
+
+                    <td class="numeric price-down">-0.45%</td>
+                  </tr>
+
+                  <tr>
+                    <td>7010</td>
+                    <td>stc</td>
+                    <td>Telecom</td>
+
+                    <td class="numeric">42.60</td>
+
+                    <td class="numeric price-neutral">0.00</td>
+
+                    <td class="numeric price-neutral">0.00%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        <!-- ================================================================
+           Table Variants
+           ================================================================ -->
+
+        <section class="card mb-6">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Table Variants</h2>
+
+              <p class="text-muted">
+                Reusable presentation variants that can be combined as needed.
+              </p>
             </div>
           </div>
 
-          <!-- Basic Table -->
-          <section class="card mb-6">
-            <div class="card-header">
-              <h3 class="card-title">Basic Table</h3>
+          <div class="card-body">
+            <!-- ============================================================
+               Hover
+               ============================================================ -->
+
+            <h3 class="mb-3">Hover</h3>
+
+            <div class="table-responsive custom-scrollbar mb-6">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th scope="col">Symbol</th>
+                    <th scope="col">Company</th>
+                    <th scope="col">Sector</th>
+                    <th scope="col" class="numeric">Price</th>
+                    <th scope="col" class="numeric">Change %</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <td>2222</td>
+                    <td>Saudi Aramco</td>
+                    <td>Energy</td>
+                    <td class="numeric">31.20</td>
+                    <td class="numeric price-up">+1.20%</td>
+                  </tr>
+
+                  <tr>
+                    <td>1120</td>
+                    <td>Al Rajhi Bank</td>
+                    <td>Banks</td>
+                    <td class="numeric">87.40</td>
+                    <td class="numeric price-down">-0.45%</td>
+                  </tr>
+
+                  <tr>
+                    <td>7010</td>
+                    <td>stc</td>
+                    <td>Telecom</td>
+                    <td class="numeric">42.60</td>
+                    <td class="numeric price-neutral">0.00%</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
 
-            <div class="card-body">
-              <div class="table-responsive">
-                <table class="table">
+            <!-- ============================================================
+               Striped + Hover
+               ============================================================ -->
+
+            <h3 class="mb-3">Striped + Hover</h3>
+
+            <div class="table-responsive custom-scrollbar mb-6">
+              <table class="table table-striped table-hover">
+                <thead>
+                  <tr>
+                    <th scope="col">Symbol</th>
+                    <th scope="col">Company</th>
+                    <th scope="col">Sector</th>
+                    <th scope="col" class="numeric">Price</th>
+                    <th scope="col" class="numeric">Change %</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <td>2010</td>
+                    <td>SABIC</td>
+                    <td>Materials</td>
+                    <td class="numeric">63.80</td>
+                    <td class="numeric price-up">+0.95%</td>
+                  </tr>
+
+                  <tr>
+                    <td>1180</td>
+                    <td>SNB</td>
+                    <td>Banks</td>
+                    <td class="numeric">36.25</td>
+                    <td class="numeric price-down">-0.41%</td>
+                  </tr>
+
+                  <tr>
+                    <td>4003</td>
+                    <td>Extra</td>
+                    <td>Retail</td>
+                    <td class="numeric">92.10</td>
+                    <td class="numeric price-up">+1.21%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- ============================================================
+               Bordered
+               ============================================================ -->
+
+            <h3 class="mb-3">Bordered</h3>
+
+            <div class="table-responsive custom-scrollbar mb-6">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th scope="col">Symbol</th>
+                    <th scope="col">Company</th>
+                    <th scope="col">Sector</th>
+                    <th scope="col" class="numeric">Price</th>
+                    <th scope="col" class="numeric">Change %</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <td>2280</td>
+                    <td>Almarai</td>
+                    <td>Food</td>
+                    <td class="numeric">57.30</td>
+                    <td class="numeric price-down">-0.35%</td>
+                  </tr>
+
+                  <tr>
+                    <td>1010</td>
+                    <td>Riyad Bank</td>
+                    <td>Banks</td>
+                    <td class="numeric">28.75</td>
+                    <td class="numeric price-up">+0.88%</td>
+                  </tr>
+
+                  <tr>
+                    <td>1211</td>
+                    <td>Maaden</td>
+                    <td>Materials</td>
+                    <td class="numeric">49.60</td>
+                    <td class="numeric price-up">+0.92%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- ============================================================
+               Compact
+               ============================================================ -->
+
+            <h3 class="mb-3">Compact</h3>
+
+            <div class="table-responsive custom-scrollbar mb-6">
+              <table class="table table-compact table-hover">
+                <thead>
+                  <tr>
+                    <th scope="col">Symbol</th>
+                    <th scope="col">Company</th>
+                    <th scope="col">Sector</th>
+                    <th scope="col" class="numeric">Price</th>
+                    <th scope="col" class="numeric">Change %</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <td>7203</td>
+                    <td>Elm</td>
+                    <td>Software</td>
+                    <td class="numeric">1,045.00</td>
+                    <td class="numeric price-down">-0.48%</td>
+                  </tr>
+
+                  <tr>
+                    <td>2082</td>
+                    <td>ACWA Power</td>
+                    <td>Utilities</td>
+                    <td class="numeric">318.40</td>
+                    <td class="numeric price-up">+1.02%</td>
+                  </tr>
+
+                  <tr>
+                    <td>2020</td>
+                    <td>SABIC Agri-Nutrients</td>
+                    <td>Materials</td>
+                    <td class="numeric">116.80</td>
+                    <td class="numeric price-neutral">0.00%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- ============================================================
+               Comfortable
+               ============================================================ -->
+
+            <h3 class="mb-3">Comfortable</h3>
+
+            <div class="table-responsive custom-scrollbar">
+              <table class="table table-comfortable table-hover">
+                <thead>
+                  <tr>
+                    <th scope="col">Symbol</th>
+                    <th scope="col">Company</th>
+                    <th scope="col">Sector</th>
+                    <th scope="col" class="numeric">Price</th>
+                    <th scope="col" class="numeric">Change %</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <td>2222</td>
+                    <td>Saudi Aramco</td>
+                    <td>Energy</td>
+                    <td class="numeric">31.20</td>
+                    <td class="numeric price-up">+1.20%</td>
+                  </tr>
+
+                  <tr>
+                    <td>1120</td>
+                    <td>Al Rajhi Bank</td>
+                    <td>Banks</td>
+                    <td class="numeric">87.40</td>
+                    <td class="numeric price-down">-0.45%</td>
+                  </tr>
+
+                  <tr>
+                    <td>7010</td>
+                    <td>stc</td>
+                    <td>Telecom</td>
+                    <td class="numeric">42.60</td>
+                    <td class="numeric price-neutral">0.00%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        <!-- ================================================================
+           Rich Financial Table
+           ================================================================ -->
+
+        <section class="card mb-6">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Rich Financial Table</h2>
+
+              <p class="text-muted">
+                Rich cell patterns, market states, selection, favorites,
+                actions, and horizontal overflow.
+              </p>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="table-responsive custom-scrollbar">
+              <table class="table table-hover table-nowrap">
+                <thead>
+                  <tr>
+                    <!-- Selection -->
+                    <th scope="col" class="table-selection-column">
+                      <input
+                        type="checkbox"
+                        aria-label="Select all companies"
+                      />
+                    </th>
+
+                    <!-- Favorite -->
+                    <th scope="col" class="table-favorite-column">
+                      <span class="visually-hidden"> Favorite </span>
+                    </th>
+
+                    <th scope="col">Symbol</th>
+
+                    <th scope="col">Company</th>
+
+                    <th scope="col">Sector</th>
+
+                    <th scope="col" class="numeric">Price</th>
+
+                    <th scope="col" class="numeric">Change</th>
+
+                    <th scope="col" class="numeric">Change %</th>
+
+                    <th scope="col" class="numeric">Volume</th>
+
+                    <th scope="col" class="numeric">Market Cap</th>
+
+                    <th scope="col" class="numeric">P/E</th>
+
+                    <th scope="col" class="numeric">EPS</th>
+
+                    <th scope="col" class="numeric">Dividend Yield</th>
+
+                    <th scope="col" class="numeric">ROE</th>
+
+                    <th scope="col" class="numeric">Debt / Equity</th>
+
+                    <th scope="col" class="numeric">Beta</th>
+
+                    <th scope="col" class="numeric">52W High</th>
+
+                    <th scope="col" class="numeric">52W Low</th>
+
+                    <th scope="col" class="numeric">YTD</th>
+
+                    <th scope="col" class="table-actions-column">
+                      <span class="visually-hidden"> Actions </span>
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <!-- ======================================================
+                     Saudi Aramco
+                     ====================================================== -->
+
+                  <tr>
+                    <td class="table-selection-cell">
+                      <input type="checkbox" aria-label="Select Saudi Aramco" />
+                    </td>
+
+                    <td class="table-favorite-cell">
+                      <button
+                        type="button"
+                        class="table-favorite has-icon icon-star-filled icon-sm"
+                        aria-label="Remove Saudi Aramco from favorites"
+                        aria-pressed="true"
+                      ></button>
+                    </td>
+
+                    <td>
+                      <div class="table-cell-stack">
+                        <span class="table-cell-primary"> 2222 </span>
+
+                        <span class="table-cell-secondary"> TASI </span>
+                      </div>
+                    </td>
+
+                    <td>
+                      <div class="table-identity">
+                        <span class="table-identity-logo" aria-hidden="true">
+                          SA
+                        </span>
+
+                        <span class="table-identity-content">
+                          <span class="table-identity-name">
+                            Saudi Aramco
+                          </span>
+
+                          <span class="table-identity-meta">
+                            Saudi Arabian Oil Company
+                          </span>
+                        </span>
+                      </div>
+                    </td>
+
+                    <td>
+                      <span class="table-cell-meta"> Energy </span>
+                    </td>
+
+                    <td class="numeric">31.20</td>
+
+                    <td class="numeric">
+                      <span class="table-market-value price-up"> +0.37 </span>
+                    </td>
+
+                    <td class="numeric">
+                      <span class="table-market-value price-up"> +1.20% </span>
+                    </td>
+
+                    <td class="numeric">7.84M</td>
+
+                    <td class="numeric">7.49T</td>
+
+                    <td class="numeric">15.8</td>
+
+                    <td class="numeric">1.98</td>
+
+                    <td class="numeric">6.4%</td>
+
+                    <td class="numeric">22.1%</td>
+
+                    <td class="numeric">0.18</td>
+
+                    <td class="numeric">0.72</td>
+
+                    <td class="numeric">35.15</td>
+
+                    <td class="numeric">27.30</td>
+
+                    <td class="numeric">
+                      <span class="price-up"> +4.7% </span>
+                    </td>
+
+                    <td class="table-actions-cell">
+                      <div class="table-actions">
+                        <button
+                          type="button"
+                          class="btn btn-icon btn-ghost has-icon icon-menu-dots-vertical icon-sm"
+                          aria-label="Actions for Saudi Aramco"
+                        ></button>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- ======================================================
+                     Al Rajhi Bank
+                     ====================================================== -->
+
+                  <tr>
+                    <td class="table-selection-cell">
+                      <input
+                        type="checkbox"
+                        aria-label="Select Al Rajhi Bank"
+                      />
+                    </td>
+
+                    <td class="table-favorite-cell">
+                      <button
+                        type="button"
+                        class="table-favorite has-icon icon-star-outline icon-sm"
+                        aria-label="Add Al Rajhi Bank to favorites"
+                        aria-pressed="false"
+                      ></button>
+                    </td>
+
+                    <td>
+                      <div class="table-cell-stack">
+                        <span class="table-cell-primary"> 1120 </span>
+
+                        <span class="table-cell-secondary"> TASI </span>
+                      </div>
+                    </td>
+
+                    <td>
+                      <div class="table-identity">
+                        <span class="table-identity-logo" aria-hidden="true">
+                          AR
+                        </span>
+
+                        <span class="table-identity-content">
+                          <span class="table-identity-name">
+                            Al Rajhi Bank
+                          </span>
+
+                          <span class="table-identity-meta">
+                            Banking &amp; Financial Services
+                          </span>
+                        </span>
+                      </div>
+                    </td>
+
+                    <td>
+                      <span class="table-cell-meta"> Banks </span>
+                    </td>
+
+                    <td class="numeric">87.40</td>
+
+                    <td class="numeric">
+                      <span class="table-market-value price-down"> -0.40 </span>
+                    </td>
+
+                    <td class="numeric">
+                      <span class="table-market-value price-down">
+                        -0.45%
+                      </span>
+                    </td>
+
+                    <td class="numeric">4.21M</td>
+
+                    <td class="numeric">349.6B</td>
+
+                    <td class="numeric">19.1</td>
+
+                    <td class="numeric">4.58</td>
+
+                    <td class="numeric">2.7%</td>
+
+                    <td class="numeric">19.8%</td>
+
+                    <td class="numeric">1.24</td>
+
+                    <td class="numeric">0.93</td>
+
+                    <td class="numeric">96.80</td>
+
+                    <td class="numeric">68.10</td>
+
+                    <td class="numeric">
+                      <span class="price-up"> +8.3% </span>
+                    </td>
+
+                    <td class="table-actions-cell">
+                      <div class="table-actions">
+                        <button
+                          type="button"
+                          class="btn btn-icon btn-ghost has-icon icon-menu-dots-vertical icon-sm"
+                          aria-label="Actions for Al Rajhi Bank"
+                        ></button>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- ======================================================
+                     stc
+                     ====================================================== -->
+
+                  <tr>
+                    <td class="table-selection-cell">
+                      <input type="checkbox" aria-label="Select stc" />
+                    </td>
+
+                    <td class="table-favorite-cell">
+                      <button
+                        type="button"
+                        class="table-favorite has-icon icon-star-outline icon-sm"
+                        aria-label="Add stc to favorites"
+                        aria-pressed="false"
+                      ></button>
+                    </td>
+
+                    <td>
+                      <div class="table-cell-stack">
+                        <span class="table-cell-primary"> 7010 </span>
+
+                        <span class="table-cell-secondary"> TASI </span>
+                      </div>
+                    </td>
+
+                    <td>
+                      <div class="table-identity">
+                        <span class="table-identity-logo" aria-hidden="true">
+                          ST
+                        </span>
+
+                        <span class="table-identity-content">
+                          <span class="table-identity-name"> stc </span>
+
+                          <span class="table-identity-meta">
+                            Saudi Telecom Company
+                          </span>
+                        </span>
+                      </div>
+                    </td>
+
+                    <td>
+                      <span class="table-cell-meta"> Telecom </span>
+                    </td>
+
+                    <td class="numeric">42.60</td>
+
+                    <td class="numeric">
+                      <span class="table-market-value price-neutral">
+                        0.00
+                      </span>
+                    </td>
+
+                    <td class="numeric">
+                      <span class="table-market-value price-neutral">
+                        0.00%
+                      </span>
+                    </td>
+
+                    <td class="numeric">3.42M</td>
+
+                    <td class="numeric">213.0B</td>
+
+                    <td class="numeric">14.7</td>
+
+                    <td class="numeric">2.89</td>
+
+                    <td class="numeric">4.1%</td>
+
+                    <td class="numeric">16.5%</td>
+
+                    <td class="numeric">0.36</td>
+
+                    <td class="numeric">0.61</td>
+
+                    <td class="numeric">46.20</td>
+
+                    <td class="numeric">34.90</td>
+
+                    <td class="numeric">
+                      <span class="price-down"> -1.8% </span>
+                    </td>
+
+                    <td class="table-actions-cell">
+                      <div class="table-actions">
+                        <button
+                          type="button"
+                          class="btn btn-icon btn-ghost has-icon icon-menu-dots-vertical icon-sm"
+                          aria-label="Actions for stc"
+                        ></button>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- ======================================================
+                     SABIC
+                     ====================================================== -->
+
+                  <tr>
+                    <td class="table-selection-cell">
+                      <input type="checkbox" aria-label="Select SABIC" />
+                    </td>
+
+                    <td class="table-favorite-cell">
+                      <button
+                        type="button"
+                        class="table-favorite has-icon icon-star-filled icon-sm"
+                        aria-label="Remove SABIC from favorites"
+                        aria-pressed="true"
+                      ></button>
+                    </td>
+
+                    <td>
+                      <div class="table-cell-stack">
+                        <span class="table-cell-primary"> 2010 </span>
+
+                        <span class="table-cell-secondary"> TASI </span>
+                      </div>
+                    </td>
+
+                    <td>
+                      <div class="table-identity">
+                        <span class="table-identity-logo" aria-hidden="true">
+                          SB
+                        </span>
+
+                        <span class="table-identity-content">
+                          <span class="table-identity-name"> SABIC </span>
+
+                          <span class="table-identity-meta">
+                            Saudi Basic Industries Corporation
+                          </span>
+                        </span>
+                      </div>
+                    </td>
+
+                    <td>
+                      <span class="table-cell-meta"> Materials </span>
+                    </td>
+
+                    <td class="numeric">63.80</td>
+
+                    <td class="numeric">
+                      <span class="table-market-value price-up"> +0.60 </span>
+                    </td>
+
+                    <td class="numeric">
+                      <span class="table-market-value price-up"> +0.95% </span>
+                    </td>
+
+                    <td class="numeric">2.18M</td>
+
+                    <td class="numeric">192.4B</td>
+
+                    <td class="numeric">27.6</td>
+
+                    <td class="numeric">2.31</td>
+
+                    <td class="numeric">3.0%</td>
+
+                    <td class="numeric">8.9%</td>
+
+                    <td class="numeric">0.42</td>
+
+                    <td class="numeric">1.08</td>
+
+                    <td class="numeric">78.40</td>
+
+                    <td class="numeric">61.20</td>
+
+                    <td class="numeric">
+                      <span class="price-down"> -3.2% </span>
+                    </td>
+
+                    <td class="table-actions-cell">
+                      <div class="table-actions">
+                        <button
+                          type="button"
+                          class="btn btn-icon btn-ghost has-icon icon-menu-dots-vertical icon-sm"
+                          aria-label="Actions for SABIC"
+                        ></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        <!-- ================================================================
+           Table States
+           ================================================================ -->
+
+        <section class="card mb-6">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Table States</h2>
+
+              <p class="text-muted">
+                Selected, disabled, clickable, empty, loading, skeleton, and
+                summary states.
+              </p>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <!-- ============================================================
+               Selected + Disabled + Clickable
+               ============================================================ -->
+
+            <h3 class="mb-3">Row States</h3>
+
+            <div class="table-responsive custom-scrollbar mb-6">
+              <table class="table table-hover table-clickable table-nowrap">
+                <thead>
+                  <tr>
+                    <th scope="col">Symbol</th>
+                    <th scope="col">Company</th>
+                    <th scope="col">Sector</th>
+                    <th scope="col" class="numeric">Price</th>
+                    <th scope="col" class="numeric">Change %</th>
+                    <th scope="col" class="numeric">Volume</th>
+                    <th scope="col" class="numeric">Market Cap</th>
+                    <th scope="col" class="numeric">P/E</th>
+                    <th scope="col" class="numeric">EPS</th>
+                    <th scope="col" class="numeric">ROE</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <td>2222</td>
+                    <td>Saudi Aramco</td>
+                    <td>Energy</td>
+                    <td class="numeric">31.20</td>
+                    <td class="numeric price-up">+1.20%</td>
+                    <td class="numeric">7.84M</td>
+                    <td class="numeric">7.49T</td>
+                    <td class="numeric">15.8</td>
+                    <td class="numeric">1.98</td>
+                    <td class="numeric">22.1%</td>
+                  </tr>
+
+                  <tr class="is-selected" aria-selected="true">
+                    <td>1120</td>
+                    <td>Al Rajhi Bank</td>
+                    <td>Banks</td>
+                    <td class="numeric">87.40</td>
+                    <td class="numeric price-down">-0.45%</td>
+                    <td class="numeric">4.21M</td>
+                    <td class="numeric">349.6B</td>
+                    <td class="numeric">19.1</td>
+                    <td class="numeric">4.58</td>
+                    <td class="numeric">19.8%</td>
+                  </tr>
+
+                  <tr class="is-disabled" aria-disabled="true">
+                    <td>7010</td>
+                    <td>stc</td>
+                    <td>Telecom</td>
+                    <td class="numeric">42.60</td>
+                    <td class="numeric price-neutral">0.00%</td>
+                    <td class="numeric">3.42M</td>
+                    <td class="numeric">213.0B</td>
+                    <td class="numeric">14.7</td>
+                    <td class="numeric">2.89</td>
+                    <td class="numeric">16.5%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- ============================================================
+               Empty
+               ============================================================ -->
+
+            <h3 class="mb-3">Empty State</h3>
+
+            <div class="table-responsive mb-6">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Symbol</th>
+                    <th scope="col">Company</th>
+                    <th scope="col">Sector</th>
+                    <th scope="col" class="numeric">Price</th>
+                    <th scope="col" class="numeric">Change %</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr class="table-empty">
+                    <td colspan="5">No data available.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- ============================================================
+               Loading
+               ============================================================ -->
+
+            <h3 class="mb-3">Loading State</h3>
+
+            <div class="table-responsive mb-6">
+              <table class="table" aria-busy="true">
+                <thead>
+                  <tr>
+                    <th scope="col">Symbol</th>
+                    <th scope="col">Company</th>
+                    <th scope="col">Sector</th>
+                    <th scope="col" class="numeric">Price</th>
+                    <th scope="col" class="numeric">Change %</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr class="table-loading">
+                    <td colspan="5">
+                      <span
+                        class="has-icon icon-sync-refresh icon-spin icon-sm"
+                      >
+                        Loading data...
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- ============================================================
+               Skeleton
+               ============================================================ -->
+
+            <h3 class="mb-3">Skeleton State</h3>
+
+            <div class="table-responsive custom-scrollbar mb-6">
+              <table
+                class="table table-nowrap"
+                aria-busy="true"
+                aria-label="Loading market data"
+              >
+                <thead>
+                  <tr>
+                    <th scope="col">Symbol</th>
+                    <th scope="col">Company</th>
+                    <th scope="col">Sector</th>
+                    <th scope="col" class="numeric">Price</th>
+                    <th scope="col" class="numeric">Change %</th>
+                    <th scope="col" class="numeric">Volume</th>
+                    <th scope="col" class="numeric">Market Cap</th>
+                    <th scope="col" class="numeric">P/E</th>
+                    <th scope="col" class="numeric">EPS</th>
+                  </tr>
+                </thead>
+
+                <tbody aria-hidden="true">
+                  <tr>
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-md"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-md"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-md"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-lg"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-md"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-md"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-md"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-md"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-md"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+
+                    <td>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- ============================================================
+               Footer / Totals
+               ============================================================ -->
+
+            <h3 class="mb-3">Summary Rows</h3>
+
+            <div class="table-responsive custom-scrollbar">
+              <table class="table table-nowrap">
+                <thead>
+                  <tr>
+                    <th scope="col">Sector</th>
+                    <th scope="col" class="numeric">Companies</th>
+                    <th scope="col" class="numeric">Volume</th>
+                    <th scope="col" class="numeric">Value</th>
+                    <th scope="col" class="numeric">Trades</th>
+                    <th scope="col" class="numeric">Market Cap</th>
+                    <th scope="col" class="numeric">Avg Change</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <td>Banks</td>
+                    <td class="numeric">11</td>
+                    <td class="numeric">12.40M</td>
+                    <td class="numeric">1.08B</td>
+                    <td class="numeric">18,430</td>
+                    <td class="numeric">1.34T</td>
+                    <td class="numeric price-up">+0.42%</td>
+                  </tr>
+
+                  <tr>
+                    <td>Energy</td>
+                    <td class="numeric">7</td>
+                    <td class="numeric">18.75M</td>
+                    <td class="numeric">1.92B</td>
+                    <td class="numeric">24,210</td>
+                    <td class="numeric">7.81T</td>
+                    <td class="numeric price-up">+0.81%</td>
+                  </tr>
+
+                  <tr>
+                    <td>Telecom</td>
+                    <td class="numeric">5</td>
+                    <td class="numeric">7.24M</td>
+                    <td class="numeric">442.6M</td>
+                    <td class="numeric">9,860</td>
+                    <td class="numeric">416.0B</td>
+                    <td class="numeric price-down">-0.12%</td>
+                  </tr>
+                </tbody>
+
+                <tfoot>
+                  <tr class="table-total-row">
+                    <th scope="row">Total</th>
+
+                    <td class="numeric">23</td>
+
+                    <td class="numeric">38.39M</td>
+
+                    <td class="numeric">3.44B</td>
+
+                    <td class="numeric">52,500</td>
+
+                    <td class="numeric">9.57T</td>
+
+                    <td class="numeric price-up">+0.37%</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </section>
+        <!-- ================================================================
+           Sticky Tables
+           ================================================================ -->
+
+        <section class="card mb-6">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Sticky Tables</h2>
+
+              <p class="text-muted">
+                Sticky headers and fixed identity columns for dense market data.
+              </p>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <!-- ============================================================
+               Sticky Header
+               ============================================================ -->
+
+            <h3 class="mb-3">Sticky Header</h3>
+
+            <div
+              class="table-responsive custom-scrollbar mb-6"
+              style="max-block-size: 22rem; overflow-y: auto"
+            >
+              <table class="table table-hover table-nowrap table-sticky-head">
+                <thead>
+                  <tr>
+                    <th scope="col">Symbol</th>
+                    <th scope="col">Company</th>
+                    <th scope="col">Sector</th>
+                    <th scope="col" class="numeric">Price</th>
+                    <th scope="col" class="numeric">Change %</th>
+                    <th scope="col" class="numeric">Volume</th>
+                    <th scope="col" class="numeric">Market Cap</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <td>2222</td>
+                    <td>Saudi Aramco</td>
+                    <td>Energy</td>
+                    <td class="numeric">31.20</td>
+                    <td class="numeric price-up">+1.20%</td>
+                    <td class="numeric">7.84M</td>
+                    <td class="numeric">7.49T</td>
+                  </tr>
+
+                  <tr>
+                    <td>1120</td>
+                    <td>Al Rajhi Bank</td>
+                    <td>Banks</td>
+                    <td class="numeric">87.40</td>
+                    <td class="numeric price-down">-0.45%</td>
+                    <td class="numeric">4.21M</td>
+                    <td class="numeric">349.6B</td>
+                  </tr>
+
+                  <tr>
+                    <td>7010</td>
+                    <td>stc</td>
+                    <td>Telecom</td>
+                    <td class="numeric">42.60</td>
+                    <td class="numeric price-neutral">0.00%</td>
+                    <td class="numeric">3.42M</td>
+                    <td class="numeric">213.0B</td>
+                  </tr>
+
+                  <tr>
+                    <td>2010</td>
+                    <td>SABIC</td>
+                    <td>Materials</td>
+                    <td class="numeric">63.80</td>
+                    <td class="numeric price-up">+0.95%</td>
+                    <td class="numeric">2.18M</td>
+                    <td class="numeric">192.4B</td>
+                  </tr>
+
+                  <tr>
+                    <td>1180</td>
+                    <td>SNB</td>
+                    <td>Banks</td>
+                    <td class="numeric">36.25</td>
+                    <td class="numeric price-down">-0.41%</td>
+                    <td class="numeric">3.11M</td>
+                    <td class="numeric">215.8B</td>
+                  </tr>
+
+                  <tr>
+                    <td>4003</td>
+                    <td>Extra</td>
+                    <td>Retail</td>
+                    <td class="numeric">92.10</td>
+                    <td class="numeric price-up">+1.21%</td>
+                    <td class="numeric">610K</td>
+                    <td class="numeric">9.20B</td>
+                  </tr>
+
+                  <tr>
+                    <td>2280</td>
+                    <td>Almarai</td>
+                    <td>Food</td>
+                    <td class="numeric">57.30</td>
+                    <td class="numeric price-down">-0.35%</td>
+                    <td class="numeric">840K</td>
+                    <td class="numeric">57.3B</td>
+                  </tr>
+
+                  <tr>
+                    <td>1010</td>
+                    <td>Riyad Bank</td>
+                    <td>Banks</td>
+                    <td class="numeric">28.75</td>
+                    <td class="numeric price-up">+0.88%</td>
+                    <td class="numeric">2.54M</td>
+                    <td class="numeric">86.3B</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- ============================================================
+               Fixed First Column
+               ============================================================ -->
+
+            <h3 class="mb-3">Fixed First Column</h3>
+
+            <div class="table-responsive custom-scrollbar mb-6">
+              <table class="table table-hover table-nowrap table-fixed-column">
+                <thead>
+                  <tr>
+                    <th scope="col">Company</th>
+                    <th scope="col">Sector</th>
+                    <th scope="col" class="numeric">Price</th>
+                    <th scope="col" class="numeric">Change</th>
+                    <th scope="col" class="numeric">Change %</th>
+                    <th scope="col" class="numeric">Volume</th>
+                    <th scope="col" class="numeric">Market Cap</th>
+                    <th scope="col" class="numeric">P/E</th>
+                    <th scope="col" class="numeric">EPS</th>
+                    <th scope="col" class="numeric">Dividend</th>
+                    <th scope="col" class="numeric">ROE</th>
+                    <th scope="col" class="numeric">Beta</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <th scope="row">Saudi Aramco</th>
+                    <td>Energy</td>
+                    <td class="numeric">31.20</td>
+                    <td class="numeric price-up">+0.37</td>
+                    <td class="numeric price-up">+1.20%</td>
+                    <td class="numeric">7.84M</td>
+                    <td class="numeric">7.49T</td>
+                    <td class="numeric">15.8</td>
+                    <td class="numeric">1.98</td>
+                    <td class="numeric">6.4%</td>
+                    <td class="numeric">22.1%</td>
+                    <td class="numeric">0.72</td>
+                  </tr>
+
+                  <tr>
+                    <th scope="row">Al Rajhi Bank</th>
+                    <td>Banks</td>
+                    <td class="numeric">87.40</td>
+                    <td class="numeric price-down">-0.40</td>
+                    <td class="numeric price-down">-0.45%</td>
+                    <td class="numeric">4.21M</td>
+                    <td class="numeric">349.6B</td>
+                    <td class="numeric">19.1</td>
+                    <td class="numeric">4.58</td>
+                    <td class="numeric">2.7%</td>
+                    <td class="numeric">19.8%</td>
+                    <td class="numeric">0.93</td>
+                  </tr>
+
+                  <tr>
+                    <th scope="row">stc</th>
+                    <td>Telecom</td>
+                    <td class="numeric">42.60</td>
+                    <td class="numeric price-neutral">0.00</td>
+                    <td class="numeric price-neutral">0.00%</td>
+                    <td class="numeric">3.42M</td>
+                    <td class="numeric">213.0B</td>
+                    <td class="numeric">14.7</td>
+                    <td class="numeric">2.89</td>
+                    <td class="numeric">4.1%</td>
+                    <td class="numeric">16.5%</td>
+                    <td class="numeric">0.61</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- ============================================================
+               Fixed First Two Columns
+               ============================================================ -->
+
+            <h3 class="mb-3">Fixed Identity Columns</h3>
+
+            <div class="table-responsive custom-scrollbar mb-6">
+              <table class="table table-hover table-nowrap table-fixed-columns">
+                <thead>
+                  <tr>
+                    <th scope="col">Symbol</th>
+                    <th scope="col">Company</th>
+                    <th scope="col">Sector</th>
+                    <th scope="col" class="numeric">Price</th>
+                    <th scope="col" class="numeric">Change</th>
+                    <th scope="col" class="numeric">Change %</th>
+                    <th scope="col" class="numeric">Volume</th>
+                    <th scope="col" class="numeric">Market Cap</th>
+                    <th scope="col" class="numeric">P/E</th>
+                    <th scope="col" class="numeric">EPS</th>
+                    <th scope="col" class="numeric">Dividend Yield</th>
+                    <th scope="col" class="numeric">ROE</th>
+                    <th scope="col" class="numeric">Debt / Equity</th>
+                    <th scope="col" class="numeric">Beta</th>
+                    <th scope="col" class="numeric">52W High</th>
+                    <th scope="col" class="numeric">52W Low</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <td>2222</td>
+
+                    <td>
+                      <div class="table-identity">
+                        <span class="table-identity-logo" aria-hidden="true">
+                          SA
+                        </span>
+
+                        <span class="table-identity-content">
+                          <span class="table-identity-name">
+                            Saudi Aramco
+                          </span>
+
+                          <span class="table-identity-meta"> Energy </span>
+                        </span>
+                      </div>
+                    </td>
+
+                    <td>Energy</td>
+                    <td class="numeric">31.20</td>
+                    <td class="numeric price-up">+0.37</td>
+                    <td class="numeric price-up">+1.20%</td>
+                    <td class="numeric">7.84M</td>
+                    <td class="numeric">7.49T</td>
+                    <td class="numeric">15.8</td>
+                    <td class="numeric">1.98</td>
+                    <td class="numeric">6.4%</td>
+                    <td class="numeric">22.1%</td>
+                    <td class="numeric">0.18</td>
+                    <td class="numeric">0.72</td>
+                    <td class="numeric">35.15</td>
+                    <td class="numeric">27.30</td>
+                  </tr>
+
+                  <tr>
+                    <td>1120</td>
+
+                    <td>
+                      <div class="table-identity">
+                        <span class="table-identity-logo" aria-hidden="true">
+                          AR
+                        </span>
+
+                        <span class="table-identity-content">
+                          <span class="table-identity-name">
+                            Al Rajhi Bank
+                          </span>
+
+                          <span class="table-identity-meta"> Banks </span>
+                        </span>
+                      </div>
+                    </td>
+
+                    <td>Banks</td>
+                    <td class="numeric">87.40</td>
+                    <td class="numeric price-down">-0.40</td>
+                    <td class="numeric price-down">-0.45%</td>
+                    <td class="numeric">4.21M</td>
+                    <td class="numeric">349.6B</td>
+                    <td class="numeric">19.1</td>
+                    <td class="numeric">4.58</td>
+                    <td class="numeric">2.7%</td>
+                    <td class="numeric">19.8%</td>
+                    <td class="numeric">1.24</td>
+                    <td class="numeric">0.93</td>
+                    <td class="numeric">96.80</td>
+                    <td class="numeric">68.10</td>
+                  </tr>
+
+                  <tr>
+                    <td>7010</td>
+
+                    <td>
+                      <div class="table-identity">
+                        <span class="table-identity-logo" aria-hidden="true">
+                          ST
+                        </span>
+
+                        <span class="table-identity-content">
+                          <span class="table-identity-name"> stc </span>
+
+                          <span class="table-identity-meta"> Telecom </span>
+                        </span>
+                      </div>
+                    </td>
+
+                    <td>Telecom</td>
+                    <td class="numeric">42.60</td>
+                    <td class="numeric price-neutral">0.00</td>
+                    <td class="numeric price-neutral">0.00%</td>
+                    <td class="numeric">3.42M</td>
+                    <td class="numeric">213.0B</td>
+                    <td class="numeric">14.7</td>
+                    <td class="numeric">2.89</td>
+                    <td class="numeric">4.1%</td>
+                    <td class="numeric">16.5%</td>
+                    <td class="numeric">0.36</td>
+                    <td class="numeric">0.61</td>
+                    <td class="numeric">46.20</td>
+                    <td class="numeric">34.90</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- ============================================================
+               Wide Table Navigation
+               ============================================================ -->
+
+            <h3 class="mb-3">Wide Table Navigation</h3>
+
+            <div class="table-shell" data-table-shell>
+              <div class="table-responsive custom-scrollbar" data-table-scroll>
+                <table
+                  class="table table-hover table-nowrap table-fixed-columns"
+                >
                   <thead>
                     <tr>
-                      <th>Code</th>
-                      <th>Company</th>
-                      <th>Sector</th>
-                      <th class="numeric">Price</th>
-                      <th class="numeric">Change</th>
-                      <th>Status</th>
+                      <th scope="col">Symbol</th>
+                      <th scope="col">Company</th>
+                      <th scope="col">Sector</th>
+                      <th scope="col" class="numeric">Price</th>
+                      <th scope="col" class="numeric">Change</th>
+                      <th scope="col" class="numeric">Change %</th>
+                      <th scope="col" class="numeric">Volume</th>
+                      <th scope="col" class="numeric">Market Cap</th>
+                      <th scope="col" class="numeric">P/E</th>
+                      <th scope="col" class="numeric">EPS</th>
+                      <th scope="col" class="numeric">Dividend Yield</th>
+                      <th scope="col" class="numeric">ROE</th>
+                      <th scope="col" class="numeric">Debt / Equity</th>
+                      <th scope="col" class="numeric">Beta</th>
+                      <th scope="col" class="numeric">52W High</th>
+                      <th scope="col" class="numeric">52W Low</th>
+                      <th scope="col" class="numeric">YTD</th>
+                      <th scope="col" class="numeric">1Y</th>
+                      <th scope="col" class="numeric">3Y</th>
+                      <th scope="col" class="numeric">5Y</th>
                     </tr>
                   </thead>
 
@@ -1262,12 +1603,22 @@
                       <td>Saudi Aramco</td>
                       <td>Energy</td>
                       <td class="numeric">31.20</td>
-                      <td class="numeric td-flash-up">+1.20%</td>
-                      <td>
-                        <span class="badge badge-success badge-rounded"
-                          >Up</span
-                        >
-                      </td>
+                      <td class="numeric price-up">+0.37</td>
+                      <td class="numeric price-up">+1.20%</td>
+                      <td class="numeric">7.84M</td>
+                      <td class="numeric">7.49T</td>
+                      <td class="numeric">15.8</td>
+                      <td class="numeric">1.98</td>
+                      <td class="numeric">6.4%</td>
+                      <td class="numeric">22.1%</td>
+                      <td class="numeric">0.18</td>
+                      <td class="numeric">0.72</td>
+                      <td class="numeric">35.15</td>
+                      <td class="numeric">27.30</td>
+                      <td class="numeric price-up">+4.7%</td>
+                      <td class="numeric price-up">+11.2%</td>
+                      <td class="numeric price-up">+18.4%</td>
+                      <td class="numeric price-up">+24.8%</td>
                     </tr>
 
                     <tr>
@@ -1275,12 +1626,22 @@
                       <td>Al Rajhi Bank</td>
                       <td>Banks</td>
                       <td class="numeric">87.40</td>
-                      <td class="numeric td-flash-down">-0.45%</td>
-                      <td>
-                        <span class="badge badge-danger badge-rounded"
-                          >Down</span
-                        >
-                      </td>
+                      <td class="numeric price-down">-0.40</td>
+                      <td class="numeric price-down">-0.45%</td>
+                      <td class="numeric">4.21M</td>
+                      <td class="numeric">349.6B</td>
+                      <td class="numeric">19.1</td>
+                      <td class="numeric">4.58</td>
+                      <td class="numeric">2.7%</td>
+                      <td class="numeric">19.8%</td>
+                      <td class="numeric">1.24</td>
+                      <td class="numeric">0.93</td>
+                      <td class="numeric">96.80</td>
+                      <td class="numeric">68.10</td>
+                      <td class="numeric price-up">+8.3%</td>
+                      <td class="numeric price-up">+14.7%</td>
+                      <td class="numeric price-up">+32.1%</td>
+                      <td class="numeric price-up">+51.6%</td>
                     </tr>
 
                     <tr>
@@ -1288,611 +1649,1380 @@
                       <td>stc</td>
                       <td>Telecom</td>
                       <td class="numeric">42.60</td>
-                      <td class="numeric td-flash-equal">0.00%</td>
-                      <td>
-                        <span class="badge badge-secondary badge-rounded"
-                          >Flat</span
-                        >
-                      </td>
+                      <td class="numeric price-neutral">0.00</td>
+                      <td class="numeric price-neutral">0.00%</td>
+                      <td class="numeric">3.42M</td>
+                      <td class="numeric">213.0B</td>
+                      <td class="numeric">14.7</td>
+                      <td class="numeric">2.89</td>
+                      <td class="numeric">4.1%</td>
+                      <td class="numeric">16.5%</td>
+                      <td class="numeric">0.36</td>
+                      <td class="numeric">0.61</td>
+                      <td class="numeric">46.20</td>
+                      <td class="numeric">34.90</td>
+                      <td class="numeric price-down">-1.8%</td>
+                      <td class="numeric price-up">+3.2%</td>
+                      <td class="numeric price-up">+12.5%</td>
+                      <td class="numeric price-up">+28.7%</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
+
+              <button
+                type="button"
+                class="table-scroll-jump has-icon icon-chevron-right-bold icon-md icon-flip-rtl"
+                data-table-scroll-jump
+                data-table-scroll-direction="end"
+                aria-label="Jump to last columns"
+                title="Jump to last columns"
+                hidden
+              >
+                <span class="visually-hidden"> Jump to last columns </span>
+              </button>
             </div>
-          </section>
+          </div>
+        </section>
+        <!-- ================================================================
+           DataTables
+           ================================================================ -->
 
-          <!-- Table Variants -->
-          <section class="card mb-6">
-            <div class="card-header">
-              <h3 class="card-title">
-                Striped / Hover / Bordered / Compact / Nowrap
-              </h3>
+        <section class="card mb-6">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">DataTables</h2>
+
+              <p class="text-muted">
+                Native DataTables behavior integrated with the design system.
+              </p>
             </div>
+          </div>
 
-            <div class="card-body">
-              <div class="table-responsive">
-                <table
-                  class="table table-striped table-hover table-bordered table-compact table-nowrap"
-                >
-                  <thead>
-                    <tr>
-                      <th>Market</th>
-                      <th>Sector</th>
-                      <th class="numeric">Volume</th>
-                      <th class="numeric">Value</th>
-                      <th class="numeric">Trades</th>
-                    </tr>
-                  </thead>
+          <div class="card-body">
+            <!-- ============================================================
+               Standard Paging
+               ============================================================ -->
 
-                  <tbody>
-                    <tr>
-                      <td>Main Market</td>
-                      <td>Banks</td>
-                      <td class="numeric">1,245,000</td>
-                      <td class="numeric">54,200,000</td>
-                      <td class="numeric">8,400</td>
-                    </tr>
+            <h3 class="mb-3">Standard Paging</h3>
 
-                    <tr>
-                      <td>Nomu</td>
-                      <td>Technology</td>
-                      <td class="numeric">320,000</td>
-                      <td class="numeric">7,800,000</td>
-                      <td class="numeric">1,120</td>
-                    </tr>
+            <table
+              id="datatableStandard"
+              class="table table-hover table-nowrap"
+            >
+              <thead>
+                <tr>
+                  <th scope="col">Symbol</th>
+                  <th scope="col">Company</th>
+                  <th scope="col">Sector</th>
+                  <th scope="col" class="numeric">Price</th>
+                  <th scope="col" class="numeric">Change</th>
+                  <th scope="col" class="numeric">Change %</th>
+                  <th scope="col" class="numeric">Volume</th>
+                  <th scope="col" class="numeric">Market Cap</th>
+                  <th scope="col" class="numeric">P/E</th>
+                  <th scope="col" class="numeric">EPS</th>
+                </tr>
+              </thead>
 
-                    <tr class="table-total-row">
-                      <td colspan="2">Total</td>
-                      <td class="numeric">1,565,000</td>
-                      <td class="numeric">62,000,000</td>
-                      <td class="numeric">9,520</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              <tbody>
+                <tr>
+                  <td>2222</td>
+                  <td>Saudi Aramco</td>
+                  <td>Energy</td>
+                  <td class="numeric">31.20</td>
+                  <td class="numeric price-up">+0.37</td>
+                  <td class="numeric price-up">+1.20%</td>
+                  <td class="numeric">7.84M</td>
+                  <td class="numeric">7.49T</td>
+                  <td class="numeric">15.8</td>
+                  <td class="numeric">1.98</td>
+                </tr>
+
+                <tr>
+                  <td>1120</td>
+                  <td>Al Rajhi Bank</td>
+                  <td>Banks</td>
+                  <td class="numeric">87.40</td>
+                  <td class="numeric price-down">-0.40</td>
+                  <td class="numeric price-down">-0.45%</td>
+                  <td class="numeric">4.21M</td>
+                  <td class="numeric">349.6B</td>
+                  <td class="numeric">19.1</td>
+                  <td class="numeric">4.58</td>
+                </tr>
+
+                <tr>
+                  <td>7010</td>
+                  <td>stc</td>
+                  <td>Telecom</td>
+                  <td class="numeric">42.60</td>
+                  <td class="numeric price-neutral">0.00</td>
+                  <td class="numeric price-neutral">0.00%</td>
+                  <td class="numeric">3.42M</td>
+                  <td class="numeric">213.0B</td>
+                  <td class="numeric">14.7</td>
+                  <td class="numeric">2.89</td>
+                </tr>
+
+                <tr>
+                  <td>2010</td>
+                  <td>SABIC</td>
+                  <td>Materials</td>
+                  <td class="numeric">63.80</td>
+                  <td class="numeric price-up">+0.60</td>
+                  <td class="numeric price-up">+0.95%</td>
+                  <td class="numeric">2.18M</td>
+                  <td class="numeric">192.4B</td>
+                  <td class="numeric">27.6</td>
+                  <td class="numeric">2.31</td>
+                </tr>
+
+                <tr>
+                  <td>1180</td>
+                  <td>SNB</td>
+                  <td>Banks</td>
+                  <td class="numeric">36.25</td>
+                  <td class="numeric price-down">-0.15</td>
+                  <td class="numeric price-down">-0.41%</td>
+                  <td class="numeric">3.11M</td>
+                  <td class="numeric">215.8B</td>
+                  <td class="numeric">12.8</td>
+                  <td class="numeric">2.83</td>
+                </tr>
+
+                <tr>
+                  <td>4003</td>
+                  <td>Extra</td>
+                  <td>Retail</td>
+                  <td class="numeric">92.10</td>
+                  <td class="numeric price-up">+1.10</td>
+                  <td class="numeric price-up">+1.21%</td>
+                  <td class="numeric">610K</td>
+                  <td class="numeric">9.20B</td>
+                  <td class="numeric">18.6</td>
+                  <td class="numeric">4.95</td>
+                </tr>
+
+                <tr>
+                  <td>2280</td>
+                  <td>Almarai</td>
+                  <td>Food</td>
+                  <td class="numeric">57.30</td>
+                  <td class="numeric price-down">-0.20</td>
+                  <td class="numeric price-down">-0.35%</td>
+                  <td class="numeric">840K</td>
+                  <td class="numeric">57.3B</td>
+                  <td class="numeric">24.3</td>
+                  <td class="numeric">2.36</td>
+                </tr>
+
+                <tr>
+                  <td>1010</td>
+                  <td>Riyad Bank</td>
+                  <td>Banks</td>
+                  <td class="numeric">28.75</td>
+                  <td class="numeric price-up">+0.25</td>
+                  <td class="numeric price-up">+0.88%</td>
+                  <td class="numeric">2.54M</td>
+                  <td class="numeric">86.3B</td>
+                  <td class="numeric">11.9</td>
+                  <td class="numeric">2.41</td>
+                </tr>
+
+                <tr>
+                  <td>1211</td>
+                  <td>Maaden</td>
+                  <td>Materials</td>
+                  <td class="numeric">49.60</td>
+                  <td class="numeric price-up">+0.45</td>
+                  <td class="numeric price-up">+0.92%</td>
+                  <td class="numeric">1.95M</td>
+                  <td class="numeric">183.4B</td>
+                  <td class="numeric">31.5</td>
+                  <td class="numeric">1.57</td>
+                </tr>
+
+                <tr>
+                  <td>7203</td>
+                  <td>Elm</td>
+                  <td>Software</td>
+                  <td class="numeric">1,045.00</td>
+                  <td class="numeric price-down">-5.00</td>
+                  <td class="numeric price-down">-0.48%</td>
+                  <td class="numeric">148K</td>
+                  <td class="numeric">83.6B</td>
+                  <td class="numeric">39.8</td>
+                  <td class="numeric">26.26</td>
+                </tr>
+
+                <tr>
+                  <td>2082</td>
+                  <td>ACWA Power</td>
+                  <td>Utilities</td>
+                  <td class="numeric">318.40</td>
+                  <td class="numeric price-up">+3.20</td>
+                  <td class="numeric price-up">+1.02%</td>
+                  <td class="numeric">721K</td>
+                  <td class="numeric">233.0B</td>
+                  <td class="numeric">47.2</td>
+                  <td class="numeric">6.74</td>
+                </tr>
+
+                <tr>
+                  <td>2020</td>
+                  <td>SABIC Agri-Nutrients</td>
+                  <td>Materials</td>
+                  <td class="numeric">116.80</td>
+                  <td class="numeric price-neutral">0.00</td>
+                  <td class="numeric price-neutral">0.00%</td>
+                  <td class="numeric">493K</td>
+                  <td class="numeric">55.6B</td>
+                  <td class="numeric">14.9</td>
+                  <td class="numeric">7.84</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- ============================================================
+               Search + Ordering
+               ============================================================ -->
+
+            <h3 class="mt-8 mb-3">Search + Ordering</h3>
+
+            <table id="datatableSearch" class="table table-hover table-nowrap">
+              <thead>
+                <tr>
+                  <th scope="col">Symbol</th>
+                  <th scope="col">Company</th>
+                  <th scope="col">Sector</th>
+                  <th scope="col" class="numeric">Price</th>
+                  <th scope="col" class="numeric">Change %</th>
+                  <th scope="col" class="numeric">Volume</th>
+                  <th scope="col" class="numeric">Market Cap</th>
+                  <th scope="col" class="numeric">P/E</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr>
+                  <td>2222</td>
+                  <td>Saudi Aramco</td>
+                  <td>Energy</td>
+                  <td class="numeric">31.20</td>
+                  <td class="numeric price-up">+1.20%</td>
+                  <td class="numeric">7.84M</td>
+                  <td class="numeric">7.49T</td>
+                  <td class="numeric">15.8</td>
+                </tr>
+
+                <tr>
+                  <td>1120</td>
+                  <td>Al Rajhi Bank</td>
+                  <td>Banks</td>
+                  <td class="numeric">87.40</td>
+                  <td class="numeric price-down">-0.45%</td>
+                  <td class="numeric">4.21M</td>
+                  <td class="numeric">349.6B</td>
+                  <td class="numeric">19.1</td>
+                </tr>
+
+                <tr>
+                  <td>7010</td>
+                  <td>stc</td>
+                  <td>Telecom</td>
+                  <td class="numeric">42.60</td>
+                  <td class="numeric price-neutral">0.00%</td>
+                  <td class="numeric">3.42M</td>
+                  <td class="numeric">213.0B</td>
+                  <td class="numeric">14.7</td>
+                </tr>
+
+                <tr>
+                  <td>2010</td>
+                  <td>SABIC</td>
+                  <td>Materials</td>
+                  <td class="numeric">63.80</td>
+                  <td class="numeric price-up">+0.95%</td>
+                  <td class="numeric">2.18M</td>
+                  <td class="numeric">192.4B</td>
+                  <td class="numeric">27.6</td>
+                </tr>
+
+                <tr>
+                  <td>1180</td>
+                  <td>SNB</td>
+                  <td>Banks</td>
+                  <td class="numeric">36.25</td>
+                  <td class="numeric price-down">-0.41%</td>
+                  <td class="numeric">3.11M</td>
+                  <td class="numeric">215.8B</td>
+                  <td class="numeric">12.8</td>
+                </tr>
+
+                <tr>
+                  <td>4003</td>
+                  <td>Extra</td>
+                  <td>Retail</td>
+                  <td class="numeric">92.10</td>
+                  <td class="numeric price-up">+1.21%</td>
+                  <td class="numeric">610K</td>
+                  <td class="numeric">9.20B</td>
+                  <td class="numeric">18.6</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <!-- ================================================================
+           DataTables — FixedHeader + FixedColumns
+           ================================================================ -->
+
+        <section class="card mb-6">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">
+                DataTables — FixedHeader + FixedColumns
+              </h2>
+
+              <p class="text-muted">
+                Native DataTables extensions for persistent headers and fixed
+                identity columns in wide financial datasets.
+              </p>
             </div>
-          </section>
+          </div>
 
-          <!-- Fixed First Column -->
-          <section class="card mb-6">
-            <div class="card-header">
-              <h3 class="card-title">Fixed First Column</h3>
+          <div class="card-body">
+            <!-- ============================================================
+               FixedHeader
+               ============================================================ -->
+
+            <h3 class="mb-3">FixedHeader</h3>
+
+            <table
+              id="datatableFixedHeader"
+              class="table table-hover table-nowrap"
+            >
+              <thead>
+                <tr>
+                  <th scope="col">Symbol</th>
+                  <th scope="col">Company</th>
+                  <th scope="col">Sector</th>
+                  <th scope="col" class="numeric">Price</th>
+                  <th scope="col" class="numeric">Change</th>
+                  <th scope="col" class="numeric">Change %</th>
+                  <th scope="col" class="numeric">Volume</th>
+                  <th scope="col" class="numeric">Market Cap</th>
+                  <th scope="col" class="numeric">P/E</th>
+                  <th scope="col" class="numeric">EPS</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr>
+                  <td>2222</td>
+                  <td>Saudi Aramco</td>
+                  <td>Energy</td>
+                  <td class="numeric">31.20</td>
+                  <td class="numeric price-up">+0.37</td>
+                  <td class="numeric price-up">+1.20%</td>
+                  <td class="numeric">7.84M</td>
+                  <td class="numeric">7.49T</td>
+                  <td class="numeric">15.8</td>
+                  <td class="numeric">1.98</td>
+                </tr>
+
+                <tr>
+                  <td>1120</td>
+                  <td>Al Rajhi Bank</td>
+                  <td>Banks</td>
+                  <td class="numeric">87.40</td>
+                  <td class="numeric price-down">-0.40</td>
+                  <td class="numeric price-down">-0.45%</td>
+                  <td class="numeric">4.21M</td>
+                  <td class="numeric">349.6B</td>
+                  <td class="numeric">19.1</td>
+                  <td class="numeric">4.58</td>
+                </tr>
+
+                <tr>
+                  <td>7010</td>
+                  <td>stc</td>
+                  <td>Telecom</td>
+                  <td class="numeric">42.60</td>
+                  <td class="numeric price-neutral">0.00</td>
+                  <td class="numeric price-neutral">0.00%</td>
+                  <td class="numeric">3.42M</td>
+                  <td class="numeric">213.0B</td>
+                  <td class="numeric">14.7</td>
+                  <td class="numeric">2.89</td>
+                </tr>
+
+                <tr>
+                  <td>2010</td>
+                  <td>SABIC</td>
+                  <td>Materials</td>
+                  <td class="numeric">63.80</td>
+                  <td class="numeric price-up">+0.60</td>
+                  <td class="numeric price-up">+0.95%</td>
+                  <td class="numeric">2.18M</td>
+                  <td class="numeric">192.4B</td>
+                  <td class="numeric">27.6</td>
+                  <td class="numeric">2.31</td>
+                </tr>
+
+                <tr>
+                  <td>1180</td>
+                  <td>SNB</td>
+                  <td>Banks</td>
+                  <td class="numeric">36.25</td>
+                  <td class="numeric price-down">-0.15</td>
+                  <td class="numeric price-down">-0.41%</td>
+                  <td class="numeric">3.11M</td>
+                  <td class="numeric">215.8B</td>
+                  <td class="numeric">12.8</td>
+                  <td class="numeric">2.83</td>
+                </tr>
+
+                <tr>
+                  <td>4003</td>
+                  <td>Extra</td>
+                  <td>Retail</td>
+                  <td class="numeric">92.10</td>
+                  <td class="numeric price-up">+1.10</td>
+                  <td class="numeric price-up">+1.21%</td>
+                  <td class="numeric">610K</td>
+                  <td class="numeric">9.20B</td>
+                  <td class="numeric">18.6</td>
+                  <td class="numeric">4.95</td>
+                </tr>
+
+                <tr>
+                  <td>2280</td>
+                  <td>Almarai</td>
+                  <td>Food</td>
+                  <td class="numeric">57.30</td>
+                  <td class="numeric price-down">-0.20</td>
+                  <td class="numeric price-down">-0.35%</td>
+                  <td class="numeric">840K</td>
+                  <td class="numeric">57.3B</td>
+                  <td class="numeric">24.3</td>
+                  <td class="numeric">2.36</td>
+                </tr>
+
+                <tr>
+                  <td>1010</td>
+                  <td>Riyad Bank</td>
+                  <td>Banks</td>
+                  <td class="numeric">28.75</td>
+                  <td class="numeric price-up">+0.25</td>
+                  <td class="numeric price-up">+0.88%</td>
+                  <td class="numeric">2.54M</td>
+                  <td class="numeric">86.3B</td>
+                  <td class="numeric">11.9</td>
+                  <td class="numeric">2.41</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- ============================================================
+               FixedColumns
+               ============================================================ -->
+
+            <h3 class="mt-8 mb-3">FixedColumns</h3>
+
+            <table
+              id="datatableFixedColumns"
+              class="table table-hover table-nowrap"
+            >
+              <thead>
+                <tr>
+                  <th scope="col">Symbol</th>
+                  <th scope="col">Company</th>
+                  <th scope="col">Sector</th>
+                  <th scope="col" class="numeric">Price</th>
+                  <th scope="col" class="numeric">Change</th>
+                  <th scope="col" class="numeric">Change %</th>
+                  <th scope="col" class="numeric">Volume</th>
+                  <th scope="col" class="numeric">Market Cap</th>
+                  <th scope="col" class="numeric">P/E</th>
+                  <th scope="col" class="numeric">EPS</th>
+                  <th scope="col" class="numeric">Dividend Yield</th>
+                  <th scope="col" class="numeric">ROE</th>
+                  <th scope="col" class="numeric">Debt / Equity</th>
+                  <th scope="col" class="numeric">Beta</th>
+                  <th scope="col" class="numeric">52W High</th>
+                  <th scope="col" class="numeric">52W Low</th>
+                  <th scope="col" class="numeric">YTD</th>
+                  <th scope="col" class="numeric">1Y</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr>
+                  <td>2222</td>
+                  <td>Saudi Aramco</td>
+                  <td>Energy</td>
+                  <td class="numeric">31.20</td>
+                  <td class="numeric price-up">+0.37</td>
+                  <td class="numeric price-up">+1.20%</td>
+                  <td class="numeric">7.84M</td>
+                  <td class="numeric">7.49T</td>
+                  <td class="numeric">15.8</td>
+                  <td class="numeric">1.98</td>
+                  <td class="numeric">6.4%</td>
+                  <td class="numeric">22.1%</td>
+                  <td class="numeric">0.18</td>
+                  <td class="numeric">0.72</td>
+                  <td class="numeric">35.15</td>
+                  <td class="numeric">27.30</td>
+                  <td class="numeric price-up">+4.7%</td>
+                  <td class="numeric price-up">+11.2%</td>
+                </tr>
+
+                <tr>
+                  <td>1120</td>
+                  <td>Al Rajhi Bank</td>
+                  <td>Banks</td>
+                  <td class="numeric">87.40</td>
+                  <td class="numeric price-down">-0.40</td>
+                  <td class="numeric price-down">-0.45%</td>
+                  <td class="numeric">4.21M</td>
+                  <td class="numeric">349.6B</td>
+                  <td class="numeric">19.1</td>
+                  <td class="numeric">4.58</td>
+                  <td class="numeric">2.7%</td>
+                  <td class="numeric">19.8%</td>
+                  <td class="numeric">1.24</td>
+                  <td class="numeric">0.93</td>
+                  <td class="numeric">96.80</td>
+                  <td class="numeric">68.10</td>
+                  <td class="numeric price-up">+8.3%</td>
+                  <td class="numeric price-up">+14.7%</td>
+                </tr>
+
+                <tr>
+                  <td>7010</td>
+                  <td>stc</td>
+                  <td>Telecom</td>
+                  <td class="numeric">42.60</td>
+                  <td class="numeric price-neutral">0.00</td>
+                  <td class="numeric price-neutral">0.00%</td>
+                  <td class="numeric">3.42M</td>
+                  <td class="numeric">213.0B</td>
+                  <td class="numeric">14.7</td>
+                  <td class="numeric">2.89</td>
+                  <td class="numeric">4.1%</td>
+                  <td class="numeric">16.5%</td>
+                  <td class="numeric">0.36</td>
+                  <td class="numeric">0.61</td>
+                  <td class="numeric">46.20</td>
+                  <td class="numeric">34.90</td>
+                  <td class="numeric price-down">-1.8%</td>
+                  <td class="numeric price-up">+3.2%</td>
+                </tr>
+
+                <tr>
+                  <td>2010</td>
+                  <td>SABIC</td>
+                  <td>Materials</td>
+                  <td class="numeric">63.80</td>
+                  <td class="numeric price-up">+0.60</td>
+                  <td class="numeric price-up">+0.95%</td>
+                  <td class="numeric">2.18M</td>
+                  <td class="numeric">192.4B</td>
+                  <td class="numeric">27.6</td>
+                  <td class="numeric">2.31</td>
+                  <td class="numeric">3.0%</td>
+                  <td class="numeric">8.9%</td>
+                  <td class="numeric">0.42</td>
+                  <td class="numeric">1.08</td>
+                  <td class="numeric">78.40</td>
+                  <td class="numeric">61.20</td>
+                  <td class="numeric price-down">-3.2%</td>
+                  <td class="numeric price-down">-6.5%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <!-- ================================================================
+           DataTables — RowGroup + API Pattern
+           ================================================================ -->
+
+        <section class="card mb-6">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">DataTables — RowGroup + API Pattern</h2>
+
+              <p class="text-muted">
+                Grouped market data and an API-ready table using dummy data.
+              </p>
             </div>
+          </div>
 
-            <div class="card-body">
-              <div class="table-responsive">
-                <table
-                  class="table table-striped table-hover table-nowrap table-fixed-column"
-                >
-                  <thead>
-                    <tr>
-                      <th>Company</th>
-                      <th>Q1</th>
-                      <th>Q2</th>
-                      <th>Q3</th>
-                      <th>Q4</th>
-                      <th>Total</th>
-                      <th>Growth</th>
-                    </tr>
-                  </thead>
+          <div class="card-body">
+            <!-- ============================================================
+               RowGroup
+               ============================================================ -->
 
-                  <tbody>
-                    <tr>
-                      <td>Saudi Aramco</td>
-                      <td>120</td>
-                      <td>135</td>
-                      <td>142</td>
-                      <td>155</td>
-                      <td>552</td>
-                      <td>+8%</td>
-                    </tr>
+            <h3 class="mb-3">RowGroup</h3>
 
-                    <tr>
-                      <td>Al Rajhi Bank</td>
-                      <td>90</td>
-                      <td>94</td>
-                      <td>98</td>
-                      <td>102</td>
-                      <td>384</td>
-                      <td>+5%</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+            <table
+              id="datatableRowGroup"
+              class="table table-hover table-nowrap"
+            >
+              <thead>
+                <tr>
+                  <th scope="col">Symbol</th>
+                  <th scope="col">Company</th>
+                  <th scope="col">Sector</th>
+                  <th scope="col" class="numeric">Price</th>
+                  <th scope="col" class="numeric">Change %</th>
+                  <th scope="col" class="numeric">Volume</th>
+                  <th scope="col" class="numeric">Market Cap</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr>
+                  <td>1120</td>
+                  <td>Al Rajhi Bank</td>
+                  <td>Banks</td>
+                  <td class="numeric">87.40</td>
+                  <td class="numeric price-down">-0.45%</td>
+                  <td class="numeric">4.21M</td>
+                  <td class="numeric">349.6B</td>
+                </tr>
+
+                <tr>
+                  <td>1180</td>
+                  <td>SNB</td>
+                  <td>Banks</td>
+                  <td class="numeric">36.25</td>
+                  <td class="numeric price-down">-0.41%</td>
+                  <td class="numeric">3.11M</td>
+                  <td class="numeric">215.8B</td>
+                </tr>
+
+                <tr>
+                  <td>1010</td>
+                  <td>Riyad Bank</td>
+                  <td>Banks</td>
+                  <td class="numeric">28.75</td>
+                  <td class="numeric price-up">+0.88%</td>
+                  <td class="numeric">2.54M</td>
+                  <td class="numeric">86.3B</td>
+                </tr>
+
+                <tr>
+                  <td>2222</td>
+                  <td>Saudi Aramco</td>
+                  <td>Energy</td>
+                  <td class="numeric">31.20</td>
+                  <td class="numeric price-up">+1.20%</td>
+                  <td class="numeric">7.84M</td>
+                  <td class="numeric">7.49T</td>
+                </tr>
+
+                <tr>
+                  <td>7010</td>
+                  <td>stc</td>
+                  <td>Telecom</td>
+                  <td class="numeric">42.60</td>
+                  <td class="numeric price-neutral">0.00%</td>
+                  <td class="numeric">3.42M</td>
+                  <td class="numeric">213.0B</td>
+                </tr>
+
+                <tr>
+                  <td>2010</td>
+                  <td>SABIC</td>
+                  <td>Materials</td>
+                  <td class="numeric">63.80</td>
+                  <td class="numeric price-up">+0.95%</td>
+                  <td class="numeric">2.18M</td>
+                  <td class="numeric">192.4B</td>
+                </tr>
+
+                <tr>
+                  <td>1211</td>
+                  <td>Maaden</td>
+                  <td>Materials</td>
+                  <td class="numeric">49.60</td>
+                  <td class="numeric price-up">+0.92%</td>
+                  <td class="numeric">1.95M</td>
+                  <td class="numeric">183.4B</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- ============================================================
+               API / Server-Ready Table
+               ============================================================ -->
+
+            <h3 class="mt-8 mb-3">API-Ready Table</h3>
+
+            <p class="text-muted mb-3">
+              Uses dummy JavaScript data now. Later, the same column contract
+              can be connected to an API or DataTables server-side processing.
+            </p>
+
+            <table id="datatableApi" class="table table-hover table-nowrap">
+              <thead>
+                <tr>
+                  <th scope="col">Symbol</th>
+                  <th scope="col">Company</th>
+                  <th scope="col">Sector</th>
+                  <th scope="col" class="numeric">Price</th>
+                  <th scope="col" class="numeric">Change</th>
+                  <th scope="col" class="numeric">Change %</th>
+                  <th scope="col" class="numeric">Volume</th>
+                  <th scope="col" class="numeric">Market Cap</th>
+                  <th scope="col" class="numeric">P/E</th>
+                  <th scope="col" class="numeric">EPS</th>
+                </tr>
+              </thead>
+
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+        <!-- ================================================================
+           DataTables — States + Totals
+           ================================================================ -->
+
+        <section class="card mb-6">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">DataTables — States + Totals</h2>
+
+              <p class="text-muted">
+                DataTables empty, processing, footer totals, and summary
+                behavior.
+              </p>
             </div>
-          </section>
+          </div>
 
-          <!-- Empty / Loading -->
-          <section class="card mb-6">
-            <div class="card-header">
-              <h3 class="card-title">Empty & Loading States</h3>
-            </div>
+          <div class="card-body">
+            <!-- ============================================================
+               Footer Totals
+               ============================================================ -->
 
-            <div class="card-body">
-              <div class="grid-2 gap-4">
-                <div class="table-responsive">
-                  <table class="table table-bordered">
-                    <tbody>
-                      <tr class="table-empty">
-                        <td>No data available</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+            <h3 class="mb-3">Footer Totals</h3>
 
-                <div class="table-responsive">
-                  <table class="table table-bordered">
-                    <tbody>
-                      <tr class="table-loading">
-                        <td>Loading data...</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </section>
+            <table id="datatableTotals" class="table table-hover table-nowrap">
+              <thead>
+                <tr>
+                  <th scope="col">Sector</th>
+                  <th scope="col" class="numeric">Volume</th>
+                  <th scope="col" class="numeric">Value</th>
+                  <th scope="col" class="numeric">Trades</th>
+                </tr>
+              </thead>
 
-          <!-- Range Slider -->
-          <section class="card mb-6">
-            <div class="card-header">
-              <h3 class="card-title">Range Slider</h3>
-            </div>
+              <tbody>
+                <tr>
+                  <td>Banks</td>
+                  <td class="numeric">1245000</td>
+                  <td class="numeric">54200000</td>
+                  <td class="numeric">8400</td>
+                </tr>
 
-            <div class="card-body">
-              <div class="range-slider">
-                <input
-                  class="range-slider-input"
-                  type="range"
-                  min="0"
-                  max="100"
-                  value="45"
-                />
-                <div class="range-slider-labels">
-                  <span>Low</span>
-                  <span class="range-slider-value">Current: 45%</span>
-                  <span>High</span>
-                </div>
-              </div>
-            </div>
-          </section>
+                <tr>
+                  <td>Technology</td>
+                  <td class="numeric">320000</td>
+                  <td class="numeric">7800000</td>
+                  <td class="numeric">1120</td>
+                </tr>
 
-          <!-- DataTables Default Paging -->
-          <section class="card mb-6">
-            <div class="card-header">
-              <h3 class="card-title">DataTables — Default Paging</h3>
-            </div>
+                <tr>
+                  <td>Energy</td>
+                  <td class="numeric">2840000</td>
+                  <td class="numeric">91600000</td>
+                  <td class="numeric">12360</td>
+                </tr>
+              </tbody>
 
-            <div class="card-body">
-              <div class="table-responsive">
-                <table
-                  class="table table-striped table-hover"
-                  data-datatable
-                  data-datatable-preset="standard"
-                >
-                  <thead>
-                    <tr>
-                      <th>Code</th>
-                      <th>Company</th>
-                      <th>Sector</th>
-                      <th class="numeric">Price</th>
-                      <th class="numeric">Change</th>
-                    </tr>
-                  </thead>
+              <tfoot>
+                <tr class="table-total-row">
+                  <th scope="row">Total</th>
 
-                  <tbody>
-                    <tr>
-                      <td>1010</td>
-                      <td>Riyad Bank</td>
-                      <td>Banks</td>
-                      <td class="numeric">28.10</td>
-                      <td class="numeric">+0.30%</td>
-                    </tr>
-                    <tr>
-                      <td>1120</td>
-                      <td>Al Rajhi Bank</td>
-                      <td>Banks</td>
-                      <td class="numeric">87.40</td>
-                      <td class="numeric">-0.45%</td>
-                    </tr>
-                    <tr>
-                      <td>2222</td>
-                      <td>Saudi Aramco</td>
-                      <td>Energy</td>
-                      <td class="numeric">31.20</td>
-                      <td class="numeric">+1.20%</td>
-                    </tr>
-                    <tr>
-                      <td>2010</td>
-                      <td>SABIC</td>
-                      <td>Materials</td>
-                      <td class="numeric">76.90</td>
-                      <td class="numeric">-0.20%</td>
-                    </tr>
-                    <tr>
-                      <td>7010</td>
-                      <td>stc</td>
-                      <td>Telecom</td>
-                      <td class="numeric">42.60</td>
-                      <td class="numeric">+0.10%</td>
-                    </tr>
-                    <tr>
-                      <td>7020</td>
-                      <td>Mobily</td>
-                      <td>Telecom</td>
-                      <td class="numeric">49.90</td>
-                      <td class="numeric">-0.15%</td>
-                    </tr>
-                    <tr>
-                      <td>4030</td>
-                      <td>Bahri</td>
-                      <td>Transport</td>
-                      <td class="numeric">23.80</td>
-                      <td class="numeric">+0.80%</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </section>
+                  <td class="numeric"></td>
+                  <td class="numeric"></td>
+                  <td class="numeric"></td>
+                </tr>
+              </tfoot>
+            </table>
 
-          <!-- DataTables Searchable -->
-          <section class="card mb-6">
-            <div class="card-header">
-              <h3 class="card-title">DataTables — Searchable</h3>
-            </div>
+            <!-- ============================================================
+               Empty State
+               ============================================================ -->
 
-            <div class="card-body">
-              <div class="table-responsive">
-                <table
-                  class="table table-striped table-hover"
-                  data-datatable
-                  data-datatable-preset="searchable"
-                >
-                  <thead>
-                    <tr>
-                      <th>Code</th>
-                      <th>Company</th>
-                      <th>Sector</th>
-                      <th class="numeric">Price</th>
-                    </tr>
-                  </thead>
+            <h3 class="mt-8 mb-3">Empty DataTable</h3>
 
-                  <tbody>
-                    <tr>
-                      <td>1010</td>
-                      <td>Riyad Bank</td>
-                      <td>Banks</td>
-                      <td class="numeric">28.10</td>
-                    </tr>
-                    <tr>
-                      <td>1120</td>
-                      <td>Al Rajhi Bank</td>
-                      <td>Banks</td>
-                      <td class="numeric">87.40</td>
-                    </tr>
-                    <tr>
-                      <td>2222</td>
-                      <td>Saudi Aramco</td>
-                      <td>Energy</td>
-                      <td class="numeric">31.20</td>
-                    </tr>
-                    <tr>
-                      <td>2010</td>
-                      <td>SABIC</td>
-                      <td>Materials</td>
-                      <td class="numeric">76.90</td>
-                    </tr>
-                    <tr>
-                      <td>7010</td>
-                      <td>stc</td>
-                      <td>Telecom</td>
-                      <td class="numeric">42.60</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </section>
+            <table id="datatableEmpty" class="table table-hover">
+              <thead>
+                <tr>
+                  <th scope="col">Symbol</th>
+                  <th scope="col">Company</th>
+                  <th scope="col">Sector</th>
+                  <th scope="col" class="numeric">Price</th>
+                </tr>
+              </thead>
 
-          <!-- DataTables Fixed Header -->
-          <section class="card mb-6">
-            <div class="card-header">
-              <h3 class="card-title">DataTables — Fixed Header</h3>
-            </div>
+              <tbody></tbody>
+            </table>
 
-            <div class="card-body">
-              <div class="table-responsive">
-                <table
-                  class="table table-striped table-hover table-nowrap"
-                  data-datatable
-                  data-datatable-preset="searchable"
-                  data-datatable-fixed-header
-                >
-                  <thead>
-                    <tr>
-                      <th>Code</th>
-                      <th>Company</th>
-                      <th>Sector</th>
-                      <th class="numeric">Price</th>
-                      <th class="numeric">Change</th>
-                    </tr>
-                  </thead>
+            <!-- ============================================================
+               Processing State
+               ============================================================ -->
 
-                  <tbody>
-                    <tr>
-                      <td>1010</td>
-                      <td>Riyad Bank</td>
-                      <td>Banks</td>
-                      <td class="numeric">28.10</td>
-                      <td class="numeric">+0.30%</td>
-                    </tr>
-                    <tr>
-                      <td>1120</td>
-                      <td>Al Rajhi Bank</td>
-                      <td>Banks</td>
-                      <td class="numeric">87.40</td>
-                      <td class="numeric">-0.45%</td>
-                    </tr>
-                    <tr>
-                      <td>2222</td>
-                      <td>Saudi Aramco</td>
-                      <td>Energy</td>
-                      <td class="numeric">31.20</td>
-                      <td class="numeric">+1.20%</td>
-                    </tr>
-                    <tr>
-                      <td>2010</td>
-                      <td>SABIC</td>
-                      <td>Materials</td>
-                      <td class="numeric">76.90</td>
-                      <td class="numeric">-0.20%</td>
-                    </tr>
-                    <tr>
-                      <td>7010</td>
-                      <td>stc</td>
-                      <td>Telecom</td>
-                      <td class="numeric">42.60</td>
-                      <td class="numeric">+0.10%</td>
-                    </tr>
-                    <tr>
-                      <td>7020</td>
-                      <td>Mobily</td>
-                      <td>Telecom</td>
-                      <td class="numeric">49.90</td>
-                      <td class="numeric">-0.15%</td>
-                    </tr>
-                    <tr>
-                      <td>4030</td>
-                      <td>Bahri</td>
-                      <td>Transport</td>
-                      <td class="numeric">23.80</td>
-                      <td class="numeric">+0.80%</td>
-                    </tr>
-                    <tr>
-                      <td>4004</td>
-                      <td>Dallah Healthcare</td>
-                      <td>Healthcare</td>
-                      <td class="numeric">158.20</td>
-                      <td class="numeric">+0.40%</td>
-                    </tr>
-                    <tr>
-                      <td>1830</td>
-                      <td>Leejam Sports</td>
-                      <td>Consumer Services</td>
-                      <td class="numeric">196.00</td>
-                      <td class="numeric">-1.10%</td>
-                    </tr>
-                    <tr>
-                      <td>4002</td>
-                      <td>Mouwasat</td>
-                      <td>Healthcare</td>
-                      <td class="numeric">97.80</td>
-                      <td class="numeric">+0.25%</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </section>
+            <h3 class="mt-8 mb-3">Processing State</h3>
 
-          <!-- DataTables Row Group -->
-          <section class="card mb-6">
-            <div class="card-header">
-              <h3 class="card-title">DataTables — Row Group</h3>
-            </div>
+            <table
+              id="datatableProcessing"
+              class="table table-hover table-nowrap"
+            >
+              <thead>
+                <tr>
+                  <th scope="col">Symbol</th>
+                  <th scope="col">Company</th>
+                  <th scope="col">Sector</th>
+                  <th scope="col" class="numeric">Price</th>
+                  <th scope="col" class="numeric">Change %</th>
+                </tr>
+              </thead>
 
-            <div class="card-body">
-              <div class="table-responsive">
-                <table
-                  class="table table-hover table-nowrap"
-                  data-datatable
-                  data-datatable-preset="standard"
-                  data-datatable-row-group="2"
-                >
-                  <thead>
-                    <tr>
-                      <th>Code</th>
-                      <th>Company</th>
-                      <th>Sector</th>
-                      <th class="numeric">Price</th>
-                      <th class="numeric">Change</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    <tr>
-                      <td>1010</td>
-                      <td>Riyad Bank</td>
-                      <td>Banks</td>
-                      <td class="numeric">28.10</td>
-                      <td class="numeric">+0.30%</td>
-                    </tr>
-                    <tr>
-                      <td>1120</td>
-                      <td>Al Rajhi Bank</td>
-                      <td>Banks</td>
-                      <td class="numeric">87.40</td>
-                      <td class="numeric">-0.45%</td>
-                    </tr>
-                    <tr>
-                      <td>2222</td>
-                      <td>Saudi Aramco</td>
-                      <td>Energy</td>
-                      <td class="numeric">31.20</td>
-                      <td class="numeric">+1.20%</td>
-                    </tr>
-                    <tr>
-                      <td>2010</td>
-                      <td>SABIC</td>
-                      <td>Materials</td>
-                      <td class="numeric">76.90</td>
-                      <td class="numeric">-0.20%</td>
-                    </tr>
-                    <tr>
-                      <td>7010</td>
-                      <td>stc</td>
-                      <td>Telecom</td>
-                      <td class="numeric">42.60</td>
-                      <td class="numeric">+0.10%</td>
-                    </tr>
-                    <tr>
-                      <td>7020</td>
-                      <td>Mobily</td>
-                      <td>Telecom</td>
-                      <td class="numeric">49.90</td>
-                      <td class="numeric">-0.15%</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </section>
-          <section class="card mb-6">
-            <div class="card-header">
-              <h3 class="card-title">DataTables — JS Render Default</h3>
-            </div>
-
-            <div class="card-body">
-              <div class="table-responsive">
-                <table
-                  id="jsDefaultDataTable"
-                  class="table table-striped table-hover"
-                >
-                  <thead>
-                    <tr>
-                      <th>Code</th>
-                      <th>Company</th>
-                      <th>Sector</th>
-                      <th class="numeric">Price</th>
-                      <th class="numeric">Change</th>
-                    </tr>
-                  </thead>
-                </table>
-              </div>
-            </div>
-          </section>
-
-          <!-- Custom Feed Pagination Markup -->
-          <section class="card mb-6">
-            <div class="card-header">
-              <h3 class="card-title">DataTables — Custom Feed Paging</h3>
-            </div>
-
-            <div class="card-body">
-              <div class="table-responsive">
-                <table
-                  id="feedDataTable"
-                  class="table table-striped table-hover table-nowrap"
-                >
-                  <thead>
-                    <tr>
-                      <th>Code</th>
-                      <th>Company</th>
-                      <th>Sector</th>
-                      <th class="numeric">Price</th>
-                    </tr>
-                  </thead>
-                </table>
-              </div>
-
-              <div class="datatable-feed-pagination" id="feedPaginationDemo">
-                <div class="datatable-feed-range" data-feed-range>0–0 of 0</div>
-
-                <div class="datatable-feed-actions">
-                  <button class="btn btn-outline-primary btn-sm" data-feed-prev>
-                    Previous
-                  </button>
-
-                  <select data-feed-page></select>
-
-                  <span>of <strong data-feed-total-pages>1</strong></span>
-
-                  <button class="btn btn-outline-primary btn-sm" data-feed-next>
-                    Next
-                  </button>
-                </div>
-              </div>
-            </div>
-          </section>
+              <tbody></tbody>
+            </table>
+          </div>
         </section>
       </div>
     </main>
   </body>
 
-  <script type="module">
-    const feedData = [
-      ["1010", "Riyad Bank", "Banks", "28.10"],
-      ["1120", "Al Rajhi Bank", "Banks", "87.40"],
-      ["2222", "Saudi Aramco", "Energy", "31.20"],
-      ["2010", "SABIC", "Materials", "76.90"],
-      ["7010", "stc", "Telecom", "42.60"],
-      ["7020", "Mobily", "Telecom", "49.90"],
-      ["4030", "Bahri", "Transport", "23.80"],
-    ];
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
 
-    window.renderDataTable({
-      target: "#feedDataTable",
-      preset: "minimal",
-      data: feedData,
-      columns: [
-        { title: "Code" },
-        { title: "Company" },
-        { title: "Sector" },
-        { title: "Price", className: "numeric" },
-      ],
-      dtOptions: {
-        pageLength: 3,
-        paging: true,
-      },
-      features: {
-        feedPagination: {
-          container: "#feedPaginationDemo",
-        },
+  <!-- DataTables Core -->
+  <script src="https://cdn.datatables.net/2.3.8/js/dataTables.min.js"></script>
+
+  <!-- FixedHeader -->
+  <script src="https://cdn.datatables.net/fixedheader/4.0.6/js/dataTables.fixedHeader.min.js"></script>
+
+  <!-- FixedColumns -->
+  <script src="https://cdn.datatables.net/fixedcolumns/5.0.5/js/dataTables.fixedColumns.min.js"></script>
+
+  <!-- RowGroup -->
+  <script src="https://cdn.datatables.net/rowgroup/1.6.0/js/dataTables.rowGroup.min.js"></script>
+
+  <script type="module" src="/src/js/main.js"></script>
+  <script>
+    new DataTable("#datatableStandard", {
+      pageLength: 5,
+      lengthMenu: [5, 10, 25, 50],
+
+      paging: true,
+      searching: false,
+      ordering: true,
+      info: true,
+      lengthChange: true,
+
+      autoWidth: false,
+      scrollX: true,
+
+      layout: {
+        topStart: "pageLength",
+        topEnd: null,
+        bottomStart: "info",
+        bottomEnd: "paging",
       },
     });
   </script>
+  <script>
+    new DataTable("#datatableSearch", {
+      pageLength: 5,
+      lengthMenu: [5, 10, 25, 50],
 
-  <script type="module">
-    const defaultData = [
-      ["1010", "Riyad Bank", "Banks", "28.10", "+0.30%"],
-      ["1120", "Al Rajhi Bank", "Banks", "87.40", "-0.45%"],
-      ["2222", "Saudi Aramco", "Energy", "31.20", "+1.20%"],
-      ["2010", "SABIC", "Materials", "76.90", "-0.20%"],
-      ["7010", "stc", "Telecom", "42.60", "+0.10%"],
+      paging: true,
+      searching: true,
+      ordering: true,
+      info: true,
+      lengthChange: true,
+
+      autoWidth: false,
+      scrollX: true,
+
+      layout: {
+        topStart: "pageLength",
+        topEnd: "search",
+        bottomStart: "info",
+        bottomEnd: "paging",
+      },
+    });
+  </script>
+  <script>
+    const datatableFixedHeader = new DataTable("#datatableFixedHeader", {
+      pageLength: 5,
+      lengthMenu: [5, 10, 25, 50],
+
+      paging: true,
+      searching: false,
+      ordering: true,
+      info: true,
+      lengthChange: true,
+
+      autoWidth: false,
+      scrollX: true,
+
+      fixedHeader: {
+        header: true,
+        footer: false,
+      },
+
+      layout: {
+        topStart: "pageLength",
+        topEnd: null,
+        bottomStart: "info",
+        bottomEnd: "paging",
+      },
+    });
+  </script>
+  <script>
+    const datatableFixedColumns = new DataTable("#datatableFixedColumns", {
+      pageLength: 5,
+      lengthMenu: [5, 10, 25, 50],
+
+      paging: true,
+      searching: false,
+      ordering: true,
+      info: true,
+      lengthChange: true,
+
+      autoWidth: false,
+      scrollX: true,
+
+      fixedColumns: {
+        start: 2,
+      },
+
+      layout: {
+        topStart: "pageLength",
+        topEnd: null,
+        bottomStart: "info",
+        bottomEnd: "paging",
+      },
+    });
+  </script>
+  <script>
+    const datatableRowGroup = new DataTable("#datatableRowGroup", {
+      pageLength: 10,
+      lengthMenu: [5, 10, 25, 50],
+
+      paging: true,
+      searching: false,
+      ordering: true,
+      info: true,
+      lengthChange: true,
+
+      autoWidth: false,
+      scrollX: true,
+
+      rowGroup: {
+        dataSrc: 2,
+      },
+
+      order: [[2, "asc"]],
+
+      layout: {
+        topStart: "pageLength",
+        topEnd: null,
+        bottomStart: "info",
+        bottomEnd: "paging",
+      },
+    });
+  </script>
+  <script>
+    const marketData = [
+      {
+        symbol: "2222",
+        company: "Saudi Aramco",
+        sector: "Energy",
+        price: 31.2,
+        change: 0.37,
+        changePercent: 1.2,
+        volume: "7.84M",
+        marketCap: "7.49T",
+        pe: 15.8,
+        eps: 1.98,
+      },
+      {
+        symbol: "1120",
+        company: "Al Rajhi Bank",
+        sector: "Banks",
+        price: 87.4,
+        change: -0.4,
+        changePercent: -0.45,
+        volume: "4.21M",
+        marketCap: "349.6B",
+        pe: 19.1,
+        eps: 4.58,
+      },
+      {
+        symbol: "7010",
+        company: "stc",
+        sector: "Telecom",
+        price: 42.6,
+        change: 0,
+        changePercent: 0,
+        volume: "3.42M",
+        marketCap: "213.0B",
+        pe: 14.7,
+        eps: 2.89,
+      },
+      {
+        symbol: "2010",
+        company: "SABIC",
+        sector: "Materials",
+        price: 63.8,
+        change: 0.6,
+        changePercent: 0.95,
+        volume: "2.18M",
+        marketCap: "192.4B",
+        pe: 27.6,
+        eps: 2.31,
+      },
+      {
+        symbol: "1180",
+        company: "SNB",
+        sector: "Banks",
+        price: 36.25,
+        change: -0.15,
+        changePercent: -0.41,
+        volume: "3.11M",
+        marketCap: "215.8B",
+        pe: 12.8,
+        eps: 2.83,
+      },
     ];
 
-    window.renderDataTable({
-      target: "#jsDefaultDataTable",
-      preset: "searchable",
-      data: defaultData,
+    new DataTable("#datatableApi", {
+      data: marketData,
+
       columns: [
-        { title: "Code" },
-        { title: "Company" },
-        { title: "Sector" },
-        { title: "Price", className: "numeric" },
-        { title: "Change", className: "numeric" },
+        {
+          data: "symbol",
+        },
+        {
+          data: "company",
+        },
+        {
+          data: "sector",
+        },
+        {
+          data: "price",
+          className: "numeric",
+          render(data, type) {
+            if (type !== "display") {
+              return Number(data);
+            }
+
+            return Number(data).toFixed(2);
+          },
+        },
+        {
+          data: "change",
+          className: "numeric",
+          render(data, type) {
+            if (type !== "display") {
+              return Number(data);
+            }
+
+            const value = Number(data);
+
+            const state =
+              value > 0
+                ? "price-up"
+                : value < 0
+                  ? "price-down"
+                  : "price-neutral";
+
+            const sign = value > 0 ? "+" : "";
+
+            return `<span class="${state}">
+            ${sign}${value.toFixed(2)}
+          </span>`;
+          },
+        },
+        {
+          data: "changePercent",
+          className: "numeric",
+          render(data, type) {
+            if (type !== "display") {
+              return Number(data);
+            }
+
+            const value = Number(data);
+
+            const state =
+              value > 0
+                ? "price-up"
+                : value < 0
+                  ? "price-down"
+                  : "price-neutral";
+
+            const sign = value > 0 ? "+" : "";
+
+            return `<span class="${state}">
+            ${sign}${value.toFixed(2)}%
+          </span>`;
+          },
+        },
+        {
+          data: "volume",
+          className: "numeric",
+        },
+        {
+          data: "marketCap",
+          className: "numeric",
+        },
+        {
+          data: "pe",
+          className: "numeric",
+        },
+        {
+          data: "eps",
+          className: "numeric",
+          render(data, type) {
+            if (type !== "display") {
+              return Number(data);
+            }
+
+            return Number(data).toFixed(2);
+          },
+        },
       ],
+
+      pageLength: 5,
+      lengthMenu: [5, 10, 25, 50],
+
+      paging: true,
+      searching: true,
+      ordering: true,
+      info: true,
+      lengthChange: true,
+
+      autoWidth: false,
+      scrollX: true,
+
+      layout: {
+        topStart: "pageLength",
+        topEnd: "search",
+        bottomStart: "info",
+        bottomEnd: "paging",
+      },
+    });
+  </script>
+  <script>
+    new DataTable("#datatableTotals", {
+      paging: false,
+      searching: false,
+      ordering: true,
+      info: false,
+      lengthChange: false,
+
+      autoWidth: false,
+      scrollX: true,
+
+      footerCallback() {
+        const api = this.api();
+
+        [1, 2, 3].forEach((columnIndex) => {
+          const total = api
+            .column(columnIndex)
+            .data()
+            .reduce((sum, value) => {
+              const number = Number(String(value).replace(/[^0-9.-]/g, ""));
+
+              return sum + (Number.isFinite(number) ? number : 0);
+            }, 0);
+
+          const footer = api.column(columnIndex).footer();
+
+          if (footer) {
+            footer.textContent = total.toLocaleString(
+              document.documentElement.lang || "en",
+            );
+          }
+        });
+      },
+
+      layout: {
+        topStart: null,
+        topEnd: null,
+        bottomStart: null,
+        bottomEnd: null,
+      },
+    });
+  </script>
+  <script>
+    new DataTable("#datatableEmpty", {
+      data: [],
+
+      paging: false,
+      searching: false,
+      ordering: false,
+      info: false,
+      lengthChange: false,
+
+      autoWidth: false,
+      scrollX: true,
+
+      language: {
+        emptyTable: "No data available",
+      },
+
+      layout: {
+        topStart: null,
+        topEnd: null,
+        bottomStart: null,
+        bottomEnd: null,
+      },
+    });
+  </script>
+  <script>
+    const processingData = [
+      {
+        symbol: "2222",
+        company: "Saudi Aramco",
+        sector: "Energy",
+        price: 31.2,
+        changePercent: 1.2,
+      },
+      {
+        symbol: "1120",
+        company: "Al Rajhi Bank",
+        sector: "Banks",
+        price: 87.4,
+        changePercent: -0.45,
+      },
+      {
+        symbol: "7010",
+        company: "stc",
+        sector: "Telecom",
+        price: 42.6,
+        changePercent: 0,
+      },
+    ];
+
+    new DataTable("#datatableProcessing", {
+      processing: true,
+
+      ajax(request, callback) {
+        window.setTimeout(() => {
+          callback({
+            data: processingData,
+          });
+        }, 1200);
+      },
+
+      columns: [
+        {
+          data: "symbol",
+        },
+        {
+          data: "company",
+        },
+        {
+          data: "sector",
+        },
+        {
+          data: "price",
+          className: "numeric",
+          render(data, type) {
+            if (type !== "display") {
+              return Number(data);
+            }
+
+            return Number(data).toFixed(2);
+          },
+        },
+        {
+          data: "changePercent",
+          className: "numeric",
+          render(data, type) {
+            if (type !== "display") {
+              return Number(data);
+            }
+
+            const value = Number(data);
+
+            const state =
+              value > 0
+                ? "price-up"
+                : value < 0
+                  ? "price-down"
+                  : "price-neutral";
+
+            const sign = value > 0 ? "+" : "";
+
+            return `<span class="${state}">
+            ${sign}${value.toFixed(2)}%
+          </span>`;
+          },
+        },
+      ],
+
+      paging: false,
+      searching: false,
+      ordering: false,
+      info: false,
+      lengthChange: false,
+
+      autoWidth: false,
+      scrollX: true,
+
+      language: {
+        processing: "Loading data...",
+      },
+
+      layout: {
+        topStart: null,
+        topEnd: null,
+        bottomStart: null,
+        bottomEnd: null,
+      },
+    });
+  </script>
+  <script>
+    let dataTableResizeTimer;
+
+    window.addEventListener("resize", () => {
+      window.clearTimeout(dataTableResizeTimer);
+
+      dataTableResizeTimer = window.setTimeout(() => {
+        DataTable.tables({
+          api: true,
+          visible: true,
+        }).columns.adjust();
+
+        if (
+          typeof datatableFixedHeader !== "undefined" &&
+          datatableFixedHeader.fixedHeader?.adjust
+        ) {
+          datatableFixedHeader.fixedHeader.adjust();
+        }
+
+        if (
+          typeof datatableFixedColumns !== "undefined" &&
+          typeof datatableFixedColumns.fixedColumns === "function"
+        ) {
+          const fixedColumns = datatableFixedColumns.fixedColumns();
+
+          fixedColumns?.relayout?.();
+        }
+      }, 120);
     });
   </script>
 </html>
