@@ -139,6 +139,8 @@
   user-select: none;
   white-space: nowrap;
 
+  text-decoration: none;
+
   @include ds.transition(
     (background-color, border-color, color, box-shadow),
     var(--transition-fast)
