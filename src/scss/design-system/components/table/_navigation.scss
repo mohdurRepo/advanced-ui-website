@@ -48,7 +48,7 @@
 
 .table-scroll-jump {
   position: absolute;
-  inset-block-start: 50%;
+  inset-block-start: 20%;
   inset-inline-end: var(--space-2, #{ds.space(2)});
 
   z-index: var(--table-navigation-control-z);

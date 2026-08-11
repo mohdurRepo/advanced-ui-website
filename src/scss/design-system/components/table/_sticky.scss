@@ -133,8 +133,13 @@ html[dir="rtl"] .table-sticky-boundary {
    Compatibility: Fixed First Column
    ========================================================================== */
 
-.table-fixed-column th:first-child,
-.table-fixed-column td:first-child {
+/* FIXED: Target only tbody/tfoot cells, and header cells that belong to the FIRST row */
+.table-fixed-column tbody td:first-child,
+.table-fixed-column tbody th:first-child,
+.table-fixed-column tfoot td:first-child,
+.table-fixed-column tfoot th:first-child,
+.table-fixed-column thead tr:first-child th:first-child,
+.table-fixed-column thead tr:first-child td:first-child {
   position: sticky;
   inset-inline-start: 0;
 
@@ -146,10 +151,10 @@ html[dir="rtl"] .table-sticky-boundary {
   isolation: isolate;
 }
 
-.table-fixed-column thead th:first-child,
-.table-fixed-column thead td:first-child {
+/* FIXED: Isolate the correct head layout layer index boundary to the top level row */
+.table-fixed-column thead tr:first-child th:first-child,
+.table-fixed-column thead tr:first-child td:first-child {
   z-index: var(--table-sticky-intersection-z);
-
   background: var(--table-sticky-head-bg);
 }
 
@@ -169,10 +174,19 @@ html[dir="rtl"] .table-sticky-boundary {
   --table-fixed-column-2-width: 15rem;
 }
 
-.table-fixed-columns th:nth-child(1),
-.table-fixed-columns td:nth-child(1),
-.table-fixed-columns th:nth-child(2),
-.table-fixed-columns td:nth-child(2) {
+/* FIXED: Apply positioning rules strictly to tbody, tfoot, and the first row block of the head */
+.table-fixed-columns tbody th:nth-child(1),
+.table-fixed-columns tbody td:nth-child(1),
+.table-fixed-columns tbody th:nth-child(2),
+.table-fixed-columns tbody td:nth-child(2),
+.table-fixed-columns tfoot th:nth-child(1),
+.table-fixed-columns tfoot td:nth-child(1),
+.table-fixed-columns tfoot th:nth-child(2),
+.table-fixed-columns tfoot td:nth-child(2),
+.table-fixed-columns thead tr:first-child th:nth-child(1),
+.table-fixed-columns thead tr:first-child td:nth-child(1),
+.table-fixed-columns thead tr:first-child th:nth-child(2),
+.table-fixed-columns thead tr:first-child td:nth-child(2) {
   position: sticky;
 
   z-index: var(--table-sticky-body-z);
@@ -183,8 +197,13 @@ html[dir="rtl"] .table-sticky-boundary {
   isolation: isolate;
 }
 
-.table-fixed-columns th:nth-child(1),
-.table-fixed-columns td:nth-child(1) {
+/* FIXED: Target column width spacing properties across correct structural depths */
+.table-fixed-columns tbody th:nth-child(1),
+.table-fixed-columns tbody td:nth-child(1),
+.table-fixed-columns tfoot th:nth-child(1),
+.table-fixed-columns tfoot td:nth-child(1),
+.table-fixed-columns thead tr:first-child th:nth-child(1),
+.table-fixed-columns thead tr:first-child td:nth-child(1) {
   inset-inline-start: 0;
 
   inline-size: var(--table-fixed-column-1-width);
@@ -192,8 +211,12 @@ html[dir="rtl"] .table-sticky-boundary {
   max-inline-size: var(--table-fixed-column-1-width);
 }
 
-.table-fixed-columns th:nth-child(2),
-.table-fixed-columns td:nth-child(2) {
+.table-fixed-columns tbody th:nth-child(2),
+.table-fixed-columns tbody td:nth-child(2),
+.table-fixed-columns tfoot th:nth-child(2),
+.table-fixed-columns tfoot td:nth-child(2),
+.table-fixed-columns thead tr:first-child th:nth-child(2),
+.table-fixed-columns thead tr:first-child td:nth-child(2) {
   inset-inline-start: var(--table-fixed-column-1-width);
 
   inline-size: var(--table-fixed-column-2-width);
@@ -201,10 +224,10 @@ html[dir="rtl"] .table-sticky-boundary {
   max-inline-size: var(--table-fixed-column-2-width);
 }
 
-.table-fixed-columns thead th:nth-child(1),
-.table-fixed-columns thead th:nth-child(2),
-.table-fixed-columns thead td:nth-child(1),
-.table-fixed-columns thead td:nth-child(2) {
+.table-fixed-columns thead tr:first-child th:nth-child(1),
+.table-fixed-columns thead tr:first-child th:nth-child(2),
+.table-fixed-columns thead tr:first-child td:nth-child(1),
+.table-fixed-columns thead tr:first-child td:nth-child(2) {
   z-index: var(--table-sticky-intersection-z);
 
   background: var(--table-sticky-head-bg);
@@ -223,17 +246,26 @@ html[dir="rtl"] .table-sticky-boundary {
    Compatibility Boundaries
    ========================================================================== */
 
-.table-fixed-column th:first-child,
-.table-fixed-column td:first-child,
-.table-fixed-columns th:nth-child(2),
-.table-fixed-columns td:nth-child(2) {
+/* FIXED: Scoped boundary layout indicators to only impact first row targets */
+.table-fixed-column tbody td:first-child,
+.table-fixed-column tbody th:first-child,
+.table-fixed-column thead tr:first-child th:first-child,
+.table-fixed-column thead tr:first-child td:first-child,
+.table-fixed-columns tbody th:nth-child(2),
+.table-fixed-columns tbody td:nth-child(2),
+.table-fixed-columns thead tr:first-child th:nth-child(2),
+.table-fixed-columns thead tr:first-child td:nth-child(2) {
   box-shadow: var(--table-sticky-shadow);
 }
 
-.table-fixed-column th:first-child::after,
-.table-fixed-column td:first-child::after,
-.table-fixed-columns th:nth-child(2)::after,
-.table-fixed-columns td:nth-child(2)::after {
+.table-fixed-column tbody td:first-child::after,
+.table-fixed-column tbody th:first-child::after,
+.table-fixed-column thead tr:first-child th:first-child::after,
+.table-fixed-column thead tr:first-child td:first-child::after,
+.table-fixed-columns tbody th:nth-child(2)::after,
+.table-fixed-columns tbody td:nth-child(2)::after,
+.table-fixed-columns thead tr:first-child th:nth-child(2)::after,
+.table-fixed-columns thead tr:first-child td:nth-child(2)::after {
   content: "";
 
   position: absolute;
@@ -249,12 +281,17 @@ html[dir="rtl"] .table-sticky-boundary {
   pointer-events: none;
 }
 
-html[dir="rtl"] .table-fixed-column th:first-child,
-html[dir="rtl"] .table-fixed-column td:first-child,
-html[dir="rtl"] .table-fixed-columns th:nth-child(2),
-html[dir="rtl"] .table-fixed-columns td:nth-child(2) {
+html[dir="rtl"] .table-fixed-column tbody td:first-child,
+html[dir="rtl"] .table-fixed-column tbody th:first-child,
+html[dir="rtl"] .table-fixed-column thead tr:first-child th:first-child,
+html[dir="rtl"] .table-fixed-column thead tr:first-child td:first-child,
+html[dir="rtl"] .table-fixed-columns tbody th:nth-child(2),
+html[dir="rtl"] .table-fixed-columns tbody td:nth-child(2),
+html[dir="rtl"] .table-fixed-columns thead tr:first-child th:nth-child(2),
+html[dir="rtl"] .table-fixed-columns thead tr:first-child td:nth-child(2) {
   box-shadow: var(--table-sticky-shadow-rtl);
 }
+
 
 /* ========================================================================== 
    Row Surface Preservation
@@ -331,10 +368,14 @@ html[data-contrast="high"] .table-fixed-columns {
 }
 
 html[data-contrast="high"] .table-sticky-boundary::after,
-html[data-contrast="high"] .table-fixed-column th:first-child::after,
-html[data-contrast="high"] .table-fixed-column td:first-child::after,
-html[data-contrast="high"] .table-fixed-columns th:nth-child(2)::after,
-html[data-contrast="high"] .table-fixed-columns td:nth-child(2)::after {
+html[data-contrast="high"] .table-fixed-column thead tr:first-child th:first-child::after,
+html[data-contrast="high"] .table-fixed-column thead tr:first-child td:first-child::after,
+html[data-contrast="high"] .table-fixed-column tbody td:first-child::after,
+html[data-contrast="high"] .table-fixed-column tbody th:first-child::after,
+html[data-contrast="high"] .table-fixed-columns thead tr:first-child th:nth-child(2)::after,
+html[data-contrast="high"] .table-fixed-columns thead tr:first-child td:nth-child(2)::after,
+html[data-contrast="high"] .table-fixed-columns tbody th:nth-child(2)::after,
+html[data-contrast="high"] .table-fixed-columns tbody td:nth-child(2)::after {
   inline-size: 2px;
 }
 
@@ -359,10 +400,14 @@ html[data-contrast="high"] .table-fixed-columns td:nth-child(2)::after {
   }
 
   .table-sticky-boundary::after,
-  .table-fixed-column th:first-child::after,
-  .table-fixed-column td:first-child::after,
-  .table-fixed-columns th:nth-child(2)::after,
-  .table-fixed-columns td:nth-child(2)::after {
+  .table-fixed-column thead tr:first-child th:first-child::after,
+  .table-fixed-column thead tr:first-child td:first-child::after,
+  .table-fixed-column tbody td:first-child::after,
+  .table-fixed-column tbody th:first-child::after,
+  .table-fixed-columns thead tr:first-child th:nth-child(2)::after,
+  .table-fixed-columns thead tr:first-child td:nth-child(2)::after,
+  .table-fixed-columns tbody th:nth-child(2)::after,
+  .table-fixed-columns tbody td:nth-child(2)::after {
     inline-size: 2px;
   }
 }
