@@ -1,3 +1,15 @@
+/* ==========================================================================
+   Authentication
+   ========================================================================== */
+
+/* Shared authentication composition */
+@forward "base";
+
+/* Registration-specific presentation */
 @forward "register";
+
+/* OTP delivery-method selection */
 @forward "otp-method";
+
+/* OTP code entry and resend states */
 @forward "otp-verification";

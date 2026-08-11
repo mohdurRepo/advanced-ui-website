@@ -545,6 +545,8 @@ html[dir="rtl"] {
 .table-market__change {
   min-inline-size: 4.75rem;
 
+  color: var(--price-state-color, inherit);
+
   font-weight: ds.font-weight("semibold");
 }
 

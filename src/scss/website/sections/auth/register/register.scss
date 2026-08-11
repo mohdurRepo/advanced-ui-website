@@ -1,163 +1,7 @@
 @use "../../../../design-system/abstracts" as ds;
 
 /* ==========================================================================
-   Account Page
-   ========================================================================== */
-
-/*
- * Reusable composition for:
- *
- * - registration
- * - sign in
- * - password recovery
- * - account activation
- * - profile onboarding
- *
- * Design-system form components remain responsible for individual controls,
- * validation, fieldsets, input groups, and actions.
- */
-
-.account-page {
-  /* Primary panel */
-  --account-panel-bg: var(--color-surface);
-  --account-panel-color: var(--color-text);
-  --account-panel-border: var(--color-border);
-  --account-panel-radius: var(--radius-lg);
-  --account-panel-shadow: var(--shadow-sm);
-
-  /* Supporting panel */
-  --account-benefits-bg: var(--color-surface);
-  --account-benefits-color: var(--color-text);
-  --account-benefits-border: var(--color-border);
-
-  /* Spacing */
-  --account-panel-padding-block: clamp(1.25rem, 2.5vw, 2rem);
-  --account-panel-padding-inline: clamp(1.25rem, 3vw, 2.5rem);
-
-  /* Typography */
-  --account-title-size: var(--text-2xl);
-  --account-section-title-size: var(--text-lg);
-  --account-benefits-title-size: var(--text-xl);
-}
-
-/* ==========================================================================
-   Primary Panel
-   ========================================================================== */
-
-.account-page__panel {
-  min-inline-size: 0;
-  padding-block: var(
-    --account-panel-padding-block,
-    clamp(1.25rem, 2.5vw, 2rem)
-  );
-  padding-inline: var(
-    --account-panel-padding-inline,
-    clamp(1.25rem, 3vw, 2.5rem)
-  );
-
-  border: 1px solid var(--account-panel-border, var(--color-border));
-  border-radius: var(--account-panel-radius, var(--radius-lg));
-
-  background: var(--account-panel-bg, var(--color-surface));
-  color: var(--account-panel-color, var(--color-text));
-
-  box-shadow: var(--account-panel-shadow, var(--shadow-sm));
-}
-
-/* ==========================================================================
-   Panel Header
-   ========================================================================== */
-
-.account-page__header {
-  min-inline-size: 0;
-}
-
-.account-page__title {
-  margin: 0;
-
-  color: var(--color-heading);
-
-  font-size: var(--account-title-size, var(--text-2xl));
-  font-weight: ds.font-weight("heavy");
-  line-height: var(--line-height-tight);
-
-  text-wrap: balance;
-}
-
-.account-page__description {
-  max-inline-size: 65ch;
-  margin: 0;
-
-  color: var(--color-text-muted);
-
-  line-height: var(--line-height-relaxed);
-}
-
-/* ==========================================================================
-   Required Fields Note
-   ========================================================================== */
-
-.account-page__required-note {
-  margin: 0;
-
-  color: var(--color-text-muted);
-
-  font-size: var(--text-sm);
-  line-height: var(--line-height-normal);
-}
-
-/* ==========================================================================
-   Account Form
-   ========================================================================== */
-
-.account-form {
-  min-inline-size: 0;
-}
-
-/* ==========================================================================
-   Form Sections
-   ========================================================================== */
-
-.account-form__section {
-  min-inline-size: 0;
-  padding: 0;
-  margin: 0;
-
-  border: 0;
-}
-
-.account-form__section + .account-form__section {
-  padding-block-start: ds.space(6);
-
-  border-block-start: 1px solid var(--color-border);
-}
-
-.account-form__section-header {
-  margin-block-end: ds.space(4);
-}
-
-.account-form__section-title {
-  margin: 0;
-
-  color: var(--color-heading);
-
-  font-size: var(--account-section-title-size, var(--text-lg));
-  font-weight: ds.font-weight("bold");
-  line-height: var(--line-height-tight);
-}
-
-.account-form__section-description {
-  max-inline-size: 65ch;
-  margin: ds.space(1) 0 0;
-
-  color: var(--color-text-muted);
-
-  font-size: var(--text-sm);
-  line-height: var(--line-height-relaxed);
-}
-
-/* ==========================================================================
-   Password Fields
+   Registration Password Fields
    ========================================================================== */
 
 .account-form__password {
@@ -189,8 +33,6 @@
   border-radius: var(--radius-md);
 
   background: var(--color-surface-alt);
-
-  list-style: none;
 }
 
 .password-requirements__title {
@@ -200,6 +42,17 @@
 
   font-size: var(--text-sm);
   font-weight: ds.font-weight("bold");
+}
+
+.password-requirements__list {
+  display: grid;
+
+  gap: ds.space(2);
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
 }
 
 .password-requirements__item {
@@ -232,169 +85,36 @@
   color: var(--color-success);
 }
 
-.password-requirements__item.is-valid::before {
-  inline-size: 0.75rem;
-  block-size: 0.75rem;
-  margin-block-start: 0.15em;
+/*
+ * Draw the completed check without relying on an undefined icon custom
+ * property. The registered icon utility can still be used in HTML elsewhere.
+ */
 
+.password-requirements__item.is-valid::before {
+  inline-size: 0.55rem;
+  block-size: 0.9rem;
+  margin-block-start: 0;
+  margin-inline: 0.2rem 0.35rem;
+
+  border: solid currentColor;
+  border-width: 0 2px 2px 0;
   border-radius: 0;
 
-  background-color: currentColor;
-
-  mask: var(--icon-check) center / contain no-repeat;
-  -webkit-mask: var(--icon-check) center / contain no-repeat;
-}
-
-/* ==========================================================================
-   Verification
-   ========================================================================== */
-
-.account-verification {
-  display: grid;
-  grid-template-columns:
-    minmax(13rem, 0.85fr)
-    minmax(0, 1fr);
-  align-items: end;
-
-  gap: ds.space(4);
-
-  min-inline-size: 0;
-}
-
-/* ==========================================================================
-   Verification Challenge
-   ========================================================================== */
-
-.account-verification__challenge {
-  min-inline-size: 0;
-}
-
-.account-verification__media {
-  display: flex;
-  align-items: stretch;
-
-  min-inline-size: 0;
-  min-block-size: 3rem;
-
-  overflow: hidden;
-
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-
-  background: var(--color-surface-alt);
-}
-
-.account-verification__image {
-  display: block;
-
-  flex: 1 1 auto;
-
-  min-inline-size: 0;
-  block-size: 3rem;
-
-  object-fit: contain;
-
-  background: var(--color-surface);
-}
-
-/* ==========================================================================
-   Verification Refresh
-   ========================================================================== */
-
-.account-verification__refresh {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  flex: 0 0 auto;
-
-  inline-size: 3rem;
-  min-block-size: 3rem;
-  padding: 0;
-
-  border: 0;
-  border-inline-start: 1px solid var(--color-border);
-
   background: transparent;
-  color: var(--color-primary);
 
-  cursor: pointer;
-
-  @include ds.transition((background-color, color), "fast");
-}
-
-.account-verification__refresh:hover {
-  background: var(--color-surface);
-  color: var(--color-heading);
-}
-
-.account-verification__refresh:focus {
-  outline: none;
-}
-
-.account-verification__refresh:focus-visible {
-  @include ds.focus-ring;
+  transform: rotate(45deg);
 }
 
 /* ==========================================================================
-   Verification Input
-   ========================================================================== */
-
-.account-verification__input {
-  min-inline-size: 0;
-}
-
-/* ==========================================================================
-   Form Actions
-   ========================================================================== */
-
-.account-page__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-
-  gap: ds.space(3);
-  padding-block-start: ds.space(2);
-}
-
-.account-page__actions .btn {
-  min-inline-size: 9rem;
-}
-
-/* ==========================================================================
-   Existing Account Prompt
-   ========================================================================== */
-
-.account-page__login {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-
-  gap: ds.space(1);
-
-  margin: 0;
-
-  color: var(--color-text-muted);
-
-  font-size: var(--text-sm);
-}
-
-.account-page__login a {
-  color: var(--color-primary);
-
-  font-weight: ds.font-weight("bold");
-  text-underline-offset: 0.2em;
-}
-
-.account-page__login a:focus-visible {
-  @include ds.focus-ring;
-}
-
-/* ==========================================================================
-   Benefits Panel
+   Registration Benefits
    ========================================================================== */
 
 .account-page__benefits {
+  --account-benefits-bg: var(--color-surface);
+  --account-benefits-color: var(--color-text);
+  --account-benefits-border: var(--color-border);
+  --account-benefits-title-size: var(--text-xl);
+
   min-inline-size: 0;
   padding: clamp(1.25rem, 2vw, 1.75rem);
 
@@ -406,10 +126,6 @@
 
   box-shadow: var(--account-panel-shadow, var(--shadow-sm));
 }
-
-/* ==========================================================================
-   Benefits Header
-   ========================================================================== */
 
 .account-page__benefits-title {
   margin: 0;
@@ -472,7 +188,7 @@
 }
 
 /* ==========================================================================
-   Technical Support
+   Registration Support
    ========================================================================== */
 
 .account-page__support {
@@ -496,50 +212,20 @@
 }
 
 /* ==========================================================================
-   Tablet
+   Responsive
    ========================================================================== */
 
 @include ds.respond-down("lg") {
-  .account-page {
-    --account-title-size: var(--text-xl);
-    --account-benefits-title-size: var(--text-lg);
-  }
-
   .account-page__benefits {
+    --account-benefits-title-size: var(--text-lg);
+
     max-inline-size: 42rem;
   }
 }
 
-/* ==========================================================================
-   Mobile
-   ========================================================================== */
-
 @include ds.respond-down("sm") {
-  .account-page {
-    --account-panel-padding-block: 1rem;
-    --account-panel-padding-inline: 1rem;
-  }
-
-  .account-page__panel {
-    --account-panel-padding-block: 1rem;
-    --account-panel-padding-inline: 1rem;
-  }
-
-  .account-page__panel,
   .account-page__benefits {
     border-radius: var(--radius-md);
-  }
-
-  .account-verification {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .account-page__actions {
-    align-items: stretch;
-  }
-
-  .account-page__actions .btn {
-    inline-size: 100%;
   }
 }
 
@@ -548,27 +234,16 @@
    ========================================================================== */
 
 html[data-contrast="high"] {
-  .account-page__panel,
   .account-page__benefits,
-  .password-requirements,
-  .account-verification__media {
+  .password-requirements {
     border-width: 2px;
     border-color: var(--color-border-strong);
 
     box-shadow: none;
   }
 
-  .account-benefits {
-    border-color: var(--color-border-strong);
-  }
-
-  .account-benefits__item,
-  .account-form__section + .account-form__section {
-    border-color: var(--color-border-strong);
-  }
-
-  .account-verification__refresh {
-    border-inline-start-width: 2px;
+  .account-benefits,
+  .account-benefits__item {
     border-color: var(--color-border-strong);
   }
 
@@ -582,10 +257,8 @@ html[data-contrast="high"] {
    ========================================================================== */
 
 @media (forced-colors: active) {
-  .account-page__panel,
   .account-page__benefits,
-  .password-requirements,
-  .account-verification__media {
+  .password-requirements {
     border-color: CanvasText;
 
     background: Canvas;
@@ -594,28 +267,7 @@ html[data-contrast="high"] {
     box-shadow: none;
   }
 
-  .account-verification__refresh {
-    border-color: CanvasText;
-    color: ButtonText;
-  }
-
   .account-benefits__icon {
     color: CanvasText;
-  }
-}
-
-/* ==========================================================================
-   Reduced Motion
-   ========================================================================== */
-
-@media (prefers-reduced-motion: reduce) {
-  .account-verification__refresh {
-    transition: none;
-  }
-}
-
-html[data-motion="reduce"] {
-  .account-verification__refresh {
-    transition: none;
   }
 }

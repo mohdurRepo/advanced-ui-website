@@ -1,0 +1,202 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Page Loader
+   ========================================================================== */
+
+/*
+ * Branded full-page loading experience.
+ *
+ * The loader intentionally remains dark in both page themes. It contains
+ * only the website logo, a compact progress indicator, and the shared footer
+ * pattern anchored to the bottom of the viewport.
+ */
+
+.page-loader {
+  --page-loader-bg: #001f2e;
+  --page-loader-color: #ffffff;
+
+  --page-loader-pattern: url("/assets/images/footer-background-pattern.png");
+  --page-loader-pattern-opacity: 0.18;
+
+  --page-loader-logo-width: clamp(9rem, 18vw, 13rem);
+
+  --page-loader-duration: var(--transition-normal, 200ms ease);
+
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-toast, 1080) + 100);
+
+  display: grid;
+  place-items: center;
+
+  min-inline-size: 0;
+  inline-size: 100%;
+  block-size: 100vh;
+  block-size: 100dvh;
+
+  overflow: hidden;
+
+  overscroll-behavior: none;
+
+  background: var(--page-loader-bg);
+  color: var(--page-loader-color);
+
+  opacity: 1;
+  visibility: visible;
+
+  transition:
+    opacity var(--page-loader-duration),
+    visibility var(--page-loader-duration);
+
+  pointer-events: auto;
+  touch-action: none;
+
+  &[hidden] {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.page-loader__content {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 0;
+
+  padding: max(var(--space-6, 1.5rem), env(safe-area-inset-top))
+    max(var(--space-6, 1.5rem), env(safe-area-inset-right))
+    max(var(--space-6, 1.5rem), env(safe-area-inset-bottom))
+    max(var(--space-6, 1.5rem), env(safe-area-inset-left));
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Logo
+   ========================================================================== */
+
+.page-loader__logo {
+  display: block;
+
+  inline-size: var(--page-loader-logo-width);
+  max-inline-size: 100%;
+  block-size: auto;
+
+  object-fit: contain;
+}
+
+/* ==========================================================================
+   Decorative Pattern
+   ========================================================================== */
+
+.page-loader__pattern {
+  position: absolute;
+
+  inset-inline: clamp(1rem, 3vw, 3rem);
+  inset-block-start: 42%;
+  inset-block-end: max(1rem, env(safe-area-inset-bottom));
+
+  z-index: 1;
+
+  background-image: var(--page-loader-pattern);
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: contain;
+
+  opacity: var(--page-loader-pattern-opacity);
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Leaving State
+   ========================================================================== */
+
+/*
+ * JavaScript adds `.is-leaving` before setting the hidden attribute.
+ */
+
+.page-loader.is-leaving {
+  opacity: 0;
+  visibility: hidden;
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Document Loading State
+   ========================================================================== */
+
+html.is-page-loading,
+body.is-page-loading {
+  overflow: hidden;
+
+  overscroll-behavior: none;
+}
+
+html.is-page-loading,
+body.is-page-loading {
+  block-size: 100%;
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .page-loader {
+    --page-loader-pattern-opacity: 0.14;
+    --page-loader-logo-width: clamp(8rem, 42vw, 10rem);
+  }
+
+  .page-loader__pattern {
+    inset-inline: 0.75rem;
+    inset-block-start: 52%;
+    inset-block-end: max(0.75rem, env(safe-area-inset-bottom));
+  }
+}
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .page-loader {
+  --page-loader-bg: #000000;
+  --page-loader-color: #ffffff;
+  --page-loader-pattern-opacity: 0;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .page-loader {
+    --page-loader-bg: Canvas;
+    --page-loader-color: CanvasText;
+    --page-loader-pattern-opacity: 0;
+
+    forced-color-adjust: auto;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .page-loader {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] .page-loader {
+  transition: none;
+}

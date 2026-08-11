@@ -1562,198 +1562,221 @@
         </div>
       </section>
 
-      <!-- =================================================================
-       Breadcrumb
-  ================================================================== -->
+      <!-- ==========================================================================
+     Breadcrumb
+     ========================================================================== -->
 
-      <section class="page-breadcrumb container" aria-label="Page location">
-        <nav class="breadcrumb" aria-label="Breadcrumb">
-          <ol class="breadcrumb__list">
-            <li class="breadcrumb__item">
-              <a class="breadcrumb__link" href="/"> Home </a>
-            </li>
+      <div class="page-breadcrumb">
+        <div class="container">
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <ol class="breadcrumb__list">
+              <li class="breadcrumb__item">
+                <a class="breadcrumb__link" href="/"> Home </a>
+              </li>
 
-            <li class="breadcrumb__item">
-              <span
-                class="breadcrumb__separator has-icon icon-chevron-right icon-flip-rtl"
-                aria-hidden="true"
-              ></span>
+              <li class="breadcrumb__item">
+                <span
+                  class="breadcrumb__separator has-icon icon-chevron-right icon-flip-rtl"
+                  aria-hidden="true"
+                ></span>
 
-              <span class="breadcrumb__current" aria-current="page">
-                Company Profile Main Market
-              </span>
-            </li>
-          </ol>
-        </nav>
-      </section>
+                <a class="breadcrumb__link" href="/login"> Sign In </a>
+              </li>
 
-      <!-- =================================================================
-       Hero
-  ================================================================== -->
+              <li class="breadcrumb__item">
+                <span
+                  class="breadcrumb__separator has-icon icon-chevron-right icon-flip-rtl"
+                  aria-hidden="true"
+                ></span>
+
+                <span class="breadcrumb__current" aria-current="page">
+                  Verification Method
+                </span>
+              </li>
+            </ol>
+          </nav>
+        </div>
+      </div>
+
+      <!-- ==========================================================================
+     Verification Method Hero
+     ========================================================================== -->
 
       <section
-        class="hero-section container"
-        aria-labelledby="company-profile-title"
+        class="hero-section market-summary-section"
+        aria-labelledby="verification-method-page-title"
+        aria-describedby="verification-method-page-description"
       >
         <div class="hero-section__background" aria-hidden="true"></div>
 
-        <div class="hero-section__content"></div>
+        <div class="container hero-section__content">
+          <div class="market-summary market-summary--hero">
+            <header class="market-summary__header">
+              <div class="market-summary__brand">
+                <span
+                  class="market-summary__brand-icon has-icon icon-tadawul"
+                  aria-hidden="true"
+                ></span>
+
+                <h1
+                  id="verification-method-page-title"
+                  class="market-summary__title"
+                >
+                  Account Verification
+                </h1>
+              </div>
+
+              <p
+                id="verification-method-page-description"
+                class="market-summary__description"
+              >
+                Choose how you would like to receive your one-time verification
+                code.
+              </p>
+            </header>
+          </div>
+        </div>
       </section>
 
-      <!-- ================================================================
+      <!-- ==========================================================================
      OTP Method Selection
-     ================================================================ -->
+     ========================================================================== -->
 
-      <section class="section" aria-labelledby="otp-method-title">
+      <section class="section account-page" aria-labelledby="otp-method-title">
         <div class="container">
           <div class="center-layout center-layout--top">
             <div class="center-layout__content">
               <div class="content-layout content-layout--sm">
-                <section class="auth-panel" aria-labelledby="otp-method-title">
-                  <div class="stack stack--xl">
-                    <header class="auth-panel__header">
-                      <div class="stack stack--sm">
-                        <h2 id="otp-method-title" class="auth-panel__title">
-                          Choose a verification method
-                        </h2>
+                <div class="account-page__panel">
+                  <form
+                    class="form account-form stack stack--xl"
+                    action="/auth/otp-verification"
+                    method="post"
+                    data-otp-method-form
+                  >
+                    <!-- ============================================================
+                   Introduction
+                   ============================================================ -->
 
-                        <p class="auth-panel__description">
-                          Select where you would like to receive your one-time
-                          verification code.
-                        </p>
-                      </div>
+                    <header class="account-page__header stack stack--sm">
+                      <h2 id="otp-method-title" class="account-page__title">
+                        Choose a Verification Method
+                      </h2>
+
+                      <p class="account-page__description">
+                        Select where you would like to receive your one-time
+                        verification code.
+                      </p>
                     </header>
 
-                    <form
-                      class="form stack stack--lg"
-                      action="/auth/otp-verification/"
-                      method="post"
-                      data-otp-method-form
-                    >
-                      <fieldset class="form-fieldset">
-                        <legend class="visually-hidden">
-                          Available verification methods
-                        </legend>
+                    <!-- ============================================================
+                   Verification Methods
+                   ============================================================ -->
 
-                        <div class="auth-methods stack stack--md">
-                          <!-- SMS method -->
-                          <label class="auth-method">
-                            <input
-                              class="auth-method__control"
-                              name="otpMethod"
-                              type="radio"
-                              value="sms"
-                              checked
-                            />
+                    <fieldset class="form-fieldset account-form__section">
+                      <legend class="visually-hidden">
+                        Available verification methods
+                      </legend>
 
-                            <span class="auth-method__icon" aria-hidden="true">
-                              <svg
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  d="M8 2H16C17.1046 2 18 2.89543 18 4V20C18 21.1046 17.1046 22 16 22H8C6.89543 22 6 21.1046 6 20V4C6 2.89543 6.89543 2 8 2Z"
-                                  stroke="currentColor"
-                                  stroke-width="1.5"
-                                />
+                      <div class="auth-methods">
+                        <!-- SMS -->
 
-                                <path
-                                  d="M10 18H14"
-                                  stroke="currentColor"
-                                  stroke-width="1.5"
-                                  stroke-linecap="round"
-                                />
-                              </svg>
+                        <label class="auth-method">
+                          <input
+                            class="auth-method__control"
+                            name="otpMethod"
+                            type="radio"
+                            value="sms"
+                            checked
+                          />
+
+                          <span
+                            class="auth-method__icon has-icon icon-telephone-handle"
+                            aria-hidden="true"
+                          ></span>
+
+                          <span class="auth-method__content">
+                            <span class="auth-method__title">
+                              Text Message
                             </span>
 
-                            <span class="auth-method__content">
-                              <span class="auth-method__title">
-                                Text message
-                              </span>
-
-                              <span class="auth-method__description">
-                                Send a verification code to
-                                <strong>•••• ••• 4821</strong>
-                              </span>
+                            <span class="auth-method__description">
+                              Send a verification code to
+                              <strong dir="ltr">•••• ••• 4821</strong>
                             </span>
+                          </span>
 
-                            <span
-                              class="auth-method__indicator"
-                              aria-hidden="true"
-                            ></span>
-                          </label>
+                          <span
+                            class="auth-method__indicator"
+                            aria-hidden="true"
+                          ></span>
+                        </label>
 
-                          <!-- Email method -->
-                          <label class="auth-method">
-                            <input
-                              class="auth-method__control"
-                              name="otpMethod"
-                              type="radio"
-                              value="email"
-                            />
+                        <!-- Email -->
 
-                            <span class="auth-method__icon" aria-hidden="true">
-                              <svg
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  d="M3 6C3 4.89543 3.89543 4 5 4H19C20.1046 4 21 4.89543 21 6V18C21 19.1046 20.1046 20 19 20H5C3.89543 20 3 19.1046 3 18V6Z"
-                                  stroke="currentColor"
-                                  stroke-width="1.5"
-                                />
+                        <label class="auth-method">
+                          <input
+                            class="auth-method__control"
+                            name="otpMethod"
+                            type="radio"
+                            value="email"
+                          />
 
-                                <path
-                                  d="M4 6L12 13L20 6"
-                                  stroke="currentColor"
-                                  stroke-width="1.5"
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                />
-                              </svg>
+                          <span
+                            class="auth-method__icon has-icon icon-inbox-email"
+                            aria-hidden="true"
+                          ></span>
+
+                          <span class="auth-method__content">
+                            <span class="auth-method__title"> Email </span>
+
+                            <span class="auth-method__description">
+                              Send a verification code to
+                              <strong dir="ltr">m•••••@example.com</strong>
                             </span>
+                          </span>
 
-                            <span class="auth-method__content">
-                              <span class="auth-method__title"> Email </span>
-
-                              <span class="auth-method__description">
-                                Send a verification code to
-                                <strong>m•••••@example.com</strong>
-                              </span>
-                            </span>
-
-                            <span
-                              class="auth-method__indicator"
-                              aria-hidden="true"
-                            ></span>
-                          </label>
-                        </div>
-                      </fieldset>
-
-                      <div class="stack stack--md">
-                        <button
-                          class="btn btn-primary btn-lg btn-block btn-rounded"
-                          type="submit"
-                          data-otp-method-submit
-                        >
-                          <span> Send verification code </span>
-
-                          <span aria-hidden="true"> › </span>
-                        </button>
-
-                        <a class="btn btn-link btn-block" href="/auth/login/">
-                          Back to login
-                        </a>
+                          <span
+                            class="auth-method__indicator"
+                            aria-hidden="true"
+                          ></span>
+                        </label>
                       </div>
-                    </form>
-                  </div>
-                </section>
+                    </fieldset>
+
+                    <!-- ============================================================
+                   Status
+                   ============================================================ -->
+
+                    <div
+                      class="form-status"
+                      role="status"
+                      aria-live="polite"
+                      data-otp-method-status
+                    ></div>
+
+                    <!-- ============================================================
+                   Actions
+                   ============================================================ -->
+
+                    <div class="account-page__actions">
+                      <button
+                        class="btn btn-primary btn-rounded has-icon icon-chevron-right-bold icon-end icon-flip-rtl"
+                        type="submit"
+                        data-otp-method-submit
+                      >
+                        Send Verification Code
+                      </button>
+
+                      <a
+                        class="btn btn-link has-icon icon-chevron-left icon-flip-rtl"
+                        href="/login"
+                      >
+                        Back to Sign In
+                      </a>
+                    </div>
+                  </form>
+                </div>
               </div>
             </div>
           </div>

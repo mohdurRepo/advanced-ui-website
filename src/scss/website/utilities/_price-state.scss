@@ -7,104 +7,65 @@
 /*
  * Semantic financial-value states.
  *
- * These utilities own only:
- * - foreground color
- * - numeric presentation
+ * These utilities own only semantic foreground color and numeric
+ * presentation. Components remain responsible for layout and typography.
  *
- * Components remain responsible for layout, spacing, icons, and typography.
+ * Dedicated market tokens are preferred. General theme status tokens provide
+ * compatibility for contexts that have not defined the market token set yet.
  */
 
 .price-up,
 .price-down,
 .price-neutral {
+  color: var(--price-state-color);
+
   font-variant-numeric: tabular-nums;
 }
 
-.price-up {
-  --price-state-color: var(--color-success);
+/* ==========================================================================
+   Semantic States
+   ========================================================================== */
 
-  color: var(--price-state-color) !important;
+.price-up {
+  --price-state-color: var(--color-market-positive, var(--color-success));
 }
 
 .price-down {
-  --price-state-color: var(--color-danger);
-
-  color: var(--price-state-color) !important;
+  --price-state-color: var(--color-market-negative, var(--color-danger));
 }
 
 .price-neutral {
-  --price-state-color: var(--color-text-muted);
-
-  color: var(--price-state-color);
+  --price-state-color: var(--color-market-neutral, var(--color-text-muted));
 }
 
 /* ==========================================================================
-   Icons
+   Nested Content
    ========================================================================== */
 
 .price-up .has-icon,
 .price-up .svg-icon,
+.price-up .market-change__icon,
+.price-up .market-change__value,
 .price-down .has-icon,
 .price-down .svg-icon,
+.price-down .market-change__icon,
+.price-down .market-change__value,
 .price-neutral .has-icon,
-.price-neutral .svg-icon {
+.price-neutral .svg-icon,
+.price-neutral .market-change__icon,
+.price-neutral .market-change__value {
   color: currentColor;
 }
 
 /* ==========================================================================
-   Branded Dark Surfaces
+   Numeric Isolation
    ========================================================================== */
 
-.surface-hero,
-.hero-section,
-.surface-insights,
-.surface-market {
-  .price-up {
-    --price-state-color: #59ff9e;
-  }
-
-  .price-down {
-    --price-state-color: #ff7085;
-  }
-
-  .price-neutral {
-    --price-state-color: rgb(255 255 255 / 0.74);
-  }
-}
-
-/* ==========================================================================
-   Dark Theme
-   ========================================================================== */
-
-html[data-theme="dark"] {
-  .price-up {
-    --price-state-color: #4ade80;
-  }
-
-  .price-down {
-    --price-state-color: #fb7185;
-  }
-
-  .price-neutral {
-    --price-state-color: var(--color-text-muted);
-  }
-
-  .surface-hero,
-  .hero-section,
-  .surface-insights,
-  .surface-market {
-    .price-up {
-      --price-state-color: #59ff9e;
-    }
-
-    .price-down {
-      --price-state-color: #ff8295;
-    }
-
-    .price-neutral {
-      --price-state-color: rgb(255 255 255 / 0.78);
-    }
-  }
+.price-up,
+.price-down,
+.price-neutral {
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 /* ==========================================================================
@@ -117,7 +78,8 @@ html[data-contrast="high"] {
   .price-neutral {
     --price-state-color: currentColor;
 
-    color: currentColor !important;
+    color: currentColor;
+
     font-weight: ds.font-weight("bold");
   }
 
@@ -136,6 +98,6 @@ html[data-contrast="high"] {
   }
 
   .price-neutral {
-    text-decoration-line: none;
+    text-decoration: none;
   }
 }

@@ -1,6 +1,6 @@
 @use "../../abstracts" as ds;
 
-/* ========================================================================== 
+/* ==========================================================================
    Table
    ========================================================================== */
 
@@ -74,8 +74,8 @@
   /*
    * Compatibility aliases.
    *
-   * Existing table partials currently consume these names. They remain public
-   * until those partials are migrated to the more specific tokens above.
+   * Existing table partials currently consume these names. They remain
+   * public until those partials migrate to the specific tokens above.
    */
   --table-border-color: var(--table-body-border);
   --table-border-strong: var(--table-head-border-strong);
@@ -128,7 +128,7 @@ html[data-theme="dark"] .table {
   --table-head-border-strong: rgb(255 255 255 / 0.24);
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Header
    ========================================================================== */
 
@@ -153,7 +153,7 @@ html[data-theme="dark"] .table {
   vertical-align: middle;
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Body
    ========================================================================== */
 
@@ -164,7 +164,6 @@ html[data-theme="dark"] .table {
 
 .table tbody tr {
   background: var(--table-bg);
-  color: inherit;
 
   @include ds.transition(background-color, "fast");
 }
@@ -177,13 +176,12 @@ html[data-theme="dark"] .table {
   border-block-end: 1px solid var(--table-body-border);
 
   background: transparent;
-  color: inherit;
 
   text-align: start;
   vertical-align: middle;
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Footer
    ========================================================================== */
 
@@ -200,7 +198,6 @@ html[data-theme="dark"] .table {
   border-block-start: 1px solid var(--table-foot-border);
 
   background: transparent;
-  color: inherit;
 
   font-weight: var(--table-header-font-weight);
 
@@ -208,15 +205,15 @@ html[data-theme="dark"] .table {
   vertical-align: middle;
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Numeric Content
    ========================================================================== */
 
 /*
  * Tabular numbers improve column comparison.
  *
- * Direction isolation prevents signs, percentages, decimals, dates, and other
- * left-to-right numeric content from being reordered in an RTL document.
+ * Direction isolation prevents signs, percentages, decimals, dates, and
+ * other left-to-right numeric content from being reordered in RTL documents.
  *
  * `.numeric` remains as a compatibility selector. New markup should prefer
  * `.table-cell-numeric` or `[data-numeric]`.
@@ -233,7 +230,7 @@ html[data-theme="dark"] .table {
   text-align: end;
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Row Headers
    ========================================================================== */
 
@@ -243,7 +240,7 @@ html[data-theme="dark"] .table {
   font-weight: var(--table-header-font-weight);
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Links
    ========================================================================== */
 
@@ -264,7 +261,7 @@ html[data-theme="dark"] .table {
   @include ds.focus-ring;
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Caption
    ========================================================================== */
 
@@ -278,7 +275,7 @@ html[data-theme="dark"] .table {
   text-align: start;
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    High Contrast
    ========================================================================== */
 
@@ -291,7 +288,7 @@ html[data-contrast="high"] .table {
   --table-summary-border: var(--color-border-strong);
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Forced Colors
    ========================================================================== */
 
@@ -318,7 +315,7 @@ html[data-contrast="high"] .table {
   }
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Reduced Motion
    ========================================================================== */
 

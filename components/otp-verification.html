@@ -1562,214 +1562,316 @@
         </div>
       </section>
 
-      <!-- =================================================================
-       Breadcrumb
-  ================================================================== -->
+      <!-- ==========================================================================
+     Breadcrumb
+     ========================================================================== -->
 
-      <section class="page-breadcrumb container" aria-label="Page location">
-        <nav class="breadcrumb" aria-label="Breadcrumb">
-          <ol class="breadcrumb__list">
-            <li class="breadcrumb__item">
-              <a class="breadcrumb__link" href="/"> Home </a>
-            </li>
+      <div class="page-breadcrumb">
+        <div class="container">
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <ol class="breadcrumb__list">
+              <li class="breadcrumb__item">
+                <a class="breadcrumb__link" href="/"> Home </a>
+              </li>
 
-            <li class="breadcrumb__item">
-              <span
-                class="breadcrumb__separator has-icon icon-chevron-right icon-flip-rtl"
-                aria-hidden="true"
-              ></span>
+              <li class="breadcrumb__item">
+                <span
+                  class="breadcrumb__separator has-icon icon-chevron-right icon-flip-rtl"
+                  aria-hidden="true"
+                ></span>
 
-              <span class="breadcrumb__current" aria-current="page">
-                Company Profile Main Market
-              </span>
-            </li>
-          </ol>
-        </nav>
-      </section>
+                <a class="breadcrumb__link" href="/login"> Sign In </a>
+              </li>
 
-      <!-- =================================================================
-       Hero
-  ================================================================== -->
+              <li class="breadcrumb__item">
+                <span
+                  class="breadcrumb__separator has-icon icon-chevron-right icon-flip-rtl"
+                  aria-hidden="true"
+                ></span>
+
+                <span class="breadcrumb__current" aria-current="page">
+                  Verification
+                </span>
+              </li>
+            </ol>
+          </nav>
+        </div>
+      </div>
+
+      <!-- ==========================================================================
+     OTP Verification Hero
+     ========================================================================== -->
 
       <section
-        class="hero-section container"
-        aria-labelledby="company-profile-title"
+        class="hero-section market-summary-section"
+        aria-labelledby="otp-page-title"
+        aria-describedby="otp-page-description"
       >
         <div class="hero-section__background" aria-hidden="true"></div>
 
-        <div class="hero-section__content"></div>
+        <div class="container hero-section__content">
+          <div class="market-summary market-summary--hero">
+            <header class="market-summary__header">
+              <div class="market-summary__brand">
+                <span
+                  class="market-summary__brand-icon has-icon icon-tadawul"
+                  aria-hidden="true"
+                ></span>
+
+                <h1 id="otp-page-title" class="market-summary__title">
+                  Enter Verification Code
+                </h1>
+              </div>
+
+              <p id="otp-page-description" class="market-summary__description">
+                Enter the one-time verification code sent to your selected
+                contact method.
+              </p>
+            </header>
+          </div>
+        </div>
       </section>
 
-      <!-- ================================================================
+      <!-- ==========================================================================
      OTP Verification
-     ================================================================ -->
+     ========================================================================== -->
 
-      <section class="section" aria-labelledby="otp-verification-title">
+      <section
+        class="section account-page"
+        aria-labelledby="otp-verification-title"
+      >
         <div class="container">
           <div class="center-layout center-layout--top">
             <div class="center-layout__content">
               <div class="content-layout content-layout--sm">
-                <section
-                  class="auth-panel"
-                  aria-labelledby="otp-verification-title"
-                >
-                  <div class="stack stack--xl">
-                    <header class="auth-panel__header">
-                      <div class="stack stack--sm">
-                        <h2
-                          id="otp-verification-title"
-                          class="auth-panel__title"
-                        >
-                          Enter verification code
-                        </h2>
+                <div class="account-page__panel">
+                  <form
+                    class="form account-form stack stack--xl"
+                    action="/auth/verify-otp"
+                    method="post"
+                    autocomplete="one-time-code"
+                    data-otp-verification-form
+                  >
+                    <!-- ============================================================
+                   Introduction
+                   ============================================================ -->
 
-                        <p class="auth-panel__description">
-                          We sent a four-digit verification code to
-                          <strong>•••• ••• 4821</strong>.
-                        </p>
-                      </div>
+                    <header class="account-page__header stack stack--sm">
+                      <h2
+                        id="otp-verification-title"
+                        class="account-page__title"
+                      >
+                        Check Your Messages
+                      </h2>
+
+                      <p class="account-page__description">
+                        Enter the six-digit code below. For your security, the
+                        code is valid for a limited time.
+                      </p>
                     </header>
 
-                    <form
-                      class="form stack stack--lg"
-                      action="/watchlist/"
-                      method="post"
-                      data-otp-verification-form
-                      novalidate
+                    <!-- ============================================================
+                   Selected Destination
+                   ============================================================ -->
+
+                    <div
+                      class="otp-destination"
+                      aria-label="Verification code destination"
                     >
-                      <div
-                        class="alert alert-danger"
-                        role="alert"
-                        hidden
-                        data-form-error
-                      >
-                        <p>
-                          The verification code is incorrect or has expired.
-                        </p>
+                      <span
+                        class="otp-destination__icon has-icon icon-telephone-handle"
+                        aria-hidden="true"
+                      ></span>
+
+                      <div class="otp-destination__content">
+                        <span class="otp-destination__label">
+                          Verification code sent by text message to
+                        </span>
+
+                        <strong class="otp-destination__value" dir="ltr">
+                          •••• ••• 4821
+                        </strong>
                       </div>
+                    </div>
 
-                      <div class="form-group auth-otp-group">
-                        <label class="form-label" id="otp-code-label">
-                          Verification code
-                          <span class="form-required">*</span>
-                        </label>
+                    <!-- ============================================================
+                   OTP Code
+                   ============================================================ -->
 
-                        <div
-                          class="otp otp--verification"
-                          role="group"
-                          aria-labelledby="otp-code-label"
-                          aria-describedby="otp-code-help otp-code-error"
-                          data-otp
-                          data-otp-length="4"
-                        >
-                          <input
-                            class="otp-input"
-                            id="otp-digit-1"
-                            type="text"
-                            inputmode="numeric"
-                            autocomplete="one-time-code"
-                            pattern="[0-9]"
-                            maxlength="1"
-                            aria-label="Verification code digit 1 of 4"
-                            data-otp-input
-                          />
+                    <fieldset
+                      class="form-fieldset account-form__section otp-entry"
+                      aria-describedby="otp-code-help otp-code-error"
+                      data-otp-entry
+                    >
+                      <legend class="form-legend">
+                        Enter the six-digit code
+                      </legend>
 
-                          <input
-                            class="otp-input"
-                            id="otp-digit-2"
-                            type="text"
-                            inputmode="numeric"
-                            autocomplete="off"
-                            pattern="[0-9]"
-                            maxlength="1"
-                            aria-label="Verification code digit 2 of 4"
-                            data-otp-input
-                          />
-
-                          <input
-                            class="otp-input"
-                            id="otp-digit-3"
-                            type="text"
-                            inputmode="numeric"
-                            autocomplete="off"
-                            pattern="[0-9]"
-                            maxlength="1"
-                            aria-label="Verification code digit 3 of 4"
-                            data-otp-input
-                          />
-
-                          <input
-                            class="otp-input"
-                            id="otp-digit-4"
-                            type="text"
-                            inputmode="numeric"
-                            autocomplete="off"
-                            pattern="[0-9]"
-                            maxlength="1"
-                            aria-label="Verification code digit 4 of 4"
-                            data-otp-input
-                          />
-                        </div>
-
+                      <div class="form-otp" data-otp data-otp-length="6">
                         <input
-                          type="hidden"
-                          name="verificationCode"
-                          data-otp-value
+                          class="form-otp-input"
+                          name="otpDigit1"
+                          type="text"
+                          inputmode="numeric"
+                          autocomplete="one-time-code"
+                          pattern="[0-9]"
+                          maxlength="1"
+                          aria-label="Verification code digit 1"
+                          data-otp-input
+                          required
                         />
 
-                        <div class="form-help" id="otp-code-help">
-                          Enter the four-digit code sent to your selected
-                          method.
-                        </div>
+                        <input
+                          class="form-otp-input"
+                          name="otpDigit2"
+                          type="text"
+                          inputmode="numeric"
+                          pattern="[0-9]"
+                          maxlength="1"
+                          aria-label="Verification code digit 2"
+                          data-otp-input
+                          required
+                        />
 
-                        <div
-                          class="form-error"
-                          id="otp-code-error"
-                          role="alert"
-                          hidden
-                          data-otp-error
-                        >
-                          Enter the complete four-digit verification code.
-                        </div>
+                        <input
+                          class="form-otp-input"
+                          name="otpDigit3"
+                          type="text"
+                          inputmode="numeric"
+                          pattern="[0-9]"
+                          maxlength="1"
+                          aria-label="Verification code digit 3"
+                          data-otp-input
+                          required
+                        />
+
+                        <span class="form-otp-separator" aria-hidden="true">
+                          –
+                        </span>
+
+                        <input
+                          class="form-otp-input"
+                          name="otpDigit4"
+                          type="text"
+                          inputmode="numeric"
+                          pattern="[0-9]"
+                          maxlength="1"
+                          aria-label="Verification code digit 4"
+                          data-otp-input
+                          required
+                        />
+
+                        <input
+                          class="form-otp-input"
+                          name="otpDigit5"
+                          type="text"
+                          inputmode="numeric"
+                          pattern="[0-9]"
+                          maxlength="1"
+                          aria-label="Verification code digit 5"
+                          data-otp-input
+                          required
+                        />
+
+                        <input
+                          class="form-otp-input"
+                          name="otpDigit6"
+                          type="text"
+                          inputmode="numeric"
+                          pattern="[0-9]"
+                          maxlength="1"
+                          aria-label="Verification code digit 6"
+                          data-otp-input
+                          required
+                        />
                       </div>
 
+                      <p class="form-help" id="otp-code-help">
+                        The code contains six numbers.
+                      </p>
+
+                      <p
+                        class="form-error"
+                        id="otp-code-error"
+                        aria-live="polite"
+                        hidden
+                        data-otp-error
+                      ></p>
+
+                      <!-- Combined value submitted to the server -->
+
+                      <input
+                        name="verificationCode"
+                        type="hidden"
+                        data-otp-value
+                      />
+                    </fieldset>
+
+                    <!-- ============================================================
+                   Resend and Expiry
+                   ============================================================ -->
+
+                    <div class="otp-assistance">
+                      <p class="otp-assistance__status" aria-live="polite">
+                        You can request a new code in
+
+                        <span
+                          class="otp-assistance__timer"
+                          role="timer"
+                          data-otp-timer
+                          data-duration="120"
+                        >
+                          02:00
+                        </span>
+                      </p>
+
                       <button
-                        class="btn btn-primary btn-lg btn-block btn-rounded"
+                        class="otp-assistance__resend"
+                        type="button"
+                        disabled
+                        data-otp-resend
+                      >
+                        Resend Verification Code
+                      </button>
+
+                      <a href="/auth/otp-method">
+                        Use a different verification method
+                      </a>
+                    </div>
+
+                    <!-- ============================================================
+                   Form Status
+                   ============================================================ -->
+
+                    <div
+                      class="form-status"
+                      role="status"
+                      aria-live="polite"
+                      data-otp-status
+                    ></div>
+
+                    <!-- ============================================================
+                   Actions
+                   ============================================================ -->
+
+                    <div class="account-page__actions">
+                      <button
+                        class="btn btn-primary btn-rounded has-icon icon-chevron-right-bold icon-end icon-flip-rtl"
                         type="submit"
                         data-otp-submit
                       >
-                        Verify and continue
+                        Verify Code
                       </button>
 
-                      <div class="auth-panel__alternate-action">
-                        <div class="stack stack--sm">
-                          <p>Did not receive the code?</p>
-
-                          <button
-                            class="btn btn-link"
-                            type="button"
-                            data-otp-resend
-                          >
-                            Resend verification code
-                          </button>
-
-                          <div
-                            class="form-help"
-                            aria-live="polite"
-                            data-otp-resend-status
-                          ></div>
-                        </div>
-                      </div>
-
                       <a
-                        class="btn btn-link btn-block"
-                        href="/auth/otp-method/"
+                        class="btn btn-link has-icon icon-chevron-left icon-flip-rtl"
+                        href="/login"
                       >
-                        Choose another verification method
+                        Back to Sign In
                       </a>
-                    </form>
-                  </div>
-                </section>
+                    </div>
+                  </form>
+                </div>
               </div>
             </div>
           </div>

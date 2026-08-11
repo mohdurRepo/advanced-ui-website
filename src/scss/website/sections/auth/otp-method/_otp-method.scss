@@ -1,162 +1,249 @@
+@use "../../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   OTP Methods
+   ========================================================================== */
+
 .auth-methods {
-  min-width: 0;
+  display: grid;
+
+  gap: ds.space(3);
+
+  min-inline-size: 0;
 }
+
+/* ==========================================================================
+   Method
+   ========================================================================== */
 
 .auth-method {
   position: relative;
+
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 1rem;
   align-items: center;
-  min-width: 0;
-  padding: 1.25rem;
-  cursor: pointer;
-  background: var(--color-surface);
+
+  gap: ds.space(3);
+  min-inline-size: 0;
+  padding: ds.space(4);
+
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
+  border-radius: var(--radius-md);
 
-  &:hover {
-    border-color: var(--color-primary);
-    transform: translateY(-1px);
-  }
+  background: var(--color-surface);
+  color: var(--color-text);
 
-  &:focus-within {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px var(--color-focus-ring);
-  }
+  cursor: pointer;
+  user-select: none;
 
-  &:has(.auth-method__control:checked) {
-    background: var(--color-surface-subtle);
-    border-color: var(--color-primary);
-  }
+  @include ds.transition(
+    (background-color, border-color, box-shadow, transform),
+    "fast"
+  );
 }
+
+.auth-method:hover {
+  border-color: var(--color-border-strong);
+
+  background: var(--color-surface-alt);
+}
+
+.auth-method.is-selected,
+.auth-method:has(.auth-method__control:checked) {
+  border-color: var(--color-primary);
+
+  background: var(--color-surface-alt);
+
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.auth-method:has(.auth-method__control:focus-visible) {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Native Control
+   ========================================================================== */
 
 .auth-method__control {
   position: absolute;
-  width: 1px;
-  height: 1px;
+
+  inline-size: 1px;
+  block-size: 1px;
+
   overflow: hidden;
-  white-space: nowrap;
-  clip-path: inset(50%);
+
+  opacity: 0;
+  pointer-events: none;
 }
+
+/* ==========================================================================
+   Icon
+   ========================================================================== */
 
 .auth-method__icon {
-  display: inline-grid;
-  width: 3rem;
-  height: 3rem;
-  color: var(--color-primary);
-  background: var(--color-surface-subtle);
-  border-radius: var(--radius-md);
-  place-items: center;
+  --icon-size: 1.25rem;
 
-  svg {
-    display: block;
-    width: 1.5rem;
-    height: 1.5rem;
-  }
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+
+  pointer-events: none;
 }
+
+.auth-method.is-selected .auth-method__icon,
+.auth-method:has(.auth-method__control:checked) .auth-method__icon {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
 
 .auth-method__content {
   display: grid;
-  gap: 0.35rem;
-  min-width: 0;
+
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+
+  pointer-events: none;
 }
 
 .auth-method__title {
-  color: var(--color-text);
-  font-weight: var(--font-weight-semibold);
-  line-height: 1.4;
+  color: var(--color-heading);
+
+  font-size: var(--text-base);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
 }
 
 .auth-method__description {
   color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  line-height: 1.6;
-  overflow-wrap: anywhere;
 
-  strong {
-    color: var(--color-text);
-    font-weight: var(--font-weight-medium);
-  }
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
 }
+
+.auth-method__description strong {
+  color: var(--color-heading);
+
+  font-weight: ds.font-weight("semibold");
+
+  unicode-bidi: isolate;
+}
+
+/* ==========================================================================
+   Indicator
+   ========================================================================== */
 
 .auth-method__indicator {
   position: relative;
-  display: inline-grid;
-  width: 1.25rem;
-  height: 1.25rem;
-  flex: 0 0 auto;
-  border: 2px solid var(--color-border-strong);
-  border-radius: 50%;
-  place-items: center;
-  transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease;
 
-  &::after {
-    width: 0.5rem;
-    height: 0.5rem;
-    content: "";
-    background: var(--color-primary-contrast);
-    border-radius: 50%;
-    opacity: 0;
-    transform: scale(0.5);
-    transition:
-      opacity 0.2s ease,
-      transform 0.2s ease;
-  }
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface);
+
+  pointer-events: none;
 }
 
 .auth-method__control:checked ~ .auth-method__indicator {
-  background: var(--color-primary);
   border-color: var(--color-primary);
-
-  &::after {
-    opacity: 1;
-    transform: scale(1);
-  }
 }
 
-.auth-method__control:checked ~ .auth-method__icon {
-  color: #ffffff;
+.auth-method__control:checked ~ .auth-method__indicator::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 3px;
+
+  border-radius: inherit;
+
   background: var(--color-primary);
 }
 
-@media (max-width: 35.99rem) {
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
   .auth-method {
-    grid-template-columns: auto minmax(0, 1fr);
-    padding: 1rem;
-  }
+    align-items: start;
 
-  .auth-method__indicator {
-    position: absolute;
-    inset-block-start: 1rem;
-    inset-inline-end: 1rem;
-  }
-
-  .auth-method__content {
-    padding-inline-end: 2rem;
+    padding: ds.space(3);
   }
 
   .auth-method__icon {
-    width: 2.75rem;
-    height: 2.75rem;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+  }
+
+  .auth-method__indicator {
+    margin-block-start: 0.625rem;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .auth-method,
-  .auth-method__indicator,
-  .auth-method__indicator::after {
-    transition: none;
+/* ==========================================================================
+   High Contrast and Forced Colors
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .auth-method {
+    border-width: 2px;
+    border-color: var(--color-border-strong);
   }
 
-  .auth-method:hover {
-    transform: none;
+  .auth-method.is-selected,
+  .auth-method:has(.auth-method__control:checked) {
+    border-color: currentColor;
+
+    box-shadow: none;
   }
+}
+
+@media (forced-colors: active) {
+  .auth-method {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .auth-method.is-selected,
+  .auth-method:has(.auth-method__control:checked),
+  .auth-method__control:checked ~ .auth-method__indicator {
+    border-color: Highlight;
+  }
+
+  .auth-method__control:checked ~ .auth-method__indicator::after {
+    background: Highlight;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-method {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] .auth-method {
+  transition: none;
 }

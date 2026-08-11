@@ -334,9 +334,12 @@
 }
 
 .market-movers__indicator--success {
-  --market-movers-indicator-color: var(--color-market-positive);
+  --market-movers-indicator-color: var(
+    --color-market-positive,
+    var(--market-overview-success, #4ade80)
+  );
 
-  --market-movers-indicator-glow: rgb(72 223 139 / 0.38);
+  --market-movers-indicator-glow: rgb(74 222 128 / 0.38);
 }
 
 .market-movers__indicator--warning {
@@ -352,9 +355,12 @@
 }
 
 .market-movers__indicator--danger {
-  --market-movers-indicator-color: var(--color-market-negative);
+  --market-movers-indicator-color: var(
+    --color-market-negative,
+    var(--market-overview-danger, #fb7185)
+  );
 
-  --market-movers-indicator-glow: rgb(255 113 134 / 0.38);
+  --market-movers-indicator-glow: rgb(251 113 133 / 0.38);
 }
 
 /* ==========================================================================
@@ -383,12 +389,14 @@
 }
 
 .market-movers__change {
-  display: inline-flex;
+  display: inline-grid;
+  grid-template-columns: 0.75rem auto;
   align-items: center;
-  justify-content: flex-end;
-  gap: 0.25rem;
+  justify-content: end;
+  column-gap: 0.375rem;
 
-  min-inline-size: 0;
+  min-inline-size: max-content;
+  max-inline-size: 100%;
 
   font-size: var(--text-xs);
   font-weight: ds.font-weight("bold");
@@ -403,7 +411,34 @@
 .market-movers__change .market-change__icon {
   --icon-size: 0.75rem;
 
-  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: var(--icon-size);
+  block-size: var(--icon-size);
+
+  overflow: hidden;
+
+  color: currentColor;
+}
+
+.market-movers__change .market-change__icon svg {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  fill: currentColor;
+}
+
+.market-movers__change .market-change__value {
+  min-inline-size: 0;
+
+  color: currentColor;
+
+  text-align: end;
+  white-space: nowrap;
 }
 
 /* ==========================================================================

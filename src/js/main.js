@@ -3,7 +3,7 @@ import { initLanguage } from "./core/language";
 import "./components/tabs";
 
 import { initGlobal } from "./global";
-
+import { initPageLoader } from "./components/page-loader";
 import { initAccordions } from "./components/accordion";
 import { initCalendar } from "./components/calendar";
 import { initDropdowns } from "./components/dropdown";
@@ -22,14 +22,10 @@ import { initTextAnimation } from "./components/text-animation";
 import { initMarketOverview } from "./components/market-overview";
 import { initMarketCharts } from "./components/market-chart";
 import { initDataViews } from "./components/data-view";
-//import { renderDataTable } from "./vendors/datatables/datatable.core";
-//import { initDataTables } from "./vendors/datatables/datatable.init";
 
 /* ==========================================================================
    Public API
    ========================================================================== */
-
-//window.renderDataTable = renderDataTable;
 
 /* ==========================================================================
    Application Initialization
@@ -43,6 +39,7 @@ function initApp() {
    * and other site-wide behavior.
    */
   initGlobal();
+  initPageLoader();
   initLanguage();
   /*
    * Core interface components
@@ -56,7 +53,6 @@ function initApp() {
   /*
    * Vendor integrations
    */
-  //initDataTables();
   initTables();
 
   /*

@@ -48,7 +48,27 @@
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
     <script type="module" src="/src/js/main.js"></script>
   </head>
-  <body>
+  <body class="is-page-loading">
+    <div
+      class="page-loader"
+      data-page-loader
+      role="status"
+      aria-live="polite"
+      aria-label="Loading page"
+    >
+      <div class="page-loader__content">
+        <img
+          class="page-loader__logo"
+          src="/your-real-logo-path.svg"
+          alt="Saudi Exchange"
+        />
+
+        <span class="page-loader__indicator" aria-hidden="true"></span>
+      </div>
+
+      <div class="page-loader__pattern" aria-hidden="true"></div>
+    </div>
+
     <!-- =========================================================================
      Site Header
 ============================================================================ -->
