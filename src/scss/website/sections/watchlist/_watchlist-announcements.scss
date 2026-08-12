@@ -1,192 +1,333 @@
-/* ==========================================================================
-   Watchlist State
+@use "../../../design-system/abstracts" as ds;
+
+/* ========================================================================== 
+   Watched-company Announcements
    ========================================================================== */
 
-.watchlist-state {
+/*
+ * Secondary feed for announcements published by watched companies.
+ * The component is self-contained so it can be composed beside any
+ * watchlist data view without depending on the watchlist workspace root.
+ */
+
+.watchlist-announcements {
+  --watchlist-announcements-bg: var(--color-surface);
+  --watchlist-announcements-color: var(--color-text);
+  --watchlist-announcements-border: var(--color-border);
+  --watchlist-announcements-radius: var(--radius-lg);
+  --watchlist-announcements-shadow: var(--shadow-sm);
+
+  position: sticky;
+  inset-block-start: calc(var(--app-header-height, 4.5rem) + #{ds.space(4)});
+
+  align-self: start;
+
+  min-inline-size: 0;
+  max-block-size: calc(
+    100vh - var(--app-header-height, 4.5rem) - #{ds.space(8)}
+  );
+  padding: clamp(1rem, 2vw, 1.5rem);
+
+  border: 1px solid var(--watchlist-announcements-border);
+  border-radius: var(--watchlist-announcements-radius);
+
+  background: var(--watchlist-announcements-bg);
+  color: var(--watchlist-announcements-color);
+
+  box-shadow: var(--watchlist-announcements-shadow);
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+/* ========================================================================== 
+   Scrollbar
+   ========================================================================== */
+
+.watchlist-announcements::-webkit-scrollbar {
+  inline-size: 0.5rem;
+}
+
+.watchlist-announcements::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.watchlist-announcements::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+  background: var(--color-border-strong);
+}
+
+.watchlist-announcements::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ========================================================================== 
+   Header
+   ========================================================================== */
+
+.watchlist-announcements__header {
+  padding-block-end: ds.space(4);
+
+  border-block-end: 1px solid var(--watchlist-announcements-border);
+}
+
+.watchlist-announcements__title,
+.watchlist-announcements__description {
+  margin: 0;
+}
+
+.watchlist-announcements__title {
+  --icon-size: 1.5rem;
+
+  align-items: center;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-xl);
+  font-weight: ds.font-weight("heavy");
+  line-height: var(--line-height-tight);
+}
+
+.watchlist-announcements__title::before {
+  color: var(--color-primary);
+}
+
+.watchlist-announcements__description {
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+/* ========================================================================== 
+   List
+   ========================================================================== */
+
+.watchlist-announcements__list {
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.watchlist-announcements__item {
+  border-block-end: 1px solid var(--watchlist-announcements-border);
+}
+
+.watchlist-announcements__item:last-child {
+  border-block-end: 0;
+}
+
+.watchlist-announcement {
+  display: grid;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+  padding-block: ds.space(4);
+}
+
+/* ========================================================================== 
+   Announcement Title
+   ========================================================================== */
+
+.watchlist-announcement__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+}
+
+.watchlist-announcement__link {
+  color: inherit;
+
+  text-decoration: none;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.2em;
+
+  @include ds.transition(color, "fast");
+}
+
+.watchlist-announcement__link:hover {
+  color: var(--color-primary);
+
+  text-decoration-line: underline;
+}
+
+.watchlist-announcement__link:focus {
+  outline: none;
+}
+
+.watchlist-announcement__link:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ========================================================================== 
+   Market Metadata
+   ========================================================================== */
+
+.watchlist-announcement__market {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
+  gap: ds.space(1) ds.space(2);
 
-  gap: var(--space-4, 1rem);
+  min-inline-size: 0;
 
-  min-height: 22rem;
-
-  padding: var(--space-8, 2rem);
-
-  text-align: center;
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
 }
 
-/* ==========================================================================
-   Compact Variant
-   ========================================================================== */
+.watchlist-announcement__symbol {
+  direction: ltr;
+  unicode-bidi: isolate;
 
-.watchlist-state--compact {
-  min-height: 16rem;
+  color: var(--color-text-muted);
+
+  font-variant-numeric: tabular-nums;
 }
 
-/* ==========================================================================
-   Icon
+.watchlist-announcement__company {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  color: var(--color-heading);
+
+  font-weight: ds.font-weight("medium");
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.watchlist-announcement__change {
+  --icon-size: 0.625rem;
+
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  flex: 0 0 auto;
+
+  font-variant-numeric: tabular-nums;
+  font-weight: ds.font-weight("bold");
+  white-space: nowrap;
+}
+
+/* ========================================================================== 
+   Date
    ========================================================================== */
 
-.watchlist-state__icon {
-  display: inline-flex;
+.watchlist-announcement__date {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
+  gap: ds.space(1);
 
-  width: 4.5rem;
-  height: 4.5rem;
+  direction: ltr;
+  unicode-bidi: isolate;
 
-  border-radius: 50%;
+  color: var(--color-text-muted);
 
-  background: var(--surface-muted, #eef2f6);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-normal);
 
-  color: var(--text-secondary, #64748b);
-
-  font-size: 2rem;
-
-  flex-shrink: 0;
+  text-align: end;
 }
 
-/* ==========================================================================
-   Title
+/* ========================================================================== 
+   Footer
    ========================================================================== */
 
-.watchlist-state__title {
-  margin: 0;
+.watchlist-announcements__footer {
+  padding-block-start: ds.space(4);
 
-  color: var(--text-primary, #1d252d);
-
-  font-size: 1.125rem;
-  font-weight: 600;
-  line-height: 1.4;
+  border-block-start: 1px solid var(--watchlist-announcements-border);
 }
 
-/* ==========================================================================
-   Description
-   ========================================================================== */
-
-.watchlist-state__description {
-  max-width: 34rem;
-
-  margin: 0;
-
-  color: var(--text-secondary, #64748b);
-
-  font-size: 0.9375rem;
-  line-height: 1.7;
-}
-
-/* ==========================================================================
-   Buttons
-   ========================================================================== */
-
-.watchlist-state {
-  > .btn {
-    margin-top: var(--space-2, 0.5rem);
-  }
-}
-
-/* ==========================================================================
-   Loading
-   ========================================================================== */
-
-.watchlist-state--loading {
-  .watchlist-state__icon {
-    color: var(--color-primary, #006caa);
-  }
-}
-
-/* ==========================================================================
-   Empty
-   ========================================================================== */
-
-.watchlist-state--empty {
-  .watchlist-state__icon {
-    color: var(--text-secondary, #64748b);
-  }
-}
-
-/* ==========================================================================
-   No Results
-   ========================================================================== */
-
-.watchlist-state--no-results {
-  .watchlist-state__icon {
-    color: var(--warning-600, #b26a00);
-  }
-}
-
-/* ==========================================================================
-   Hidden Attribute
-   ========================================================================== */
-
-.watchlist-state[hidden] {
-  display: none !important;
-}
-
-/* ==========================================================================
+/* ========================================================================== 
    Responsive
    ========================================================================== */
 
-@media (max-width: 992px) {
-  .watchlist-state {
-    min-height: 18rem;
-  }
+@include ds.respond-down("lg") {
+  .watchlist-announcements {
+    position: static;
 
-  .watchlist-state--compact {
-    min-height: 13rem;
-  }
-}
+    max-block-size: none;
 
-@media (max-width: 768px) {
-  .watchlist-state {
-    padding: var(--space-6, 1.5rem);
-  }
-
-  .watchlist-state__icon {
-    width: 4rem;
-    height: 4rem;
-
-    font-size: 1.75rem;
+    overflow: visible;
   }
 }
 
-@media (max-width: 576px) {
-  .watchlist-state {
-    min-height: 15rem;
-
-    gap: var(--space-3, 0.75rem);
-
-    padding: var(--space-5, 1.25rem);
+@include ds.respond-down("sm") {
+  .watchlist-announcements {
+    padding: ds.space(4);
+    border-radius: var(--radius-md);
   }
 
-  .watchlist-state--compact {
-    min-height: 12rem;
-  }
-
-  .watchlist-state__title {
-    font-size: 1rem;
-  }
-
-  .watchlist-state__description {
-    font-size: 0.875rem;
-  }
-
-  .watchlist-state {
-    > .btn {
-      width: 100%;
-      justify-content: center;
-    }
+  .watchlist-announcements__title {
+    font-size: var(--text-lg);
   }
 }
 
-/* ==========================================================================
+/* ========================================================================== 
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .watchlist-announcements {
+    border-width: 2px;
+    border-color: var(--color-border-strong);
+
+    box-shadow: none;
+  }
+
+  .watchlist-announcements__header,
+  .watchlist-announcements__item,
+  .watchlist-announcements__footer {
+    border-color: currentColor;
+  }
+
+  .watchlist-announcements__title::before,
+  .watchlist-announcement__link:hover,
+  .watchlist-announcement__change {
+    color: currentColor;
+  }
+}
+
+/* ========================================================================== 
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .watchlist-announcements {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .watchlist-announcement__change {
+    color: CanvasText;
+  }
+}
+
+/* ========================================================================== 
    Reduced Motion
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  .watchlist-state__icon {
-    animation: none;
+  .watchlist-announcement__link {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .watchlist-announcement__link {
+    transition: none;
   }
 }

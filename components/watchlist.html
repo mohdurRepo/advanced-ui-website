@@ -1562,2095 +1562,772 @@
         </div>
       </section>
 
-      <!-- =================================================================
+      <!-- ==========================================================================
      Breadcrumb
-================================================================== -->
+     ========================================================================== -->
 
-      <section class="page-breadcrumb container" aria-label="Page location">
-        <nav class="breadcrumb" aria-label="Breadcrumb">
-          <ol class="breadcrumb__list">
-            <li class="breadcrumb__item">
-              <a class="breadcrumb__link" href="/"> Home </a>
-            </li>
+      <div class="page-breadcrumb">
+        <div class="container">
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <ol class="breadcrumb__list">
+              <li class="breadcrumb__item">
+                <a class="breadcrumb__link" href="/"> Home </a>
+              </li>
 
-            <li class="breadcrumb__item">
-              <span
-                class="breadcrumb__separator has-icon icon-chevron-right icon-flip-rtl"
-                aria-hidden="true"
-              ></span>
+              <li class="breadcrumb__item">
+                <span
+                  class="breadcrumb__separator has-icon icon-chevron-right icon-flip-rtl"
+                  aria-hidden="true"
+                ></span>
 
-              <span class="breadcrumb__current" aria-current="page">
-                My Watchlist
-              </span>
-            </li>
-          </ol>
-        </nav>
-      </section>
-
-      <!-- =================================================================
-     Hero
-================================================================== -->
+                <span class="breadcrumb__current" aria-current="page">
+                  My Watchlist
+                </span>
+              </li>
+            </ol>
+          </nav>
+        </div>
+      </div>
+      <!-- ==========================================================================
+     My Watchlist Hero
+     ========================================================================== -->
 
       <section
-        class="hero-section container"
+        class="hero-section"
         aria-labelledby="watchlist-page-title"
+        aria-describedby="watchlist-page-description"
       >
         <div class="hero-section__background" aria-hidden="true"></div>
 
-        <div class="hero-section__content">
-          <div class="watchlist-hero">
-            <span
-              class="watchlist-hero__icon has-icon icon-star-outline"
-              aria-hidden="true"
-            ></span>
+        <div class="container hero-section__content">
+          <div
+            class="split-layout split-layout--compact-secondary split-layout--center"
+          >
+            <!-- ================================================================
+           Page Identity
+           ================================================================ -->
 
-            <h1 id="watchlist-page-title" class="watchlist-hero__title">
-              My Watchlist
-            </h1>
+            <div class="split-layout__primary">
+              <div class="market-summary market-summary--hero">
+                <header class="market-summary__header">
+                  <div class="market-summary__brand">
+                    <span
+                      class="market-summary__brand-icon has-icon icon-tadawul"
+                      aria-hidden="true"
+                    ></span>
+
+                    <h1 id="watchlist-page-title" class="market-summary__title">
+                      My Watchlist
+                    </h1>
+                  </div>
+
+                  <p
+                    id="watchlist-page-description"
+                    class="market-summary__description"
+                  >
+                    Monitor selected companies, review market performance, and
+                    access their latest announcements in one place.
+                  </p>
+                </header>
+              </div>
+            </div>
+
+            <!-- ================================================================
+           Account Actions
+           ================================================================ -->
+
+            <div class="split-layout__secondary">
+              <div class="cluster cluster--end cluster--align-center">
+                <div
+                  class="account-menu account-menu--inverse account-menu--mobile-block"
+                  data-dropdown
+                >
+                  <!-- ============================================================
+                 Account Trigger
+                 ============================================================ -->
+
+                  <button
+                    class="account-menu__trigger"
+                    type="button"
+                    id="watchlist-account-trigger"
+                    aria-haspopup="menu"
+                    aria-expanded="false"
+                    aria-controls="watchlist-account-menu"
+                    data-dropdown-trigger
+                  >
+                    <span class="account-menu__avatar" aria-hidden="true">
+                      YA
+                    </span>
+
+                    <span class="account-menu__identity">
+                      <span class="account-menu__eyebrow"> Signed in as </span>
+
+                      <span class="account-menu__name"> Yaser Al Adma </span>
+                    </span>
+
+                    <span
+                      class="account-menu__chevron has-icon icon-chevron-down"
+                      aria-hidden="true"
+                    ></span>
+                  </button>
+
+                  <!-- ============================================================
+                 Account Menu
+                 ============================================================ -->
+
+                  <div
+                    class="account-menu__menu"
+                    id="watchlist-account-menu"
+                    role="menu"
+                    aria-labelledby="watchlist-account-trigger"
+                    hidden
+                    data-dropdown-menu
+                  >
+                    <!-- Account Summary -->
+
+                    <div class="account-menu__summary">
+                      <span class="account-menu__summary-name">
+                        Yaser Al Adma
+                      </span>
+
+                      <span class="account-menu__summary-meta">
+                        yaser.aladma@example.com
+                      </span>
+                    </div>
+
+                    <hr class="account-menu__separator" />
+
+                    <!-- Edit Profile -->
+
+                    <a
+                      class="account-menu__item has-icon icon-edit-pencil"
+                      href="/account/profile/"
+                      role="menuitem"
+                    >
+                      Edit profile
+                    </a>
+
+                    <!-- Log Out -->
+
+                    <form action="/auth/logout/" method="post">
+                      <button
+                        class="account-menu__item account-menu__item--danger has-icon icon-logout-door"
+                        type="submit"
+                        role="menuitem"
+                      >
+                        Log out
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
-
-      <!-- =================================================================
-     Watchlist Details
-================================================================== -->
+      <!-- ==========================================================================
+     Watchlist Workspace
+     ========================================================================== -->
 
       <section
-        class="watchlist-details section container"
-        aria-labelledby="watchlist-details-title"
+        class="section watchlist-page"
+        aria-labelledby="watchlist-workspace-title"
       >
-        <h2 id="watchlist-details-title" class="sr-only">Watchlist Details</h2>
+        <div class="container">
+          <div class="split-layout split-layout--wide-primary watchlist-layout">
+            <!-- ==================================================================
+           Primary Watchlist Region
+           ================================================================== -->
 
-        <div class="tabs watchlist-tabs" data-tabs>
-          <!-- =============================================================
-         Watchlist Navigation
-    ============================================================== -->
+            <div class="split-layout__primary">
+              <div class="content-page">
+                <div class="content-page__panel">
+                  <div class="watchlist-page__workspace">
+                    <!-- ==========================================================
+                   Workspace Header
+                   ========================================================== -->
 
-          <div class="watchlist-tabs__header">
-            <div class="watchlist-tabs__navigation">
-              <div
-                class="tabs-nav watchlist-tabs__nav"
-                role="tablist"
-                aria-label="Saved watchlists"
-              >
-                <button
-                  id="watchlist-one-tab"
-                  class="tab-link active"
-                  type="button"
-                  role="tab"
-                  aria-selected="true"
-                  aria-controls="watchlist-one-panel"
-                  tabindex="0"
-                  data-tab-target="watchlist-one-panel"
-                >
-                  <span class="tab-link__label"> Watchlist 1 </span>
+                    <header class="watchlist-page__header">
+                      <div class="stack stack--xs">
+                        <h2
+                          id="watchlist-workspace-title"
+                          class="content-page__section-title"
+                        >
+                          Your watchlists
+                        </h2>
 
-                  <span
-                    class="watchlist-tab__count"
-                    aria-label="12 saved securities"
-                  >
-                    12
-                  </span>
-                </button>
+                        <p class="text-muted">
+                          Organize and monitor the companies that matter to you.
+                        </p>
+                      </div>
 
-                <button
-                  id="watchlist-two-tab"
-                  class="tab-link"
-                  type="button"
-                  role="tab"
-                  aria-selected="false"
-                  aria-controls="watchlist-two-panel"
-                  tabindex="-1"
-                  data-tab-target="watchlist-two-panel"
-                >
-                  <span class="tab-link__label"> Watchlist 2 </span>
+                      <div class="watchlist-page__create">
+                        <button
+                          class="btn btn-primary has-icon icon-add-plus"
+                          type="button"
+                          aria-haspopup="dialog"
+                          aria-controls="create-watchlist-modal"
+                          data-modal-open="create-watchlist-modal"
+                        >
+                          Create watchlist
+                        </button>
+                      </div>
+                    </header>
 
-                  <span
-                    class="watchlist-tab__count"
-                    aria-label="7 saved securities"
-                  >
-                    7
-                  </span>
-                </button>
-              </div>
+                    <!-- ==========================================================
+                   Watchlist Tabs
+                   ========================================================== -->
 
-              <!-- Active Watchlist Actions -->
+                    <div class="tabs watchlist-tabs" data-tabs>
+                      <!--
+                  Each tab is a direct child of .tabs-nav. This matches the
+                  existing reusable tabs JavaScript.
+                -->
 
-              <div
-                class="dropdown watchlist-tabs__active-actions"
-                data-dropdown
-              >
-                <button
-                  class="btn btn-icon btn-ghost btn-sm has-icon icon-menu-dots-vertical"
-                  type="button"
-                  aria-label="Open actions for the active watchlist"
-                  aria-haspopup="menu"
-                  aria-expanded="false"
-                  data-dropdown-trigger
-                ></button>
+                      <div
+                        class="tabs-nav"
+                        role="tablist"
+                        aria-label="Your watchlists"
+                      >
+                        <button
+                          class="tab-link active"
+                          type="button"
+                          id="watchlist-one-tab"
+                          role="tab"
+                          aria-selected="true"
+                          aria-controls="watchlist-one-panel"
+                          tabindex="0"
+                          data-tab-target="watchlist-one-panel"
+                        >
+                          <span class="watchlist-tab__label">
+                            Watchlist 1
+                          </span>
 
-                <div
-                  class="dropdown__menu"
-                  role="menu"
-                  data-dropdown-menu
-                  hidden
-                >
-                  <button
-                    class="dropdown__item has-icon icon-edit-pencil"
-                    type="button"
-                    role="menuitem"
-                    data-watchlist-rename-active
-                  >
-                    Rename Watchlist
-                  </button>
+                          <span class="badge badge-neutral">
+                            <span class="visually-hidden">Companies:</span>
+                            5
+                          </span>
+                        </button>
 
-                  <button
-                    class="dropdown__item has-icon icon-copy"
-                    type="button"
-                    role="menuitem"
-                    data-watchlist-duplicate-active
-                  >
-                    Duplicate Watchlist
-                  </button>
+                        <button
+                          class="tab-link"
+                          type="button"
+                          id="watchlist-two-tab"
+                          role="tab"
+                          aria-selected="false"
+                          aria-controls="watchlist-two-panel"
+                          tabindex="-1"
+                          data-tab-target="watchlist-two-panel"
+                        >
+                          <span class="watchlist-tab__label">
+                            Watchlist 2
+                          </span>
 
-                  <div class="dropdown__separator" role="separator"></div>
+                          <span class="badge badge-neutral">
+                            <span class="visually-hidden">Companies:</span>
+                            3
+                          </span>
+                        </button>
+                      </div>
 
-                  <button
-                    class="dropdown__item dropdown__item-danger has-icon icon-trash-delete"
-                    type="button"
-                    role="menuitem"
-                    data-watchlist-delete-active
-                    data-modal-open="deleteWatchlistModal"
-                    aria-controls="deleteWatchlistModal"
-                  >
-                    Delete Watchlist
-                  </button>
+                      <!-- ========================================================
+                     Tab Content
+                     ======================================================== -->
+
+                      <div class="tabs-content">
+                        <!-- ======================================================
+                       Watchlist One
+                       ====================================================== -->
+
+                        <section
+                          class="tab-pane active"
+                          id="watchlist-one-panel"
+                          role="tabpanel"
+                          aria-labelledby="watchlist-one-tab"
+                          tabindex="0"
+                        >
+                          <div class="stack stack--md">
+                            <!-- ==================================================
+                           Watchlist One Toolbar
+                           ================================================== -->
+
+                            <div
+                              class="watchlist-toolbar"
+                              aria-label="Watchlist 1 controls"
+                            >
+                              <div class="watchlist-toolbar__start">
+                                <!-- Search -->
+
+                                <div
+                                  class="form-group watchlist-toolbar__search"
+                                >
+                                  <label
+                                    class="visually-hidden"
+                                    for="watchlist-one-search"
+                                  >
+                                    Search Watchlist 1
+                                  </label>
+
+                                  <div class="form-control-icon">
+                                    <span
+                                      class="form-control-icon__icon has-icon icon-search"
+                                      aria-hidden="true"
+                                    ></span>
+
+                                    <input
+                                      class="form-control"
+                                      id="watchlist-one-search"
+                                      name="watchlistOneSearch"
+                                      type="search"
+                                      placeholder="Search by company or symbol"
+                                      autocomplete="off"
+                                      data-watchlist-search
+                                    />
+                                  </div>
+                                </div>
+
+                                <!-- Filter -->
+
+                                <button
+                                  class="btn btn-outline has-icon icon-filter-funnel"
+                                  type="button"
+                                  aria-haspopup="dialog"
+                                  aria-controls="watchlist-filter-drawer"
+                                  data-drawer-open="watchlist-filter-drawer"
+                                >
+                                  Filters
+                                </button>
+                              </div>
+
+                              <div class="watchlist-toolbar__end">
+                                <!-- Selection Status -->
+
+                                <p
+                                  class="watchlist-toolbar__selection"
+                                  aria-live="polite"
+                                  data-watchlist-selection-status
+                                >
+                                  <strong>0</strong> selected
+                                </p>
+
+                                <!-- Bulk Actions -->
+
+                                <div
+                                  class="watchlist-toolbar__bulk"
+                                  hidden
+                                  data-watchlist-bulk-actions
+                                >
+                                  <div class="watchlist-toolbar__actions">
+                                    <button
+                                      class="btn btn-sm btn-outline has-icon icon-folder-import"
+                                      type="button"
+                                      data-watchlist-move-selected
+                                    >
+                                      Move
+                                    </button>
+
+                                    <button
+                                      class="btn btn-sm btn-danger-outline has-icon icon-trash-delete"
+                                      type="button"
+                                      data-watchlist-remove-selected
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <!-- Watchlist Management -->
+
+                                <div class="dropdown" data-dropdown>
+                                  <button
+                                    class="btn btn-icon btn-outline has-icon icon-menu-dots-vertical"
+                                    type="button"
+                                    id="watchlist-one-actions-trigger"
+                                    aria-label="Manage Watchlist 1"
+                                    aria-haspopup="menu"
+                                    aria-expanded="false"
+                                    aria-controls="watchlist-one-actions-menu"
+                                    data-dropdown-trigger
+                                  ></button>
+
+                                  <div
+                                    class="dropdown-menu"
+                                    id="watchlist-one-actions-menu"
+                                    role="menu"
+                                    aria-labelledby="watchlist-one-actions-trigger"
+                                    hidden
+                                    data-dropdown-menu
+                                  >
+                                    <button
+                                      class="dropdown-item has-icon icon-edit-pencil"
+                                      type="button"
+                                      role="menuitem"
+                                      data-watchlist-rename="watchlist-1"
+                                    >
+                                      Rename watchlist
+                                    </button>
+
+                                    <button
+                                      class="dropdown-item has-icon icon-copy"
+                                      type="button"
+                                      role="menuitem"
+                                      data-watchlist-duplicate="watchlist-1"
+                                    >
+                                      Duplicate watchlist
+                                    </button>
+
+                                    <button
+                                      class="dropdown-item dropdown-item--danger has-icon icon-trash-delete"
+                                      type="button"
+                                      role="menuitem"
+                                      data-watchlist-delete="watchlist-1"
+                                    >
+                                      Delete watchlist
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- ==================================================
+                           Watchlist One Data
+                           ================================================== -->
+
+                            <div class="watchlist-page__table-view">
+                              <!-- Watchlist 1 table goes here next. -->
+                            </div>
+
+                            <div class="watchlist-page__card-view">
+                              <!-- Watchlist 1 mobile cards go here next. -->
+                            </div>
+                          </div>
+                        </section>
+
+                        <!-- ======================================================
+                       Watchlist Two
+                       ====================================================== -->
+
+                        <section
+                          class="tab-pane"
+                          id="watchlist-two-panel"
+                          role="tabpanel"
+                          aria-labelledby="watchlist-two-tab"
+                          tabindex="0"
+                          hidden
+                        >
+                          <div class="stack stack--md">
+                            <!-- ==================================================
+                           Watchlist Two Toolbar
+                           ================================================== -->
+
+                            <div
+                              class="watchlist-toolbar"
+                              aria-label="Watchlist 2 controls"
+                            >
+                              <div class="watchlist-toolbar__start">
+                                <div
+                                  class="form-group watchlist-toolbar__search"
+                                >
+                                  <label
+                                    class="visually-hidden"
+                                    for="watchlist-two-search"
+                                  >
+                                    Search Watchlist 2
+                                  </label>
+
+                                  <div class="form-control-icon">
+                                    <span
+                                      class="form-control-icon__icon has-icon icon-search"
+                                      aria-hidden="true"
+                                    ></span>
+
+                                    <input
+                                      class="form-control"
+                                      id="watchlist-two-search"
+                                      name="watchlistTwoSearch"
+                                      type="search"
+                                      placeholder="Search by company or symbol"
+                                      autocomplete="off"
+                                      data-watchlist-search
+                                    />
+                                  </div>
+                                </div>
+
+                                <button
+                                  class="btn btn-outline has-icon icon-filter-funnel"
+                                  type="button"
+                                  aria-haspopup="dialog"
+                                  aria-controls="watchlist-filter-drawer"
+                                  data-drawer-open="watchlist-filter-drawer"
+                                >
+                                  Filters
+                                </button>
+                              </div>
+
+                              <div class="watchlist-toolbar__end">
+                                <p
+                                  class="watchlist-toolbar__selection"
+                                  aria-live="polite"
+                                  data-watchlist-selection-status
+                                >
+                                  <strong>0</strong> selected
+                                </p>
+
+                                <div
+                                  class="watchlist-toolbar__bulk"
+                                  hidden
+                                  data-watchlist-bulk-actions
+                                >
+                                  <div class="watchlist-toolbar__actions">
+                                    <button
+                                      class="btn btn-sm btn-outline has-icon icon-folder-import"
+                                      type="button"
+                                      data-watchlist-move-selected
+                                    >
+                                      Move
+                                    </button>
+
+                                    <button
+                                      class="btn btn-sm btn-danger-outline has-icon icon-trash-delete"
+                                      type="button"
+                                      data-watchlist-remove-selected
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <div class="dropdown" data-dropdown>
+                                  <button
+                                    class="btn btn-icon btn-outline has-icon icon-menu-dots-vertical"
+                                    type="button"
+                                    id="watchlist-two-actions-trigger"
+                                    aria-label="Manage Watchlist 2"
+                                    aria-haspopup="menu"
+                                    aria-expanded="false"
+                                    aria-controls="watchlist-two-actions-menu"
+                                    data-dropdown-trigger
+                                  ></button>
+
+                                  <div
+                                    class="dropdown-menu"
+                                    id="watchlist-two-actions-menu"
+                                    role="menu"
+                                    aria-labelledby="watchlist-two-actions-trigger"
+                                    hidden
+                                    data-dropdown-menu
+                                  >
+                                    <button
+                                      class="dropdown-item has-icon icon-edit-pencil"
+                                      type="button"
+                                      role="menuitem"
+                                      data-watchlist-rename="watchlist-2"
+                                    >
+                                      Rename watchlist
+                                    </button>
+
+                                    <button
+                                      class="dropdown-item has-icon icon-copy"
+                                      type="button"
+                                      role="menuitem"
+                                      data-watchlist-duplicate="watchlist-2"
+                                    >
+                                      Duplicate watchlist
+                                    </button>
+
+                                    <button
+                                      class="dropdown-item dropdown-item--danger has-icon icon-trash-delete"
+                                      type="button"
+                                      role="menuitem"
+                                      data-watchlist-delete="watchlist-2"
+                                    >
+                                      Delete watchlist
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- ==================================================
+                           Watchlist Two Data
+                           ================================================== -->
+
+                            <div class="watchlist-page__table-view">
+                              <!-- Watchlist 2 table goes here next. -->
+                            </div>
+
+                            <div class="watchlist-page__card-view">
+                              <!-- Watchlist 2 mobile cards go here next. -->
+                            </div>
+                          </div>
+                        </section>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <button
-              class="btn btn-primary has-icon icon-add-plus"
-              type="button"
-              data-modal-open="createWatchlistModal"
-              aria-controls="createWatchlistModal"
+            <!-- ==================================================================
+           Watched-company Announcements
+           ================================================================== -->
+
+            <aside
+              class="split-layout__secondary watchlist-announcements"
+              aria-labelledby="watchlist-announcements-title"
             >
-              Create New Watchlist
-            </button>
-          </div>
-
-          <!-- =============================================================
-         Watchlist Panels
-    ============================================================== -->
-
-          <div class="tabs-content">
-            <!-- ===========================================================
-           Watchlist 1
-      ============================================================ -->
-
-            <div
-              id="watchlist-one-panel"
-              class="tab-pane active"
-              role="tabpanel"
-              aria-labelledby="watchlist-one-tab"
-              data-watchlist-id="watchlist-one"
-              data-active="true"
-            >
-              <div class="watchlist-details__layout">
-                <!-- =======================================================
-               Saved Securities
-          ======================================================== -->
-
-                <section
-                  class="card watchlist-securities"
-                  aria-labelledby="watchlist-one-securities-title"
-                >
-                  <header class="card-header watchlist-securities__header">
-                    <div class="card-header__content">
-                      <p class="card-eyebrow">Market Tracking</p>
-
-                      <h3
-                        id="watchlist-one-securities-title"
-                        class="card-title"
-                      >
-                        Saved Securities
-                      </h3>
-
-                      <p class="card-subtitle">
-                        Review and manage the securities in this watchlist.
-                      </p>
-                    </div>
-
-                    <span
-                      class="badge badge-primary"
-                      data-watchlist-security-count
-                    >
-                      12 Securities
-                    </span>
-                  </header>
-
-                  <div class="card-body watchlist-securities__body">
-                    <!-- ===================================================
-                   Toolbar
-              ==================================================== -->
-
-                    <div
-                      class="watchlist-toolbar"
-                      aria-label="Watchlist 1 table controls"
-                    >
-                      <div class="watchlist-toolbar__primary">
-                        <div class="form-control watchlist-toolbar__search">
-                          <label class="sr-only" for="watchlist-one-search">
-                            Search Watchlist 1
-                          </label>
-
-                          <div class="input-group">
-                            <span
-                              class="input-group__icon has-icon icon-search"
-                              aria-hidden="true"
-                            ></span>
-
-                            <input
-                              id="watchlist-one-search"
-                              class="form-input"
-                              type="search"
-                              name="watchlist-one-search"
-                              placeholder="Search company or symbol"
-                              autocomplete="off"
-                              data-watchlist-search
-                            />
-                          </div>
-                        </div>
-
-                        <button
-                          class="btn btn-secondary has-icon icon-sync-refresh"
-                          type="button"
-                          data-watchlist-refresh
-                        >
-                          Refresh
-                        </button>
-                      </div>
-
-                      <div
-                        class="watchlist-toolbar__selection"
-                        data-watchlist-selection-toolbar
-                      >
-                        <p
-                          class="watchlist-toolbar__selection-count"
-                          aria-live="polite"
-                          data-watchlist-selection-count
-                        >
-                          0 securities selected
-                        </p>
-
-                        <div class="watchlist-toolbar__selection-actions">
-                          <button
-                            class="btn btn-secondary btn-sm has-icon icon-folder-import"
-                            type="button"
-                            disabled
-                            data-watchlist-move-selected
-                            data-modal-open="moveSecuritiesModal"
-                            aria-controls="moveSecuritiesModal"
-                          >
-                            Move Selected
-                          </button>
-
-                          <button
-                            class="btn btn-danger btn-sm has-icon icon-trash-delete"
-                            type="button"
-                            disabled
-                            data-watchlist-remove-selected
-                            data-modal-open="removeSelectedSecuritiesModal"
-                            aria-controls="removeSelectedSecuritiesModal"
-                          >
-                            Remove Selected
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- ===================================================
-                   Securities Table
-              ==================================================== -->
-
-                    <div class="watchlist-table" data-watchlist-table>
-                      <div
-                        class="table-responsive"
-                        tabindex="0"
-                        aria-label="Securities saved in Watchlist 1"
-                      >
-                        <table class="table table-hover">
-                          <caption class="sr-only">
-                            Securities saved in Watchlist 1
-                          </caption>
-
-                          <thead>
-                            <tr>
-                              <th class="watchlist-table__select" scope="col">
-                                <div class="form-check">
-                                  <input
-                                    id="watchlist-one-select-all"
-                                    class="form-check__input"
-                                    type="checkbox"
-                                    data-watchlist-select-all
-                                  />
-
-                                  <label
-                                    class="sr-only"
-                                    for="watchlist-one-select-all"
-                                  >
-                                    Select all securities
-                                  </label>
-                                </div>
-                              </th>
-
-                              <th scope="col">Company</th>
-
-                              <th scope="col">Symbol</th>
-
-                              <th class="text-end" scope="col">Last Price</th>
-
-                              <th class="text-end" scope="col">Change</th>
-
-                              <th class="text-end" scope="col">Change %</th>
-
-                              <th class="text-end" scope="col">Volume</th>
-
-                              <th
-                                class="watchlist-table__actions-column"
-                                scope="col"
-                              >
-                                <span class="sr-only"> Actions </span>
-                              </th>
-                            </tr>
-                          </thead>
-
-                          <tbody>
-                            <!-- Saudi Arabian Oil Company -->
-
-                            <tr data-watchlist-security="2222">
-                              <td class="watchlist-table__select">
-                                <div class="form-check">
-                                  <input
-                                    id="watchlist-one-security-2222"
-                                    class="form-check__input"
-                                    type="checkbox"
-                                    name="watchlist-one-selected"
-                                    value="2222"
-                                    data-watchlist-select
-                                  />
-
-                                  <label
-                                    class="sr-only"
-                                    for="watchlist-one-security-2222"
-                                  >
-                                    Select Saudi Arabian Oil Company
-                                  </label>
-                                </div>
-                              </td>
-
-                              <th class="watchlist-table__security" scope="row">
-                                <a
-                                  class="security-identity"
-                                  href="/market-data/company-profile.html?symbol=2222"
-                                >
-                                  <span
-                                    class="security-identity__logo"
-                                    aria-hidden="true"
-                                  >
-                                    SA
-                                  </span>
-
-                                  <span class="security-identity__content">
-                                    <span class="security-identity__name">
-                                      Saudi Arabian Oil Company
-                                    </span>
-
-                                    <span class="security-identity__market">
-                                      Main Market
-                                    </span>
-                                  </span>
-                                </a>
-                              </th>
-
-                              <td>
-                                <span class="security-symbol"> 2222 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="market-value"> 27.40 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="price-up"> +0.30 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="price-up">
-                                  <span
-                                    class="has-icon icon-triangle-up icon-xs"
-                                    aria-hidden="true"
-                                  ></span>
-
-                                  1.11%
-                                </span>
-                              </td>
-
-                              <td class="text-end">5,821,440</td>
-
-                              <td class="watchlist-table__row-actions">
-                                <div class="dropdown" data-dropdown>
-                                  <button
-                                    class="btn btn-icon btn-ghost btn-sm has-icon icon-menu-dots-vertical"
-                                    type="button"
-                                    aria-label="Open actions for Saudi Arabian Oil Company"
-                                    aria-haspopup="menu"
-                                    aria-expanded="false"
-                                    data-dropdown-trigger
-                                  ></button>
-
-                                  <div
-                                    class="dropdown__menu dropdown__menu-end"
-                                    role="menu"
-                                    data-dropdown-menu
-                                    hidden
-                                  >
-                                    <a
-                                      class="dropdown__item has-icon icon-external-link"
-                                      href="/market-data/company-profile.html?symbol=2222"
-                                      role="menuitem"
-                                    >
-                                      View Security
-                                    </a>
-
-                                    <button
-                                      class="dropdown__item has-icon icon-folder-import"
-                                      type="button"
-                                      role="menuitem"
-                                      data-watchlist-move-security="2222"
-                                      data-modal-open="moveSecuritiesModal"
-                                    >
-                                      Move to Watchlist
-                                    </button>
-
-                                    <div
-                                      class="dropdown__separator"
-                                      role="separator"
-                                    ></div>
-
-                                    <button
-                                      class="dropdown__item dropdown__item-danger has-icon icon-trash-delete"
-                                      type="button"
-                                      role="menuitem"
-                                      data-watchlist-remove-security="2222"
-                                      data-modal-open="removeSecurityModal"
-                                    >
-                                      Remove Security
-                                    </button>
-                                  </div>
-                                </div>
-                              </td>
-                            </tr>
-
-                            <!-- Al Rajhi Bank -->
-
-                            <tr data-watchlist-security="1120">
-                              <td class="watchlist-table__select">
-                                <div class="form-check">
-                                  <input
-                                    id="watchlist-one-security-1120"
-                                    class="form-check__input"
-                                    type="checkbox"
-                                    name="watchlist-one-selected"
-                                    value="1120"
-                                    data-watchlist-select
-                                  />
-
-                                  <label
-                                    class="sr-only"
-                                    for="watchlist-one-security-1120"
-                                  >
-                                    Select Al Rajhi Bank
-                                  </label>
-                                </div>
-                              </td>
-
-                              <th class="watchlist-table__security" scope="row">
-                                <a
-                                  class="security-identity"
-                                  href="/market-data/company-profile.html?symbol=1120"
-                                >
-                                  <span
-                                    class="security-identity__logo"
-                                    aria-hidden="true"
-                                  >
-                                    AR
-                                  </span>
-
-                                  <span class="security-identity__content">
-                                    <span class="security-identity__name">
-                                      Al Rajhi Bank
-                                    </span>
-
-                                    <span class="security-identity__market">
-                                      Main Market
-                                    </span>
-                                  </span>
-                                </a>
-                              </th>
-
-                              <td>
-                                <span class="security-symbol"> 1120 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="market-value"> 98.20 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="price-down"> −0.60 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="price-down">
-                                  <span
-                                    class="has-icon icon-triangle-down icon-xs"
-                                    aria-hidden="true"
-                                  ></span>
-
-                                  0.61%
-                                </span>
-                              </td>
-
-                              <td class="text-end">3,140,205</td>
-
-                              <td class="watchlist-table__row-actions">
-                                <div class="dropdown" data-dropdown>
-                                  <button
-                                    class="btn btn-icon btn-ghost btn-sm has-icon icon-menu-dots-vertical"
-                                    type="button"
-                                    aria-label="Open actions for Al Rajhi Bank"
-                                    aria-haspopup="menu"
-                                    aria-expanded="false"
-                                    data-dropdown-trigger
-                                  ></button>
-
-                                  <div
-                                    class="dropdown__menu dropdown__menu-end"
-                                    role="menu"
-                                    data-dropdown-menu
-                                    hidden
-                                  >
-                                    <a
-                                      class="dropdown__item has-icon icon-external-link"
-                                      href="/market-data/company-profile.html?symbol=1120"
-                                      role="menuitem"
-                                    >
-                                      View Security
-                                    </a>
-
-                                    <button
-                                      class="dropdown__item has-icon icon-folder-import"
-                                      type="button"
-                                      role="menuitem"
-                                      data-watchlist-move-security="1120"
-                                      data-modal-open="moveSecuritiesModal"
-                                    >
-                                      Move to Watchlist
-                                    </button>
-
-                                    <div
-                                      class="dropdown__separator"
-                                      role="separator"
-                                    ></div>
-
-                                    <button
-                                      class="dropdown__item dropdown__item-danger has-icon icon-trash-delete"
-                                      type="button"
-                                      role="menuitem"
-                                      data-watchlist-remove-security="1120"
-                                      data-modal-open="removeSecurityModal"
-                                    >
-                                      Remove Security
-                                    </button>
-                                  </div>
-                                </div>
-                              </td>
-                            </tr>
-
-                            <!-- SABIC -->
-
-                            <tr data-watchlist-security="2010">
-                              <td class="watchlist-table__select">
-                                <div class="form-check">
-                                  <input
-                                    id="watchlist-one-security-2010"
-                                    class="form-check__input"
-                                    type="checkbox"
-                                    name="watchlist-one-selected"
-                                    value="2010"
-                                    data-watchlist-select
-                                  />
-
-                                  <label
-                                    class="sr-only"
-                                    for="watchlist-one-security-2010"
-                                  >
-                                    Select Saudi Basic Industries Corporation
-                                  </label>
-                                </div>
-                              </td>
-
-                              <th class="watchlist-table__security" scope="row">
-                                <a
-                                  class="security-identity"
-                                  href="/market-data/company-profile.html?symbol=2010"
-                                >
-                                  <span
-                                    class="security-identity__logo"
-                                    aria-hidden="true"
-                                  >
-                                    SB
-                                  </span>
-
-                                  <span class="security-identity__content">
-                                    <span class="security-identity__name">
-                                      Saudi Basic Industries Corporation
-                                    </span>
-
-                                    <span class="security-identity__market">
-                                      Main Market
-                                    </span>
-                                  </span>
-                                </a>
-                              </th>
-
-                              <td>
-                                <span class="security-symbol"> 2010 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="market-value"> 64.10 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="price-up"> +0.50 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="price-up">
-                                  <span
-                                    class="has-icon icon-triangle-up icon-xs"
-                                    aria-hidden="true"
-                                  ></span>
-
-                                  0.79%
-                                </span>
-                              </td>
-
-                              <td class="text-end">2,918,630</td>
-
-                              <td class="watchlist-table__row-actions">
-                                <div class="dropdown" data-dropdown>
-                                  <button
-                                    class="btn btn-icon btn-ghost btn-sm has-icon icon-menu-dots-vertical"
-                                    type="button"
-                                    aria-label="Open actions for Saudi Basic Industries Corporation"
-                                    aria-haspopup="menu"
-                                    aria-expanded="false"
-                                    data-dropdown-trigger
-                                  ></button>
-
-                                  <div
-                                    class="dropdown__menu dropdown__menu-end"
-                                    role="menu"
-                                    data-dropdown-menu
-                                    hidden
-                                  >
-                                    <a
-                                      class="dropdown__item has-icon icon-external-link"
-                                      href="/market-data/company-profile.html?symbol=2010"
-                                      role="menuitem"
-                                    >
-                                      View Security
-                                    </a>
-
-                                    <button
-                                      class="dropdown__item has-icon icon-folder-import"
-                                      type="button"
-                                      role="menuitem"
-                                      data-watchlist-move-security="2010"
-                                      data-modal-open="moveSecuritiesModal"
-                                    >
-                                      Move to Watchlist
-                                    </button>
-
-                                    <div
-                                      class="dropdown__separator"
-                                      role="separator"
-                                    ></div>
-
-                                    <button
-                                      class="dropdown__item dropdown__item-danger has-icon icon-trash-delete"
-                                      type="button"
-                                      role="menuitem"
-                                      data-watchlist-remove-security="2010"
-                                      data-modal-open="removeSecurityModal"
-                                    >
-                                      Remove Security
-                                    </button>
-                                  </div>
-                                </div>
-                              </td>
-                            </tr>
-
-                            <!-- Saudi Telecom Company -->
-
-                            <tr data-watchlist-security="7010">
-                              <td class="watchlist-table__select">
-                                <div class="form-check">
-                                  <input
-                                    id="watchlist-one-security-7010"
-                                    class="form-check__input"
-                                    type="checkbox"
-                                    name="watchlist-one-selected"
-                                    value="7010"
-                                    data-watchlist-select
-                                  />
-
-                                  <label
-                                    class="sr-only"
-                                    for="watchlist-one-security-7010"
-                                  >
-                                    Select Saudi Telecom Company
-                                  </label>
-                                </div>
-                              </td>
-
-                              <th class="watchlist-table__security" scope="row">
-                                <a
-                                  class="security-identity"
-                                  href="/market-data/company-profile.html?symbol=7010"
-                                >
-                                  <span
-                                    class="security-identity__logo"
-                                    aria-hidden="true"
-                                  >
-                                    ST
-                                  </span>
-
-                                  <span class="security-identity__content">
-                                    <span class="security-identity__name">
-                                      Saudi Telecom Company
-                                    </span>
-
-                                    <span class="security-identity__market">
-                                      Main Market
-                                    </span>
-                                  </span>
-                                </a>
-                              </th>
-
-                              <td>
-                                <span class="security-symbol"> 7010 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="market-value"> 41.60 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="price-neutral"> 0.00 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="price-neutral"> 0.00% </span>
-                              </td>
-
-                              <td class="text-end">1,874,922</td>
-
-                              <td class="watchlist-table__row-actions">
-                                <div class="dropdown" data-dropdown>
-                                  <button
-                                    class="btn btn-icon btn-ghost btn-sm has-icon icon-menu-dots-vertical"
-                                    type="button"
-                                    aria-label="Open actions for Saudi Telecom Company"
-                                    aria-haspopup="menu"
-                                    aria-expanded="false"
-                                    data-dropdown-trigger
-                                  ></button>
-
-                                  <div
-                                    class="dropdown__menu dropdown__menu-end"
-                                    role="menu"
-                                    data-dropdown-menu
-                                    hidden
-                                  >
-                                    <a
-                                      class="dropdown__item has-icon icon-external-link"
-                                      href="/market-data/company-profile.html?symbol=7010"
-                                      role="menuitem"
-                                    >
-                                      View Security
-                                    </a>
-
-                                    <button
-                                      class="dropdown__item has-icon icon-folder-import"
-                                      type="button"
-                                      role="menuitem"
-                                      data-watchlist-move-security="7010"
-                                      data-modal-open="moveSecuritiesModal"
-                                    >
-                                      Move to Watchlist
-                                    </button>
-
-                                    <div
-                                      class="dropdown__separator"
-                                      role="separator"
-                                    ></div>
-
-                                    <button
-                                      class="dropdown__item dropdown__item-danger has-icon icon-trash-delete"
-                                      type="button"
-                                      role="menuitem"
-                                      data-watchlist-remove-security="7010"
-                                      data-modal-open="removeSecurityModal"
-                                    >
-                                      Remove Security
-                                    </button>
-                                  </div>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-
-                      <footer class="watchlist-table__footer">
-                        <p class="watchlist-table__summary">
-                          Showing 4 of 12 securities
-                        </p>
-
-                        <a
-                          class="btn btn-link has-icon icon-chevron-right icon-end icon-flip-rtl"
-                          href="/market-data/securities.html"
-                        >
-                          Explore Securities
-                        </a>
-                      </footer>
-                    </div>
-
-                    <!-- Loading State -->
-
-                    <div
-                      class="watchlist-state watchlist-state--loading"
-                      role="status"
-                      aria-live="polite"
-                      data-watchlist-loading
-                      hidden
-                    >
-                      <span
-                        class="watchlist-state__icon has-icon icon-sync-refresh icon-spin icon-xl"
-                        aria-hidden="true"
-                      ></span>
-
-                      <p class="watchlist-state__title">
-                        Loading saved securities
-                      </p>
-
-                      <p class="watchlist-state__description">
-                        Your latest watchlist information is being retrieved.
-                      </p>
-                    </div>
-
-                    <!-- No Search Results -->
-
-                    <div
-                      class="watchlist-state watchlist-state--no-results"
-                      data-watchlist-no-results
-                      hidden
-                    >
-                      <span
-                        class="watchlist-state__icon has-icon icon-search icon-xl"
-                        aria-hidden="true"
-                      ></span>
-
-                      <h4 class="watchlist-state__title">
-                        No matching securities found
-                      </h4>
-
-                      <p class="watchlist-state__description">
-                        Try another company name or trading symbol.
-                      </p>
-
-                      <button
-                        class="btn btn-secondary"
-                        type="button"
-                        data-watchlist-clear-search
-                      >
-                        Clear Search
-                      </button>
-                    </div>
-
-                    <!-- Empty State -->
-
-                    <div
-                      class="watchlist-state watchlist-state--empty"
-                      data-watchlist-empty
-                      hidden
-                    >
-                      <span
-                        class="watchlist-state__icon has-icon icon-star-outline icon-2xl"
-                        aria-hidden="true"
-                      ></span>
-
-                      <h4 class="watchlist-state__title">
-                        This watchlist is empty
-                      </h4>
-
-                      <p class="watchlist-state__description">
-                        Add listed securities to begin tracking their
-                        performance.
-                      </p>
-
-                      <a
-                        class="btn btn-primary has-icon icon-search"
-                        href="/market-data/securities.html"
-                      >
-                        Explore Securities
-                      </a>
-                    </div>
-                  </div>
-                </section>
-
-                <!-- =======================================================
-               Company Announcements
-          ======================================================== -->
-
-                <section
-                  class="card watchlist-announcements"
-                  aria-labelledby="watchlist-one-announcements-title"
-                >
-                  <header class="card-header watchlist-announcements__header">
-                    <div class="card-header__content">
-                      <p class="card-eyebrow">Followed Companies</p>
-
-                      <h3
-                        id="watchlist-one-announcements-title"
-                        class="card-title"
-                      >
-                        Company Announcements
-                      </h3>
-
-                      <p class="card-subtitle">
-                        Latest disclosures from companies in this watchlist.
-                      </p>
-                    </div>
-
-                    <span
-                      class="badge badge-primary"
-                      data-watchlist-announcement-count
-                    >
-                      8 New
-                    </span>
-                  </header>
-
-                  <div
-                    class="card-body watchlist-announcements__body"
-                    data-watchlist-announcements
+              <header class="watchlist-announcements__header">
+                <div class="stack stack--xs">
+                  <h2
+                    id="watchlist-announcements-title"
+                    class="watchlist-announcements__title has-icon icon-tadawul"
                   >
-                    <ol class="announcement-list">
-                      <li class="announcement-list__item">
-                        <article class="announcement-card">
-                          <header class="announcement-card__header">
-                            <div class="announcement-card__company">
-                              <span
-                                class="announcement-card__logo"
-                                aria-hidden="true"
-                              >
-                                SA
-                              </span>
-
-                              <div class="announcement-card__company-content">
-                                <p class="announcement-card__company-name">
-                                  Saudi Arabian Oil Company
-                                </p>
-
-                                <p class="announcement-card__symbol">2222</p>
-                              </div>
-                            </div>
-
-                            <span class="badge badge-success"> New </span>
-                          </header>
-
-                          <h4 class="announcement-card__title">
-                            <a href="/announcements/saudi-aramco-results.html">
-                              Saudi Aramco announces its latest financial
-                              results
-                            </a>
-                          </h4>
-
-                          <footer class="announcement-card__meta">
-                            <time datetime="2026-07-18T09:30:00+03:00">
-                              18 July 2026, 09:30
-                            </time>
-
-                            <a
-                              class="announcement-card__link has-icon icon-external-link icon-end"
-                              href="/announcements/saudi-aramco-results.html"
-                              aria-label="View Saudi Aramco announcement"
-                            >
-                              View
-                            </a>
-                          </footer>
-                        </article>
-                      </li>
-
-                      <li class="announcement-list__item">
-                        <article class="announcement-card">
-                          <header class="announcement-card__header">
-                            <div class="announcement-card__company">
-                              <span
-                                class="announcement-card__logo"
-                                aria-hidden="true"
-                              >
-                                AR
-                              </span>
-
-                              <div class="announcement-card__company-content">
-                                <p class="announcement-card__company-name">
-                                  Al Rajhi Bank
-                                </p>
-
-                                <p class="announcement-card__symbol">1120</p>
-                              </div>
-                            </div>
-
-                            <span class="badge badge-success"> New </span>
-                          </header>
-
-                          <h4 class="announcement-card__title">
-                            <a
-                              href="/announcements/al-rajhi-board-meeting.html"
-                            >
-                              Al Rajhi Bank publishes the outcome of its board
-                              meeting
-                            </a>
-                          </h4>
-
-                          <footer class="announcement-card__meta">
-                            <time datetime="2026-07-17T15:45:00+03:00">
-                              17 July 2026, 15:45
-                            </time>
-
-                            <a
-                              class="announcement-card__link has-icon icon-external-link icon-end"
-                              href="/announcements/al-rajhi-board-meeting.html"
-                              aria-label="View Al Rajhi Bank announcement"
-                            >
-                              View
-                            </a>
-                          </footer>
-                        </article>
-                      </li>
-
-                      <li class="announcement-list__item">
-                        <article class="announcement-card">
-                          <header class="announcement-card__header">
-                            <div class="announcement-card__company">
-                              <span
-                                class="announcement-card__logo"
-                                aria-hidden="true"
-                              >
-                                SB
-                              </span>
-
-                              <div class="announcement-card__company-content">
-                                <p class="announcement-card__company-name">
-                                  Saudi Basic Industries Corporation
-                                </p>
-
-                                <p class="announcement-card__symbol">2010</p>
-                              </div>
-                            </div>
-                          </header>
-
-                          <h4 class="announcement-card__title">
-                            <a href="/announcements/sabic-dividend.html">
-                              SABIC announces the distribution of interim cash
-                              dividends
-                            </a>
-                          </h4>
-
-                          <footer class="announcement-card__meta">
-                            <time datetime="2026-07-16T11:20:00+03:00">
-                              16 July 2026, 11:20
-                            </time>
-
-                            <a
-                              class="announcement-card__link has-icon icon-external-link icon-end"
-                              href="/announcements/sabic-dividend.html"
-                              aria-label="View SABIC announcement"
-                            >
-                              View
-                            </a>
-                          </footer>
-                        </article>
-                      </li>
-
-                      <li class="announcement-list__item">
-                        <article class="announcement-card">
-                          <header class="announcement-card__header">
-                            <div class="announcement-card__company">
-                              <span
-                                class="announcement-card__logo"
-                                aria-hidden="true"
-                              >
-                                ST
-                              </span>
-
-                              <div class="announcement-card__company-content">
-                                <p class="announcement-card__company-name">
-                                  Saudi Telecom Company
-                                </p>
-
-                                <p class="announcement-card__symbol">7010</p>
-                              </div>
-                            </div>
-                          </header>
-
-                          <h4 class="announcement-card__title">
-                            <a href="/announcements/stc-contract-award.html">
-                              stc announces the award of a strategic technology
-                              contract
-                            </a>
-                          </h4>
-
-                          <footer class="announcement-card__meta">
-                            <time datetime="2026-07-15T13:10:00+03:00">
-                              15 July 2026, 13:10
-                            </time>
-
-                            <a
-                              class="announcement-card__link has-icon icon-external-link icon-end"
-                              href="/announcements/stc-contract-award.html"
-                              aria-label="View Saudi Telecom Company announcement"
-                            >
-                              View
-                            </a>
-                          </footer>
-                        </article>
-                      </li>
-                    </ol>
-
-                    <!-- Announcements Loading State -->
-
-                    <div
-                      class="watchlist-state watchlist-state--loading watchlist-state--compact"
-                      role="status"
-                      aria-live="polite"
-                      data-announcements-loading
-                      hidden
-                    >
-                      <span
-                        class="watchlist-state__icon has-icon icon-sync-refresh icon-spin icon-xl"
-                        aria-hidden="true"
-                      ></span>
-
-                      <p class="watchlist-state__title">
-                        Loading announcements
-                      </p>
-                    </div>
-
-                    <!-- Announcements Empty State -->
-
-                    <div
-                      class="watchlist-state watchlist-state--empty watchlist-state--compact"
-                      data-announcements-empty
-                      hidden
-                    >
-                      <span
-                        class="watchlist-state__icon has-icon icon-alert-bell icon-xl"
-                        aria-hidden="true"
-                      ></span>
-
-                      <h4 class="watchlist-state__title">
-                        No announcements available
-                      </h4>
-
-                      <p class="watchlist-state__description">
-                        Announcements from saved companies will appear here.
-                      </p>
-                    </div>
-                  </div>
-
-                  <footer class="card-footer watchlist-announcements__footer">
-                    <a
-                      class="btn btn-link has-icon icon-chevron-right icon-end icon-flip-rtl"
-                      href="/announcements.html?watchlist=watchlist-one"
-                    >
-                      View All Announcements
-                    </a>
-                  </footer>
-                </section>
-              </div>
-            </div>
-
-            <!-- ===========================================================
-           Watchlist 2
-      ============================================================ -->
-
-            <div
-              id="watchlist-two-panel"
-              class="tab-pane"
-              role="tabpanel"
-              aria-labelledby="watchlist-two-tab"
-              data-watchlist-id="watchlist-two"
-              hidden
-            >
-              <div class="watchlist-details__layout">
-                <!-- =======================================================
-               Saved Securities
-          ======================================================== -->
-
-                <section
-                  class="card watchlist-securities"
-                  aria-labelledby="watchlist-two-securities-title"
-                >
-                  <header class="card-header watchlist-securities__header">
-                    <div class="card-header__content">
-                      <p class="card-eyebrow">Market Tracking</p>
-
-                      <h3
-                        id="watchlist-two-securities-title"
-                        class="card-title"
-                      >
-                        Saved Securities
-                      </h3>
-
-                      <p class="card-subtitle">
-                        Review and manage the securities in this watchlist.
-                      </p>
-                    </div>
-
-                    <span
-                      class="badge badge-primary"
-                      data-watchlist-security-count
-                    >
-                      7 Securities
-                    </span>
-                  </header>
-
-                  <div class="card-body watchlist-securities__body">
-                    <div
-                      class="watchlist-toolbar"
-                      aria-label="Watchlist 2 table controls"
-                    >
-                      <div class="watchlist-toolbar__primary">
-                        <div class="form-control watchlist-toolbar__search">
-                          <label class="sr-only" for="watchlist-two-search">
-                            Search Watchlist 2
-                          </label>
-
-                          <div class="input-group">
-                            <span
-                              class="input-group__icon has-icon icon-search"
-                              aria-hidden="true"
-                            ></span>
-
-                            <input
-                              id="watchlist-two-search"
-                              class="form-input"
-                              type="search"
-                              name="watchlist-two-search"
-                              placeholder="Search company or symbol"
-                              autocomplete="off"
-                              data-watchlist-search
-                            />
-                          </div>
-                        </div>
-
-                        <button
-                          class="btn btn-secondary has-icon icon-sync-refresh"
-                          type="button"
-                          data-watchlist-refresh
-                        >
-                          Refresh
-                        </button>
-                      </div>
-
-                      <div
-                        class="watchlist-toolbar__selection"
-                        data-watchlist-selection-toolbar
-                      >
-                        <p
-                          class="watchlist-toolbar__selection-count"
-                          aria-live="polite"
-                          data-watchlist-selection-count
-                        >
-                          0 securities selected
-                        </p>
-
-                        <div class="watchlist-toolbar__selection-actions">
-                          <button
-                            class="btn btn-secondary btn-sm has-icon icon-folder-import"
-                            type="button"
-                            disabled
-                            data-watchlist-move-selected
-                            data-modal-open="moveSecuritiesModal"
-                          >
-                            Move Selected
-                          </button>
-
-                          <button
-                            class="btn btn-danger btn-sm has-icon icon-trash-delete"
-                            type="button"
-                            disabled
-                            data-watchlist-remove-selected
-                            data-modal-open="removeSelectedSecuritiesModal"
-                          >
-                            Remove Selected
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="watchlist-table" data-watchlist-table>
-                      <div
-                        class="table-responsive"
-                        tabindex="0"
-                        aria-label="Securities saved in Watchlist 2"
-                      >
-                        <table class="table table-hover">
-                          <caption class="sr-only">
-                            Securities saved in Watchlist 2
-                          </caption>
-
-                          <thead>
-                            <tr>
-                              <th class="watchlist-table__select" scope="col">
-                                <div class="form-check">
-                                  <input
-                                    id="watchlist-two-select-all"
-                                    class="form-check__input"
-                                    type="checkbox"
-                                    data-watchlist-select-all
-                                  />
-
-                                  <label
-                                    class="sr-only"
-                                    for="watchlist-two-select-all"
-                                  >
-                                    Select all securities
-                                  </label>
-                                </div>
-                              </th>
-
-                              <th scope="col">Company</th>
-
-                              <th scope="col">Symbol</th>
-
-                              <th class="text-end" scope="col">Last Price</th>
-
-                              <th class="text-end" scope="col">Change</th>
-
-                              <th class="text-end" scope="col">Change %</th>
-
-                              <th class="text-end" scope="col">Volume</th>
-
-                              <th
-                                class="watchlist-table__actions-column"
-                                scope="col"
-                              >
-                                <span class="sr-only"> Actions </span>
-                              </th>
-                            </tr>
-                          </thead>
-
-                          <tbody>
-                            <!-- Saudi National Bank -->
-
-                            <tr data-watchlist-security="1180">
-                              <td class="watchlist-table__select">
-                                <div class="form-check">
-                                  <input
-                                    id="watchlist-two-security-1180"
-                                    class="form-check__input"
-                                    type="checkbox"
-                                    name="watchlist-two-selected"
-                                    value="1180"
-                                    data-watchlist-select
-                                  />
-
-                                  <label
-                                    class="sr-only"
-                                    for="watchlist-two-security-1180"
-                                  >
-                                    Select Saudi National Bank
-                                  </label>
-                                </div>
-                              </td>
-
-                              <th class="watchlist-table__security" scope="row">
-                                <a
-                                  class="security-identity"
-                                  href="/market-data/company-profile.html?symbol=1180"
-                                >
-                                  <span
-                                    class="security-identity__logo"
-                                    aria-hidden="true"
-                                  >
-                                    SN
-                                  </span>
-
-                                  <span class="security-identity__content">
-                                    <span class="security-identity__name">
-                                      Saudi National Bank
-                                    </span>
-
-                                    <span class="security-identity__market">
-                                      Main Market
-                                    </span>
-                                  </span>
-                                </a>
-                              </th>
-
-                              <td>
-                                <span class="security-symbol"> 1180 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="market-value"> 36.85 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="price-down"> −0.25 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="price-down">
-                                  <span
-                                    class="has-icon icon-triangle-down icon-xs"
-                                    aria-hidden="true"
-                                  ></span>
-
-                                  0.67%
-                                </span>
-                              </td>
-
-                              <td class="text-end">2,641,908</td>
-
-                              <td class="watchlist-table__row-actions">
-                                <div class="dropdown" data-dropdown>
-                                  <button
-                                    class="btn btn-icon btn-ghost btn-sm has-icon icon-menu-dots-vertical"
-                                    type="button"
-                                    aria-label="Open actions for Saudi National Bank"
-                                    aria-haspopup="menu"
-                                    aria-expanded="false"
-                                    data-dropdown-trigger
-                                  ></button>
-
-                                  <div
-                                    class="dropdown__menu dropdown__menu-end"
-                                    role="menu"
-                                    data-dropdown-menu
-                                    hidden
-                                  >
-                                    <a
-                                      class="dropdown__item has-icon icon-external-link"
-                                      href="/market-data/company-profile.html?symbol=1180"
-                                      role="menuitem"
-                                    >
-                                      View Security
-                                    </a>
-
-                                    <button
-                                      class="dropdown__item has-icon icon-folder-import"
-                                      type="button"
-                                      role="menuitem"
-                                      data-watchlist-move-security="1180"
-                                      data-modal-open="moveSecuritiesModal"
-                                    >
-                                      Move to Watchlist
-                                    </button>
-
-                                    <div
-                                      class="dropdown__separator"
-                                      role="separator"
-                                    ></div>
-
-                                    <button
-                                      class="dropdown__item dropdown__item-danger has-icon icon-trash-delete"
-                                      type="button"
-                                      role="menuitem"
-                                      data-watchlist-remove-security="1180"
-                                      data-modal-open="removeSecurityModal"
-                                    >
-                                      Remove Security
-                                    </button>
-                                  </div>
-                                </div>
-                              </td>
-                            </tr>
-
-                            <!-- Saudi Arabian Mining Company -->
-
-                            <tr data-watchlist-security="1211">
-                              <td class="watchlist-table__select">
-                                <div class="form-check">
-                                  <input
-                                    id="watchlist-two-security-1211"
-                                    class="form-check__input"
-                                    type="checkbox"
-                                    name="watchlist-two-selected"
-                                    value="1211"
-                                    data-watchlist-select
-                                  />
-
-                                  <label
-                                    class="sr-only"
-                                    for="watchlist-two-security-1211"
-                                  >
-                                    Select Saudi Arabian Mining Company
-                                  </label>
-                                </div>
-                              </td>
-
-                              <th class="watchlist-table__security" scope="row">
-                                <a
-                                  class="security-identity"
-                                  href="/market-data/company-profile.html?symbol=1211"
-                                >
-                                  <span
-                                    class="security-identity__logo"
-                                    aria-hidden="true"
-                                  >
-                                    MA
-                                  </span>
-
-                                  <span class="security-identity__content">
-                                    <span class="security-identity__name">
-                                      Saudi Arabian Mining Company
-                                    </span>
-
-                                    <span class="security-identity__market">
-                                      Main Market
-                                    </span>
-                                  </span>
-                                </a>
-                              </th>
-
-                              <td>
-                                <span class="security-symbol"> 1211 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="market-value"> 50.70 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="price-up"> +0.80 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="price-up">
-                                  <span
-                                    class="has-icon icon-triangle-up icon-xs"
-                                    aria-hidden="true"
-                                  ></span>
-
-                                  1.60%
-                                </span>
-                              </td>
-
-                              <td class="text-end">1,932,615</td>
-
-                              <td class="watchlist-table__row-actions">
-                                <div class="dropdown" data-dropdown>
-                                  <button
-                                    class="btn btn-icon btn-ghost btn-sm has-icon icon-menu-dots-vertical"
-                                    type="button"
-                                    aria-label="Open actions for Saudi Arabian Mining Company"
-                                    aria-haspopup="menu"
-                                    aria-expanded="false"
-                                    data-dropdown-trigger
-                                  ></button>
-
-                                  <div
-                                    class="dropdown__menu dropdown__menu-end"
-                                    role="menu"
-                                    data-dropdown-menu
-                                    hidden
-                                  >
-                                    <a
-                                      class="dropdown__item has-icon icon-external-link"
-                                      href="/market-data/company-profile.html?symbol=1211"
-                                      role="menuitem"
-                                    >
-                                      View Security
-                                    </a>
-
-                                    <button
-                                      class="dropdown__item has-icon icon-folder-import"
-                                      type="button"
-                                      role="menuitem"
-                                      data-watchlist-move-security="1211"
-                                      data-modal-open="moveSecuritiesModal"
-                                    >
-                                      Move to Watchlist
-                                    </button>
-
-                                    <div
-                                      class="dropdown__separator"
-                                      role="separator"
-                                    ></div>
-
-                                    <button
-                                      class="dropdown__item dropdown__item-danger has-icon icon-trash-delete"
-                                      type="button"
-                                      role="menuitem"
-                                      data-watchlist-remove-security="1211"
-                                      data-modal-open="removeSecurityModal"
-                                    >
-                                      Remove Security
-                                    </button>
-                                  </div>
-                                </div>
-                              </td>
-                            </tr>
-
-                            <!-- Almarai Company -->
-
-                            <tr data-watchlist-security="2280">
-                              <td class="watchlist-table__select">
-                                <div class="form-check">
-                                  <input
-                                    id="watchlist-two-security-2280"
-                                    class="form-check__input"
-                                    type="checkbox"
-                                    name="watchlist-two-selected"
-                                    value="2280"
-                                    data-watchlist-select
-                                  />
-
-                                  <label
-                                    class="sr-only"
-                                    for="watchlist-two-security-2280"
-                                  >
-                                    Select Almarai Company
-                                  </label>
-                                </div>
-                              </td>
-
-                              <th class="watchlist-table__security" scope="row">
-                                <a
-                                  class="security-identity"
-                                  href="/market-data/company-profile.html?symbol=2280"
-                                >
-                                  <span
-                                    class="security-identity__logo"
-                                    aria-hidden="true"
-                                  >
-                                    AL
-                                  </span>
-
-                                  <span class="security-identity__content">
-                                    <span class="security-identity__name">
-                                      Almarai Company
-                                    </span>
-
-                                    <span class="security-identity__market">
-                                      Main Market
-                                    </span>
-                                  </span>
-                                </a>
-                              </th>
-
-                              <td>
-                                <span class="security-symbol"> 2280 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="market-value"> 57.30 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="price-neutral"> 0.00 </span>
-                              </td>
-
-                              <td class="text-end">
-                                <span class="price-neutral"> 0.00% </span>
-                              </td>
-
-                              <td class="text-end">684,302</td>
-
-                              <td class="watchlist-table__row-actions">
-                                <div class="dropdown" data-dropdown>
-                                  <button
-                                    class="btn btn-icon btn-ghost btn-sm has-icon icon-menu-dots-vertical"
-                                    type="button"
-                                    aria-label="Open actions for Almarai Company"
-                                    aria-haspopup="menu"
-                                    aria-expanded="false"
-                                    data-dropdown-trigger
-                                  ></button>
-
-                                  <div
-                                    class="dropdown__menu dropdown__menu-end"
-                                    role="menu"
-                                    data-dropdown-menu
-                                    hidden
-                                  >
-                                    <a
-                                      class="dropdown__item has-icon icon-external-link"
-                                      href="/market-data/company-profile.html?symbol=2280"
-                                      role="menuitem"
-                                    >
-                                      View Security
-                                    </a>
-
-                                    <button
-                                      class="dropdown__item has-icon icon-folder-import"
-                                      type="button"
-                                      role="menuitem"
-                                      data-watchlist-move-security="2280"
-                                      data-modal-open="moveSecuritiesModal"
-                                    >
-                                      Move to Watchlist
-                                    </button>
-
-                                    <div
-                                      class="dropdown__separator"
-                                      role="separator"
-                                    ></div>
-
-                                    <button
-                                      class="dropdown__item dropdown__item-danger has-icon icon-trash-delete"
-                                      type="button"
-                                      role="menuitem"
-                                      data-watchlist-remove-security="2280"
-                                      data-modal-open="removeSecurityModal"
-                                    >
-                                      Remove Security
-                                    </button>
-                                  </div>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-
-                      <footer class="watchlist-table__footer">
-                        <p class="watchlist-table__summary">
-                          Showing 3 of 7 securities
-                        </p>
-
-                        <a
-                          class="btn btn-link has-icon icon-chevron-right icon-end icon-flip-rtl"
-                          href="/market-data/securities.html"
-                        >
-                          Explore Securities
-                        </a>
-                      </footer>
-                    </div>
-
-                    <div
-                      class="watchlist-state watchlist-state--loading"
-                      role="status"
-                      aria-live="polite"
-                      data-watchlist-loading
-                      hidden
-                    >
-                      <span
-                        class="watchlist-state__icon has-icon icon-sync-refresh icon-spin icon-xl"
-                        aria-hidden="true"
-                      ></span>
-
-                      <p class="watchlist-state__title">
-                        Loading saved securities
-                      </p>
-                    </div>
-
-                    <div
-                      class="watchlist-state watchlist-state--no-results"
-                      data-watchlist-no-results
-                      hidden
-                    >
-                      <span
-                        class="watchlist-state__icon has-icon icon-search icon-xl"
-                        aria-hidden="true"
-                      ></span>
-
-                      <h4 class="watchlist-state__title">
-                        No matching securities found
-                      </h4>
-
-                      <p class="watchlist-state__description">
-                        Try another company name or trading symbol.
-                      </p>
-
-                      <button
-                        class="btn btn-secondary"
-                        type="button"
-                        data-watchlist-clear-search
-                      >
-                        Clear Search
-                      </button>
-                    </div>
-
-                    <div
-                      class="watchlist-state watchlist-state--empty"
-                      data-watchlist-empty
-                      hidden
-                    >
-                      <span
-                        class="watchlist-state__icon has-icon icon-star-outline icon-2xl"
-                        aria-hidden="true"
-                      ></span>
-
-                      <h4 class="watchlist-state__title">
-                        This watchlist is empty
-                      </h4>
-
-                      <p class="watchlist-state__description">
-                        Add listed securities to begin tracking their
-                        performance.
-                      </p>
-
+                    Announcements
+                  </h2>
+
+                  <p class="watchlist-announcements__description">
+                    Latest announcements from companies in your watchlists.
+                  </p>
+                </div>
+              </header>
+
+              <!-- ================================================================
+             Announcement List
+             ================================================================ -->
+
+              <ol class="watchlist-announcements__list">
+                <li class="watchlist-announcements__item">
+                  <article class="watchlist-announcement">
+                    <h3 class="watchlist-announcement__title">
                       <a
-                        class="btn btn-primary has-icon icon-search"
-                        href="/market-data/securities.html"
+                        class="watchlist-announcement__link"
+                        href="/announcements/seera-group-annual-financial-results/"
                       >
-                        Explore Securities
+                        Seera Group Holding announces its annual financial
+                        results for the period ending on 2024-12-31
                       </a>
-                    </div>
-                  </div>
-                </section>
+                    </h3>
 
-                <!-- =======================================================
-               Company Announcements
-          ======================================================== -->
+                    <div class="watchlist-announcement__market">
+                      <span class="watchlist-announcement__symbol"> 1810 </span>
 
-                <section
-                  class="card watchlist-announcements"
-                  aria-labelledby="watchlist-two-announcements-title"
-                >
-                  <header class="card-header watchlist-announcements__header">
-                    <div class="card-header__content">
-                      <p class="card-eyebrow">Followed Companies</p>
+                      <span class="watchlist-announcement__company">
+                        Seera Group Holding
+                      </span>
 
-                      <h3
-                        id="watchlist-two-announcements-title"
-                        class="card-title"
+                      <span
+                        class="watchlist-announcement__change price-down has-icon icon-triangle-down"
+                        aria-label="Decreased by 0.02, or 0.49 percent"
                       >
-                        Company Announcements
-                      </h3>
-
-                      <p class="card-subtitle">
-                        Latest disclosures from companies in this watchlist.
-                      </p>
+                        <span aria-hidden="true"> 0.02 (-0.49%) </span>
+                      </span>
                     </div>
 
-                    <span
-                      class="badge badge-primary"
-                      data-watchlist-announcement-count
-                    >
-                      3 New
-                    </span>
-                  </header>
+                    <div class="watchlist-announcement__date">
+                      <time datetime="2025-02-06T08:18:32+03:00">
+                        06/02/2025 08:18
+                      </time>
 
-                  <div
-                    class="card-body watchlist-announcements__body"
-                    data-watchlist-announcements
-                  >
-                    <ol class="announcement-list">
-                      <li class="announcement-list__item">
-                        <article class="announcement-card">
-                          <header class="announcement-card__header">
-                            <div class="announcement-card__company">
-                              <span
-                                class="announcement-card__logo"
-                                aria-hidden="true"
-                              >
-                                SN
-                              </span>
+                      <span aria-hidden="true">|</span>
 
-                              <div class="announcement-card__company-content">
-                                <p class="announcement-card__company-name">
-                                  Saudi National Bank
-                                </p>
+                      <span lang="ar" dir="rtl"> 1446/08/07 </span>
+                    </div>
+                  </article>
+                </li>
 
-                                <p class="announcement-card__symbol">1180</p>
-                              </div>
-                            </div>
+                <li class="watchlist-announcements__item">
+                  <article class="watchlist-announcement">
+                    <h3 class="watchlist-announcement__title">
+                      <a
+                        class="watchlist-announcement__link"
+                        href="/announcements/albilad-capital-etf-rebalancing/"
+                      >
+                        Albilad Capital announces the rebalancing process for
+                        the Albilad MSCI Saudi Growth ETF shares basket
+                      </a>
+                    </h3>
 
-                            <span class="badge badge-success"> New </span>
-                          </header>
+                    <div class="watchlist-announcement__market">
+                      <span class="watchlist-announcement__symbol"> 9408 </span>
 
-                          <h4 class="announcement-card__title">
-                            <a href="/announcements/snb-financial-results.html">
-                              Saudi National Bank announces its interim
-                              financial results
-                            </a>
-                          </h4>
+                      <span class="watchlist-announcement__company">
+                        Albilad MSCI Saudi Growth ETF
+                      </span>
 
-                          <footer class="announcement-card__meta">
-                            <time datetime="2026-07-18T08:45:00+03:00">
-                              18 July 2026, 08:45
-                            </time>
-
-                            <a
-                              class="announcement-card__link has-icon icon-external-link icon-end"
-                              href="/announcements/snb-financial-results.html"
-                              aria-label="View Saudi National Bank announcement"
-                            >
-                              View
-                            </a>
-                          </footer>
-                        </article>
-                      </li>
-
-                      <li class="announcement-list__item">
-                        <article class="announcement-card">
-                          <header class="announcement-card__header">
-                            <div class="announcement-card__company">
-                              <span
-                                class="announcement-card__logo"
-                                aria-hidden="true"
-                              >
-                                MA
-                              </span>
-
-                              <div class="announcement-card__company-content">
-                                <p class="announcement-card__company-name">
-                                  Saudi Arabian Mining Company
-                                </p>
-
-                                <p class="announcement-card__symbol">1211</p>
-                              </div>
-                            </div>
-
-                            <span class="badge badge-success"> New </span>
-                          </header>
-
-                          <h4 class="announcement-card__title">
-                            <a href="/announcements/maaden-project-update.html">
-                              Maaden provides an update on its strategic
-                              expansion project
-                            </a>
-                          </h4>
-
-                          <footer class="announcement-card__meta">
-                            <time datetime="2026-07-17T12:30:00+03:00">
-                              17 July 2026, 12:30
-                            </time>
-
-                            <a
-                              class="announcement-card__link has-icon icon-external-link icon-end"
-                              href="/announcements/maaden-project-update.html"
-                              aria-label="View Maaden announcement"
-                            >
-                              View
-                            </a>
-                          </footer>
-                        </article>
-                      </li>
-
-                      <li class="announcement-list__item">
-                        <article class="announcement-card">
-                          <header class="announcement-card__header">
-                            <div class="announcement-card__company">
-                              <span
-                                class="announcement-card__logo"
-                                aria-hidden="true"
-                              >
-                                AL
-                              </span>
-
-                              <div class="announcement-card__company-content">
-                                <p class="announcement-card__company-name">
-                                  Almarai Company
-                                </p>
-
-                                <p class="announcement-card__symbol">2280</p>
-                              </div>
-                            </div>
-                          </header>
-
-                          <h4 class="announcement-card__title">
-                            <a href="/announcements/almarai-dividend.html">
-                              Almarai announces the board recommendation
-                              regarding cash dividends
-                            </a>
-                          </h4>
-
-                          <footer class="announcement-card__meta">
-                            <time datetime="2026-07-16T10:15:00+03:00">
-                              16 July 2026, 10:15
-                            </time>
-
-                            <a
-                              class="announcement-card__link has-icon icon-external-link icon-end"
-                              href="/announcements/almarai-dividend.html"
-                              aria-label="View Almarai announcement"
-                            >
-                              View
-                            </a>
-                          </footer>
-                        </article>
-                      </li>
-                    </ol>
-
-                    <div
-                      class="watchlist-state watchlist-state--loading watchlist-state--compact"
-                      role="status"
-                      aria-live="polite"
-                      data-announcements-loading
-                      hidden
-                    >
                       <span
-                        class="watchlist-state__icon has-icon icon-sync-refresh icon-spin icon-xl"
-                        aria-hidden="true"
-                      ></span>
-
-                      <p class="watchlist-state__title">
-                        Loading announcements
-                      </p>
+                        class="watchlist-announcement__change price-down has-icon icon-triangle-down"
+                        aria-label="Decreased by 0.02, or 0.49 percent"
+                      >
+                        <span aria-hidden="true"> 0.02 (-0.49%) </span>
+                      </span>
                     </div>
 
-                    <div
-                      class="watchlist-state watchlist-state--empty watchlist-state--compact"
-                      data-announcements-empty
-                      hidden
-                    >
+                    <div class="watchlist-announcement__date">
+                      <time datetime="2025-02-06T08:18:32+03:00">
+                        06/02/2025 08:18
+                      </time>
+
+                      <span aria-hidden="true">|</span>
+
+                      <span lang="ar" dir="rtl"> 1446/08/07 </span>
+                    </div>
+                  </article>
+                </li>
+
+                <li class="watchlist-announcements__item">
+                  <article class="watchlist-announcement">
+                    <h3 class="watchlist-announcement__title">
+                      <a
+                        class="watchlist-announcement__link"
+                        href="/announcements/lana-extraordinary-general-assembly/"
+                      >
+                        The Board of Directors of Lana Company invites
+                        shareholders to attend the Extraordinary General
+                        Assembly meeting through modern technology
+                      </a>
+                    </h3>
+
+                    <div class="watchlist-announcement__market">
+                      <span class="watchlist-announcement__symbol"> 9592 </span>
+
+                      <span class="watchlist-announcement__company">
+                        Lana Medical Company
+                      </span>
+
                       <span
-                        class="watchlist-state__icon has-icon icon-alert-bell icon-xl"
-                        aria-hidden="true"
-                      ></span>
-
-                      <h4 class="watchlist-state__title">
-                        No announcements available
-                      </h4>
-
-                      <p class="watchlist-state__description">
-                        Announcements from saved companies will appear here.
-                      </p>
+                        class="watchlist-announcement__change price-up has-icon icon-triangle-up"
+                        aria-label="Increased by 0.14, or 0.62 percent"
+                      >
+                        <span aria-hidden="true"> 0.14 (+0.62%) </span>
+                      </span>
                     </div>
-                  </div>
 
-                  <footer class="card-footer watchlist-announcements__footer">
-                    <a
-                      class="btn btn-link has-icon icon-chevron-right icon-end icon-flip-rtl"
-                      href="/announcements.html?watchlist=watchlist-two"
-                    >
-                      View All Announcements
-                    </a>
-                  </footer>
-                </section>
-              </div>
-            </div>
+                    <div class="watchlist-announcement__date">
+                      <time datetime="2025-02-06T08:18:32+03:00">
+                        06/02/2025 08:18
+                      </time>
+
+                      <span aria-hidden="true">|</span>
+
+                      <span lang="ar" dir="rtl"> 1446/08/07 </span>
+                    </div>
+                  </article>
+                </li>
+              </ol>
+
+              <!-- ================================================================
+             Announcement Footer
+             ================================================================ -->
+
+              <footer class="watchlist-announcements__footer">
+                <a
+                  class="btn btn-outline btn-block btn-icon-end has-icon icon-arrow-up-right"
+                  href="/announcements/?source=watchlist"
+                >
+                  View all announcements
+                </a>
+              </footer>
+            </aside>
           </div>
         </div>
       </section>
