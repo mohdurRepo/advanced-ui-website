@@ -54,482 +54,231 @@
           </div>
         </div>
 
-        <section class="card mb-6">
-          <div class="card-header">
-            <h3 class="card-title">Developer Usage</h3>
-          </div>
+        <!-- ==========================================================================
+     Reusable Dropdown Examples
+     ========================================================================== -->
 
-          <div class="card-body">
-            <pre><code>&lt;div class="dropdown" data-dropdown&gt;
-  &lt;button
-    class="btn btn-primary dropdown-toggle"
-    type="button"
-    data-dropdown-toggle
-    data-placeholder="Select Market"
-    aria-expanded="false"
-  &gt;
-    &lt;span data-dropdown-value&gt;Select Market&lt;/span&gt;
-  &lt;/button&gt;
+        <section class="section" aria-labelledby="dropdown-examples-title">
+          <div class="container">
+            <div class="stack stack--xl">
+              <header class="stack stack--xs">
+                <h2 id="dropdown-examples-title">Dropdown menus</h2>
 
-  &lt;div class="dropdown-menu"&gt;
-    ...
-  &lt;/div&gt;
-&lt;/div&gt;</code></pre>
+                <p class="text-muted">
+                  Shared dropdown patterns for contextual actions and signed-in
+                  account navigation.
+                </p>
+              </header>
+
+              <!-- ==================================================================
+           Example One: Contextual Three-dot Menu
+           ================================================================== -->
+
+              <article class="card" aria-labelledby="context-menu-title">
+                <div class="card-body">
+                  <div class="cluster cluster--between cluster--align-center">
+                    <div class="stack stack--xs">
+                      <h3 id="context-menu-title">Contextual actions</h3>
+
+                      <p class="text-muted">
+                        Use this pattern for watchlists, table rows, cards, and
+                        other contextual actions.
+                      </p>
+                    </div>
+
+                    <!-- ============================================================
+                 Contextual Dropdown
+                 ============================================================ -->
+
+                    <div class="dropdown dropdown--end" data-dropdown>
+                      <button
+                        class="dropdown-trigger dropdown-trigger--icon has-icon icon-menu-dots-vertical"
+                        type="button"
+                        id="context-actions-trigger"
+                        aria-label="More actions"
+                        aria-haspopup="menu"
+                        aria-expanded="false"
+                        aria-controls="context-actions-menu"
+                        data-dropdown-trigger
+                      ></button>
+
+                      <div
+                        class="dropdown-menu"
+                        id="context-actions-menu"
+                        role="menu"
+                        aria-labelledby="context-actions-trigger"
+                        hidden
+                        data-dropdown-menu
+                      >
+                        <button
+                          class="dropdown-item has-icon icon-edit-pencil"
+                          type="button"
+                          role="menuitem"
+                        >
+                          Rename
+                        </button>
+
+                        <button
+                          class="dropdown-item has-icon icon-copy"
+                          type="button"
+                          role="menuitem"
+                        >
+                          Duplicate
+                        </button>
+
+                        <button
+                          class="dropdown-item has-icon icon-folder-import"
+                          type="button"
+                          role="menuitem"
+                        >
+                          Move to
+                        </button>
+
+                        <div class="dropdown-separator" role="separator"></div>
+
+                        <button
+                          class="dropdown-item dropdown-item--danger has-icon icon-trash-delete"
+                          type="button"
+                          role="menuitem"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <!-- ==================================================================
+           Example Two: Account Menu
+           ================================================================== -->
+
+              <article
+                class="card surface-hero"
+                aria-labelledby="account-menu-example-title"
+              >
+                <div class="card-body">
+                  <div class="cluster cluster--between cluster--align-center">
+                    <div class="stack stack--xs">
+                      <h3 id="account-menu-example-title">Signed-in account</h3>
+
+                      <p>
+                        The account component specializes the shared dropdown
+                        with identity and avatar content.
+                      </p>
+                    </div>
+
+                    <!-- ============================================================
+                 Account Dropdown
+                 ============================================================ -->
+
+                    <div
+                      class="dropdown dropdown--end account-menu account-menu--inverse account-menu--mobile-block"
+                      data-dropdown
+                    >
+                      <!-- ==========================================================
+                   Account Trigger
+                   ========================================================== -->
+
+                      <button
+                        class="account-menu__trigger"
+                        type="button"
+                        id="account-menu-trigger"
+                        aria-label="Open account menu for Yaser Al Adma"
+                        aria-haspopup="menu"
+                        aria-expanded="false"
+                        aria-controls="account-menu"
+                        data-dropdown-trigger
+                      >
+                        <!-- Use initials when no profile image is available. -->
+
+                        <span class="account-menu__avatar" aria-hidden="true">
+                          YA
+                        </span>
+
+                        <span class="account-menu__identity">
+                          <span class="account-menu__eyebrow">
+                            Signed in as
+                          </span>
+
+                          <span class="account-menu__name">
+                            Yaser Al Adma
+                          </span>
+                        </span>
+
+                        <span
+                          class="account-menu__chevron has-icon icon-chevron-down"
+                          aria-hidden="true"
+                        ></span>
+                      </button>
+
+                      <!-- ==========================================================
+                   Account Menu
+                   ========================================================== -->
+
+                      <div
+                        class="dropdown-menu"
+                        id="account-menu"
+                        role="menu"
+                        aria-labelledby="account-menu-trigger"
+                        hidden
+                        data-dropdown-menu
+                      >
+                        <!-- Account Summary -->
+
+                        <div class="account-menu__summary">
+                          <span class="account-menu__summary-name">
+                            Yaser Al Adma
+                          </span>
+
+                          <span class="account-menu__summary-meta">
+                            yaser.aladma@example.com
+                          </span>
+                        </div>
+
+                        <div class="dropdown-separator" role="separator"></div>
+
+                        <!-- Edit Profile -->
+
+                        <a
+                          class="dropdown-item has-icon icon-edit-pencil"
+                          href="/account/profile/"
+                          role="menuitem"
+                        >
+                          Edit profile
+                        </a>
+
+                        <!-- Account Settings -->
+
+                        <a
+                          class="dropdown-item has-icon icon-panel-dashboard"
+                          href="/account/settings/"
+                          role="menuitem"
+                        >
+                          Account settings
+                        </a>
+
+                        <div class="dropdown-separator" role="separator"></div>
+
+                        <!-- Log Out -->
+
+                        <form action="/auth/logout/" method="post">
+                          <button
+                            class="dropdown-item dropdown-item--danger has-icon icon-logout-door"
+                            type="submit"
+                            role="menuitem"
+                          >
+                            Log out
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </div>
           </div>
         </section>
-
-        <div class="grid-2">
-          <section class="card">
-            <div class="card-header">
-              <h3 class="card-title">Normal Dropdown</h3>
-            </div>
-
-            <div class="card-body">
-              <div class="dropdown" data-dropdown>
-                <button
-                  class="btn btn-primary dropdown-toggle"
-                  type="button"
-                  data-dropdown-toggle
-                  data-placeholder="Select Market"
-                  aria-expanded="false"
-                >
-                  <span data-dropdown-value>Select Market</span>
-                </button>
-
-                <div class="dropdown-menu">
-                  <ul class="dropdown-list">
-                    <li data-dropdown-item>
-                      <button class="dropdown-item is-active" type="button">
-                        Main Market
-                      </button>
-                    </li>
-
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Nomu Market
-                      </button>
-                    </li>
-
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Sukuk & Bonds
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section class="card">
-            <div class="card-header">
-              <h3 class="card-title">Dropdown End</h3>
-            </div>
-
-            <div class="card-body text-end">
-              <div class="dropdown dropdown-end" data-dropdown>
-                <button
-                  class="btn btn-outline-primary dropdown-toggle"
-                  type="button"
-                  data-dropdown-toggle
-                  data-placeholder="Actions"
-                  aria-expanded="false"
-                >
-                  <span data-dropdown-value>Actions</span>
-                </button>
-
-                <div class="dropdown-menu">
-                  <ul class="dropdown-list">
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">Edit</button>
-                    </li>
-
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Duplicate
-                      </button>
-                    </li>
-
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Delete
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section class="card">
-            <div class="card-header">
-              <h3 class="card-title">Dropdown With Search</h3>
-            </div>
-
-            <div class="card-body">
-              <div class="dropdown" data-dropdown>
-                <button
-                  class="btn btn-primary dropdown-toggle"
-                  type="button"
-                  data-dropdown-toggle
-                  data-placeholder="Search Companies"
-                  aria-expanded="false"
-                >
-                  <span data-dropdown-value>Search Companies</span>
-                </button>
-
-                <div class="dropdown-menu">
-                  <div class="dropdown-search">
-                    <input
-                      type="search"
-                      class="dropdown-search-input"
-                      placeholder="Search..."
-                      data-dropdown-search
-                    />
-                  </div>
-
-                  <ul class="dropdown-list">
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Saudi Aramco
-                      </button>
-                    </li>
-
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Al Rajhi Bank
-                      </button>
-                    </li>
-
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">STC</button>
-                    </li>
-
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">SABIC</button>
-                    </li>
-                  </ul>
-
-                  <div class="dropdown-empty">No results found</div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section class="card">
-            <div class="card-header">
-              <h3 class="card-title">Dropdown With Checkbox</h3>
-            </div>
-
-            <div class="card-body">
-              <div class="dropdown" data-dropdown>
-                <button
-                  class="btn btn-primary dropdown-toggle"
-                  type="button"
-                  data-dropdown-toggle
-                  data-placeholder="Select Sectors"
-                  aria-expanded="false"
-                >
-                  <span data-dropdown-value>Select Sectors</span>
-                </button>
-
-                <div class="dropdown-menu">
-                  <ul class="dropdown-list">
-                    <li data-dropdown-item>
-                      <label class="dropdown-item dropdown-checkbox">
-                        <input type="checkbox" />
-                        Banks
-                      </label>
-                    </li>
-
-                    <li data-dropdown-item>
-                      <label class="dropdown-item dropdown-checkbox">
-                        <input type="checkbox" />
-                        Telecom
-                      </label>
-                    </li>
-
-                    <li data-dropdown-item>
-                      <label class="dropdown-item dropdown-checkbox">
-                        <input type="checkbox" />
-                        Energy
-                      </label>
-                    </li>
-
-                    <li data-dropdown-item>
-                      <label class="dropdown-item dropdown-checkbox">
-                        <input type="checkbox" />
-                        Materials
-                      </label>
-                    </li>
-                  </ul>
-
-                  <div class="dropdown-actions">
-                    <button
-                      class="btn btn-outline-primary btn-sm"
-                      type="button"
-                      data-dropdown-select-all
-                    >
-                      Select All
-                    </button>
-
-                    <button
-                      class="btn btn-outline-danger btn-sm"
-                      type="button"
-                      data-dropdown-clear
-                    >
-                      Clear
-                    </button>
-
-                    <button
-                      class="btn btn-primary btn-sm"
-                      type="button"
-                      data-dropdown-apply
-                    >
-                      Apply
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section class="card">
-            <div class="card-header">
-              <h3 class="card-title">Search + Checkbox</h3>
-            </div>
-
-            <div class="card-body">
-              <div class="dropdown" data-dropdown>
-                <button
-                  class="btn btn-primary dropdown-toggle"
-                  type="button"
-                  data-dropdown-toggle
-                  data-placeholder="Filter Companies"
-                  aria-expanded="false"
-                >
-                  <span data-dropdown-value>Filter Companies</span>
-                </button>
-
-                <div class="dropdown-menu">
-                  <div class="dropdown-search">
-                    <input
-                      type="search"
-                      class="dropdown-search-input"
-                      placeholder="Search..."
-                      data-dropdown-search
-                    />
-                  </div>
-
-                  <ul class="dropdown-list">
-                    <li data-dropdown-item>
-                      <label class="dropdown-item dropdown-checkbox">
-                        <input type="checkbox" />
-                        Saudi Aramco
-                      </label>
-                    </li>
-
-                    <li data-dropdown-item>
-                      <label class="dropdown-item dropdown-checkbox">
-                        <input type="checkbox" />
-                        Al Rajhi Bank
-                      </label>
-                    </li>
-
-                    <li data-dropdown-item>
-                      <label class="dropdown-item dropdown-checkbox">
-                        <input type="checkbox" />
-                        STC
-                      </label>
-                    </li>
-
-                    <li data-dropdown-item>
-                      <label class="dropdown-item dropdown-checkbox">
-                        <input type="checkbox" />
-                        SABIC
-                      </label>
-                    </li>
-                  </ul>
-
-                  <div class="dropdown-empty">No results found</div>
-
-                  <div class="dropdown-actions">
-                    <button
-                      class="btn btn-outline-primary btn-sm"
-                      type="button"
-                      data-dropdown-select-all
-                    >
-                      Select All
-                    </button>
-
-                    <button
-                      class="btn btn-outline-danger btn-sm"
-                      type="button"
-                      data-dropdown-clear
-                    >
-                      Clear
-                    </button>
-
-                    <button
-                      class="btn btn-primary btn-sm"
-                      type="button"
-                      data-dropdown-apply
-                    >
-                      Apply
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section class="card">
-            <div class="card-header">
-              <h3 class="card-title">Long List Scroll Test</h3>
-            </div>
-
-            <div class="card-body">
-              <div class="dropdown" data-dropdown>
-                <button
-                  class="btn btn-outline-primary dropdown-toggle"
-                  type="button"
-                  data-dropdown-toggle
-                  data-placeholder="Scroll Test"
-                  aria-expanded="false"
-                >
-                  <span data-dropdown-value>Scroll Test</span>
-                </button>
-
-                <div class="dropdown-menu">
-                  <ul class="dropdown-list">
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Item 01
-                      </button>
-                    </li>
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Item 02
-                      </button>
-                    </li>
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Item 03
-                      </button>
-                    </li>
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Item 04
-                      </button>
-                    </li>
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Item 05
-                      </button>
-                    </li>
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Item 06
-                      </button>
-                    </li>
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Item 07
-                      </button>
-                    </li>
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Item 08
-                      </button>
-                    </li>
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Item 09
-                      </button>
-                    </li>
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Item 10
-                      </button>
-                    </li>
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Item 11
-                      </button>
-                    </li>
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Item 12
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section class="card">
-            <div class="card-header">
-              <h3 class="card-title">Dropup Position Test</h3>
-            </div>
-
-            <div class="card-body">
-              <p class="mb-4">
-                Scroll near the bottom and open this dropdown. It should open
-                upward when there is not enough space below.
-              </p>
-
-              <div class="dropdown" data-dropdown>
-                <button
-                  class="btn btn-primary dropdown-toggle"
-                  type="button"
-                  data-dropdown-toggle
-                  data-placeholder="Open Near Bottom"
-                  aria-expanded="false"
-                >
-                  <span data-dropdown-value>Open Near Bottom</span>
-                </button>
-
-                <div class="dropdown-menu">
-                  <ul class="dropdown-list">
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Top Option
-                      </button>
-                    </li>
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Middle Option
-                      </button>
-                    </li>
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Bottom Option
-                      </button>
-                    </li>
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Extra Option 1
-                      </button>
-                    </li>
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Extra Option 2
-                      </button>
-                    </li>
-                    <li data-dropdown-item>
-                      <button class="dropdown-item" type="button">
-                        Extra Option 3
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <div style="height: 40vh"></div>
       </div>
     </main>
   </body>

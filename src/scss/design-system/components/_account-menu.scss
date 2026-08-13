@@ -1,43 +1,32 @@
 @use "../abstracts" as ds;
 
-/* ========================================================================== 
+/* ==========================================================================
    Account Menu
    ========================================================================== */
 
 /*
- * Reusable signed-in account disclosure.
+ * Visual specialization of the shared dropdown component.
  *
- * The component owns its trigger, identity, menu, and menu-item presentation.
- * Opening, closing, focus management, Escape handling, and outside-click
- * behavior remain the responsibility of the shared dropdown JavaScript.
+ * Menu positioning, menu items, separators, and interaction behavior belong
+ * to the reusable dropdown component.
  */
 
 .account-menu {
-  --account-menu-trigger-bg: var(--color-surface);
-  --account-menu-trigger-color: var(--color-text);
-  --account-menu-trigger-border: var(--color-border);
-  --account-menu-trigger-hover-bg: var(--color-surface-alt);
-  --account-menu-trigger-hover-border: var(--color-border-strong);
+  --account-trigger-bg: var(--color-surface);
+  --account-trigger-color: var(--color-text);
+  --account-trigger-border: var(--color-border);
 
-  --account-menu-avatar-bg: var(--color-surface-alt);
-  --account-menu-avatar-color: var(--color-heading);
-  --account-menu-avatar-border: var(--color-border);
+  --account-trigger-hover-bg: var(--color-surface-alt);
+  --account-trigger-hover-border: var(--color-border-strong);
 
-  --account-menu-menu-bg: var(--color-surface);
-  --account-menu-menu-color: var(--color-text);
-  --account-menu-menu-border: var(--color-border);
-
-  --account-menu-min-width: 13rem;
-  --account-menu-max-width: min(20rem, calc(100vw - 2rem));
-
-  position: relative;
-
-  display: inline-flex;
+  --account-avatar-bg: var(--color-surface-alt);
+  --account-avatar-color: var(--color-heading);
+  --account-avatar-border: var(--color-border);
 
   min-inline-size: 0;
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Trigger
    ========================================================================== */
 
@@ -53,11 +42,11 @@
   padding-block: ds.space(2);
   padding-inline: ds.space(3);
 
-  border: 1px solid var(--account-menu-trigger-border);
+  border: 1px solid var(--account-trigger-border);
   border-radius: var(--radius-pill);
 
-  background: var(--account-menu-trigger-bg);
-  color: var(--account-menu-trigger-color);
+  background: var(--account-trigger-bg);
+  color: var(--account-trigger-color);
 
   font: inherit;
   line-height: 1;
@@ -66,16 +55,13 @@
   cursor: pointer;
   user-select: none;
 
-  @include ds.transition(
-    (background-color, border-color, box-shadow, color),
-    "fast"
-  );
+  @include ds.transition((background-color, border-color, color), "fast");
 }
 
 .account-menu__trigger:hover:not(:disabled):not(.is-disabled),
 .account-menu__trigger[aria-expanded="true"] {
-  border-color: var(--account-menu-trigger-hover-border);
-  background: var(--account-menu-trigger-hover-bg);
+  border-color: var(--account-trigger-hover-border);
+  background: var(--account-trigger-hover-bg);
 }
 
 .account-menu__trigger:focus {
@@ -97,7 +83,7 @@
   pointer-events: none;
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Avatar
    ========================================================================== */
 
@@ -112,11 +98,11 @@
 
   overflow: hidden;
 
-  border: 1px solid var(--account-menu-avatar-border);
+  border: 1px solid var(--account-avatar-border);
   border-radius: var(--radius-pill);
 
-  background: var(--account-menu-avatar-bg);
-  color: var(--account-menu-avatar-color);
+  background: var(--account-avatar-bg);
+  color: var(--account-avatar-color);
 
   font-size: var(--text-xs);
   font-weight: ds.font-weight("bold");
@@ -134,7 +120,7 @@
   object-fit: cover;
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Identity
    ========================================================================== */
 
@@ -147,7 +133,8 @@
   min-inline-size: 0;
 }
 
-.account-menu__eyebrow {
+.account-menu__eyebrow,
+.account-menu__greeting {
   overflow: hidden;
 
   color: currentColor;
@@ -176,12 +163,7 @@
   white-space: nowrap;
 }
 
-/* Backwards-compatible alias for existing markup. */
-.account-menu__greeting {
-  @extend .account-menu__eyebrow;
-}
-
-/* ========================================================================== 
+/* ==========================================================================
    Chevron
    ========================================================================== */
 
@@ -200,44 +182,8 @@
   transform: rotate(180deg);
 }
 
-/* ========================================================================== 
-   Menu
-   ========================================================================== */
-
-.account-menu__menu {
-  position: absolute;
-  z-index: var(--z-dropdown);
-
-  inset-block-start: calc(100% + #{ds.space(2)});
-  inset-inline-end: 0;
-
-  display: grid;
-  gap: ds.space(1);
-
-  inline-size: max-content;
-  min-inline-size: var(--account-menu-min-width);
-  max-inline-size: var(--account-menu-max-width);
-  padding: ds.space(2);
-
-  border: 1px solid var(--account-menu-menu-border);
-  border-radius: var(--radius-md);
-
-  background: var(--account-menu-menu-bg);
-  color: var(--account-menu-menu-color);
-
-  box-shadow: var(--shadow-lg);
-}
-
-.account-menu__menu[hidden] {
-  display: none;
-}
-
-.account-menu__menu form {
-  display: contents;
-}
-
-/* ========================================================================== 
-   Menu Header
+/* ==========================================================================
+   Account Summary
    ========================================================================== */
 
 .account-menu__summary {
@@ -270,114 +216,25 @@
   font-size: var(--text-xs);
 }
 
-/* ========================================================================== 
-   Separator
-   ========================================================================== */
-
-.account-menu__separator {
-  block-size: 1px;
-  margin-block: ds.space(1);
-
-  border: 0;
-
-  background: var(--color-border);
-}
-
-/* ========================================================================== 
-   Menu Items
-   ========================================================================== */
-
-.account-menu__item,
-.account-menu__menu .dropdown-item {
-  --icon-size: 1rem;
-
-  appearance: none;
-
-  display: flex;
-  align-items: center;
-  gap: ds.space(2);
-
-  inline-size: 100%;
-  min-block-size: 2.75rem;
-  padding-block: ds.space(2);
-  padding-inline: ds.space(3);
-
-  border: 0;
-  border-radius: var(--radius-sm);
-
-  background: transparent;
-  color: var(--account-menu-menu-color);
-
-  font: inherit;
-  font-size: var(--text-sm);
-  font-weight: ds.font-weight("medium");
-  line-height: var(--line-height-normal);
-
-  text-align: start;
-  text-decoration: none;
-
-  cursor: pointer;
-
-  @include ds.transition((background-color, color), "fast");
-}
-
-.account-menu__item:hover,
-.account-menu__menu .dropdown-item:hover {
-  background: var(--color-surface-alt);
-  color: var(--color-primary);
-}
-
-.account-menu__item:focus,
-.account-menu__menu .dropdown-item:focus {
-  outline: none;
-}
-
-.account-menu__item:focus-visible,
-.account-menu__menu .dropdown-item:focus-visible {
-  @include ds.focus-ring;
-}
-
-.account-menu__item:disabled,
-.account-menu__item.is-disabled,
-.account-menu__item[aria-disabled="true"],
-.account-menu__menu .dropdown-item:disabled,
-.account-menu__menu .dropdown-item.is-disabled,
-.account-menu__menu .dropdown-item[aria-disabled="true"] {
-  color: var(--color-on-disabled);
-
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-.account-menu__item--danger,
-.account-menu__menu .dropdown-item--danger {
-  color: var(--color-danger);
-}
-
-.account-menu__item--danger:hover,
-.account-menu__menu .dropdown-item--danger:hover {
-  background: var(--color-surface-alt);
-  color: var(--color-danger);
-}
-
-/* ========================================================================== 
+/* ==========================================================================
    Inverse Variant
    ========================================================================== */
 
 /*
- * Intended for dark or branded surfaces such as page heroes and dark headers.
+ * Used on dark or branded surfaces such as page heroes and dark headers.
  */
 
 .account-menu--inverse {
-  --account-menu-trigger-bg: rgb(255 255 255 / 0.1);
-  --account-menu-trigger-color: #ffffff;
-  --account-menu-trigger-border: rgb(255 255 255 / 0.35);
-  --account-menu-trigger-hover-bg: rgb(255 255 255 / 0.18);
-  --account-menu-trigger-hover-border: rgb(255 255 255 / 0.65);
+  --account-trigger-bg: rgb(255 255 255 / 0.1);
+  --account-trigger-color: #ffffff;
+  --account-trigger-border: rgb(255 255 255 / 0.35);
 
-  --account-menu-avatar-bg: rgb(255 255 255 / 0.16);
-  --account-menu-avatar-color: #ffffff;
-  --account-menu-avatar-border: rgb(255 255 255 / 0.7);
+  --account-trigger-hover-bg: rgb(255 255 255 / 0.18);
+  --account-trigger-hover-border: rgb(255 255 255 / 0.65);
+
+  --account-avatar-bg: rgb(255 255 255 / 0.16);
+  --account-avatar-color: #ffffff;
+  --account-avatar-border: rgb(255 255 255 / 0.7);
 }
 
 .account-menu--inverse .account-menu__trigger {
@@ -388,7 +245,7 @@
   @include ds.focus-ring(currentColor);
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Compact Variant
    ========================================================================== */
 
@@ -408,16 +265,7 @@
   display: none;
 }
 
-/* ========================================================================== 
-   Menu Alignment
-   ========================================================================== */
-
-.account-menu--align-start .account-menu__menu {
-  inset-inline-start: 0;
-  inset-inline-end: auto;
-}
-
-/* ========================================================================== 
+/* ==========================================================================
    Mobile
    ========================================================================== */
 
@@ -431,93 +279,54 @@
   .account-menu--mobile-block .account-menu__trigger {
     inline-size: 100%;
   }
-
-  .account-menu--mobile-block .account-menu__menu {
-    inset-inline: 0;
-
-    inline-size: 100%;
-    min-inline-size: 0;
-    max-inline-size: none;
-  }
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    High Contrast
    ========================================================================== */
 
 html[data-contrast="high"] {
   .account-menu__trigger,
-  .account-menu__avatar,
-  .account-menu__menu {
+  .account-menu__avatar {
     border-width: 2px;
     border-color: currentColor;
   }
-
-  .account-menu__menu {
-    box-shadow: none;
-  }
-
-  .account-menu__separator {
-    background: currentColor;
-  }
-
-  .account-menu__item--danger,
-  .account-menu__menu .dropdown-item--danger {
-    color: currentColor;
-  }
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Forced Colors
    ========================================================================== */
 
 @media (forced-colors: active) {
   .account-menu,
   .account-menu--inverse {
-    --account-menu-trigger-bg: ButtonFace;
-    --account-menu-trigger-color: ButtonText;
-    --account-menu-trigger-border: ButtonText;
-    --account-menu-trigger-hover-bg: Highlight;
-    --account-menu-trigger-hover-border: Highlight;
+    --account-trigger-bg: ButtonFace;
+    --account-trigger-color: ButtonText;
+    --account-trigger-border: ButtonText;
 
-    --account-menu-avatar-bg: Canvas;
-    --account-menu-avatar-color: CanvasText;
-    --account-menu-avatar-border: CanvasText;
+    --account-trigger-hover-bg: Highlight;
+    --account-trigger-hover-border: Highlight;
 
-    --account-menu-menu-bg: Canvas;
-    --account-menu-menu-color: CanvasText;
-    --account-menu-menu-border: CanvasText;
-  }
-
-  .account-menu__trigger:hover,
-  .account-menu__trigger[aria-expanded="true"] {
-    color: HighlightText;
-  }
-
-  .account-menu__item--danger,
-  .account-menu__menu .dropdown-item--danger {
-    color: LinkText;
+    --account-avatar-bg: Canvas;
+    --account-avatar-color: CanvasText;
+    --account-avatar-border: CanvasText;
   }
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Reduced Motion
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
   .account-menu__trigger,
-  .account-menu__chevron,
-  .account-menu__item,
-  .account-menu__menu .dropdown-item {
+  .account-menu__chevron {
     transition: none;
   }
 }
 
 html[data-motion="reduce"] {
   .account-menu__trigger,
-  .account-menu__chevron,
-  .account-menu__item,
-  .account-menu__menu .dropdown-item {
+  .account-menu__chevron {
     transition: none;
   }
 }

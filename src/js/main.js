@@ -6,7 +6,6 @@ import { initGlobal } from "./global";
 import { initPageLoader } from "./components/page-loader";
 import { initAccordions } from "./components/accordion";
 import { initCalendar } from "./components/calendar";
-import { initDropdowns } from "./components/dropdown";
 import { initHeader } from "./components/header";
 import { initIconSprite } from "./components/icons";
 import { initModals } from "./components/modal";
@@ -15,6 +14,7 @@ import { initHomeSpotlight } from "./components/home-spotlight";
 import { initExchangePerformance } from "./components/exchange-performance";
 import { initIndicesHeatmap } from "./components/market-summary";
 import { initForms } from "./components/form";
+import { initDropdowns } from "./components/dropdown";
 import { initCustomSelects } from "./components/custom-select";
 import { initCustomDates } from "./components/custom-date";
 import { initTables } from "./components/table";
@@ -74,6 +74,7 @@ function initApp() {
   initExchangePerformance();
 
   initForms();
+  initDropdowns();
   initCustomSelects();
   initCustomDates();
 

@@ -1,13 +1,27 @@
 @use "../../../design-system/abstracts" as ds;
 
-/* ========================================================================== 
+/* ==========================================================================
    Watched-company Announcements
    ========================================================================== */
 
 /*
- * Secondary feed for announcements published by watched companies.
- * The component is self-contained so it can be composed beside any
- * watchlist data view without depending on the watchlist workspace root.
+ * Reusable announcement feed for companies in the user's watchlists.
+ *
+ * The component deliberately avoids a page-level z-index so overlays from
+ * preceding sections can paint above it.
+ *
+ * Desktop:
+ *
+ * - The panel remains sticky.
+ * - Its height is constrained by the viewport.
+ * - The header and footer remain visible.
+ * - Only the announcement list scrolls when required.
+ *
+ * Tablet and mobile:
+ *
+ * - Sticky positioning is removed.
+ * - Internal scrolling is removed.
+ * - The component follows the normal document flow.
  */
 
 .watchlist-announcements {
@@ -17,16 +31,28 @@
   --watchlist-announcements-radius: var(--radius-lg);
   --watchlist-announcements-shadow: var(--shadow-sm);
 
-  position: sticky;
-  inset-block-start: calc(var(--app-header-height, 4.5rem) + #{ds.space(4)});
-
-  align-self: start;
-
-  min-inline-size: 0;
-  max-block-size: calc(
+  --watchlist-announcements-padding: clamp(1rem, 2vw, 1.5rem);
+  --watchlist-announcements-sticky-offset: calc(
+    var(--app-header-height, 4.5rem) + #{ds.space(4)}
+  );
+  --watchlist-announcements-max-height: calc(
     100vh - var(--app-header-height, 4.5rem) - #{ds.space(8)}
   );
-  padding: clamp(1rem, 2vw, 1.5rem);
+
+  position: sticky;
+  inset-block-start: var(--watchlist-announcements-sticky-offset);
+  z-index: auto;
+
+  display: flex;
+  align-self: stretch;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+  max-block-size: var(--watchlist-announcements-max-height);
+  padding: var(--watchlist-announcements-padding);
+
+  overflow: hidden;
 
   border: 1px solid var(--watchlist-announcements-border);
   border-radius: var(--watchlist-announcements-radius);
@@ -35,39 +61,35 @@
   color: var(--watchlist-announcements-color);
 
   box-shadow: var(--watchlist-announcements-shadow);
-
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-border-strong) transparent;
 }
 
-/* ========================================================================== 
-   Scrollbar
+/* ==========================================================================
+   Watchlist Layout Composition
    ========================================================================== */
 
-.watchlist-announcements::-webkit-scrollbar {
-  inline-size: 0.5rem;
+.watchlist-layout .split-layout__secondary {
+  display: flex;
+  align-self: stretch;
+
+  min-inline-size: 0;
+  min-block-size: 0;
 }
 
-.watchlist-announcements::-webkit-scrollbar-track {
-  background: transparent;
+.watchlist-layout .watchlist-announcements {
+  flex: 1 1 auto;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 0;
 }
 
-.watchlist-announcements::-webkit-scrollbar-thumb {
-  border-radius: var(--radius-pill);
-  background: var(--color-border-strong);
-}
-
-.watchlist-announcements::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
-}
-
-/* ========================================================================== 
+/* ==========================================================================
    Header
    ========================================================================== */
 
 .watchlist-announcements__header {
+  flex: 0 0 auto;
+
   padding-block-end: ds.space(4);
 
   border-block-end: 1px solid var(--watchlist-announcements-border);
@@ -88,6 +110,8 @@
   font-size: var(--text-xl);
   font-weight: ds.font-weight("heavy");
   line-height: var(--line-height-tight);
+
+  text-wrap: balance;
 }
 
 .watchlist-announcements__title::before {
@@ -101,16 +125,64 @@
   line-height: var(--line-height-normal);
 }
 
-/* ========================================================================== 
-   List
+/* ==========================================================================
+   Scrollable List
    ========================================================================== */
 
 .watchlist-announcements__list {
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+  min-block-size: 0;
   margin: 0;
   padding: 0;
 
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  /*
+   * Preserve normal scroll chaining:
+   *
+   * - Scroll this list while it has remaining overflow.
+   * - Continue scrolling the page at either boundary.
+   * - Scroll the page immediately when the list does not overflow.
+   */
+
+  overscroll-behavior-block: auto;
+
+  scrollbar-color: var(--color-border-strong) transparent;
+  scrollbar-width: thin;
+
   list-style: none;
+
+  -webkit-overflow-scrolling: touch;
 }
+
+/* ==========================================================================
+   List Scrollbar
+   ========================================================================== */
+
+.watchlist-announcements__list::-webkit-scrollbar {
+  inline-size: 0.5rem;
+}
+
+.watchlist-announcements__list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.watchlist-announcements__list::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+
+  background: var(--color-border-strong);
+}
+
+.watchlist-announcements__list::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   List Items
+   ========================================================================== */
 
 .watchlist-announcements__item {
   border-block-end: 1px solid var(--watchlist-announcements-border);
@@ -128,7 +200,7 @@
   padding-block: ds.space(4);
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Announcement Title
    ========================================================================== */
 
@@ -140,6 +212,8 @@
   font-size: var(--text-sm);
   font-weight: ds.font-weight("bold");
   line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
 }
 
 .watchlist-announcement__link {
@@ -166,7 +240,7 @@
   @include ds.focus-ring;
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Market Metadata
    ========================================================================== */
 
@@ -185,6 +259,8 @@
 .watchlist-announcement__symbol {
   direction: ltr;
   unicode-bidi: isolate;
+
+  flex: 0 0 auto;
 
   color: var(--color-text-muted);
 
@@ -210,6 +286,10 @@
   direction: ltr;
   unicode-bidi: isolate;
 
+  display: inline-flex;
+  align-items: center;
+  gap: ds.space(1);
+
   flex: 0 0 auto;
 
   font-variant-numeric: tabular-nums;
@@ -217,7 +297,21 @@
   white-space: nowrap;
 }
 
-/* ========================================================================== 
+.watchlist-announcement__change.price-up,
+.watchlist-announcement__change.text-success {
+  color: var(--color-success);
+}
+
+.watchlist-announcement__change.price-down,
+.watchlist-announcement__change.text-danger {
+  color: var(--color-danger);
+}
+
+.watchlist-announcement__change.text-muted {
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
    Date
    ========================================================================== */
 
@@ -240,24 +334,98 @@
   text-align: end;
 }
 
-/* ========================================================================== 
+.watchlist-announcement__date time,
+.watchlist-announcement__date span {
+  white-space: nowrap;
+}
+
+/* ==========================================================================
    Footer
    ========================================================================== */
 
 .watchlist-announcements__footer {
+  flex: 0 0 auto;
+
   padding-block-start: ds.space(4);
 
   border-block-start: 1px solid var(--watchlist-announcements-border);
 }
 
-/* ========================================================================== 
+.watchlist-announcements__footer .btn {
+  inline-size: 100%;
+}
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
+.watchlist-announcements__empty {
+  display: grid;
+  place-items: center;
+  gap: ds.space(2);
+
+  flex: 1 1 auto;
+
+  min-block-size: 12rem;
+  padding: ds.space(4);
+
+  color: var(--color-text-muted);
+
+  text-align: center;
+}
+
+.watchlist-announcements__empty[hidden] {
+  display: none;
+}
+
+.watchlist-announcements__empty-icon {
+  --icon-size: 2rem;
+
+  color: var(--color-primary);
+}
+
+.watchlist-announcements__empty-title,
+.watchlist-announcements__empty-description {
+  margin: 0;
+}
+
+.watchlist-announcements__empty-title {
+  color: var(--color-heading);
+
+  font-size: var(--text-base);
+  font-weight: ds.font-weight("bold");
+}
+
+.watchlist-announcements__empty-description {
+  max-inline-size: 36ch;
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
    Responsive
    ========================================================================== */
 
 @include ds.respond-down("lg") {
-  .watchlist-announcements {
-    position: static;
+  .watchlist-layout .split-layout__secondary {
+    display: block;
+  }
 
+  .watchlist-announcements,
+  .watchlist-layout .watchlist-announcements {
+    position: static;
+    z-index: auto;
+
+    display: block;
+    align-self: auto;
+
+    max-block-size: none;
+
+    overflow: visible;
+  }
+
+  .watchlist-announcements__list {
     max-block-size: none;
 
     overflow: visible;
@@ -266,16 +434,23 @@
 
 @include ds.respond-down("sm") {
   .watchlist-announcements {
-    padding: ds.space(4);
+    --watchlist-announcements-padding: #{ds.space(4)};
+
     border-radius: var(--radius-md);
   }
 
   .watchlist-announcements__title {
     font-size: var(--text-lg);
   }
+
+  .watchlist-announcement__date {
+    justify-content: flex-start;
+
+    text-align: start;
+  }
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    High Contrast
    ========================================================================== */
 
@@ -295,28 +470,39 @@ html[data-contrast="high"] {
 
   .watchlist-announcements__title::before,
   .watchlist-announcement__link:hover,
-  .watchlist-announcement__change {
+  .watchlist-announcement__change,
+  .watchlist-announcements__empty-icon {
     color: currentColor;
+  }
+
+  .watchlist-announcements__list {
+    scrollbar-color: currentColor transparent;
   }
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Forced Colors
    ========================================================================== */
 
 @media (forced-colors: active) {
   .watchlist-announcements {
     border-color: CanvasText;
+
     background: Canvas;
     color: CanvasText;
   }
 
-  .watchlist-announcement__change {
+  .watchlist-announcement__change,
+  .watchlist-announcements__empty-icon {
     color: CanvasText;
+  }
+
+  .watchlist-announcements__list::-webkit-scrollbar-thumb {
+    background: CanvasText;
   }
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Reduced Motion
    ========================================================================== */
 

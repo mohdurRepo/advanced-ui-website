@@ -4,6 +4,14 @@
    Shared Hero Section
    ========================================================================== */
 
+/*
+ * The default Hero clips all visual content.
+ *
+ * Pages containing dropdowns or other overlays must explicitly add:
+ *
+ * .hero-section--has-overflow
+ */
+
 .hero-section {
   /*
    * These fixed colors intentionally match .page-breadcrumb.
@@ -60,12 +68,70 @@
   );
 
   color: var(--page-hero-fg);
+
   color-scheme: dark;
+}
+
+/* ==========================================================================
+   Overlay-enabled Hero
+   ========================================================================== */
+
+/*
+ * Use this modifier only when the Hero contains an interactive element that
+ * must extend outside its visual boundary, such as:
+ *
+ * - account menus
+ * - dropdown menus
+ * - popovers
+ * - tooltips
+ *
+ * The modifier also lifts the Hero's stacking context above the following
+ * page section. This prevents cards and sticky panels from painting over an
+ * open menu.
+ */
+
+.hero-section--has-overflow {
+  z-index: var(--z-dropdown);
+
+  overflow: visible;
+}
+
+/*
+ * Layout utilities inside an overlay-enabled Hero must not become accidental
+ * clipping ancestors.
+ */
+
+.hero-section--has-overflow .hero-section__content,
+.hero-section--has-overflow .split-layout,
+.hero-section--has-overflow .split-layout__primary,
+.hero-section--has-overflow .split-layout__secondary,
+.hero-section--has-overflow .cluster {
+  overflow: visible;
+}
+
+/*
+ * Establish overlay ordering inside the Hero stacking context.
+ */
+
+.hero-section--has-overflow .dropdown,
+.hero-section--has-overflow .account-menu {
+  z-index: calc(var(--z-dropdown) + 1);
+}
+
+.hero-section--has-overflow .dropdown-menu {
+  z-index: calc(var(--z-dropdown) + 2);
 }
 
 /* ==========================================================================
    Decorative Background Layer
    ========================================================================== */
+
+/*
+ * This layer owns decorative clipping.
+ *
+ * When the Hero uses --has-overflow, this background layer continues to clip
+ * the glow and optional image without clipping interactive content.
+ */
 
 .hero-section__background {
   position: absolute;
@@ -112,7 +178,8 @@
    Bottom-End Decorative Image
    ========================================================================== */
 
-/*.hero-section__background::after {
+/*
+.hero-section__background::after {
   content: "";
 
   position: absolute;
@@ -131,7 +198,8 @@
   opacity: var(--hero-section-image-opacity);
 
   pointer-events: none;
-}*/
+}
+*/
 
 /* ==========================================================================
    Content
@@ -215,6 +283,11 @@ html[dir="rtl"] {
     --hero-section-glow-inline: -8rem;
     --hero-section-glow-block: -8rem;
   }
+
+  .hero-section--has-overflow .dropdown--mobile-block,
+  .hero-section--has-overflow .account-menu--mobile-block {
+    inline-size: 100%;
+  }
 }
 
 /* ==========================================================================
@@ -241,8 +314,33 @@ html[data-contrast="high"] {
 }
 
 /* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .hero-section {
+    border-block: 1px solid CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    color-scheme: normal;
+  }
+
+  .hero-section__background {
+    display: none;
+  }
+}
+
+/* ==========================================================================
    Reduced Motion
    ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-section__background::before {
+    filter: none;
+  }
+}
 
 html[data-motion="reduce"] {
   .hero-section__background::before {
