@@ -33,6 +33,7 @@ const SELECTORS = {
 
 const CLASSES = {
   open: "is-open",
+  active: "is-active",
   menuOpen: "is-menu-open",
   mobileMenuOpen: "is-mobile-menu-open",
   htmlMobileOpen: "has-mobile-nav-open",
@@ -73,104 +74,122 @@ function clearDesktopTimers() {
 }
 
 function getFocusableElements(container) {
-  if (!container) return [];
+  if (!container) {
+    return [];
+  }
 
   return Array.from(container.querySelectorAll(SELECTORS.focusable)).filter(
-    (element) => {
-      return (
-        !element.hidden &&
-        !element.hasAttribute("disabled") &&
-        element.getAttribute("aria-hidden") !== "true" &&
-        element.offsetParent !== null
-      );
-    },
+    (element) =>
+      !element.hidden &&
+      !element.hasAttribute("disabled") &&
+      element.getAttribute("aria-hidden") !== "true" &&
+      element.offsetParent !== null,
   );
 }
 
 function focusElement(element) {
-  if (!(element instanceof HTMLElement)) return;
+  if (!(element instanceof HTMLElement)) {
+    return;
+  }
 
-  element.focus({
-    preventScroll: true,
-  });
+  try {
+    element.focus({
+      preventScroll: true,
+    });
+  } catch {
+    element.focus();
+  }
 }
 
 /* ==========================================================================
-   Desktop Mega Menu Helpers
+   Desktop Mega-Menu Helpers
    ========================================================================== */
 
 function getDesktopTrigger(item) {
-  return item?.querySelector(`:scope > ${SELECTORS.desktopNavTrigger}`);
+  return item?.querySelector(`:scope > ${SELECTORS.desktopNavTrigger}`) || null;
 }
 
 function getMegaMenu(item) {
-  return item?.querySelector(`:scope > ${SELECTORS.megaMenu}`);
+  return item?.querySelector(`:scope > ${SELECTORS.megaMenu}`) || null;
 }
 
 function getMegaCategories(container) {
-  if (!container) return [];
+  if (!container) {
+    return [];
+  }
 
   return Array.from(container.querySelectorAll(SELECTORS.megaCategory));
 }
 
 function getMegaPanels(container) {
-  if (!container) return [];
+  if (!container) {
+    return [];
+  }
 
   return Array.from(container.querySelectorAll(SELECTORS.megaPanel));
 }
 
-function setHeaderDesktopState(isOpen) {
-  getHeader()?.classList.toggle(CLASSES.menuOpen, isOpen);
+function setHeaderDesktopState(open) {
+  getHeader()?.classList.toggle(CLASSES.menuOpen, open);
 }
 
 /* ==========================================================================
-   Mega Menu Panels
+   Mega-Menu Panels
    ========================================================================== */
 
+/**
+ * Displays the panel associated with a level-two link.
+ *
+ * Level-two items are real links. JavaScript manages only the preview panel;
+ * it does not replace their normal navigation behavior.
+ */
 function activateMegaPanel(category, { focus = false } = {}) {
-  if (!category) return;
+  if (!(category instanceof HTMLElement)) {
+    return false;
+  }
 
   const megaMenu = category.closest(SELECTORS.megaMenu);
   const targetId = category.getAttribute("aria-controls");
 
-  if (!megaMenu || !targetId) return;
+  if (!megaMenu || !targetId) {
+    return false;
+  }
 
   const categories = getMegaCategories(megaMenu);
   const panels = getMegaPanels(megaMenu);
 
-  categories.forEach((item) => {
-    const isActive = item === category;
+  const targetPanel = panels.find((panel) => panel.id === targetId);
 
-    item.classList.toggle("is-active", isActive);
-    item.setAttribute("aria-selected", String(isActive));
-    item.setAttribute("tabindex", isActive ? "0" : "-1");
+  if (!targetPanel) {
+    return false;
+  }
+
+  categories.forEach((item) => {
+    item.classList.toggle(CLASSES.active, item === category);
   });
 
   panels.forEach((panel) => {
-    const isActive = panel.id === targetId;
+    const active = panel === targetPanel;
 
-    panel.classList.toggle("is-active", isActive);
-    panel.hidden = !isActive;
-    panel.setAttribute("aria-hidden", String(!isActive));
+    panel.classList.toggle(CLASSES.active, active);
+    panel.hidden = !active;
+    panel.setAttribute("aria-hidden", String(!active));
   });
 
   if (focus) {
     focusElement(category);
   }
+
+  return true;
 }
 
 function getDefaultMegaCategory(item) {
   const categories = getMegaCategories(item);
 
-  if (!categories.length) return null;
+  if (!categories.length) {
+    return null;
+  }
 
-  /*
-   * A category may explicitly declare itself as the default:
-   *
-   * data-mega-default
-   *
-   * Otherwise, the first category is always the default.
-   */
   return (
     categories.find((category) => category.hasAttribute("data-mega-default")) ||
     categories[0]
@@ -180,17 +199,44 @@ function getDefaultMegaCategory(item) {
 function activateInitialMegaPanel(item) {
   const defaultCategory = getDefaultMegaCategory(item);
 
-  if (!defaultCategory) return;
+  if (!defaultCategory) {
+    return;
+  }
 
   activateMegaPanel(defaultCategory);
 }
 
 function initializeMegaPanels(item) {
-  const defaultCategory = getDefaultMegaCategory(item);
+  const megaMenu = getMegaMenu(item);
 
-  if (!defaultCategory) return;
+  if (!megaMenu) {
+    return;
+  }
 
-  activateMegaPanel(defaultCategory);
+  const categories = getMegaCategories(megaMenu);
+  const panels = getMegaPanels(megaMenu);
+
+  categories.forEach((category) => {
+    /*
+     * Remove obsolete tab-interface attributes.
+     *
+     * Level-two entries are now ordinary links, not ARIA tabs.
+     */
+    category.removeAttribute("role");
+    category.removeAttribute("aria-selected");
+
+    if (category.getAttribute("tabindex") === "-1") {
+      category.removeAttribute("tabindex");
+    }
+  });
+
+  panels.forEach((panel) => {
+    if (panel.getAttribute("role") === "tabpanel") {
+      panel.setAttribute("role", "region");
+    }
+  });
+
+  activateInitialMegaPanel(item);
 }
 
 /* ==========================================================================
@@ -198,7 +244,9 @@ function initializeMegaPanels(item) {
    ========================================================================== */
 
 function openDesktopItem(item) {
-  if (!item || !isDesktop()) return;
+  if (!(item instanceof HTMLElement) || !isDesktop()) {
+    return;
+  }
 
   clearDesktopTimers();
 
@@ -209,12 +257,12 @@ function openDesktopItem(item) {
   const trigger = getDesktopTrigger(item);
   const megaMenu = getMegaMenu(item);
 
-  if (!trigger || !megaMenu) return;
+  if (!trigger || !megaMenu) {
+    return;
+  }
 
   /*
-   * Restore the default panel before displaying the menu.
-   * This prevents the last hovered category from remaining active when the
-   * user returns to the top-level navigation item.
+   * Always restore the configured default panel when a top-level menu opens.
    */
   activateInitialMegaPanel(item);
 
@@ -228,7 +276,9 @@ function openDesktopItem(item) {
 }
 
 function closeDesktopItem(item, { restoreFocus = false } = {}) {
-  if (!item) return;
+  if (!(item instanceof HTMLElement)) {
+    return;
+  }
 
   const trigger = getDesktopTrigger(item);
   const megaMenu = getMegaMenu(item);
@@ -237,10 +287,6 @@ function closeDesktopItem(item, { restoreFocus = false } = {}) {
   trigger?.setAttribute("aria-expanded", "false");
   megaMenu?.setAttribute("aria-hidden", "true");
 
-  /*
-   * Reset while closed so both visual state and ARIA state are ready for the
-   * next opening.
-   */
   activateInitialMegaPanel(item);
 
   if (restoreFocus) {
@@ -266,18 +312,20 @@ function closeAllDesktopMenus(options = {}) {
     });
 
   activeDesktopItem = null;
+
   setHeaderDesktopState(false);
 }
 
 function toggleDesktopItem(item) {
-  if (!item || !isDesktop()) return;
-
-  if (item.classList.contains(CLASSES.open)) {
-    closeDesktopItem(item);
+  if (!(item instanceof HTMLElement) || !isDesktop()) {
     return;
   }
 
-  openDesktopItem(item);
+  if (item.classList.contains(CLASSES.open)) {
+    closeDesktopItem(item);
+  } else {
+    openDesktopItem(item);
+  }
 }
 
 /* ==========================================================================
@@ -304,18 +352,22 @@ function scheduleDesktopClose(item) {
 }
 
 /* ==========================================================================
-   Mega Menu Keyboard Navigation
+   Mega-Menu Keyboard Navigation
    ========================================================================== */
 
 function handleMegaCategoryKeyboard(event, category) {
   const megaMenu = category.closest(SELECTORS.megaMenu);
 
-  if (!megaMenu) return;
+  if (!megaMenu) {
+    return;
+  }
 
   const categories = getMegaCategories(megaMenu);
   const currentIndex = categories.indexOf(category);
 
-  if (currentIndex < 0 || !categories.length) return;
+  if (currentIndex < 0 || !categories.length) {
+    return;
+  }
 
   let nextIndex = currentIndex;
 
@@ -337,7 +389,16 @@ function handleMegaCategoryKeyboard(event, category) {
       break;
 
     case "Enter":
+      /*
+       * Level-two entries are real links. Do not prevent Enter.
+       * The browser follows the link normally.
+       */
+      return;
+
     case " ":
+      /*
+       * Space previews the associated panel without navigating.
+       */
       event.preventDefault();
       activateMegaPanel(category);
       return;
@@ -373,7 +434,9 @@ function initializeDesktopItem(item) {
   const trigger = getDesktopTrigger(item);
   const megaMenu = getMegaMenu(item);
 
-  if (!trigger || !megaMenu) return;
+  if (!trigger || !megaMenu) {
+    return;
+  }
 
   item.classList.remove(CLASSES.open);
 
@@ -383,26 +446,39 @@ function initializeDesktopItem(item) {
   initializeMegaPanels(item);
 
   item.addEventListener("pointerenter", (event) => {
-    if (event.pointerType === "touch") return;
+    if (event.pointerType === "touch") {
+      return;
+    }
 
     scheduleDesktopOpen(item);
   });
 
   item.addEventListener("pointerleave", (event) => {
-    if (event.pointerType === "touch") return;
+    if (event.pointerType === "touch") {
+      return;
+    }
 
     scheduleDesktopClose(item);
   });
 
+  /*
+   * The top-level trigger remains responsible for opening and closing its
+   * mega menu.
+   */
   trigger.addEventListener("click", (event) => {
-    if (!isDesktop()) return;
+    if (!isDesktop()) {
+      return;
+    }
 
     event.preventDefault();
+
     toggleDesktopItem(item);
   });
 
   trigger.addEventListener("keydown", (event) => {
-    if (!isDesktop()) return;
+    if (!isDesktop()) {
+      return;
+    }
 
     switch (event.key) {
       case "ArrowDown": {
@@ -411,7 +487,7 @@ function initializeDesktopItem(item) {
         openDesktopItem(item);
 
         const activeCategory = item.querySelector(
-          `${SELECTORS.megaCategory}.is-active`,
+          `${SELECTORS.megaCategory}.${CLASSES.active}`,
         );
 
         focusElement(activeCategory);
@@ -438,32 +514,56 @@ function initializeDesktopItem(item) {
   });
 }
 
+/* ==========================================================================
+   Desktop Delegated Events
+   ========================================================================== */
+
+function getMegaCategoryFromEvent(event) {
+  if (!(event.target instanceof Element)) {
+    return null;
+  }
+
+  return event.target.closest(SELECTORS.megaCategory);
+}
+
 function handleMegaCategoryPointer(event) {
-  if (!isDesktop()) return;
+  if (!isDesktop()) {
+    return;
+  }
 
-  const category = event.target.closest(SELECTORS.megaCategory);
+  const category = getMegaCategoryFromEvent(event);
 
-  if (!category) return;
+  if (!category) {
+    return;
+  }
 
   activateMegaPanel(category);
 }
 
 function handleMegaCategoryFocus(event) {
-  if (!isDesktop()) return;
+  if (!isDesktop()) {
+    return;
+  }
 
-  const category = event.target.closest(SELECTORS.megaCategory);
+  const category = getMegaCategoryFromEvent(event);
 
-  if (!category) return;
+  if (!category) {
+    return;
+  }
 
   activateMegaPanel(category);
 }
 
 function handleMegaCategoryKeydown(event) {
-  if (!isDesktop()) return;
+  if (!isDesktop()) {
+    return;
+  }
 
-  const category = event.target.closest(SELECTORS.megaCategory);
+  const category = getMegaCategoryFromEvent(event);
 
-  if (!category) return;
+  if (!category) {
+    return;
+  }
 
   handleMegaCategoryKeyboard(event, category);
 }
@@ -479,7 +579,6 @@ function initializeDesktopMenus() {
 
   document.addEventListener("keydown", handleMegaCategoryKeydown);
 }
-
 /* ==========================================================================
    Mobile Navigation Helpers
    ========================================================================== */
@@ -513,21 +612,61 @@ function setMobileScrollLock(locked) {
    ========================================================================== */
 
 function getMobileSubmenu(trigger) {
-  if (!trigger) return null;
+  if (!(trigger instanceof HTMLElement)) {
+    return null;
+  }
 
   const targetId = trigger.getAttribute("aria-controls");
 
-  if (!targetId) return null;
+  if (!targetId) {
+    return null;
+  }
 
-  return document.getElementById(targetId);
+  const rootNode = trigger.getRootNode();
+
+  if (typeof rootNode.getElementById === "function") {
+    return rootNode.getElementById(targetId);
+  }
+
+  return trigger.ownerDocument.getElementById(targetId);
+}
+
+/**
+ * Returns the submenu trigger owned directly by a mobile list item.
+ *
+ * This supports both structures:
+ *
+ * 1. A trigger placed directly inside the list item.
+ * 2. A trigger placed inside .mobile-nav__submenu-row beside a real link.
+ */
+function getDirectMobileSubmenuTrigger(listItem) {
+  if (!(listItem instanceof HTMLElement)) {
+    return null;
+  }
+
+  const directTrigger = listItem.querySelector(
+    `:scope > ${SELECTORS.mobileSubmenuTrigger}`,
+  );
+
+  if (directTrigger) {
+    return directTrigger;
+  }
+
+  return listItem.querySelector(
+    `:scope > .mobile-nav__submenu-row > ${SELECTORS.mobileSubmenuTrigger}`,
+  );
 }
 
 function setMobileSubmenu(trigger, open) {
-  if (!trigger) return;
+  if (!(trigger instanceof HTMLElement)) {
+    return;
+  }
 
   const submenu = getMobileSubmenu(trigger);
 
-  if (!submenu) return;
+  if (!submenu) {
+    return;
+  }
 
   trigger.setAttribute("aria-expanded", String(open));
   trigger.classList.toggle(CLASSES.open, open);
@@ -538,7 +677,9 @@ function setMobileSubmenu(trigger, open) {
 }
 
 function closeNestedSubmenus(container) {
-  if (!container) return;
+  if (!(container instanceof HTMLElement)) {
+    return;
+  }
 
   container
     .querySelectorAll(SELECTORS.mobileSubmenuTrigger)
@@ -548,44 +689,59 @@ function closeNestedSubmenus(container) {
 }
 
 function closeSiblingSubmenus(trigger) {
-  const currentList = trigger.closest("ul");
+  if (!(trigger instanceof HTMLElement)) {
+    return;
+  }
 
-  if (!currentList) return;
+  const currentListItem = trigger.closest("li");
+  const currentList = currentListItem?.parentElement;
+
+  if (!currentListItem || !currentList?.matches("ul")) {
+    return;
+  }
 
   Array.from(currentList.children).forEach((listItem) => {
-    const siblingTrigger = listItem.querySelector(
-      `:scope > ${SELECTORS.mobileSubmenuTrigger}`,
-    );
-
-    if (siblingTrigger && siblingTrigger !== trigger) {
-      const siblingSubmenu = getMobileSubmenu(siblingTrigger);
-
-      closeNestedSubmenus(siblingSubmenu);
-      setMobileSubmenu(siblingTrigger, false);
+    if (!(listItem instanceof HTMLElement) || listItem === currentListItem) {
+      return;
     }
+
+    const siblingTrigger = getDirectMobileSubmenuTrigger(listItem);
+
+    if (!siblingTrigger || siblingTrigger === trigger) {
+      return;
+    }
+
+    const siblingSubmenu = getMobileSubmenu(siblingTrigger);
+
+    closeNestedSubmenus(siblingSubmenu);
+    setMobileSubmenu(siblingTrigger, false);
   });
 }
 
 function toggleMobileSubmenu(trigger) {
   const submenu = getMobileSubmenu(trigger);
 
-  if (!submenu) return;
+  if (!submenu) {
+    return;
+  }
 
-  const isOpen = trigger.getAttribute("aria-expanded") === "true";
+  const open = trigger.getAttribute("aria-expanded") === "true";
 
-  if (isOpen) {
+  if (open) {
     closeNestedSubmenus(submenu);
   } else {
     closeSiblingSubmenus(trigger);
   }
 
-  setMobileSubmenu(trigger, !isOpen);
+  setMobileSubmenu(trigger, !open);
 }
 
 function resetMobileSubmenus() {
   const nav = getMobileNav();
 
-  if (!nav) return;
+  if (!nav) {
+    return;
+  }
 
   nav.querySelectorAll(SELECTORS.mobileSubmenuTrigger).forEach((trigger) => {
     setMobileSubmenu(trigger, false);
@@ -601,7 +757,9 @@ function openMobileNav(trigger = null) {
   const overlay = getMobileOverlay();
   const openButton = trigger || getMobileOpenButton();
 
-  if (!nav || !overlay || isDesktop()) return;
+  if (!nav || !overlay || isDesktop()) {
+    return;
+  }
 
   lastFocusedElement =
     document.activeElement instanceof HTMLElement
@@ -613,6 +771,7 @@ function openMobileNav(trigger = null) {
 
   nav.setAttribute("aria-hidden", "false");
   overlay.setAttribute("aria-hidden", "false");
+
   openButton?.setAttribute("aria-expanded", "true");
 
   setMobileScrollLock(true);
@@ -629,13 +788,16 @@ function closeMobileNav({ restoreFocus = true } = {}) {
   const overlay = getMobileOverlay();
   const openButton = getMobileOpenButton();
 
-  if (!nav || !overlay) return;
+  if (!nav || !overlay) {
+    return;
+  }
 
   nav.classList.remove(CLASSES.open);
   overlay.classList.remove(CLASSES.open);
 
   nav.setAttribute("aria-hidden", "true");
   overlay.setAttribute("aria-hidden", "true");
+
   openButton?.setAttribute("aria-expanded", "false");
 
   setMobileScrollLock(false);
@@ -668,6 +830,7 @@ function trapMobileFocus(event) {
   if (!focusableElements.length) {
     event.preventDefault();
     focusElement(nav);
+
     return;
   }
 
@@ -677,6 +840,7 @@ function trapMobileFocus(event) {
   if (event.shiftKey && document.activeElement === firstElement) {
     event.preventDefault();
     focusElement(lastElement);
+
     return;
   }
 
@@ -693,7 +857,9 @@ function trapMobileFocus(event) {
 function initializeMobileSubmenus() {
   const nav = getMobileNav();
 
-  if (!nav) return;
+  if (!nav) {
+    return;
+  }
 
   nav.querySelectorAll(SELECTORS.mobileSubmenuTrigger).forEach((trigger) => {
     setMobileSubmenu(trigger, false);
@@ -710,6 +876,7 @@ function initializeMobileNavigationState() {
 
   nav?.setAttribute("aria-hidden", "true");
   overlay?.setAttribute("aria-hidden", "true");
+
   openButton?.setAttribute("aria-expanded", "false");
 
   setMobileScrollLock(false);
@@ -717,35 +884,55 @@ function initializeMobileNavigationState() {
 }
 
 function handleMobileNavigationClick(event) {
+  if (!(event.target instanceof Element)) {
+    return;
+  }
+
   const openButton = event.target.closest(SELECTORS.mobileOpen);
 
   if (openButton) {
+    event.preventDefault();
     openMobileNav(openButton);
+
     return;
   }
 
   const closeButton = event.target.closest(SELECTORS.mobileClose);
 
   if (closeButton) {
+    event.preventDefault();
     closeMobileNav();
+
     return;
   }
 
   const overlay = event.target.closest(SELECTORS.mobileOverlay);
 
   if (overlay) {
+    event.preventDefault();
     closeMobileNav();
+
     return;
   }
 
+  /*
+   * Only the dedicated expansion button controls a nested mobile submenu.
+   *
+   * The level-two title beside it remains a normal navigable link.
+   */
   const submenuTrigger = event.target.closest(SELECTORS.mobileSubmenuTrigger);
 
   if (submenuTrigger) {
     event.preventDefault();
     toggleMobileSubmenu(submenuTrigger);
+
     return;
   }
 
+  /*
+   * Following an ordinary navigation link closes the drawer without moving
+   * focus back to the menu-open button.
+   */
   const mobileLink = event.target.closest(SELECTORS.mobileLink);
 
   if (mobileLink) {
@@ -768,11 +955,14 @@ function initializeMobileNavigation() {
    ========================================================================== */
 
 function handleGlobalKeyboard(event) {
-  if (event.key !== "Escape") return;
+  if (event.key !== "Escape") {
+    return;
+  }
 
   if (isMobileNavOpen()) {
     event.preventDefault();
     closeMobileNav();
+
     return;
   }
 
@@ -786,7 +976,7 @@ function handleGlobalKeyboard(event) {
 }
 
 function handleOutsideClick(event) {
-  if (!isDesktop() || !activeDesktopItem) {
+  if (!isDesktop() || !activeDesktopItem || !(event.target instanceof Node)) {
     return;
   }
 
@@ -813,18 +1003,20 @@ function handleViewportChange(event) {
    ========================================================================== */
 
 function initializeHeaderScrollState(header) {
-  let isTicking = false;
+  let ticking = false;
 
   function updateHeaderState() {
     header.classList.toggle("is-scrolled", window.scrollY > 0);
 
-    isTicking = false;
+    ticking = false;
   }
 
   function handleScroll() {
-    if (isTicking) return;
+    if (ticking) {
+      return;
+    }
 
-    isTicking = true;
+    ticking = true;
 
     window.requestAnimationFrame(updateHeaderState);
   }
@@ -841,11 +1033,15 @@ function initializeHeaderScrollState(header) {
    ========================================================================== */
 
 export function initHeader() {
-  if (initialized) return;
+  if (initialized) {
+    return;
+  }
 
   const header = getHeader();
 
-  if (!header) return;
+  if (!header) {
+    return;
+  }
 
   initialized = true;
 
