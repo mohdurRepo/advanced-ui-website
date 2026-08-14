@@ -1,21 +1,18 @@
 <%--
   ============================================================================
-  Saudi Exchange — Shared Header (Desktop phase)
+  Saudi Exchange — Shared Header
   ----------------------------------------------------------------------------
   Included:
     - Dynamic WCM logo
-    - Refactored desktop navigation
+    - Desktop navigation
+    - Navigable Level-2 links
     - Six visible Level-3 entries per column
+    - Conditional Level-4 flyouts
     - Conditional featured content
     - Desktop language switch
     - Mobile burger trigger
 
-  Not included yet:
-    - Mobile overlay
-    - Mobile <aside>
-
   Temporarily disabled:
-    - Level-2 descriptions
     - Mega-menu panel titles
     - Theme toggle
   ============================================================================
@@ -146,14 +143,13 @@
                 data-mega-menu
               >
                 <div class="mega-menu__container">
-                  <%-- ==========================================================
-                       Level 2 category rail
-                       ========================================================== --%>
+                  <%-- ========================================================
+                       Level 2 navigation rail
+                       ======================================================== --%>
 
                   <div class="mega-menu__rail">
                     <div
                       class="mega-menu-nav"
-                      role="tablist"
                       aria-label="${node.title}"
                     >
                       <c:forEach
@@ -165,6 +161,9 @@
                           var="hidePageFromNavL2"
                           value="${nodeL2.metadata['navVisibility']}"
                         />
+
+                        <%-- Determine whether this Level-2 item has at least
+                             one visible Level-3 child. --%>
 
                         <c:set
                           var="hasVisibleL3"
@@ -193,8 +192,8 @@
 
                         <c:if test="${hidePageFromNavL2 != 'hide'}">
                           <c:set
-                            var="level2TabId"
-                            value="mega-tab-${level1Status.index}-${level2Status.index}"
+                            var="level2LinkId"
+                            value="mega-link-${level1Status.index}-${level2Status.index}"
                           />
 
                           <c:set
@@ -202,48 +201,54 @@
                             value="mega-panel-${level1Status.index}-${level2Status.index}"
                           />
 
-                          <button
-                            class="mega-menu-nav__item${level2Status.first ? ' is-active' : ''}"
-                            id="${level2TabId}"
-                            type="button"
-                            role="tab"
-                            aria-selected="${level2Status.first ? 'true' : 'false'}"
-                            aria-controls="${level2PanelId}"
-                            tabindex="${level2Status.first ? '0' : '-1'}"
-                            data-mega-menu-tab
+                          <portal-navigation:urlGeneration
+                            contentNode="${wp.identification[nodeL2]}"
+                            keepNavigationalState="false"
                           >
-                            <span
-                              class="has-icon icon-segment-container mega-menu-nav__icon"
-                              aria-hidden="true"
-                            ></span>
-
-                            <span class="mega-menu-nav__body">
-                              <span class="mega-menu-nav__heading">
-                                <c:out value="${nodeL2.title}" />
-                              </span>
-
-                              <c:if test="${not empty nodeL2.description}">
-                                <span class="mega-menu-nav__text">
-                                  <c:out value="${nodeL2.description}" />
-                                </span>
-                              </c:if>
-                            </span>
-
-                            <c:if test="${hasVisibleL3}">
+                            <a
+                              class="mega-menu-nav__item${level2Status.first ? ' is-active' : ''}"
+                              id="${level2LinkId}"
+                              href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
+                              aria-controls="${level2PanelId}"
+                              data-mega-menu-tab
+                            >
                               <span
-                                class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
+                                class="has-icon icon-segment-container mega-menu-nav__icon"
                                 aria-hidden="true"
                               ></span>
-                            </c:if>
-                          </button>
+
+                              <span class="mega-menu-nav__body">
+                                <span class="mega-menu-nav__heading">
+                                  <c:out value="${nodeL2.title}" />
+                                </span>
+
+                                <c:if test="${not empty nodeL2.description}">
+                                  <span class="mega-menu-nav__text">
+                                    <c:out value="${nodeL2.description}" />
+                                  </span>
+                                </c:if>
+                              </span>
+
+                              <%-- Only show the arrow when a visible Level-3
+                                   menu exists. The Level-2 link itself always
+                                   remains visible and navigable. --%>
+
+                              <c:if test="${hasVisibleL3}">
+                                <span
+                                  class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
+                                  aria-hidden="true"
+                                ></span>
+                              </c:if>
+                            </a>
+                          </portal-navigation:urlGeneration>
                         </c:if>
                       </c:forEach>
                     </div>
                   </div>
 
-                  <%-- ==========================================================
+                  <%-- ========================================================
                        Level 2 content panels
-                       ========================================================== --%>
+                       ======================================================== --%>
 
                   <div class="mega-menu__content">
                     <c:forEach
@@ -258,8 +263,8 @@
 
                       <c:if test="${hidePageFromNavL2 != 'hide'}">
                         <c:set
-                          var="level2TabId"
-                          value="mega-tab-${level1Status.index}-${level2Status.index}"
+                          var="level2LinkId"
+                          value="mega-link-${level1Status.index}-${level2Status.index}"
                         />
 
                         <c:set
@@ -270,8 +275,8 @@
                         <section
                           class="mega-menu-panel${level2Status.first ? ' is-active' : ''}"
                           id="${level2PanelId}"
-                          role="tabpanel"
-                          aria-labelledby="${level2TabId}"
+                          role="region"
+                          aria-labelledby="${level2LinkId}"
                           aria-hidden="${level2Status.first ? 'false' : 'true'}"
                           data-mega-menu-panel
                           <c:if test="${not level2Status.first}">hidden</c:if>
@@ -285,9 +290,12 @@
                           --%>
 
                           <div class="mega-menu-panel__layout">
-                            <%-- ==================================================
-                                 Level 3 links: six visible entries per column
-                                 ================================================== --%>
+                            <%-- ==============================================
+                                 Level 3 links
+
+                                 Six visible entries are placed in each column.
+                                 Hidden entries do not affect column counting.
+                                 ============================================== --%>
 
                             <c:set
                               var="visibleLevel3Counter"
@@ -305,11 +313,14 @@
                               />
 
                               <c:if test="${hidePageFromNavL3 != 'hide'}">
-                                <%-- Open a new column before entries 1, 7, 13... --%>
+                                <%-- Open columns before items 1, 7, 13... --%>
 
                                 <c:if test="${visibleLevel3Counter mod 6 == 0}">
                                   <div class="mega-menu-panel__column">
                                 </c:if>
+
+                                <%-- Determine whether at least one visible
+                                     Level-4 child exists. --%>
 
                                 <c:set
                                   var="hasVisibleL4"
@@ -337,7 +348,7 @@
                                 </c:if>
 
                                 <c:choose>
-                                  <%-- Level 3 with visible Level-4 children. --%>
+                                  <%-- Level 3 with visible Level-4 children --%>
 
                                   <c:when test="${hasVisibleL4}">
                                     <div class="mega-menu-flyout">
@@ -361,8 +372,7 @@
                                         class="mega-menu-flyout__menu"
                                         data-mega-menu-flyout-menu
                                       >
-                                        <%-- Optional Level-3 landing-page link.
-                                             Kept without an icon, matching static. --%>
+                                        <%-- Level-3 landing-page link --%>
 
                                         <portal-navigation:urlGeneration
                                           contentNode="${wp.identification[nodeL3]}"
@@ -375,6 +385,8 @@
                                             <c:out value="${nodeL3.title}" />
                                           </a>
                                         </portal-navigation:urlGeneration>
+
+                                        <%-- Level-4 links --%>
 
                                         <c:forEach
                                           items="${wp.navigationModel.children[nodeL3]}"
@@ -405,7 +417,7 @@
                                     </div>
                                   </c:when>
 
-                                  <%-- Level 3 without visible Level-4 children. --%>
+                                  <%-- Level 3 without visible Level-4 children --%>
 
                                   <c:otherwise>
                                     <portal-navigation:urlGeneration
@@ -428,7 +440,7 @@
                                   scope="page"
                                 />
 
-                                <%-- Close columns after entries 6, 12, 18... --%>
+                                <%-- Close columns after items 6, 12, 18... --%>
 
                                 <c:if test="${visibleLevel3Counter mod 6 == 0}">
                                   </div>
@@ -436,11 +448,18 @@
                               </c:if>
                             </c:forEach>
 
-                            <%--
-                              Careers occupies the next available position in
-                              the current six-item column. When the current
-                              column is full, Careers starts a new column.
-                            --%>
+                            <%-- ==============================================
+                                 Careers link
+
+                                 Careers occupies the next available position
+                                 in the current six-item column.
+
+                                 Five Level-3 items:
+                                   Careers becomes item six.
+
+                                 Six Level-3 items:
+                                   Careers begins a new column.
+                                 ============================================== --%>
 
                             <c:set
                               var="hasCareersLink"
@@ -452,24 +471,24 @@
                                 <div class="mega-menu-panel__column">
                               </c:if>
 
-                                <c:url
-                                  var="careersUrl"
-                                  value="https://careers.tadawulgroup.sa/"
-                                >
-                                  <c:param
-                                    name="lang"
-                                    value="${pageContext.request.locale.language == 'ar' ? 'ar' : 'en'}"
-                                  />
-                                </c:url>
+                              <c:url
+                                var="careersUrl"
+                                value="https://careers.tadawulgroup.sa/"
+                              >
+                                <c:param
+                                  name="lang"
+                                  value="${pageContext.request.locale.language == 'ar' ? 'ar' : 'en'}"
+                                />
+                              </c:url>
 
-                                <a
-                                  class="mega-menu-panel__link mega-menu-panel__link--external"
-                                  href="${careersUrl}"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
-                                  <fmt:message key="theme.subMenue.career" />
-                                </a>
+                              <a
+                                class="mega-menu-panel__link mega-menu-panel__link--external"
+                                href="${careersUrl}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <fmt:message key="theme.subMenue.career" />
+                              </a>
 
                               <c:set
                                 var="visibleLevel3Counter"
@@ -482,15 +501,15 @@
                               </c:if>
                             </c:if>
 
-                            <%-- Close the final partially filled column. --%>
+                            <%-- Close the final partially filled column --%>
 
                             <c:if test="${visibleLevel3Counter mod 6 != 0}">
                               </div>
                             </c:if>
 
-                            <%-- ==================================================
-                                 Conditional featured content from legacy header
-                                 ================================================== --%>
+                            <%-- ==============================================
+                                 Conditional featured content
+                                 ============================================== --%>
 
                             <c:set
                               var="hasMegaMenuFeature"
@@ -525,7 +544,7 @@
                                     />
                                   </c:when>
 
-                                  <%-- Listing: retain legacy custom 400-listed box. --%>
+                                  <%-- Listing --%>
 
                                   <c:when
                                     test="${
@@ -696,7 +715,9 @@
               data-lang-toggle
               hreflang="ar"
             >
-              <span class="header-lang-switch__current"><fmt:message key="theme.header.lang.arabic" /></span>
+              <span class="header-lang-switch__current">
+                <fmt:message key="theme.header.lang.arabic" />
+              </span>
 
               <span
                 class="has-icon icon-globe icon-accent mobile-nav__language-icon"
@@ -706,6 +727,7 @@
           </c:otherwise>
         </c:choose>
       </div>
+
       <div class="header-actions__mobile">
         <button
           class="header-burger"
@@ -729,20 +751,16 @@
   ----------------------------------------------------------------------------
   Place this block immediately after </header>.
 
-  Matches the static structure:
-    - mobile-nav-overlay
-    - mobile-nav
-    - mobile-nav__layout
-    - mobile-nav__body
-    - mobile-nav__menu
-    - nested mobile-nav__submenu blocks
-
-  Behavior:
-    - Parent items with children render only as expand/collapse buttons.
-    - Opening a parent shows its children directly.
-    - No repeated "Our Market > Our Market" overview link.
-    - Featured content is rendered conditionally using the legacy rules.
-    - Theme controls are removed.
+  Included:
+    - Mobile overlay and drawer
+    - Dynamic WCM logo
+    - Portal language switching
+    - Level-1 expandable navigation
+    - Navigable Level-2 parent links
+    - Separate Level-2 expansion buttons
+    - Level-3 and Level-4 navigation
+    - Careers link
+    - Conditional featured content
   ============================================================================
 --%>
 
@@ -774,7 +792,9 @@
 
             <%
               Workspace mobileWorkspace =
-                (Workspace) pageContext.getAttribute(Workspace.WCM_ERROR_KEY);
+                (Workspace) pageContext.getAttribute(
+                  Workspace.WCM_ERROR_KEY
+                );
 
               RenderingContext mobileRenderingContext =
                 (RenderingContext) request.getAttribute(
@@ -796,7 +816,9 @@
 
             <%
               Workspace mobileWorkspace =
-                (Workspace) pageContext.getAttribute(Workspace.WCM_ERROR_KEY);
+                (Workspace) pageContext.getAttribute(
+                  Workspace.WCM_ERROR_KEY
+                );
 
               RenderingContext mobileRenderingContext =
                 (RenderingContext) request.getAttribute(
@@ -844,7 +866,9 @@
               aria-hidden="true"
             ></span>
 
-            <span class="mobile-nav__language-text">English</span>
+            <span class="mobile-nav__language-text">
+              English
+            </span>
           </a>
         </c:when>
 
@@ -873,7 +897,10 @@
          Mobile navigation body
          ====================================================================== --%>
 
-    <nav class="mobile-nav__body" aria-label="Mobile main navigation">
+    <nav
+      class="mobile-nav__body"
+      aria-label="Mobile main navigation"
+    >
       <ul class="mobile-nav__menu">
         <c:set
           var="mobileNavigationRoot"
@@ -959,33 +986,53 @@
                             value="mobile-menu-l2-${mobileLevel1Status.index}-${mobileLevel2Status.index}"
                           />
 
+                          <c:set
+                            var="mobileLevel2LinkId"
+                            value="mobile-menu-l2-link-${mobileLevel1Status.index}-${mobileLevel2Status.index}"
+                          />
+
                           <li
                             class="mobile-nav__submenu-item${wp.navigationModel.hasChildren[nodeL2] ? ' has-submenu' : ''}"
                           >
                             <c:choose>
                               <%-- ==============================================
                                    Level 2 with children
+
+                                   The title is a real link. The separate icon
+                                   button expands and collapses the submenu.
                                    ============================================== --%>
 
                               <c:when
                                 test="${wp.navigationModel.hasChildren[nodeL2]}"
                               >
-                                <button
-                                  class="mobile-nav__subtrigger"
-                                  type="button"
-                                  data-mobile-submenu-trigger
-                                  aria-expanded="false"
-                                  aria-controls="${mobileLevel2Id}"
-                                >
-                                  <span class="mobile-nav__subtrigger-text">
-                                    <c:out value="${nodeL2.title}" />
-                                  </span>
+                                <div class="mobile-nav__submenu-row">
+                                  <portal-navigation:urlGeneration
+                                    contentNode="${wp.identification[nodeL2]}"
+                                    keepNavigationalState="false"
+                                  >
+                                    <a
+                                      class="mobile-nav__link mobile-nav__link--parent"
+                                      id="${mobileLevel2LinkId}"
+                                      href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
+                                    >
+                                      <c:out value="${nodeL2.title}" />
+                                    </a>
+                                  </portal-navigation:urlGeneration>
 
-                                  <span
-                                    class="has-icon icon-chevron-down mobile-nav__subtrigger-icon"
-                                    aria-hidden="true"
-                                  ></span>
-                                </button>
+                                  <button
+                                    class="mobile-nav__subtrigger mobile-nav__subtrigger--icon-only"
+                                    type="button"
+                                    data-mobile-submenu-trigger
+                                    aria-expanded="false"
+                                    aria-controls="${mobileLevel2Id}"
+                                    aria-label="${fn:escapeXml(nodeL2.title)}"
+                                  >
+                                    <span
+                                      class="has-icon icon-chevron-down mobile-nav__subtrigger-icon"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </button>
+                                </div>
 
                                 <div
                                   class="mobile-nav__submenu mobile-nav__submenu--nested"
@@ -1008,6 +1055,9 @@
                                       <c:if
                                         test="${hidePageFromMobileNavL3 != 'hide'}"
                                       >
+                                        <%-- Determine whether this Level-3
+                                             item has a visible Level-4 child. --%>
+
                                         <c:set
                                           var="hasVisibleMobileL4"
                                           value="false"
@@ -1042,9 +1092,9 @@
                                           class="mobile-nav__submenu-item${hasVisibleMobileL4 ? ' has-submenu' : ''}"
                                         >
                                           <c:choose>
-                                            <%-- ==================================
+                                            <%-- ==============================
                                                  Level 3 with visible Level 4
-                                                 ================================== --%>
+                                                 ============================== --%>
 
                                             <c:when test="${hasVisibleMobileL4}">
                                               <button
@@ -1057,7 +1107,9 @@
                                                 <span
                                                   class="mobile-nav__subtrigger-text"
                                                 >
-                                                  <c:out value="${nodeL3.title}" />
+                                                  <c:out
+                                                    value="${nodeL3.title}"
+                                                  />
                                                 </span>
 
                                                 <span
@@ -1111,9 +1163,9 @@
                                               </div>
                                             </c:when>
 
-                                            <%-- ==================================
+                                            <%-- ==============================
                                                  Level 3 direct link
-                                                 ================================== --%>
+                                                 ============================== --%>
 
                                             <c:otherwise>
                                               <portal-navigation:urlGeneration
@@ -1124,7 +1176,9 @@
                                                   class="mobile-nav__link"
                                                   href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
                                                 >
-                                                  <c:out value="${nodeL3.title}" />
+                                                  <c:out
+                                                    value="${nodeL3.title}"
+                                                  />
                                                 </a>
                                               </portal-navigation:urlGeneration>
                                             </c:otherwise>
@@ -1164,7 +1218,7 @@
                                   </ul>
 
                                   <%-- ==========================================
-                                       Featured content for this Level-2 section
+                                       Featured content for Level-2 section
                                        ========================================== --%>
 
                                   <c:set
@@ -1186,6 +1240,8 @@
                                   <c:if test="${hasMobileFeature}">
                                     <div class="mobile-nav__feature">
                                       <c:choose>
+                                        <%-- Our Market --%>
+
                                         <c:when
                                           test="${nodeL1.objectID.uniqueName == 'com.tadawul.saudiexchange.ourmarkets.v3'}"
                                         >
@@ -1197,6 +1253,8 @@
                                             pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
                                           />
                                         </c:when>
+
+                                        <%-- Listing --%>
 
                                         <c:when
                                           test="${
@@ -1251,6 +1309,8 @@
                                           </div>
                                         </c:when>
 
+                                        <%-- Trading --%>
+
                                         <c:when
                                           test="${
                                             nodeL1.objectID.uniqueName == 'com.tadawul.trading.v3'
@@ -1265,6 +1325,8 @@
                                             pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
                                           />
                                         </c:when>
+
+                                        <%-- News and Reports --%>
 
                                         <c:when
                                           test="${
@@ -1281,6 +1343,8 @@
                                           />
                                         </c:when>
 
+                                        <%-- Rules and Guidance --%>
+
                                         <c:when
                                           test="${nodeL1.objectID.uniqueName == 'com.tadawul.v3.rules.and.guidance'}"
                                         >
@@ -1292,6 +1356,8 @@
                                             pageDesign="TadawulV2_Design/PT-Featured-Menu-V3"
                                           />
                                         </c:when>
+
+                                        <%-- About Saudi Exchange --%>
 
                                         <c:when
                                           test="${
@@ -1368,8 +1434,8 @@
 
     <footer class="mobile-nav__footer">
       <%--
-        Replace these placeholders with the final portal-generated nodes
-        when their unique names are confirmed.
+        Replace these placeholders with final Portal-generated nodes when
+        their unique names are confirmed.
       --%>
 
       <a class="mobile-nav__footer-link" href="#">
