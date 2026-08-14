@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "npm run build:static",
+    "build:static": "vite build --config vite.config.js",
+    "build:portal": "vite build --config vite.portal.config.js",
+    "preview": "vite preview --config vite.config.js"
   },
   "devDependencies": {
     "sass": "^1.100.0",
