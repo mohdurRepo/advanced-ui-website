@@ -3,11 +3,17 @@
    ========================================================================== */
 
 const STORAGE_KEY = "se-lang";
-const DEFAULT_LANGUAGE = "en";
+const DIRECTION_STORAGE_KEY = "se-dir";
+
 const SUPPORTED_LANGUAGES = new Set(["en", "ar"]);
 
-const LANGUAGE_TOGGLE_SELECTOR = "[data-lang-toggle]";
-const CURRENT_LANGUAGE_SELECTOR = ".header-lang-switch__current";
+const DEFAULT_LANGUAGE = "en";
+const LOCALE_PARAMETER = "locale";
+
+const LANGUAGE_TOGGLE_SELECTOR = [
+  "[data-lang-toggle]",
+  "[data-language-switch]",
+].join(",");
 
 const root = document.documentElement;
 
@@ -18,7 +24,9 @@ let initialized = false;
    ========================================================================== */
 
 function normalizeLanguage(value) {
-  if (typeof value !== "string") return null;
+  if (typeof value !== "string") {
+    return null;
+  }
 
   const language = value.trim().toLowerCase().replace("_", "-").split("-")[0];
 
@@ -33,132 +41,182 @@ function getNextLanguage(language) {
   return language === "ar" ? "en" : "ar";
 }
 
-function getLanguageLabel(language) {
-  return language.toUpperCase();
+/* ==========================================================================
+   URL Language
+   ========================================================================== */
+
+function getUrlLanguage() {
+  try {
+    const parameters = new URLSearchParams(window.location.search);
+
+    return normalizeLanguage(parameters.get(LOCALE_PARAMETER));
+  } catch {
+    return null;
+  }
 }
 
 /**
- * Returns the language explicitly assigned to the current page.
+ * Updates the current static-page URL without reloading.
  *
- * data-page-language is checked first because an early theme script might
- * have changed the regular lang attribute using localStorage.
- *
- * Recommended markup:
- * <html lang="ar" dir="rtl" data-page-language="ar">
+ * This is used only for client-side language controls.
+ * Portal language anchors retain their existing href and navigate normally.
  */
-function getPageLanguage() {
-  return (
-    normalizeLanguage(root.dataset.pageLanguage) ||
-    normalizeLanguage(root.getAttribute("lang"))
-  );
+function updateStaticUrlLanguage(language) {
+  if (!window.history?.replaceState) {
+    return;
+  }
+
+  try {
+    const url = new URL(window.location.href);
+
+    url.searchParams.set(LOCALE_PARAMETER, language);
+
+    window.history.replaceState(window.history.state, "", url.href);
+  } catch {
+    /*
+     * Language switching can continue even when the History API
+     * or URL constructor is unavailable.
+     */
+  }
 }
+
+/* ==========================================================================
+   Document Language
+   ========================================================================== */
+
+function getDocumentLanguage() {
+  return normalizeLanguage(root.getAttribute("lang"));
+}
+
+/* ==========================================================================
+   Storage
+   ========================================================================== */
 
 function getStoredLanguage() {
   try {
-    return normalizeLanguage(localStorage.getItem(STORAGE_KEY));
-  } catch (error) {
-    // Storage can be unavailable in restricted/private environments.
+    return normalizeLanguage(window.localStorage.getItem(STORAGE_KEY));
+  } catch {
     return null;
   }
 }
 
 function storeLanguage(language) {
+  const normalizedLanguage = normalizeLanguage(language);
+
+  if (!normalizedLanguage) {
+    return false;
+  }
+
   try {
-    localStorage.setItem(STORAGE_KEY, language);
-  } catch (error) {
-    // The page can still switch language without persistent storage.
+    window.localStorage.setItem(STORAGE_KEY, normalizedLanguage);
+
+    window.localStorage.setItem(
+      DIRECTION_STORAGE_KEY,
+      getDirection(normalizedLanguage),
+    );
+
+    return true;
+  } catch {
+    /*
+     * Storage can be unavailable in some private or restricted
+     * browser environments.
+     */
+    return false;
   }
 }
 
+/* ==========================================================================
+   Language Resolution
+   ========================================================================== */
+
+/**
+ * Resolution order:
+ *
+ * 1. The locale already present in the URL
+ * 2. The language assigned to the document by Portal or static HTML
+ * 3. The language saved in local storage
+ * 4. The default language
+ */
 function getInitialLanguage() {
-  return getPageLanguage() || getStoredLanguage() || DEFAULT_LANGUAGE;
+  return (
+    getUrlLanguage() ||
+    getDocumentLanguage() ||
+    getStoredLanguage() ||
+    DEFAULT_LANGUAGE
+  );
 }
 
 export function getLanguage() {
   return (
-    normalizeLanguage(root.getAttribute("lang")) ||
-    getPageLanguage() ||
+    getUrlLanguage() ||
+    getDocumentLanguage() ||
     getStoredLanguage() ||
     DEFAULT_LANGUAGE
   );
 }
 
 /* ==========================================================================
-   Language URLs
+   Language-Control Helpers
    ========================================================================== */
 
 /**
- * Finds a URL for the requested language.
+ * An explicit data-language value is used for Portal links.
  *
- * Supported markup option 1:
- *
- * <button
- *   data-lang-toggle
- *   data-lang-url-ar="/ar/page"
- *   data-lang-url-en="/en/page">
- * </button>
- *
- * Supported markup option 2:
- *
- * <link rel="alternate" hreflang="ar" href="/ar/page">
- * <link rel="alternate" hreflang="en" href="/en/page">
+ * For ordinary static toggle buttons, data-target-language is synchronized
+ * after every language change.
  */
-function getLanguageUrl(language, trigger = null) {
-  const triggerUrl = trigger?.getAttribute(`data-lang-url-${language}`);
+function getTargetLanguage(trigger) {
+  const currentLanguage = getLanguage();
 
-  if (triggerUrl) {
-    return triggerUrl;
-  }
-
-  const alternateLink = document.querySelector(
-    `link[rel~="alternate"][hreflang="${language}"]`,
+  return (
+    normalizeLanguage(trigger?.getAttribute("data-language")) ||
+    normalizeLanguage(trigger?.getAttribute("data-target-language")) ||
+    getNextLanguage(currentLanguage)
   );
-
-  if (alternateLink?.href) {
-    return alternateLink.href;
-  }
-
-  return null;
 }
 
-function isCurrentUrl(url) {
-  if (!url) return false;
-
-  try {
-    const targetUrl = new URL(url, window.location.href);
-
-    return targetUrl.href === window.location.href;
-  } catch (error) {
+function isNavigableLanguageLink(trigger) {
+  if (!(trigger instanceof HTMLAnchorElement)) {
     return false;
   }
+
+  const href = trigger.getAttribute("href")?.trim();
+
+  return Boolean(
+    href && href !== "#" && !href.toLowerCase().startsWith("javascript:"),
+  );
 }
 
 /* ==========================================================================
-   Interface Synchronization
+   Control Synchronization
    ========================================================================== */
 
-function syncLanguageButton(button, language) {
-  const nextLanguage = getNextLanguage(language);
-  const currentLabel = button.querySelector(CURRENT_LANGUAGE_SELECTOR);
-
-  button.setAttribute("data-current-language", language);
-  button.setAttribute("data-target-language", nextLanguage);
-
-  button.setAttribute(
-    "aria-label",
-    nextLanguage === "ar"
-      ? "Switch language to Arabic"
-      : "Switch language to English",
+function syncLanguageControl(control, language) {
+  /*
+   * data-language is an explicit target supplied by HTML.
+   *
+   * If it is absent, this is a regular toggle control and its target
+   * must be recalculated after every language change.
+   */
+  const explicitTarget = normalizeLanguage(
+    control.getAttribute("data-language"),
   );
 
-  if (currentLabel) {
-    currentLabel.textContent = getLanguageLabel(language);
-  }
+  const targetLanguage = explicitTarget || getNextLanguage(language);
+
+  control.setAttribute("data-current-language", language);
+
+  control.setAttribute("data-target-language", targetLanguage);
+
+  /*
+   * Visible text and accessible labels are intentionally not modified.
+   * They remain controlled by the HTML.
+   */
 }
 
-function syncLanguageButtons(language) {
-  document.querySelectorAll(LANGUAGE_TOGGLE_SELECTOR).forEach((button) => {
-    syncLanguageButton(button, language);
+function syncLanguageControls(language) {
+  document.querySelectorAll(LANGUAGE_TOGGLE_SELECTOR).forEach((control) => {
+    syncLanguageControl(control, language);
   });
 }
 
@@ -169,13 +227,16 @@ function syncLanguageButtons(language) {
 function applyLanguage(language) {
   const normalizedLanguage = normalizeLanguage(language);
 
-  if (!normalizedLanguage) return false;
+  if (!normalizedLanguage) {
+    return null;
+  }
 
-  const previousLanguage = normalizeLanguage(root.getAttribute("lang"));
+  const previousLanguage = getDocumentLanguage();
 
   const direction = getDirection(normalizedLanguage);
 
   root.setAttribute("lang", normalizedLanguage);
+
   root.setAttribute("dir", direction);
 
   window.APP_LOCALE = {
@@ -184,7 +245,7 @@ function applyLanguage(language) {
     dir: direction,
   };
 
-  syncLanguageButtons(normalizedLanguage);
+  syncLanguageControls(normalizedLanguage);
 
   return {
     language: normalizedLanguage,
@@ -193,14 +254,22 @@ function applyLanguage(language) {
   };
 }
 
+/* ==========================================================================
+   Language Event
+   ========================================================================== */
+
 function emitLanguageChange(result) {
-  if (!result) return;
+  if (!result) {
+    return;
+  }
 
   document.dispatchEvent(
     new CustomEvent("languagechange", {
       detail: {
         language: result.language,
+
         direction: result.direction,
+
         previousLanguage: result.previousLanguage,
       },
     }),
@@ -211,22 +280,24 @@ function emitLanguageChange(result) {
    Public API
    ========================================================================== */
 
-/**
- * Applies a language to the current document.
- *
- * This method does not navigate. It is appropriate for static pages or
- * client-rendered applications that respond to the languagechange event.
- */
-export function setLanguage(language, { persist = true, emit = true } = {}) {
+export function setLanguage(
+  language,
+  { persist = true, emit = true, updateUrl = false } = {},
+) {
   const normalizedLanguage = normalizeLanguage(language);
 
   if (!normalizedLanguage) {
     console.warn(`Unsupported language: "${language}"`);
+
     return false;
   }
 
   if (persist) {
     storeLanguage(normalizedLanguage);
+  }
+
+  if (updateUrl) {
+    updateStaticUrlLanguage(normalizedLanguage);
   }
 
   const result = applyLanguage(normalizedLanguage);
@@ -238,66 +309,107 @@ export function setLanguage(language, { persist = true, emit = true } = {}) {
   return Boolean(result);
 }
 
-/**
- * Switches to the other language.
- *
- * If a localized URL is configured, the browser navigates to it.
- * Otherwise, the current static page changes lang and dir in place.
- */
-export function toggleLanguage(trigger = null) {
+export function toggleLanguage({ updateUrl = true } = {}) {
   const currentLanguage = getLanguage();
+
   const nextLanguage = getNextLanguage(currentLanguage);
-  const targetUrl = getLanguageUrl(nextLanguage, trigger);
-
-  storeLanguage(nextLanguage);
-
-  if (targetUrl && !isCurrentUrl(targetUrl)) {
-    window.location.assign(targetUrl);
-    return true;
-  }
 
   return setLanguage(nextLanguage, {
-    persist: false,
+    persist: true,
     emit: true,
+    updateUrl,
   });
 }
 
 /* ==========================================================================
-   Event Handlers
+   Click Handling
    ========================================================================== */
 
 function handleLanguageClick(event) {
-  if (!(event.target instanceof Element)) return;
+  if (!(event.target instanceof Element)) {
+    return;
+  }
 
   const trigger = event.target.closest(LANGUAGE_TOGGLE_SELECTOR);
 
-  if (!trigger) return;
+  if (!trigger) {
+    return;
+  }
 
+  const targetLanguage = getTargetLanguage(trigger);
+
+  /*
+   * Portal language anchors already contain the correct URL.
+   *
+   * Store the selection, then allow the link to navigate normally.
+   * JavaScript does not modify the Portal-generated href.
+   */
+  if (
+    isNavigableLanguageLink(trigger) &&
+    !trigger.hasAttribute("data-language-client")
+  ) {
+    storeLanguage(targetLanguage);
+
+    return;
+  }
+
+  /*
+   * A static button or client-side anchor switches the current
+   * document without reloading.
+   */
   event.preventDefault();
-  toggleLanguage(trigger);
+
+  setLanguage(targetLanguage, {
+    persist: true,
+    emit: true,
+    updateUrl: true,
+  });
 }
 
+/* ==========================================================================
+   Browser Events
+   ========================================================================== */
+
 function handleStorageChange(event) {
-  if (event.key !== STORAGE_KEY) return;
+  if (event.key !== STORAGE_KEY) {
+    return;
+  }
+
+  /*
+   * An explicit URL locale remains authoritative.
+   */
+  if (getUrlLanguage()) {
+    return;
+  }
 
   const language = normalizeLanguage(event.newValue);
 
-  if (!language || language === getLanguage()) return;
+  if (!language || language === getDocumentLanguage()) {
+    return;
+  }
 
   setLanguage(language, {
     persist: false,
     emit: true,
+    updateUrl: false,
   });
 }
 
-function handlePageShow() {
-  const language = getPageLanguage() || getStoredLanguage();
+function handleHistoryNavigation() {
+  const language = getUrlLanguage();
 
-  if (!language) return;
+  if (!language) {
+    return;
+  }
+
+  if (language === getDocumentLanguage()) {
+    return;
+  }
 
   setLanguage(language, {
-    persist: false,
-    emit: false,
+    persist: true,
+    emit: true,
+    updateUrl: false,
   });
 }
 
@@ -309,19 +421,20 @@ export function initLanguage() {
   const language = getInitialLanguage();
 
   setLanguage(language, {
-    /*
-     * Do not persist automatically. Storage should represent an explicit
-     * user choice, not merely the language of a page they visited.
-     */
-    persist: false,
+    persist: true,
     emit: false,
+    updateUrl: false,
   });
 
-  if (initialized) return;
+  if (initialized) {
+    return;
+  }
 
   initialized = true;
 
   document.addEventListener("click", handleLanguageClick);
+
   window.addEventListener("storage", handleStorageChange);
-  window.addEventListener("pageshow", handlePageShow);
+
+  window.addEventListener("popstate", handleHistoryNavigation);
 }

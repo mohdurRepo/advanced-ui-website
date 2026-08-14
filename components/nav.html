@@ -1,8 +1,6 @@
-marketsummary?locale=en
-
 <%--
   ============================================================================
-  Saudi Exchange — Shared Header (Desktop phase)
+  Saudi Exchange — Shared Header
   ----------------------------------------------------------------------------
   Included:
     - Dynamic WCM logo
@@ -12,9 +10,8 @@ marketsummary?locale=en
     - Desktop language switch
     - Mobile burger trigger
 
-  Not included yet:
-    - Mobile overlay
-    - Mobile <aside>
+  The mobile overlay and mobile navigation are maintained separately and must
+  be placed immediately after this header.
 
   Temporarily disabled:
     - Level-2 descriptions
@@ -158,6 +155,12 @@ marketsummary?locale=en
                       role="tablist"
                       aria-label="${node.title}"
                     >
+                      <c:set
+                        var="visibleLevel2RailCounter"
+                        value="0"
+                        scope="page"
+                      />
+
                       <c:forEach
                         items="${wp.navigationModel.children[node]}"
                         var="nodeL2"
@@ -168,7 +171,34 @@ marketsummary?locale=en
                           value="${nodeL2.metadata['navVisibility']}"
                         />
 
-                        <c:if test="${hidePageFromNavL2 != 'hide'}">
+                        <c:set
+                          var="hasVisibleL3"
+                          value="false"
+                          scope="page"
+                        />
+
+                        <c:if
+                          test="${wp.navigationModel.hasChildren[nodeL2]}"
+                        >
+                          <c:forEach
+                            items="${wp.navigationModel.children[nodeL2]}"
+                            var="nodeL3VisibilityCheck"
+                          >
+                            <c:if
+                              test="${nodeL3VisibilityCheck.metadata['navVisibility'] != 'hide'}"
+                            >
+                              <c:set
+                                var="hasVisibleL3"
+                                value="true"
+                                scope="page"
+                              />
+                            </c:if>
+                          </c:forEach>
+                        </c:if>
+
+                        <c:if
+                          test="${hidePageFromNavL2 != 'hide' and hasVisibleL3}"
+                        >
                           <c:set
                             var="level2TabId"
                             value="mega-tab-${level1Status.index}-${level2Status.index}"
@@ -179,38 +209,46 @@ marketsummary?locale=en
                             value="mega-panel-${level1Status.index}-${level2Status.index}"
                           />
 
-                          <button
-                            class="mega-menu-nav__item${level2Status.first ? ' is-active' : ''}"
-                            id="${level2TabId}"
-                            type="button"
-                            role="tab"
-                            aria-selected="${level2Status.first ? 'true' : 'false'}"
-                            aria-controls="${level2PanelId}"
-                            tabindex="${level2Status.first ? '0' : '-1'}"
-                            data-mega-menu-tab
+                          <portal-navigation:urlGeneration
+                            contentNode="${wp.identification[nodeL2]}"
+                            keepNavigationalState="false"
                           >
-                            <span
-                              class="has-icon icon-segment-container mega-menu-nav__icon"
-                              aria-hidden="true"
-                            ></span>
+                            <a
+                              class="mega-menu-nav__item${visibleLevel2RailCounter == 0 ? ' is-active' : ''}"
+                              id="${level2TabId}"
+                              href="<%wpsURL.write(out);%>"
+                              aria-controls="${level2PanelId}"
+                              data-mega-menu-tab
+                            >
+                              <span
+                                class="has-icon icon-segment-container mega-menu-nav__icon"
+                                aria-hidden="true"
+                              ></span>
 
-                            <span class="mega-menu-nav__body">
-                              <span class="mega-menu-nav__heading">
-                                <c:out value="${nodeL2.title}" />
+                              <span class="mega-menu-nav__body">
+                                <span class="mega-menu-nav__heading">
+                                  <c:out value="${nodeL2.title}" />
+                                </span>
+
+                                <c:if test="${not empty nodeL2.description}">
+                                  <span class="mega-menu-nav__text">
+                                    <c:out value="${nodeL2.description}" />
+                                  </span>
+                                </c:if>
                               </span>
 
-                              <c:if test="${not empty nodeL2.description}">
-                                <span class="mega-menu-nav__text">
-                                  <c:out value="${nodeL2.description}" />
-                                </span>
-                              </c:if>
-                            </span>
+                              <span
+                                class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
+                                aria-hidden="true"
+                              ></span>
+                            </a>
+                          </portal-navigation:urlGeneration>
 
-                            <span
-                              class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
-                              aria-hidden="true"
-                            ></span>
-                          </button>
+                          <c:set
+                            var="visibleLevel2RailCounter"
+                            value="${visibleLevel2RailCounter + 1}"
+                            scope="page"
+                          />
                         </c:if>
                       </c:forEach>
                     </div>
@@ -221,6 +259,12 @@ marketsummary?locale=en
                        ========================================================== --%>
 
                   <div class="mega-menu__content">
+                    <c:set
+                      var="visibleLevel2PanelCounter"
+                      value="0"
+                      scope="page"
+                    />
+
                     <c:forEach
                       items="${wp.navigationModel.children[node]}"
                       var="nodeL2"
@@ -231,7 +275,34 @@ marketsummary?locale=en
                         value="${nodeL2.metadata['navVisibility']}"
                       />
 
-                      <c:if test="${hidePageFromNavL2 != 'hide'}">
+                      <c:set
+                        var="hasVisibleL3"
+                        value="false"
+                        scope="page"
+                      />
+
+                      <c:if
+                        test="${wp.navigationModel.hasChildren[nodeL2]}"
+                      >
+                        <c:forEach
+                          items="${wp.navigationModel.children[nodeL2]}"
+                          var="nodeL3VisibilityCheck"
+                        >
+                          <c:if
+                            test="${nodeL3VisibilityCheck.metadata['navVisibility'] != 'hide'}"
+                          >
+                            <c:set
+                              var="hasVisibleL3"
+                              value="true"
+                              scope="page"
+                            />
+                          </c:if>
+                        </c:forEach>
+                      </c:if>
+
+                      <c:if
+                        test="${hidePageFromNavL2 != 'hide' and hasVisibleL3}"
+                      >
                         <c:set
                           var="level2TabId"
                           value="mega-tab-${level1Status.index}-${level2Status.index}"
@@ -243,13 +314,13 @@ marketsummary?locale=en
                         />
 
                         <section
-                          class="mega-menu-panel${level2Status.first ? ' is-active' : ''}"
+                          class="mega-menu-panel${visibleLevel2PanelCounter == 0 ? ' is-active' : ''}"
                           id="${level2PanelId}"
-                          role="tabpanel"
+                          role="region"
                           aria-labelledby="${level2TabId}"
-                          aria-hidden="${level2Status.first ? 'false' : 'true'}"
+                          aria-hidden="${visibleLevel2PanelCounter == 0 ? 'false' : 'true'}"
                           data-mega-menu-panel
-                          <c:if test="${not level2Status.first}">hidden</c:if>
+                          <c:if test="${visibleLevel2PanelCounter != 0}">hidden</c:if>
                         >
                           <%--
                             Future panel title:
@@ -345,7 +416,7 @@ marketsummary?locale=en
                                         >
                                           <a
                                             class="mega-menu-flyout__link mega-menu-flyout__link--overview"
-                                            href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
+                                            href="<%wpsURL.write(out);%>"
                                           >
                                             <c:out value="${nodeL3.title}" />
                                           </a>
@@ -369,7 +440,7 @@ marketsummary?locale=en
                                             >
                                               <a
                                                 class="mega-menu-flyout__link"
-                                                href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
+                                                href="<%wpsURL.write(out);%>"
                                               >
                                                 <c:out value="${nodeL4.title}" />
                                               </a>
@@ -389,7 +460,7 @@ marketsummary?locale=en
                                     >
                                       <a
                                         class="mega-menu-panel__link"
-                                        href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
+                                        href="<%wpsURL.write(out);%>"
                                       >
                                         <c:out value="${nodeL3.title}" />
                                       </a>
@@ -606,6 +677,12 @@ marketsummary?locale=en
                             </c:if>
                           </div>
                         </section>
+
+                        <c:set
+                          var="visibleLevel2PanelCounter"
+                          value="${visibleLevel2PanelCounter + 1}"
+                          scope="page"
+                        />
                       </c:if>
                     </c:forEach>
                   </div>
@@ -629,9 +706,10 @@ marketsummary?locale=en
           >
             <a
               class="header-lang-switch"
-              href='<portal-navigation:url command="ChangeLanguage"><portal-navigation:urlParam name="locale" value="${localeSwitch}"/></portal-navigation:url>'
+              href='<portal-navigation:url command="ChangeLanguage"><portal-navigation:urlParam name="locale" value="en" /></portal-navigation:url>'
               aria-label="Switch to English"
-              data-lang-toggle
+              data-language-switch
+              data-language="en"
               hreflang="en"
             >
               <span class="header-lang-switch__current">
@@ -648,9 +726,10 @@ marketsummary?locale=en
           <c:otherwise>
             <a
               class="header-lang-switch"
-              href='<portal-navigation:url command="ChangeLanguage"><portal-navigation:urlParam name="locale" value="${localeSwitch}" /></portal-navigation:url>'
+              href='<portal-navigation:url command="ChangeLanguage"><portal-navigation:urlParam name="locale" value="ar" /></portal-navigation:url>'
               aria-label="Switch to Arabic"
-              data-lang-toggle
+              data-language-switch
+              data-language="ar"
               hreflang="ar"
             >
               <span class="header-lang-switch__current"><fmt:message key="theme.header.lang.arabic" /></span>
@@ -663,6 +742,23 @@ marketsummary?locale=en
           </c:otherwise>
         </c:choose>
       </div>
+      <div class="header-actions__mobile">
+        <button
+          class="header-burger"
+          type="button"
+          data-mobile-nav-open
+          aria-label="Open menu"
+          aria-expanded="false"
+          aria-controls="mobile-nav"
+        >
+          <span class="header-burger__line"></span>
+          <span class="header-burger__line"></span>
+          <span class="header-burger__line"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
 <%--
   ============================================================================
   Saudi Exchange — Mobile Navigation
@@ -678,7 +774,9 @@ marketsummary?locale=en
     - nested mobile-nav__submenu blocks
 
   Behavior:
-    - Parent items with children render only as expand/collapse buttons.
+    - Level-1 parents render as expand/collapse buttons.
+    - Level-2 titles are links with separate submenu toggle buttons.
+    - Level-2 items without visible Level-3 children are not rendered.
     - Opening a parent shows its children directly.
     - No repeated "Our Market > Our Market" overview link.
     - Featured content is rendered conditionally using the legacy rules.
@@ -774,9 +872,10 @@ marketsummary?locale=en
         >
           <a
             class="mobile-nav__language"
-            href='<portal-navigation:url command="ChangeLanguage"><portal-navigation:urlParam name="locale" value="${localeSwitch}" /></portal-navigation:url>'
+            href='<portal-navigation:url command="ChangeLanguage"><portal-navigation:urlParam name="locale" value="en" /></portal-navigation:url>'
             aria-label="Switch to English"
-            data-lang-toggle
+            data-language-switch
+            data-language="en"
             hreflang="en"
           >
             <span
@@ -791,9 +890,10 @@ marketsummary?locale=en
         <c:otherwise>
           <a
             class="mobile-nav__language"
-            href='<portal-navigation:url command="ChangeLanguage"><portal-navigation:urlParam name="locale" value="${localeSwitch}" /></portal-navigation:url>'
+            href='<portal-navigation:url command="ChangeLanguage"><portal-navigation:urlParam name="locale" value="ar" /></portal-navigation:url>'
             aria-label="Switch to Arabic"
-            data-lang-toggle
+            data-language-switch
+            data-language="ar"
             hreflang="ar"
           >
             <span
@@ -893,47 +993,75 @@ marketsummary?locale=en
                           value="${nodeL2.metadata['navVisibility']}"
                         />
 
-                        <c:if test="${hidePageFromMobileNavL2 != 'hide'}">
+                        <c:set
+                          var="hasVisibleMobileL3"
+                          value="false"
+                          scope="page"
+                        />
+
+                        <c:if
+                          test="${wp.navigationModel.hasChildren[nodeL2]}"
+                        >
+                          <c:forEach
+                            items="${wp.navigationModel.children[nodeL2]}"
+                            var="nodeL3VisibilityCheck"
+                          >
+                            <c:if
+                              test="${nodeL3VisibilityCheck.metadata['navVisibility'] != 'hide'}"
+                            >
+                              <c:set
+                                var="hasVisibleMobileL3"
+                                value="true"
+                                scope="page"
+                              />
+                            </c:if>
+                          </c:forEach>
+                        </c:if>
+
+                        <c:if
+                          test="${hidePageFromMobileNavL2 != 'hide' and hasVisibleMobileL3}"
+                        >
                           <c:set
                             var="mobileLevel2Id"
                             value="mobile-menu-l2-${mobileLevel1Status.index}-${mobileLevel2Status.index}"
                           />
 
-                          <li
-                            class="mobile-nav__submenu-item${wp.navigationModel.hasChildren[nodeL2] ? ' has-submenu' : ''}"
-                          >
-                            <c:choose>
-                              <%-- ==============================================
-                                   Level 2 with children
-                                   ============================================== --%>
-
-                              <c:when
-                                test="${wp.navigationModel.hasChildren[nodeL2]}"
+                          <li class="mobile-nav__submenu-item has-submenu">
+                            <div class="mobile-nav__submenu-row">
+                              <portal-navigation:urlGeneration
+                                contentNode="${wp.identification[nodeL2]}"
+                                keepNavigationalState="false"
                               >
-                                <button
-                                  class="mobile-nav__subtrigger"
-                                  type="button"
-                                  data-mobile-submenu-trigger
-                                  aria-expanded="false"
-                                  aria-controls="${mobileLevel2Id}"
+                                <a
+                                  class="mobile-nav__link mobile-nav__link--parent"
+                                  href="<%wpsURL.write(out);%>"
                                 >
-                                  <span class="mobile-nav__subtrigger-text">
-                                    <c:out value="${nodeL2.title}" />
-                                  </span>
+                                  <c:out value="${nodeL2.title}" />
+                                </a>
+                              </portal-navigation:urlGeneration>
 
-                                  <span
-                                    class="has-icon icon-chevron-down mobile-nav__subtrigger-icon"
-                                    aria-hidden="true"
-                                  ></span>
-                                </button>
-
-                                <div
-                                  class="mobile-nav__submenu mobile-nav__submenu--nested"
-                                  id="${mobileLevel2Id}"
-                                  data-mobile-submenu
+                              <button
+                                class="mobile-nav__subtrigger mobile-nav__subtrigger--icon-only"
+                                type="button"
+                                data-mobile-submenu-trigger
+                                aria-expanded="false"
+                                aria-controls="${mobileLevel2Id}"
+                                aria-label="Expand ${nodeL2.title} submenu"
+                              >
+                                <span
+                                  class="has-icon icon-chevron-down mobile-nav__subtrigger-icon"
                                   aria-hidden="true"
-                                  hidden
-                                >
+                                ></span>
+                              </button>
+                            </div>
+
+                            <div
+                              class="mobile-nav__submenu mobile-nav__submenu--nested"
+                              id="${mobileLevel2Id}"
+                              data-mobile-submenu
+                              aria-hidden="true"
+                              hidden
+                            >
                                   <ul class="mobile-nav__submenu-list">
                                     <c:forEach
                                       items="${wp.navigationModel.children[nodeL2]}"
@@ -1037,7 +1165,7 @@ marketsummary?locale=en
                                                         >
                                                           <a
                                                             class="mobile-nav__link"
-                                                            href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
+                                                            href="<%wpsURL.write(out);%>"
                                                           >
                                                             <c:out
                                                               value="${nodeL4.title}"
@@ -1062,7 +1190,7 @@ marketsummary?locale=en
                                               >
                                                 <a
                                                   class="mobile-nav__link"
-                                                  href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
+                                                  href="<%wpsURL.write(out);%>"
                                                 >
                                                   <c:out value="${nodeL3.title}" />
                                                 </a>
@@ -1250,27 +1378,7 @@ marketsummary?locale=en
                                       </c:choose>
                                     </div>
                                   </c:if>
-                                </div>
-                              </c:when>
-
-                              <%-- ==============================================
-                                   Level 2 direct link
-                                   ============================================== --%>
-
-                              <c:otherwise>
-                                <portal-navigation:urlGeneration
-                                  contentNode="${wp.identification[nodeL2]}"
-                                  keepNavigationalState="false"
-                                >
-                                  <a
-                                    class="mobile-nav__link"
-                                    href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
-                                  >
-                                    <c:out value="${nodeL2.title}" />
-                                  </a>
-                                </portal-navigation:urlGeneration>
-                              </c:otherwise>
-                            </c:choose>
+                            </div>
                           </li>
                         </c:if>
                       </c:forEach>
@@ -1289,7 +1397,7 @@ marketsummary?locale=en
                   >
                     <a
                       class="mobile-nav__link mobile-nav__link--primary"
-                      href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
+                      href="<%wpsURL.write(out);%>"
                     >
                       <c:out value="${nodeL1.title}" />
                     </a>
@@ -1322,20 +1430,3 @@ marketsummary?locale=en
     </footer>
   </div>
 </aside>
-      <div class="header-actions__mobile">
-        <button
-          class="header-burger"
-          type="button"
-          data-mobile-nav-open
-          aria-label="Open menu"
-          aria-expanded="false"
-          aria-controls="mobile-nav"
-        >
-          <span class="header-burger__line"></span>
-          <span class="header-burger__line"></span>
-          <span class="header-burger__line"></span>
-        </button>
-      </div>
-    </div>
-  </div>
-</header>
