@@ -3,18 +3,55 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>Buttons | Abu Faisal Design System</title>
+
     <link rel="stylesheet" href="/src/scss/main.scss" />
+
     <script>
       (function () {
-        var root = document.documentElement;
+        "use strict";
 
-        var lang = localStorage.getItem("se-lang") || "en";
-        var themeChoice = localStorage.getItem("se-theme") || "system";
-        var accent = localStorage.getItem("se-accent") || "blue";
-        var fontSize = localStorage.getItem("se-font-size") || "0";
-        var contrast = localStorage.getItem("se-contrast") || "normal";
-        var motion = localStorage.getItem("se-motion") || "normal";
+        var root = document.documentElement;
+        var RESTORE_TIMEOUT = 4000;
+
+        function getStoredValue(key, fallback) {
+          try {
+            var value = window.localStorage.getItem(key);
+
+            return value !== null ? value : fallback;
+          } catch (error) {
+            return fallback;
+          }
+        }
+
+        function getUrlLanguage() {
+          try {
+            var language = new URLSearchParams(window.location.search).get(
+              "locale",
+            );
+
+            return language === "ar" || language === "en" ? language : null;
+          } catch (error) {
+            return null;
+          }
+        }
+
+        var pageLanguage = root.getAttribute("lang") === "ar" ? "ar" : "en";
+
+        var storedLanguage = getStoredValue("se-lang", null);
+
+        var urlLanguage = getUrlLanguage();
+
+        var themeChoice = getStoredValue("se-theme", "system");
+
+        var accent = getStoredValue("se-accent", "blue");
+
+        var fontSize = getStoredValue("se-font-size", "0");
+
+        var contrast = getStoredValue("se-contrast", "normal");
+
+        var motion = getStoredValue("se-motion", "normal");
 
         var systemTheme =
           window.matchMedia &&
@@ -25,9 +62,33 @@
         var resolvedTheme =
           themeChoice === "system" ? systemTheme : themeChoice;
 
-        root.lang = lang === "ar" ? "ar" : "en";
-        root.dir = lang === "ar" ? "rtl" : "ltr";
+        /*
+         * Portal rendered the document using pageLanguage.
+         *
+         * If the saved language differs and the URL has no explicit locale,
+         * temporarily hide the document while language.js restores the saved
+         * language through Portal.
+         */
+        if (
+          !urlLanguage &&
+          (storedLanguage === "ar" || storedLanguage === "en") &&
+          storedLanguage !== pageLanguage
+        ) {
+          root.style.visibility = "hidden";
+          root.setAttribute("data-language-restoring", "true");
 
+          /*
+           * Safety fallback: never leave the document permanently hidden.
+           */
+          window.setTimeout(function () {
+            root.style.removeProperty("visibility");
+            root.removeAttribute("data-language-restoring");
+          }, RESTORE_TIMEOUT);
+        }
+
+        /*
+         * Portal owns lang and dir. Do not overwrite them here.
+         */
         root.setAttribute("data-theme", resolvedTheme);
         root.setAttribute("data-theme-choice", themeChoice);
         root.setAttribute("data-accent", accent);
@@ -36,6 +97,7 @@
         root.setAttribute("data-motion", motion);
       })();
     </script>
+
     <!-- Highcharts Stock -->
     <script src="https://code.highcharts.com/stock/highstock.js"></script>
 

@@ -2,15 +2,17 @@
    Language Management
    ========================================================================== */
 
-const STORAGE_KEY = "se-lang";
-const DIRECTION_STORAGE_KEY = "se-dir";
-const PORTAL_RESTORE_KEY = "se-portal-language-restore";
+const CONFIG = Object.freeze({
+  storageKey: "se-lang",
+  directionStorageKey: "se-dir",
+  portalRestoreKey: "se-portal-language-restore",
+  localeParameter: "locale",
+  defaultLanguage: "en",
+});
 
 const SUPPORTED_LANGUAGES = new Set(["en", "ar"]);
-const DEFAULT_LANGUAGE = "en";
-const LOCALE_PARAMETER = "locale";
 
-const LANGUAGE_TOGGLE_SELECTOR = [
+const LANGUAGE_CONTROL_SELECTOR = [
   "[data-lang-toggle]",
   "[data-language-switch]",
 ].join(",");
@@ -42,56 +44,46 @@ function getNextLanguage(language) {
 }
 
 /* ==========================================================================
-   URL Language
-   ========================================================================== */
-
-function getUrlLanguage() {
-  try {
-    const parameters = new URLSearchParams(window.location.search);
-
-    return normalizeLanguage(parameters.get(LOCALE_PARAMETER));
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Updates a static-page URL without reloading.
- *
- * Portal language anchors retain their server-generated href and navigate
- * normally.
- */
-function updateStaticUrlLanguage(language) {
-  if (!window.history?.replaceState) {
-    return;
-  }
-
-  try {
-    const url = new URL(window.location.href);
-
-    url.searchParams.set(LOCALE_PARAMETER, language);
-
-    window.history.replaceState(window.history.state, "", url.href);
-  } catch {
-    // Language switching can continue without URL synchronization.
-  }
-}
-
-/* ==========================================================================
-   Document Language
+   Document and URL
    ========================================================================== */
 
 function getDocumentLanguage() {
   return normalizeLanguage(root.getAttribute("lang"));
 }
 
+function getUrlLanguage() {
+  try {
+    const parameters = new URLSearchParams(window.location.search);
+
+    return normalizeLanguage(parameters.get(CONFIG.localeParameter));
+  } catch {
+    return null;
+  }
+}
+
+function updateStaticUrlLanguage(language) {
+  if (typeof window.history?.replaceState !== "function") {
+    return;
+  }
+
+  try {
+    const url = new URL(window.location.href);
+
+    url.searchParams.set(CONFIG.localeParameter, language);
+
+    window.history.replaceState(window.history.state, "", url.href);
+  } catch {
+    // Static switching can continue without URL synchronization.
+  }
+}
+
 /* ==========================================================================
-   Storage
+   Persistent Storage
    ========================================================================== */
 
 function getStoredLanguage() {
   try {
-    return normalizeLanguage(window.localStorage.getItem(STORAGE_KEY));
+    return normalizeLanguage(window.localStorage.getItem(CONFIG.storageKey));
   } catch {
     return null;
   }
@@ -105,21 +97,21 @@ function storeLanguage(language) {
   }
 
   try {
-    window.localStorage.setItem(STORAGE_KEY, normalizedLanguage);
+    window.localStorage.setItem(CONFIG.storageKey, normalizedLanguage);
+
     window.localStorage.setItem(
-      DIRECTION_STORAGE_KEY,
+      CONFIG.directionStorageKey,
       getDirection(normalizedLanguage),
     );
 
     return true;
   } catch {
-    // Storage may be unavailable in restricted browser environments.
     return false;
   }
 }
 
 /* ==========================================================================
-   Language-Control Helpers
+   Language Controls
    ========================================================================== */
 
 function isNavigableLanguageLink(control) {
@@ -134,32 +126,23 @@ function isNavigableLanguageLink(control) {
   );
 }
 
+function isClientLanguageControl(control) {
+  return (
+    !isNavigableLanguageLink(control) ||
+    control.hasAttribute("data-language-client")
+  );
+}
+
 function getControlLanguage(control) {
   return (
-    normalizeLanguage(control.getAttribute("data-language")) ||
-    normalizeLanguage(control.getAttribute("hreflang")) ||
-    normalizeLanguage(control.getAttribute("data-target-language"))
+    normalizeLanguage(control?.getAttribute("data-language")) ||
+    normalizeLanguage(control?.getAttribute("hreflang")) ||
+    normalizeLanguage(control?.getAttribute("data-target-language"))
   );
 }
 
-function getPortalLanguageLink(language) {
-  return (
-    Array.from(document.querySelectorAll(LANGUAGE_TOGGLE_SELECTOR)).find(
-      (control) =>
-        isNavigableLanguageLink(control) &&
-        !control.hasAttribute("data-language-client") &&
-        getControlLanguage(control) === language,
-    ) || null
-  );
-}
-
-function getTargetLanguage(trigger) {
-  return (
-    normalizeLanguage(trigger?.getAttribute("data-language")) ||
-    normalizeLanguage(trigger?.getAttribute("hreflang")) ||
-    normalizeLanguage(trigger?.getAttribute("data-target-language")) ||
-    getNextLanguage(getLanguage())
-  );
+function getLanguageControls() {
+  return Array.from(document.querySelectorAll(LANGUAGE_CONTROL_SELECTOR));
 }
 
 /* ==========================================================================
@@ -167,11 +150,12 @@ function getTargetLanguage(trigger) {
    ========================================================================== */
 
 /**
- * A page is considered Portal-controlled when it contains at least one
- * navigable language anchor that is not marked as client-controlled.
+ * Portal controls are navigable server-generated links.
+ *
+ * Static controls are buttons or explicitly use data-language-client.
  */
-function isPortalControlledPage() {
-  return Array.from(document.querySelectorAll(LANGUAGE_TOGGLE_SELECTOR)).some(
+function isPortalPage() {
+  return getLanguageControls().some(
     (control) =>
       isNavigableLanguageLink(control) &&
       !control.hasAttribute("data-language-client"),
@@ -182,54 +166,41 @@ function isPortalControlledPage() {
    Language Resolution
    ========================================================================== */
 
-/**
- * Portal pages use the server-rendered document language as their authority.
- *
- * Static pages use an explicit URL locale first.
- */
 function getInitialLanguage() {
-  if (isPortalControlledPage()) {
+  if (isPortalPage()) {
+    /*
+     * Portal rendered the current document language on the server.
+     */
     return (
       getDocumentLanguage() ||
       getUrlLanguage() ||
       getStoredLanguage() ||
-      DEFAULT_LANGUAGE
+      CONFIG.defaultLanguage
     );
   }
 
+  /*
+   * Static pages allow an explicit URL language to override the document.
+   */
   return (
     getUrlLanguage() ||
     getDocumentLanguage() ||
     getStoredLanguage() ||
-    DEFAULT_LANGUAGE
+    CONFIG.defaultLanguage
   );
 }
 
 export function getLanguage() {
-  if (isPortalControlledPage()) {
-    return (
-      getDocumentLanguage() ||
-      getUrlLanguage() ||
-      getStoredLanguage() ||
-      DEFAULT_LANGUAGE
-    );
-  }
-
-  return (
-    getUrlLanguage() ||
-    getDocumentLanguage() ||
-    getStoredLanguage() ||
-    DEFAULT_LANGUAGE
-  );
+  return getInitialLanguage();
 }
 
 /* ==========================================================================
-   Portal Language Restoration
+   Portal Restore State
    ========================================================================== */
 
 function getPortalRestoreState() {
   try {
-    return window.sessionStorage.getItem(PORTAL_RESTORE_KEY);
+    return window.sessionStorage.getItem(CONFIG.portalRestoreKey);
   } catch {
     return null;
   }
@@ -238,25 +209,33 @@ function getPortalRestoreState() {
 function setPortalRestoreState(value) {
   try {
     if (value) {
-      window.sessionStorage.setItem(PORTAL_RESTORE_KEY, value);
+      window.sessionStorage.setItem(CONFIG.portalRestoreKey, value);
     } else {
-      window.sessionStorage.removeItem(PORTAL_RESTORE_KEY);
+      window.sessionStorage.removeItem(CONFIG.portalRestoreKey);
     }
   } catch {
     // Session storage may be unavailable.
   }
 }
 
+function getPortalLanguageLink(language) {
+  return (
+    getLanguageControls().find(
+      (control) =>
+        isNavigableLanguageLink(control) &&
+        !control.hasAttribute("data-language-client") &&
+        getControlLanguage(control) === language,
+    ) || null
+  );
+}
+
 /**
- * Restores the saved Portal language using the server-generated language URL.
- *
- * This is necessary when a new Portal session initially renders its default
- * language even though the user previously selected another language.
+ * Restores a saved Portal language through Portal's generated language URL.
  *
  * Returns true when navigation has started.
  */
 function restorePortalLanguage() {
-  if (!isPortalControlledPage()) {
+  if (!isPortalPage()) {
     return false;
   }
 
@@ -264,7 +243,7 @@ function restorePortalLanguage() {
   const storedLanguage = getStoredLanguage();
 
   /*
-   * An explicit URL locale represents an intentional language request.
+   * An explicit URL locale is an intentional language request.
    */
   if (getUrlLanguage()) {
     setPortalRestoreState(null);
@@ -291,7 +270,8 @@ function restorePortalLanguage() {
   const restoreState = `${documentLanguage}:${storedLanguage}`;
 
   /*
-   * Prevent a redirect loop if Portal returns the same document language.
+   * Prevent repeated redirection if Portal does not apply the requested
+   * language.
    */
   if (getPortalRestoreState() === restoreState) {
     return false;
@@ -303,18 +283,11 @@ function restorePortalLanguage() {
 
   return true;
 }
-
 /* ==========================================================================
-   Control Synchronization
+   Interface Synchronization
    ========================================================================== */
 
 function syncLanguageControl(control, language) {
-  /*
-   * data-language and hreflang are explicit targets provided by HTML.
-   *
-   * Otherwise, this is a regular static toggle and its target must be
-   * recalculated after every language change.
-   */
   const explicitTarget =
     normalizeLanguage(control.getAttribute("data-language")) ||
     normalizeLanguage(control.getAttribute("hreflang"));
@@ -322,17 +295,31 @@ function syncLanguageControl(control, language) {
   const targetLanguage = explicitTarget || getNextLanguage(language);
 
   control.setAttribute("data-current-language", language);
+
   control.setAttribute("data-target-language", targetLanguage);
 
   /*
-   * Visible text and accessible labels remain controlled by the HTML.
+   * Visible labels remain controlled by the HTML.
    */
 }
 
 function syncLanguageControls(language) {
-  document.querySelectorAll(LANGUAGE_TOGGLE_SELECTOR).forEach((control) => {
+  getLanguageControls().forEach((control) => {
     syncLanguageControl(control, language);
   });
+}
+
+/* ==========================================================================
+   Document Visibility
+   ========================================================================== */
+
+/**
+ * Reveals a document hidden by the early Portal head script.
+ */
+function revealDocument() {
+  root.style.removeProperty("visibility");
+
+  root.removeAttribute("data-language-restoring");
 }
 
 /* ==========================================================================
@@ -347,9 +334,11 @@ function applyLanguage(language) {
   }
 
   const previousLanguage = getDocumentLanguage();
+
   const direction = getDirection(normalizedLanguage);
 
   root.setAttribute("lang", normalizedLanguage);
+
   root.setAttribute("dir", direction);
 
   window.APP_LOCALE = {
@@ -368,7 +357,7 @@ function applyLanguage(language) {
 }
 
 /* ==========================================================================
-   Language Event
+   Language Events
    ========================================================================== */
 
 function emitLanguageChange(result) {
@@ -420,14 +409,13 @@ export function setLanguage(
   return Boolean(result);
 }
 
-export function toggleLanguage({ updateUrl = true } = {}) {
-  const currentLanguage = getLanguage();
-  const nextLanguage = getNextLanguage(currentLanguage);
+export function toggleLanguage() {
+  const nextLanguage = getNextLanguage(getLanguage());
 
   return setLanguage(nextLanguage, {
     persist: true,
     emit: true,
-    updateUrl,
+    updateUrl: !isPortalPage(),
   });
 }
 
@@ -435,28 +423,30 @@ export function toggleLanguage({ updateUrl = true } = {}) {
    Click Handling
    ========================================================================== */
 
-function handleLanguageClick(event) {
+function getEventLanguageControl(event) {
   if (!(event.target instanceof Element)) {
+    return null;
+  }
+
+  return event.target.closest(LANGUAGE_CONTROL_SELECTOR);
+}
+
+function handleLanguageClick(event) {
+  const control = getEventLanguageControl(event);
+
+  if (!control) {
     return;
   }
 
-  const trigger = event.target.closest(LANGUAGE_TOGGLE_SELECTOR);
-
-  if (!trigger) {
-    return;
-  }
-
-  const targetLanguage = getTargetLanguage(trigger);
+  const targetLanguage =
+    getControlLanguage(control) || getNextLanguage(getLanguage());
 
   /*
-   * Portal anchors already contain the correct ChangeLanguage URL.
+   * Portal language links already contain the correct server-generated URL.
    *
-   * Save the user's selection and allow normal browser navigation.
+   * Save the requested language and allow the browser to navigate normally.
    */
-  if (
-    isNavigableLanguageLink(trigger) &&
-    !trigger.hasAttribute("data-language-client")
-  ) {
+  if (!isClientLanguageControl(control)) {
     storeLanguage(targetLanguage);
     setPortalRestoreState(null);
 
@@ -464,8 +454,7 @@ function handleLanguageClick(event) {
   }
 
   /*
-   * Static buttons and explicitly client-controlled anchors switch the
-   * document without reloading.
+   * Static controls switch the current document without reloading.
    */
   event.preventDefault();
 
@@ -481,14 +470,21 @@ function handleLanguageClick(event) {
    ========================================================================== */
 
 function handleStorageChange(event) {
-  if (event.key !== STORAGE_KEY) {
+  if (event.key !== CONFIG.storageKey) {
     return;
   }
 
   /*
-   * Portal documents and explicit static URL locales remain authoritative.
+   * Portal content must be changed through server navigation.
    */
-  if (isPortalControlledPage() || getUrlLanguage()) {
+  if (isPortalPage()) {
+    return;
+  }
+
+  /*
+   * An explicit static URL locale remains authoritative.
+   */
+  if (getUrlLanguage()) {
     return;
   }
 
@@ -506,7 +502,7 @@ function handleStorageChange(event) {
 }
 
 function handleHistoryNavigation() {
-  if (isPortalControlledPage()) {
+  if (isPortalPage()) {
     return;
   }
 
@@ -524,13 +520,43 @@ function handleHistoryNavigation() {
 }
 
 /* ==========================================================================
+   Initialization Helpers
+   ========================================================================== */
+
+/**
+ * Determines whether initialization may safely save the current language.
+ *
+ * A mismatched Portal document must never overwrite the user's existing
+ * saved preference if Portal restoration fails.
+ */
+function shouldPersistInitialLanguage() {
+  if (!isPortalPage()) {
+    return true;
+  }
+
+  const urlLanguage = getUrlLanguage();
+  const storedLanguage = getStoredLanguage();
+  const documentLanguage = getDocumentLanguage();
+
+  if (urlLanguage) {
+    return true;
+  }
+
+  if (!storedLanguage) {
+    return true;
+  }
+
+  return storedLanguage === documentLanguage;
+}
+
+/* ==========================================================================
    Initialization
    ========================================================================== */
 
 export function initLanguage() {
   /*
-   * Restore the saved Portal preference before the server-rendered default
-   * can overwrite it in local storage.
+   * If navigation begins, keep the incorrect server-rendered document
+   * hidden. The destination page will render using the saved language.
    */
   if (restorePortalLanguage()) {
     return;
@@ -539,7 +565,7 @@ export function initLanguage() {
   const language = getInitialLanguage();
 
   setLanguage(language, {
-    persist: true,
+    persist: shouldPersistInitialLanguage(),
     emit: false,
     updateUrl: false,
   });
@@ -548,6 +574,11 @@ export function initLanguage() {
     setPortalRestoreState(null);
   }
 
+  /*
+   * No language navigation is pending.
+   */
+  revealDocument();
+
   if (initialized) {
     return;
   }
@@ -555,6 +586,8 @@ export function initLanguage() {
   initialized = true;
 
   document.addEventListener("click", handleLanguageClick);
+
   window.addEventListener("storage", handleStorageChange);
+
   window.addEventListener("popstate", handleHistoryNavigation);
 }
