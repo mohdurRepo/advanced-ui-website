@@ -1,21 +1,21 @@
 <%--
   ============================================================================
-  Saudi Exchange — Shared Header
+  Saudi Exchange — Shared Header (Desktop phase)
   ----------------------------------------------------------------------------
   Included:
     - Dynamic WCM logo
-    - Desktop navigation
-    - Level-2 clickable links
-    - Conditional Level-2 chevrons
+    - Refactored desktop navigation
     - Six visible Level-3 entries per column
     - Conditional featured content
     - Desktop language switch
     - Mobile burger trigger
 
-  The mobile overlay and mobile navigation are maintained separately and must
-  be placed immediately after this header.
+  Not included yet:
+    - Mobile overlay
+    - Mobile <aside>
 
   Temporarily disabled:
+    - Level-2 descriptions
     - Mega-menu panel titles
     - Theme toggle
   ============================================================================
@@ -147,20 +147,15 @@
               >
                 <div class="mega-menu__container">
                   <%-- ==========================================================
-                       Level-2 category rail
+                       Level 2 category rail
                        ========================================================== --%>
 
                   <div class="mega-menu__rail">
                     <div
                       class="mega-menu-nav"
+                      role="tablist"
                       aria-label="${node.title}"
                     >
-                      <c:set
-                        var="visibleLevel2RailCounter"
-                        value="0"
-                        scope="page"
-                      />
-
                       <c:forEach
                         items="${wp.navigationModel.children[node]}"
                         var="nodeL2"
@@ -171,43 +166,10 @@
                           value="${nodeL2.metadata['navVisibility']}"
                         />
 
-                        <%--
-                          Check whether this Level-2 node has at least one
-                          visible Level-3 child.
-
-                          The Level-2 link and its panel are always rendered.
-                          This value controls only the chevron.
-                        --%>
-
-                        <c:set
-                          var="hasVisibleL3"
-                          value="false"
-                          scope="page"
-                        />
-
-                        <c:if
-                          test="${wp.navigationModel.hasChildren[nodeL2]}"
-                        >
-                          <c:forEach
-                            items="${wp.navigationModel.children[nodeL2]}"
-                            var="nodeL3VisibilityCheck"
-                          >
-                            <c:if
-                              test="${nodeL3VisibilityCheck.metadata['navVisibility'] != 'hide'}"
-                            >
-                              <c:set
-                                var="hasVisibleL3"
-                                value="true"
-                                scope="page"
-                              />
-                            </c:if>
-                          </c:forEach>
-                        </c:if>
-
                         <c:if test="${hidePageFromNavL2 != 'hide'}">
                           <c:set
-                            var="level2LinkId"
-                            value="mega-link-${level1Status.index}-${level2Status.index}"
+                            var="level2TabId"
+                            value="mega-tab-${level1Status.index}-${level2Status.index}"
                           />
 
                           <c:set
@@ -215,69 +177,48 @@
                             value="mega-panel-${level1Status.index}-${level2Status.index}"
                           />
 
-                          <portal-navigation:urlGeneration
-                            contentNode="${wp.identification[nodeL2]}"
-                            keepNavigationalState="false"
+                          <button
+                            class="mega-menu-nav__item${level2Status.first ? ' is-active' : ''}"
+                            id="${level2TabId}"
+                            type="button"
+                            role="tab"
+                            aria-selected="${level2Status.first ? 'true' : 'false'}"
+                            aria-controls="${level2PanelId}"
+                            tabindex="${level2Status.first ? '0' : '-1'}"
+                            data-mega-menu-tab
                           >
-                            <a
-                              class="mega-menu-nav__item${visibleLevel2RailCounter == 0 ? ' is-active' : ''}"
-                              id="${level2LinkId}"
-                              href="<%wpsURL.write(out);%>"
-                              aria-controls="${level2PanelId}"
-                              data-mega-menu-tab
-                            >
-                              <span
-                                class="has-icon icon-segment-container mega-menu-nav__icon"
-                                aria-hidden="true"
-                              ></span>
+                            <span
+                              class="has-icon icon-segment-container mega-menu-nav__icon"
+                              aria-hidden="true"
+                            ></span>
 
-                              <span class="mega-menu-nav__body">
-                                <span class="mega-menu-nav__heading">
-                                  <c:out value="${nodeL2.title}" />
-                                </span>
-
-                                <c:if test="${not empty nodeL2.description}">
-                                  <span class="mega-menu-nav__text">
-                                    <c:out value="${nodeL2.description}" />
-                                  </span>
-                                </c:if>
+                            <span class="mega-menu-nav__body">
+                              <span class="mega-menu-nav__heading">
+                                <c:out value="${nodeL2.title}" />
                               </span>
 
-                              <%--
-                                Render only the chevron conditionally.
-                                The Level-2 link remains available when false.
-                              --%>
-
-                              <c:if test="${hasVisibleL3}">
-                                <span
-                                  class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
-                                  aria-hidden="true"
-                                ></span>
+                              <c:if test="${not empty nodeL2.description}">
+                                <span class="mega-menu-nav__text">
+                                  <c:out value="${nodeL2.description}" />
+                                </span>
                               </c:if>
-                            </a>
-                          </portal-navigation:urlGeneration>
+                            </span>
 
-                          <c:set
-                            var="visibleLevel2RailCounter"
-                            value="${visibleLevel2RailCounter + 1}"
-                            scope="page"
-                          />
+                            <span
+                              class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
+                              aria-hidden="true"
+                            ></span>
+                          </button>
                         </c:if>
                       </c:forEach>
                     </div>
                   </div>
 
                   <%-- ==========================================================
-                       Level-2 content panels
+                       Level 2 content panels
                        ========================================================== --%>
 
                   <div class="mega-menu__content">
-                    <c:set
-                      var="visibleLevel2PanelCounter"
-                      value="0"
-                      scope="page"
-                    />
-
                     <c:forEach
                       items="${wp.navigationModel.children[node]}"
                       var="nodeL2"
@@ -288,16 +229,10 @@
                         value="${nodeL2.metadata['navVisibility']}"
                       />
 
-                      <%--
-                        The panel remains rendered even when there are no
-                        visible Level-3 children because it may contain
-                        featured or targeted content.
-                      --%>
-
                       <c:if test="${hidePageFromNavL2 != 'hide'}">
                         <c:set
-                          var="level2LinkId"
-                          value="mega-link-${level1Status.index}-${level2Status.index}"
+                          var="level2TabId"
+                          value="mega-tab-${level1Status.index}-${level2Status.index}"
                         />
 
                         <c:set
@@ -306,13 +241,13 @@
                         />
 
                         <section
-                          class="mega-menu-panel${visibleLevel2PanelCounter == 0 ? ' is-active' : ''}"
+                          class="mega-menu-panel${level2Status.first ? ' is-active' : ''}"
                           id="${level2PanelId}"
-                          role="region"
-                          aria-labelledby="${level2LinkId}"
-                          aria-hidden="${visibleLevel2PanelCounter == 0 ? 'false' : 'true'}"
+                          role="tabpanel"
+                          aria-labelledby="${level2TabId}"
+                          aria-hidden="${level2Status.first ? 'false' : 'true'}"
                           data-mega-menu-panel
-                          <c:if test="${visibleLevel2PanelCounter != 0}">hidden</c:if>
+                          <c:if test="${not level2Status.first}">hidden</c:if>
                         >
                           <%--
                             Future panel title:
@@ -324,7 +259,7 @@
 
                           <div class="mega-menu-panel__layout">
                             <%-- ==================================================
-                                 Level-3 links: six visible entries per column
+                                 Level 3 links: six visible entries per column
                                  ================================================== --%>
 
                             <c:set
@@ -343,10 +278,7 @@
                               />
 
                               <c:if test="${hidePageFromNavL3 != 'hide'}">
-                                <%--
-                                  Open a new column before entries
-                                  1, 7, 13 and so on.
-                                --%>
+                                <%-- Open a new column before entries 1, 7, 13... --%>
 
                                 <c:if test="${visibleLevel3Counter mod 6 == 0}">
                                   <div class="mega-menu-panel__column">
@@ -378,9 +310,7 @@
                                 </c:if>
 
                                 <c:choose>
-                                  <%--
-                                    Level 3 with visible Level-4 children.
-                                  --%>
+                                  <%-- Level 3 with visible Level-4 children. --%>
 
                                   <c:when test="${hasVisibleL4}">
                                     <div class="mega-menu-flyout">
@@ -404,9 +334,8 @@
                                         class="mega-menu-flyout__menu"
                                         data-mega-menu-flyout-menu
                                       >
-                                        <%--
-                                          Optional Level-3 landing-page link.
-                                        --%>
+                                        <%-- Optional Level-3 landing-page link.
+                                             Kept without an icon, matching static. --%>
 
                                         <portal-navigation:urlGeneration
                                           contentNode="${wp.identification[nodeL3]}"
@@ -414,7 +343,7 @@
                                         >
                                           <a
                                             class="mega-menu-flyout__link mega-menu-flyout__link--overview"
-                                            href="<%wpsURL.write(out);%>"
+                                            href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
                                           >
                                             <c:out value="${nodeL3.title}" />
                                           </a>
@@ -438,7 +367,7 @@
                                             >
                                               <a
                                                 class="mega-menu-flyout__link"
-                                                href="<%wpsURL.write(out);%>"
+                                                href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
                                               >
                                                 <c:out value="${nodeL4.title}" />
                                               </a>
@@ -449,9 +378,7 @@
                                     </div>
                                   </c:when>
 
-                                  <%--
-                                    Level 3 without visible Level-4 children.
-                                  --%>
+                                  <%-- Level 3 without visible Level-4 children. --%>
 
                                   <c:otherwise>
                                     <portal-navigation:urlGeneration
@@ -460,7 +387,7 @@
                                     >
                                       <a
                                         class="mega-menu-panel__link"
-                                        href="<%wpsURL.write(out);%>"
+                                        href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
                                       >
                                         <c:out value="${nodeL3.title}" />
                                       </a>
@@ -474,10 +401,7 @@
                                   scope="page"
                                 />
 
-                                <%--
-                                  Close columns after entries
-                                  6, 12, 18 and so on.
-                                --%>
+                                <%-- Close columns after entries 6, 12, 18... --%>
 
                                 <c:if test="${visibleLevel3Counter mod 6 == 0}">
                                   </div>
@@ -485,17 +409,14 @@
                               </c:if>
                             </c:forEach>
 
-                            <%--
-                              Close the final partially filled column.
-                            --%>
+                            <%-- Close the final partially filled column. --%>
 
                             <c:if test="${visibleLevel3Counter mod 6 != 0}">
                               </div>
                             </c:if>
 
-                            <%--
-                              Careers link for the relevant About section.
-                            --%>
+                            <%-- Careers link remains available for the relevant
+                                 About section. It has no added chevron icon. --%>
 
                             <c:if
                               test="${nodeL2.objectID.uniqueName == 'com.tadawul.about.exchange.aboutus.v3'}"
@@ -523,7 +444,7 @@
                             </c:if>
 
                             <%-- ==================================================
-                                 Conditional featured content
+                                 Conditional featured content from legacy header
                                  ================================================== --%>
 
                             <c:set
@@ -559,9 +480,7 @@
                                     />
                                   </c:when>
 
-                                  <%--
-                                    Listing: retain custom 400-listed box.
-                                  --%>
+                                  <%-- Listing: retain legacy custom 400-listed box. --%>
 
                                   <c:when
                                     test="${
@@ -685,12 +604,6 @@
                             </c:if>
                           </div>
                         </section>
-
-                        <c:set
-                          var="visibleLevel2PanelCounter"
-                          value="${visibleLevel2PanelCounter + 1}"
-                          scope="page"
-                        />
                       </c:if>
                     </c:forEach>
                   </div>
@@ -714,10 +627,9 @@
           >
             <a
               class="header-lang-switch"
-              href='<portal-navigation:url command="ChangeLanguage"><portal-navigation:urlParam name="locale" value="en" /></portal-navigation:url>'
+              href='<portal-navigation:url command="ChangeLanguage"><portal-navigation:urlParam name="locale" value="${localeSwitch}"/></portal-navigation:url>'
               aria-label="Switch to English"
-              data-language-switch
-              data-language="en"
+              data-lang-toggle
               hreflang="en"
             >
               <span class="header-lang-switch__current">
@@ -734,15 +646,12 @@
           <c:otherwise>
             <a
               class="header-lang-switch"
-              href='<portal-navigation:url command="ChangeLanguage"><portal-navigation:urlParam name="locale" value="ar" /></portal-navigation:url>'
+              href='<portal-navigation:url command="ChangeLanguage"><portal-navigation:urlParam name="locale" value="${localeSwitch}" /></portal-navigation:url>'
               aria-label="Switch to Arabic"
-              data-language-switch
-              data-language="ar"
+              data-lang-toggle
               hreflang="ar"
             >
-              <span class="header-lang-switch__current">
-                <fmt:message key="theme.header.lang.arabic" />
-              </span>
+              <span class="header-lang-switch__current"><fmt:message key="theme.header.lang.arabic" /></span>
 
               <span
                 class="has-icon icon-globe icon-accent mobile-nav__language-icon"
@@ -752,24 +661,6 @@
           </c:otherwise>
         </c:choose>
       </div>
-
-      <div class="header-actions__mobile">
-        <button
-          class="header-burger"
-          type="button"
-          data-mobile-nav-open
-          aria-label="Open menu"
-          aria-expanded="false"
-          aria-controls="mobile-nav"
-        >
-          <span class="header-burger__line"></span>
-          <span class="header-burger__line"></span>
-          <span class="header-burger__line"></span>
-        </button>
-      </div>
-    </div>
-  </div>
-</header>
 <%--
   ============================================================================
   Saudi Exchange — Mobile Navigation
@@ -785,10 +676,7 @@
     - nested mobile-nav__submenu blocks
 
   Behavior:
-    - Level-1 parents render as expand/collapse buttons.
-    - Every visible Level-2 title remains a link.
-    - Level-2 expand buttons render only when visible Level-3 children exist.
-    - Level-2 nested containers remain available for featured content.
+    - Parent items with children render only as expand/collapse buttons.
     - Opening a parent shows its children directly.
     - No repeated "Our Market > Our Market" overview link.
     - Featured content is rendered conditionally using the legacy rules.
@@ -884,10 +772,9 @@
         >
           <a
             class="mobile-nav__language"
-            href='<portal-navigation:url command="ChangeLanguage"><portal-navigation:urlParam name="locale" value="en" /></portal-navigation:url>'
+            href='<portal-navigation:url command="ChangeLanguage"><portal-navigation:urlParam name="locale" value="${localeSwitch}" /></portal-navigation:url>'
             aria-label="Switch to English"
-            data-language-switch
-            data-language="en"
+            data-lang-toggle
             hreflang="en"
           >
             <span
@@ -902,10 +789,9 @@
         <c:otherwise>
           <a
             class="mobile-nav__language"
-            href='<portal-navigation:url command="ChangeLanguage"><portal-navigation:urlParam name="locale" value="ar" /></portal-navigation:url>'
+            href='<portal-navigation:url command="ChangeLanguage"><portal-navigation:urlParam name="locale" value="${localeSwitch}" /></portal-navigation:url>'
             aria-label="Switch to Arabic"
-            data-language-switch
-            data-language="ar"
+            data-lang-toggle
             hreflang="ar"
           >
             <span
@@ -1005,75 +891,47 @@
                           value="${nodeL2.metadata['navVisibility']}"
                         />
 
-                        <c:set
-                          var="hasVisibleMobileL3"
-                          value="false"
-                          scope="page"
-                        />
-
-                        <c:if
-                          test="${wp.navigationModel.hasChildren[nodeL2]}"
-                        >
-                          <c:forEach
-                            items="${wp.navigationModel.children[nodeL2]}"
-                            var="nodeL3VisibilityCheck"
-                          >
-                            <c:if
-                              test="${nodeL3VisibilityCheck.metadata['navVisibility'] != 'hide'}"
-                            >
-                              <c:set
-                                var="hasVisibleMobileL3"
-                                value="true"
-                                scope="page"
-                              />
-                            </c:if>
-                          </c:forEach>
-                        </c:if>
-
                         <c:if test="${hidePageFromMobileNavL2 != 'hide'}">
                           <c:set
                             var="mobileLevel2Id"
                             value="mobile-menu-l2-${mobileLevel1Status.index}-${mobileLevel2Status.index}"
                           />
 
-                          <li class="mobile-nav__submenu-item has-submenu">
-                            <div class="mobile-nav__submenu-row">
-                              <portal-navigation:urlGeneration
-                                contentNode="${wp.identification[nodeL2]}"
-                                keepNavigationalState="false"
-                              >
-                                <a
-                                  class="mobile-nav__link mobile-nav__link--parent"
-                                  href="<%wpsURL.write(out);%>"
-                                >
-                                  <c:out value="${nodeL2.title}" />
-                                </a>
-                              </portal-navigation:urlGeneration>
+                          <li
+                            class="mobile-nav__submenu-item${wp.navigationModel.hasChildren[nodeL2] ? ' has-submenu' : ''}"
+                          >
+                            <c:choose>
+                              <%-- ==============================================
+                                   Level 2 with children
+                                   ============================================== --%>
 
-                              <c:if test="${hasVisibleMobileL3}">
+                              <c:when
+                                test="${wp.navigationModel.hasChildren[nodeL2]}"
+                              >
                                 <button
-                                  class="mobile-nav__subtrigger mobile-nav__subtrigger--icon-only"
+                                  class="mobile-nav__subtrigger"
                                   type="button"
                                   data-mobile-submenu-trigger
                                   aria-expanded="false"
                                   aria-controls="${mobileLevel2Id}"
-                                  aria-label="Expand ${nodeL2.title} submenu"
                                 >
+                                  <span class="mobile-nav__subtrigger-text">
+                                    <c:out value="${nodeL2.title}" />
+                                  </span>
+
                                   <span
                                     class="has-icon icon-chevron-down mobile-nav__subtrigger-icon"
                                     aria-hidden="true"
                                   ></span>
                                 </button>
-                              </c:if>
-                            </div>
 
-                            <div
-                              class="mobile-nav__submenu mobile-nav__submenu--nested"
-                              id="${mobileLevel2Id}"
-                              data-mobile-submenu
-                              aria-hidden="true"
-                              hidden
-                            >
+                                <div
+                                  class="mobile-nav__submenu mobile-nav__submenu--nested"
+                                  id="${mobileLevel2Id}"
+                                  data-mobile-submenu
+                                  aria-hidden="true"
+                                  hidden
+                                >
                                   <ul class="mobile-nav__submenu-list">
                                     <c:forEach
                                       items="${wp.navigationModel.children[nodeL2]}"
@@ -1177,7 +1035,7 @@
                                                         >
                                                           <a
                                                             class="mobile-nav__link"
-                                                            href="<%wpsURL.write(out);%>"
+                                                            href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
                                                           >
                                                             <c:out
                                                               value="${nodeL4.title}"
@@ -1202,7 +1060,7 @@
                                               >
                                                 <a
                                                   class="mobile-nav__link"
-                                                  href="<%wpsURL.write(out);%>"
+                                                  href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
                                                 >
                                                   <c:out value="${nodeL3.title}" />
                                                 </a>
@@ -1390,7 +1248,27 @@
                                       </c:choose>
                                     </div>
                                   </c:if>
-                            </div>
+                                </div>
+                              </c:when>
+
+                              <%-- ==============================================
+                                   Level 2 direct link
+                                   ============================================== --%>
+
+                              <c:otherwise>
+                                <portal-navigation:urlGeneration
+                                  contentNode="${wp.identification[nodeL2]}"
+                                  keepNavigationalState="false"
+                                >
+                                  <a
+                                    class="mobile-nav__link"
+                                    href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
+                                  >
+                                    <c:out value="${nodeL2.title}" />
+                                  </a>
+                                </portal-navigation:urlGeneration>
+                              </c:otherwise>
+                            </c:choose>
                           </li>
                         </c:if>
                       </c:forEach>
@@ -1409,7 +1287,7 @@
                   >
                     <a
                       class="mobile-nav__link mobile-nav__link--primary"
-                      href="<%wpsURL.write(out);%>"
+                      href="<%wpsURL.write(out);%>?locale=${pageContext.response.locale}"
                     >
                       <c:out value="${nodeL1.title}" />
                     </a>
@@ -1442,3 +1320,550 @@
     </footer>
   </div>
 </aside>
+      <div class="header-actions__mobile">
+        <button
+          class="header-burger"
+          type="button"
+          data-mobile-nav-open
+          aria-label="Open menu"
+          aria-expanded="false"
+          aria-controls="mobile-nav"
+        >
+          <span class="header-burger__line"></span>
+          <span class="header-burger__line"></span>
+          <span class="header-burger__line"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+<c:if test="${displayFeedbackButton == 'true' }">
+
+	<c:if test="${fn:contains(pageContext.request.locale.language,'en')}">
+	
+	<script>
+	
+		// Function to open the modal
+		function openModal(modalId, buttonId) {
+		    const modal = document.getElementById(modalId);
+		    modal.style.display = 'flex';
+		    document.getElementById(buttonId).style.display = 'none';
+		
+		    // Create iframe dynamically with a specific ID
+		    const iframe = document.createElement('iframe');
+		    iframe.id = 'survey-iframe'; // Assign a unique ID for the iframe
+		    iframe.src = "https://survey.tadawulgroup.sa/cs/Pop-up-Survey-";
+		    modal.querySelector('.modal-content').appendChild(iframe);
+		
+		    // Create close button dynamically
+		    const closeButton = document.createElement('button');
+		    closeButton.classList.add('close-btn');
+		    closeButton.textContent = 'Close';
+		    closeButton.onclick = function () {
+		        closeModal(modalId, buttonId);
+		    };
+		    modal.querySelector('.modal-content').appendChild(closeButton);
+		}
+		
+		// Function to close the modal
+		function closeModal(modalId, buttonId) {
+		    const modal = document.getElementById(modalId);
+		    modal.style.display = 'none';
+		    document.getElementById(buttonId).style.display = 'block';
+		
+		    // Remove iframe with specific ID
+		    const iframe = modal.querySelector('#survey-iframe');
+		    if (iframe) iframe.remove();
+		
+		    // Remove the dynamically created close button
+		    const closeButton = modal.querySelector('.close-btn');
+		    if (closeButton) closeButton.remove();
+		}
+		
+		// Function to close modal and remove iframe on clicking outside of modal content
+		function closeOnOutsideClick(event, modalId, buttonId) {
+		    const modalContent = document.querySelector(`#${modalId} .modal-content`);
+		    if (!modalContent.contains(event.target)) {
+		        // Remove iframe and close modal
+		        closeModal(modalId, buttonId);
+		    }
+		}
+		
+		// Show feedback button
+		function showFeedbackButton() {
+		    document.getElementById('englishFeedback').style.display = 'block';
+		}
+		
+		// Initialize feedback button visibility
+		showFeedbackButton();
+		
+		// Event listeners for feedback buttons
+		document.getElementById('englishFeedback').addEventListener('click', function () {
+		    openModal('englishModal', 'englishFeedback');
+		});
+		
+		// Add event listener for clicking outside the modal
+		document.getElementById('englishModal').addEventListener('click', function (event) {
+		    closeOnOutsideClick(event, 'englishModal', 'englishFeedback');
+		});
+	
+	</script>
+	
+		<!-- Feedback buttons 123 -->
+		<div class="feedback-btn right" id="englishFeedback">
+			<h6>
+				<fmt:message key="feedback.button.text" />
+			</h6>
+		</div>
+
+		<!-- Modal for English Survey 123-->
+		<div class="modal" id="englishModal"
+			onclick="closeOnOutsideClick(event, 'englishModal', 'englishFeedback')">
+			<div class="modal-content" dir="ltr">
+				<!-- X Close Button -->
+				<button class="x-btn" id="closeBtnEnglish"
+					onclick="closeModal('englishModal', 'englishFeedback')">X</button>
+				<!-- Iframe will be dynamically created here -->
+			</div>
+		</div>
+	</c:if>
+
+	<c:if test="${fn:contains(pageContext.request.locale.language,'ar')}">
+	
+	<script>
+	
+		// Function to open the modal
+		function openModal(modalId, buttonId) {
+		    const modal = document.getElementById(modalId);
+		    modal.style.display = 'flex';
+		    document.getElementById(buttonId).style.display = 'none';
+		
+		    // Create iframe dynamically with a specific ID
+		    const iframe = document.createElement('iframe');
+		    iframe.id = 'survey-iframe'; // Assign a unique ID for the iframe
+		    iframe.src = "https://survey.tadawulgroup.sa/cs/Pop-up-Survey-";
+		    modal.querySelector('.modal-content').appendChild(iframe);
+		
+		    // Create close button dynamically
+		    const closeButton = document.createElement('button');
+		    closeButton.classList.add('close-btn');
+		    closeButton.textContent = 'Close';
+		    closeButton.onclick = function () {
+		        closeModal(modalId, buttonId);
+		    };
+		    modal.querySelector('.modal-content').appendChild(closeButton);
+		}
+		
+		// Function to close the modal
+		function closeModal(modalId, buttonId) {
+		    const modal = document.getElementById(modalId);
+		    modal.style.display = 'none';
+		    document.getElementById(buttonId).style.display = 'block';
+		
+		    // Remove iframe with specific ID
+		    const iframe = modal.querySelector('#survey-iframe');
+		    if (iframe) iframe.remove();
+		
+		    // Remove the dynamically created close button
+		    const closeButton = modal.querySelector('.close-btn');
+		    if (closeButton) closeButton.remove();
+		}
+		
+		// Function to close modal and remove iframe on clicking outside of modal content
+		function closeOnOutsideClick(event, modalId, buttonId) {
+		    const modalContent = document.querySelector(`#${modalId} .modal-content`);
+		    if (!modalContent.contains(event.target)) {
+		        // Remove iframe and close modal
+		        closeModal(modalId, buttonId);
+		    }
+		}
+		
+		// Show feedback button
+		function showFeedbackButton() {
+		    document.getElementById('englishFeedback').style.display = 'block';
+		}
+		
+		// Initialize feedback button visibility
+		showFeedbackButton();
+		
+		// Event listeners for feedback buttons
+		document.getElementById('englishFeedback').addEventListener('click', function () {
+		    openModal('englishModal', 'englishFeedback');
+		});
+		
+		// Add event listener for clicking outside the modal
+		document.getElementById('englishModal').addEventListener('click', function (event) {
+		    closeOnOutsideClick(event, 'englishModal', 'englishFeedback');
+		});
+	
+	</script>
+	
+		<div class="feedback-btn left" id="arabicFeedback">
+			<h6>
+				<fmt:message key="feedback.button.text" />
+			</h6>
+		</div>
+
+		<!-- Modal for Arabic Survey -->
+		<div class="modal" id="arabicModal"
+			onclick="closeOnOutsideClick(event, 'arabicModal', 'arabicFeedback')">
+			<div class="modal-content" dir="rtl">
+				<!-- X Close Button at the Top -->
+				<button class="x-btn" id="closeBtnArabic"
+					onclick="closeModal('arabicModal', 'arabicFeedback')">X</button>
+				<!-- Iframe will be dynamically created here -->
+			</div>
+		</div>
+	</c:if>
+
+</c:if>
+
+<c:if test="${captchaEnabled eq 'true'}">
+<script src="https://www.google.com/recaptcha/api.js?onload=onloadRecaptchaCallback&render=explicit"
+            async defer></script>
+</c:if>
+
+<script>
+
+$(document).ready(function() {
+    
+    var currentURL = window.location.href;
+
+    if (currentURL.includes("issuer-announcements-details")) {
+        if (currentURL.includes("locale=en")) {
+            var newURLString = removeLocaleParam(currentURL, 'locale');
+            newURLString = newURLString + "&locale=ar";
+            $('#changeLanguageLink').attr('href', newURLString);
+            $('#changeLanguageLinkMobile').attr('href', newURLString);
+            $('#ogURL').attr('content', newURLString);
+            $('#bookmarkLink').attr('href', newURLString);
+        } else {
+            var newURLString = removeLocaleParam(currentURL, 'locale');
+            newURLString = newURLString + "&locale=en";
+            $('#changeLanguageLink').attr('href', newURLString);
+            $('#changeLanguageLinkMobile').attr('href', newURLString);
+            $('#ogURL').attr('content', newURLString);
+            $('#bookmarkLink').attr('href', newURLString);
+        }
+    } else {
+        console.log("URL does not contain 'issuer-announcements-details'");
+    }
+    
+    if (currentURL.includes("news-detail-wcm")) {
+        if (currentURL.includes("locale=en")) {
+            var newURLString = removeLocaleParam(currentURL, 'locale');
+            newURLString = newURLString + "&locale=ar";
+            $('#changeLanguageLink').attr('href', newURLString);
+            $('#changeLanguageLinkMobile').attr('href', newURLString);
+            $('#ogURL').attr('content', newURLString);
+            $('#bookmarkLink').attr('href', newURLString);
+        } else {
+            var newURLString = removeLocaleParam(currentURL, 'locale');
+            newURLString = newURLString + "&locale=en";
+            $('#changeLanguageLink').attr('href', newURLString);
+            $('#changeLanguageLinkMobile').attr('href', newURLString);
+            $('#ogURL').attr('content', newURLString);
+            $('#bookmarkLink').attr('href', newURLString);
+        }
+    } else {
+        console.log("URL does not contain 'news-detail-wcm'");
+    }
+    
+
+    
+    
+});
+
+
+
+
+var captchaEnabled = '${captchaEnabled}';
+var widgetId = null;
+function onloadRecaptchaCallback() {
+    if (captchaEnabled !== 'true') {
+        return;
+    }
+    if ($('#tadawulRecaptcha1').length > 0) {
+        var currentLang = document.getElementsByTagName("html")[0]
+                .getAttribute("lang") || "en";
+        widgetId = grecaptcha.render('tadawulRecaptcha1', {
+            'sitekey' : '6LeCMd4sAAAAAEesg8Gcxfy4fLFLg5Uq4Jz_DVKX',
+            'hl' : currentLang,
+            'callback' : function(response) {
+                $("#captchaErrorMsg").text("").hide();
+            }
+        });
+    }
+}
+function validateCaptcha() {
+    if (captchaEnabled !== 'true') {
+        return true;
+    }
+    var response = grecaptcha.getResponse(widgetId);
+    if (!response || response.length === 0) {
+        $("#captchaErrorMsg").show();
+        return false;
+    }
+    $("#captchaErrorMsg").hide();
+    return true;
+}
+$(document).ready(function() {
+    if (captchaEnabled !== 'true') {
+        $("#captchaErrorMsg").hide();
+    }
+    if (captchaEnabled === 'true'
+&& typeof grecaptcha !== 'undefined'
+&& typeof grecaptcha.render === 'function'
+&& widgetId === null) {
+        onloadRecaptchaCallback();
+    }
+});	
+ 
+</script>
+<script type="text/javascript">
+function normalizeDigits(s) {
+	return s.replace(/[\u0660-\u0669\u06f0-\u06f9]/g,    // Detect all Persian/Arabic Digit in range of their Unicode with a global RegEx character set
+			function(a) { return a.charCodeAt(0) & 0xf }     // Remove the Unicode base(2) range that not match
+	)
+}
+function submitMobileSearch(){
+
+	var symbol = normalizeDigits($("#mobileSearchQuery").val());
+	var layoutNodeTag='';
+	var layoutNodeDerivativeTag='';
+	var layoutNodeETFTag='';
+	var layoutNodeMutualFundTag='';
+	<portal-navigation:urlGeneration contentNode="com.tadawul.search.v3" portletMode="view" portletParameterType="render" layoutNode="com.tadawul.search.v3.node" keepNavigationalState="false">
+		var searchPageURL = '<%wpsURL.write(out);%>';
+	</portal-navigation:urlGeneration>
+	layoutNodeTag = searchPageURL.substring(searchPageURL.lastIndexOf("/")+1,searchPageURL.length);
+	searchPageURL = searchPageURL.substring(0, searchPageURL.lastIndexOf("/")+1);
+	var searchResultLink = searchPageURL+'?query='+$("#mobileSearchQuery").val()+layoutNodeTag;
+	
+	<portal-navigation:urlGeneration contentNode="com.tadawul.hidden.company.profile.v3" portletMode="view" portletParameterType="render" layoutNode="com.tadawul.v3.company.profile.node.v3" keepNavigationalState="false">
+		var companyDetailsURL = '<%wpsURL.write(out);%>';
+	</portal-navigation:urlGeneration>
+	layoutNodeTag = companyDetailsURL.substring(companyDetailsURL.lastIndexOf("/")+1,companyDetailsURL.length);
+	companyDetailsURL = companyDetailsURL.substring(0, companyDetailsURL.lastIndexOf("/")+1);
+		//Added for SME
+	<portal-navigation:urlGeneration contentNode="com.tadawul.hidden.company.profile.nomu.v3" portletParameterType="render" layoutNode="com.tadawul.v3.company.profile.nomu.node.v3" keepNavigationalState="false">
+		var companyDetailsSMEURL = '<%wpsURL.write(out);%>';
+	</portal-navigation:urlGeneration>
+	layoutNodeSMETag = companyDetailsSMEURL.substring(companyDetailsSMEURL.lastIndexOf("/")+1,companyDetailsSMEURL.length);
+	companyDetailsSMEURL = companyDetailsSMEURL.substring(0, companyDetailsSMEURL.lastIndexOf("/")+1);
+	//Added for Govt Bonds - Corporate Bonds
+	<portal-navigation:urlGeneration contentNode="com.tadawul.v3.sukukmaret.company.profile.sukuk.v3" portletParameterType="render" layoutNode="com.tadawul.v3.sukukmaret.company.profile.sukuk.v3.node" keepNavigationalState="false">
+		var sukukURL = '<%wpsURL.write(out);%>';
+	</portal-navigation:urlGeneration>
+	layoutNodeSukukTag = sukukURL.substring(sukukURL.lastIndexOf("/")+1,sukukURL.length);
+	sukukURL = sukukURL.substring(0, sukukURL.lastIndexOf("/")+1);
+	//Added for Govt Bonds - Govt Bonds
+	<portal-navigation:urlGeneration contentNode="com.tadawul.v3.sukukmaret.company.profile.sukuk.v3" portletParameterType="render" layoutNode="com.tadawul.v3.sukukmaret.company.profile.sukuk.v3.node" keepNavigationalState="false">
+		var sukukGovtURL = '<%wpsURL.write(out);%>';
+	</portal-navigation:urlGeneration>
+	layoutNodeSukukGovtTag = sukukGovtURL.substring(sukukGovtURL.lastIndexOf("/")+1,sukukGovtURL.length);
+	sukukGovtURL = sukukGovtURL.substring(0, sukukGovtURL.lastIndexOf("/")+1);
+	
+		//Added for ETF
+	<portal-navigation:urlGeneration contentNode="com.tadawul.hidden.company.etf.v3" portletParameterType="render" layoutNode="com.tadawul.hidden.company.etf.v3.node" keepNavigationalState="false">
+		var companyDetailsETFURL = '<%wpsURL.write(out);%>';
+	</portal-navigation:urlGeneration>
+	layoutNodeETFTag = companyDetailsETFURL.substring(companyDetailsETFURL.lastIndexOf("/")+1,companyDetailsETFURL.length);
+	companyDetailsETFURL = companyDetailsETFURL.substring(0, companyDetailsETFURL.lastIndexOf("/")+1);
+	
+		//Added for MutualFunds
+	<portal-navigation:urlGeneration contentNode="com.tadawul.hidden.company.mutualfund.v3" portletParameterType="render" layoutNode="com.tadawul.hidden.company.mutualfund.v3.node" keepNavigationalState="false">
+		var mutualFundsURL = '<%wpsURL.write(out);%>';
+	</portal-navigation:urlGeneration>
+	layoutNodeMutualFundTag = mutualFundsURL.substring(mutualFundsURL.lastIndexOf("/")+1,mutualFundsURL.length);
+	mutualFundsURL = mutualFundsURL.substring(0, mutualFundsURL.lastIndexOf("/")+1);
+		
+	<%-- //Added for Derivatives
+	<portal-navigation:urlGeneration contentNode="com.tadawul.hidden.derivatives.v3" portletParameterType="render" layoutNode="com.tadawul.hidden.derivatives.v3.node" keepNavigationalState="false">
+		var contractDetailsURL = '<%wpsURL.write(out);%>
+	';
+		</portal-navigation:urlGeneration>
+		layoutNodeDerivativeTag = contractDetailsURL.substring(
+				contractDetailsURL.lastIndexOf("/") + 1,
+				contractDetailsURL.length);
+		contractDetailsURL = contractDetailsURL.substring(0, contractDetailsURL
+				.lastIndexOf("/") + 1); --%>
+				
+       //Added for Derivatives
+		<portal-navigation:urlGeneration contentNode="com.tadawul.hidden.derivatives.v3" portletParameterType="render" layoutNode="com.tadawul.hidden.derivatives.v3.node" keepNavigationalState="false">
+		    var contractDetailsURL = '<%wpsURL.write(out);%>';
+		</portal-navigation:urlGeneration>
+		
+		// Safely extract the layout node tag even if state parameters (!ut) exist
+		var cleanPath = contractDetailsURL.split('/!ut/')[0]; 
+		layoutNodeDerivativeTag = cleanPath.substring(cleanPath.lastIndexOf("/") + 1);
+		
+		// Keep the base URL leading up to that node
+		contractDetailsURL = cleanPath.substring(0, cleanPath.lastIndexOf("/") + 1);
+
+		var found = false;
+		var isMain = false;
+		var isSMECompany = false;
+		var isSukukCorporate = false;
+		var isSukukGovt = false;
+		var isDerivative = false;
+		var isETF = false;
+		var isMutualFunds = false;
+
+		for (var i = 0; i < window.searchableSymbols.length; i++) {
+			if (symbol == window.searchableSymbols[i].symbol) {
+				found = true;
+				if (null != window.searchableSymbols[i].market_type
+						&& window.searchableSymbols[i].market_type == 'S') {
+					isSMECompany = true;
+				} else if (null != window.searchableSymbols[i].market_type
+						&& window.searchableSymbols[i].market_type == 'E') {
+					isETF = true;
+				} else if (null != window.searchableSymbols[i].market_type
+						&& (window.searchableSymbols[i].market_type == 'B' || window.searchableSymbols[i].market_type == 'O')) {
+					if (null != window.searchableSymbols[i].bond_type
+							&& window.searchableSymbols[i].bond_type == 'S') {
+						isSukukCorporate = true;
+					} else if (null != window.searchableSymbols[i].bond_type
+							&& window.searchableSymbols[i].bond_type == 'G') {
+						isSukukGovt = true;
+					}
+				} else if (null != window.searchableSymbols[i].market_type
+						&& window.searchableSymbols[i].market_type == 'F') {
+					isMutualFunds = true;
+				} else if (null != window.searchableSymbols[i].market_type
+						&& window.searchableSymbols[i].market_type == 'D') {
+					isDerivative = true;
+				} else {
+					isMain = true;
+				}
+				break;
+			}
+		}
+
+		if (found && isMain) {
+			//symbol = symbol.substring(0,symbol.indexOf('-')-1);
+			var dtLink = companyDetailsURL + '?companySymbol=' + symbol
+					+ layoutNodeTag;
+			$('#mobileNavSearchForm').attr('action', dtLink);
+		} else if (found && isSMECompany) {
+			var dtLink = companyDetailsSMEURL + '?companySymbol=' + symbol
+					+ layoutNodeSMETag;
+			$('#mobileNavSearchForm').attr('action', dtLink);
+		} else if (found && isSukukCorporate) {
+			var dtLink = sukukURL + '?SukukBondsSymbol=' + symbol
+					+ '&BOND_TYPE=S&companySymbol=' + symbol
+					+ layoutNodeSukukTag;
+			$('#mobileNavSearchForm').attr('action', dtLink);
+		} else if (found && isSukukGovt) {
+			var dtLink = sukukGovtURL + '?SukukBondsSymbol=' + symbol
+					+ '&BOND_TYPE=G&companySymbol=' + symbol
+					+ layoutNodeSukukGovtTag;
+			$('#mobileNavSearchForm').attr('action', dtLink);
+		} else if (found && isETF) {
+			var dtLink = companyDetailsETFURL + '?etfSymbolParameter=' + symbol
+					+ '&companySymbol=' + symbol + layoutNodeETFTag;
+			$('#mobileNavSearchForm').attr('action', dtLink);
+		} else if (found && isMutualFunds) {
+			var dtLink = mutualFundsURL + '?selectedFund=' + symbol
+					+ '&tabIndex=1' + layoutNodeMutualFundTag;
+			$('#mobileNavSearchForm').attr('action', dtLink);
+		} else if (found && isDerivative) {
+			var dtLink = contractDetailsURL + '?contractSymbol=' + symbol
+					+ '&companySymbol=' + symbol + layoutNodeDerivativeTag;
+			$('#mobileNavSearchForm').attr('action', dtLink);
+		} else
+			$('#mobileNavSearchForm').attr('action', searchResultLink);
+
+		$('#mobileNavSearchForm').submit();
+	};
+
+	$(document)
+			.ready(
+					function() {
+						var newModules = [];
+						var updatedModules = [];
+
+						$
+								.ajax({
+									url : "/tadawul.eportal.theme.helper/getModuleStatus",
+									type : 'GET',
+									dataType : 'json',
+									success : function(response) {
+										if (Array.isArray(response.newModules)
+												&& Array
+														.isArray(response.updatedModules)) {
+											newModules = response.newModules;
+											updatedModules = response.updatedModules;
+										} else {
+											console
+													.error("Expected arrays not found in response.");
+										}
+										updateMenuLabels();
+
+										$(document).on(
+												'drawer:opened',
+												function() {
+													setTimeout(
+															updateMenuLabels,
+															50); // Small delay to ensure DOM is ready
+												});
+									},
+									error : function(xhr, status, error) {
+										console.error("Error fetching data:",
+												error);
+									}
+								});
+
+						function updateMenuLabels() {
+							//console.clear();
+							const userLang = "${pageContext.request.locale.language}";
+
+							// Select all anchor tags that have data-unique-name attribute
+							$('a[data-unique-name]')
+									.each(
+											function() {
+												var $this = $(this);
+												// console.log($this);
+												var uniqueName = $this
+														.data('unique-name');
+
+												// Remove any existing labels first to avoid duplicates
+												$this.find('.moduleLabel')
+														.remove();
+												//console.log(newModules);
+												if (newModules
+														.includes(uniqueName)) {
+													if (userLang.includes('ar')) {
+														// console.log('inside newModules.includes(uniqueName) ar');
+														$this
+																.append(' <span class="moduleLabel newModule ar"><fmt:message key="theme.header.option.label.new"/></span>');
+													} else {
+														//console.log('inside newModules.includes(uniqueName) en');
+														$this
+																.append(' <span class="moduleLabel newModule en"><fmt:message key="theme.header.option.label.new"/></span>');
+													}
+												} else if (updatedModules
+														.includes(uniqueName)) {
+													if (userLang.includes('ar')) {
+														// console.log('inside updatedModules.includes(uniqueName) ar');
+														$this
+																.append(' <span class="moduleLabel updateModule ar"><fmt:message key="theme.header.option.label.updated"/></span>');
+													} else {
+														// console.log('inside updatedModules.includes(uniqueName) en');
+														$this
+																.append(' <span class="moduleLabel updateModule en"><fmt:message key="theme.header.option.label.updated"/></span>');
+													}
+												}
+											});
+						}
+
+						$(document).on('click', '.drawer__submenu-toggle',
+								function() {
+									setTimeout(updateMenuLabels, 100);
+								});
+					});
+</script>
