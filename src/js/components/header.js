@@ -142,6 +142,8 @@ function activateMegaPanel(category, { focus = false } = {}) {
     const isActive = item === category;
 
     item.classList.toggle("is-active", isActive);
+    item.setAttribute("aria-selected", String(isActive));
+    item.setAttribute("tabindex", isActive ? "0" : "-1");
   });
 
   panels.forEach((panel) => {
@@ -334,13 +336,7 @@ function handleMegaCategoryKeyboard(event, category) {
       nextIndex = categories.length - 1;
       break;
 
-    /*
-     * Level-2 categories are real links. Enter must retain native anchor
-     * navigation. Space previews the associated content panel.
-     */
     case "Enter":
-      return;
-
     case " ":
       event.preventDefault();
       activateMegaPanel(category);
@@ -551,28 +547,15 @@ function closeNestedSubmenus(container) {
     });
 }
 
-/**
- * Finds the submenu trigger directly owned by a mobile navigation list item.
- * This supports triggers nested inside .mobile-nav__submenu-row while
- * excluding triggers belonging to descendant list items.
- */
-function getDirectMobileSubmenuTrigger(listItem) {
-  if (!listItem) return null;
-
-  return (
-    Array.from(listItem.querySelectorAll(SELECTORS.mobileSubmenuTrigger)).find(
-      (trigger) => trigger.closest("li") === listItem,
-    ) || null
-  );
-}
-
 function closeSiblingSubmenus(trigger) {
   const currentList = trigger.closest("ul");
 
   if (!currentList) return;
 
   Array.from(currentList.children).forEach((listItem) => {
-    const siblingTrigger = getDirectMobileSubmenuTrigger(listItem);
+    const siblingTrigger = listItem.querySelector(
+      `:scope > ${SELECTORS.mobileSubmenuTrigger}`,
+    );
 
     if (siblingTrigger && siblingTrigger !== trigger) {
       const siblingSubmenu = getMobileSubmenu(siblingTrigger);
@@ -734,8 +717,6 @@ function initializeMobileNavigationState() {
 }
 
 function handleMobileNavigationClick(event) {
-  if (!(event.target instanceof Element)) return;
-
   const openButton = event.target.closest(SELECTORS.mobileOpen);
 
   if (openButton) {
