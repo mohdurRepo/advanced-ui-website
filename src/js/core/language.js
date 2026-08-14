@@ -129,15 +129,31 @@ function storeLanguage(language) {
    Language Resolution
    ========================================================================== */
 
+function isPortalControlledPage() {
+  return Array.from(document.querySelectorAll(LANGUAGE_TOGGLE_SELECTOR)).some(
+    (control) => {
+      return (
+        isNavigableLanguageLink(control) &&
+        !control.hasAttribute("data-language-client")
+      );
+    },
+  );
+}
+
 /**
- * Resolution order:
- *
- * 1. The locale already present in the URL
- * 2. The language assigned to the document by Portal or static HTML
- * 3. The language saved in local storage
- * 4. The default language
+ * Portal pages use the server-rendered document language as the authority.
+ * Static client-controlled pages use the URL locale first.
  */
 function getInitialLanguage() {
+  if (isPortalControlledPage()) {
+    return (
+      getDocumentLanguage() ||
+      getUrlLanguage() ||
+      getStoredLanguage() ||
+      DEFAULT_LANGUAGE
+    );
+  }
+
   return (
     getUrlLanguage() ||
     getDocumentLanguage() ||
@@ -147,6 +163,15 @@ function getInitialLanguage() {
 }
 
 export function getLanguage() {
+  if (isPortalControlledPage()) {
+    return (
+      getDocumentLanguage() ||
+      getUrlLanguage() ||
+      getStoredLanguage() ||
+      DEFAULT_LANGUAGE
+    );
+  }
+
   return (
     getUrlLanguage() ||
     getDocumentLanguage() ||
@@ -376,9 +401,9 @@ function handleStorageChange(event) {
   }
 
   /*
-   * An explicit URL locale remains authoritative.
+   * Portal's rendered document and a static URL locale remain authoritative.
    */
-  if (getUrlLanguage()) {
+  if (isPortalControlledPage() || getUrlLanguage()) {
     return;
   }
 
@@ -396,6 +421,10 @@ function handleStorageChange(event) {
 }
 
 function handleHistoryNavigation() {
+  if (isPortalControlledPage()) {
+    return;
+  }
+
   const language = getUrlLanguage();
 
   if (!language) {

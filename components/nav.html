@@ -4,7 +4,9 @@
   ----------------------------------------------------------------------------
   Included:
     - Dynamic WCM logo
-    - Refactored desktop navigation
+    - Desktop navigation
+    - Level-2 clickable links
+    - Conditional Level-2 chevrons
     - Six visible Level-3 entries per column
     - Conditional featured content
     - Desktop language switch
@@ -14,7 +16,6 @@
   be placed immediately after this header.
 
   Temporarily disabled:
-    - Level-2 descriptions
     - Mega-menu panel titles
     - Theme toggle
   ============================================================================
@@ -146,13 +147,12 @@
               >
                 <div class="mega-menu__container">
                   <%-- ==========================================================
-                       Level 2 category rail
+                       Level-2 category rail
                        ========================================================== --%>
 
                   <div class="mega-menu__rail">
                     <div
                       class="mega-menu-nav"
-                      role="tablist"
                       aria-label="${node.title}"
                     >
                       <c:set
@@ -170,6 +170,14 @@
                           var="hidePageFromNavL2"
                           value="${nodeL2.metadata['navVisibility']}"
                         />
+
+                        <%--
+                          Check whether this Level-2 node has at least one
+                          visible Level-3 child.
+
+                          The Level-2 link and its panel are always rendered.
+                          This value controls only the chevron.
+                        --%>
 
                         <c:set
                           var="hasVisibleL3"
@@ -196,12 +204,10 @@
                           </c:forEach>
                         </c:if>
 
-                        <c:if
-                          test="${hidePageFromNavL2 != 'hide' and hasVisibleL3}"
-                        >
+                        <c:if test="${hidePageFromNavL2 != 'hide'}">
                           <c:set
-                            var="level2TabId"
-                            value="mega-tab-${level1Status.index}-${level2Status.index}"
+                            var="level2LinkId"
+                            value="mega-link-${level1Status.index}-${level2Status.index}"
                           />
 
                           <c:set
@@ -215,7 +221,7 @@
                           >
                             <a
                               class="mega-menu-nav__item${visibleLevel2RailCounter == 0 ? ' is-active' : ''}"
-                              id="${level2TabId}"
+                              id="${level2LinkId}"
                               href="<%wpsURL.write(out);%>"
                               aria-controls="${level2PanelId}"
                               data-mega-menu-tab
@@ -237,10 +243,17 @@
                                 </c:if>
                               </span>
 
-                              <span
-                                class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
-                                aria-hidden="true"
-                              ></span>
+                              <%--
+                                Render only the chevron conditionally.
+                                The Level-2 link remains available when false.
+                              --%>
+
+                              <c:if test="${hasVisibleL3}">
+                                <span
+                                  class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
+                                  aria-hidden="true"
+                                ></span>
+                              </c:if>
                             </a>
                           </portal-navigation:urlGeneration>
 
@@ -255,7 +268,7 @@
                   </div>
 
                   <%-- ==========================================================
-                       Level 2 content panels
+                       Level-2 content panels
                        ========================================================== --%>
 
                   <div class="mega-menu__content">
@@ -275,37 +288,16 @@
                         value="${nodeL2.metadata['navVisibility']}"
                       />
 
-                      <c:set
-                        var="hasVisibleL3"
-                        value="false"
-                        scope="page"
-                      />
+                      <%--
+                        The panel remains rendered even when there are no
+                        visible Level-3 children because it may contain
+                        featured or targeted content.
+                      --%>
 
-                      <c:if
-                        test="${wp.navigationModel.hasChildren[nodeL2]}"
-                      >
-                        <c:forEach
-                          items="${wp.navigationModel.children[nodeL2]}"
-                          var="nodeL3VisibilityCheck"
-                        >
-                          <c:if
-                            test="${nodeL3VisibilityCheck.metadata['navVisibility'] != 'hide'}"
-                          >
-                            <c:set
-                              var="hasVisibleL3"
-                              value="true"
-                              scope="page"
-                            />
-                          </c:if>
-                        </c:forEach>
-                      </c:if>
-
-                      <c:if
-                        test="${hidePageFromNavL2 != 'hide' and hasVisibleL3}"
-                      >
+                      <c:if test="${hidePageFromNavL2 != 'hide'}">
                         <c:set
-                          var="level2TabId"
-                          value="mega-tab-${level1Status.index}-${level2Status.index}"
+                          var="level2LinkId"
+                          value="mega-link-${level1Status.index}-${level2Status.index}"
                         />
 
                         <c:set
@@ -317,7 +309,7 @@
                           class="mega-menu-panel${visibleLevel2PanelCounter == 0 ? ' is-active' : ''}"
                           id="${level2PanelId}"
                           role="region"
-                          aria-labelledby="${level2TabId}"
+                          aria-labelledby="${level2LinkId}"
                           aria-hidden="${visibleLevel2PanelCounter == 0 ? 'false' : 'true'}"
                           data-mega-menu-panel
                           <c:if test="${visibleLevel2PanelCounter != 0}">hidden</c:if>
@@ -332,7 +324,7 @@
 
                           <div class="mega-menu-panel__layout">
                             <%-- ==================================================
-                                 Level 3 links: six visible entries per column
+                                 Level-3 links: six visible entries per column
                                  ================================================== --%>
 
                             <c:set
@@ -351,7 +343,10 @@
                               />
 
                               <c:if test="${hidePageFromNavL3 != 'hide'}">
-                                <%-- Open a new column before entries 1, 7, 13... --%>
+                                <%--
+                                  Open a new column before entries
+                                  1, 7, 13 and so on.
+                                --%>
 
                                 <c:if test="${visibleLevel3Counter mod 6 == 0}">
                                   <div class="mega-menu-panel__column">
@@ -383,7 +378,9 @@
                                 </c:if>
 
                                 <c:choose>
-                                  <%-- Level 3 with visible Level-4 children. --%>
+                                  <%--
+                                    Level 3 with visible Level-4 children.
+                                  --%>
 
                                   <c:when test="${hasVisibleL4}">
                                     <div class="mega-menu-flyout">
@@ -407,8 +404,9 @@
                                         class="mega-menu-flyout__menu"
                                         data-mega-menu-flyout-menu
                                       >
-                                        <%-- Optional Level-3 landing-page link.
-                                             Kept without an icon, matching static. --%>
+                                        <%--
+                                          Optional Level-3 landing-page link.
+                                        --%>
 
                                         <portal-navigation:urlGeneration
                                           contentNode="${wp.identification[nodeL3]}"
@@ -451,7 +449,9 @@
                                     </div>
                                   </c:when>
 
-                                  <%-- Level 3 without visible Level-4 children. --%>
+                                  <%--
+                                    Level 3 without visible Level-4 children.
+                                  --%>
 
                                   <c:otherwise>
                                     <portal-navigation:urlGeneration
@@ -474,7 +474,10 @@
                                   scope="page"
                                 />
 
-                                <%-- Close columns after entries 6, 12, 18... --%>
+                                <%--
+                                  Close columns after entries
+                                  6, 12, 18 and so on.
+                                --%>
 
                                 <c:if test="${visibleLevel3Counter mod 6 == 0}">
                                   </div>
@@ -482,14 +485,17 @@
                               </c:if>
                             </c:forEach>
 
-                            <%-- Close the final partially filled column. --%>
+                            <%--
+                              Close the final partially filled column.
+                            --%>
 
                             <c:if test="${visibleLevel3Counter mod 6 != 0}">
                               </div>
                             </c:if>
 
-                            <%-- Careers link remains available for the relevant
-                                 About section. It has no added chevron icon. --%>
+                            <%--
+                              Careers link for the relevant About section.
+                            --%>
 
                             <c:if
                               test="${nodeL2.objectID.uniqueName == 'com.tadawul.about.exchange.aboutus.v3'}"
@@ -517,7 +523,7 @@
                             </c:if>
 
                             <%-- ==================================================
-                                 Conditional featured content from legacy header
+                                 Conditional featured content
                                  ================================================== --%>
 
                             <c:set
@@ -553,7 +559,9 @@
                                     />
                                   </c:when>
 
-                                  <%-- Listing: retain legacy custom 400-listed box. --%>
+                                  <%--
+                                    Listing: retain custom 400-listed box.
+                                  --%>
 
                                   <c:when
                                     test="${
@@ -732,7 +740,9 @@
               data-language="ar"
               hreflang="ar"
             >
-              <span class="header-lang-switch__current"><fmt:message key="theme.header.lang.arabic" /></span>
+              <span class="header-lang-switch__current">
+                <fmt:message key="theme.header.lang.arabic" />
+              </span>
 
               <span
                 class="has-icon icon-globe icon-accent mobile-nav__language-icon"
@@ -742,6 +752,7 @@
           </c:otherwise>
         </c:choose>
       </div>
+
       <div class="header-actions__mobile">
         <button
           class="header-burger"
@@ -775,8 +786,9 @@
 
   Behavior:
     - Level-1 parents render as expand/collapse buttons.
-    - Level-2 titles are links with separate submenu toggle buttons.
-    - Level-2 items without visible Level-3 children are not rendered.
+    - Every visible Level-2 title remains a link.
+    - Level-2 expand buttons render only when visible Level-3 children exist.
+    - Level-2 nested containers remain available for featured content.
     - Opening a parent shows its children directly.
     - No repeated "Our Market > Our Market" overview link.
     - Featured content is rendered conditionally using the legacy rules.
@@ -1018,9 +1030,7 @@
                           </c:forEach>
                         </c:if>
 
-                        <c:if
-                          test="${hidePageFromMobileNavL2 != 'hide' and hasVisibleMobileL3}"
-                        >
+                        <c:if test="${hidePageFromMobileNavL2 != 'hide'}">
                           <c:set
                             var="mobileLevel2Id"
                             value="mobile-menu-l2-${mobileLevel1Status.index}-${mobileLevel2Status.index}"
@@ -1040,19 +1050,21 @@
                                 </a>
                               </portal-navigation:urlGeneration>
 
-                              <button
-                                class="mobile-nav__subtrigger mobile-nav__subtrigger--icon-only"
-                                type="button"
-                                data-mobile-submenu-trigger
-                                aria-expanded="false"
-                                aria-controls="${mobileLevel2Id}"
-                                aria-label="Expand ${nodeL2.title} submenu"
-                              >
-                                <span
-                                  class="has-icon icon-chevron-down mobile-nav__subtrigger-icon"
-                                  aria-hidden="true"
-                                ></span>
-                              </button>
+                              <c:if test="${hasVisibleMobileL3}">
+                                <button
+                                  class="mobile-nav__subtrigger mobile-nav__subtrigger--icon-only"
+                                  type="button"
+                                  data-mobile-submenu-trigger
+                                  aria-expanded="false"
+                                  aria-controls="${mobileLevel2Id}"
+                                  aria-label="Expand ${nodeL2.title} submenu"
+                                >
+                                  <span
+                                    class="has-icon icon-chevron-down mobile-nav__subtrigger-icon"
+                                    aria-hidden="true"
+                                  ></span>
+                                </button>
+                              </c:if>
                             </div>
 
                             <div

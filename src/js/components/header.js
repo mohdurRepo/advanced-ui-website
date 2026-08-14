@@ -90,13 +90,9 @@ function getFocusableElements(container) {
 function focusElement(element) {
   if (!(element instanceof HTMLElement)) return;
 
-  try {
-    element.focus({
-      preventScroll: true,
-    });
-  } catch {
-    element.focus();
-  }
+  element.focus({
+    preventScroll: true,
+  });
 }
 
 /* ==========================================================================
@@ -135,22 +131,13 @@ function activateMegaPanel(category, { focus = false } = {}) {
   if (!category) return;
 
   const megaMenu = category.closest(SELECTORS.megaMenu);
-
   const targetId = category.getAttribute("aria-controls");
 
   if (!megaMenu || !targetId) return;
 
   const categories = getMegaCategories(megaMenu);
-
   const panels = getMegaPanels(megaMenu);
 
-  /*
-   * Level-2 entries are standard links.
-   *
-   * Only the visual active state is synchronized. Do not add
-   * aria-selected or managed tabindex because those attributes
-   * belong to tab interfaces, not navigable links.
-   */
   categories.forEach((item) => {
     const isActive = item === category;
 
@@ -161,9 +148,7 @@ function activateMegaPanel(category, { focus = false } = {}) {
     const isActive = panel.id === targetId;
 
     panel.classList.toggle("is-active", isActive);
-
     panel.hidden = !isActive;
-
     panel.setAttribute("aria-hidden", String(!isActive));
   });
 
@@ -182,7 +167,7 @@ function getDefaultMegaCategory(item) {
    *
    * data-mega-default
    *
-   * Otherwise, the first category is the default.
+   * Otherwise, the first category is always the default.
    */
   return (
     categories.find((category) => category.hasAttribute("data-mega-default")) ||
@@ -220,24 +205,21 @@ function openDesktopItem(item) {
   }
 
   const trigger = getDesktopTrigger(item);
-
   const megaMenu = getMegaMenu(item);
 
   if (!trigger || !megaMenu) return;
 
   /*
    * Restore the default panel before displaying the menu.
-   * This prevents the last hovered category from remaining active
-   * when the user returns to the top-level navigation item.
+   * This prevents the last hovered category from remaining active when the
+   * user returns to the top-level navigation item.
    */
   activateInitialMegaPanel(item);
 
   activeDesktopItem = item;
 
   item.classList.add(CLASSES.open);
-
   trigger.setAttribute("aria-expanded", "true");
-
   megaMenu.setAttribute("aria-hidden", "false");
 
   setHeaderDesktopState(true);
@@ -247,18 +229,15 @@ function closeDesktopItem(item, { restoreFocus = false } = {}) {
   if (!item) return;
 
   const trigger = getDesktopTrigger(item);
-
   const megaMenu = getMegaMenu(item);
 
   item.classList.remove(CLASSES.open);
-
   trigger?.setAttribute("aria-expanded", "false");
-
   megaMenu?.setAttribute("aria-hidden", "true");
 
   /*
-   * Reset while closed so visual and ARIA states are ready
-   * for the next opening.
+   * Reset while closed so both visual state and ARIA state are ready for the
+   * next opening.
    */
   activateInitialMegaPanel(item);
 
@@ -285,7 +264,6 @@ function closeAllDesktopMenus(options = {}) {
     });
 
   activeDesktopItem = null;
-
   setHeaderDesktopState(false);
 }
 
@@ -333,12 +311,9 @@ function handleMegaCategoryKeyboard(event, category) {
   if (!megaMenu) return;
 
   const categories = getMegaCategories(megaMenu);
-
   const currentIndex = categories.indexOf(category);
 
-  if (currentIndex < 0 || !categories.length) {
-    return;
-  }
+  if (currentIndex < 0 || !categories.length) return;
 
   let nextIndex = currentIndex;
 
@@ -360,10 +335,8 @@ function handleMegaCategoryKeyboard(event, category) {
       break;
 
     /*
-     * Level-2 categories are real links.
-     *
-     * Enter retains native anchor navigation.
-     * Space previews the associated panel.
+     * Level-2 categories are real links. Enter must retain native anchor
+     * navigation. Space previews the associated content panel.
      */
     case "Enter":
       return;
@@ -391,8 +364,6 @@ function handleMegaCategoryKeyboard(event, category) {
 
   event.preventDefault();
 
-  nextIndex = (nextIndex + categories.length) % categories.length;
-
   activateMegaPanel(categories[nextIndex], {
     focus: true,
   });
@@ -404,7 +375,6 @@ function handleMegaCategoryKeyboard(event, category) {
 
 function initializeDesktopItem(item) {
   const trigger = getDesktopTrigger(item);
-
   const megaMenu = getMegaMenu(item);
 
   if (!trigger || !megaMenu) return;
@@ -412,23 +382,18 @@ function initializeDesktopItem(item) {
   item.classList.remove(CLASSES.open);
 
   trigger.setAttribute("aria-expanded", "false");
-
   megaMenu.setAttribute("aria-hidden", "true");
 
   initializeMegaPanels(item);
 
   item.addEventListener("pointerenter", (event) => {
-    if (event.pointerType === "touch") {
-      return;
-    }
+    if (event.pointerType === "touch") return;
 
     scheduleDesktopOpen(item);
   });
 
   item.addEventListener("pointerleave", (event) => {
-    if (event.pointerType === "touch") {
-      return;
-    }
+    if (event.pointerType === "touch") return;
 
     scheduleDesktopClose(item);
   });
@@ -437,7 +402,6 @@ function initializeDesktopItem(item) {
     if (!isDesktop()) return;
 
     event.preventDefault();
-
     toggleDesktopItem(item);
   });
 
@@ -519,6 +483,7 @@ function initializeDesktopMenus() {
 
   document.addEventListener("keydown", handleMegaCategoryKeydown);
 }
+
 /* ==========================================================================
    Mobile Navigation Helpers
    ========================================================================== */
@@ -569,13 +534,10 @@ function setMobileSubmenu(trigger, open) {
   if (!submenu) return;
 
   trigger.setAttribute("aria-expanded", String(open));
-
   trigger.classList.toggle(CLASSES.open, open);
 
   submenu.classList.toggle(CLASSES.open, open);
-
   submenu.hidden = !open;
-
   submenu.setAttribute("aria-hidden", String(!open));
 }
 
@@ -590,29 +552,16 @@ function closeNestedSubmenus(container) {
 }
 
 /**
- * Finds the submenu trigger directly owned by a mobile
- * navigation list item.
- *
- * The trigger may be nested inside:
- *
- * <li>
- *   <div class="mobile-nav__submenu-row">
- *     <a class="mobile-nav__link">...</a>
- *     <button data-mobile-submenu-trigger>...</button>
- *   </div>
- *   <div class="mobile-nav__submenu">...</div>
- * </li>
- *
- * Nested triggers belonging to child list items are excluded.
+ * Finds the submenu trigger directly owned by a mobile navigation list item.
+ * This supports triggers nested inside .mobile-nav__submenu-row while
+ * excluding triggers belonging to descendant list items.
  */
 function getDirectMobileSubmenuTrigger(listItem) {
   if (!listItem) return null;
 
   return (
     Array.from(listItem.querySelectorAll(SELECTORS.mobileSubmenuTrigger)).find(
-      (trigger) => {
-        return trigger.closest("li") === listItem;
-      },
+      (trigger) => trigger.closest("li") === listItem,
     ) || null
   );
 }
@@ -629,7 +578,6 @@ function closeSiblingSubmenus(trigger) {
       const siblingSubmenu = getMobileSubmenu(siblingTrigger);
 
       closeNestedSubmenus(siblingSubmenu);
-
       setMobileSubmenu(siblingTrigger, false);
     }
   });
@@ -668,12 +616,9 @@ function resetMobileSubmenus() {
 function openMobileNav(trigger = null) {
   const nav = getMobileNav();
   const overlay = getMobileOverlay();
-
   const openButton = trigger || getMobileOpenButton();
 
-  if (!nav || !overlay || isDesktop()) {
-    return;
-  }
+  if (!nav || !overlay || isDesktop()) return;
 
   lastFocusedElement =
     document.activeElement instanceof HTMLElement
@@ -681,13 +626,10 @@ function openMobileNav(trigger = null) {
       : openButton;
 
   nav.classList.add(CLASSES.open);
-
   overlay.classList.add(CLASSES.open);
 
   nav.setAttribute("aria-hidden", "false");
-
   overlay.setAttribute("aria-hidden", "false");
-
   openButton?.setAttribute("aria-expanded", "true");
 
   setMobileScrollLock(true);
@@ -702,19 +644,15 @@ function openMobileNav(trigger = null) {
 function closeMobileNav({ restoreFocus = true } = {}) {
   const nav = getMobileNav();
   const overlay = getMobileOverlay();
-
   const openButton = getMobileOpenButton();
 
   if (!nav || !overlay) return;
 
   nav.classList.remove(CLASSES.open);
-
   overlay.classList.remove(CLASSES.open);
 
   nav.setAttribute("aria-hidden", "true");
-
   overlay.setAttribute("aria-hidden", "true");
-
   openButton?.setAttribute("aria-expanded", "false");
 
   setMobileScrollLock(false);
@@ -742,7 +680,6 @@ function trapMobileFocus(event) {
   }
 
   const nav = getMobileNav();
-
   const focusableElements = getFocusableElements(nav);
 
   if (!focusableElements.length) {
@@ -752,7 +689,6 @@ function trapMobileFocus(event) {
   }
 
   const firstElement = focusableElements[0];
-
   const lastElement = focusableElements[focusableElements.length - 1];
 
   if (event.shiftKey && document.activeElement === firstElement) {
@@ -784,17 +720,13 @@ function initializeMobileSubmenus() {
 function initializeMobileNavigationState() {
   const nav = getMobileNav();
   const overlay = getMobileOverlay();
-
   const openButton = getMobileOpenButton();
 
   nav?.classList.remove(CLASSES.open);
-
   overlay?.classList.remove(CLASSES.open);
 
   nav?.setAttribute("aria-hidden", "true");
-
   overlay?.setAttribute("aria-hidden", "true");
-
   openButton?.setAttribute("aria-expanded", "false");
 
   setMobileScrollLock(false);
@@ -802,9 +734,7 @@ function initializeMobileNavigationState() {
 }
 
 function handleMobileNavigationClick(event) {
-  if (!(event.target instanceof Element)) {
-    return;
-  }
+  if (!(event.target instanceof Element)) return;
 
   const openButton = event.target.closest(SELECTORS.mobileOpen);
 
@@ -827,20 +757,11 @@ function handleMobileNavigationClick(event) {
     return;
   }
 
-  /*
-   * The submenu trigger is the icon-only button beside a
-   * Level-2 link.
-   *
-   * Preventing default affects only the button. Clicking the
-   * adjacent Level-2 anchor continues to navigate normally.
-   */
   const submenuTrigger = event.target.closest(SELECTORS.mobileSubmenuTrigger);
 
   if (submenuTrigger) {
     event.preventDefault();
-
     toggleMobileSubmenu(submenuTrigger);
-
     return;
   }
 
@@ -866,9 +787,7 @@ function initializeMobileNavigation() {
    ========================================================================== */
 
 function handleGlobalKeyboard(event) {
-  if (event.key !== "Escape") {
-    return;
-  }
+  if (event.key !== "Escape") return;
 
   if (isMobileNavOpen()) {
     event.preventDefault();
