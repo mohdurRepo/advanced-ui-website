@@ -1,0 +1,323 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Filter Bar Variants
+   ========================================================================== */
+
+/*
+ * Owns optional presentation and composition variants:
+ *
+ * - stacked
+ * - connected
+ * - quiet
+ * - compact
+ * - flat
+ * - inline
+ * - inverse
+ */
+
+/* ==========================================================================
+   Stacked Layout
+   ========================================================================== */
+
+/*
+ * Places filter fields on the first row and actions on a separate row.
+ *
+ * Recommended for:
+ *
+ * - four or more filters
+ * - filters containing a date range
+ * - forms where actions should remain visually separate
+ */
+
+.filter-bar--stacked .filter-bar__inner {
+  display: grid;
+  align-items: stretch;
+  justify-content: stretch;
+  gap: var(--filter-bar-gap);
+
+  inline-size: 100%;
+}
+
+.filter-bar--stacked .filter-bar__fields {
+  inline-size: 100%;
+}
+
+.filter-bar--stacked .filter-bar__actions {
+  inline-size: 100%;
+
+  justify-content: flex-end;
+}
+
+/* ==========================================================================
+   Connected Variant
+   ========================================================================== */
+
+/*
+ * Use when another surface is directly attached beneath the filter bar.
+ */
+
+.filter-bar--connected {
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+
+  border-block-end: 0;
+
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Quiet Variant
+   ========================================================================== */
+
+/*
+ * Removes the surrounding surface while preserving standard internal
+ * composition and spacing variables.
+ */
+
+.filter-bar--quiet {
+  padding: 0;
+
+  border: 0;
+  border-radius: 0;
+
+  background: transparent;
+
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.filter-bar--compact {
+  --filter-bar-padding-block: #{ds.space(3)};
+  --filter-bar-padding-inline: #{ds.space(3)};
+
+  --filter-bar-gap: #{ds.space(3)};
+  --filter-bar-field-gap: #{ds.space(2)};
+
+  --filter-bar-control-block-size: 2.75rem;
+}
+
+.filter-bar--compact .filter-bar__header {
+  margin-block-end: ds.space(3);
+}
+
+.filter-bar--compact .filter-bar__secondary,
+.filter-bar--compact .filter-bar__results {
+  margin-block-start: ds.space(3);
+  padding-block-start: ds.space(2);
+}
+
+/* ==========================================================================
+   Flat Variant
+   ========================================================================== */
+
+/*
+ * Keeps the surface and border but removes elevation.
+ */
+
+.filter-bar--flat {
+  --filter-bar-shadow: none;
+}
+
+/* ==========================================================================
+   Inline Variant
+   ========================================================================== */
+
+/*
+ * Intended for wide, lightweight toolbars.
+ *
+ * Unlike the quiet variant, inline retains its own padding and may retain a
+ * background supplied by the surrounding context.
+ */
+
+.filter-bar--inline {
+  --filter-bar-shadow: none;
+
+  border: 0;
+  border-radius: 0;
+
+  background: transparent;
+}
+
+.filter-bar--inline .filter-bar__inner {
+  flex-wrap: wrap;
+}
+
+.filter-bar--inline .filter-bar__fields {
+  flex: 1 1 40rem;
+}
+
+.filter-bar--inline .filter-bar__actions {
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   Inverse Variant
+   ========================================================================== */
+
+/*
+ * Intended for placement on a dark Hero or branded surface.
+ *
+ * Form controls keep their standard surface so values remain readable.
+ */
+
+.filter-bar--inverse {
+  --filter-bar-bg: rgb(0 20 40 / 0.22);
+  --filter-bar-color: #ffffff;
+  --filter-bar-heading-color: #ffffff;
+  --filter-bar-muted-color: rgb(255 255 255 / 0.76);
+  --filter-bar-border-color: rgb(255 255 255 / 0.28);
+  --filter-bar-shadow: none;
+
+  backdrop-filter: blur(0.5rem);
+}
+
+.filter-bar--inverse .filter-bar__field .form-label,
+.filter-bar--inverse .filter-bar__field .form-label-static,
+.filter-bar--inverse .filter-bar__active-label,
+.filter-bar--inverse .filter-bar__count {
+  color: var(--filter-bar-muted-color);
+}
+
+.filter-bar--inverse .filter-bar__count-value {
+  color: var(--filter-bar-heading-color);
+}
+
+.filter-bar--inverse .filter-bar__secondary,
+.filter-bar--inverse .filter-bar__results {
+  border-color: var(--filter-bar-border-color);
+}
+
+.filter-bar--inverse .filter-bar__legend-item {
+  color: var(--filter-bar-muted-color);
+}
+
+.filter-bar--inverse .filter-chip {
+  border-color: rgb(255 255 255 / 0.3);
+
+  background: rgb(255 255 255 / 0.1);
+  color: #ffffff;
+}
+
+.filter-bar--inverse .filter-chip:hover:not(:disabled) {
+  border-color: #ffffff;
+
+  background: rgb(255 255 255 / 0.16);
+  color: #ffffff;
+}
+
+.filter-bar--inverse .filter-chip__remove,
+.filter-bar--inverse .filter-bar__clear {
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .filter-bar--stacked .filter-bar__inner {
+    display: grid;
+  }
+
+  .filter-bar--stacked .filter-bar__actions {
+    justify-content: flex-end;
+  }
+
+  .filter-bar--inline .filter-bar__inner {
+    align-items: stretch;
+  }
+
+  .filter-bar--inline .filter-bar__fields {
+    flex-basis: 100%;
+  }
+
+  .filter-bar--inline .filter-bar__actions {
+    inline-size: 100%;
+
+    justify-content: flex-start;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .filter-bar--stacked .filter-bar__actions {
+    justify-content: stretch;
+  }
+
+  .filter-bar--inline {
+    padding-inline: 0;
+  }
+
+  .filter-bar--inverse {
+    --filter-bar-bg: rgb(0 20 40 / 0.32);
+
+    backdrop-filter: none;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .filter-bar--quiet,
+html[data-contrast="high"] .filter-bar--inline {
+  border: 0;
+}
+
+html[data-contrast="high"] .filter-bar--inverse {
+  --filter-bar-bg: #000000;
+  --filter-bar-color: #ffffff;
+  --filter-bar-heading-color: #ffffff;
+  --filter-bar-muted-color: #ffffff;
+  --filter-bar-border-color: #ffffff;
+
+  backdrop-filter: none;
+}
+
+html[data-contrast="high"] .filter-bar--inverse .filter-chip {
+  border-color: currentColor;
+
+  background: transparent;
+  color: currentColor;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .filter-bar--inverse {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    backdrop-filter: none;
+  }
+
+  .filter-bar--inverse .filter-chip {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+}
+
+/* ==========================================================================
+   Reduced Transparency
+   ========================================================================== */
+
+@media (prefers-reduced-transparency: reduce) {
+  .filter-bar--inverse {
+    --filter-bar-bg: #002c72;
+
+    backdrop-filter: none;
+  }
+}

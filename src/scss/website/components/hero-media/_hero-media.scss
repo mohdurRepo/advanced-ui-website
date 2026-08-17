@@ -1,0 +1,384 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Hero Media
+   ========================================================================== */
+
+/*
+ * Reusable presentation for supporting media inside a Hero.
+ *
+ * Supported content:
+ *
+ * - responsive images
+ * - pictures
+ * - videos
+ * - poster images
+ *
+ * Layout remains owned by split-layout. This component owns only the media
+ * frame, ratio, clipping, border and presentation states.
+ */
+
+.hero-media {
+  --hero-media-ratio: 16 / 9;
+  --hero-media-max-width: 24rem;
+
+  --hero-media-bg: rgb(255 255 255 / 0.08);
+  --hero-media-border: rgb(255 255 255 / 0.28);
+  --hero-media-radius: var(--radius-lg);
+  --hero-media-shadow: var(--shadow-md);
+
+  --hero-media-overlay-opacity: 0.08;
+
+  position: relative;
+  isolation: isolate;
+
+  inline-size: min(100%, var(--hero-media-max-width));
+  min-inline-size: 0;
+  aspect-ratio: var(--hero-media-ratio);
+  margin-inline-start: auto;
+
+  overflow: hidden;
+
+  border: 1px solid var(--hero-media-border);
+  border-radius: var(--hero-media-radius);
+
+  background: var(--hero-media-bg);
+
+  box-shadow: var(--hero-media-shadow);
+}
+
+/* ==========================================================================
+   Media Content
+   ========================================================================== */
+
+.hero-media__image,
+.hero-media__video,
+.hero-media img,
+.hero-media picture,
+.hero-media video {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.hero-media__image,
+.hero-media__video,
+.hero-media img,
+.hero-media video {
+  object-fit: cover;
+}
+
+/* ==========================================================================
+   Decorative Overlay
+   ========================================================================== */
+
+/*
+ * The overlay subtly connects photographic media to the Hero color palette
+ * without reducing image clarity.
+ */
+
+.hero-media::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  background: linear-gradient(
+    135deg,
+    rgb(0 68 227 / var(--hero-media-overlay-opacity)),
+    transparent 62%
+  );
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Video
+   ========================================================================== */
+
+.hero-media__video,
+.hero-media video {
+  background: #000000;
+}
+
+/* ==========================================================================
+   Caption
+   ========================================================================== */
+
+.hero-media__caption {
+  position: absolute;
+  z-index: 2;
+
+  inset-inline: ds.space(3);
+  inset-block-end: ds.space(3);
+
+  display: inline-flex;
+  align-items: center;
+  gap: ds.space(2);
+
+  max-inline-size: calc(100% - #{ds.space(6)});
+  padding-block: ds.space(2);
+  padding-inline: ds.space(3);
+
+  border-radius: var(--radius-md);
+
+  background: rgb(0 31 51 / 0.84);
+  color: #ffffff;
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  backdrop-filter: blur(0.5rem);
+}
+
+/* ==========================================================================
+   Media Badge
+   ========================================================================== */
+
+.hero-media__badge {
+  --icon-size: 0.875rem;
+
+  position: absolute;
+  z-index: 2;
+
+  inset-block-start: ds.space(3);
+  inset-inline-start: ds.space(3);
+
+  display: inline-flex;
+  align-items: center;
+  gap: ds.space(1);
+
+  min-block-size: 1.75rem;
+  padding-block: ds.space(1);
+  padding-inline: ds.space(2);
+
+  border: 1px solid rgb(255 255 255 / 0.32);
+  border-radius: var(--radius-pill);
+
+  background: rgb(0 31 51 / 0.78);
+  color: #ffffff;
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
+
+  backdrop-filter: blur(0.5rem);
+}
+
+/* ==========================================================================
+   Aspect-ratio Variants
+   ========================================================================== */
+
+.hero-media--square {
+  --hero-media-ratio: 1;
+  --hero-media-max-width: 20rem;
+}
+
+.hero-media--portrait {
+  --hero-media-ratio: 4 / 5;
+  --hero-media-max-width: 19rem;
+}
+
+.hero-media--wide {
+  --hero-media-ratio: 21 / 9;
+  --hero-media-max-width: 32rem;
+}
+
+/* ==========================================================================
+   Size Variants
+   ========================================================================== */
+
+.hero-media--sm {
+  --hero-media-max-width: 18rem;
+  --hero-media-radius: var(--radius-md);
+}
+
+.hero-media--lg {
+  --hero-media-max-width: 30rem;
+}
+
+/* ==========================================================================
+   Alignment Variants
+   ========================================================================== */
+
+.hero-media--start {
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+}
+
+.hero-media--center {
+  margin-inline: auto;
+}
+
+/* ==========================================================================
+   Contained Media
+   ========================================================================== */
+
+/*
+ * Useful for logos, diagrams and illustrations that must remain fully
+ * visible rather than being cropped.
+ */
+
+.hero-media--contain {
+  padding: ds.space(4);
+}
+
+.hero-media--contain .hero-media__image,
+.hero-media--contain .hero-media__video,
+.hero-media--contain img,
+.hero-media--contain video {
+  object-fit: contain;
+}
+
+/* ==========================================================================
+   Borderless Variant
+   ========================================================================== */
+
+.hero-media--borderless {
+  border: 0;
+
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.hero-media[aria-busy="true"] {
+  background: linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0.06) 25%,
+    rgb(255 255 255 / 0.14) 50%,
+    rgb(255 255 255 / 0.06) 75%
+  );
+
+  background-size: 200% 100%;
+
+  animation: hero-media-loading 1.4s ease-in-out infinite;
+}
+
+@keyframes hero-media-loading {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .hero-media {
+    --hero-media-max-width: 30rem;
+
+    margin-inline: 0;
+  }
+
+  .hero-media--square,
+  .hero-media--portrait {
+    --hero-media-max-width: 20rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .hero-media {
+    --hero-media-max-width: 100%;
+    --hero-media-radius: var(--radius-md);
+
+    inline-size: 100%;
+  }
+
+  .hero-media__caption {
+    inset-inline: ds.space(2);
+    inset-block-end: ds.space(2);
+
+    max-inline-size: calc(100% - #{ds.space(4)});
+  }
+
+  .hero-media__badge {
+    inset-block-start: ds.space(2);
+    inset-inline-start: ds.space(2);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .hero-media {
+    --hero-media-border: currentColor;
+    --hero-media-shadow: none;
+
+    border-width: 2px;
+  }
+
+  .hero-media::after {
+    display: none;
+  }
+
+  .hero-media__caption,
+  .hero-media__badge {
+    border: 2px solid currentColor;
+
+    background: #000000;
+    color: #ffffff;
+
+    backdrop-filter: none;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .hero-media {
+    border-color: CanvasText;
+
+    background: Canvas;
+
+    box-shadow: none;
+  }
+
+  .hero-media::after {
+    display: none;
+  }
+
+  .hero-media__caption,
+  .hero-media__badge {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    backdrop-filter: none;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-media[aria-busy="true"] {
+    animation: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .hero-media[aria-busy="true"] {
+    animation: none;
+  }
+}

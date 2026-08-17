@@ -1,0 +1,508 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Card Foundation
+   ========================================================================== */
+
+/*
+ * Generic content container.
+ *
+ * This component owns only:
+ *
+ * - surface
+ * - border
+ * - radius
+ * - shadow
+ * - structural regions
+ * - spacing
+ * - generic visual variants
+ *
+ * Specialized components such as navigation-card and resource-card compose
+ * this foundation without adding business-specific behavior here.
+ */
+
+.card {
+  /* Surface */
+
+  --card-bg: var(--color-surface);
+  --card-color: var(--color-text);
+  --card-heading-color: var(--color-heading);
+  --card-muted-color: var(--color-text-muted);
+
+  /* Border */
+
+  --card-border-width: 1px;
+  --card-border-style: solid;
+  --card-border-color: var(--color-border);
+
+  /* Shape */
+
+  --card-radius: var(--radius-lg);
+
+  /* Elevation */
+
+  --card-shadow: var(--shadow-sm);
+  --card-hover-shadow: var(--shadow-md);
+
+  /* Spacing */
+
+  --card-padding-block: #{ds.space(4)};
+  --card-padding-inline: #{ds.space(4)};
+  --card-gap: #{ds.space(4)};
+
+  /* Interaction */
+
+  --card-hover-border-color: var(--color-border-strong);
+  --card-hover-translate: -0.125rem;
+
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+
+  border: var(--card-border-width) var(--card-border-style)
+    var(--card-border-color);
+  border-radius: var(--card-radius);
+
+  background: var(--card-bg);
+  color: var(--card-color);
+
+  box-shadow: var(--card-shadow);
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.card-header,
+.card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: ds.space(3);
+
+  flex: 0 0 auto;
+
+  min-inline-size: 0;
+  padding-block: var(--card-padding-block);
+  padding-inline: var(--card-padding-inline);
+}
+
+/* ==========================================================================
+   Body
+   ========================================================================== */
+
+.card-body,
+.card__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--card-gap);
+
+  min-inline-size: 0;
+  padding-block: var(--card-padding-block);
+  padding-inline: var(--card-padding-inline);
+}
+
+/*
+ * Avoid doubled padding when structural regions are combined.
+ */
+
+.card-header + .card-body,
+.card-header + .card__body,
+.card__header + .card-body,
+.card__header + .card__body {
+  padding-block-start: 0;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.card-footer,
+.card__footer {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+  margin-block-start: auto;
+  padding-block: var(--card-padding-block);
+  padding-inline: var(--card-padding-inline);
+}
+
+.card-body + .card-footer,
+.card-body + .card__footer,
+.card__body + .card-footer,
+.card__body + .card__footer {
+  padding-block-start: 0;
+}
+
+/* ==========================================================================
+   Divided Regions
+   ========================================================================== */
+
+.card--divided .card-header,
+.card--divided .card__header {
+  border-block-end: 1px solid var(--card-border-color);
+}
+
+.card--divided .card-footer,
+.card--divided .card__footer {
+  border-block-start: 1px solid var(--card-border-color);
+}
+
+/*
+ * Restore normal padding when a region owns a divider.
+ */
+
+.card--divided .card-header + .card-body,
+.card--divided .card-header + .card__body,
+.card--divided .card__header + .card-body,
+.card--divided .card__header + .card__body,
+.card--divided .card-body + .card-footer,
+.card--divided .card-body + .card__footer,
+.card--divided .card__body + .card-footer,
+.card--divided .card__body + .card__footer {
+  padding-block-start: var(--card-padding-block);
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.card-title,
+.card__title {
+  margin: 0;
+
+  color: var(--card-heading-color);
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Subtitle
+   ========================================================================== */
+
+.card-subtitle,
+.card__subtitle {
+  margin: 0;
+
+  color: var(--card-muted-color);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Text
+   ========================================================================== */
+
+.card-text,
+.card__text {
+  margin: 0;
+
+  color: var(--card-color);
+
+  line-height: var(--line-height-relaxed);
+}
+
+.card-text-muted,
+.card__text--muted {
+  color: var(--card-muted-color);
+}
+
+/* ==========================================================================
+   Media
+   ========================================================================== */
+
+/*
+ * The media region owns its clipping rather than the Card itself.
+ * This allows dropdowns, menus, focus rings, and popovers to extend beyond
+ * the Card without being cut off.
+ */
+
+.card-media,
+.card__media {
+  position: relative;
+
+  display: block;
+
+  flex: 0 0 auto;
+
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  border-start-start-radius: calc(
+    var(--card-radius) - var(--card-border-width)
+  );
+  border-start-end-radius: calc(var(--card-radius) - var(--card-border-width));
+
+  background: var(--color-surface-alt);
+}
+
+.card-media img,
+.card-media picture,
+.card-media video,
+.card__media img,
+.card__media picture,
+.card__media video {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.card-media img,
+.card-media video,
+.card__media img,
+.card__media video {
+  object-fit: cover;
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.card-actions,
+.card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.card--compact {
+  --card-padding-block: #{ds.space(3)};
+  --card-padding-inline: #{ds.space(3)};
+  --card-gap: #{ds.space(3)};
+}
+
+/* ==========================================================================
+   Comfortable Variant
+   ========================================================================== */
+
+.card--comfortable {
+  --card-padding-block: #{ds.space(6)};
+  --card-padding-inline: #{ds.space(6)};
+  --card-gap: #{ds.space(5)};
+}
+
+/* ==========================================================================
+   Flat Variant
+   ========================================================================== */
+
+.card--flat {
+  --card-shadow: none;
+}
+
+/* ==========================================================================
+   Borderless Variant
+   ========================================================================== */
+
+.card--borderless {
+  --card-border-width: 0;
+  --card-shadow: none;
+}
+
+/* ==========================================================================
+   Elevated Variant
+   ========================================================================== */
+
+.card--elevated {
+  --card-shadow: var(--shadow-md);
+}
+
+/* ==========================================================================
+   Alternative Surface
+   ========================================================================== */
+
+.card--alt {
+  --card-bg: var(--color-surface-alt);
+}
+
+/* ==========================================================================
+   Interactive Variant
+   ========================================================================== */
+
+/*
+ * Use this only when the Card represents one principal destination or
+ * interaction.
+ *
+ * Cards containing several unrelated controls should not use this modifier.
+ */
+
+.card--interactive {
+  @include ds.transition((border-color, box-shadow, transform), "fast");
+}
+
+.card--interactive:hover {
+  border-color: var(--card-hover-border-color);
+
+  box-shadow: var(--card-hover-shadow);
+
+  transform: translateY(var(--card-hover-translate));
+}
+
+.card--interactive:focus-within {
+  border-color: var(--color-primary);
+
+  box-shadow: var(--card-hover-shadow);
+}
+
+/* ==========================================================================
+   Selected State
+   ========================================================================== */
+
+.card.is-selected,
+.card[aria-selected="true"] {
+  border-color: var(--color-primary);
+
+  box-shadow:
+    0 0 0 1px var(--color-primary),
+    var(--card-shadow);
+}
+
+/* ==========================================================================
+   Disabled State
+   ========================================================================== */
+
+.card.is-disabled,
+.card[aria-disabled="true"] {
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+}
+
+.card.is-disabled,
+.card[aria-disabled="true"] {
+  opacity: 0.72;
+}
+
+.card.is-disabled a,
+.card.is-disabled button,
+.card.is-disabled input,
+.card.is-disabled select,
+.card.is-disabled textarea,
+.card[aria-disabled="true"] a,
+.card[aria-disabled="true"] button,
+.card[aria-disabled="true"] input,
+.card[aria-disabled="true"] select,
+.card[aria-disabled="true"] textarea {
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.card[aria-busy="true"] {
+  cursor: wait;
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .card {
+    --card-padding-block: #{ds.space(3)};
+    --card-padding-inline: #{ds.space(3)};
+    --card-gap: #{ds.space(3)};
+    --card-radius: var(--radius-md);
+  }
+
+  .card--comfortable {
+    --card-padding-block: #{ds.space(4)};
+    --card-padding-inline: #{ds.space(4)};
+    --card-gap: #{ds.space(4)};
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .card {
+    --card-border-width: 2px;
+    --card-border-color: currentColor;
+    --card-shadow: none;
+    --card-hover-shadow: none;
+  }
+
+  .card--borderless {
+    --card-border-width: 2px;
+  }
+
+  .card.is-selected,
+  .card[aria-selected="true"] {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+
+    box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .card {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+  }
+
+  .card.is-selected,
+  .card[aria-selected="true"] {
+    border-color: Highlight;
+
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .card--interactive {
+    transition: none;
+  }
+
+  .card--interactive:hover {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .card--interactive {
+    transition: none;
+  }
+
+  .card--interactive:hover {
+    transform: none;
+  }
+}

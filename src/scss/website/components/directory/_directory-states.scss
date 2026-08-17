@@ -1,0 +1,528 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Directory States
+   ========================================================================== */
+
+/*
+ * Shared feedback states for directory result regions.
+ *
+ * Supports:
+ *
+ * - initial loading
+ * - updating
+ * - empty directory
+ * - no matching results
+ * - recoverable error
+ *
+ * The HTML controls which state is rendered. JavaScript should update the
+ * result region's aria-busy state and announce meaningful changes through a
+ * dedicated live region.
+ */
+
+.directory-state {
+  --directory-state-bg: var(--color-surface-alt);
+  --directory-state-color: var(--color-text);
+  --directory-state-heading: var(--color-heading);
+  --directory-state-muted: var(--color-text-muted);
+  --directory-state-border: var(--color-border);
+
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+  min-block-size: 18rem;
+  padding-block: clamp(2rem, 6vw, 5rem);
+  padding-inline: clamp(1rem, 4vw, 3rem);
+
+  border: 1px solid var(--directory-state-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--directory-state-bg);
+  color: var(--directory-state-color);
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Icon
+   ========================================================================== */
+
+.directory-state__icon {
+  --icon-size: 2rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 4rem;
+  block-size: 4rem;
+
+  border: 1px solid var(--directory-state-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface);
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.directory-state__content {
+  display: grid;
+  justify-items: center;
+  gap: ds.space(2);
+
+  max-inline-size: 36rem;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.directory-state__title {
+  margin: 0;
+
+  color: var(--directory-state-heading);
+
+  font-size: var(--text-xl);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.directory-state__description {
+  margin: 0;
+
+  color: var(--directory-state-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.directory-state__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+  padding-block-start: ds.space(1);
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.directory-state--loading {
+  cursor: wait;
+}
+
+/* ==========================================================================
+   Loading Indicator
+   ========================================================================== */
+
+.directory-state__loader {
+  position: relative;
+
+  inline-size: 3rem;
+  block-size: 3rem;
+
+  border: 0.25rem solid var(--color-border);
+  border-block-start-color: var(--color-primary);
+  border-radius: var(--radius-pill);
+
+  animation: directory-state-spin 0.8s linear infinite;
+}
+
+@keyframes directory-state-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* ==========================================================================
+   Error State
+   ========================================================================== */
+
+.directory-state--error .directory-state__icon {
+  color: var(--color-danger);
+}
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
+.directory-state--empty .directory-state__icon {
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   No-results State
+   ========================================================================== */
+
+.directory-state--no-results .directory-state__icon {
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Compact State
+   ========================================================================== */
+
+.directory-state--compact {
+  min-block-size: 12rem;
+  padding-block: ds.space(6);
+  padding-inline: ds.space(4);
+}
+
+.directory-state--compact .directory-state__icon {
+  --icon-size: 1.5rem;
+
+  inline-size: 3rem;
+  block-size: 3rem;
+}
+
+.directory-state--compact .directory-state__title {
+  font-size: var(--text-lg);
+}
+
+/* ==========================================================================
+   Inline State
+   ========================================================================== */
+
+.directory-state--inline {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  min-block-size: 0;
+  padding: ds.space(3);
+
+  border-radius: var(--radius-md);
+
+  text-align: start;
+}
+
+.directory-state--inline .directory-state__icon {
+  --icon-size: 1rem;
+
+  flex: 0 0 auto;
+
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+}
+
+.directory-state--inline .directory-state__content {
+  justify-items: start;
+
+  max-inline-size: none;
+
+  text-align: start;
+}
+
+.directory-state--inline .directory-state__title {
+  font-size: var(--text-base);
+}
+
+.directory-state--inline .directory-state__description {
+  font-size: var(--text-xs);
+}
+
+/* ==========================================================================
+   Skeleton Collection
+   ========================================================================== */
+
+.directory-skeleton {
+  --directory-skeleton-gap: #{ds.space(4)};
+  --directory-skeleton-columns: 3;
+
+  display: grid;
+  grid-template-columns: repeat(
+    var(--directory-skeleton-columns),
+    minmax(0, 1fr)
+  );
+  gap: var(--directory-skeleton-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Skeleton Card
+   ========================================================================== */
+
+.directory-skeleton__item {
+  display: grid;
+  gap: ds.space(4);
+
+  min-inline-size: 0;
+  min-block-size: 15rem;
+  padding: ds.space(4);
+
+  overflow: hidden;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
+}
+
+/* ==========================================================================
+   Skeleton Blocks
+   ========================================================================== */
+
+.directory-skeleton__block {
+  position: relative;
+
+  display: block;
+
+  inline-size: 100%;
+  block-size: 1rem;
+
+  overflow: hidden;
+
+  border-radius: var(--radius-sm);
+
+  background: var(--color-surface-alt);
+}
+
+.directory-skeleton__block--media {
+  block-size: 5rem;
+
+  border-radius: var(--radius-md);
+}
+
+.directory-skeleton__block--title {
+  inline-size: 72%;
+  block-size: 1.25rem;
+}
+
+.directory-skeleton__block--text {
+  inline-size: 100%;
+}
+
+.directory-skeleton__block--short {
+  inline-size: 48%;
+}
+
+/* ==========================================================================
+   Skeleton Animation
+   ========================================================================== */
+
+.directory-skeleton__block::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 0.45),
+    transparent
+  );
+
+  transform: translateX(-100%);
+
+  animation: directory-skeleton-loading 1.4s ease-in-out infinite;
+}
+
+@keyframes directory-skeleton-loading {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* ==========================================================================
+   Screen-reader Status
+   ========================================================================== */
+
+/*
+ * This element remains visually hidden while providing result changes to
+ * assistive technology.
+ */
+
+.directory__live-status {
+  position: absolute;
+
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+
+  border: 0;
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Hidden State
+   ========================================================================== */
+
+.directory-state[hidden],
+.directory-skeleton[hidden] {
+  display: none;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .directory-skeleton {
+    --directory-skeleton-columns: 2;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .directory-state {
+    min-block-size: 14rem;
+    padding-block: ds.space(6);
+    padding-inline: ds.space(3);
+
+    border-radius: var(--radius-md);
+  }
+
+  .directory-state__title {
+    font-size: var(--text-lg);
+  }
+
+  .directory-state__actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+
+    inline-size: 100%;
+  }
+
+  .directory-state__actions .btn {
+    inline-size: 100%;
+  }
+
+  .directory-state--inline {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+
+    min-block-size: 0;
+  }
+
+  .directory-skeleton {
+    --directory-skeleton-columns: 1;
+    --directory-skeleton-gap: #{ds.space(3)};
+  }
+
+  .directory-skeleton__item {
+    min-block-size: 12rem;
+
+    border-radius: var(--radius-md);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .directory-state,
+html[data-contrast="high"] .directory-state__icon,
+html[data-contrast="high"] .directory-skeleton__item {
+  border-width: 2px;
+  border-color: currentColor;
+}
+
+html[data-contrast="high"] .directory-state__icon {
+  color: currentColor;
+}
+
+html[data-contrast="high"] .directory-state__loader {
+  border-color: currentColor;
+  border-block-start-color: transparent;
+}
+
+html[data-contrast="high"] .directory-skeleton__block {
+  border: 1px solid currentColor;
+}
+
+html[data-contrast="high"] .directory-skeleton__block::after {
+  display: none;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .directory-state,
+  .directory-state__icon,
+  .directory-skeleton__item,
+  .directory-skeleton__block {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .directory-state__loader {
+    border-color: CanvasText;
+    border-block-start-color: Highlight;
+  }
+
+  .directory-skeleton__block::after {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .directory-state__loader,
+  .directory-skeleton__block::after {
+    animation: none;
+  }
+}
+
+html[data-motion="reduce"] .directory-state__loader,
+html[data-motion="reduce"] .directory-skeleton__block::after {
+  animation: none;
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .directory-state--loading,
+  .directory-state--error,
+  .directory-skeleton {
+    display: none;
+  }
+
+  .directory-state {
+    min-block-size: 0;
+
+    border: 1px solid #000000;
+
+    background: transparent;
+    color: #000000;
+  }
+}

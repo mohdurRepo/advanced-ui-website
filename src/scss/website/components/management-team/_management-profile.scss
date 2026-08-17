@@ -1,0 +1,787 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Management Profile
+   ========================================================================== */
+
+.management-profile {
+  --management-profile-portrait-width: 18rem;
+  --management-profile-layout-gap: clamp(1.5rem, 3vw, 3rem);
+
+  --management-profile-image-ratio: 4 / 5;
+  --management-profile-image-position: center top;
+
+  --management-profile-divider: #46e5c3;
+
+  --management-profile-scrollbar: rgb(255 255 255 / 0.3);
+  --management-profile-scrollbar-hover: rgb(255 255 255 / 0.48);
+
+  --modal-width: 70rem;
+  --modal-max-height: 90vh;
+}
+
+/* ==========================================================================
+   Modal Shell
+   ========================================================================== */
+
+.management-profile .modal-dialog,
+.management-profile .modal-content,
+.management-profile .modal-body {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+.management-profile .modal-content {
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Close Header
+   ========================================================================== */
+
+.management-profile .modal-header {
+  position: absolute;
+  inset-block-start: ds.space(3);
+  inset-inline-end: ds.space(3);
+  z-index: 4;
+
+  display: flex;
+  justify-content: flex-end;
+
+  inline-size: auto;
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+}
+
+/* ==========================================================================
+   Close Button
+   ========================================================================== */
+
+.management-profile .modal-close {
+  appearance: none;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  padding: 0;
+
+  border: 1px solid rgb(255 255 255 / 0.24);
+  border-radius: var(--radius-pill);
+
+  background: rgb(0 31 51 / 0.24);
+  color: #ffffff;
+
+  font: inherit;
+
+  cursor: pointer;
+
+  backdrop-filter: blur(0.75rem);
+  -webkit-backdrop-filter: blur(0.75rem);
+
+  @include ds.transition((background-color, border-color, transform), "fast");
+}
+
+/*
+ * Prevent the registered icon system or the generic close component from
+ * rendering an additional masked pseudo-element.
+ */
+
+.management-profile .modal-close::before,
+.management-profile .modal-close::after {
+  display: none;
+}
+
+.management-profile .modal-close:hover {
+  border-color: rgb(255 255 255 / 0.45);
+
+  background: rgb(255 255 255 / 0.18);
+
+  transform: rotate(5deg);
+}
+
+.management-profile .modal-close:active {
+  transform: scale(0.96);
+}
+
+.management-profile .modal-close:focus {
+  outline: none;
+}
+
+.management-profile .modal-close:focus-visible {
+  @include ds.focus-ring;
+}
+
+.management-profile__close-glyph {
+  display: block;
+
+  font-size: 1.75rem;
+  font-weight: ds.font-weight("regular");
+  line-height: 1;
+
+  transform: translateY(-0.0625rem);
+}
+
+/* ==========================================================================
+   Modal Body
+   ========================================================================== */
+
+.management-profile .modal-body {
+  padding: clamp(1.25rem, 2.5vw, 2.5rem);
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+.management-profile__layout {
+  display: grid;
+  grid-template-columns:
+    minmax(14rem, var(--management-profile-portrait-width))
+    minmax(0, 1fr);
+  align-items: stretch;
+  gap: var(--management-profile-layout-gap);
+
+  min-inline-size: 0;
+  min-block-size: 0;
+  block-size: 100%;
+}
+
+/* ==========================================================================
+   Portrait Region
+   ========================================================================== */
+
+.management-profile__portrait-region {
+  display: grid;
+  align-content: start;
+  gap: ds.space(3);
+
+  align-self: start;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Portrait
+   ========================================================================== */
+
+.management-profile__portrait {
+  position: relative;
+  isolation: isolate;
+
+  inline-size: 100%;
+  aspect-ratio: var(--management-profile-image-ratio);
+
+  overflow: hidden;
+
+  border: 1px solid rgb(255 255 255 / 0.24);
+  border-radius: var(--radius-lg);
+
+  background: linear-gradient(
+    145deg,
+    rgb(255 255 255 / 0.14),
+    rgb(255 255 255 / 0.05)
+  );
+
+  box-shadow: var(--shadow-md);
+}
+
+.management-profile__image {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  object-fit: cover;
+  object-position: var(--management-profile-image-position);
+}
+
+.management-profile__portrait::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  background: linear-gradient(180deg, transparent 68%, rgb(0 0 0 / 0.14) 100%);
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Portrait Fallback
+   ========================================================================== */
+
+.management-profile__portrait-fallback {
+  display: grid;
+  place-items: center;
+
+  inline-size: 100%;
+  block-size: 100%;
+  padding: ds.space(4);
+
+  background: rgb(255 255 255 / 0.1);
+  color: inherit;
+
+  font-size: var(--text-3xl);
+  font-weight: ds.font-weight("heavy");
+  line-height: 1;
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Portrait Caption
+   ========================================================================== */
+
+.management-profile__portrait-caption {
+  margin: 0;
+
+  color: var(--modal-visual-muted-color, var(--color-text-muted));
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+/*
+ * Desktop rows:
+ *
+ * 1. identity
+ * 2. highlights
+ * 3. independently scrollable biography
+ */
+
+.management-profile__content {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  align-content: stretch;
+  gap: ds.space(5);
+
+  min-inline-size: 0;
+  min-block-size: 0;
+  block-size: 100%;
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Identity
+   ========================================================================== */
+
+.management-profile__header {
+  display: grid;
+  align-content: start;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+  padding-inline-end: 3.5rem;
+}
+
+.management-profile__name {
+  margin: 0;
+
+  color: var(--modal-visual-color, var(--color-heading));
+
+  font-size: clamp(var(--text-xl), 2.5vw, var(--text-3xl));
+  font-weight: ds.font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+
+  text-wrap: balance;
+}
+
+.management-profile__role {
+  margin: 0;
+
+  color: var(--modal-visual-muted-color, var(--color-text-muted));
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  text-wrap: balance;
+}
+
+.management-profile__header::after {
+  content: "";
+
+  inline-size: min(100%, 20rem);
+  block-size: 0.1875rem;
+  margin-block-start: ds.space(2);
+
+  border-radius: var(--radius-pill);
+
+  background: var(--management-profile-divider);
+}
+
+/* ==========================================================================
+   Highlights
+   ========================================================================== */
+
+.management-profile__highlights {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.management-profile__highlight {
+  display: grid;
+  align-content: start;
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+  padding: ds.space(3);
+
+  border: 1px solid var(--modal-visual-border-color, var(--color-border));
+  border-radius: var(--radius-md);
+
+  background: var(--modal-visual-surface-bg, var(--color-surface-alt));
+
+  backdrop-filter: blur(1rem);
+  -webkit-backdrop-filter: blur(1rem);
+}
+
+.management-profile__highlight-label,
+.management-profile__highlight-value {
+  margin: 0;
+}
+
+.management-profile__highlight-label {
+  color: var(--modal-visual-muted-color, var(--color-text-muted));
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+}
+
+.management-profile__highlight-value {
+  color: var(--modal-visual-color, var(--color-heading));
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Biography Scroll Region
+   ========================================================================== */
+
+.management-profile__biography {
+  display: grid;
+  align-content: start;
+  gap: ds.space(5);
+
+  min-inline-size: 0;
+  min-block-size: 0;
+  padding-inline-end: ds.space(3);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  overscroll-behavior: contain;
+
+  scrollbar-color: var(--management-profile-scrollbar) transparent;
+  scrollbar-width: thin;
+}
+
+.management-profile__biography::-webkit-scrollbar {
+  inline-size: 0.375rem;
+}
+
+.management-profile__biography::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.management-profile__biography::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+
+  background: var(--management-profile-scrollbar);
+}
+
+.management-profile__biography::-webkit-scrollbar-thumb:hover {
+  background: var(--management-profile-scrollbar-hover);
+}
+
+.management-profile__biography p {
+  max-inline-size: 75ch;
+  margin: 0;
+
+  color: inherit;
+
+  font-size: var(--text-base);
+  line-height: var(--line-height-relaxed);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Biography Sections
+   ========================================================================== */
+
+.management-profile__section {
+  display: grid;
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+}
+
+.management-profile__section-title {
+  margin: 0;
+
+  color: var(--modal-visual-color, var(--color-heading));
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Lists
+   ========================================================================== */
+
+.management-profile__list {
+  display: grid;
+  gap: ds.space(2);
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.management-profile__list-item {
+  --icon-size: 0.875rem;
+
+  display: flex;
+  align-items: flex-start;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+
+  color: inherit;
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.management-profile__list-item::before {
+  flex: 0 0 auto;
+
+  margin-block-start: 0.3em;
+
+  color: var(--management-profile-divider);
+}
+
+/* ==========================================================================
+   Desktop Height
+   ========================================================================== */
+
+@include ds.respond-up("md") {
+  .management-profile .modal-content {
+    block-size: min(var(--modal-max-height), 52rem);
+  }
+
+  .management-profile .modal-body {
+    block-size: 100%;
+  }
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .management-profile {
+    --management-profile-portrait-width: 15rem;
+    --management-profile-layout-gap: 1.5rem;
+  }
+
+  .management-profile__layout {
+    grid-template-columns:
+      minmax(12rem, var(--management-profile-portrait-width))
+      minmax(0, 1fr);
+  }
+
+  .management-profile__name {
+    font-size: var(--text-2xl);
+  }
+
+  .management-profile__role {
+    font-size: var(--text-base);
+  }
+
+  .management-profile__biography p {
+    font-size: var(--text-sm);
+  }
+}
+
+/* ==========================================================================
+   Mobile Modal
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .management-profile {
+    --modal-max-height: 94vh;
+  }
+
+  .management-profile .modal-dialog {
+    inline-size: min(calc(100vw - 1rem), var(--modal-width));
+  }
+
+  .management-profile .modal-content {
+    block-size: auto;
+    max-block-size: var(--modal-max-height);
+
+    border-radius: var(--radius-lg);
+  }
+
+  /*
+   * On mobile the entire modal scrolls naturally. A nested biography scroller
+   * would leave insufficient room for the portrait and identity.
+   */
+
+  .management-profile .modal-body {
+    padding: ds.space(5) ds.space(4) ds.space(4);
+
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .management-profile__layout {
+    grid-template-columns: minmax(0, 1fr);
+
+    block-size: auto;
+    gap: ds.space(4);
+  }
+
+  /*
+   * Compact mobile portrait. It remains visually useful without consuming
+   * most of the viewport.
+   */
+
+  .management-profile__portrait-region {
+    inline-size: 8.5rem;
+    margin-inline: auto;
+  }
+
+  .management-profile__portrait {
+    aspect-ratio: 1;
+
+    border-radius: var(--radius-xl);
+  }
+
+  .management-profile__portrait-caption {
+    display: none;
+  }
+
+  .management-profile__content {
+    grid-template-rows: auto;
+
+    block-size: auto;
+    gap: ds.space(4);
+
+    overflow: visible;
+  }
+
+  .management-profile__biography {
+    gap: ds.space(4);
+
+    padding-inline-end: 0;
+
+    overflow: visible;
+  }
+
+  .management-profile__header {
+    padding-inline: 0;
+
+    text-align: center;
+  }
+
+  .management-profile__header::after {
+    inline-size: min(100%, 12rem);
+    margin-inline: auto;
+  }
+
+  .management-profile__name {
+    font-size: var(--text-xl);
+
+    text-wrap: balance;
+  }
+
+  .management-profile__role {
+    font-size: var(--text-sm);
+  }
+
+  .management-profile__highlights {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .management-profile__highlight {
+    padding: ds.space(3);
+
+    text-align: start;
+  }
+
+  .management-profile__biography p {
+    max-inline-size: none;
+  }
+}
+
+/* ==========================================================================
+   Small Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .management-profile .modal-header {
+    inset-block-start: ds.space(2);
+    inset-inline-end: ds.space(2);
+  }
+
+  .management-profile .modal-close {
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+  }
+
+  .management-profile__close-glyph {
+    font-size: 1.5rem;
+  }
+
+  .management-profile .modal-body {
+    padding: ds.space(5) ds.space(3) ds.space(3);
+  }
+
+  .management-profile__portrait-region {
+    inline-size: 7.5rem;
+  }
+
+  .management-profile__content,
+  .management-profile__biography {
+    gap: ds.space(3);
+  }
+
+  .management-profile__name {
+    font-size: var(--text-lg);
+  }
+
+  .management-profile__biography p {
+    font-size: var(--text-sm);
+    line-height: var(--line-height-normal);
+  }
+
+  .management-profile__section-title {
+    font-size: var(--text-base);
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .management-profile__header {
+  padding-inline-end: 3.5rem;
+  padding-inline-start: 0;
+}
+
+@include ds.respond-down("md") {
+  html[dir="rtl"] .management-profile__header {
+    padding-inline: 0;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .management-profile__portrait,
+html[data-contrast="high"] .management-profile__highlight,
+html[data-contrast="high"] .management-profile .modal-close {
+  border-width: 2px;
+  border-color: currentColor;
+
+  box-shadow: none;
+}
+
+html[data-contrast="high"] .management-profile__portrait::after {
+  display: none;
+}
+
+html[data-contrast="high"] .management-profile__header::after {
+  background: currentColor;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .management-profile__portrait,
+  .management-profile__highlight,
+  .management-profile .modal-close {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+  }
+
+  .management-profile__portrait::after {
+    display: none;
+  }
+
+  .management-profile__header::after {
+    background: Highlight;
+  }
+
+  .management-profile__list-item::before {
+    color: LinkText;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .management-profile .modal-close,
+  .management-profile__highlight {
+    transition: none;
+
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .management-profile .modal-close:hover,
+  .management-profile .modal-close:active {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] .management-profile .modal-close,
+html[data-motion="reduce"] .management-profile__highlight {
+  transition: none;
+
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}

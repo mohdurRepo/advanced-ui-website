@@ -1,0 +1,507 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Announcement Feed
+   ========================================================================== */
+
+/*
+ * Reusable full-page announcement collection.
+ *
+ * Intended for:
+ *
+ * - issuer announcements
+ * - financial-advisor announcements
+ * - market announcements
+ * - regulatory announcements
+ *
+ * This component owns:
+ *
+ * - results surface
+ * - heading and count
+ * - period selector
+ * - announcement collection spacing
+ * - empty and busy states
+ *
+ * Individual announcement presentation is owned by announcement-item.
+ */
+
+.announcement-feed {
+  --announcement-feed-bg: var(--color-surface);
+  --announcement-feed-color: var(--color-text);
+  --announcement-feed-border: var(--color-border);
+  --announcement-feed-radius: var(--radius-lg);
+  --announcement-feed-shadow: var(--shadow-sm);
+
+  position: relative;
+  isolation: isolate;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: clamp(1rem, 2.5vw, 2rem);
+
+  border: 1px solid var(--announcement-feed-border);
+  border-radius: var(--announcement-feed-radius);
+
+  background: var(--announcement-feed-bg);
+  color: var(--announcement-feed-color);
+
+  box-shadow: var(--announcement-feed-shadow);
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.announcement-feed__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: ds.space(5);
+
+  min-inline-size: 0;
+  padding-block-end: ds.space(5);
+
+  border-block-end: 1px solid var(--announcement-feed-border);
+}
+
+.announcement-feed__heading {
+  display: grid;
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+}
+
+.announcement-feed__title,
+.announcement-feed__description {
+  margin: 0;
+}
+
+.announcement-feed__title {
+  color: var(--color-heading);
+
+  font-size: var(--text-2xl);
+  font-weight: ds.font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+.announcement-feed__description {
+  max-inline-size: 48rem;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Result Count
+   ========================================================================== */
+
+.announcement-feed__count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: ds.space(1);
+
+  flex: 0 0 auto;
+
+  min-block-size: 2.5rem;
+  padding-block: ds.space(2);
+  padding-inline: ds.space(3);
+
+  border: 1px solid var(--announcement-feed-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.announcement-feed__count-value {
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: ds.font-weight("bold");
+}
+
+/* ==========================================================================
+   Toolbar
+   ========================================================================== */
+
+.announcement-feed__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+  padding-block: ds.space(4);
+
+  border-block-end: 1px solid var(--announcement-feed-border);
+}
+
+.announcement-feed__status {
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+.announcement-feed__status strong {
+  color: var(--color-heading);
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Period Selector
+   ========================================================================== */
+
+.announcement-feed__periods {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+}
+
+.announcement-feed__period-label {
+  margin-inline-end: ds.space(1);
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+}
+
+.announcement-feed__period {
+  appearance: none;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-inline-size: 2.75rem;
+  min-block-size: 2.5rem;
+  padding-block: ds.space(2);
+  padding-inline: ds.space(3);
+
+  border: 1px solid var(--announcement-feed-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
+
+  text-decoration: none;
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  @include ds.transition((background-color, border-color, color), "fast");
+}
+
+.announcement-feed__period:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+
+  background: var(--color-surface-alt);
+  color: var(--color-heading);
+}
+
+.announcement-feed__period:focus {
+  outline: none;
+}
+
+.announcement-feed__period:focus-visible {
+  @include ds.focus-ring;
+}
+
+.announcement-feed__period.is-active,
+.announcement-feed__period[aria-pressed="true"],
+.announcement-feed__period[aria-current="true"] {
+  border-color: var(--color-primary);
+
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.announcement-feed__period:disabled,
+.announcement-feed__period[aria-disabled="true"] {
+  border-color: var(--color-disabled);
+
+  background: var(--color-surface-alt);
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Collection
+   ========================================================================== */
+
+.announcement-feed__list {
+  display: grid;
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+  margin: 0;
+  padding: ds.space(5) 0 0;
+
+  list-style: none;
+}
+
+.announcement-feed__list-item {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.announcement-feed__footer {
+  display: flex;
+  justify-content: center;
+
+  min-inline-size: 0;
+  padding-block-start: ds.space(6);
+}
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
+.announcement-feed__empty {
+  display: grid;
+  justify-items: center;
+  gap: ds.space(3);
+
+  padding-block: ds.space(12);
+  padding-inline: ds.space(4);
+
+  color: var(--color-text-muted);
+
+  text-align: center;
+}
+
+.announcement-feed__empty-title,
+.announcement-feed__empty-description {
+  margin: 0;
+}
+
+.announcement-feed__empty-title {
+  color: var(--color-heading);
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+.announcement-feed__empty-description {
+  max-inline-size: 36rem;
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Busy State
+   ========================================================================== */
+
+.announcement-feed[aria-busy="true"] {
+  cursor: wait;
+}
+
+.announcement-feed[aria-busy="true"]::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
+  background: rgb(255 255 255 / 0.56);
+
+  pointer-events: none;
+}
+
+html[data-theme="dark"] .announcement-feed[aria-busy="true"]::after {
+  background: rgb(0 0 0 / 0.38);
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .announcement-feed__header {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: ds.space(3);
+  }
+
+  .announcement-feed__count {
+    align-self: flex-start;
+  }
+
+  .announcement-feed__toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .announcement-feed__periods {
+    inline-size: 100%;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .announcement-feed {
+    padding: ds.space(3);
+
+    border-radius: var(--radius-md);
+  }
+
+  .announcement-feed__header {
+    padding-block-end: ds.space(4);
+  }
+
+  .announcement-feed__title {
+    font-size: var(--text-xl);
+  }
+
+  .announcement-feed__toolbar {
+    padding-block: ds.space(3);
+  }
+
+  .announcement-feed__periods {
+    flex-wrap: nowrap;
+
+    padding-block-end: ds.space(1);
+
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+
+    scrollbar-width: none;
+    scroll-snap-type: inline proximity;
+
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .announcement-feed__periods::-webkit-scrollbar {
+    display: none;
+  }
+
+  .announcement-feed__period-label,
+  .announcement-feed__period {
+    flex: 0 0 auto;
+  }
+
+  .announcement-feed__period {
+    scroll-snap-align: start;
+  }
+
+  .announcement-feed__list {
+    gap: ds.space(2);
+
+    padding-block-start: ds.space(4);
+  }
+
+  .announcement-feed__footer {
+    padding-block-start: ds.space(5);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .announcement-feed {
+    border-width: 2px;
+    border-color: var(--color-border-strong);
+
+    box-shadow: none;
+  }
+
+  .announcement-feed__header,
+  .announcement-feed__toolbar {
+    border-color: currentColor;
+  }
+
+  .announcement-feed__count,
+  .announcement-feed__period {
+    border-width: 2px;
+    border-color: currentColor;
+  }
+
+  .announcement-feed__period.is-active,
+  .announcement-feed__period[aria-pressed="true"],
+  .announcement-feed__period[aria-current="true"] {
+    background: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .announcement-feed,
+  .announcement-feed__count,
+  .announcement-feed__period {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .announcement-feed__period.is-active,
+  .announcement-feed__period[aria-pressed="true"],
+  .announcement-feed__period[aria-current="true"] {
+    background: Highlight;
+    color: HighlightText;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .announcement-feed__periods {
+    scroll-behavior: auto;
+  }
+
+  .announcement-feed__period {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .announcement-feed__periods {
+    scroll-behavior: auto;
+  }
+
+  .announcement-feed__period {
+    transition: none;
+  }
+}

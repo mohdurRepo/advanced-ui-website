@@ -42,100 +42,1097 @@
   </head>
 
   <body>
-    <main class="section">
+    <!-- ==========================================================================
+     Card and Pagination Component Showcase
+     ========================================================================== -->
+
+    <div class="section">
       <div class="container">
-        <div class="d-flex justify-between align-center flex-wrap gap-3 mb-8">
-          <div>
-            <h1>Icon System</h1>
-            <p>
-              Class-based icons for buttons, lists, cards, and SVG sprite usage.
-            </p>
-          </div>
+        <div class="stack stack--2xl">
+          <!-- ====================================================================
+           Navigation Cards
+           ==================================================================== -->
 
-          <div class="d-flex flex-wrap gap-2">
-            <button
-              class="btn btn-outline-primary btn-sm"
-              data-theme-set="light"
-            >
-              Light
-            </button>
-            <button
-              class="btn btn-outline-primary btn-sm"
-              data-theme-set="dark"
-            >
-              Dark
-            </button>
-            <button
-              class="btn btn-primary btn-sm btn-rounded"
-              data-theme-toggle
-            >
-              Toggle Theme
-            </button>
-            <button class="btn btn-outline-accent btn-sm" data-lang-set="en">
-              English
-            </button>
-            <button class="btn btn-outline-accent btn-sm" data-lang-set="ar">
-              العربية
-            </button>
-          </div>
+          <section aria-labelledby="navigation-cards-title">
+            <div class="stack stack--lg">
+              <header class="section-heading">
+                <div class="section-heading__content">
+                  <h2
+                    id="navigation-cards-title"
+                    class="section-heading__title"
+                  >
+                    Navigation Cards
+                  </h2>
+
+                  <p class="section-heading__description">
+                    Use navigation cards for categories and destinations with
+                    one principal link.
+                  </p>
+                </div>
+              </header>
+
+              <!-- ================================================================
+               Horizontal Navigation Cards
+               ================================================================ -->
+
+              <div class="card-grid-container">
+                <ul class="card-grid card-grid--two">
+                  <!-- Market Reports -->
+
+                  <li class="card-grid__item">
+                    <a
+                      class="card navigation-card navigation-card--horizontal"
+                      href="/market-data/reports/market-reports/"
+                    >
+                      <span class="navigation-card__media" aria-hidden="true">
+                        <img
+                          class="navigation-card__image"
+                          src="/assets/images/reports/market-reports.jpg"
+                          alt=""
+                          width="640"
+                          height="360"
+                          loading="lazy"
+                        />
+                      </span>
+
+                      <span class="navigation-card__body">
+                        <span class="navigation-card__header">
+                          <span class="navigation-card__eyebrow">
+                            Reports
+                          </span>
+
+                          <span class="navigation-card__title">
+                            Market Reports
+                          </span>
+
+                          <span class="navigation-card__description">
+                            Review the latest market activity, trading data and
+                            performance reports from the Saudi Exchange.
+                          </span>
+                        </span>
+
+                        <span
+                          class="navigation-card__action has-icon icon-chevron-right icon-flip-rtl"
+                        >
+                          Explore reports
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+
+                  <!-- Historical Reports -->
+
+                  <li class="card-grid__item">
+                    <a
+                      class="card navigation-card navigation-card--horizontal"
+                      href="/market-data/reports/historical-reports/"
+                    >
+                      <span class="navigation-card__media" aria-hidden="true">
+                        <img
+                          class="navigation-card__image"
+                          src="/assets/images/reports/historical-reports.jpg"
+                          alt=""
+                          width="640"
+                          height="360"
+                          loading="lazy"
+                        />
+                      </span>
+
+                      <span class="navigation-card__body">
+                        <span class="navigation-card__header">
+                          <span class="navigation-card__eyebrow">
+                            Archive
+                          </span>
+
+                          <span class="navigation-card__title">
+                            Historical Reports
+                          </span>
+
+                          <span class="navigation-card__description">
+                            Explore archived reports and historical market data
+                            published by the Saudi Exchange.
+                          </span>
+                        </span>
+
+                        <span
+                          class="navigation-card__action has-icon icon-chevron-right icon-flip-rtl"
+                        >
+                          Browse archive
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+
+                  <!-- Foreign Ownership -->
+
+                  <li class="card-grid__item">
+                    <a
+                      class="card navigation-card navigation-card--horizontal"
+                      href="/market-data/reports/foreign-ownership/"
+                    >
+                      <span class="navigation-card__media" aria-hidden="true">
+                        <img
+                          class="navigation-card__image"
+                          src="/assets/images/reports/foreign-ownership.jpg"
+                          alt=""
+                          width="640"
+                          height="360"
+                          loading="lazy"
+                        />
+                      </span>
+
+                      <span class="navigation-card__body">
+                        <span class="navigation-card__header">
+                          <span class="navigation-card__eyebrow">
+                            Ownership
+                          </span>
+
+                          <span class="navigation-card__title">
+                            Foreign Ownership
+                          </span>
+
+                          <span class="navigation-card__description">
+                            Access reports covering foreign-investor ownership,
+                            market participation and related statistics.
+                          </span>
+                        </span>
+
+                        <span
+                          class="navigation-card__action has-icon icon-chevron-right icon-flip-rtl"
+                        >
+                          View ownership reports
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+
+                  <!-- Member Trading Reports -->
+
+                  <li class="card-grid__item">
+                    <a
+                      class="card navigation-card navigation-card--horizontal"
+                      href="/market-data/reports/member-trading/"
+                    >
+                      <span class="navigation-card__media" aria-hidden="true">
+                        <img
+                          class="navigation-card__image"
+                          src="/assets/images/reports/member-trading.jpg"
+                          alt=""
+                          width="640"
+                          height="360"
+                          loading="lazy"
+                        />
+                      </span>
+
+                      <span class="navigation-card__body">
+                        <span class="navigation-card__header">
+                          <span class="navigation-card__eyebrow">
+                            Members
+                          </span>
+
+                          <span class="navigation-card__title">
+                            Member Trading Reports
+                          </span>
+
+                          <span class="navigation-card__description">
+                            Discover periodic trading-activity reports published
+                            for Saudi Exchange members.
+                          </span>
+                        </span>
+
+                        <span
+                          class="navigation-card__action has-icon icon-chevron-right icon-flip-rtl"
+                        >
+                          Explore member reports
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+
+                  <!-- Periodical Publications -->
+
+                  <li class="card-grid__item">
+                    <a
+                      class="card navigation-card navigation-card--horizontal"
+                      href="/market-data/reports/periodical-publications/"
+                    >
+                      <span class="navigation-card__media" aria-hidden="true">
+                        <img
+                          class="navigation-card__image"
+                          src="/assets/images/reports/periodical-publications.jpg"
+                          alt=""
+                          width="640"
+                          height="360"
+                          loading="lazy"
+                        />
+                      </span>
+
+                      <span class="navigation-card__body">
+                        <span class="navigation-card__header">
+                          <span class="navigation-card__eyebrow">
+                            Publications
+                          </span>
+
+                          <span class="navigation-card__title">
+                            Periodical Publications
+                          </span>
+
+                          <span class="navigation-card__description">
+                            Read regularly issued reports, publications and
+                            market insights from the Saudi Exchange.
+                          </span>
+                        </span>
+
+                        <span
+                          class="navigation-card__action has-icon icon-chevron-right icon-flip-rtl"
+                        >
+                          Browse publications
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- ================================================================
+               Vertical Navigation Cards
+               ================================================================ -->
+
+              <div class="card-grid-container">
+                <ul class="card-grid card-grid--three">
+                  <li class="card-grid__item">
+                    <a
+                      class="card navigation-card"
+                      href="/market-data/reports/daily/"
+                    >
+                      <span class="navigation-card__media" aria-hidden="true">
+                        <img
+                          class="navigation-card__image"
+                          src="/assets/images/reports/daily-reports.jpg"
+                          alt=""
+                          width="640"
+                          height="360"
+                          loading="lazy"
+                        />
+                      </span>
+
+                      <span class="navigation-card__body">
+                        <span class="navigation-card__header">
+                          <span class="navigation-card__eyebrow"> Daily </span>
+
+                          <span class="navigation-card__title">
+                            Daily Reports
+                          </span>
+
+                          <span class="navigation-card__description">
+                            Access the latest daily trading and
+                            market-performance reports.
+                          </span>
+                        </span>
+
+                        <span
+                          class="navigation-card__action has-icon icon-chevron-right icon-flip-rtl"
+                        >
+                          View daily reports
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+
+                  <li class="card-grid__item">
+                    <a
+                      class="card navigation-card"
+                      href="/market-data/reports/monthly/"
+                    >
+                      <span class="navigation-card__media" aria-hidden="true">
+                        <img
+                          class="navigation-card__image"
+                          src="/assets/images/reports/monthly-reports.jpg"
+                          alt=""
+                          width="640"
+                          height="360"
+                          loading="lazy"
+                        />
+                      </span>
+
+                      <span class="navigation-card__body">
+                        <span class="navigation-card__header">
+                          <span class="navigation-card__eyebrow">
+                            Monthly
+                          </span>
+
+                          <span class="navigation-card__title">
+                            Monthly Reports
+                          </span>
+
+                          <span class="navigation-card__description">
+                            Review monthly summaries of market performance and
+                            trading activity.
+                          </span>
+                        </span>
+
+                        <span
+                          class="navigation-card__action has-icon icon-chevron-right icon-flip-rtl"
+                        >
+                          View monthly reports
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+
+                  <li class="card-grid__item">
+                    <a
+                      class="card navigation-card navigation-card--featured"
+                      href="/market-data/reports/annual/"
+                    >
+                      <span class="navigation-card__media" aria-hidden="true">
+                        <img
+                          class="navigation-card__image"
+                          src="/assets/images/reports/annual-reports.jpg"
+                          alt=""
+                          width="640"
+                          height="360"
+                          loading="lazy"
+                        />
+                      </span>
+
+                      <span class="navigation-card__body">
+                        <span class="navigation-card__header">
+                          <span class="navigation-card__eyebrow">
+                            Featured
+                          </span>
+
+                          <span class="navigation-card__title">
+                            Annual Reports
+                          </span>
+
+                          <span class="navigation-card__description">
+                            Explore comprehensive annual market reports and
+                            performance reviews.
+                          </span>
+                        </span>
+
+                        <span
+                          class="navigation-card__action has-icon icon-chevron-right icon-flip-rtl"
+                        >
+                          View annual reports
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- ====================================================================
+           Resource Cards
+           ==================================================================== -->
+
+          <section aria-labelledby="resource-cards-title">
+            <div class="stack stack--lg">
+              <header class="section-heading">
+                <div class="section-heading__content">
+                  <h2 id="resource-cards-title" class="section-heading__title">
+                    Resource Cards
+                  </h2>
+
+                  <p class="section-heading__description">
+                    Use resource cards for reports, documents, publications and
+                    downloadable files.
+                  </p>
+                </div>
+              </header>
+
+              <div class="card-grid-container">
+                <ul class="card-grid card-grid--three">
+                  <!-- ============================================================
+                   Featured Resource
+                   ============================================================ -->
+
+                  <li class="card-grid__item">
+                    <article class="card resource-card resource-card--featured">
+                      <div class="resource-card__body">
+                        <header class="resource-card__header">
+                          <div class="resource-card__identity">
+                            <span class="resource-card__badge">
+                              Main Market
+                            </span>
+
+                            <h3 class="resource-card__title">
+                              <a
+                                class="resource-card__title-link"
+                                href="/reports/detailed-daily-report/"
+                              >
+                                Detailed Daily Report
+                              </a>
+                            </h3>
+                          </div>
+
+                          <span
+                            class="resource-card__icon has-icon icon-pdf-file"
+                            aria-hidden="true"
+                          ></span>
+                        </header>
+
+                        <p class="resource-card__description">
+                          Detailed daily trading activity, market performance
+                          and security-level statistics.
+                        </p>
+
+                        <ul class="resource-card__meta">
+                          <li
+                            class="resource-card__meta-item has-icon icon-history-clock"
+                          >
+                            <span class="resource-card__meta-label">
+                              Last updated:
+                            </span>
+
+                            <time
+                              class="resource-card__meta-value"
+                              datetime="2026-11-30"
+                            >
+                              30 November 2026
+                            </time>
+                          </li>
+                        </ul>
+                      </div>
+
+                      <footer class="resource-card__footer">
+                        <div class="resource-card__file">
+                          <span class="resource-card__file-type"> PDF </span>
+
+                          <span aria-hidden="true">·</span>
+
+                          <span class="resource-card__file-size"> 2.4 MB </span>
+                        </div>
+
+                        <div class="resource-card__actions">
+                          <a
+                            class="btn btn-outline btn-sm btn-icon-end has-icon icon-chevron-right icon-flip-rtl resource-card__primary-action"
+                            href="/reports/detailed-daily-report/"
+                          >
+                            View report
+                          </a>
+
+                          <a
+                            class="btn btn-link btn-sm has-icon icon-file-download resource-card__download"
+                            href="/assets/reports/detailed-daily-report.pdf"
+                            download
+                          >
+                            Download
+                          </a>
+                        </div>
+                      </footer>
+                    </article>
+                  </li>
+
+                  <!-- ============================================================
+                   Standard Resource
+                   ============================================================ -->
+
+                  <li class="card-grid__item">
+                    <article class="card resource-card">
+                      <div class="resource-card__body">
+                        <header class="resource-card__header">
+                          <div class="resource-card__identity">
+                            <span class="resource-card__badge"> Weekly </span>
+
+                            <h3 class="resource-card__title">
+                              <a
+                                class="resource-card__title-link"
+                                href="/reports/weekly-report/"
+                              >
+                                Weekly Report
+                              </a>
+                            </h3>
+                          </div>
+
+                          <span
+                            class="resource-card__icon has-icon icon-pdf-file"
+                            aria-hidden="true"
+                          ></span>
+                        </header>
+
+                        <p class="resource-card__description">
+                          A concise overview of weekly market activity and key
+                          trading indicators.
+                        </p>
+
+                        <ul class="resource-card__meta">
+                          <li
+                            class="resource-card__meta-item has-icon icon-history-clock"
+                          >
+                            <span class="resource-card__meta-label">
+                              Last updated:
+                            </span>
+
+                            <time
+                              class="resource-card__meta-value"
+                              datetime="2026-11-27"
+                            >
+                              27 November 2026
+                            </time>
+                          </li>
+                        </ul>
+                      </div>
+
+                      <footer class="resource-card__footer">
+                        <div class="resource-card__file">
+                          <span class="resource-card__file-type"> PDF </span>
+
+                          <span aria-hidden="true">·</span>
+
+                          <span class="resource-card__file-size"> 1.8 MB </span>
+                        </div>
+
+                        <div class="resource-card__actions">
+                          <a
+                            class="btn btn-outline btn-sm btn-icon-end has-icon icon-chevron-right icon-flip-rtl resource-card__primary-action"
+                            href="/reports/weekly-report/"
+                          >
+                            View report
+                          </a>
+
+                          <a
+                            class="btn btn-link btn-sm has-icon icon-file-download resource-card__download"
+                            href="/assets/reports/weekly-report.pdf"
+                            download
+                          >
+                            Download
+                          </a>
+                        </div>
+                      </footer>
+                    </article>
+                  </li>
+
+                  <!-- ============================================================
+                   Compact Resource
+                   ============================================================ -->
+
+                  <li class="card-grid__item">
+                    <article class="card resource-card resource-card--compact">
+                      <div class="resource-card__body">
+                        <header class="resource-card__header">
+                          <div class="resource-card__identity">
+                            <span class="resource-card__badge"> Monthly </span>
+
+                            <h3 class="resource-card__title">
+                              <a
+                                class="resource-card__title-link"
+                                href="/reports/monthly-report/"
+                              >
+                                Monthly Report
+                              </a>
+                            </h3>
+                          </div>
+
+                          <span
+                            class="resource-card__icon has-icon icon-pdf-file"
+                            aria-hidden="true"
+                          ></span>
+                        </header>
+
+                        <ul class="resource-card__meta">
+                          <li
+                            class="resource-card__meta-item has-icon icon-history-clock"
+                          >
+                            <span class="resource-card__meta-label">
+                              Last updated:
+                            </span>
+
+                            <time
+                              class="resource-card__meta-value"
+                              datetime="2026-12-01"
+                            >
+                              1 December 2026
+                            </time>
+                          </li>
+                        </ul>
+                      </div>
+
+                      <footer class="resource-card__footer">
+                        <div class="resource-card__file">
+                          <span class="resource-card__file-type"> PDF </span>
+
+                          <span aria-hidden="true">·</span>
+
+                          <span class="resource-card__file-size"> 3.1 MB </span>
+                        </div>
+
+                        <div class="resource-card__actions">
+                          <a
+                            class="btn btn-outline btn-sm btn-icon-end has-icon icon-chevron-right icon-flip-rtl resource-card__primary-action"
+                            href="/reports/monthly-report/"
+                          >
+                            View report
+                          </a>
+
+                          <a
+                            class="btn btn-link btn-sm has-icon icon-file-download resource-card__download"
+                            href="/assets/reports/monthly-report.pdf"
+                            download
+                          >
+                            Download
+                          </a>
+                        </div>
+                      </footer>
+                    </article>
+                  </li>
+
+                  <!-- ============================================================
+                   Unavailable Resource
+                   ============================================================ -->
+
+                  <li class="card-grid__item">
+                    <article
+                      class="card resource-card is-unavailable"
+                      aria-disabled="true"
+                    >
+                      <div class="resource-card__body">
+                        <header class="resource-card__header">
+                          <div class="resource-card__identity">
+                            <span class="resource-card__badge">
+                              Preparing
+                            </span>
+
+                            <h3 class="resource-card__title">
+                              Quarterly Report
+                            </h3>
+                          </div>
+
+                          <span
+                            class="resource-card__icon has-icon icon-history-clock"
+                            aria-hidden="true"
+                          ></span>
+                        </header>
+
+                        <p class="resource-card__description">
+                          The latest quarterly report is currently being
+                          prepared and will be published when available.
+                        </p>
+
+                        <ul class="resource-card__meta">
+                          <li class="resource-card__meta-item">
+                            <span class="resource-card__meta-label">
+                              Expected:
+                            </span>
+
+                            <time
+                              class="resource-card__meta-value"
+                              datetime="2027-01"
+                            >
+                              January 2027
+                            </time>
+                          </li>
+                        </ul>
+                      </div>
+
+                      <footer class="resource-card__footer">
+                        <span class="text-muted"> Not yet available </span>
+                      </footer>
+                    </article>
+                  </li>
+
+                  <!-- ============================================================
+                   Horizontal Resource with Media
+                   ============================================================ -->
+
+                  <li class="card-grid__item card-grid__item--featured">
+                    <article
+                      class="card resource-card resource-card--horizontal"
+                    >
+                      <div class="resource-card__media" aria-hidden="true">
+                        <img
+                          src="/assets/images/reports/annual-market-review.jpg"
+                          alt=""
+                          width="640"
+                          height="360"
+                          loading="lazy"
+                        />
+                      </div>
+
+                      <div class="resource-card__content">
+                        <div class="resource-card__body">
+                          <header class="resource-card__header">
+                            <div class="resource-card__identity">
+                              <span class="resource-card__badge"> Annual </span>
+
+                              <h3 class="resource-card__title">
+                                <a
+                                  class="resource-card__title-link"
+                                  href="/reports/annual-market-review/"
+                                >
+                                  Annual Market Review
+                                </a>
+                              </h3>
+                            </div>
+
+                            <span
+                              class="resource-card__icon has-icon icon-pdf-file"
+                              aria-hidden="true"
+                            ></span>
+                          </header>
+
+                          <p class="resource-card__description">
+                            A comprehensive review of annual market performance,
+                            major developments and trading activity.
+                          </p>
+
+                          <ul class="resource-card__meta">
+                            <li
+                              class="resource-card__meta-item has-icon icon-history-clock"
+                            >
+                              <span class="resource-card__meta-label">
+                                Published:
+                              </span>
+
+                              <time
+                                class="resource-card__meta-value"
+                                datetime="2026-03-15"
+                              >
+                                15 March 2026
+                              </time>
+                            </li>
+                          </ul>
+                        </div>
+
+                        <footer class="resource-card__footer">
+                          <div class="resource-card__file">
+                            <span class="resource-card__file-type"> PDF </span>
+
+                            <span aria-hidden="true">·</span>
+
+                            <span class="resource-card__file-size">
+                              8.7 MB
+                            </span>
+                          </div>
+
+                          <div class="resource-card__actions">
+                            <a
+                              class="btn btn-primary btn-sm btn-icon-end has-icon icon-chevron-right icon-flip-rtl resource-card__primary-action"
+                              href="/reports/annual-market-review/"
+                            >
+                              View report
+                            </a>
+
+                            <a
+                              class="btn btn-link btn-sm has-icon icon-file-download resource-card__download"
+                              href="/assets/reports/annual-market-review.pdf"
+                              download
+                            >
+                              Download
+                            </a>
+                          </div>
+                        </footer>
+                      </div>
+                    </article>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- ====================================================================
+           Pagination Scenarios
+           ==================================================================== -->
+
+          <section aria-labelledby="pagination-scenarios-title">
+            <div class="stack stack--xl">
+              <header class="section-heading">
+                <div class="section-heading__content">
+                  <h2
+                    id="pagination-scenarios-title"
+                    class="section-heading__title"
+                  >
+                    Pagination
+                  </h2>
+
+                  <p class="section-heading__description">
+                    Pagination adapts automatically to a compact page-status
+                    presentation on mobile.
+                  </p>
+                </div>
+              </header>
+
+              <!-- ================================================================
+               First Page
+               ================================================================ -->
+
+              <div class="stack stack--sm">
+                <h3 class="text-lg">First page</h3>
+
+                <nav
+                  class="pagination"
+                  aria-label="First-page pagination example"
+                >
+                  <p class="pagination__summary">
+                    Showing <strong>1–9</strong> of <strong>60</strong> reports
+                  </p>
+
+                  <ul class="pagination__list">
+                    <li class="pagination__item">
+                      <span
+                        class="pagination__link pagination__link--previous is-disabled has-icon icon-chevron-left icon-flip-rtl"
+                        aria-disabled="true"
+                      >
+                        <span class="pagination__link-text"> Previous </span>
+                      </span>
+                    </li>
+
+                    <li class="pagination__item pagination__item--page">
+                      <a
+                        class="pagination__link"
+                        href="?page=1"
+                        aria-current="page"
+                      >
+                        <span class="visually-hidden">Page</span>
+                        1
+                      </a>
+                    </li>
+
+                    <li class="pagination__item pagination__item--page">
+                      <a class="pagination__link" href="?page=2">
+                        <span class="visually-hidden">Page</span>
+                        2
+                      </a>
+                    </li>
+
+                    <li class="pagination__item pagination__item--page">
+                      <a class="pagination__link" href="?page=3">
+                        <span class="visually-hidden">Page</span>
+                        3
+                      </a>
+                    </li>
+
+                    <li
+                      class="pagination__item pagination__item--ellipsis"
+                      aria-hidden="true"
+                    >
+                      <span class="pagination__ellipsis">…</span>
+                    </li>
+
+                    <li class="pagination__item pagination__item--page">
+                      <a class="pagination__link" href="?page=60">
+                        <span class="visually-hidden">Page</span>
+                        60
+                      </a>
+                    </li>
+
+                    <li class="pagination__item">
+                      <span class="pagination__status">
+                        Page
+                        <span class="pagination__status-current">1</span>
+                        of
+                        <span class="pagination__status-total">60</span>
+                      </span>
+                    </li>
+
+                    <li class="pagination__item">
+                      <a
+                        class="pagination__link pagination__link--next has-icon icon-chevron-right icon-flip-rtl"
+                        href="?page=2"
+                        rel="next"
+                      >
+                        <span class="pagination__link-text"> Next </span>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+
+              <!-- ================================================================
+               Middle Page
+               ================================================================ -->
+
+              <div class="stack stack--sm">
+                <h3 class="text-lg">Middle page</h3>
+
+                <nav
+                  class="pagination"
+                  aria-label="Middle-page pagination example"
+                >
+                  <p class="pagination__summary">
+                    Showing <strong>271–279</strong> of <strong>540</strong>
+                    reports
+                  </p>
+
+                  <ul class="pagination__list">
+                    <li class="pagination__item">
+                      <a
+                        class="pagination__link pagination__link--previous has-icon icon-chevron-left icon-flip-rtl"
+                        href="?page=30"
+                        rel="prev"
+                      >
+                        <span class="pagination__link-text"> Previous </span>
+                      </a>
+                    </li>
+
+                    <li class="pagination__item pagination__item--page">
+                      <a class="pagination__link" href="?page=1">
+                        <span class="visually-hidden">Page</span>
+                        1
+                      </a>
+                    </li>
+
+                    <li
+                      class="pagination__item pagination__item--ellipsis"
+                      aria-hidden="true"
+                    >
+                      <span class="pagination__ellipsis">…</span>
+                    </li>
+
+                    <li class="pagination__item pagination__item--page">
+                      <a class="pagination__link" href="?page=30">
+                        <span class="visually-hidden">Page</span>
+                        30
+                      </a>
+                    </li>
+
+                    <li class="pagination__item pagination__item--page">
+                      <a
+                        class="pagination__link"
+                        href="?page=31"
+                        aria-current="page"
+                      >
+                        <span class="visually-hidden">Page</span>
+                        31
+                      </a>
+                    </li>
+
+                    <li class="pagination__item pagination__item--page">
+                      <a class="pagination__link" href="?page=32">
+                        <span class="visually-hidden">Page</span>
+                        32
+                      </a>
+                    </li>
+
+                    <li
+                      class="pagination__item pagination__item--ellipsis"
+                      aria-hidden="true"
+                    >
+                      <span class="pagination__ellipsis">…</span>
+                    </li>
+
+                    <li class="pagination__item pagination__item--page">
+                      <a class="pagination__link" href="?page=60">
+                        <span class="visually-hidden">Page</span>
+                        60
+                      </a>
+                    </li>
+
+                    <li class="pagination__item">
+                      <span class="pagination__status">
+                        Page
+                        <span class="pagination__status-current">31</span>
+                        of
+                        <span class="pagination__status-total">60</span>
+                      </span>
+                    </li>
+
+                    <li class="pagination__item">
+                      <a
+                        class="pagination__link pagination__link--next has-icon icon-chevron-right icon-flip-rtl"
+                        href="?page=32"
+                        rel="next"
+                      >
+                        <span class="pagination__link-text"> Next </span>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+
+              <!-- ================================================================
+               Last Page
+               ================================================================ -->
+
+              <div class="stack stack--sm">
+                <h3 class="text-lg">Last page</h3>
+
+                <nav
+                  class="pagination"
+                  aria-label="Last-page pagination example"
+                >
+                  <p class="pagination__summary">
+                    Showing <strong>532–540</strong> of <strong>540</strong>
+                    reports
+                  </p>
+
+                  <ul class="pagination__list">
+                    <li class="pagination__item">
+                      <a
+                        class="pagination__link pagination__link--previous has-icon icon-chevron-left icon-flip-rtl"
+                        href="?page=59"
+                        rel="prev"
+                      >
+                        <span class="pagination__link-text"> Previous </span>
+                      </a>
+                    </li>
+
+                    <li class="pagination__item pagination__item--page">
+                      <a class="pagination__link" href="?page=1">
+                        <span class="visually-hidden">Page</span>
+                        1
+                      </a>
+                    </li>
+
+                    <li
+                      class="pagination__item pagination__item--ellipsis"
+                      aria-hidden="true"
+                    >
+                      <span class="pagination__ellipsis">…</span>
+                    </li>
+
+                    <li class="pagination__item pagination__item--page">
+                      <a class="pagination__link" href="?page=58">
+                        <span class="visually-hidden">Page</span>
+                        58
+                      </a>
+                    </li>
+
+                    <li class="pagination__item pagination__item--page">
+                      <a class="pagination__link" href="?page=59">
+                        <span class="visually-hidden">Page</span>
+                        59
+                      </a>
+                    </li>
+
+                    <li class="pagination__item pagination__item--page">
+                      <a
+                        class="pagination__link"
+                        href="?page=60"
+                        aria-current="page"
+                      >
+                        <span class="visually-hidden">Page</span>
+                        60
+                      </a>
+                    </li>
+
+                    <li class="pagination__item">
+                      <span class="pagination__status">
+                        Page
+                        <span class="pagination__status-current">60</span>
+                        of
+                        <span class="pagination__status-total">60</span>
+                      </span>
+                    </li>
+
+                    <li class="pagination__item">
+                      <span
+                        class="pagination__link pagination__link--next is-disabled has-icon icon-chevron-right icon-flip-rtl"
+                        aria-disabled="true"
+                      >
+                        <span class="pagination__link-text"> Next </span>
+                      </span>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+          </section>
         </div>
-
-        <section class="card card-elevated p-3">
-          <h1 class="mb-4">Card System</h1>
-
-          <div class="grid-3">
-            <!-- Default -->
-
-            <article class="card">
-              <div class="card-header">
-                <div>
-                  <h3 class="card-title">Default Card</h3>
-                  <div class="card-subtitle">Reusable foundation</div>
-                </div>
-              </div>
-
-              <div class="card-body">
-                <p class="card-text">
-                  This is the base card component used across the entire
-                  platform.
-                </p>
-              </div>
-
-              <div class="card-footer">
-                <span class="text-muted"> Footer Content </span>
-
-                <div class="card-actions">
-                  <button class="btn btn-primary btn-rounded">Action</button>
-                </div>
-              </div>
-            </article>
-
-            <!-- Elevated -->
-
-            <article class="card card-elevated">
-              <div class="card-header">
-                <h3 class="card-title">Elevated Card</h3>
-              </div>
-
-              <div class="card-body">
-                <p class="card-text">Uses medium elevation shadow.</p>
-              </div>
-            </article>
-
-            <!-- Hover -->
-
-            <article class="card card-hover">
-              <div class="card-header">
-                <h3 class="card-title">Hover Card</h3>
-              </div>
-
-              <div class="card-body">
-                <p class="card-text">Hover me.</p>
-              </div>
-            </article>
-          </div>
-        </section>
       </div>
-    </main>
+    </div>
   </body>
 </html>

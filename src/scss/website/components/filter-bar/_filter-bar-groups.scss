@@ -1,0 +1,428 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Filter Bar Groups
+   ========================================================================== */
+
+/*
+ * Owns:
+ *
+ * - field collections
+ * - individual fields
+ * - fieldset normalization
+ * - consistent label rows
+ * - control sizing and containment
+ * - custom-select integration
+ * - custom-date integration
+ * - responsive filter grids
+ * - supporting legends
+ *
+ * Structural grids continue to use:
+ *
+ * - .grid
+ * - .grid-auto
+ * - .grid-2
+ * - .grid-3
+ * - .grid-4
+ */
+
+/* ==========================================================================
+   Field Collection
+   ========================================================================== */
+
+.filter-bar__fields {
+  flex: 1 1 auto;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Design-System Grid Integration
+   ========================================================================== */
+
+.filter-bar__fields.grid,
+.filter-bar__fields.grid-auto,
+.filter-bar__fields.grid-2,
+.filter-bar__fields.grid-3,
+.filter-bar__fields.grid-4 {
+  --grid-gap: var(--filter-bar-field-gap);
+
+  align-items: start;
+}
+
+/* ==========================================================================
+   Field
+   ========================================================================== */
+
+.filter-bar__field {
+  display: grid;
+  grid-template-rows: auto auto;
+  align-content: start;
+  gap: ds.space(2);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Fieldset Reset
+   ========================================================================== */
+
+.filter-bar__field.form-fieldset {
+  min-inline-size: 0;
+  padding: 0;
+
+  border: 0;
+}
+
+/*
+ * Browsers give legends special layout behavior. Explicit sizing prevents
+ * fieldset labels from sitting above adjacent standard labels.
+ */
+
+.filter-bar__field.form-fieldset .form-label {
+  float: none;
+
+  inline-size: 100%;
+  max-inline-size: 100%;
+  padding: 0;
+}
+
+/* ==========================================================================
+   Consistent Label Row
+   ========================================================================== */
+
+/*
+ * Every field reserves the same label row.
+ *
+ * This keeps selects, date controls, text fields, and disclosure controls
+ * aligned even when one label uses a legend and another uses a label.
+ */
+
+.filter-bar__field .form-label,
+.filter-bar__field .form-label-static {
+  display: flex;
+  align-items: flex-end;
+
+  min-block-size: 1.5rem;
+  margin: 0;
+  padding: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Form Group Reset
+   ========================================================================== */
+
+.filter-bar__field .form-group,
+.filter-bar__field.form-group {
+  margin: 0;
+}
+
+/* ==========================================================================
+   Control Width
+   ========================================================================== */
+
+.filter-bar__field .form-control,
+.filter-bar__field .form-select,
+.filter-bar__field .form-select-wrap,
+.filter-bar__field .custom-select,
+.filter-bar__field .custom-select__fallback,
+.filter-bar__field .custom-select__trigger,
+.filter-bar__field .custom-date,
+.filter-bar__field .custom-date__fallback,
+.filter-bar__field .custom-date__trigger,
+.filter-bar__field .custom-date__initial-trigger {
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Shared Visible Control Size
+   ========================================================================== */
+
+/*
+ * Use an explicit block size rather than only min-block-size.
+ *
+ * This ensures that native selects, enhanced selects, date triggers, and
+ * normal inputs occupy exactly the same visual height.
+ */
+
+.filter-bar__field .form-control,
+.filter-bar__field .form-select,
+.filter-bar__field .custom-select__trigger,
+.filter-bar__field .custom-date__trigger,
+.filter-bar__field .custom-date__initial-trigger {
+  box-sizing: border-box;
+
+  block-size: var(--filter-bar-control-block-size);
+  min-block-size: var(--filter-bar-control-block-size);
+}
+
+/* ==========================================================================
+   Select Wrapper
+   ========================================================================== */
+
+.filter-bar__field .form-select-wrap {
+  display: flex;
+  align-items: stretch;
+}
+
+/* ==========================================================================
+   Custom Select
+   ========================================================================== */
+
+.filter-bar__field .custom-select {
+  position: relative;
+}
+
+.filter-bar__field .custom-select__fallback,
+.filter-bar__field .form-select-wrap {
+  min-inline-size: 0;
+}
+
+.filter-bar__field .custom-select__trigger {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.filter-bar__field .custom-select__value {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filter-bar__field .custom-select__indicator {
+  flex: 0 0 auto;
+
+  margin-inline-start: auto;
+}
+
+/* ==========================================================================
+   Custom Date
+   ========================================================================== */
+
+.filter-bar__field .custom-date {
+  position: relative;
+
+  min-inline-size: 0;
+}
+
+.filter-bar__field .custom-date--range,
+.filter-bar__field .custom-date__fallback,
+.filter-bar__field .custom-date__native-range {
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.filter-bar__field .custom-date__native-range {
+  gap: ds.space(2);
+}
+
+.filter-bar__field .custom-date__initial-trigger,
+.filter-bar__field .custom-date__trigger {
+  align-items: center;
+  justify-content: space-between;
+
+  min-inline-size: 0;
+}
+
+.filter-bar__field .custom-date__initial-value,
+.filter-bar__field .custom-date__value {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filter-bar__field .custom-date__initial-indicator,
+.filter-bar__field .custom-date__indicator {
+  flex: 0 0 auto;
+
+  margin-inline-start: auto;
+}
+
+/* ==========================================================================
+   Native Date Range
+   ========================================================================== */
+
+.filter-bar__field .custom-date__native-range .form-control {
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Supporting Text
+   ========================================================================== */
+
+.filter-bar__field .form-help,
+.filter-bar__field .form-error,
+.filter-bar__field .form-success {
+  margin: 0;
+}
+
+/*
+ * Supporting text belongs below the visible control and must not affect the
+ * alignment of the label or control rows.
+ */
+
+.filter-bar__field .form-help,
+.filter-bar__field .form-error,
+.filter-bar__field .form-success {
+  align-self: start;
+}
+
+/* ==========================================================================
+   Legend
+   ========================================================================== */
+
+.filter-bar__legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: ds.space(2) ds.space(4);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Legend Item
+   ========================================================================== */
+
+.filter-bar__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+
+  color: var(--filter-bar-muted-color);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Legend Indicator
+   ========================================================================== */
+
+.filter-bar__legend-indicator {
+  flex: 0 0 auto;
+
+  inline-size: 0.625rem;
+  block-size: 0.625rem;
+
+  border-radius: var(--radius-pill);
+
+  background: var(--color-text-muted);
+}
+
+.filter-bar__legend-indicator--primary {
+  background: var(--color-primary);
+}
+
+.filter-bar__legend-indicator--success {
+  background: var(--color-success);
+}
+
+.filter-bar__legend-indicator--warning {
+  background: var(--color-warning);
+}
+
+.filter-bar__legend-indicator--danger {
+  background: var(--color-danger);
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  /*
+   * Four-column filters become two columns earlier than the global grid
+   * utility to preserve readable select and date controls.
+   */
+
+  .filter-bar__fields.grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .filter-bar__fields.grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filter-bar__legend {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: ds.space(2);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .filter-bar__fields.grid-2,
+  .filter-bar__fields.grid-3,
+  .filter-bar__fields.grid-4 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .filter-bar__field {
+    gap: ds.space(2);
+  }
+
+  .filter-bar__field .form-label,
+  .filter-bar__field .form-label-static {
+    min-block-size: auto;
+
+    font-size: var(--text-xs);
+  }
+
+  .filter-bar__field .custom-date__native-range {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .filter-bar__legend-indicator {
+  outline: 1px solid currentColor;
+  outline-offset: 1px;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .filter-bar__legend-indicator {
+    border: 1px solid CanvasText;
+
+    background: CanvasText;
+  }
+}

@@ -1,0 +1,581 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Management Team
+   ========================================================================== */
+
+/*
+ * Website-level composition for leadership and governance directories.
+ *
+ * This file owns:
+ *
+ * - section presentation
+ * - introductory heading and count
+ * - primary team tabs
+ * - responsive person-card grid
+ * - loading and empty states
+ *
+ * Individual profile cards remain owned by the design-system person-card.
+ * Biography modal presentation remains owned by management-profile.
+ */
+
+.management-team {
+  --management-team-bg: var(--color-surface);
+  --management-team-color: var(--color-text);
+  --management-team-border: var(--color-border);
+  --management-team-radius: var(--radius-lg);
+  --management-team-shadow: var(--shadow-sm);
+
+  --management-team-padding-block: clamp(1rem, 2vw, 2rem);
+  --management-team-padding-inline: clamp(1rem, 2vw, 2rem);
+
+  --management-team-grid-gap: clamp(1rem, 2vw, 1.5rem);
+
+  position: relative;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Surface
+   ========================================================================== */
+
+.management-team__surface {
+  position: relative;
+  isolation: isolate;
+
+  min-inline-size: 0;
+  padding-block: var(--management-team-padding-block);
+  padding-inline: var(--management-team-padding-inline);
+
+  border: 1px solid var(--management-team-border);
+  border-radius: var(--management-team-radius);
+
+  background: var(--management-team-bg);
+  color: var(--management-team-color);
+
+  box-shadow: var(--management-team-shadow);
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Decorative Surface
+   ========================================================================== */
+
+.management-team__surface::before {
+  content: "";
+
+  position: absolute;
+  inset-inline-end: -8rem;
+  inset-block-start: -10rem;
+  z-index: 0;
+
+  inline-size: 28rem;
+  block-size: 28rem;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle at center,
+    color-mix(in oklab, var(--color-primary), transparent 92%) 0%,
+    transparent 70%
+  );
+
+  pointer-events: none;
+}
+
+.management-team__content {
+  position: relative;
+  z-index: 1;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Section Header
+   ========================================================================== */
+
+.management-team__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: ds.space(4);
+
+  min-inline-size: 0;
+  margin-block-end: ds.space(5);
+}
+
+.management-team__heading {
+  display: grid;
+  gap: ds.space(1);
+
+  flex: 1 1 30rem;
+
+  min-inline-size: 0;
+}
+
+.management-team__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-2xl);
+  font-weight: ds.font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+.management-team__description {
+  max-inline-size: 72ch;
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-base);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   Count
+   ========================================================================== */
+
+.management-team__count {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: ds.space(1);
+
+  flex: 0 0 auto;
+
+  min-block-size: 2.25rem;
+  padding-block: ds.space(1);
+  padding-inline: ds.space(3);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+.management-team__count-value {
+  color: var(--color-heading);
+
+  font-variant-numeric: tabular-nums;
+  font-weight: ds.font-weight("bold");
+}
+
+/* ==========================================================================
+   Tabs
+   ========================================================================== */
+
+.management-team__tabs {
+  min-inline-size: 0;
+}
+
+.management-team__tabs .tabs-nav {
+  margin-block-end: ds.space(5);
+}
+
+.management-team__tabs .tab-link {
+  min-block-size: 3rem;
+  padding-inline: clamp(1rem, 2vw, 1.5rem);
+
+  font-size: var(--text-base);
+}
+
+/* ==========================================================================
+   Tab Panel
+   ========================================================================== */
+
+.management-team__panel {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Panel Header
+   ========================================================================== */
+
+.management-team__panel-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+  margin-block-end: ds.space(4);
+}
+
+.management-team__panel-heading {
+  display: grid;
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+}
+
+.management-team__panel-title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-xl);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+.management-team__panel-description {
+  max-inline-size: 70ch;
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Person Grid
+   ========================================================================== */
+
+/*
+ * One column is the safe default.
+ *
+ * The grid progressively expands as sufficient card width becomes available:
+ *
+ * - mobile: one column
+ * - small tablet: two columns
+ * - desktop: three columns
+ * - wide desktop: four columns
+ */
+
+.management-team__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: var(--management-team-grid-gap);
+
+  min-inline-size: 0;
+}
+
+/* Two columns */
+
+@include ds.respond-up("sm") {
+  .management-team__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Three columns */
+
+@include ds.respond-up("lg") {
+  .management-team__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Four columns */
+
+@include ds.respond-up("xl") {
+  .management-team__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Grid Items
+   ========================================================================== */
+
+.management-team__item {
+  min-inline-size: 0;
+  block-size: 100%;
+}
+
+.management-team__item .person-card {
+  block-size: 100%;
+}
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
+.management-team__empty {
+  display: grid;
+  justify-items: center;
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+  padding-block: clamp(3rem, 8vw, 6rem);
+  padding-inline: ds.space(4);
+
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface-alt);
+
+  text-align: center;
+}
+
+.management-team__empty-icon {
+  --icon-size: 2rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 4rem;
+  block-size: 4rem;
+
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface);
+  color: var(--color-primary);
+}
+
+.management-team__empty-title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+.management-team__empty-description {
+  max-inline-size: 50ch;
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.management-team[aria-busy="true"] {
+  cursor: wait;
+}
+
+.management-team__grid.is-loading {
+  pointer-events: none;
+}
+
+.management-team__skeleton {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 0;
+
+  min-block-size: 28rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
+
+  overflow: hidden;
+}
+
+.management-team__skeleton-media {
+  aspect-ratio: 4 / 5;
+
+  background: var(--color-surface-alt);
+}
+
+.management-team__skeleton-body {
+  display: grid;
+  align-content: start;
+  gap: ds.space(2);
+
+  padding: ds.space(4);
+}
+
+.management-team__skeleton-line {
+  block-size: 0.875rem;
+
+  border-radius: var(--radius-sm);
+
+  background: var(--color-surface-alt);
+}
+
+.management-team__skeleton-line--title {
+  inline-size: 72%;
+}
+
+.management-team__skeleton-line--role {
+  inline-size: 54%;
+}
+
+/* ==========================================================================
+   Skeleton Animation
+   ========================================================================== */
+
+@supports (background: linear-gradient(90deg, black, white)) {
+  .management-team__skeleton-media,
+  .management-team__skeleton-line {
+    background: linear-gradient(
+      90deg,
+      var(--color-surface-alt) 25%,
+      var(--color-border) 50%,
+      var(--color-surface-alt) 75%
+    );
+
+    background-size: 200% 100%;
+
+    animation: management-team-loading 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes management-team-loading {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .management-team__title {
+    font-size: var(--text-xl);
+  }
+
+  .management-team__tabs .tab-link {
+    font-size: var(--text-sm);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .management-team {
+    --management-team-padding-block: #{ds.space(4)};
+    --management-team-padding-inline: #{ds.space(3)};
+    --management-team-grid-gap: #{ds.space(3)};
+  }
+
+  .management-team__surface {
+    border-radius: var(--radius-md);
+  }
+
+  .management-team__header {
+    display: grid;
+    justify-items: start;
+
+    gap: ds.space(3);
+    margin-block-end: ds.space(4);
+  }
+
+  .management-team__title {
+    font-size: var(--text-lg);
+  }
+
+  .management-team__description {
+    font-size: var(--text-sm);
+  }
+
+  .management-team__count {
+    min-block-size: 2rem;
+  }
+
+  .management-team__tabs .tabs-nav {
+    margin-block-end: ds.space(4);
+  }
+
+  .management-team__tabs .tab-link {
+    min-block-size: 2.75rem;
+    padding-inline: ds.space(3);
+
+    font-size: var(--text-sm);
+  }
+
+  .management-team__panel-header {
+    align-items: flex-start;
+    flex-direction: column;
+
+    margin-block-end: ds.space(3);
+  }
+
+  .management-team__panel-title {
+    font-size: var(--text-lg);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .management-team__surface {
+  border-width: 2px;
+  border-color: var(--color-border-strong);
+
+  box-shadow: none;
+}
+
+html[data-contrast="high"] .management-team__surface::before {
+  display: none;
+}
+
+html[data-contrast="high"] .management-team__count,
+html[data-contrast="high"] .management-team__empty,
+html[data-contrast="high"] .management-team__skeleton {
+  border-width: 2px;
+  border-color: currentColor;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .management-team__surface,
+  .management-team__count,
+  .management-team__empty,
+  .management-team__skeleton {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+  }
+
+  .management-team__surface::before {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .management-team__skeleton-media,
+  .management-team__skeleton-line {
+    animation: none;
+  }
+}
+
+html[data-motion="reduce"] .management-team__skeleton-media,
+html[data-motion="reduce"] .management-team__skeleton-line {
+  animation: none;
+}

@@ -1,0 +1,464 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Person Card
+   ========================================================================== */
+
+/*
+ * Reusable profile card for:
+ *
+ * - board members
+ * - executives
+ * - leadership teams
+ * - speakers
+ * - professional directories
+ *
+ * The card supports a portrait presentation on larger screens and switches
+ * to a compact horizontal composition on mobile.
+ */
+
+.person-card {
+  --person-card-bg: var(--color-surface);
+  --person-card-color: var(--color-text);
+  --person-card-heading: var(--color-heading);
+  --person-card-muted: var(--color-text-muted);
+
+  --person-card-border: var(--color-border);
+  --person-card-border-hover: var(--color-primary);
+
+  --person-card-media-bg: var(--color-surface-alt);
+  --person-card-media-ratio: 8 / 9;
+  --person-card-image-position: center top;
+
+  --person-card-padding: #{ds.space(4)};
+  --person-card-gap: #{ds.space(4)};
+
+  appearance: none;
+
+  position: relative;
+  isolation: isolate;
+
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  block-size: 100%;
+  padding: 0;
+
+  overflow: hidden;
+
+  border: 1px solid var(--person-card-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--person-card-bg);
+  color: var(--person-card-color);
+
+  box-shadow: var(--shadow-sm);
+
+  font: inherit;
+
+  text-align: start;
+
+  cursor: pointer;
+
+  @include ds.transition(
+    (border-color, box-shadow, transform, background-color),
+    "fast"
+  );
+}
+
+/* ==========================================================================
+   Media
+   ========================================================================== */
+
+.person-card__media {
+  position: relative;
+
+  display: block;
+
+  inline-size: 100%;
+  aspect-ratio: var(--person-card-media-ratio);
+
+  overflow: hidden;
+
+  border-block-end: 1px solid var(--person-card-border);
+
+  background: var(--person-card-media-bg);
+}
+
+/* ==========================================================================
+   Image
+   ========================================================================== */
+
+.person-card__image {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  object-fit: cover;
+  object-position: var(--person-card-image-position);
+
+  @include ds.transition(transform, "normal");
+}
+
+/* ==========================================================================
+   Media Overlay
+   ========================================================================== */
+
+.person-card__media::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(
+    180deg,
+    transparent 70%,
+    rgb(0 31 51 / 0.12) 100%
+  );
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  @include ds.transition(opacity, "fast");
+}
+
+/* ==========================================================================
+   Body
+   ========================================================================== */
+
+.person-card__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--person-card-gap);
+
+  min-inline-size: 0;
+  min-block-size: 0;
+  padding: var(--person-card-padding);
+}
+
+/* ==========================================================================
+   Identity
+   ========================================================================== */
+
+.person-card__identity {
+  display: grid;
+  align-content: start;
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Name
+   ========================================================================== */
+
+.person-card__name {
+  color: var(--person-card-heading);
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Role
+   ========================================================================== */
+
+.person-card__role {
+  color: var(--person-card-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Action
+   ========================================================================== */
+
+.person-card__action {
+  --icon-size: 0.875rem;
+
+  display: inline-flex;
+  align-items: center;
+  gap: ds.space(2);
+
+  margin-block-start: auto;
+
+  color: var(--color-primary);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+}
+
+/*
+ * The registered icon is rendered by ::before. Row reversal keeps the
+ * chevron at the visual end without relying on direct-child selectors.
+ */
+
+.person-card__action.has-icon {
+  flex-direction: row-reverse;
+}
+
+/* ==========================================================================
+   Hover
+   ========================================================================== */
+
+.person-card:hover {
+  border-color: var(--person-card-border-hover);
+
+  box-shadow: var(--shadow-md);
+
+  transform: translateY(-0.1875rem);
+}
+
+.person-card:hover .person-card__image {
+  transform: scale(1.025);
+}
+
+.person-card:hover .person-card__media::after {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   Active
+   ========================================================================== */
+
+.person-card:active {
+  box-shadow: var(--shadow-sm);
+
+  transform: translateY(0);
+}
+
+/* ==========================================================================
+   Focus
+   ========================================================================== */
+
+.person-card:focus {
+  outline: none;
+}
+
+.person-card:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Disabled
+   ========================================================================== */
+
+.person-card:disabled,
+.person-card.is-disabled,
+.person-card[aria-disabled="true"] {
+  border-color: var(--color-disabled);
+
+  color: var(--color-on-disabled);
+
+  box-shadow: none;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+.person-card:disabled .person-card__image,
+.person-card.is-disabled .person-card__image,
+.person-card[aria-disabled="true"] .person-card__image {
+  filter: grayscale(1);
+
+  opacity: 0.65;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .person-card {
+    --person-card-padding: #{ds.space(3)};
+    --person-card-gap: #{ds.space(3)};
+    --person-card-media-ratio: 4 / 5;
+  }
+
+  .person-card__name {
+    font-size: var(--text-base);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+/*
+ * Mobile cards become horizontal. This keeps the portrait useful while
+ * preventing one card from occupying nearly the entire viewport.
+ */
+
+@include ds.respond-down("sm") {
+  .person-card {
+    --person-card-padding: #{ds.space(3)};
+    --person-card-gap: #{ds.space(3)};
+
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    grid-template-rows: minmax(9.5rem, auto);
+
+    min-block-size: 9.5rem;
+
+    border-radius: var(--radius-md);
+  }
+
+  .person-card__media {
+    inline-size: 100%;
+    block-size: 100%;
+    aspect-ratio: auto;
+
+    border-block-end: 0;
+    border-inline-end: 1px solid var(--person-card-border);
+  }
+
+  .person-card__body {
+    justify-content: center;
+
+    padding: var(--person-card-padding);
+  }
+
+  .person-card__name {
+    font-size: var(--text-base);
+  }
+
+  .person-card__role,
+  .person-card__action {
+    font-size: var(--text-xs);
+  }
+
+  .person-card__image {
+    object-position: center top;
+  }
+}
+
+/* ==========================================================================
+   Very Small Screens
+   ========================================================================== */
+
+@media (max-width: 24rem) {
+  .person-card {
+    grid-template-columns: 6.25rem minmax(0, 1fr);
+    grid-template-rows: minmax(8.5rem, auto);
+
+    min-block-size: 8.5rem;
+  }
+
+  .person-card__body {
+    gap: ds.space(2);
+    padding: ds.space(2);
+  }
+
+  .person-card__name {
+    font-size: var(--text-sm);
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .person-card {
+  text-align: start;
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .person-card {
+  border-width: 2px;
+  border-color: var(--color-border-strong);
+
+  box-shadow: none;
+}
+
+html[data-contrast="high"] .person-card:hover,
+html[data-contrast="high"] .person-card:focus-visible {
+  border-color: currentColor;
+
+  transform: none;
+}
+
+html[data-contrast="high"] .person-card__media {
+  border-color: currentColor;
+}
+
+html[data-contrast="high"] .person-card__media::after {
+  display: none;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .person-card {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+  }
+
+  .person-card__media {
+    border-color: CanvasText;
+
+    background: Canvas;
+  }
+
+  .person-card__name,
+  .person-card__role {
+    color: CanvasText;
+  }
+
+  .person-card__action {
+    color: LinkText;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .person-card,
+  .person-card__image,
+  .person-card__media::after {
+    transition: none;
+  }
+
+  .person-card:hover,
+  .person-card:active {
+    transform: none;
+  }
+
+  .person-card:hover .person-card__image {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] .person-card,
+html[data-motion="reduce"] .person-card__image,
+html[data-motion="reduce"] .person-card__media::after {
+  transition: none;
+}
+
+html[data-motion="reduce"] .person-card:hover,
+html[data-motion="reduce"] .person-card:active,
+html[data-motion="reduce"] .person-card:hover .person-card__image {
+  transform: none;
+}

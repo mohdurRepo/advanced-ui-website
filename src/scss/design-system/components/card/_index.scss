@@ -1,0 +1,19 @@
+/* ==========================================================================
+   Card
+   ========================================================================== */
+
+/*
+ * Generic Card foundation and reusable Card compositions.
+ *
+ * Import order matters:
+ *
+ * 1. Base establishes the shared Card tokens and structure.
+ * 2. Grid provides collection layout.
+ * 3. Navigation Card composes a single-destination Card.
+ * 4. Resource Card composes a multi-action document/resource Card.
+ */
+
+@forward "base";
+@forward "navigation-card";
+@forward "resource-card";
+@forward "person-card";

@@ -1,0 +1,757 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Issuer Row
+   ========================================================================== */
+
+/*
+ * List-view presentation for one listed issuer.
+ *
+ * Owns:
+ *
+ * - favorite control at the beginning of the identity
+ * - compact issuer identity and logo
+ * - aligned directory metadata
+ * - market movement
+ * - trailing profile action
+ * - responsive mobile-card transformation
+ */
+
+.issuer-row {
+  --issuer-row-logo-size: 3rem;
+
+  --issuer-row-bg: var(--color-surface);
+  --issuer-row-color: var(--color-text);
+  --issuer-row-heading: var(--color-heading);
+  --issuer-row-muted: var(--color-text-muted);
+
+  --issuer-row-border: var(--color-border);
+  --issuer-row-border-hover: var(--color-primary);
+
+  position: relative;
+  isolation: isolate;
+
+  display: grid;
+  grid-template-columns:
+    minmax(19rem, 2fr)
+    minmax(7rem, 0.8fr)
+    minmax(8rem, 1fr)
+    minmax(10rem, 1.15fr)
+    minmax(7rem, 0.75fr)
+    auto;
+  align-items: center;
+  gap: ds.space(4);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  margin: 0;
+  padding: ds.space(3) ds.space(4);
+
+  border: 1px solid var(--issuer-row-border);
+  border-radius: var(--radius-md);
+
+  background: var(--issuer-row-bg);
+  color: var(--issuer-row-color);
+
+  box-shadow: var(--shadow-sm);
+
+  @include ds.transition((border-color, box-shadow, background-color), "fast");
+}
+
+/* ==========================================================================
+   Identity
+   ========================================================================== */
+
+/*
+ * The favorite is deliberately the first element, followed by the logo and
+ * issuer identity. This provides a predictable action position in every row.
+ */
+
+.issuer-row__identity {
+  display: flex;
+  align-items: center;
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Favorite
+   ========================================================================== */
+
+.issuer-row__favorite {
+  --icon-size: 1.125rem;
+
+  appearance: none;
+
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  padding: 0;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+
+  background: transparent;
+  color: var(--issuer-row-muted);
+
+  font: inherit;
+
+  cursor: pointer;
+
+  @include ds.transition(
+    (background-color, border-color, color, transform),
+    "fast"
+  );
+}
+
+.issuer-row__favorite::before {
+  margin: 0;
+}
+
+.issuer-row__favorite:hover:not(:disabled):not(.is-disabled) {
+  border-color: var(--issuer-row-border);
+
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+}
+
+.issuer-row__favorite:focus {
+  outline: none;
+}
+
+.issuer-row__favorite:focus-visible {
+  @include ds.focus-ring;
+}
+
+.issuer-row__favorite:active:not(:disabled):not(.is-disabled) {
+  transform: scale(0.94);
+}
+
+.issuer-row__favorite.is-active,
+.issuer-row__favorite[aria-pressed="true"] {
+  color: var(--color-primary);
+}
+
+.issuer-row__favorite:disabled,
+.issuer-row__favorite.is-disabled,
+.issuer-row__favorite[aria-disabled="true"] {
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+
+  opacity: 0.6;
+}
+
+/* ==========================================================================
+   Logo
+   ========================================================================== */
+
+.issuer-row__logo {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+
+  inline-size: var(--issuer-row-logo-size);
+  block-size: var(--issuer-row-logo-size);
+
+  overflow: hidden;
+
+  border: 1px solid var(--issuer-row-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface-alt);
+  color: var(--issuer-row-heading);
+}
+
+.issuer-row__logo-image {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+  padding: ds.space(1);
+
+  background: var(--color-surface);
+
+  object-fit: contain;
+  object-position: center;
+}
+
+/* ==========================================================================
+   Logo Fallback
+   ========================================================================== */
+
+.issuer-row__logo-fallback {
+  display: grid;
+  place-items: center;
+
+  inline-size: 100%;
+  block-size: 100%;
+  padding: ds.space(1);
+
+  color: var(--issuer-row-heading);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
+
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Identity Content
+   ========================================================================== */
+
+.issuer-row__identity-content {
+  display: grid;
+  align-content: center;
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Name
+   ========================================================================== */
+
+.issuer-row__name {
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--issuer-row-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.issuer-row__name-link {
+  color: inherit;
+
+  text-decoration: none;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.2em;
+
+  @include ds.transition(color, "fast");
+}
+
+.issuer-row__name-link:hover {
+  color: var(--color-primary);
+
+  text-decoration-line: underline;
+}
+
+.issuer-row__name-link:focus {
+  outline: none;
+}
+
+.issuer-row__name-link:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Code
+   ========================================================================== */
+
+.issuer-row__code {
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  color: var(--issuer-row-muted);
+
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Data Field
+   ========================================================================== */
+
+.issuer-row__field {
+  display: grid;
+  align-content: center;
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Field Label
+   ========================================================================== */
+
+/*
+ * Desktop labels are supplied by the shared list header. Per-row labels
+ * become visible when the row changes into its mobile-card composition.
+ */
+
+.issuer-row__label {
+  position: absolute;
+
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+
+  border: 0;
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Field Value
+   ========================================================================== */
+
+.issuer-row__value {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  color: var(--issuer-row-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.issuer-row__value--numeric {
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Market Movement
+   ========================================================================== */
+
+.issuer-row__movement {
+  --icon-size: 0.625rem;
+
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  display: inline-flex;
+  align-items: center;
+  gap: ds.space(1);
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  white-space: nowrap;
+}
+
+.issuer-row__movement::before {
+  margin: 0;
+}
+
+.issuer-row__movement--positive {
+  color: var(--color-market-positive);
+}
+
+.issuer-row__movement--negative {
+  color: var(--color-market-negative);
+}
+
+.issuer-row__movement--neutral {
+  color: var(--color-market-neutral);
+}
+
+/* ==========================================================================
+   Profile Action
+   ========================================================================== */
+
+/*
+ * The profile action occupies the final grid track but does not require a
+ * visible “Actions” column heading.
+ */
+
+.issuer-row__profile {
+  --icon-size: 0.875rem;
+
+  justify-self: end;
+
+  inline-size: fit-content;
+  min-inline-size: max-content;
+}
+
+/* ==========================================================================
+   Hover and Focus
+   ========================================================================== */
+
+.issuer-row:hover,
+.issuer-row:focus-within {
+  border-color: var(--issuer-row-border-hover);
+
+  box-shadow: var(--shadow-md);
+}
+
+/* ==========================================================================
+   Column Header
+   ========================================================================== */
+
+/*
+ * The final empty track aligns with the profile button but has no visible
+ * Actions label.
+ */
+
+.issuer-list-header {
+  display: grid;
+  grid-template-columns:
+    minmax(19rem, 2fr)
+    minmax(7rem, 0.8fr)
+    minmax(8rem, 1fr)
+    minmax(10rem, 1.15fr)
+    minmax(7rem, 0.75fr)
+    auto;
+  align-items: center;
+  gap: ds.space(4);
+
+  min-inline-size: 0;
+  padding-block: ds.space(2);
+  padding-inline: ds.space(4);
+
+  color: var(--issuer-row-muted);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+}
+
+.issuer-list-header__label {
+  min-inline-size: 0;
+}
+
+.issuer-list-header__profile {
+  min-inline-size: 8rem;
+}
+
+/* ==========================================================================
+   Large Desktop
+   ========================================================================== */
+
+@include ds.respond-down("xl") {
+  .issuer-row,
+  .issuer-list-header {
+    grid-template-columns:
+      minmax(17rem, 2fr)
+      minmax(7rem, 0.85fr)
+      minmax(8rem, 1fr)
+      minmax(7rem, 0.75fr)
+      auto;
+  }
+
+  /*
+   * Sector is removed as a dedicated comparison column at this width.
+   * It remains available in the grid view and mobile composition.
+   */
+
+  .issuer-row__field--sector,
+  .issuer-list-header__label--sector {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .issuer-row,
+  .issuer-list-header {
+    grid-template-columns:
+      minmax(15rem, 2fr)
+      minmax(7rem, 1fr)
+      minmax(7rem, 0.8fr)
+      auto;
+
+    gap: ds.space(3);
+  }
+
+  .issuer-row__field--market,
+  .issuer-list-header__label--market {
+    display: none;
+  }
+
+  .issuer-row__profile {
+    padding-inline: ds.space(3);
+  }
+}
+
+/* ==========================================================================
+   Mobile Card
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .issuer-list-header {
+    display: none;
+  }
+
+  .issuer-row {
+    --issuer-row-logo-size: 3rem;
+
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: ds.space(3);
+
+    padding: ds.space(3);
+
+    border-radius: var(--radius-md);
+  }
+
+  .issuer-row__identity {
+    grid-column: 1;
+
+    align-items: flex-start;
+  }
+
+  .issuer-row__field,
+  .issuer-row__field--market,
+  .issuer-row__field--sector {
+    display: grid;
+
+    grid-column: 1;
+    grid-template-columns:
+      minmax(6.5rem, 0.4fr)
+      minmax(0, 1fr);
+    align-items: baseline;
+    gap: ds.space(2);
+  }
+
+  .issuer-row__label {
+    position: static;
+
+    inline-size: auto;
+    block-size: auto;
+    margin: 0;
+    padding: 0;
+
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+
+    color: var(--issuer-row-muted);
+
+    font-size: var(--text-xs);
+    line-height: var(--line-height-normal);
+
+    white-space: normal;
+  }
+
+  .issuer-row__value {
+    overflow: visible;
+
+    font-size: var(--text-xs);
+
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .issuer-row__name {
+    overflow: visible;
+
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .issuer-row__profile {
+    grid-column: 1;
+
+    justify-self: stretch;
+
+    inline-size: 100%;
+    min-inline-size: 0;
+    margin-block-start: ds.space(1);
+  }
+}
+
+/* ==========================================================================
+   Small Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .issuer-row__identity {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    align-items: start;
+    gap: ds.space(2);
+  }
+
+  .issuer-row__favorite {
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+  }
+
+  .issuer-row__field,
+  .issuer-row__field--market,
+  .issuer-row__field--sector {
+    grid-template-columns:
+      minmax(6rem, 0.4fr)
+      minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   Very Small Screens
+   ========================================================================== */
+
+@media (max-width: 24rem) {
+  .issuer-row__identity {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .issuer-row__favorite {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .issuer-row__logo {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .issuer-row__identity-content {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  .issuer-row__field,
+  .issuer-row__field--market,
+  .issuer-row__field--sector {
+    grid-template-columns: minmax(0, 1fr);
+
+    gap: 0.125rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .issuer-row,
+  .issuer-row__logo {
+    border-width: 2px;
+    border-color: currentColor;
+
+    box-shadow: none;
+  }
+
+  .issuer-row:hover,
+  .issuer-row:focus-within {
+    border-color: currentColor;
+  }
+
+  .issuer-row__favorite {
+    border-color: currentColor;
+    color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .issuer-row,
+  .issuer-row__logo {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+  }
+
+  .issuer-row__name,
+  .issuer-row__value {
+    color: CanvasText;
+  }
+
+  .issuer-row__profile,
+  .issuer-row__favorite,
+  .issuer-row__movement {
+    color: LinkText;
+  }
+
+  .issuer-row__favorite[aria-pressed="true"] {
+    color: Highlight;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .issuer-row,
+  .issuer-row__name-link,
+  .issuer-row__favorite {
+    transition: none;
+  }
+
+  .issuer-row__favorite:active {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .issuer-row,
+  .issuer-row__name-link,
+  .issuer-row__favorite {
+    transition: none;
+  }
+
+  .issuer-row__favorite:active {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .issuer-list-header {
+    display: grid;
+  }
+
+  .issuer-row {
+    break-inside: avoid;
+
+    border: 1px solid #000000;
+
+    background: transparent;
+    color: #000000;
+
+    box-shadow: none;
+  }
+
+  .issuer-row__favorite {
+    display: none;
+  }
+
+  .issuer-row__profile {
+    color: #000000;
+  }
+}

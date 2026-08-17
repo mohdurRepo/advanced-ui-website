@@ -1,0 +1,509 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Directory
+   ========================================================================== */
+
+/*
+ * Shared website-level foundation for searchable directories.
+ *
+ * Intended for:
+ *
+ * - Issuer Directory
+ * - Member Directory
+ * - Foreign Investor Directory
+ * - Other entity-based directories
+ *
+ * This file owns:
+ *
+ * - directory surface
+ * - section rhythm
+ * - directory header
+ * - heading and description
+ * - entity count
+ * - filter and alphabet regions
+ * - result-region composition
+ * - footer placement
+ * - responsive shell behavior
+ *
+ * Dedicated partials own:
+ *
+ * - alphabetical navigation
+ * - result toolbar and view controls
+ * - grid/list result layouts
+ * - loading, empty and error states
+ * - feature-specific cards and rows
+ */
+
+.directory {
+  --directory-bg: var(--color-surface);
+  --directory-color: var(--color-text);
+  --directory-heading-color: var(--color-heading);
+  --directory-muted-color: var(--color-text-muted);
+
+  --directory-border-color: var(--color-border);
+  --directory-border-strong: var(--color-border-strong);
+
+  --directory-radius: var(--radius-lg);
+  --directory-shadow: var(--shadow-sm);
+
+  --directory-padding-block: clamp(1.25rem, 2.5vw, 2.5rem);
+  --directory-padding-inline: clamp(1rem, 2.5vw, 2.5rem);
+
+  --directory-section-gap: clamp(1.25rem, 2vw, 2rem);
+  --directory-content-gap: #{ds.space(5)};
+
+  --directory-count-bg: var(--color-surface-alt);
+  --directory-count-color: var(--color-text);
+  --directory-count-border: var(--color-border);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Surface
+   ========================================================================== */
+
+.directory__surface {
+  position: relative;
+  isolation: isolate;
+
+  display: grid;
+  align-content: start;
+  gap: var(--directory-section-gap);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding-block: var(--directory-padding-block);
+  padding-inline: var(--directory-padding-inline);
+
+  overflow: hidden;
+
+  border: 1px solid var(--directory-border-color);
+  border-radius: var(--directory-radius);
+
+  background: var(--directory-bg);
+  color: var(--directory-color);
+
+  box-shadow: var(--directory-shadow);
+}
+
+/* ==========================================================================
+   Decorative Surface
+   ========================================================================== */
+
+/*
+ * A low-opacity brand pattern provides visual continuity with other
+ * informational and data-heavy website surfaces.
+ */
+
+.directory__surface::before {
+  content: "";
+
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  z-index: -1;
+
+  inline-size: min(42rem, 55%);
+  block-size: 18rem;
+
+  background-image: url("/assets/images/hero-bg-pattern.png");
+  background-repeat: no-repeat;
+  background-position: top right;
+  background-size: contain;
+
+  opacity: 0.045;
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.directory__content {
+  display: grid;
+  align-content: start;
+  gap: var(--directory-content-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.directory__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: ds.space(5);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
+.directory__heading {
+  display: grid;
+  align-content: start;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+}
+
+.directory__title {
+  margin: 0;
+
+  color: var(--directory-heading-color);
+
+  font-size: var(--text-2xl);
+  font-weight: ds.font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+.directory__description {
+  max-inline-size: 75ch;
+  margin: 0;
+
+  color: var(--directory-muted-color);
+
+  font-size: var(--text-base);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   Result Count
+   ========================================================================== */
+
+.directory__count {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+  justify-content: center;
+  gap: ds.space(1);
+
+  min-block-size: 2.5rem;
+  padding-block: ds.space(2);
+  padding-inline: ds.space(3);
+
+  border: 1px solid var(--directory-count-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--directory-count-bg);
+  color: var(--directory-count-color);
+
+  font-size: var(--text-sm);
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+.directory__count-value {
+  color: var(--directory-heading-color);
+
+  font-weight: ds.font-weight("bold");
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Filter Region
+   ========================================================================== */
+
+/*
+ * The filter-bar component owns its own internal presentation. This wrapper
+ * provides directory-level placement and containment only.
+ */
+
+.directory__filters {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Alphabet Region
+   ========================================================================== */
+
+.directory__alphabet {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Active Filter Region
+   ========================================================================== */
+
+.directory__active-filters {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Results Workspace
+   ========================================================================== */
+
+.directory__workspace {
+  display: grid;
+  align-content: start;
+  gap: ds.space(4);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Results Header
+   ========================================================================== */
+
+/*
+ * Detailed toolbar presentation belongs to _directory-toolbar.scss.
+ */
+
+.directory__results-header {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Results
+   ========================================================================== */
+
+/*
+ * Grid and list presentation belong to _directory-results.scss.
+ */
+
+.directory__results {
+  min-inline-size: 0;
+}
+
+.directory__results[aria-busy="true"] {
+  cursor: wait;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.directory__footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+  padding-block-start: ds.space(2);
+}
+
+/* ==========================================================================
+   Connected Filter Variant
+   ========================================================================== */
+
+/*
+ * Use when the filter bar and directory surface are rendered as one connected
+ * workspace. This keeps the shared foundation reusable for both composed and
+ * standalone page structures.
+ */
+
+.directory--connected .directory__surface {
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+}
+
+/* ==========================================================================
+   Flush Variant
+   ========================================================================== */
+
+/*
+ * Use inside an existing content-page or other parent surface.
+ */
+
+.directory--flush .directory__surface {
+  padding: 0;
+
+  border: 0;
+  border-radius: 0;
+
+  background: transparent;
+
+  box-shadow: none;
+}
+
+.directory--flush .directory__surface::before {
+  display: none;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.directory--compact {
+  --directory-padding-block: #{ds.space(4)};
+  --directory-padding-inline: #{ds.space(4)};
+
+  --directory-section-gap: #{ds.space(4)};
+  --directory-content-gap: #{ds.space(4)};
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .directory {
+    --directory-padding-block: #{ds.space(5)};
+    --directory-padding-inline: #{ds.space(5)};
+  }
+
+  .directory__header {
+    gap: ds.space(4);
+  }
+
+  .directory__title {
+    font-size: var(--text-xl);
+  }
+
+  .directory__description {
+    font-size: var(--text-sm);
+  }
+
+  .directory__surface::before {
+    inline-size: min(34rem, 65%);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .directory {
+    --directory-padding-block: #{ds.space(4)};
+    --directory-padding-inline: #{ds.space(3)};
+
+    --directory-section-gap: #{ds.space(4)};
+    --directory-content-gap: #{ds.space(4)};
+
+    --directory-radius: var(--radius-md);
+  }
+
+  .directory__header {
+    align-items: stretch;
+    flex-direction: column;
+
+    gap: ds.space(3);
+  }
+
+  .directory__title {
+    font-size: var(--text-lg);
+  }
+
+  .directory__description {
+    line-height: var(--line-height-normal);
+  }
+
+  .directory__count {
+    align-self: flex-start;
+
+    min-block-size: 2.25rem;
+    padding-block: ds.space(2);
+    padding-inline: ds.space(3);
+
+    font-size: var(--text-xs);
+  }
+
+  .directory__footer {
+    padding-block-start: 0;
+  }
+
+  .directory__surface::before {
+    inline-size: 100%;
+    block-size: 14rem;
+
+    opacity: 0.035;
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .directory__surface::before {
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+
+  background-position: top left;
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .directory__surface {
+  border-width: 2px;
+  border-color: var(--color-border-strong);
+
+  box-shadow: none;
+}
+
+html[data-contrast="high"] .directory__surface::before {
+  display: none;
+}
+
+html[data-contrast="high"] .directory__count {
+  border-width: 2px;
+  border-color: currentColor;
+
+  background: var(--color-surface);
+  color: currentColor;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .directory__surface,
+  .directory__count {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+  }
+
+  .directory__surface::before {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .directory {
+    --directory-padding-block: 0;
+    --directory-padding-inline: 0;
+  }
+
+  .directory__surface {
+    overflow: visible;
+
+    border: 0;
+    border-radius: 0;
+
+    background: transparent;
+
+    box-shadow: none;
+  }
+
+  .directory__surface::before,
+  .directory__filters,
+  .directory__alphabet,
+  .directory__active-filters,
+  .directory__footer {
+    display: none;
+  }
+}

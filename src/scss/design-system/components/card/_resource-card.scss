@@ -1,0 +1,877 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Resource Card
+   ========================================================================== */
+
+/*
+ * Reusable document and downloadable-resource card.
+ *
+ * Appropriate for:
+ *
+ * - reports
+ * - publications
+ * - circulars
+ * - spreadsheets
+ * - downloadable documents
+ *
+ * Navigation cards and website-specific offering cards are intentionally
+ * unaffected.
+ */
+
+.resource-card {
+  --resource-card-bg: var(--color-surface);
+  --resource-card-color: var(--color-text);
+  --resource-card-heading: var(--color-heading);
+  --resource-card-muted: var(--color-text-muted);
+
+  --resource-card-border: var(--color-border);
+  --resource-card-accent: var(--color-primary);
+
+  --resource-card-radius: var(--radius-lg);
+  --resource-card-shadow: var(--shadow-sm);
+  --resource-card-hover-shadow: var(--shadow-md);
+
+  --resource-card-padding: clamp(1rem, 1.5vw, 1.25rem);
+  --resource-card-gap: 1rem;
+  --resource-card-min-height: 21rem;
+
+  /* Decorative pattern */
+
+  --resource-card-pattern: url("/assets/images/financial-bg-pattern.png");
+  --resource-card-pattern-size: 15rem;
+
+  --resource-card-pattern-color: color-mix(
+    in oklab,
+    var(--color-primary),
+    transparent 72%
+  );
+
+  --resource-card-pattern-opacity: 0.42;
+  --resource-card-pattern-hover-opacity: 0.68;
+
+  --resource-card-pattern-inline: -3rem;
+  --resource-card-pattern-block: -3rem;
+
+  /* Bottom-end glow */
+
+  --resource-card-glow-size: 18rem;
+  --resource-card-glow-inline: -6rem;
+  --resource-card-glow-block: -7rem;
+  --resource-card-glow-opacity: 1;
+
+  position: relative;
+  isolation: isolate;
+
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+  min-block-size: var(--resource-card-min-height);
+
+  border: 1px solid var(--resource-card-border);
+  border-radius: var(--resource-card-radius);
+
+  background: var(--resource-card-bg);
+  color: var(--resource-card-color);
+
+  box-shadow: var(--resource-card-shadow);
+
+  overflow: hidden;
+
+  @include ds.transition((border-color, box-shadow, transform), "normal");
+}
+
+/* ==========================================================================
+   Bottom-End Glow
+   ========================================================================== */
+
+.resource-card::after {
+  content: "";
+
+  position: absolute;
+  inset-inline-end: var(--resource-card-glow-inline);
+  inset-block-end: var(--resource-card-glow-block);
+  z-index: 0;
+
+  inline-size: var(--resource-card-glow-size);
+  block-size: var(--resource-card-glow-size);
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle at center,
+    rgb(0 128 112 / 0.12) 0%,
+    rgb(0 128 112 / 0.05) 44%,
+    transparent 72%
+  );
+
+  opacity: var(--resource-card-glow-opacity);
+
+  pointer-events: none;
+}
+
+@supports (background: color-mix(in oklab, white, transparent)) {
+  .resource-card::after {
+    background: radial-gradient(
+      circle at center,
+      color-mix(in oklab, var(--color-primary), transparent 86%) 0%,
+      color-mix(in oklab, var(--color-primary), transparent 94%) 44%,
+      transparent 72%
+    );
+  }
+}
+
+/* ==========================================================================
+   Decorative Pattern
+   ========================================================================== */
+
+/*
+ * The source image supplies the pattern shape.
+ *
+ * Using it as a mask allows the component to apply the current primary
+ * color. This keeps a white or light source image visible on light surfaces.
+ */
+
+.resource-card::before {
+  content: "";
+
+  position: absolute;
+  inset-inline-end: var(--resource-card-pattern-inline);
+  inset-block-end: var(--resource-card-pattern-block);
+  z-index: 0;
+
+  inline-size: var(--resource-card-pattern-size);
+  block-size: var(--resource-card-pattern-size);
+
+  background-color: rgb(0 128 112 / 0.28);
+  background-color: var(--resource-card-pattern-color);
+
+  mask-image: var(--resource-card-pattern);
+  mask-repeat: no-repeat;
+  mask-position: right bottom;
+  mask-size: contain;
+
+  -webkit-mask-image: var(--resource-card-pattern);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: right bottom;
+  -webkit-mask-size: contain;
+
+  opacity: var(--resource-card-pattern-opacity);
+
+  pointer-events: none;
+
+  @include ds.transition((opacity, transform), "normal");
+}
+
+/* ==========================================================================
+   Content Layers
+   ========================================================================== */
+
+/*
+ * Content must remain above both decorative layers.
+ */
+
+.resource-card__header,
+.resource-card__body,
+.resource-card__footer {
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   Hover and Focus
+   ========================================================================== */
+
+@media (hover: hover) and (pointer: fine) {
+  .resource-card:hover {
+    border-color: var(--resource-card-accent);
+
+    box-shadow: var(--resource-card-hover-shadow);
+
+    transform: translateY(-0.25rem);
+  }
+
+  .resource-card:hover::before {
+    opacity: var(--resource-card-pattern-hover-opacity);
+
+    transform: translate(-0.25rem, -0.25rem) scale(1.03);
+  }
+}
+
+.resource-card:focus-within {
+  border-color: var(--resource-card-accent);
+
+  box-shadow: var(--resource-card-hover-shadow);
+}
+
+.resource-card:focus-within::before {
+  opacity: var(--resource-card-pattern-hover-opacity);
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.resource-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+  padding: var(--resource-card-padding);
+  padding-block-end: 0;
+}
+
+/* ==========================================================================
+   Heading Content
+   ========================================================================== */
+
+.resource-card__heading {
+  display: grid;
+  align-content: start;
+  gap: ds.space(2);
+
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Eyebrow / Category
+   ========================================================================== */
+
+.resource-card__eyebrow {
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  padding-block: 0.25rem;
+  padding-inline: 0.625rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface-alt);
+  color: var(--resource-card-muted);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Resource Icon
+   ========================================================================== */
+
+.resource-card__icon {
+  --icon-size: 1.25rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+
+  border: 1px solid var(--resource-card-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface-alt);
+  color: var(--resource-card-accent);
+
+  @include ds.transition(
+    (background-color, border-color, color, transform),
+    "normal"
+  );
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .resource-card:hover .resource-card__icon {
+    border-color: var(--resource-card-accent);
+
+    background: var(--resource-card-accent);
+    color: var(--color-on-primary);
+
+    transform: translateY(-0.125rem);
+  }
+}
+
+.resource-card:focus-within .resource-card__icon {
+  border-color: var(--resource-card-accent);
+
+  background: var(--resource-card-accent);
+  color: var(--color-on-primary);
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.resource-card__title {
+  margin: 0;
+
+  color: var(--resource-card-heading);
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.resource-card__title-link {
+  color: inherit;
+
+  text-decoration: none;
+}
+
+.resource-card__title-link::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.resource-card__title-link:focus {
+  outline: none;
+}
+
+.resource-card__title-link:focus-visible::after {
+  border-radius: calc(var(--resource-card-radius) - 1px);
+
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Body
+   ========================================================================== */
+
+.resource-card__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--resource-card-gap);
+
+  min-inline-size: 0;
+  padding: var(--resource-card-padding);
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.resource-card__description {
+  margin: 0;
+
+  color: var(--resource-card-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Metadata
+   ========================================================================== */
+
+.resource-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ds.space(2) ds.space(3);
+
+  min-inline-size: 0;
+  margin-block-start: auto;
+
+  color: var(--resource-card-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+}
+
+.resource-card__meta-item {
+  --icon-size: 0.875rem;
+
+  display: inline-flex;
+  align-items: center;
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+}
+
+.resource-card__meta-item::before {
+  color: currentColor;
+}
+
+.resource-card__meta-label {
+  color: var(--resource-card-muted);
+}
+
+.resource-card__meta-value {
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  color: var(--resource-card-heading);
+
+  font-variant-numeric: tabular-nums;
+  font-weight: ds.font-weight("medium");
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+/*
+ * A translucent footer allows the pattern and bottom-end glow to continue
+ * through the complete card.
+ */
+
+.resource-card__footer {
+  display: grid;
+  gap: ds.space(3);
+
+  margin-block-start: auto;
+  padding: var(--resource-card-padding);
+
+  border-block-start: 1px solid var(--resource-card-border);
+
+  background: color-mix(in srgb, var(--resource-card-bg) 88%, transparent);
+
+  backdrop-filter: blur(0.125rem);
+  -webkit-backdrop-filter: blur(0.125rem);
+}
+
+/* ==========================================================================
+   Footer Fallback
+   ========================================================================== */
+
+@supports not (background: color-mix(in srgb, white, transparent)) {
+  .resource-card__footer {
+    background: rgb(255 255 255 / 0.88);
+  }
+
+  html[data-theme="dark"] .resource-card__footer {
+    background: rgb(0 0 0 / 0.28);
+  }
+}
+
+/* ==========================================================================
+   File Information
+   ========================================================================== */
+
+.resource-card__file {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+
+  color: var(--resource-card-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+}
+
+.resource-card__file-type {
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  color: var(--resource-card-heading);
+
+  font-weight: ds.font-weight("bold");
+  text-transform: uppercase;
+}
+
+.resource-card__file-size {
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.resource-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+}
+
+.resource-card__actions .btn {
+  position: relative;
+  z-index: 2;
+
+  flex: 0 0 auto;
+}
+
+.resource-card__primary-action,
+.resource-card__download {
+  --icon-size: 0.875rem;
+
+  min-block-size: 2.5rem;
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.resource-card--compact {
+  --resource-card-min-height: 17rem;
+  --resource-card-padding: 1rem;
+  --resource-card-gap: 0.75rem;
+
+  --resource-card-pattern-size: 12rem;
+}
+
+.resource-card--compact .resource-card__title {
+  font-size: var(--text-base);
+}
+
+.resource-card--compact .resource-card__icon {
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+}
+
+/* ==========================================================================
+   Featured Variant
+   ========================================================================== */
+
+/*
+ * Featured is an explicit editorial state.
+ * It must not be applied automatically to the first card.
+ */
+
+.resource-card--featured {
+  --resource-card-bg: var(--color-primary);
+  --resource-card-color: var(--color-on-primary);
+  --resource-card-heading: var(--color-on-primary);
+
+  --resource-card-muted: color-mix(
+    in srgb,
+    var(--color-on-primary) 78%,
+    transparent
+  );
+
+  --resource-card-border: transparent;
+  --resource-card-accent: var(--color-on-primary);
+
+  --resource-card-pattern-color: rgb(255 255 255 / 0.34);
+  --resource-card-pattern-opacity: 0.5;
+  --resource-card-pattern-hover-opacity: 0.72;
+}
+
+.resource-card--featured .resource-card__eyebrow,
+.resource-card--featured .resource-card__icon {
+  border-color: rgb(255 255 255 / 0.24);
+
+  background: rgb(255 255 255 / 0.12);
+  color: inherit;
+}
+
+.resource-card--featured .resource-card__footer {
+  border-color: rgb(255 255 255 / 0.2);
+
+  background: rgb(0 0 0 / 0.08);
+}
+
+/* ==========================================================================
+   Unavailable State
+   ========================================================================== */
+
+.resource-card.is-unavailable {
+  --resource-card-accent: var(--color-on-disabled);
+
+  color: var(--color-on-disabled);
+
+  box-shadow: none;
+
+  cursor: not-allowed;
+}
+
+.resource-card.is-unavailable::before {
+  opacity: 0.025;
+}
+
+.resource-card.is-unavailable::after {
+  opacity: 0.3;
+}
+
+.resource-card.is-unavailable .resource-card__header,
+.resource-card.is-unavailable .resource-card__body,
+.resource-card.is-unavailable .resource-card__footer {
+  opacity: 0.72;
+}
+
+.resource-card.is-unavailable a,
+.resource-card.is-unavailable button {
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.resource-card.is-loading {
+  pointer-events: none;
+}
+
+.resource-card.is-loading .resource-card__header,
+.resource-card.is-loading .resource-card__body,
+.resource-card.is-loading .resource-card__footer {
+  visibility: hidden;
+}
+
+.resource-card.is-loading::before {
+  display: none;
+}
+
+.resource-card.is-loading::after {
+  content: "";
+
+  position: absolute;
+  inset: 0.75rem;
+  z-index: 2;
+
+  inline-size: auto;
+  block-size: auto;
+
+  border-radius: var(--radius-md);
+
+  background:
+    linear-gradient(90deg, transparent, rgb(255 255 255 / 0.5), transparent),
+    var(--color-surface-alt);
+
+  background-size: 200% 100%;
+
+  opacity: 1;
+
+  animation: resource-card-loading 1.4s ease-in-out infinite;
+}
+
+@keyframes resource-card-loading {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ==========================================================================
+   Touch Devices
+   ========================================================================== */
+
+@media (hover: none), (pointer: coarse) {
+  .resource-card {
+    --resource-card-pattern-opacity: 0.5;
+  }
+
+  .resource-card__primary-action,
+  .resource-card__download {
+    min-block-size: 2.75rem;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .resource-card {
+    --resource-card-min-height: 20rem;
+
+    --resource-card-pattern-size: 13rem;
+    --resource-card-glow-size: 16rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .resource-card {
+    --resource-card-min-height: 0;
+    --resource-card-padding: 1rem;
+    --resource-card-gap: 0.875rem;
+
+    --resource-card-radius: var(--radius-md);
+
+    --resource-card-pattern-size: 11rem;
+    --resource-card-pattern-inline: -3rem;
+    --resource-card-pattern-block: -3rem;
+
+    --resource-card-glow-size: 14rem;
+    --resource-card-glow-inline: -5rem;
+    --resource-card-glow-block: -5rem;
+  }
+
+  .resource-card__title {
+    font-size: var(--text-base);
+  }
+
+  .resource-card__description {
+    line-height: var(--line-height-normal);
+  }
+
+  .resource-card__footer {
+    gap: ds.space(2);
+  }
+
+  .resource-card__actions {
+    align-items: stretch;
+  }
+
+  .resource-card__actions .btn {
+    flex: 1 1 auto;
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .resource-card::before {
+  mask-position: left bottom;
+  -webkit-mask-position: left bottom;
+
+  transform: scaleX(-1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html[dir="rtl"] .resource-card:hover::before {
+    transform: scaleX(-1) translate(0.25rem, -0.25rem) scale(1.03);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .resource-card {
+  border-width: 2px;
+  border-color: currentColor;
+
+  box-shadow: none;
+}
+
+html[data-contrast="high"] .resource-card::before,
+html[data-contrast="high"] .resource-card::after {
+  display: none;
+}
+
+html[data-contrast="high"] .resource-card:hover,
+html[data-contrast="high"] .resource-card:focus-within {
+  outline: var(--focus-ring-width, 2px) solid currentColor;
+  outline-offset: 2px;
+
+  transform: none;
+}
+
+html[data-contrast="high"] .resource-card__icon,
+html[data-contrast="high"] .resource-card__eyebrow,
+html[data-contrast="high"] .resource-card__footer {
+  border-color: currentColor;
+}
+
+html[data-contrast="high"] .resource-card--featured {
+  --resource-card-bg: var(--color-text);
+  --resource-card-color: var(--color-bg);
+  --resource-card-heading: var(--color-bg);
+  --resource-card-muted: var(--color-bg);
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .resource-card {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+  }
+
+  .resource-card::before,
+  .resource-card::after {
+    display: none;
+  }
+
+  .resource-card__icon,
+  .resource-card__eyebrow,
+  .resource-card__footer {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .resource-card:hover,
+  .resource-card:focus-within {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .resource-card,
+  .resource-card::before,
+  .resource-card__icon {
+    transition: none;
+  }
+
+  .resource-card:hover,
+  .resource-card:hover::before,
+  .resource-card:hover .resource-card__icon {
+    transform: none;
+  }
+
+  .resource-card.is-loading::after {
+    animation: none;
+  }
+}
+
+html[data-motion="reduce"] .resource-card,
+html[data-motion="reduce"] .resource-card::before,
+html[data-motion="reduce"] .resource-card__icon {
+  transition: none;
+}
+
+html[data-motion="reduce"] .resource-card:hover,
+html[data-motion="reduce"] .resource-card:hover::before,
+html[data-motion="reduce"] .resource-card:hover .resource-card__icon {
+  transform: none;
+}
+
+html[data-motion="reduce"] .resource-card.is-loading::after {
+  animation: none;
+}

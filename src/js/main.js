@@ -23,6 +23,7 @@ import { initCustomDates } from "./components/custom-date";
 import { initForms } from "./components/form";
 import { initTextAnimation } from "./components/text-animation";
 import { initDataViews } from "./components/data-view";
+import { initDirectories } from "./components/directory";
 
 /* ==========================================================================
    Page Components
@@ -91,6 +92,7 @@ function initApp() {
    * Shared content components.
    */
   initDataViews();
+  initDirectories();
   initTextAnimation();
 
   /*

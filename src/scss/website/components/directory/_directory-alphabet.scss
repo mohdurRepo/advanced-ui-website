@@ -1,0 +1,584 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Directory Alphabet
+   ========================================================================== */
+
+/*
+ * Reusable alphabetical navigation for directory results.
+ *
+ * Intended for:
+ *
+ * - Issuer Directory
+ * - Member Directory
+ * - Other name-based directories
+ *
+ * The HTML supplies the available alphabet, allowing localized character
+ * sets without changing this component.
+ */
+
+.directory-alphabet {
+  --directory-alphabet-bg: var(--color-surface-alt);
+  --directory-alphabet-border: var(--color-border);
+  --directory-alphabet-border-strong: var(--color-border-strong);
+
+  --directory-alphabet-color: var(--color-text-muted);
+  --directory-alphabet-hover-bg: var(--color-surface-hover);
+  --directory-alphabet-hover-color: var(--color-heading);
+
+  --directory-alphabet-active-bg: var(--color-primary);
+  --directory-alphabet-active-color: var(--color-on-primary);
+  --directory-alphabet-active-border: var(--color-primary);
+
+  --directory-alphabet-disabled-bg: transparent;
+  --directory-alphabet-disabled-color: var(--color-on-disabled);
+
+  --directory-alphabet-control-size: 2.75rem;
+  --directory-alphabet-gap: #{ds.space(1)};
+
+  position: relative;
+
+  display: grid;
+  flex: 1 1 100%;
+  gap: ds.space(2);
+
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.directory-alphabet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: ds.space(2);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
+.directory-alphabet__heading,
+.directory-alphabet__header > div {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Label
+   ========================================================================== */
+
+.directory-alphabet__label {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.directory-alphabet__description {
+  margin-block-start: ds.space(1);
+  margin-block-end: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Scroll Frame
+   ========================================================================== */
+
+/*
+ * The frame clips the scrollable row and provides subtle edge fades when the
+ * alphabet is wider than the available viewport.
+ */
+
+.directory-alphabet__frame {
+  position: relative;
+
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  border: 1px solid var(--directory-alphabet-border);
+  border-radius: var(--radius-md);
+
+  background: var(--directory-alphabet-bg);
+}
+
+/* ==========================================================================
+   Edge Fades
+   ========================================================================== */
+
+.directory-alphabet__frame::before,
+.directory-alphabet__frame::after {
+  content: "";
+
+  position: absolute;
+  inset-block: 0;
+  z-index: 2;
+
+  inline-size: 1.5rem;
+
+  pointer-events: none;
+}
+
+.directory-alphabet__frame::before {
+  inset-inline-start: 0;
+
+  background: linear-gradient(
+    to right,
+    var(--directory-alphabet-bg),
+    transparent
+  );
+}
+
+.directory-alphabet__frame::after {
+  inset-inline-end: 0;
+
+  background: linear-gradient(
+    to left,
+    var(--directory-alphabet-bg),
+    transparent
+  );
+}
+
+/* ==========================================================================
+   Scroller
+   ========================================================================== */
+
+.directory-alphabet__scroller {
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  overscroll-behavior-inline: contain;
+
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+.directory-alphabet__scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.directory-alphabet__scroller:focus {
+  outline: none;
+}
+
+.directory-alphabet__scroller:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   List
+   ========================================================================== */
+
+/*
+ * The list fills the available surface but retains natural control widths.
+ * When the controls exceed the viewport, the scroller handles the overflow.
+ */
+
+.directory-alphabet__list {
+  display: flex;
+  align-items: stretch;
+  gap: var(--directory-alphabet-gap);
+
+  inline-size: max-content;
+  min-inline-size: 100%;
+
+  margin: 0;
+  padding-block: ds.space(2);
+  padding-inline: 1.5rem;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Item
+   ========================================================================== */
+
+.directory-alphabet__item {
+  display: flex;
+  flex: 0 0 auto;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Control
+   ========================================================================== */
+
+.directory-alphabet__control {
+  appearance: none;
+
+  display: inline-grid;
+  place-items: center;
+
+  min-inline-size: var(--directory-alphabet-control-size);
+  block-size: var(--directory-alphabet-control-size);
+  padding-inline: ds.space(2);
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+
+  background: transparent;
+  color: var(--directory-alphabet-color);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
+
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+
+  cursor: pointer;
+  user-select: none;
+
+  @include ds.transition(
+    (background-color, border-color, color, box-shadow),
+    "fast"
+  );
+}
+
+/* ==========================================================================
+   All Control
+   ========================================================================== */
+
+.directory-alphabet__control--all {
+  min-inline-size: 4rem;
+  padding-inline: ds.space(3);
+}
+
+/* ==========================================================================
+   Hover
+   ========================================================================== */
+
+.directory-alphabet__control:hover:not(:disabled):not(.is-disabled) {
+  border-color: var(--directory-alphabet-border-strong);
+
+  background: var(--directory-alphabet-hover-bg);
+  color: var(--directory-alphabet-hover-color);
+}
+
+/* ==========================================================================
+   Focus
+   ========================================================================== */
+
+.directory-alphabet__control:focus {
+  outline: none;
+}
+
+.directory-alphabet__control:focus-visible {
+  position: relative;
+  z-index: 3;
+
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Selected
+   ========================================================================== */
+
+.directory-alphabet__control.is-active,
+.directory-alphabet__control[aria-pressed="true"],
+.directory-alphabet__control[aria-current="true"] {
+  border-color: var(--directory-alphabet-active-border);
+
+  background: var(--directory-alphabet-active-bg);
+  color: var(--directory-alphabet-active-color);
+
+  box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   Disabled and Empty Letters
+   ========================================================================== */
+
+/*
+ * Letters without matching groups remain visible so the alphabet retains a
+ * predictable structure. They may be disabled through native or ARIA state.
+ */
+
+.directory-alphabet__control:disabled,
+.directory-alphabet__control.is-disabled,
+.directory-alphabet__control[aria-disabled="true"] {
+  border-color: transparent;
+
+  background: var(--directory-alphabet-disabled-bg);
+  color: var(--directory-alphabet-disabled-color);
+
+  cursor: not-allowed;
+
+  opacity: 0.55;
+}
+
+/* ==========================================================================
+   Optional Result Count
+   ========================================================================== */
+
+.directory-alphabet__count {
+  margin-inline-start: 0.25em;
+
+  font-size: 0.75em;
+  font-variant-numeric: tabular-nums;
+  font-weight: ds.font-weight("medium");
+
+  opacity: 0.8;
+}
+
+/* ==========================================================================
+   Busy State
+   ========================================================================== */
+
+.directory-alphabet[aria-busy="true"] {
+  cursor: wait;
+}
+
+.directory-alphabet[aria-busy="true"] .directory-alphabet__control {
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.directory-alphabet--compact {
+  --directory-alphabet-control-size: 2.375rem;
+  --directory-alphabet-gap: 0.125rem;
+}
+
+.directory-alphabet--compact .directory-alphabet__control {
+  font-size: var(--text-xs);
+}
+
+/* ==========================================================================
+   Quiet Variant
+   ========================================================================== */
+
+.directory-alphabet--quiet .directory-alphabet__frame {
+  border-inline: 0;
+  border-radius: 0;
+
+  background: transparent;
+}
+
+.directory-alphabet--quiet .directory-alphabet__frame::before,
+.directory-alphabet--quiet .directory-alphabet__frame::after {
+  display: none;
+}
+
+.directory-alphabet--quiet .directory-alphabet__list {
+  padding-inline: 0;
+}
+
+/* ==========================================================================
+   Filter Bar Integration
+   ========================================================================== */
+
+/*
+ * The alphabet is frequently placed inside the filter bar's secondary row.
+ * These rules ensure that it owns the complete available width instead of
+ * shrinking to the intrinsic width of its controls.
+ */
+
+.filter-bar__secondary-content .directory-alphabet {
+  flex: 1 1 100%;
+
+  inline-size: 100%;
+  max-inline-size: 100%;
+}
+
+.filter-bar__secondary:has(.directory-alphabet) {
+  align-items: stretch;
+}
+
+.filter-bar__secondary:has(.directory-alphabet) .filter-bar__secondary-content {
+  flex: 1 1 100%;
+
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .directory-alphabet__frame::before {
+  background: linear-gradient(
+    to left,
+    var(--directory-alphabet-bg),
+    transparent
+  );
+}
+
+html[dir="rtl"] .directory-alphabet__frame::after {
+  background: linear-gradient(
+    to right,
+    var(--directory-alphabet-bg),
+    transparent
+  );
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .directory-alphabet {
+    --directory-alphabet-control-size: 2.5rem;
+  }
+
+  .directory-alphabet__header {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: ds.space(1);
+  }
+
+  .directory-alphabet__frame {
+    margin-inline: calc(var(--directory-padding-inline, 1rem) * -1);
+
+    inline-size: calc(100% + (var(--directory-padding-inline, 1rem) * 2));
+    max-inline-size: none;
+
+    border-inline: 0;
+    border-radius: 0;
+  }
+
+  .directory-alphabet__list {
+    padding-block: ds.space(2);
+    padding-inline: var(--directory-padding-inline, 1rem);
+  }
+
+  .directory-alphabet__control {
+    font-size: var(--text-xs);
+  }
+
+  .directory-alphabet__control--all {
+    min-inline-size: 3.5rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .directory-alphabet__frame {
+  border-width: 2px;
+  border-color: currentColor;
+
+  background: var(--color-surface);
+}
+
+html[data-contrast="high"] .directory-alphabet__frame::before,
+html[data-contrast="high"] .directory-alphabet__frame::after {
+  display: none;
+}
+
+html[data-contrast="high"] .directory-alphabet__control {
+  color: currentColor;
+}
+
+html[data-contrast="high"] .directory-alphabet__control:hover:not(:disabled),
+html[data-contrast="high"] .directory-alphabet__control.is-active,
+html[data-contrast="high"] .directory-alphabet__control[aria-pressed="true"],
+html[data-contrast="high"] .directory-alphabet__control[aria-current="true"] {
+  border-width: 2px;
+  border-color: currentColor;
+
+  background: var(--color-surface);
+  color: currentColor;
+
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .directory-alphabet__frame,
+  .directory-alphabet__control {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .directory-alphabet__frame::before,
+  .directory-alphabet__frame::after {
+    display: none;
+  }
+
+  .directory-alphabet__control.is-active,
+  .directory-alphabet__control[aria-pressed="true"],
+  .directory-alphabet__control[aria-current="true"] {
+    border-color: Highlight;
+
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .directory-alphabet__control:disabled,
+  .directory-alphabet__control[aria-disabled="true"] {
+    color: GrayText;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .directory-alphabet__scroller {
+    scroll-behavior: auto;
+  }
+
+  .directory-alphabet__control {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] .directory-alphabet__scroller {
+  scroll-behavior: auto;
+}
+
+html[data-motion="reduce"] .directory-alphabet__control {
+  transition: none;
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .directory-alphabet {
+    display: none;
+  }
+}

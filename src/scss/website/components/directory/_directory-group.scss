@@ -1,0 +1,433 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Directory Group
+   ========================================================================== */
+
+/*
+ * Reusable alphabetical grouping for directory results.
+ *
+ * Intended for:
+ *
+ * - Issuer Directory
+ * - Member Directory
+ * - Other alphabetically grouped directories
+ *
+ * This component owns:
+ *
+ * - spacing between letter groups
+ * - group heading and result count
+ * - grid collection spacing
+ * - list-row spacing
+ * - filtered and hidden group states
+ *
+ * It does not own the internal presentation of cards or list rows.
+ */
+
+.directory-group {
+  --directory-group-border: var(--color-border);
+  --directory-group-heading: var(--color-heading);
+  --directory-group-muted: var(--color-text-muted);
+
+  --directory-group-marker-bg: var(--color-primary);
+  --directory-group-marker-color: var(--color-on-primary);
+
+  --directory-group-count-bg: var(--color-surface-alt);
+  --directory-group-count-color: var(--color-text-muted);
+
+  display: grid;
+  align-content: start;
+  gap: ds.space(3);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Hidden Group
+   ========================================================================== */
+
+/*
+ * Author-level display declarations can otherwise override the browser's
+ * default [hidden] rule.
+ */
+
+.directory-group[hidden],
+.directory-group.is-hidden {
+  display: none;
+}
+
+/* ==========================================================================
+   Group Header
+   ========================================================================== */
+
+.directory-group__header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: ds.space(2);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding-block-end: ds.space(2);
+
+  border-block-end: 1px solid var(--directory-group-border);
+}
+
+/* ==========================================================================
+   Group Letter
+   ========================================================================== */
+
+.directory-group__title {
+  display: inline-grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  min-inline-size: 2.25rem;
+  min-block-size: 2.25rem;
+  margin: 0;
+  padding-inline: ds.space(2);
+
+  border-radius: var(--radius-md);
+
+  background: var(--directory-group-marker-bg);
+  color: var(--directory-group-marker-color);
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("heavy");
+  line-height: 1;
+
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Group Count
+   ========================================================================== */
+
+.directory-group__count {
+  display: inline-flex;
+  align-items: center;
+
+  min-block-size: 2rem;
+  padding-block: ds.space(1);
+  padding-inline: ds.space(2);
+
+  border: 1px solid var(--directory-group-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--directory-group-count-bg);
+  color: var(--directory-group-count-color);
+
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  font-weight: ds.font-weight("medium");
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Directory View Composition
+   ========================================================================== */
+
+/*
+ * Each view contains one or more alphabetical groups.
+ */
+
+.directory-results__view {
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.directory-results__view[hidden] {
+  display: none;
+}
+
+/* ==========================================================================
+   Grid View Groups
+   ========================================================================== */
+
+.directory-results__view--grid {
+  display: grid;
+  align-content: start;
+  gap: ds.space(8);
+}
+
+/*
+ * Preserve the existing three-column grid inside every alphabetical group.
+ */
+
+.directory-results__view--grid .directory-results__collection--grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: ds.space(4);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.directory-results__view--grid .directory-results__item {
+  min-inline-size: 0;
+  block-size: 100%;
+}
+
+/* ==========================================================================
+   List View Groups
+   ========================================================================== */
+
+.directory-results__view--list {
+  display: grid;
+  align-content: start;
+  gap: ds.space(5);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/*
+ * List groups use slightly tighter spacing than grid groups while retaining
+ * a clear visual boundary between consecutive alphabet sections.
+ */
+
+.directory-group--list {
+  gap: ds.space(3);
+}
+
+.directory-group--list + .directory-group--list {
+  margin-block-start: ds.space(3);
+}
+
+/* ==========================================================================
+   List Group Items
+   ========================================================================== */
+
+.directory-group__items {
+  display: grid;
+  align-content: start;
+  gap: ds.space(3);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/*
+ * Ensure list rows do not inherit margins from article or content defaults.
+ */
+
+.directory-group__items .directory-results__item {
+  min-inline-size: 0;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Empty Group
+   ========================================================================== */
+
+.directory-group.is-empty {
+  display: none;
+}
+
+/* ==========================================================================
+   Busy State
+   ========================================================================== */
+
+.directory-group[aria-busy="true"] {
+  cursor: wait;
+}
+
+.directory-group[aria-busy="true"] .directory-group__items,
+.directory-group[aria-busy="true"] .directory-results__collection--grid {
+  opacity: 0.65;
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down("xl") {
+  .directory-results__view--grid .directory-results__collection--grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .directory-results__view--grid {
+    gap: ds.space(6);
+  }
+
+  .directory-results__view--list {
+    gap: ds.space(4);
+  }
+
+  .directory-group--list + .directory-group--list {
+    margin-block-start: ds.space(2);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .directory-group {
+    gap: ds.space(3);
+  }
+
+  .directory-group__header {
+    gap: ds.space(2);
+
+    padding-block-end: ds.space(2);
+  }
+
+  .directory-group__title {
+    min-inline-size: 2rem;
+    min-block-size: 2rem;
+
+    border-radius: var(--radius-sm);
+
+    font-size: var(--text-base);
+  }
+
+  .directory-group__count {
+    min-block-size: 1.75rem;
+
+    font-size: var(--text-xs);
+  }
+
+  .directory-results__view--grid {
+    gap: ds.space(6);
+  }
+
+  .directory-results__view--grid .directory-results__collection--grid {
+    grid-template-columns: minmax(0, 1fr);
+
+    gap: ds.space(3);
+  }
+
+  .directory-results__view--list {
+    gap: ds.space(4);
+  }
+
+  .directory-group__items {
+    gap: ds.space(3);
+  }
+
+  .directory-group--list + .directory-group--list {
+    margin-block-start: ds.space(2);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .directory-group__header {
+    border-block-end-width: 2px;
+    border-color: currentColor;
+  }
+
+  .directory-group__title {
+    outline: 2px solid currentColor;
+    outline-offset: -2px;
+
+    background: var(--color-surface);
+    color: currentColor;
+  }
+
+  .directory-group__count {
+    border-width: 2px;
+    border-color: currentColor;
+
+    background: var(--color-surface);
+    color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .directory-group__header,
+  .directory-group__count {
+    border-color: CanvasText;
+  }
+
+  .directory-group__title {
+    background: Highlight;
+    color: HighlightText;
+
+    forced-color-adjust: none;
+  }
+
+  .directory-group__count {
+    background: Canvas;
+    color: CanvasText;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .directory-group[aria-busy="true"] .directory-group__items,
+  .directory-group[aria-busy="true"] .directory-results__collection--grid {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .directory-group[aria-busy="true"] .directory-group__items,
+  .directory-group[aria-busy="true"] .directory-results__collection--grid {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .directory-results__view--list {
+    display: none;
+  }
+
+  .directory-results__view--grid {
+    display: block;
+  }
+
+  .directory-group {
+    break-inside: avoid;
+
+    margin-block-end: 1.5rem;
+  }
+
+  .directory-group__title,
+  .directory-group__count {
+    border: 1px solid currentColor;
+
+    background: transparent;
+    color: currentColor;
+  }
+
+  .directory-results__view--grid .directory-results__collection--grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

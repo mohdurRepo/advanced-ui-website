@@ -1,15 +1,17 @@
 @use "../../../design-system/abstracts" as ds;
 
 /* ==========================================================================
-   Filter Actions
+   Filter Bar Actions
    ========================================================================== */
 
 /*
  * Owns:
  *
- * - toolbar actions
- * - disclosure-style controls
- * - switches / checkboxes
+ * - primary toolbar actions
+ * - grouped actions
+ * - switches and selection controls
+ * - view controls
+ * - column-disclosure controls
  * - secondary actions
  * - responsive action composition
  */
@@ -20,15 +22,25 @@
 
 .filter-bar__actions {
   display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
   align-items: flex-end;
   justify-content: flex-end;
-  flex-wrap: wrap;
-
   gap: ds.space(2);
 
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Action Buttons
+   ========================================================================== */
+
+.filter-bar__actions .btn {
   flex: 0 0 auto;
 
-  min-inline-size: 0;
+  min-block-size: var(--filter-bar-control-block-size);
+
+  white-space: nowrap;
 }
 
 /* ==========================================================================
@@ -39,7 +51,6 @@
   display: inline-flex;
   align-items: flex-end;
   flex-wrap: wrap;
-
   gap: ds.space(2);
 
   min-inline-size: 0;
@@ -53,9 +64,16 @@
   display: inline-flex;
   align-items: center;
 
+  min-inline-size: 0;
   min-block-size: var(--filter-bar-control-block-size);
+}
 
-  white-space: nowrap;
+/* ==========================================================================
+   Selection Label
+   ========================================================================== */
+
+.filter-bar__selection .form-switch {
+  margin: 0;
 }
 
 /* ==========================================================================
@@ -63,6 +81,7 @@
    ========================================================================== */
 
 .filter-bar__view {
+  inline-size: 100%;
   min-inline-size: 0;
 }
 
@@ -74,7 +93,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   gap: ds.space(3);
 
   inline-size: 100%;
@@ -87,9 +105,15 @@
   white-space: nowrap;
 }
 
-/* Label */
+/* ==========================================================================
+   Columns Control Label
+   ========================================================================== */
 
-.filter-bar__columns > span:first-child {
+/*
+ * Explicit classes are used instead of direct-child or positional selectors.
+ */
+
+.filter-bar__columns-label {
   min-inline-size: 0;
 
   overflow: hidden;
@@ -98,21 +122,35 @@
   white-space: nowrap;
 }
 
-/* Indicator */
+/* ==========================================================================
+   Columns Control Indicator
+   ========================================================================== */
 
-.filter-bar__columns > .has-icon:last-child {
+.filter-bar__columns-icon {
+  --icon-size: 0.875rem;
+
   flex: 0 0 auto;
 
   margin-inline-start: auto;
+
+  pointer-events: none;
+
+  @include ds.transition(transform, "fast");
 }
 
-/* Open State */
+/* ==========================================================================
+   Columns Control Open State
+   ========================================================================== */
 
 .filter-bar__columns[aria-expanded="true"] {
   border-color: var(--color-primary);
 
   background: var(--color-surface-alt);
   color: var(--color-primary);
+}
+
+.filter-bar__columns[aria-expanded="true"] .filter-bar__columns-icon {
+  transform: rotate(180deg);
 }
 
 /* ==========================================================================
@@ -123,17 +161,17 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-
   gap: ds.space(2);
 
+  min-inline-size: 0;
   margin-inline-start: auto;
 }
 
 /* ==========================================================================
-   Tablet
+   Large Tablet
    ========================================================================== */
 
-@include ds.respond-down(lg) {
+@include ds.respond-down("lg") {
   .filter-bar__actions {
     justify-content: flex-start;
 
@@ -153,23 +191,26 @@
    Mobile
    ========================================================================== */
 
-@include ds.respond-down(sm) {
+@include ds.respond-down("sm") {
   .filter-bar__actions {
     display: grid;
-
     grid-template-columns: repeat(2, minmax(0, 1fr));
-
     gap: ds.space(2);
 
     inline-size: 100%;
   }
 
+  /*
+   * The group remains semantically useful in HTML while its children
+   * participate in the actions grid.
+   */
+
   .filter-bar__action-group {
     display: contents;
   }
 
-  .filter-bar__actions > .btn,
-  .filter-bar__action-group > .btn {
+  .filter-bar__actions .btn,
+  .filter-bar__action-group .btn {
     inline-size: 100%;
   }
 
@@ -182,6 +223,7 @@
   }
 
   .filter-bar__secondary-actions {
+    inline-size: 100%;
     margin-inline-start: 0;
   }
 }
@@ -204,12 +246,37 @@
    High Contrast
    ========================================================================== */
 
-html[data-contrast="high"] {
-  .filter-bar__columns[aria-expanded="true"] {
-    border-width: 2px;
-    border-color: currentColor;
+html[data-contrast="high"] .filter-bar__columns[aria-expanded="true"] {
+  border-width: 2px;
+  border-color: currentColor;
 
-    background: var(--color-surface);
-    color: currentColor;
+  background: var(--color-surface);
+  color: currentColor;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .filter-bar__columns[aria-expanded="true"] {
+    border-color: Highlight;
+
+    background: Canvas;
+    color: Highlight;
   }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-bar__columns-icon {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] .filter-bar__columns-icon {
+  transition: none;
 }

@@ -1,0 +1,650 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Member Card
+   ========================================================================== */
+
+/*
+ * Grid-view presentation for one exchange member.
+ *
+ * Shared directory components own:
+ *
+ * - result grouping
+ * - grid and list collections
+ * - alphabetical filtering
+ * - view switching
+ * - pagination
+ *
+ * This component owns:
+ *
+ * - member logo
+ * - member identity
+ * - membership metadata
+ * - contact summary
+ * - profile-modal action
+ *
+ * The same component is used by:
+ *
+ * - Exchange Members
+ * - Exchange Members – Foreign Investors
+ */
+
+.member-card {
+  --member-card-bg: var(--color-surface);
+  --member-card-color: var(--color-text);
+  --member-card-border: var(--color-border);
+  --member-card-border-hover: var(--color-border-strong);
+  --member-card-footer-bg: var(--color-surface-alt);
+
+  --member-card-radius: var(--radius-lg);
+  --member-card-shadow: var(--shadow-sm);
+  --member-card-shadow-hover: var(--shadow-md);
+
+  --member-card-logo-block-size: 8.5rem;
+  --member-card-body-min-height: 9rem;
+
+  position: relative;
+  isolation: isolate;
+
+  display: flex;
+  flex-direction: column;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  block-size: 100%;
+  padding: 0;
+
+  border: 1px solid var(--member-card-border);
+  border-radius: var(--member-card-radius);
+
+  background: var(--member-card-bg);
+  color: var(--member-card-color);
+
+  box-shadow: var(--member-card-shadow);
+
+  overflow: hidden;
+
+  @include ds.transition((border-color, box-shadow, transform), "normal");
+}
+
+.member-card:hover {
+  border-color: var(--member-card-border-hover);
+
+  box-shadow: var(--member-card-shadow-hover);
+
+  transform: translateY(-0.125rem);
+}
+
+.member-card:focus-within {
+  border-color: var(--color-primary);
+
+  box-shadow: var(--member-card-shadow-hover);
+}
+
+/* ==========================================================================
+   Logo
+   ========================================================================== */
+
+/*
+ * The bounded media region keeps cards aligned even when member logos have
+ * different intrinsic dimensions or aspect ratios.
+ */
+
+.member-card__media {
+  position: relative;
+
+  display: grid;
+  place-items: center;
+
+  min-inline-size: 0;
+  block-size: var(--member-card-logo-block-size);
+  padding: ds.space(5);
+
+  border-block-end: 1px solid var(--member-card-border);
+
+  background: var(--color-surface);
+}
+
+.member-card__logo {
+  display: block;
+
+  inline-size: 100%;
+  max-inline-size: 15rem;
+  block-size: 100%;
+  max-block-size: 5.75rem;
+
+  object-fit: contain;
+  object-position: center;
+}
+
+/* ==========================================================================
+   Logo Fallback
+   ========================================================================== */
+
+.member-card__logo-fallback {
+  display: grid;
+  place-items: center;
+
+  inline-size: 5rem;
+  block-size: 5rem;
+
+  border: 1px solid var(--member-card-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface-alt);
+  color: var(--color-heading);
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
+
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Body
+   ========================================================================== */
+
+.member-card__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: ds.space(4);
+
+  min-inline-size: 0;
+  min-block-size: var(--member-card-body-min-height);
+  padding: ds.space(4);
+}
+
+/* ==========================================================================
+   Identity
+   ========================================================================== */
+
+.member-card__identity {
+  display: grid;
+  align-content: start;
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Member Name
+   ========================================================================== */
+
+.member-card__name {
+  display: -webkit-box;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-base);
+  font-weight: ds.font-weight("bold");
+  line-height: 1.25;
+
+  text-wrap: pretty;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.member-card__name-link {
+  color: inherit;
+
+  text-decoration: none;
+
+  @include ds.transition(color, "fast");
+}
+
+.member-card__name-link:hover {
+  color: var(--color-primary);
+
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.2em;
+}
+
+.member-card__name-link:focus {
+  outline: none;
+}
+
+.member-card__name-link:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Supporting Identity
+   ========================================================================== */
+
+.member-card__supporting-name {
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Member Type
+   ========================================================================== */
+
+.member-card__type {
+  display: inline-flex;
+  align-items: center;
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-block-size: 1.625rem;
+  padding-block: ds.space(1);
+  padding-inline: ds.space(2);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Metadata
+   ========================================================================== */
+
+.member-card__metadata {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: ds.space(3) ds.space(4);
+
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.member-card__metadata-item {
+  display: grid;
+  align-content: start;
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.member-card__metadata-item--wide {
+  grid-column: 1 / -1;
+}
+
+.member-card__metadata-label,
+.member-card__metadata-value {
+  margin: 0;
+}
+
+.member-card__metadata-label {
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+}
+
+.member-card__metadata-value {
+  min-inline-size: 0;
+
+  overflow-wrap: anywhere;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Metadata List
+   ========================================================================== */
+
+.member-card__metadata-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: ds.space(1) ds.space(2);
+
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.member-card__metadata-list-item {
+  display: inline-flex;
+  align-items: center;
+
+  min-inline-size: 0;
+}
+
+.member-card__metadata-list-item:not(:last-child)::after {
+  content: "·";
+
+  margin-inline-start: ds.space(2);
+
+  color: var(--color-border-strong);
+}
+
+/* ==========================================================================
+   Contact Summary
+   ========================================================================== */
+
+.member-card__contact {
+  display: grid;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+  margin-block-start: auto;
+  padding-block-start: ds.space(3);
+
+  border-block-start: 1px solid var(--member-card-border);
+}
+
+.member-card__contact-item {
+  --icon-size: 0.875rem;
+
+  display: flex;
+  align-items: flex-start;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+}
+
+.member-card__contact-item::before {
+  flex: 0 0 auto;
+
+  margin-block-start: 0.2em;
+
+  color: var(--color-primary);
+}
+
+.member-card__contact-value {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  color: inherit;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.member-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+  padding: ds.space(3) ds.space(4);
+
+  border-block-start: 1px solid var(--member-card-border);
+
+  background: var(--member-card-footer-bg);
+}
+
+.member-card__profile {
+  inline-size: fit-content;
+}
+
+.member-card__website {
+  --icon-size: 1rem;
+
+  display: inline-flex;
+  align-items: center;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+
+  color: var(--color-link);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  text-decoration: none;
+}
+
+.member-card__website:hover {
+  color: var(--color-link-hover);
+
+  text-decoration-line: underline;
+  text-underline-offset: 0.2em;
+}
+
+.member-card__website:focus {
+  outline: none;
+}
+
+.member-card__website:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Busy State
+   ========================================================================== */
+
+.member-card[aria-busy="true"] {
+  cursor: wait;
+}
+
+.member-card[aria-busy="true"]::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
+  background: rgb(255 255 255 / 0.48);
+
+  pointer-events: none;
+}
+
+html[data-theme="dark"] .member-card[aria-busy="true"]::after {
+  background: rgb(0 0 0 / 0.32);
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .member-card {
+    --member-card-logo-block-size: 8rem;
+    --member-card-body-min-height: 9.5rem;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .member-card {
+    --member-card-body-min-height: auto;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .member-card {
+    --member-card-logo-block-size: 7rem;
+    --member-card-body-min-height: auto;
+
+    border-radius: var(--radius-md);
+  }
+
+  .member-card:hover {
+    transform: none;
+  }
+
+  .member-card__media {
+    padding: ds.space(4);
+  }
+
+  .member-card__body {
+    gap: ds.space(3);
+
+    padding: ds.space(3);
+  }
+
+  .member-card__footer {
+    padding: ds.space(3);
+  }
+
+  .member-card__name {
+    -webkit-line-clamp: 3;
+  }
+}
+
+/* ==========================================================================
+   Very Small Screens
+   ========================================================================== */
+
+@media (max-width: 24rem) {
+  .member-card__metadata {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .member-card__metadata-item--wide {
+    grid-column: auto;
+  }
+
+  .member-card__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .member-card__profile,
+  .member-card__website {
+    inline-size: 100%;
+  }
+
+  .member-card__profile {
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .member-card {
+    border-width: 2px;
+    border-color: var(--color-border-strong);
+
+    box-shadow: none;
+  }
+
+  .member-card:hover,
+  .member-card:focus-within {
+    border-color: currentColor;
+
+    box-shadow: none;
+  }
+
+  .member-card__media,
+  .member-card__contact,
+  .member-card__footer {
+    border-color: currentColor;
+  }
+
+  .member-card__logo-fallback,
+  .member-card__type {
+    border-width: 2px;
+    border-color: currentColor;
+  }
+
+  .member-card__contact-item::before {
+    color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .member-card,
+  .member-card__media,
+  .member-card__logo-fallback,
+  .member-card__footer {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .member-card__type {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .member-card__contact-item::before {
+    color: LinkText;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .member-card,
+  .member-card__name-link {
+    transition: none;
+  }
+
+  .member-card:hover {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .member-card,
+  .member-card__name-link {
+    transition: none;
+  }
+
+  .member-card:hover {
+    transform: none;
+  }
+}

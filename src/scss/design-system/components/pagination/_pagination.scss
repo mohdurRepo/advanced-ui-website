@@ -1,0 +1,478 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Pagination
+   ========================================================================== */
+
+/*
+ * Generic navigation for paginated result sets.
+ *
+ * Pagination should use real links whenever each page has a URL. This gives:
+ *
+ * - progressive enhancement
+ * - browser history
+ * - open-in-new-tab support
+ * - search-engine discoverability
+ *
+ * Buttons may be used only when pagination is entirely client-controlled.
+ */
+
+.pagination {
+  --pagination-gap: #{ds.space(1)};
+  --pagination-control-size: 2.75rem;
+  --pagination-control-padding: #{ds.space(2)};
+
+  --pagination-bg: var(--color-surface);
+  --pagination-color: var(--color-text);
+  --pagination-border: var(--color-border);
+
+  --pagination-hover-bg: var(--color-surface-alt);
+  --pagination-hover-color: var(--color-primary);
+  --pagination-hover-border: var(--color-border-strong);
+
+  --pagination-active-bg: var(--color-primary);
+  --pagination-active-color: var(--color-on-primary);
+  --pagination-active-border: var(--color-primary);
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: ds.space(3);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Result Summary
+   ========================================================================== */
+
+.pagination__summary {
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+.pagination__summary strong {
+  color: var(--color-heading);
+
+  font-variant-numeric: tabular-nums;
+  font-weight: ds.font-weight("bold");
+}
+
+/* ==========================================================================
+   Page List
+   ========================================================================== */
+
+.pagination__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pagination-gap);
+
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Page Item
+   ========================================================================== */
+
+.pagination__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   Page Link
+   ========================================================================== */
+
+.pagination__link {
+  appearance: none;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: ds.space(2);
+
+  min-inline-size: var(--pagination-control-size);
+  min-block-size: var(--pagination-control-size);
+  padding-block: var(--pagination-control-padding);
+  padding-inline: var(--pagination-control-padding);
+
+  border: 1px solid var(--pagination-border);
+  border-radius: var(--radius-md);
+
+  background: var(--pagination-bg);
+  color: var(--pagination-color);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
+
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+
+  cursor: pointer;
+  user-select: none;
+
+  @include ds.transition(
+    (background-color, border-color, color, box-shadow, transform),
+    "fast"
+  );
+}
+
+.pagination__link:hover:not([aria-current="page"]):not(
+    [aria-disabled="true"]
+  ):not(.is-disabled) {
+  border-color: var(--pagination-hover-border);
+
+  background: var(--pagination-hover-bg);
+  color: var(--pagination-hover-color);
+}
+
+.pagination__link:focus {
+  outline: none;
+}
+
+.pagination__link:focus-visible {
+  position: relative;
+  z-index: 1;
+
+  @include ds.focus-ring;
+}
+
+.pagination__link:active:not([aria-current="page"]):not(
+    [aria-disabled="true"]
+  ):not(.is-disabled) {
+  transform: translateY(1px);
+}
+
+/* ==========================================================================
+   Current Page
+   ========================================================================== */
+
+.pagination__link[aria-current="page"],
+.pagination__link.is-current {
+  border-color: var(--pagination-active-border);
+
+  background: var(--pagination-active-bg);
+  color: var(--pagination-active-color);
+
+  cursor: default;
+}
+
+/* ==========================================================================
+   Disabled State
+   ========================================================================== */
+
+.pagination__link[aria-disabled="true"],
+.pagination__link.is-disabled,
+.pagination__link:disabled {
+  border-color: var(--color-disabled);
+
+  background: var(--color-surface-alt);
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Previous and Next
+   ========================================================================== */
+
+.pagination__link--previous,
+.pagination__link--next {
+  padding-inline: ds.space(3);
+}
+
+.pagination__link--previous.has-icon,
+.pagination__link--next.has-icon {
+  --icon-size: 0.875rem;
+}
+
+/* ==========================================================================
+   First and Last
+   ========================================================================== */
+
+.pagination__link--first,
+.pagination__link--last {
+  padding-inline: ds.space(3);
+}
+
+.pagination__link--first.has-icon,
+.pagination__link--last.has-icon {
+  --icon-size: 0.875rem;
+}
+
+/* ==========================================================================
+   Ellipsis
+   ========================================================================== */
+
+.pagination__ellipsis {
+  display: inline-grid;
+  place-items: center;
+
+  min-inline-size: var(--pagination-control-size);
+  min-block-size: var(--pagination-control-size);
+  padding-inline: var(--pagination-control-padding);
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
+
+  cursor: default;
+  user-select: none;
+}
+
+/* ==========================================================================
+   Compact Page Status
+   ========================================================================== */
+
+/*
+ * This status is intended for smaller screens where a long page-number list
+ * would be difficult to scan or operate.
+ */
+
+.pagination__status {
+  display: none;
+
+  min-block-size: var(--pagination-control-size);
+  padding-block: var(--pagination-control-padding);
+  padding-inline: ds.space(3);
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: ds.font-weight("medium");
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+.pagination__status-current,
+.pagination__status-total {
+  color: var(--color-heading);
+
+  font-weight: ds.font-weight("bold");
+}
+
+/* ==========================================================================
+   Layout Variants
+   ========================================================================== */
+
+.pagination--start {
+  justify-content: flex-start;
+}
+
+.pagination--end {
+  justify-content: flex-end;
+}
+
+.pagination--between {
+  justify-content: space-between;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.pagination--compact {
+  --pagination-control-size: 2.5rem;
+  --pagination-control-padding: #{ds.space(1)};
+}
+
+.pagination--compact .pagination__link--previous,
+.pagination--compact .pagination__link--next,
+.pagination--compact .pagination__link--first,
+.pagination--compact .pagination__link--last {
+  padding-inline: ds.space(2);
+}
+
+/* ==========================================================================
+   Rounded Variant
+   ========================================================================== */
+
+.pagination--rounded .pagination__link {
+  border-radius: var(--radius-pill);
+}
+
+/* ==========================================================================
+   Minimal Variant
+   ========================================================================== */
+
+.pagination--minimal .pagination__link {
+  border-color: transparent;
+
+  background: transparent;
+}
+
+.pagination--minimal
+  .pagination__link:hover:not([aria-current="page"]):not(
+    [aria-disabled="true"]
+  ):not(.is-disabled) {
+  border-color: var(--pagination-hover-border);
+
+  background: var(--pagination-hover-bg);
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.pagination[aria-busy="true"] {
+  cursor: wait;
+}
+
+.pagination[aria-busy="true"] .pagination__link {
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .pagination {
+    justify-content: space-between;
+    gap: ds.space(2);
+  }
+
+  .pagination__summary {
+    flex-basis: 100%;
+
+    text-align: center;
+  }
+
+  /*
+   * Hide numbered pages and ellipses on mobile.
+   * Previous, next and the compact status remain visible.
+   */
+
+  .pagination__item--page,
+  .pagination__item--ellipsis,
+  .pagination__item--first,
+  .pagination__item--last {
+    display: none;
+  }
+
+  .pagination__status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pagination__link--previous,
+  .pagination__link--next {
+    inline-size: var(--pagination-control-size);
+    padding: 0;
+  }
+
+  .pagination__link-text {
+    @include ds.visually-hidden;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .pagination__link {
+    border-width: 2px;
+    border-color: currentColor;
+  }
+
+  .pagination__link[aria-current="page"],
+  .pagination__link.is-current {
+    background: var(--color-text);
+    color: var(--color-bg);
+  }
+
+  .pagination__link[aria-disabled="true"],
+  .pagination__link.is-disabled,
+  .pagination__link:disabled {
+    border-style: dashed;
+
+    color: currentColor;
+
+    opacity: 0.7;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .pagination__link {
+    border-color: ButtonBorder;
+
+    background: ButtonFace;
+    color: ButtonText;
+  }
+
+  .pagination__link:hover,
+  .pagination__link:focus-visible {
+    border-color: Highlight;
+
+    color: LinkText;
+  }
+
+  .pagination__link[aria-current="page"],
+  .pagination__link.is-current {
+    border-color: Highlight;
+
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .pagination__link[aria-disabled="true"],
+  .pagination__link.is-disabled,
+  .pagination__link:disabled {
+    color: GrayText;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .pagination__link {
+    transition: none;
+  }
+
+  .pagination__link:active {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .pagination__link {
+    transition: none;
+  }
+
+  .pagination__link:active {
+    transform: none;
+  }
+}

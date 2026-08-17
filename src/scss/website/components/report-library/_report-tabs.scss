@@ -1,0 +1,266 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Report Library Tabs
+   ========================================================================== */
+
+/*
+ * Report-specific presentation layered on top of the design-system tabs.
+ *
+ * The shared tabs component continues to own:
+ * - tab semantics
+ * - active and hidden states
+ * - keyboard behavior
+ * - JavaScript interaction
+ *
+ * This file owns only the report-library presentation.
+ */
+
+.report-library__tabs {
+  --report-tabs-gap: clamp(0.25rem, 0.75vw, 0.75rem);
+  --report-tabs-padding-inline: clamp(0.75rem, 1.5vw, 1.25rem);
+  --report-tabs-indicator-size: 2px;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Navigation
+   ========================================================================== */
+
+.report-library__tabs .tabs-nav {
+  gap: var(--report-tabs-gap);
+
+  min-inline-size: 0;
+  padding-inline: 0;
+
+  border-block-end: 1px solid var(--color-border);
+
+  scroll-padding-inline: var(--report-tabs-padding-inline);
+  scroll-snap-type: inline proximity;
+}
+
+/* ==========================================================================
+   Tab
+   ========================================================================== */
+
+.report-library__tabs .tab-link {
+  position: relative;
+
+  min-block-size: 3.25rem;
+  padding-block: 0.875rem;
+  padding-inline: var(--report-tabs-padding-inline);
+
+  border-block-end-width: var(--report-tabs-indicator-size);
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+
+  @include ds.transition((background-color, border-color, color), "fast");
+}
+
+/* ==========================================================================
+   Hover
+   ========================================================================== */
+
+@media (hover: hover) and (pointer: fine) {
+  .report-library__tabs .tab-link:hover:not(:disabled):not(.is-disabled) {
+    background: var(--color-surface-alt);
+    color: var(--color-heading);
+  }
+}
+
+/* ==========================================================================
+   Active State
+   ========================================================================== */
+
+.report-library__tabs .tab-link.active,
+.report-library__tabs .tab-link.is-active,
+.report-library__tabs .tab-link[aria-selected="true"] {
+  border-color: var(--color-primary);
+
+  background: transparent;
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Focus
+   ========================================================================== */
+
+.report-library__tabs .tab-link:focus {
+  outline: none;
+}
+
+.report-library__tabs .tab-link:focus-visible {
+  z-index: 1;
+
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.report-library__tabs .tabs-content {
+  min-inline-size: 0;
+  padding-block-start: clamp(1.25rem, 2vw, 2rem);
+}
+
+/* ==========================================================================
+   Disabled
+   ========================================================================== */
+
+.report-library__tabs .tab-link:disabled,
+.report-library__tabs .tab-link.is-disabled,
+.report-library__tabs .tab-link[aria-disabled="true"] {
+  border-color: transparent;
+
+  background: transparent;
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .report-library__tabs {
+    --report-tabs-gap: 0.25rem;
+    --report-tabs-padding-inline: 1rem;
+  }
+
+  .report-library__tabs .tab-link {
+    min-block-size: 3rem;
+    padding-block: 0.75rem;
+
+    font-size: var(--text-xs);
+  }
+
+  .report-library__tabs .tabs-content {
+    padding-block-start: 1.25rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .report-library__tabs {
+    --report-tabs-gap: 0;
+    --report-tabs-padding-inline: 0.875rem;
+  }
+
+  /*
+   * Horizontal scrolling is intentional. Tab labels retain their readable
+   * width instead of being compressed into narrow columns.
+   */
+
+  .report-library__tabs .tabs-nav {
+    inline-size: 100%;
+    max-inline-size: 100%;
+
+    margin-inline: 0;
+    padding-inline: 0;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    overscroll-behavior-inline: contain;
+
+    scrollbar-width: none;
+
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .report-library__tabs .tabs-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .report-library__tabs .tab-link {
+    flex: 0 0 auto;
+
+    min-inline-size: max-content;
+    min-block-size: 2.875rem;
+
+    padding-block: 0.75rem;
+    padding-inline: var(--report-tabs-padding-inline);
+
+    white-space: nowrap;
+  }
+
+  .report-library__tabs .tabs-content {
+    padding-block-start: 1rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .report-library__tabs .tabs-nav {
+  border-block-end-width: 2px;
+  border-color: currentColor;
+}
+
+html[data-contrast="high"] .report-library__tabs .tab-link.active,
+html[data-contrast="high"] .report-library__tabs .tab-link.is-active,
+html[data-contrast="high"]
+  .report-library__tabs
+  .tab-link[aria-selected="true"] {
+  border-color: currentColor;
+  border-block-end-width: 4px;
+
+  color: currentColor;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .report-library__tabs .tabs-nav {
+    border-color: CanvasText;
+  }
+
+  .report-library__tabs .tab-link {
+    color: CanvasText;
+  }
+
+  .report-library__tabs .tab-link.active,
+  .report-library__tabs .tab-link.is-active,
+  .report-library__tabs .tab-link[aria-selected="true"] {
+    border-color: Highlight;
+    color: Highlight;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .report-library__tabs .tabs-nav {
+    scroll-behavior: auto;
+  }
+
+  .report-library__tabs .tab-link {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] .report-library__tabs .tabs-nav {
+  scroll-behavior: auto;
+}
+
+html[data-motion="reduce"] .report-library__tabs .tab-link {
+  transition: none;
+}

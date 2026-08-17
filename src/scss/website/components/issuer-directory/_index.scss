@@ -1,9 +1,6 @@
 /* ==========================================================================
-   Filter Bar
+   Issuer Directory
    ========================================================================== */
 
-@forward "filter-bar";
-@forward "filter-bar-groups";
-@forward "filter-bar-actions";
-@forward "filter-bar-chips";
-@forward "filter-bar-variants";
+@forward "issuer-card";
+@forward "issuer-row";

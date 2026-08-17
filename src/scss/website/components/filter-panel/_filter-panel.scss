@@ -1,0 +1,550 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Filter Panel
+   ========================================================================== */
+
+/*
+ * Reusable website composition for filtering result collections.
+ *
+ * This component arranges existing design-system fields and buttons. It does
+ * not replace the form, select, date, or button components.
+ *
+ * Supported layouts:
+ *
+ * - standard content panel
+ * - inline toolbar
+ * - inverse Hero presentation
+ * - compact presentation
+ */
+
+.filter-panel {
+  --filter-panel-bg: var(--color-surface);
+  --filter-panel-color: var(--color-text);
+  --filter-panel-heading-color: var(--color-heading);
+  --filter-panel-muted-color: var(--color-text-muted);
+  --filter-panel-border: var(--color-border);
+
+  --filter-panel-radius: var(--radius-lg);
+  --filter-panel-shadow: var(--shadow-sm);
+
+  --filter-panel-padding-block: #{ds.space(4)};
+  --filter-panel-padding-inline: #{ds.space(4)};
+
+  --filter-panel-column-min-size: 14rem;
+  --filter-panel-column-count: auto-fit;
+  --filter-panel-gap: #{ds.space(4)};
+
+  min-inline-size: 0;
+  padding-block: var(--filter-panel-padding-block);
+  padding-inline: var(--filter-panel-padding-inline);
+
+  border: 1px solid var(--filter-panel-border);
+  border-radius: var(--filter-panel-radius);
+
+  background: var(--filter-panel-bg);
+  color: var(--filter-panel-color);
+
+  box-shadow: var(--filter-panel-shadow);
+}
+
+/* ==========================================================================
+   Form
+   ========================================================================== */
+
+.filter-panel__form {
+  display: grid;
+  gap: var(--filter-panel-gap);
+
+  min-inline-size: 0;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.filter-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: ds.space(4);
+
+  min-inline-size: 0;
+}
+
+.filter-panel__heading {
+  display: grid;
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+}
+
+.filter-panel__title,
+.filter-panel__description {
+  margin: 0;
+}
+
+.filter-panel__title {
+  color: var(--filter-panel-heading-color);
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+.filter-panel__description {
+  max-inline-size: 70ch;
+
+  color: var(--filter-panel-muted-color);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Fields
+   ========================================================================== */
+
+.filter-panel__fields {
+  display: grid;
+  grid-template-columns: repeat(
+    var(--filter-panel-column-count),
+    minmax(min(100%, var(--filter-panel-column-min-size)), 1fr)
+  );
+  align-items: end;
+  gap: var(--filter-panel-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Field
+   ========================================================================== */
+
+.filter-panel__field {
+  min-inline-size: 0;
+}
+
+.filter-panel__field .form-field {
+  margin: 0;
+}
+
+/* ==========================================================================
+   Field Width Variants
+   ========================================================================== */
+
+.filter-panel__field--wide {
+  grid-column: span 2;
+}
+
+.filter-panel__field--full {
+  grid-column: 1 / -1;
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.filter-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+}
+
+.filter-panel__actions .btn {
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   Submit Action
+   ========================================================================== */
+
+.filter-panel__submit {
+  min-inline-size: 7rem;
+}
+
+/* ==========================================================================
+   Reset Action
+   ========================================================================== */
+
+.filter-panel__reset {
+  --icon-size: 1rem;
+}
+
+/* ==========================================================================
+   Result Information
+   ========================================================================== */
+
+.filter-panel__results {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+  padding-block-start: ds.space(3);
+
+  border-block-start: 1px solid var(--filter-panel-border);
+}
+
+.filter-panel__count {
+  margin: 0;
+
+  color: var(--filter-panel-muted-color);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+.filter-panel__count strong {
+  color: var(--filter-panel-heading-color);
+
+  font-variant-numeric: tabular-nums;
+  font-weight: ds.font-weight("bold");
+}
+
+/* ==========================================================================
+   Active Filter Collection
+   ========================================================================== */
+
+.filter-panel__active {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+}
+
+.filter-panel__active-label {
+  color: var(--filter-panel-muted-color);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+}
+
+/* ==========================================================================
+   Active Filter
+   ========================================================================== */
+
+.filter-chip {
+  --icon-size: 0.75rem;
+
+  appearance: none;
+
+  display: inline-flex;
+  align-items: center;
+  gap: ds.space(1);
+
+  min-block-size: 2rem;
+  padding-block: ds.space(1);
+  padding-inline: ds.space(2);
+
+  border: 1px solid var(--filter-panel-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface-alt);
+  color: var(--filter-panel-color);
+
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("medium");
+  line-height: 1;
+
+  cursor: pointer;
+
+  @include ds.transition((background-color, border-color, color), "fast");
+}
+
+.filter-chip:hover {
+  border-color: var(--color-primary);
+
+  background: var(--color-surface);
+  color: var(--color-primary);
+}
+
+.filter-chip:focus {
+  outline: none;
+}
+
+.filter-chip:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Inline Variant
+   ========================================================================== */
+
+/*
+ * Useful for wide Hero filters and compact result toolbars.
+ */
+
+.filter-panel--inline {
+  --filter-panel-column-min-size: 12rem;
+
+  border: 0;
+  border-radius: 0;
+
+  background: transparent;
+
+  box-shadow: none;
+}
+
+.filter-panel--inline .filter-panel__form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filter-panel--inline .filter-panel__fields {
+  display: contents;
+}
+
+.filter-panel--inline .filter-panel__field {
+  flex: 1 1 var(--filter-panel-column-min-size);
+}
+
+.filter-panel--inline .filter-panel__field--wide {
+  flex-grow: 2;
+}
+
+.filter-panel--inline .filter-panel__actions {
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.filter-panel--compact {
+  --filter-panel-padding-block: #{ds.space(3)};
+  --filter-panel-padding-inline: #{ds.space(3)};
+  --filter-panel-gap: #{ds.space(3)};
+  --filter-panel-radius: var(--radius-md);
+}
+
+/* ==========================================================================
+   Borderless Variant
+   ========================================================================== */
+
+.filter-panel--borderless {
+  border: 0;
+
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Inverse Variant
+   ========================================================================== */
+
+/*
+ * Use inside dark Hero sections.
+ *
+ * Existing form components remain responsible for their internal states.
+ * These variables provide a shared inverse surface contract that those
+ * components may consume.
+ */
+
+.filter-panel--inverse {
+  --filter-panel-bg: rgb(255 255 255 / 0.08);
+  --filter-panel-color: #ffffff;
+  --filter-panel-heading-color: #ffffff;
+  --filter-panel-muted-color: rgb(255 255 255 / 0.74);
+  --filter-panel-border: rgb(255 255 255 / 0.28);
+
+  --form-control-bg: rgb(255 255 255 / 0.1);
+  --form-control-color: #ffffff;
+  --form-control-border: rgb(255 255 255 / 0.32);
+  --form-control-placeholder: rgb(255 255 255 / 0.64);
+
+  --select-bg: rgb(255 255 255 / 0.1);
+  --select-color: #ffffff;
+  --select-border: rgb(255 255 255 / 0.32);
+
+  --date-bg: rgb(255 255 255 / 0.1);
+  --date-color: #ffffff;
+  --date-border: rgb(255 255 255 / 0.32);
+
+  box-shadow: none;
+}
+
+.filter-panel--inverse .form-label,
+.filter-panel--inverse label {
+  color: var(--filter-panel-heading-color);
+}
+
+.filter-panel--inverse .form-help,
+.filter-panel--inverse .form-text {
+  color: var(--filter-panel-muted-color);
+}
+
+.filter-panel--inverse .filter-chip {
+  border-color: var(--filter-panel-border);
+
+  background: rgb(255 255 255 / 0.1);
+  color: var(--filter-panel-color);
+}
+
+.filter-panel--inverse .filter-chip:hover {
+  border-color: #ffffff;
+
+  background: rgb(255 255 255 / 0.16);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.filter-panel[aria-busy="true"] {
+  cursor: wait;
+}
+
+.filter-panel[aria-busy="true"] .filter-panel__fields,
+.filter-panel[aria-busy="true"] .filter-panel__actions {
+  opacity: 0.65;
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .filter-panel {
+    --filter-panel-column-count: 2;
+    --filter-panel-column-min-size: 0;
+  }
+
+  .filter-panel--inline .filter-panel__form {
+    display: grid;
+  }
+
+  .filter-panel--inline .filter-panel__fields {
+    display: grid;
+  }
+
+  .filter-panel--inline .filter-panel__field {
+    min-inline-size: 0;
+  }
+
+  .filter-panel--inline .filter-panel__actions {
+    justify-content: flex-end;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .filter-panel {
+    --filter-panel-column-count: 1;
+    --filter-panel-column-min-size: 0;
+    --filter-panel-padding-block: #{ds.space(3)};
+    --filter-panel-padding-inline: #{ds.space(3)};
+    --filter-panel-gap: #{ds.space(3)};
+    --filter-panel-radius: var(--radius-md);
+  }
+
+  .filter-panel__header,
+  .filter-panel__results {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filter-panel__field--wide,
+  .filter-panel__field--full {
+    grid-column: auto;
+  }
+
+  .filter-panel__actions,
+  .filter-panel__actions .btn {
+    inline-size: 100%;
+  }
+
+  .filter-panel__active {
+    align-items: flex-start;
+  }
+
+  .filter-panel--inline {
+    padding-inline: 0;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .filter-panel {
+    border-width: 2px;
+    border-color: currentColor;
+
+    box-shadow: none;
+  }
+
+  .filter-panel__results,
+  .filter-chip {
+    border-color: currentColor;
+  }
+
+  .filter-panel--borderless,
+  .filter-panel--inline {
+    border: 0;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .filter-panel,
+  .filter-panel--inverse {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .filter-chip,
+  .filter-panel--inverse .filter-chip {
+    border-color: ButtonBorder;
+
+    background: ButtonFace;
+    color: ButtonText;
+  }
+
+  .filter-chip:hover,
+  .filter-panel--inverse .filter-chip:hover {
+    border-color: Highlight;
+
+    color: LinkText;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-chip {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .filter-chip {
+    transition: none;
+  }
+}

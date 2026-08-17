@@ -1,0 +1,656 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Member Row
+   ========================================================================== */
+
+/*
+ * List-view presentation for one exchange member.
+ *
+ * The component supports both:
+ *
+ * - Exchange Members
+ * - Exchange Members – Foreign Investors
+ *
+ * Shared directory components own:
+ *
+ * - grouped results
+ * - grid/list visibility
+ * - toolbar
+ * - pagination
+ *
+ * This component owns:
+ *
+ * - compact member identity
+ * - classification
+ * - services or investor types
+ * - contact or partner information
+ * - profile-modal action
+ */
+
+.member-row {
+  --member-row-bg: var(--color-surface);
+  --member-row-color: var(--color-text);
+  --member-row-border: var(--color-border);
+  --member-row-border-hover: var(--color-border-strong);
+  --member-row-shadow: var(--shadow-sm);
+  --member-row-shadow-hover: var(--shadow-md);
+
+  --member-row-logo-size: 4rem;
+
+  /*
+   * Columns:
+   *
+   * 1. Member identity
+   * 2. Classification
+   * 3. Services / investor type
+   * 4. Contact / partner
+   * 5. Profile action
+   */
+
+  --member-row-columns: minmax(15rem, 1.55fr) minmax(8rem, 0.75fr)
+    minmax(10rem, 0.9fr) minmax(14rem, 1.3fr) minmax(8.75rem, auto);
+
+  position: relative;
+  isolation: isolate;
+
+  display: grid;
+  grid-template-columns: var(--member-row-columns);
+  align-items: center;
+  gap: ds.space(4);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 6.5rem;
+  padding: ds.space(3) ds.space(4);
+
+  border: 1px solid var(--member-row-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--member-row-bg);
+  color: var(--member-row-color);
+
+  box-shadow: var(--member-row-shadow);
+
+  @include ds.transition((border-color, box-shadow, transform), "normal");
+}
+
+.member-row:hover {
+  border-color: var(--member-row-border-hover);
+
+  box-shadow: var(--member-row-shadow-hover);
+
+  transform: translateY(-0.0625rem);
+}
+
+.member-row:focus-within {
+  border-color: var(--color-primary);
+
+  box-shadow: var(--member-row-shadow-hover);
+}
+
+/* ==========================================================================
+   Identity
+   ========================================================================== */
+
+.member-row__identity {
+  display: flex;
+  align-items: center;
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Logo
+   ========================================================================== */
+
+.member-row__logo {
+  position: relative;
+
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 var(--member-row-logo-size);
+
+  inline-size: var(--member-row-logo-size);
+  block-size: var(--member-row-logo-size);
+  padding: ds.space(1);
+
+  border: 1px solid var(--member-row-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+
+  overflow: hidden;
+}
+
+.member-row__logo-image {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  object-fit: contain;
+  object-position: center;
+}
+
+/* ==========================================================================
+   Logo Fallback
+   ========================================================================== */
+
+.member-row__logo-fallback {
+  display: grid;
+  place-items: center;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  background: var(--color-surface-alt);
+  color: var(--color-heading);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
+
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Identity Content
+   ========================================================================== */
+
+.member-row__identity-content {
+  display: grid;
+  align-content: center;
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Name
+   ========================================================================== */
+
+.member-row__name {
+  min-inline-size: 0;
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-row__name-link {
+  color: inherit;
+
+  text-decoration: none;
+
+  @include ds.transition(color, "fast");
+}
+
+.member-row__name-link:hover {
+  color: var(--color-primary);
+
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.2em;
+}
+
+.member-row__name-link:focus {
+  outline: none;
+}
+
+.member-row__name-link:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Supporting Name
+   ========================================================================== */
+
+.member-row__supporting-name {
+  min-inline-size: 0;
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Data Cell
+   ========================================================================== */
+
+.member-row__cell {
+  display: grid;
+  align-content: center;
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Cell Label
+   ========================================================================== */
+
+.member-row__label {
+  display: none;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Cell Value
+   ========================================================================== */
+
+.member-row__value {
+  min-inline-size: 0;
+  margin: 0;
+
+  overflow-wrap: anywhere;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Classification
+   ========================================================================== */
+
+.member-row__classification {
+  display: flex;
+  flex-wrap: wrap;
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.member-row__classification-item {
+  display: inline-flex;
+  align-items: center;
+
+  min-inline-size: 0;
+  min-block-size: 1.625rem;
+  padding-block: ds.space(1);
+  padding-inline: ds.space(2);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
+}
+
+/* ==========================================================================
+   Value List
+   ========================================================================== */
+
+.member-row__value-list {
+  display: grid;
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.member-row__value-list-item {
+  min-inline-size: 0;
+
+  overflow-wrap: anywhere;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Contact
+   ========================================================================== */
+
+.member-row__contact {
+  display: grid;
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+}
+
+.member-row__contact-item {
+  --icon-size: 0.8125rem;
+
+  display: flex;
+  align-items: flex-start;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+}
+
+.member-row__contact-item::before {
+  flex: 0 0 auto;
+
+  margin-block-start: 0.2em;
+
+  color: var(--color-primary);
+}
+
+.member-row__contact-value {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  color: inherit;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+a.member-row__contact-value {
+  color: var(--color-link);
+
+  text-decoration: none;
+}
+
+a.member-row__contact-value:hover {
+  color: var(--color-link-hover);
+
+  text-decoration-line: underline;
+  text-underline-offset: 0.2em;
+}
+
+a.member-row__contact-value:focus {
+  outline: none;
+}
+
+a.member-row__contact-value:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Partner Summary
+   ========================================================================== */
+
+.member-row__partners {
+  display: -webkit-box;
+
+  min-inline-size: 0;
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* ==========================================================================
+   Profile Action
+   ========================================================================== */
+
+.member-row__profile {
+  justify-self: end;
+
+  inline-size: fit-content;
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Busy State
+   ========================================================================== */
+
+.member-row[aria-busy="true"] {
+  cursor: wait;
+}
+
+.member-row[aria-busy="true"]::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
+  border-radius: inherit;
+
+  background: rgb(255 255 255 / 0.48);
+
+  pointer-events: none;
+}
+
+html[data-theme="dark"] .member-row[aria-busy="true"]::after {
+  background: rgb(0 0 0 / 0.32);
+}
+
+/* ==========================================================================
+   Large Desktop
+   ========================================================================== */
+
+@include ds.respond-down("xl") {
+  .member-row {
+    --member-row-columns: minmax(13rem, 1.4fr) minmax(8rem, 0.75fr)
+      minmax(10rem, 0.9fr) minmax(11rem, 1fr) minmax(8.5rem, auto);
+
+    gap: ds.space(3);
+  }
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .member-row {
+    --member-row-columns: minmax(13rem, 1.5fr) minmax(8rem, 0.8fr)
+      minmax(11rem, 1fr) minmax(8.5rem, auto);
+  }
+
+  /*
+   * The detailed contact/partner column is hidden at this width.
+   * The profile modal remains the complete information source.
+   */
+
+  .member-row__cell--secondary {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .member-row {
+    --member-row-columns: minmax(12rem, 1.5fr) minmax(9rem, 1fr)
+      minmax(8.5rem, auto);
+
+    min-block-size: 5.75rem;
+  }
+
+  .member-row__cell--classification {
+    display: none;
+  }
+
+  .member-row__logo {
+    --member-row-logo-size: 3.5rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .member-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: ds.space(3);
+
+    min-block-size: 0;
+    padding: ds.space(3);
+
+    border-radius: var(--radius-md);
+  }
+
+  .member-row:hover {
+    transform: none;
+  }
+
+  .member-row__identity {
+    align-items: flex-start;
+  }
+
+  .member-row__name {
+    overflow: visible;
+
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .member-row__cell,
+  .member-row__cell--classification,
+  .member-row__cell--secondary {
+    display: grid;
+  }
+
+  .member-row__label {
+    display: block;
+  }
+
+  .member-row__profile {
+    justify-self: stretch;
+
+    inline-size: 100%;
+  }
+}
+
+/* ==========================================================================
+   Very Small Screens
+   ========================================================================== */
+
+@media (max-width: 24rem) {
+  .member-row {
+    --member-row-logo-size: 3rem;
+  }
+
+  .member-row__identity {
+    gap: ds.space(2);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .member-row {
+    border-width: 2px;
+    border-color: var(--color-border-strong);
+
+    box-shadow: none;
+  }
+
+  .member-row:hover,
+  .member-row:focus-within {
+    border-color: currentColor;
+
+    box-shadow: none;
+  }
+
+  .member-row__logo,
+  .member-row__classification-item {
+    border-width: 2px;
+    border-color: currentColor;
+  }
+
+  .member-row__contact-item::before {
+    color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .member-row,
+  .member-row__logo,
+  .member-row__classification-item {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .member-row__contact-item::before {
+    color: LinkText;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .member-row,
+  .member-row__name-link {
+    transition: none;
+  }
+
+  .member-row:hover {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .member-row,
+  .member-row__name-link {
+    transition: none;
+  }
+
+  .member-row:hover {
+    transform: none;
+  }
+}

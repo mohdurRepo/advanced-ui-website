@@ -1,0 +1,377 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Report Library
+   ========================================================================== */
+
+/*
+ * Website composition for report-listing pages.
+ *
+ * The design system continues to own:
+ * - grid
+ * - tabs
+ * - resource cards
+ * - buttons
+ *
+ * This component owns:
+ * - report section rhythm
+ * - report heading and count
+ * - report-specific grid columns
+ * - empty and loading presentation
+ */
+
+.report-library {
+  --report-library-gap: clamp(1rem, 1.5vw, 1.5rem);
+  --report-library-section-gap: clamp(1.25rem, 2vw, 2rem);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.report-library__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: ds.space(4);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Heading Content
+   ========================================================================== */
+
+.report-library__heading {
+  display: grid;
+  align-content: start;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+}
+
+.report-library__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-2xl);
+  font-weight: ds.font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.report-library__description {
+  max-inline-size: 70ch;
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-base);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   Result Count
+   ========================================================================== */
+
+.report-library__count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: ds.space(1);
+
+  flex: 0 0 auto;
+
+  padding-block: ds.space(2);
+  padding-inline: ds.space(3);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+.report-library__count-value {
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  color: var(--color-heading);
+
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-base);
+  font-weight: ds.font-weight("bold");
+}
+
+.report-library__count-label {
+  font-weight: ds.font-weight("medium");
+}
+
+/* ==========================================================================
+   Grid
+   ========================================================================== */
+
+/*
+ * Use together with the design-system .grid class:
+ *
+ * <div class="grid report-library__grid">
+ *
+ * The design system supplies the grid behavior and gap foundation.
+ * This modifier supplies the report-library column progression.
+ */
+
+.report-library__grid {
+  --grid-gap: var(--report-library-gap);
+
+  grid-template-columns: minmax(0, 1fr);
+
+  align-items: stretch;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Equal Card Height
+   ========================================================================== */
+
+.report-library__grid .resource-card {
+  block-size: 100%;
+}
+
+/* ==========================================================================
+   Two Columns
+   ========================================================================== */
+
+@include ds.respond-up("sm") {
+  .report-library__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Three Columns
+   ========================================================================== */
+
+@include ds.respond-up("lg") {
+  .report-library__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Four Columns
+   ========================================================================== */
+
+@include ds.respond-up("xxl") {
+  .report-library__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Content Region
+   ========================================================================== */
+
+.report-library__content {
+  display: grid;
+  align-content: start;
+  gap: var(--report-library-section-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Tab Panel
+   ========================================================================== */
+
+.report-library__panel {
+  min-inline-size: 0;
+}
+
+.report-library__panel[hidden] {
+  display: none;
+}
+
+.report-library__panel.active,
+.report-library__panel.is-active,
+.report-library__panel[data-active="true"] {
+  display: block;
+}
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
+.report-library__empty {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: ds.space(3);
+
+  min-block-size: 16rem;
+  padding: clamp(2rem, 5vw, 4rem);
+
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+
+  text-align: center;
+}
+
+.report-library__empty-icon {
+  --icon-size: 2rem;
+
+  color: var(--color-primary);
+}
+
+.report-library__empty-title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+.report-library__empty-description {
+  max-inline-size: 50ch;
+  margin: 0;
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.report-library[aria-busy="true"] {
+  cursor: wait;
+}
+
+.report-library[aria-busy="true"] .report-library__grid {
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Small Desktop
+   ========================================================================== */
+
+@include ds.respond-between("lg", "xl") {
+  .report-library__title {
+    font-size: var(--text-xl);
+  }
+
+  .report-library__description {
+    font-size: var(--text-sm);
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .report-library {
+    --report-library-section-gap: 1.25rem;
+  }
+
+  .report-library__header {
+    align-items: flex-start;
+  }
+
+  .report-library__title {
+    font-size: var(--text-xl);
+  }
+
+  .report-library__description {
+    font-size: var(--text-sm);
+    line-height: var(--line-height-normal);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .report-library {
+    --report-library-gap: 1rem;
+    --report-library-section-gap: 1rem;
+  }
+
+  .report-library__header {
+    display: grid;
+    align-items: start;
+    justify-content: stretch;
+    gap: ds.space(3);
+  }
+
+  .report-library__title {
+    font-size: var(--text-lg);
+  }
+
+  .report-library__count {
+    justify-self: start;
+
+    padding-block: 0.375rem;
+    padding-inline: 0.75rem;
+
+    font-size: var(--text-xs);
+  }
+
+  .report-library__count-value {
+    font-size: var(--text-sm);
+  }
+
+  .report-library__empty {
+    min-block-size: 12rem;
+    padding: ds.space(6);
+
+    border-radius: var(--radius-md);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .report-library__count,
+html[data-contrast="high"] .report-library__empty {
+  border-width: 2px;
+  border-color: currentColor;
+}
+
+html[data-contrast="high"] .report-library__empty-icon {
+  color: currentColor;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .report-library__count,
+  .report-library__empty {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .report-library__empty-icon {
+    color: LinkText;
+  }
+}
