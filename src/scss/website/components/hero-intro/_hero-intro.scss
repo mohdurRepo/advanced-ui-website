@@ -16,8 +16,8 @@
 
 .hero-intro {
   --hero-intro-width: 75%;
-  --hero-intro-max-width: 56rem;
-  --hero-intro-description-width: 60rem;
+  --hero-intro-max-width: 65rem;
+  --hero-intro-description-width: 65rem;
 
   --hero-intro-gap: clamp(
     var(--space-6, #{ds.space(6)}),
@@ -39,7 +39,7 @@
     var(--space-12, #{ds.space(12)})
   );
 
-  --hero-intro-icon-size: clamp(2.75rem, 5vw, 3.5rem);
+  --hero-intro-icon-size: clamp(1.75rem, 3vw, 2.5rem);
 
   display: flex;
   flex-direction: column;
@@ -104,7 +104,6 @@
 
   color: var(--color-heading);
 
-  font-size: var(--text-4xl);
   font-weight: ds.font-weight("heavy");
   line-height: 0.98;
 
@@ -120,7 +119,7 @@
 
 .hero-intro__description {
   max-inline-size: min(100%, var(--hero-intro-description-width));
-
+text-align: justify;
   margin: 0;
 
   color: var(--color-text-muted);

@@ -80,6 +80,8 @@
    ========================================================================== */
 
 .company-market-overview__secondary {
+  display: flex;
+  inline-size: 100%;       
   min-inline-size: 0;
   min-block-size: 100%;
 }

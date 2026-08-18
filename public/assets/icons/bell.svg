@@ -1,0 +1,14 @@
+
+<svg width="15" height="20" viewBox="0 0 15 20" fill="none"  xmlns="http://www.w3.org/2000/svg">
+    <!-- Top Head/Loop Pin -->
+    <path d="M7.5 3.5V1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    
+    <!-- Bell Main Body Arc -->
+    <path d="M7.5 3.5C10.2 3.5 12.35 5.3 12.35 9.1V15.5H2.65V9.1C2.65 5.3 4.8 3.5 7.5 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Bottom Rim Horizon Bar -->
+    <path d="M1 15.5H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    
+    <!-- Bottom Clapper/Ringer -->
+    <path d="M5.69 15.5C5.69 17.5 7.5 18.5 7.5 18.5C7.5 18.5 9.31 17.5 9.31 15.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

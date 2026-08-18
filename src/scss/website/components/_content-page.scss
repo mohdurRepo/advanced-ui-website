@@ -75,12 +75,13 @@
 }
 
 .content-page__article p {
-  max-inline-size: 75ch;
+  //max-inline-size: 75ch;
   margin: 0;
 
   color: var(--color-text);
 
   line-height: var(--line-height-relaxed);
+  text-align: justify;
 }
 
 /* ==========================================================================

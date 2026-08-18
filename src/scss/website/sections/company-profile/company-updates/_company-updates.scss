@@ -168,6 +168,8 @@
    ========================================================================== */
 
 .company-updates__content {
+  display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
 
   min-inline-size: 0;
@@ -177,11 +179,18 @@
 }
 
 .company-updates__panel {
+  flex-direction: column;
+  flex: 1 1 auto;
+
   min-inline-size: 0;
   min-block-size: 0;
 
+  &:not([hidden]) {
+    display: flex;
+  }
+
   &[hidden] {
-    display: none !important;
+    display: none;
   }
 }
 
@@ -190,6 +199,10 @@
    ========================================================================== */
 
 .company-updates__period-tabs {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+
   min-inline-size: 0;
 }
 
@@ -301,18 +314,34 @@
    Period Content
    ========================================================================== */
 
-.company-updates__period-content,
-.company-updates__period-panel {
+.company-updates__period-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+
   min-inline-size: 0;
   min-block-size: 0;
 
   padding-block-start: 0;
 }
 
-.company-updates__period-panel[hidden] {
-  display: none !important;
-}
+.company-updates__period-panel {
+  flex-direction: column;
+  flex: 1 1 auto;
 
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  padding-block-start: 0;
+
+  &:not([hidden]) {
+    display: flex;
+  }
+
+  &[hidden] {
+    display: none;
+  }
+}
 /* ==========================================================================
    Lists
    ========================================================================== */
@@ -320,6 +349,7 @@
 .company-updates__list {
   display: grid;
   align-content: start;
+  flex: 1 1 auto;      /* Ensures the list block stretches to occupy available vertical space */
 
   min-inline-size: 0;
 
@@ -343,7 +373,7 @@
   align-items: center;
   justify-content: flex-end;
 
-  margin-block-start: auto;
+  margin-block-start: auto; /* Automatically pushes the footer to the bottom of the flex container */
   padding-block-start: 1rem;
 
   border-block-start: 1px solid var(--company-updates-border);
@@ -482,7 +512,7 @@ html[data-contrast="high"] {
 
 /* ==========================================================================
    Reduced Motion
-   ========================================================================== */
+   ========================================================================= */
 
 html[data-motion="reduce"] {
   .company-updates__tab,

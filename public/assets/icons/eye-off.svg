@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+  <!-- Clean Broken Top Contour -->
+  <path d="M4 12C5.12 10.13 6.78 8.65 8.7 7.55" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M14.6 5.92C16.35 6.64 18.3 8.87 20 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Clean Broken Bottom Contour -->
+  <path d="M4 12C5.35 14.25 7.6 16.92 10.2 17.92" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M15.4 17.27C17.15 16.14 18.8 14.12 20 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Interrupted Iris Coordinates -->
+  <path d="M9.65 10.4C9.42 10.9 9.3 11.45 9.3 12C9.3 13.5 10.5 14.7 12 14.7C12.55 14.7 13.1 14.58 13.6 14.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M14.15 10.15C13.85 9.85 13.45 9.6 13 9.45" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Symmetrical, Ultra-Sharp Executive Slash Line -->
+  <line x1="5.5" y1="18.5" x2="18.5" y2="5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+</svg>
