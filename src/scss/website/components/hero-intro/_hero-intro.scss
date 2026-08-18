@@ -1,0 +1,381 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Hero Intro
+   ========================================================================== */
+
+/**
+ * Reusable identity and supporting-content composition for website heroes.
+ *
+ * `.hero-section` owns the structural shell and branded background.
+ * `.hero-intro` owns the content width, identity, description, footer, and
+ * optional actions.
+ *
+ * The component inherits all colors from its active semantic surface.
+ */
+
+.hero-intro {
+  --hero-intro-width: 75%;
+  --hero-intro-max-width: 56rem;
+  --hero-intro-description-width: 60rem;
+
+  --hero-intro-gap: clamp(
+    var(--space-6, #{ds.space(6)}),
+    3vw,
+    var(--space-8, #{ds.space(8)})
+  );
+
+  --hero-intro-header-gap: var(--space-4, #{ds.space(4)});
+
+  --hero-intro-brand-gap: clamp(
+    var(--space-3, #{ds.space(3)}),
+    2vw,
+    var(--space-5, #{ds.space(5)})
+  );
+
+  --hero-intro-footer-gap: clamp(
+    var(--space-6, #{ds.space(6)}),
+    3vw,
+    var(--space-12, #{ds.space(12)})
+  );
+
+  --hero-intro-icon-size: clamp(2.75rem, 5vw, 3.5rem);
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--hero-intro-gap);
+
+  inline-size: var(--hero-intro-width);
+  max-inline-size: var(--hero-intro-max-width);
+  min-inline-size: 0;
+
+  color: var(--color-text);
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.hero-intro__header {
+  display: grid;
+  justify-items: start;
+  gap: var(--hero-intro-header-gap);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Brand
+   ========================================================================== */
+
+.hero-intro__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--hero-intro-brand-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Icon
+   ========================================================================== */
+
+.hero-intro__icon {
+  --icon-size: var(--hero-intro-icon-size);
+
+  display: inline-grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  color: var(--color-heading);
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.hero-intro__title {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-4xl);
+  font-weight: ds.font-weight("heavy");
+  line-height: 0.98;
+
+  letter-spacing: -0.035em;
+
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.hero-intro__description {
+  max-inline-size: min(100%, var(--hero-intro-description-width));
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: clamp(var(--text-base), 0.95rem + 0.3vw, var(--text-lg));
+
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-relaxed);
+
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+/**
+ * Optional supporting region for instrument prices, metadata, and actions.
+ */
+
+.hero-intro__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-6, #{ds.space(6)}) var(--hero-intro-footer-gap);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.hero-intro__footer > * {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.hero-intro__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3, #{ds.space(3)});
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Action Sizing
+   ========================================================================== */
+
+/**
+ * Button appearance and interaction remain owned by the design-system Button
+ * component. The Hero Intro controls only composition-level sizing.
+ */
+
+.hero-intro__actions > .btn {
+  min-inline-size: 9rem;
+
+  justify-content: center;
+}
+
+/* ==========================================================================
+   Full-width Variant
+   ========================================================================== */
+
+/**
+ * Use inside an already constrained region such as the primary column of a
+ * Split Layout.
+ */
+
+.hero-intro--full {
+  --hero-intro-width: 100%;
+  --hero-intro-max-width: none;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+/**
+ * Use for short informational heroes that do not contain a footer.
+ */
+
+.hero-intro--compact {
+  --hero-intro-max-width: 42rem;
+}
+
+/* ==========================================================================
+   Centered Variant
+   ========================================================================== */
+
+.hero-intro--center {
+  align-items: center;
+
+  margin-inline: auto;
+
+  text-align: center;
+}
+
+.hero-intro--center .hero-intro__header {
+  justify-items: center;
+}
+
+.hero-intro--center .hero-intro__brand,
+.hero-intro--center .hero-intro__footer,
+.hero-intro--center .hero-intro__actions {
+  justify-content: center;
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .hero-intro__title {
+  letter-spacing: 0;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .hero-intro {
+    --hero-intro-width: 100%;
+    --hero-intro-max-width: none;
+  }
+
+  .hero-intro__footer {
+    align-items: flex-start;
+  }
+
+  .hero-intro__actions {
+    inline-size: 100%;
+  }
+
+  .hero-intro__actions > .btn {
+    flex: 1 1 10rem;
+
+    min-inline-size: 0;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .hero-intro {
+    --hero-intro-gap: var(--space-5, #{ds.space(5)});
+    --hero-intro-header-gap: var(--space-3, #{ds.space(3)});
+    --hero-intro-brand-gap: var(--space-3, #{ds.space(3)});
+    --hero-intro-icon-size: 2.75rem;
+  }
+
+  .hero-intro__brand {
+    align-items: flex-start;
+  }
+
+  .hero-intro__title {
+    font-size: var(--text-3xl);
+
+    letter-spacing: -0.025em;
+  }
+
+  .hero-intro__description {
+    font-size: var(--text-sm);
+  }
+
+  .hero-intro__footer {
+    display: grid;
+    gap: var(--space-5, #{ds.space(5)});
+  }
+
+  .hero-intro__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2, #{ds.space(2)});
+
+    inline-size: 100%;
+  }
+
+  .hero-intro__actions > .btn {
+    inline-size: 100%;
+    min-inline-size: 0;
+
+    padding-inline: var(--space-2, #{ds.space(2)});
+
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Extra-small Screens
+   ========================================================================== */
+
+@media (max-width: 22.5rem) {
+  .hero-intro {
+    --hero-intro-icon-size: 2.25rem;
+  }
+
+  .hero-intro__actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero-intro__actions > .btn {
+    padding-inline: var(--space-3, #{ds.space(3)});
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .hero-intro {
+  --hero-intro-width: 100%;
+  --hero-intro-max-width: none;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .hero-intro {
+    color: CanvasText;
+  }
+
+  .hero-intro__icon,
+  .hero-intro__title,
+  .hero-intro__description {
+    color: CanvasText;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .hero-intro {
+    --hero-intro-width: 100%;
+    --hero-intro-max-width: none;
+
+    color: #000000;
+  }
+
+  .hero-intro__icon,
+  .hero-intro__title,
+  .hero-intro__description {
+    color: #000000;
+  }
+
+  .hero-intro__actions {
+    display: none;
+  }
+}

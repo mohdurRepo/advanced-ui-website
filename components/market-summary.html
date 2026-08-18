@@ -5490,47 +5490,50 @@
      ========================================================================== -->
 
       <section
-        class="hero-section market-summary-section"
-        aria-labelledby="market-summary-title"
-        aria-describedby="market-summary-description"
+        class="hero-section surface-hero"
+        aria-labelledby="main-market-title"
+        aria-describedby="main-market-description"
       >
         <div class="hero-section__background" aria-hidden="true"></div>
 
         <div class="container hero-section__content">
-          <div class="market-summary market-summary--hero">
-            <!-- Market Identity -->
+          <div class="hero-intro">
+            <!-- ====================================================================
+           Market Identity
+           ================================================================= -->
 
-            <header class="market-summary__header">
-              <div class="market-summary__brand">
+            <header class="hero-intro__header">
+              <div class="hero-intro__brand">
                 <span
-                  class="market-summary__brand-icon has-icon icon-tadawul"
+                  class="hero-intro__icon has-icon icon-tadawul"
                   aria-hidden="true"
                 ></span>
 
-                <h1 id="market-summary-title" class="market-summary__title">
+                <h1 id="main-market-title" class="hero-intro__title">
                   Main Market
                 </h1>
               </div>
 
-              <p
-                id="market-summary-description"
-                class="market-summary__description"
-              >
-                An overview of activity across the Exchange's Main Market.
+              <p id="main-market-description" class="hero-intro__description">
+                An overview of activity across the Exchange’s Main Market.
               </p>
             </header>
 
-            <!-- Index and Actions -->
+            <!-- ====================================================================
+           Market Index and Actions
+           ================================================================= -->
 
-            <footer class="market-summary__footer">
+            <footer class="hero-intro__footer">
+              <!-- TASI Index -->
+
               <div
-                class="instrument-price market-summary__index"
-                aria-label="Tasi Index"
+                class="instrument-price"
+                aria-label="TASI Index: 10,804.11 points. Increased by 28.65 points, or 0.27 percent."
                 dir="ltr"
               >
-                <p class="market-summary__index-label">
-                  Tasi Index
-                  <span class="market-summary__index-symbol">(Tasi)</span>
+                <p class="instrument-price__label">
+                  TASI Index
+                  <span>(TASI)</span>
                 </p>
 
                 <div class="instrument-price__current">
@@ -5555,11 +5558,10 @@
                 </div>
               </div>
 
-              <div
-                class="market-summary__actions"
-                aria-label="Main Market actions"
-              >
-                <a class="btn btn-light market-summary__action" href="#">
+              <!-- Main Market Actions -->
+
+              <nav class="hero-intro__actions" aria-label="Main Market actions">
+                <a class="btn btn-light btn-arrow" href="#">
                   <span>Invest Now</span>
 
                   <span
@@ -5568,10 +5570,7 @@
                   ></span>
                 </a>
 
-                <a
-                  class="btn btn-outline-light market-summary__action"
-                  href="#"
-                >
+                <a class="btn btn-outline-light btn-arrow" href="#">
                   <span>Compare</span>
 
                   <span
@@ -5579,7 +5578,7 @@
                     aria-hidden="true"
                   ></span>
                 </a>
-              </div>
+              </nav>
             </footer>
           </div>
         </div>

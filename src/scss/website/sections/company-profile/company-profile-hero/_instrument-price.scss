@@ -1,23 +1,72 @@
-@use "../../../../design-system/abstracts/" as *;
+@use "../../../../design-system/abstracts" as ds;
 
 /* ==========================================================================
    Instrument Price
    ========================================================================== */
 
+/**
+ * Reusable presentation for a current instrument or index value.
+ *
+ * This component owns:
+ *
+ * - price layout
+ * - value typography
+ * - currency and direction-icon sizing
+ * - responsive sizing
+ *
+ * Financial direction and color are owned by:
+ *
+ * - `.price-up`
+ * - `.price-down`
+ * - `.price-neutral`
+ *
+ * The component inherits its foreground colors from the active semantic
+ * surface context.
+ */
+
 .instrument-price {
-  --instrument-price-fg: var(--page-hero-fg, #ffffff);
-  --instrument-price-muted: var(--page-hero-muted, rgb(255 255 255 / 0.74));
+  --instrument-price-color: var(--color-text);
+  --instrument-price-muted-color: var(--color-text-muted);
+
+  --instrument-price-gap: var(--space-2, #{ds.space(2)});
+  --instrument-price-inline-gap: var(--space-2, #{ds.space(2)});
+
+  --instrument-price-value-size: clamp(2.5rem, 4vw, 3.75rem);
+  --instrument-price-currency-size: 2.25rem;
+  --instrument-price-direction-size: 0.55rem;
 
   display: grid;
   align-content: start;
   justify-items: start;
-  gap: 0.5rem;
+  gap: var(--instrument-price-gap);
 
   min-inline-size: 0;
 
-  color: var(--instrument-price-fg);
+  color: var(--instrument-price-color);
 
+  direction: ltr;
   font-variant-numeric: tabular-nums;
+  unicode-bidi: isolate;
+}
+
+/* ==========================================================================
+   Label
+   ========================================================================== */
+
+/**
+ * Optional label for contexts such as a market index summary.
+ */
+
+.instrument-price__label {
+  margin: 0;
+
+  color: var(--instrument-price-muted-color);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-tight);
+
+  overflow-wrap: anywhere;
 }
 
 /* ==========================================================================
@@ -27,10 +76,11 @@
 .instrument-price__current {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.5rem;
+  gap: var(--instrument-price-inline-gap);
 
   inline-size: fit-content;
   max-inline-size: 100%;
+  min-inline-size: 0;
 
   color: inherit;
 
@@ -42,11 +92,11 @@
    ========================================================================== */
 
 .instrument-price__currency {
-  --icon-size: 2.25rem;
+  --icon-size: var(--instrument-price-currency-size);
 
   flex: 0 0 auto;
 
-  color: var(--instrument-price-muted);
+  color: var(--instrument-price-muted-color);
 }
 
 /* ==========================================================================
@@ -58,8 +108,8 @@
 
   color: inherit;
 
-  font-size: clamp(2.5rem, 4vw, 3.75rem);
-  font-weight: font-weight("heavy");
+  font-size: var(--instrument-price-value-size);
+  font-weight: ds.font-weight("heavy");
   line-height: 0.95;
 
   letter-spacing: -0.035em;
@@ -69,6 +119,14 @@
    Price Change
    ========================================================================== */
 
+/**
+ * Apply one financial-state utility to this element:
+ *
+ * `.price-up`
+ * `.price-down`
+ * `.price-neutral`
+ */
+
 .instrument-price__change {
   display: inline-flex;
   flex-wrap: wrap;
@@ -77,28 +135,13 @@
 
   inline-size: fit-content;
   max-inline-size: 100%;
+  min-inline-size: 0;
 
   font-size: var(--text-base);
-  font-weight: font-weight("bold");
+  font-weight: ds.font-weight("bold");
   line-height: var(--line-height-tight);
 
   white-space: nowrap;
-}
-
-/* ==========================================================================
-   Price States
-   ========================================================================== */
-
-.instrument-price__change.price-up {
-  color: var(--color-success);
-}
-
-.instrument-price__change.price-down {
-  color: var(--color-danger);
-}
-
-.instrument-price__change.price-neutral {
-  color: var(--instrument-price-muted);
 }
 
 /* ==========================================================================
@@ -106,13 +149,15 @@
    ========================================================================== */
 
 .instrument-price__change-icon {
-  --icon-size: 0.55rem;
+  --icon-size: var(--instrument-price-direction-size);
 
   flex: 0 0 auto;
+
+  color: inherit;
 }
 
 /* ==========================================================================
-   Change Value
+   Change Values
    ========================================================================== */
 
 .instrument-price__change-value,
@@ -129,16 +174,29 @@
 }
 
 /* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.instrument-price--compact {
+  --instrument-price-value-size: var(--text-3xl);
+  --instrument-price-currency-size: 1.625rem;
+  --instrument-price-direction-size: 0.5rem;
+
+  --instrument-price-gap: var(--space-1, #{ds.space(1)});
+}
+
+.instrument-price--compact .instrument-price__change {
+  font-size: var(--text-sm);
+}
+
+/* ==========================================================================
    Tablet
    ========================================================================== */
 
-@include respond-down(md) {
-  .instrument-price__value {
-    font-size: var(--text-4xl);
-  }
-
-  .instrument-price__currency {
-    --icon-size: 2rem;
+@include ds.respond-down("md") {
+  .instrument-price {
+    --instrument-price-value-size: var(--text-4xl);
+    --instrument-price-currency-size: 2rem;
   }
 }
 
@@ -146,18 +204,15 @@
    Mobile
    ========================================================================== */
 
-@include respond-down(sm) {
+@include ds.respond-down("sm") {
   .instrument-price {
-    gap: 0.375rem;
-  }
-
-  .instrument-price__currency {
-    --icon-size: 1.625rem;
+    --instrument-price-gap: 0.375rem;
+    --instrument-price-value-size: var(--text-3xl);
+    --instrument-price-currency-size: 1.625rem;
+    --instrument-price-direction-size: 0.5rem;
   }
 
   .instrument-price__value {
-    font-size: var(--text-3xl);
-
     letter-spacing: -0.025em;
   }
 
@@ -166,23 +221,43 @@
 
     font-size: var(--text-sm);
   }
-
-  .instrument-price__change-icon {
-    --icon-size: 0.5rem;
-  }
 }
 
 /* ==========================================================================
    High Contrast
    ========================================================================== */
 
-html[data-contrast="high"] {
-  .instrument-price__currency,
-  .instrument-price__change {
-    color: currentColor;
-  }
+html[data-contrast="high"] .instrument-price {
+  --instrument-price-color: currentColor;
+  --instrument-price-muted-color: currentColor;
+}
 
-  .instrument-price__change {
-    font-weight: font-weight("heavy");
+html[data-contrast="high"] .instrument-price__value {
+  font-weight: ds.font-weight("heavy");
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .instrument-price {
+    --instrument-price-color: CanvasText;
+    --instrument-price-muted-color: CanvasText;
+
+    color: CanvasText;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .instrument-price {
+    --instrument-price-color: #000000;
+    --instrument-price-muted-color: #000000;
+
+    color: #000000;
   }
 }

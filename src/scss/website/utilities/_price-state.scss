@@ -4,81 +4,95 @@
    Price State Utilities
    ========================================================================== */
 
-/*
- * Semantic financial-value states.
+/**
+ * Semantic financial-value states used across the website.
  *
- * These utilities own only semantic foreground color and numeric
- * presentation. Components remain responsible for layout and typography.
+ * These utilities own only:
  *
- * Dedicated market tokens are preferred. General theme status tokens provide
- * compatibility for contexts that have not defined the market token set yet.
+ * - semantic financial color
+ * - numeric presentation
+ * - bidirectional isolation
+ * - non-color differentiation in high-contrast contexts
+ *
+ * Components remain responsible for layout, sizing, spacing, and typography.
+ *
+ * Contextual surfaces may override the market tokens locally. This allows the
+ * same utility to work on light pages, dark heroes, branded sections, tables,
+ * cards, charts, and overlays.
  */
 
-.price-up,
-.price-down,
-.price-neutral {
+/* ==========================================================================
+   Shared Presentation
+   ========================================================================== */
+
+:where(.price-up, .price-down, .price-neutral) {
   color: var(--price-state-color);
 
+  direction: ltr;
+
   font-variant-numeric: tabular-nums;
+
+  unicode-bidi: isolate;
 }
 
 /* ==========================================================================
-   Semantic States
+   Positive
    ========================================================================== */
 
 .price-up {
   --price-state-color: var(--color-market-positive, var(--color-success));
 }
 
+/* ==========================================================================
+   Negative
+   ========================================================================== */
+
 .price-down {
   --price-state-color: var(--color-market-negative, var(--color-danger));
 }
+
+/* ==========================================================================
+   Neutral
+   ========================================================================== */
 
 .price-neutral {
   --price-state-color: var(--color-market-neutral, var(--color-text-muted));
 }
 
 /* ==========================================================================
-   Nested Content
+   Descendant Color Inheritance
    ========================================================================== */
 
-.price-up .has-icon,
-.price-up .svg-icon,
-.price-up .market-change__icon,
-.price-up .market-change__value,
-.price-down .has-icon,
-.price-down .svg-icon,
-.price-down .market-change__icon,
-.price-down .market-change__value,
-.price-neutral .has-icon,
-.price-neutral .svg-icon,
-.price-neutral .market-change__icon,
-.price-neutral .market-change__value {
-  color: currentColor;
-}
+/**
+ * Icons, data elements, and ordinary inline content inherit the semantic
+ * state from their price-state container.
+ *
+ * These selectors protect the semantic state from generic icon or data styles
+ * without coupling this utility to individual website components.
+ */
 
-/* ==========================================================================
-   Numeric Isolation
-   ========================================================================== */
-
-.price-up,
-.price-down,
-.price-neutral {
-  direction: ltr;
-  unicode-bidi: isolate;
+:where(.price-up, .price-down, .price-neutral)
+  :where(.has-icon, .svg-icon, data, output) {
+  color: inherit;
 }
 
 /* ==========================================================================
    High Contrast
    ========================================================================== */
 
-html[data-contrast="high"] {
-  .price-up,
-  .price-down,
-  .price-neutral {
-    --price-state-color: currentColor;
+/**
+ * High-contrast mode must not rely on green and red alone.
+ *
+ * Positive values receive a double underline.
+ * Negative values receive a solid underline.
+ * Neutral values receive no decoration.
+ */
 
-    color: currentColor;
+html[data-contrast="high"] {
+  :where(.price-up, .price-down, .price-neutral) {
+    --price-state-color: inherit;
+
+    color: inherit;
 
     font-weight: ds.font-weight("bold");
   }
@@ -94,6 +108,74 @@ html[data-contrast="high"] {
     text-decoration-line: underline;
     text-decoration-style: solid;
     text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+  }
+
+  .price-neutral {
+    text-decoration: none;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  :where(.price-up, .price-down, .price-neutral) {
+    --price-state-color: CanvasText;
+
+    color: CanvasText;
+
+    font-weight: ds.font-weight("bold");
+
+    forced-color-adjust: auto;
+  }
+
+  .price-up {
+    text-decoration-line: underline;
+    text-decoration-style: double;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+  }
+
+  .price-down {
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+  }
+
+  .price-neutral {
+    text-decoration: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+/**
+ * Printed financial values remain distinguishable without relying on color.
+ */
+
+@media print {
+  :where(.price-up, .price-down, .price-neutral) {
+    --price-state-color: #000000;
+
+    color: #000000;
+  }
+
+  .price-up {
+    text-decoration-line: underline;
+    text-decoration-style: double;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+
+  .price-down {
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-thickness: 1px;
     text-underline-offset: 0.18em;
   }
 

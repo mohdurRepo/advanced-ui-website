@@ -5505,7 +5505,7 @@
      ========================================================================== -->
 
       <section
-        class="hero-section market-summary-section"
+        class="hero-section surface-hero"
         aria-labelledby="member-trading-reports-title"
         aria-describedby="member-trading-reports-description"
       >
@@ -5515,22 +5515,22 @@
           <div
             class="split-layout split-layout--compact-secondary split-layout--center"
           >
-            <!-- ================================================================
+            <!-- ====================================================================
            Page Identity
-           ================================================================ -->
+           ================================================================= -->
 
             <div class="split-layout__primary">
-              <div class="market-summary market-summary--hero">
-                <header class="market-summary__header">
-                  <div class="market-summary__brand">
+              <header class="hero-intro hero-intro--full">
+                <div class="hero-intro__header">
+                  <div class="hero-intro__brand">
                     <span
-                      class="market-summary__brand-icon has-icon icon-tadawul"
+                      class="hero-intro__icon has-icon icon-tadawul"
                       aria-hidden="true"
                     ></span>
 
                     <h1
                       id="member-trading-reports-title"
-                      class="market-summary__title"
+                      class="hero-intro__title"
                     >
                       Member Trading Reports
                     </h1>
@@ -5538,23 +5538,21 @@
 
                   <p
                     id="member-trading-reports-description"
-                    class="market-summary__description"
+                    class="hero-intro__description"
                   >
                     Explore monthly trading-activity reports published for Saudi
                     Exchange members.
                   </p>
-                </header>
-              </div>
+                </div>
+              </header>
             </div>
 
-            <!-- ================================================================
-           Hero Media
-           ================================================================ -->
+            <!-- ====================================================================
+           Supporting Media
+           ================================================================= -->
 
-            <div class="split-layout__secondary">
-              <figure
-                class="hero-media hero-media--landscape hero-media--compact"
-              >
+            <div class="split-layout__secondary" aria-hidden="true">
+              <div class="hero-media">
                 <img
                   class="hero-media__image"
                   src="/assets/images/reports/member-trading-reports.jpg"
@@ -5563,8 +5561,9 @@
                   height="400"
                   loading="eager"
                   fetchpriority="high"
+                  decoding="async"
                 />
-              </figure>
+              </div>
             </div>
           </div>
         </div>

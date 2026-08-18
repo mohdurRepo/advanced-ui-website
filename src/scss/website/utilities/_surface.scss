@@ -2,51 +2,78 @@
    Website Contextual Surfaces
    ========================================================================== */
 
-/*
- * Generic surfaces such as .surface, .surface-alt, .surface-light,
- * .surface-dark, and .surface-brand belong to the design system.
+/**
+ * Generic surfaces such as `.surface`, `.surface-alt`, `.surface-light`,
+ * `.surface-dark`, and `.surface-brand` belong to the design system.
  *
- * This file contains only website-specific contextual surfaces.
+ * This file contains only website-specific branded surface contexts.
  *
- * Each contextual surface creates a local semantic color environment.
- * Components placed inside it continue using:
- *
- * --color-surface
- * --color-surface-alt
- * --color-text
- * --color-heading
- * --color-text-muted
- * --color-border
- * --color-border-strong
+ * Each surface creates a local semantic color environment. Components inside
+ * these surfaces should consume semantic custom properties rather than
+ * targeting the surface class directly.
  */
+
+/* ==========================================================================
+   Shared Dark Website Surface Contract
+   ========================================================================== */
+
+:where(.surface-hero, .surface-insights, .surface-market) {
+  /* Text */
+  --color-text: #ffffff;
+  --color-heading: #ffffff;
+  --color-text-muted: rgb(255 255 255 / 0.72);
+
+  /* Links */
+  --color-link: #ffffff;
+  --color-link-hover: #59ff9e;
+
+  /* Financial states */
+  --color-market-positive: #4ade80;
+  --color-market-negative: #fb7185;
+  --color-market-neutral: var(--color-text-muted);
+
+  --color-market-positive-bg: rgb(74 222 128 / 0.12);
+  --color-market-negative-bg: rgb(251 113 133 / 0.12);
+  --color-market-neutral-bg: rgb(255 255 255 / 0.1);
+
+  /* Forms */
+  --form-label-color: var(--color-heading);
+  --form-help-color: var(--color-text-muted);
+
+  /* Focus */
+  --focus-ring: #ffffff;
+
+  background: var(--surface-background);
+  color: var(--color-text);
+
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   Hero Surface
+   ========================================================================== */
 
 /* ==========================================================================
    Hero Surface
    ========================================================================== */
 
 .surface-hero {
-  --color-surface: #0045e3;
-  --color-surface-alt: #0038bb;
+  --color-surface: #063f91;
+  --color-surface-alt: #002c72;
 
-  --color-text: #ffffff;
-  --color-heading: #ffffff;
-  --color-text-muted: rgb(255 255 255 / 0.78);
+  --color-text-muted: rgb(255 255 255 / 0.74);
 
   --color-border: rgb(255 255 255 / 0.16);
   --color-border-strong: rgb(255 255 255 / 0.28);
 
-  --color-link: #ffffff;
-  --color-link-hover: #59ff9e;
+  --surface-gradient-angle: 90deg;
 
   --surface-background: linear-gradient(
-    90deg,
-    #073fbd 0%,
-    #075ee4 58%,
-    #218af4 100%
+    var(--surface-gradient-angle),
+    #002c72 0%,
+    #063f91 58%,
+    #0759aa 100%
   );
-
-  background: var(--surface-background);
-  color: var(--color-text);
 }
 
 /* ==========================================================================
@@ -57,20 +84,12 @@
   --color-surface: #00243a;
   --color-surface-alt: #0a3148;
 
-  --color-text: #ffffff;
-  --color-heading: #ffffff;
   --color-text-muted: rgb(255 255 255 / 0.72);
 
   --color-border: rgb(255 255 255 / 0.1);
   --color-border-strong: rgb(255 255 255 / 0.18);
 
-  --color-link: #ffffff;
-  --color-link-hover: #59ff9e;
-
   --surface-background: #00243a;
-
-  background: var(--surface-background);
-  color: var(--color-text);
 }
 
 /* ==========================================================================
@@ -81,91 +100,49 @@
   --color-surface: #254456;
   --color-surface-alt: #1f4a60;
 
-  --color-text: #ffffff;
-  --color-heading: #ffffff;
   --color-text-muted: #b8c8d4;
 
   --color-border: rgb(255 255 255 / 0.12);
   --color-border-strong: rgb(255 255 255 / 0.22);
 
-  --color-link: #ffffff;
-  --color-link-hover: #59ff9e;
-
   --surface-background: #254456;
-
-  background: var(--surface-background);
-  color: var(--color-text);
 }
 
 /* ==========================================================================
-   Local Typography
+   Local Links
    ========================================================================== */
 
-.surface-hero h1,
-.surface-hero h2,
-.surface-hero h3,
-.surface-hero h4,
-.surface-hero h5,
-.surface-hero h6,
-.surface-insights h1,
-.surface-insights h2,
-.surface-insights h3,
-.surface-insights h4,
-.surface-insights h5,
-.surface-insights h6,
-.surface-market h1,
-.surface-market h2,
-.surface-market h3,
-.surface-market h4,
-.surface-market h5,
-.surface-market h6 {
-  color: var(--color-heading);
-}
+/**
+ * Global headings and form components already consume the semantic properties
+ * defined above.
+ *
+ * Links require this contextual rule because the base anchor style inherits
+ * its foreground color.
+ */
 
-.surface-hero p,
-.surface-insights p,
-.surface-market p {
-  color: var(--color-text-muted);
-}
-
-.surface-hero a:not(.btn),
-.surface-insights a:not(.btn),
-.surface-market a:not(.btn) {
+:where(.surface-hero, .surface-insights, .surface-market) a:not(.btn) {
   color: var(--color-link);
 }
 
-.surface-hero a:not(.btn):hover,
-.surface-insights a:not(.btn):hover,
-.surface-market a:not(.btn):hover {
+:where(.surface-hero, .surface-insights, .surface-market) a:not(.btn):hover {
   color: var(--color-link-hover);
 }
 
 /* ==========================================================================
-   Surface-aware Forms
+   RTL
    ========================================================================== */
 
-.surface-hero .form-label,
-.surface-hero .form-legend,
-.surface-insights .form-label,
-.surface-insights .form-legend,
-.surface-market .form-label,
-.surface-market .form-legend {
-  color: var(--color-heading);
-}
-
-.surface-hero .form-help,
-.surface-insights .form-help,
-.surface-market .form-help {
-  color: var(--color-text-muted);
+html[dir="rtl"] .surface-hero {
+  --surface-gradient-angle: 270deg;
 }
 
 /* ==========================================================================
    Dark Theme
    ========================================================================== */
 
-/*
- * These branded sections intentionally remain dark in both themes.
- * Only small tonal adjustments are applied for the dark page context.
+/**
+ * These branded sections intentionally remain dark in both page themes.
+ * Dark mode applies only small tonal adjustments.
  */
 
 html[data-theme="dark"] .surface-hero {
@@ -173,7 +150,7 @@ html[data-theme="dark"] .surface-hero {
   --color-surface-alt: #002c72;
 
   --surface-background: linear-gradient(
-    90deg,
+    var(--surface-gradient-angle),
     #002c72 0%,
     #063f91 58%,
     #0759aa 100%
@@ -183,6 +160,7 @@ html[data-theme="dark"] .surface-hero {
 html[data-theme="dark"] .surface-insights {
   --color-surface: #00243a;
   --color-surface-alt: #0a3148;
+
   --surface-background: #00243a;
 }
 
@@ -197,6 +175,10 @@ html[data-theme="dark"] .surface-market {
   --color-border: #35556d;
   --color-border-strong: #4b6f88;
 
+  --color-market-neutral: var(--color-text-muted);
+
+  --form-help-color: var(--color-text-muted);
+
   --surface-background: #102f45;
 }
 
@@ -204,24 +186,119 @@ html[data-theme="dark"] .surface-market {
    High Contrast
    ========================================================================== */
 
-html[data-contrast="high"] .surface-hero,
-html[data-contrast="high"] .surface-insights,
-html[data-contrast="high"] .surface-market {
-  --color-surface: #000000;
-  --color-surface-alt: #111111;
+html[data-contrast="high"] {
+  :where(.surface-hero, .surface-insights, .surface-market) {
+    --color-surface: #000000;
+    --color-surface-alt: #111111;
 
-  --color-text: #ffffff;
-  --color-heading: #ffffff;
-  --color-text-muted: #ffffff;
+    --color-text: #ffffff;
+    --color-heading: #ffffff;
+    --color-text-muted: #ffffff;
 
-  --color-border: #ffffff;
-  --color-border-strong: #ffffff;
+    --color-border: #ffffff;
+    --color-border-strong: #ffffff;
 
-  --color-link: #ffffff;
-  --color-link-hover: #ffffff;
+    --color-link: #ffffff;
+    --color-link-hover: #ffffff;
 
-  --surface-background: #000000;
+    --color-market-positive: currentColor;
+    --color-market-negative: currentColor;
+    --color-market-neutral: currentColor;
 
-  background: #000000;
-  color: #ffffff;
+    --color-market-positive-bg: transparent;
+    --color-market-negative-bg: transparent;
+    --color-market-neutral-bg: transparent;
+
+    --form-label-color: #ffffff;
+    --form-help-color: #ffffff;
+
+    --focus-ring: #ffffff;
+
+    --surface-background: #000000;
+
+    background: #000000;
+    color: #ffffff;
+
+    color-scheme: dark;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  :where(.surface-hero, .surface-insights, .surface-market) {
+    --color-surface: Canvas;
+    --color-surface-alt: Canvas;
+
+    --color-text: CanvasText;
+    --color-heading: CanvasText;
+    --color-text-muted: CanvasText;
+
+    --color-border: CanvasText;
+    --color-border-strong: CanvasText;
+
+    --color-link: LinkText;
+    --color-link-hover: LinkText;
+
+    --color-market-positive: CanvasText;
+    --color-market-negative: CanvasText;
+    --color-market-neutral: CanvasText;
+
+    --color-market-positive-bg: transparent;
+    --color-market-negative-bg: transparent;
+    --color-market-neutral-bg: transparent;
+
+    --form-label-color: CanvasText;
+    --form-help-color: CanvasText;
+
+    --focus-ring: Highlight;
+
+    --surface-background: Canvas;
+
+    background: Canvas;
+    color: CanvasText;
+
+    color-scheme: normal;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  :where(.surface-hero, .surface-insights, .surface-market) {
+    --color-surface: transparent;
+    --color-surface-alt: transparent;
+
+    --color-text: #000000;
+    --color-heading: #000000;
+    --color-text-muted: #000000;
+
+    --color-border: #000000;
+    --color-border-strong: #000000;
+
+    --color-link: #000000;
+    --color-link-hover: #000000;
+
+    --color-market-positive: #000000;
+    --color-market-negative: #000000;
+    --color-market-neutral: #000000;
+
+    --color-market-positive-bg: transparent;
+    --color-market-negative-bg: transparent;
+    --color-market-neutral-bg: transparent;
+
+    --form-label-color: #000000;
+    --form-help-color: #000000;
+
+    --surface-background: transparent;
+
+    background: transparent;
+    color: #000000;
+
+    box-shadow: none;
+  }
 }

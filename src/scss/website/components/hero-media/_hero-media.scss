@@ -4,38 +4,58 @@
    Hero Media
    ========================================================================== */
 
-/*
+/**
  * Reusable presentation for supporting media inside a Hero.
  *
  * Supported content:
  *
  * - responsive images
- * - pictures
+ * - picture elements
  * - videos
  * - poster images
+ * - diagrams and illustrations
  *
- * Layout remains owned by split-layout. This component owns only the media
- * frame, ratio, clipping, border and presentation states.
+ * The surrounding layout controls placement and column sizing. Hero Media
+ * owns only its frame, aspect ratio, clipping, media treatment, caption,
+ * badge, and presentation states.
  */
 
 .hero-media {
+  /* Sizing */
   --hero-media-ratio: 16 / 9;
   --hero-media-max-width: 24rem;
 
+  /* Alignment */
+  --hero-media-margin-start: auto;
+  --hero-media-margin-end: 0;
+
+  /* Media positioning */
+  --hero-media-object-fit: cover;
+  --hero-media-object-position: center;
+
+  /* Surface */
   --hero-media-bg: rgb(255 255 255 / 0.08);
-  --hero-media-border: rgb(255 255 255 / 0.28);
+
+  --hero-media-border: var(--color-border-strong, rgb(255 255 255 / 0.28));
+
   --hero-media-radius: var(--radius-lg);
   --hero-media-shadow: var(--shadow-md);
 
+  /* Decorative overlay */
+  --hero-media-overlay-color: 0 68 227;
   --hero-media-overlay-opacity: 0.08;
+  --hero-media-overlay-angle: 135deg;
 
   position: relative;
   isolation: isolate;
 
   inline-size: min(100%, var(--hero-media-max-width));
   min-inline-size: 0;
+
   aspect-ratio: var(--hero-media-ratio);
-  margin-inline-start: auto;
+
+  margin-inline-start: var(--hero-media-margin-start);
+  margin-inline-end: var(--hero-media-margin-end);
 
   overflow: hidden;
 
@@ -43,6 +63,7 @@
   border-radius: var(--hero-media-radius);
 
   background: var(--hero-media-bg);
+  color: var(--color-text);
 
   box-shadow: var(--hero-media-shadow);
 }
@@ -51,31 +72,35 @@
    Media Content
    ========================================================================== */
 
-.hero-media__image,
-.hero-media__video,
-.hero-media img,
-.hero-media picture,
-.hero-media video {
+.hero-media
+  :where(.hero-media__image, .hero-media__video, picture, img, video) {
   display: block;
 
   inline-size: 100%;
   block-size: 100%;
 }
 
-.hero-media__image,
-.hero-media__video,
-.hero-media img,
-.hero-media video {
-  object-fit: cover;
+.hero-media :where(.hero-media__image, .hero-media__video, img, video) {
+  object-fit: var(--hero-media-object-fit);
+  object-position: var(--hero-media-object-position);
+}
+
+/* ==========================================================================
+   Picture Content
+   ========================================================================== */
+
+.hero-media picture {
+  min-inline-size: 0;
+  overflow: hidden;
 }
 
 /* ==========================================================================
    Decorative Overlay
    ========================================================================== */
 
-/*
- * The overlay subtly connects photographic media to the Hero color palette
- * without reducing image clarity.
+/**
+ * The overlay subtly connects photographic media to the Hero palette without
+ * significantly reducing image clarity.
  */
 
 .hero-media::after {
@@ -86,8 +111,8 @@
   z-index: 1;
 
   background: linear-gradient(
-    135deg,
-    rgb(0 68 227 / var(--hero-media-overlay-opacity)),
+    var(--hero-media-overlay-angle),
+    rgb(var(--hero-media-overlay-color) / var(--hero-media-overlay-opacity)),
     transparent 62%
   );
 
@@ -98,14 +123,18 @@
    Video
    ========================================================================== */
 
-.hero-media__video,
-.hero-media video {
+.hero-media :where(.hero-media__video, video) {
   background: #000000;
 }
 
 /* ==========================================================================
    Caption
    ========================================================================== */
+
+/**
+ * Prefer `<figcaption class="hero-media__caption">` when the caption describes
+ * the media.
+ */
 
 .hero-media__caption {
   position: absolute;
@@ -122,6 +151,7 @@
   padding-block: ds.space(2);
   padding-inline: ds.space(3);
 
+  border: 1px solid rgb(255 255 255 / 0.14);
   border-radius: var(--radius-md);
 
   background: rgb(0 31 51 / 0.84);
@@ -131,7 +161,10 @@
   font-weight: ds.font-weight("medium");
   line-height: var(--line-height-normal);
 
+  overflow-wrap: anywhere;
+
   backdrop-filter: blur(0.5rem);
+  -webkit-backdrop-filter: blur(0.5rem);
 }
 
 /* ==========================================================================
@@ -152,6 +185,7 @@
   gap: ds.space(1);
 
   min-block-size: 1.75rem;
+  max-inline-size: calc(100% - #{ds.space(6)});
   padding-block: ds.space(1);
   padding-inline: ds.space(2);
 
@@ -165,7 +199,13 @@
   font-weight: ds.font-weight("bold");
   line-height: 1;
 
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
   backdrop-filter: blur(0.5rem);
+  -webkit-backdrop-filter: blur(0.5rem);
 }
 
 /* ==========================================================================
@@ -205,32 +245,56 @@
    ========================================================================== */
 
 .hero-media--start {
-  margin-inline-start: 0;
-  margin-inline-end: auto;
+  --hero-media-margin-start: 0;
+  --hero-media-margin-end: auto;
 }
 
 .hero-media--center {
-  margin-inline: auto;
+  --hero-media-margin-start: auto;
+  --hero-media-margin-end: auto;
 }
 
 /* ==========================================================================
    Contained Media
    ========================================================================== */
 
-/*
- * Useful for logos, diagrams and illustrations that must remain fully
- * visible rather than being cropped.
+/**
+ * Use for logos, diagrams, interface previews, and illustrations that must
+ * remain completely visible.
  */
 
 .hero-media--contain {
+  --hero-media-object-fit: contain;
+
   padding: ds.space(4);
 }
 
-.hero-media--contain .hero-media__image,
-.hero-media--contain .hero-media__video,
-.hero-media--contain img,
-.hero-media--contain video {
-  object-fit: contain;
+/* ==========================================================================
+   Object-position Variants
+   ========================================================================== */
+
+.hero-media--position-start {
+  --hero-media-object-position: left center;
+}
+
+.hero-media--position-end {
+  --hero-media-object-position: right center;
+}
+
+.hero-media--position-top {
+  --hero-media-object-position: center top;
+}
+
+.hero-media--position-bottom {
+  --hero-media-object-position: center bottom;
+}
+
+html[dir="rtl"] .hero-media--position-start {
+  --hero-media-object-position: right center;
+}
+
+html[dir="rtl"] .hero-media--position-end {
+  --hero-media-object-position: left center;
 }
 
 /* ==========================================================================
@@ -244,8 +308,20 @@
 }
 
 /* ==========================================================================
+   Overlay-free Variant
+   ========================================================================== */
+
+.hero-media--no-overlay::after {
+  display: none;
+}
+
+/* ==========================================================================
    Loading State
    ========================================================================== */
+
+/**
+ * Apply `aria-busy="true"` while media is loading.
+ */
 
 .hero-media[aria-busy="true"] {
   background: linear-gradient(
@@ -260,6 +336,11 @@
   animation: hero-media-loading 1.4s ease-in-out infinite;
 }
 
+.hero-media[aria-busy="true"]
+  :where(.hero-media__image, .hero-media__video, img, video) {
+  opacity: 0;
+}
+
 @keyframes hero-media-loading {
   from {
     background-position: 200% 0;
@@ -271,19 +352,35 @@
 }
 
 /* ==========================================================================
+   Loaded State
+   ========================================================================== */
+
+.hero-media:not([aria-busy="true"])
+  :where(.hero-media__image, .hero-media__video, img, video) {
+  opacity: 1;
+
+  @include ds.transition(opacity, "normal");
+}
+
+/* ==========================================================================
    Tablet
    ========================================================================== */
 
 @include ds.respond-down("md") {
   .hero-media {
     --hero-media-max-width: 30rem;
-
-    margin-inline: 0;
+    --hero-media-margin-start: 0;
+    --hero-media-margin-end: auto;
   }
 
   .hero-media--square,
   .hero-media--portrait {
     --hero-media-max-width: 20rem;
+  }
+
+  .hero-media--center {
+    --hero-media-margin-start: auto;
+    --hero-media-margin-end: auto;
   }
 }
 
@@ -309,6 +406,8 @@
   .hero-media__badge {
     inset-block-start: ds.space(2);
     inset-inline-start: ds.space(2);
+
+    max-inline-size: calc(100% - #{ds.space(4)});
   }
 }
 
@@ -318,6 +417,7 @@
 
 html[data-contrast="high"] {
   .hero-media {
+    --hero-media-bg: #000000;
     --hero-media-border: currentColor;
     --hero-media-shadow: none;
 
@@ -336,6 +436,7 @@ html[data-contrast="high"] {
     color: #ffffff;
 
     backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
 
@@ -345,11 +446,12 @@ html[data-contrast="high"] {
 
 @media (forced-colors: active) {
   .hero-media {
-    border-color: CanvasText;
+    --hero-media-bg: Canvas;
+    --hero-media-border: CanvasText;
+    --hero-media-shadow: none;
 
     background: Canvas;
-
-    box-shadow: none;
+    color: CanvasText;
   }
 
   .hero-media::after {
@@ -364,6 +466,7 @@ html[data-contrast="high"] {
     color: CanvasText;
 
     backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
 
@@ -375,10 +478,56 @@ html[data-contrast="high"] {
   .hero-media[aria-busy="true"] {
     animation: none;
   }
+
+  .hero-media :where(.hero-media__image, .hero-media__video, img, video) {
+    transition: none;
+  }
 }
 
 html[data-motion="reduce"] {
   .hero-media[aria-busy="true"] {
     animation: none;
+  }
+
+  .hero-media :where(.hero-media__image, .hero-media__video, img, video) {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .hero-media {
+    --hero-media-bg: transparent;
+    --hero-media-border: #000000;
+    --hero-media-shadow: none;
+
+    break-inside: avoid;
+
+    background: transparent;
+    color: #000000;
+  }
+
+  .hero-media::after,
+  .hero-media__badge {
+    display: none;
+  }
+
+  .hero-media__caption {
+    position: static;
+
+    max-inline-size: none;
+
+    border: 0;
+    border-block-start: 1px solid #000000;
+    border-radius: 0;
+
+    background: transparent;
+    color: #000000;
+
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
