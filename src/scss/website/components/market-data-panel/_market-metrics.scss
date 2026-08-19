@@ -1,0 +1,671 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Market Metrics
+   ========================================================================== */
+
+/**
+ * Reusable definition-list grid for market statistics.
+ *
+ * Supported layouts:
+ *
+ * - `.market-metrics--1`
+ * - `.market-metrics--2`
+ * - `.market-metrics--3`
+ * - `.market-metrics--4`
+ *
+ * This component can be used inside Heroes, panels, cards, and standard page
+ * surfaces without depending on a specific page.
+ */
+
+.market-metrics {
+  --market-metrics-columns: 1;
+
+  --market-metrics-divider: var(
+    --market-data-panel-divider,
+    var(--color-border)
+  );
+
+  --market-metrics-label-color: var(
+    --market-data-panel-muted,
+    var(--color-text-muted)
+  );
+
+  --market-metrics-value-color: var(
+    --market-data-panel-color,
+    var(--color-heading)
+  );
+
+  --market-metrics-info-color: var(--market-metrics-label-color);
+  --market-metrics-info-hover-bg: rgb(255 255 255 / 0.1);
+  --market-metrics-info-hover-color: var(--market-metrics-value-color);
+
+  --market-metrics-padding-block: 0.625rem;
+  --market-metrics-padding-inline: 0.75rem;
+  --market-metrics-gap: 0.1875rem;
+
+  position: relative;
+
+  display: grid;
+  grid-template-columns: repeat(var(--market-metrics-columns), minmax(0, 1fr));
+
+  min-inline-size: 0;
+  padding: 0;
+  margin: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Continuous Closing Divider
+   ========================================================================== */
+
+/**
+ * Creates a continuous final divider across the complete metric grid.
+ *
+ * The divider is independent of the number of metrics, so incomplete rows
+ * containing 3, 7, 9, or any dynamically generated number of items remain
+ * visually complete.
+ */
+
+.market-metrics::after {
+  content: "";
+
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 1;
+
+  border-block-end: 1px solid var(--market-metrics-divider);
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Column Variants
+   ========================================================================== */
+
+.market-metrics--1 {
+  --market-metrics-columns: 1;
+}
+
+.market-metrics--2 {
+  --market-metrics-columns: 2;
+}
+
+.market-metrics--3 {
+  --market-metrics-columns: 3;
+}
+
+.market-metrics--4 {
+  --market-metrics-columns: 4;
+}
+
+/* ==========================================================================
+   Metric
+   ========================================================================== */
+
+.market-metrics__item {
+  display: grid;
+  align-content: start;
+  gap: var(--market-metrics-gap);
+
+  min-inline-size: 0;
+  padding-block: var(--market-metrics-padding-block);
+  padding-inline: var(--market-metrics-padding-inline);
+
+  border-block-end: 1px solid var(--market-metrics-divider);
+}
+
+/* ==========================================================================
+   Two-column Dividers
+   ========================================================================== */
+
+.market-metrics--2
+  .market-metrics__item:nth-child(odd):not(
+    .market-metrics__item--wide,
+    .market-metrics__item--span-2
+  ) {
+  border-inline-end: 1px solid var(--market-metrics-divider);
+}
+
+/* ==========================================================================
+   Three-column Dividers
+   ========================================================================== */
+
+.market-metrics--3
+  .market-metrics__item:not(
+    :nth-child(3n),
+    .market-metrics__item--wide,
+    .market-metrics__item--span-2,
+    .market-metrics__item--span-3
+  ) {
+  border-inline-end: 1px solid var(--market-metrics-divider);
+}
+
+/* ==========================================================================
+   Four-column Dividers
+   ========================================================================== */
+
+.market-metrics--4
+  .market-metrics__item:not(
+    :nth-child(4n),
+    .market-metrics__item--wide,
+    .market-metrics__item--span-2,
+    .market-metrics__item--span-3,
+    .market-metrics__item--span-4
+  ) {
+  border-inline-end: 1px solid var(--market-metrics-divider);
+}
+
+/* ==========================================================================
+   Label
+   ========================================================================== */
+
+.market-metrics__label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+  margin: 0;
+
+  color: var(--market-metrics-label-color);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Tooltip Wrapper
+   ========================================================================== */
+
+.market-metrics__tooltip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==========================================================================
+   Information Action
+   ========================================================================== */
+
+/**
+ * The icon supplies its own information symbol, so the button remains
+ * visually compact without introducing a second surrounding box.
+ */
+
+.market-metrics__info {
+  appearance: none;
+
+  display: inline-grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  padding: 0;
+
+  border: 0;
+  border-radius: var(--radius-pill);
+
+  background: transparent;
+  color: var(--market-metrics-info-color);
+
+  font: inherit;
+  line-height: 1;
+
+  cursor: help;
+
+  @include ds.transition((background-color, color, outline-color), "fast");
+}
+
+/**
+ * Supports icons applied directly to the button and icons provided as a
+ * nested child.
+ */
+
+.market-metrics__info.has-icon,
+.market-metrics__info .has-icon {
+  --icon-size: 0.8125rem;
+
+  color: currentColor;
+}
+
+.market-metrics__info:hover:not(:disabled) {
+  background: var(--market-metrics-info-hover-bg);
+  color: var(--market-metrics-info-hover-color);
+}
+
+.market-metrics__info:focus {
+  outline: none;
+}
+
+.market-metrics__info:focus-visible {
+  color: var(--market-metrics-info-hover-color);
+
+  @include ds.focus-ring(currentColor);
+
+  outline-offset: 1px;
+}
+
+.market-metrics__info:disabled,
+.market-metrics__info[aria-disabled="true"] {
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Value
+   ========================================================================== */
+
+/**
+ * Standard values use the local panel heading color.
+ *
+ * Semantic price utilities set `--price-state-color` locally, allowing
+ * positive, negative, and neutral values to override the standard color
+ * without component-specific selectors.
+ */
+
+.market-metrics__value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem;
+
+  min-inline-size: 0;
+  margin: 0;
+
+  color: var(--price-state-color, var(--market-metrics-value-color));
+
+  direction: ltr;
+  font-size: var(--text-base);
+  font-weight: ds.font-weight("bold");
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-tight);
+  text-align: start;
+  unicode-bidi: isolate;
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Value Content
+   ========================================================================== */
+
+.market-metrics__value data,
+.market-metrics__value time,
+.market-metrics__value span {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Range
+   ========================================================================== */
+
+/**
+ * Financial ranges retain their logical numeric order in both LTR and RTL
+ * documents.
+ */
+
+.market-metrics__range {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+
+  max-inline-size: 100%;
+  min-inline-size: 0;
+
+  direction: ltr;
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: isolate;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Currency
+   ========================================================================== */
+
+.market-metrics__currency {
+  --icon-size: 0.875rem;
+
+  flex: 0 0 auto;
+
+  color: currentColor;
+}
+
+/* ==========================================================================
+   Direction Indicator
+   ========================================================================== */
+
+.market-metrics__direction {
+  flex: 0 0 auto;
+
+  color: currentColor;
+}
+
+/* ==========================================================================
+   Supporting Value
+   ========================================================================== */
+
+/**
+ * Optional secondary information such as a date, time, unit, or explanation.
+ */
+
+.market-metrics__meta {
+  display: block;
+
+  min-inline-size: 0;
+  margin: 0;
+
+  color: var(--market-metrics-label-color);
+
+  direction: ltr;
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("medium");
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-normal);
+  unicode-bidi: isolate;
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Spanning Metrics
+   ========================================================================== */
+
+.market-metrics__item--wide {
+  grid-column: 1 / -1;
+}
+
+.market-metrics__item--span-2 {
+  grid-column: span 2;
+}
+
+.market-metrics__item--span-3 {
+  grid-column: span 3;
+}
+
+.market-metrics__item--span-4 {
+  grid-column: span 4;
+}
+
+/* ==========================================================================
+   Wide Metric
+   ========================================================================== */
+
+/**
+ * Wide summary metrics use a horizontal label/value arrangement.
+ */
+
+.market-metrics__item--wide {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 1rem;
+}
+
+.market-metrics__item--wide .market-metrics__value {
+  justify-content: flex-end;
+
+  text-align: end;
+}
+
+/* ==========================================================================
+   Featured Metric
+   ========================================================================== */
+
+.market-metrics__item--featured .market-metrics__label {
+  color: var(--market-metrics-value-color);
+
+  font-weight: ds.font-weight("bold");
+}
+
+.market-metrics__item--featured .market-metrics__value {
+  font-size: var(--text-lg);
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.market-metrics--compact {
+  --market-metrics-padding-block: 0.5rem;
+  --market-metrics-padding-inline: 0.625rem;
+  --market-metrics-gap: 0.125rem;
+}
+
+.market-metrics--compact .market-metrics__value {
+  font-size: var(--text-sm);
+}
+
+/* ==========================================================================
+   Comfortable Variant
+   ========================================================================== */
+
+.market-metrics--comfortable {
+  --market-metrics-padding-block: 0.75rem;
+  --market-metrics-padding-inline: 0.875rem;
+  --market-metrics-gap: 0.25rem;
+}
+
+/* ==========================================================================
+   Long Values
+   ========================================================================== */
+
+.market-metrics__value--wrap,
+.market-metrics__value time {
+  white-space: normal;
+}
+
+.market-metrics__value--nowrap {
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Four Columns: Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .market-metrics--4 {
+    --market-metrics-columns: 2;
+  }
+
+  .market-metrics--4 .market-metrics__item {
+    border-inline-end: 0;
+  }
+
+  .market-metrics--4
+    .market-metrics__item:nth-child(odd):not(
+      .market-metrics__item--wide,
+      .market-metrics__item--span-2,
+      .market-metrics__item--span-3,
+      .market-metrics__item--span-4
+    ) {
+    border-inline-end: 1px solid var(--market-metrics-divider);
+  }
+
+  .market-metrics--4 .market-metrics__item--span-3,
+  .market-metrics--4 .market-metrics__item--span-4 {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ==========================================================================
+   Three Columns: Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .market-metrics--3 {
+    --market-metrics-columns: 2;
+  }
+
+  .market-metrics--3 .market-metrics__item {
+    border-inline-end: 0;
+  }
+
+  .market-metrics--3
+    .market-metrics__item:nth-child(odd):not(
+      .market-metrics__item--wide,
+      .market-metrics__item--span-2,
+      .market-metrics__item--span-3
+    ) {
+    border-inline-end: 1px solid var(--market-metrics-divider);
+  }
+
+  .market-metrics--3 .market-metrics__item--span-3 {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .market-metrics,
+  .market-metrics--2,
+  .market-metrics--3,
+  .market-metrics--4 {
+    --market-metrics-columns: 1;
+    --market-metrics-padding-block: 0.625rem;
+    --market-metrics-padding-inline: 0.5rem;
+  }
+
+  .market-metrics .market-metrics__item {
+    grid-column: auto;
+
+    border-inline-end: 0;
+  }
+
+  .market-metrics__item--wide {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    row-gap: var(--market-metrics-gap);
+  }
+
+  .market-metrics__item--wide .market-metrics__value {
+    justify-content: flex-start;
+
+    text-align: start;
+  }
+
+  .market-metrics__value {
+    font-size: var(--text-sm);
+  }
+
+  .market-metrics__item--featured .market-metrics__value {
+    font-size: var(--text-base);
+  }
+
+  .market-metrics__range {
+    white-space: normal;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-metrics {
+    --market-metrics-divider: currentColor;
+    --market-metrics-label-color: currentColor;
+    --market-metrics-value-color: currentColor;
+    --market-metrics-info-color: currentColor;
+    --market-metrics-info-hover-bg: transparent;
+    --market-metrics-info-hover-color: currentColor;
+  }
+
+  .market-metrics__item {
+    border-width: 2px;
+  }
+
+  .market-metrics::after {
+    border-block-end-width: 2px;
+  }
+
+  .market-metrics__value {
+    font-weight: ds.font-weight("heavy");
+  }
+
+  .market-metrics__info {
+    border: 1px solid currentColor;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .market-metrics {
+    --market-metrics-divider: CanvasText;
+    --market-metrics-label-color: CanvasText;
+    --market-metrics-value-color: CanvasText;
+    --market-metrics-info-color: ButtonText;
+    --market-metrics-info-hover-bg: Highlight;
+    --market-metrics-info-hover-color: HighlightText;
+  }
+
+  .market-metrics__item,
+  .market-metrics::after {
+    border-color: CanvasText;
+  }
+
+  .market-metrics__info:focus-visible {
+    outline-color: Highlight;
+  }
+
+  .market-metrics__info:disabled,
+  .market-metrics__info[aria-disabled="true"] {
+    color: GrayText;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .market-metrics__info {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .market-metrics__info {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .market-metrics {
+    --market-metrics-divider: #000000;
+    --market-metrics-label-color: #333333;
+    --market-metrics-value-color: #000000;
+    --market-metrics-info-color: #000000;
+
+    break-inside: avoid;
+  }
+
+  .market-metrics__item {
+    break-inside: avoid;
+  }
+
+  .market-metrics__tooltip,
+  .market-metrics__info {
+    display: none;
+  }
+}

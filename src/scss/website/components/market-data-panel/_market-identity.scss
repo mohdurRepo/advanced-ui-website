@@ -1,0 +1,930 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Market Identity
+   ========================================================================== */
+
+/**
+ * Reusable identity presentation for instruments and market entities.
+ *
+ * Supported contexts include:
+ *
+ * - listed companies;
+ * - Sukuk and bonds;
+ * - exchange-traded funds;
+ * - market indices;
+ * - derivatives;
+ * - other securities and market entities.
+ *
+ * The component inherits its semantic colors from its containing surface.
+ */
+
+.market-identity {
+  --market-identity-color: var(--color-text);
+  --market-identity-heading-color: var(--color-heading);
+  --market-identity-muted-color: var(--color-text-muted);
+
+  --market-identity-surface: rgb(255 255 255 / 0.08);
+  --market-identity-surface-hover: rgb(255 255 255 / 0.16);
+
+  --market-identity-border: var(--color-border, rgb(255 255 255 / 0.16));
+
+  --market-identity-border-hover: var(
+    --color-border-strong,
+    rgb(255 255 255 / 0.32)
+  );
+
+  --market-identity-media-size: clamp(5rem, 8vw, 8rem);
+  --market-identity-title-width: 40rem;
+
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+
+  color: var(--market-identity-color);
+}
+
+/* ==========================================================================
+   Brand
+   ========================================================================== */
+
+.market-identity__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4, #{ds.space(4)});
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Media
+   ========================================================================== */
+
+/**
+ * Optional media container.
+ *
+ * It can contain a company logo, market logo, instrument symbol, or another
+ * meaningful identity image.
+ */
+
+.market-identity__media {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  inline-size: var(--market-identity-media-size);
+  block-size: var(--market-identity-media-size);
+
+  overflow: hidden;
+
+  border: 1px solid var(--market-identity-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--market-identity-surface);
+
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1);
+
+  backdrop-filter: blur(0.625rem);
+  -webkit-backdrop-filter: blur(0.625rem);
+}
+
+/* ==========================================================================
+   Logo
+   ========================================================================== */
+
+.market-identity__logo {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  object-fit: contain;
+  object-position: center;
+}
+
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
+.market-identity__heading {
+  display: grid;
+  align-content: center;
+  gap: var(--space-2, #{ds.space(2)});
+
+  flex: 1 1 auto;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Eyebrow
+   ========================================================================== */
+
+.market-identity__eyebrow {
+  margin: 0;
+
+  color: var(--market-identity-muted-color);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.market-identity__title {
+  max-inline-size: var(--market-identity-title-width);
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--market-identity-heading-color);
+
+  font-size: clamp(var(--text-2xl), 1.75rem + 1.25vw, var(--text-4xl));
+  font-weight: ds.font-weight("heavy");
+  line-height: 1.05;
+
+  letter-spacing: -0.025em;
+
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Subtitle
+   ========================================================================== */
+
+.market-identity__subtitle {
+  max-inline-size: var(--market-identity-title-width);
+
+  margin: 0;
+
+  color: var(--market-identity-muted-color);
+
+  font-size: clamp(var(--text-sm), 0.875rem + 0.25vw, var(--text-lg));
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Compact Title Variant
+   ========================================================================== */
+
+/**
+ * Intended for long instrument names such as government Sukuk and bonds.
+ */
+
+.market-identity--compact-title {
+  --market-identity-title-width: 42rem;
+}
+
+.market-identity--compact-title .market-identity__title {
+  font-size: clamp(var(--text-xl), 1.4rem + 0.9vw, var(--text-3xl));
+
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+}
+
+/* ==========================================================================
+   Compact Identity Variant
+   ========================================================================== */
+
+.market-identity--compact {
+  --market-identity-media-size: clamp(4rem, 6vw, 5.5rem);
+}
+
+.market-identity--compact .market-identity__brand {
+  gap: var(--space-3, #{ds.space(3)});
+}
+
+.market-identity--compact .market-identity__title {
+  font-size: clamp(var(--text-xl), 1.3rem + 0.75vw, var(--text-3xl));
+}
+
+/* ==========================================================================
+   Toolbar
+   ========================================================================== */
+
+/**
+ * Combines instrument codes and contextual utility actions.
+ */
+
+.market-identity__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3, #{ds.space(3)}) var(--space-4, #{ds.space(4)});
+
+  min-inline-size: 0;
+
+  margin-block-start: var(--space-5, #{ds.space(5)});
+}
+
+/* ==========================================================================
+   Codes
+   ========================================================================== */
+
+.market-identity__codes {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2, #{ds.space(2)});
+
+  min-inline-size: 0;
+
+  direction: ltr;
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: isolate;
+}
+
+/* ==========================================================================
+   Code and Symbol
+   ========================================================================== */
+
+.market-identity__code,
+.market-identity__symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-block-size: 2.25rem;
+  padding-inline: 0.875rem;
+
+  border: 1px solid var(--market-identity-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--market-identity-surface);
+  color: var(--market-identity-color);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
+
+  white-space: nowrap;
+
+  backdrop-filter: blur(0.5rem);
+  -webkit-backdrop-filter: blur(0.5rem);
+}
+
+.market-identity__symbol {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Utility Actions
+   ========================================================================== */
+
+.market-identity__utilities {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-2, #{ds.space(2)});
+}
+
+/* ==========================================================================
+   Utility Button
+   ========================================================================== */
+
+/**
+ * Compact actions such as:
+ *
+ * - add to watchlist;
+ * - remove from watchlist;
+ * - share;
+ * - receive alerts.
+ */
+
+.market-identity__utility {
+  --icon-size: 1rem;
+
+  appearance: none;
+
+  display: inline-grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  padding: 0;
+
+  border: 1px solid var(--market-identity-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--market-identity-surface);
+  color: var(--market-identity-color);
+
+  font: inherit;
+  line-height: 1;
+
+  cursor: pointer;
+
+  backdrop-filter: blur(0.5rem);
+  -webkit-backdrop-filter: blur(0.5rem);
+
+  @include ds.transition(
+    (background-color, border-color, color, box-shadow, transform),
+    "fast"
+  );
+}
+
+.market-identity__utility:hover:not(:disabled) {
+  border-color: var(--market-identity-border-hover);
+
+  background: var(--market-identity-surface-hover);
+
+  transform: translateY(-0.0625rem);
+}
+
+.market-identity__utility:focus {
+  outline: none;
+}
+
+.market-identity__utility:focus-visible {
+  @include ds.focus-ring;
+}
+
+.market-identity__utility:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+}
+
+.market-identity__utility[aria-pressed="true"] {
+  border-color: var(--color-primary);
+
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+
+  box-shadow: var(--shadow-sm);
+}
+
+.market-identity__utility:disabled,
+.market-identity__utility[aria-disabled="true"] {
+  border-color: var(--color-disabled);
+
+  background: var(--color-disabled);
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+  pointer-events: none;
+
+  opacity: 0.7;
+}
+
+/* ==========================================================================
+   Metadata
+   ========================================================================== */
+
+/**
+ * A semantic description-list row for identity characteristics.
+ *
+ * Company example:
+ *
+ * Market Type  Main Market
+ * Industry Group  Banks
+ * Share Type  Common Shares
+ *
+ * Sukuk example:
+ *
+ * Market  Sukuk/Bonds Index
+ * Instrument Type  Government Sukuk
+ * Currency  SAR
+ */
+
+.market-identity__metadata {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3, #{ds.space(3)}) var(--space-6, #{ds.space(6)});
+
+  min-inline-size: 0;
+
+  margin: var(--space-5, #{ds.space(5)}) 0 0;
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Metadata Item
+   ========================================================================== */
+
+.market-identity__meta {
+  position: relative;
+
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+  gap: var(--space-2, #{ds.space(2)});
+
+  min-inline-size: 0;
+
+  white-space: nowrap;
+}
+
+.market-identity__meta:not(:last-child)::after {
+  content: "";
+
+  flex: 0 0 auto;
+
+  inline-size: var(--space-1, #{ds.space(1)});
+  block-size: var(--space-1, #{ds.space(1)});
+
+  margin-inline-start: var(--space-4, #{ds.space(4)});
+
+  border-radius: var(--radius-pill);
+
+  background: rgb(255 255 255 / 0.42);
+}
+
+/* ==========================================================================
+   Metadata Label
+   ========================================================================== */
+
+.market-identity__label {
+  margin: 0;
+
+  color: var(--market-identity-muted-color);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Metadata Value
+   ========================================================================== */
+
+.market-identity__value {
+  margin: 0;
+
+  color: var(--market-identity-color);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Related Instruments
+   ========================================================================== */
+
+/**
+ * Links to related products or instrument families.
+ *
+ * Company example:
+ *
+ * Al Rajhi Sukuk
+ * Options
+ * Futures
+ */
+
+.market-identity__related {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2, #{ds.space(2)});
+
+  min-inline-size: 0;
+
+  margin-block-start: var(--space-6, #{ds.space(6)});
+}
+
+/* ==========================================================================
+   Related Instrument
+   ========================================================================== */
+
+.market-identity__link {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2, #{ds.space(2)});
+
+  min-block-size: 2.25rem;
+  padding: var(--space-2, #{ds.space(2)}) 0.875rem;
+
+  border: 1px solid var(--market-identity-border);
+  border-radius: var(--radius-pill);
+
+  background: rgb(255 255 255 / 0.06);
+  color: var(--market-identity-color);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("semibold");
+  line-height: var(--line-height-tight);
+
+  text-decoration: none;
+  white-space: nowrap;
+
+  backdrop-filter: blur(0.5rem);
+  -webkit-backdrop-filter: blur(0.5rem);
+
+  @include ds.transition(
+    (background-color, border-color, box-shadow, color, transform),
+    "fast"
+  );
+}
+
+.market-identity__link:hover {
+  border-color: var(--market-identity-border-hover);
+
+  background: var(--market-identity-surface-hover);
+  color: var(--market-identity-color);
+
+  box-shadow: var(--shadow-sm);
+
+  transform: translateY(-0.0625rem);
+}
+
+.market-identity__link:focus {
+  outline: none;
+}
+
+.market-identity__link:focus-visible {
+  @include ds.focus-ring;
+}
+
+.market-identity__link:active {
+  transform: translateY(0);
+}
+
+/* ==========================================================================
+   Related Instrument Icon
+   ========================================================================== */
+
+.market-identity__link-icon {
+  --icon-size: 0.5rem;
+
+  flex: 0 0 auto;
+
+  color: inherit;
+
+  @include ds.transition(transform, "fast");
+}
+
+.market-identity__link:hover .market-identity__link-icon {
+  transform: translateX(0.125rem);
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .market-identity__title {
+    letter-spacing: 0;
+  }
+
+  .market-identity__link:hover .market-identity__link-icon {
+    transform: translateX(-0.125rem);
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .market-identity {
+    --market-identity-title-width: 100%;
+  }
+
+  .market-identity__brand {
+    gap: var(--space-3, #{ds.space(3)});
+  }
+
+  .market-identity__metadata {
+    gap: var(--space-2, #{ds.space(2)}) var(--space-4, #{ds.space(4)});
+  }
+
+  .market-identity__meta:not(:last-child)::after {
+    margin-inline-start: var(--space-2, #{ds.space(2)});
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .market-identity {
+    --market-identity-media-size: 3.75rem;
+  }
+
+  .market-identity__brand {
+    align-items: flex-start;
+  }
+
+  .market-identity__media {
+    border-radius: var(--radius-md);
+  }
+
+  .market-identity__title,
+  .market-identity--compact-title .market-identity__title {
+    font-size: var(--text-xl);
+    line-height: 1.12;
+  }
+
+  .market-identity__subtitle {
+    font-size: var(--text-sm);
+  }
+
+  .market-identity__toolbar {
+    gap: var(--space-2, #{ds.space(2)});
+
+    margin-block-start: var(--space-4, #{ds.space(4)});
+  }
+
+  .market-identity__code,
+  .market-identity__symbol {
+    min-block-size: 2rem;
+    padding-inline: var(--space-3, #{ds.space(3)});
+
+    font-size: var(--text-xs);
+  }
+
+  .market-identity__utility {
+    --icon-size: 0.9375rem;
+
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+  }
+
+  /* Preserve the structured metadata row on narrow screens. */
+
+  .market-identity__metadata {
+    flex-wrap: nowrap;
+
+    inline-size: 100%;
+    padding-block-end: var(--space-1, #{ds.space(1)});
+    margin-block-start: var(--space-4, #{ds.space(4)});
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline proximity;
+    scrollbar-width: none;
+
+    -webkit-overflow-scrolling: touch;
+
+    touch-action: pan-x;
+  }
+
+  .market-identity__metadata::-webkit-scrollbar {
+    display: none;
+  }
+
+  .market-identity__meta {
+    gap: 0.375rem;
+
+    scroll-snap-align: start;
+  }
+
+  .market-identity__meta:not(:last-child)::after {
+    margin-inline-start: var(--space-2, #{ds.space(2)});
+  }
+
+  .market-identity__label,
+  .market-identity__value {
+    font-size: var(--text-xs);
+  }
+
+  /* Related instruments retain their horizontal grouped presentation. */
+
+  .market-identity__related {
+    flex-wrap: nowrap;
+
+    inline-size: 100%;
+    padding-block-end: var(--space-1, #{ds.space(1)});
+    margin-block-start: var(--space-5, #{ds.space(5)});
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline proximity;
+    scrollbar-width: none;
+
+    -webkit-overflow-scrolling: touch;
+
+    touch-action: pan-x;
+  }
+
+  .market-identity__related::-webkit-scrollbar {
+    display: none;
+  }
+
+  .market-identity__link {
+    min-block-size: 2.125rem;
+    padding: 0.4375rem var(--space-3, #{ds.space(3)});
+
+    scroll-snap-align: start;
+  }
+}
+
+/* ==========================================================================
+   Extra-small Screens
+   ========================================================================== */
+
+@media (max-width: 22.5rem) {
+  .market-identity {
+    --market-identity-media-size: 3.25rem;
+  }
+
+  .market-identity__brand {
+    gap: var(--space-2, #{ds.space(2)});
+  }
+
+  .market-identity__toolbar {
+    gap: 0.375rem;
+  }
+
+  .market-identity__code,
+  .market-identity__symbol {
+    padding-inline: var(--space-2, #{ds.space(2)});
+  }
+
+  .market-identity__utility {
+    --icon-size: 0.875rem;
+
+    inline-size: 2rem;
+    block-size: 2rem;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-identity {
+    --market-identity-surface: transparent;
+    --market-identity-surface-hover: transparent;
+
+    --market-identity-border: currentColor;
+    --market-identity-border-hover: currentColor;
+  }
+
+  .market-identity__media,
+  .market-identity__code,
+  .market-identity__symbol,
+  .market-identity__utility,
+  .market-identity__link {
+    border-width: 2px;
+
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .market-identity__meta::after {
+    background: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .market-identity {
+    --market-identity-color: CanvasText;
+    --market-identity-heading-color: CanvasText;
+    --market-identity-muted-color: CanvasText;
+
+    --market-identity-surface: Canvas;
+    --market-identity-surface-hover: Canvas;
+
+    --market-identity-border: CanvasText;
+    --market-identity-border-hover: Highlight;
+  }
+
+  .market-identity__media,
+  .market-identity__code,
+  .market-identity__symbol,
+  .market-identity__utility,
+  .market-identity__link {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .market-identity__utility:hover:not(:disabled),
+  .market-identity__link:hover {
+    border-color: Highlight;
+    color: Highlight;
+  }
+
+  .market-identity__utility[aria-pressed="true"] {
+    border-color: Highlight;
+
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .market-identity__utility:disabled,
+  .market-identity__utility[aria-disabled="true"] {
+    border-color: GrayText;
+    color: GrayText;
+  }
+
+  .market-identity__meta::after {
+    background: CanvasText;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .market-identity__utility,
+  .market-identity__link,
+  .market-identity__link-icon {
+    transition: none;
+  }
+
+  .market-identity__utility:hover,
+  .market-identity__utility:active,
+  .market-identity__link:hover,
+  .market-identity__link:active,
+  .market-identity__link:hover .market-identity__link-icon {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .market-identity__utility,
+  .market-identity__link,
+  .market-identity__link-icon {
+    transition: none;
+  }
+
+  .market-identity__utility:hover,
+  .market-identity__utility:active,
+  .market-identity__link:hover,
+  .market-identity__link:active,
+  .market-identity__link:hover .market-identity__link-icon {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .market-identity {
+    --market-identity-color: #000000;
+    --market-identity-heading-color: #000000;
+    --market-identity-muted-color: #000000;
+
+    --market-identity-surface: transparent;
+    --market-identity-surface-hover: transparent;
+
+    --market-identity-border: #000000;
+    --market-identity-border-hover: #000000;
+
+    color: #000000;
+  }
+
+  .market-identity__media,
+  .market-identity__code,
+  .market-identity__symbol,
+  .market-identity__link {
+    border-color: #000000;
+
+    background: transparent;
+    color: #000000;
+
+    box-shadow: none;
+
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .market-identity__metadata,
+  .market-identity__related {
+    flex-wrap: wrap;
+
+    overflow: visible;
+  }
+
+  .market-identity__utilities {
+    display: none;
+  }
+}

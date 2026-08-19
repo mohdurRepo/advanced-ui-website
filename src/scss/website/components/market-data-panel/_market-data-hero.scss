@@ -1,0 +1,359 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Market Data Hero
+   ========================================================================== */
+
+/**
+ * Reusable Hero composition for pages that combine:
+ *
+ * - primary market or instrument information;
+ * - selection controls, pricing, and actions;
+ * - a secondary market-data panel.
+ *
+ * Examples:
+ *
+ * - Indices Performance
+ * - Sukuk and Bonds Profile
+ * - Security profiles
+ * - Market-statistics pages
+ *
+ * The component controls composition and readable widths. Child components
+ * continue owning their individual presentation.
+ */
+
+.market-data-hero {
+  --market-data-hero-content-width: 44rem;
+  --market-data-hero-panel-width: clamp(31rem, 37vw, 35rem);
+
+  --market-data-hero-column-gap: clamp(2.5rem, 4vw, 4.5rem);
+  --market-data-hero-row-gap: clamp(1.5rem, 3vw, 2.25rem);
+
+  --market-data-hero-footer-row-gap: 1.25rem;
+  --market-data-hero-footer-column-gap: clamp(1.5rem, 3vw, 3rem);
+
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    var(--market-data-hero-panel-width);
+
+  align-items: start;
+  gap: var(--market-data-hero-column-gap);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Primary Region
+   ========================================================================== */
+
+.market-data-hero__primary {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Primary Content
+   ========================================================================== */
+
+/**
+ * The grid region may be wider than the readable content.
+ *
+ * Capping the content creates intentional breathing room between the primary
+ * information and the market-data panel.
+ */
+
+.market-data-hero__content {
+  inline-size: 100%;
+  max-inline-size: var(--market-data-hero-content-width);
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Secondary Region
+   ========================================================================== */
+
+.market-data-hero__secondary {
+  justify-self: end;
+  align-self: start;
+
+  inline-size: 100%;
+  max-inline-size: none;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Single Region
+   ========================================================================== */
+
+.market-data-hero__primary:only-child,
+.market-data-hero__secondary:only-child {
+  grid-column: 1 / -1;
+}
+
+/* ==========================================================================
+   Price and Actions
+   ========================================================================== */
+
+/**
+ * Aligns the current value and related actions using the same composition as
+ * the Company Profile Hero.
+ */
+
+.market-data-hero__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--market-data-hero-footer-row-gap)
+    var(--market-data-hero-footer-column-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.market-data-hero__actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.75rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Action
+   ========================================================================== */
+
+.market-data-hero__action {
+  min-inline-size: 9rem;
+  min-block-size: 2.75rem;
+
+  justify-content: center;
+  gap: 0.5rem;
+
+  white-space: nowrap;
+}
+
+.market-data-hero__action .has-icon {
+  --icon-size: 0.625rem;
+
+  flex: 0 0 auto;
+
+  @include ds.transition(transform, "fast");
+}
+
+.market-data-hero__action:hover .has-icon {
+  transform: translateX(0.125rem);
+}
+
+/* ==========================================================================
+   Wide Panel Variant
+   ========================================================================== */
+
+/**
+ * Intended for dense datasets such as Sukuk trade updates containing prices,
+ * yields, dates, times, and traded values.
+ */
+
+.market-data-hero--wide-panel {
+  --market-data-hero-content-width: 42rem;
+  --market-data-hero-panel-width: clamp(35rem, 42vw, 40rem);
+}
+
+/* ==========================================================================
+   Compact Panel Variant
+   ========================================================================== */
+
+/**
+ * Intended for summaries containing only a few short metrics.
+ */
+
+.market-data-hero--compact-panel {
+  --market-data-hero-panel-width: clamp(28rem, 33vw, 31rem);
+}
+
+/* ==========================================================================
+   Vertically Centered Variant
+   ========================================================================== */
+
+.market-data-hero--center {
+  align-items: center;
+}
+
+.market-data-hero--center .market-data-hero__secondary {
+  align-self: center;
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .market-data-hero__action:hover .has-icon {
+    transform: translateX(-0.125rem);
+  }
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .market-data-hero,
+  .market-data-hero--wide-panel,
+  .market-data-hero--compact-panel {
+    --market-data-hero-content-width: 42rem;
+    --market-data-hero-panel-width: min(100%, 40rem);
+    --market-data-hero-column-gap: var(--market-data-hero-row-gap);
+
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .market-data-hero__secondary {
+    justify-self: start;
+
+    inline-size: var(--market-data-hero-panel-width);
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .market-data-hero,
+  .market-data-hero--wide-panel,
+  .market-data-hero--compact-panel {
+    --market-data-hero-content-width: 100%;
+    --market-data-hero-panel-width: 100%;
+    --market-data-hero-row-gap: 1.5rem;
+  }
+
+  .market-data-hero__content,
+  .market-data-hero__secondary {
+    inline-size: 100%;
+    max-inline-size: none;
+  }
+
+  .market-data-hero__footer {
+    align-items: flex-start;
+  }
+
+  .market-data-hero__actions {
+    inline-size: 100%;
+  }
+
+  .market-data-hero__action {
+    flex: 1 1 0;
+
+    min-inline-size: 0;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .market-data-hero,
+  .market-data-hero--wide-panel,
+  .market-data-hero--compact-panel {
+    --market-data-hero-row-gap: 1.25rem;
+  }
+
+  .market-data-hero__footer {
+    display: grid;
+    gap: var(--market-data-hero-footer-row-gap);
+  }
+
+  .market-data-hero__actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 0.5rem;
+
+    inline-size: 100%;
+  }
+
+  .market-data-hero__action {
+    inline-size: 100%;
+    min-inline-size: 0;
+    min-block-size: 2.75rem;
+
+    padding-inline: 0.625rem;
+
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Extra-small Screens
+   ========================================================================== */
+
+@media (max-width: 360px) {
+  .market-data-hero__actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-data-hero__action {
+    border-width: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion: Operating System
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .market-data-hero__action .has-icon {
+    transition: none;
+  }
+
+  .market-data-hero__action:hover .has-icon {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion: Design-system Preference
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .market-data-hero__action .has-icon {
+    transition: none;
+  }
+
+  .market-data-hero__action:hover .has-icon {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .market-data-hero,
+  .market-data-hero--wide-panel,
+  .market-data-hero--compact-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .market-data-hero__content,
+  .market-data-hero__secondary {
+    inline-size: 100%;
+    max-inline-size: none;
+  }
+
+  .market-data-hero__actions {
+    display: none;
+  }
+}

@@ -1,0 +1,608 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Market Data Panel
+   ========================================================================== */
+
+/**
+ * Reusable contextual surface for market statistics and ranked market data.
+ *
+ * The component owns:
+ *
+ * - the glass surface;
+ * - tab navigation;
+ * - tab-panel visibility;
+ * - loading and empty states;
+ * - accessibility and responsive behavior.
+ *
+ * Width and placement belong to `.market-data-hero`.
+ * Metrics and rankings belong to their respective components.
+ */
+
+.market-data-panel {
+  --market-data-panel-bg: rgb(255 255 255 / 0.1);
+  --market-data-panel-border: rgb(255 255 255 / 0.22);
+  --market-data-panel-divider: rgb(255 255 255 / 0.12);
+
+  --market-data-panel-color: var(--color-heading, #ffffff);
+  --market-data-panel-muted: var(--color-text-muted, rgb(255 255 255 / 0.74));
+
+  --market-data-panel-tab-color: rgb(255 255 255 / 0.68);
+  --market-data-panel-tab-hover-color: #ffffff;
+  --market-data-panel-tab-active-color: #ffffff;
+  --market-data-panel-tab-indicator: #9bbdff;
+
+  --market-data-panel-radius: var(--radius-xl);
+
+  --market-data-panel-nav-padding-inline: clamp(0.75rem, 1.5vw, 1.25rem);
+  --market-data-panel-content-space: clamp(0.625rem, 1.2vw, 0.875rem);
+
+  --market-data-panel-shadow:
+    0 1rem 3rem rgb(0 31 51 / 0.18), inset 0 1px 0 rgb(255 255 255 / 0.08);
+
+  position: relative;
+  isolation: isolate;
+
+  align-self: start;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  overflow: visible;
+
+  border: 1px solid var(--market-data-panel-border);
+  border-radius: var(--market-data-panel-radius);
+
+  background: var(--market-data-panel-bg);
+  color: var(--market-data-panel-color);
+
+  box-shadow: var(--market-data-panel-shadow);
+
+  backdrop-filter: blur(0.75rem);
+  -webkit-backdrop-filter: blur(0.75rem);
+
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   Tabs
+   ========================================================================== */
+
+.market-data-panel__tabs {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Tab Navigation
+   ========================================================================== */
+
+/**
+ * Auto columns support two, three, or more tabs without tab-count modifiers.
+ */
+
+.market-data-panel__nav {
+  position: relative;
+
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+
+  min-inline-size: 0;
+  padding-inline: var(--market-data-panel-nav-padding-inline);
+
+  border-block-end: 1px solid var(--market-data-panel-divider);
+}
+
+/* ==========================================================================
+   Tab
+   ========================================================================== */
+
+.market-data-panel__tab {
+  appearance: none;
+
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-inline-size: 0;
+  min-block-size: 3.625rem;
+  padding-block: 0.75rem;
+  padding-inline: 0.5rem;
+
+  border: 0;
+
+  background: transparent;
+  color: var(--market-data-panel-tab-color);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+  text-align: center;
+
+  cursor: pointer;
+  user-select: none;
+
+  @include ds.transition(
+    (background-color, color, opacity, outline-color),
+    "fast"
+  );
+}
+
+/* ==========================================================================
+   Tab Label
+   ========================================================================== */
+
+/**
+ * `.market-data-panel__tab-label` is the preferred class.
+ *
+ * The descendant span selector preserves compatibility with existing markup
+ * until all pages have adopted the explicit label class.
+ */
+
+.market-data-panel__tab-label,
+.market-data-panel__tab span {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Tab Indicator
+   ========================================================================== */
+
+.market-data-panel__tab::after {
+  content: "";
+
+  position: absolute;
+
+  inset-inline: 0.375rem;
+  inset-block-end: -1px;
+
+  block-size: 0.1875rem;
+
+  border-radius: var(--radius-pill);
+
+  background: var(--market-data-panel-tab-indicator);
+
+  opacity: 0;
+  transform: scaleX(0.5);
+  transform-origin: center;
+
+  @include ds.transition((opacity, transform), "fast");
+}
+
+/* ==========================================================================
+   Tab Interaction
+   ========================================================================== */
+
+.market-data-panel__tab:hover:not(:disabled):not([aria-disabled="true"]) {
+  color: var(--market-data-panel-tab-hover-color);
+}
+
+.market-data-panel__tab:focus {
+  outline: none;
+}
+
+.market-data-panel__tab:focus-visible {
+  color: var(--market-data-panel-tab-active-color);
+
+  @include ds.focus-ring(currentColor);
+
+  outline-offset: -0.25rem;
+}
+
+/* ==========================================================================
+   Selected Tab
+   ========================================================================== */
+
+/**
+ * Supports:
+ *
+ * - the shared Tabs component's `.active` class;
+ * - the component-level `.is-active` convention;
+ * - native ARIA tab state.
+ */
+
+.market-data-panel__tab.active,
+.market-data-panel__tab.is-active,
+.market-data-panel__tab[aria-selected="true"] {
+  color: var(--market-data-panel-tab-active-color);
+}
+
+.market-data-panel__tab.active::after,
+.market-data-panel__tab.is-active::after,
+.market-data-panel__tab[aria-selected="true"]::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+/* ==========================================================================
+   Disabled Tab
+   ========================================================================== */
+
+.market-data-panel__tab:disabled,
+.market-data-panel__tab.is-disabled,
+.market-data-panel__tab[aria-disabled="true"] {
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* ==========================================================================
+   Tab Content
+   ========================================================================== */
+
+.market-data-panel__content {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Tab Panel
+   ========================================================================== */
+
+.market-data-panel__panel {
+  min-inline-size: 0;
+  min-block-size: 0;
+  padding: var(--market-data-panel-content-space);
+
+  color: var(--market-data-panel-color);
+}
+
+/* ==========================================================================
+   Hidden Panel
+   ========================================================================== */
+
+/**
+ * `hidden` is the preferred visibility mechanism.
+ *
+ * ARIA support accommodates implementations that keep inactive panels in the
+ * DOM while toggling their accessibility state.
+ */
+
+.market-data-panel__panel[hidden],
+.market-data-panel__panel[aria-hidden="true"] {
+  display: none;
+}
+
+/* ==========================================================================
+   Active Panel
+   ========================================================================== */
+
+.market-data-panel__panel.active,
+.market-data-panel__panel.is-active,
+.market-data-panel__panel[aria-hidden="false"] {
+  animation: market-data-panel-enter 160ms ease-out both;
+}
+
+/* ==========================================================================
+   Panel Content Safety
+   ========================================================================== */
+
+/**
+ * Nested component roots receive shrink protection without assuming that they
+ * are direct children of the panel.
+ */
+
+.market-data-panel__panel .market-metrics,
+.market-data-panel__panel .market-ranking,
+.market-data-panel__panel .market-data-group,
+.market-data-panel__panel .market-data-summary {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
+.market-data-panel__empty {
+  display: grid;
+  place-items: center;
+
+  min-block-size: 7rem;
+  padding: 1.25rem;
+
+  color: var(--market-data-panel-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+  text-align: center;
+
+  text-wrap: pretty;
+}
+
+.market-data-panel__empty[hidden] {
+  display: none;
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.market-data-panel[aria-busy="true"] {
+  cursor: progress;
+}
+
+.market-data-panel[aria-busy="true"] .market-data-panel__content {
+  opacity: 0.68;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Loading Indicator
+   ========================================================================== */
+
+.market-data-panel[aria-busy="true"]::after {
+  content: "";
+
+  position: absolute;
+  z-index: 2;
+
+  inset-block-start: 1rem;
+  inset-inline-end: 1rem;
+
+  inline-size: 1rem;
+  block-size: 1rem;
+
+  border: 2px solid rgb(255 255 255 / 0.3);
+  border-block-start-color: currentColor;
+  border-radius: 50%;
+
+  animation: market-data-panel-spin 700ms linear infinite;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+/**
+ * Useful when a panel contains only a few short metrics.
+ */
+
+.market-data-panel--compact {
+  --market-data-panel-content-space: 0.625rem;
+  --market-data-panel-nav-padding-inline: 0.75rem;
+}
+
+.market-data-panel--compact .market-data-panel__tab {
+  min-block-size: 3.25rem;
+  padding-block: 0.625rem;
+}
+
+/* ==========================================================================
+   Spacious Variant
+   ========================================================================== */
+
+/**
+ * Useful for grouped data containing dates, descriptions, or long values.
+ */
+
+.market-data-panel--spacious {
+  --market-data-panel-content-space: clamp(0.875rem, 1.5vw, 1.25rem);
+}
+
+/* ==========================================================================
+   Animation
+   ========================================================================== */
+
+@keyframes market-data-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.1875rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes market-data-panel-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .market-data-panel {
+    --market-data-panel-radius: var(--radius-lg);
+    --market-data-panel-nav-padding-inline: 0.375rem;
+    --market-data-panel-content-space: 0.625rem;
+  }
+
+  .market-data-panel__tab {
+    min-block-size: 3.25rem;
+    padding-block: 0.625rem;
+    padding-inline: 0.25rem;
+
+    font-size: var(--text-xs);
+  }
+
+  .market-data-panel__tab::after {
+    inset-inline: 0.125rem;
+  }
+
+  .market-data-panel__empty {
+    min-block-size: 6rem;
+    padding: 1rem;
+
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-data-panel {
+    --market-data-panel-bg: #000000;
+    --market-data-panel-border: currentColor;
+    --market-data-panel-divider: currentColor;
+
+    --market-data-panel-color: #ffffff;
+    --market-data-panel-muted: #ffffff;
+
+    --market-data-panel-tab-color: #ffffff;
+    --market-data-panel-tab-hover-color: #ffffff;
+    --market-data-panel-tab-active-color: #ffffff;
+    --market-data-panel-tab-indicator: currentColor;
+
+    --market-data-panel-shadow: none;
+
+    border-width: 2px;
+
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .market-data-panel__nav {
+    border-block-end-width: 2px;
+  }
+
+  .market-data-panel__tab::after {
+    block-size: 0.25rem;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .market-data-panel {
+    --market-data-panel-bg: Canvas;
+    --market-data-panel-border: CanvasText;
+    --market-data-panel-divider: CanvasText;
+
+    --market-data-panel-color: CanvasText;
+    --market-data-panel-muted: CanvasText;
+
+    --market-data-panel-tab-color: CanvasText;
+    --market-data-panel-tab-hover-color: Highlight;
+    --market-data-panel-tab-active-color: Highlight;
+    --market-data-panel-tab-indicator: Highlight;
+
+    --market-data-panel-shadow: none;
+
+    background: Canvas;
+    color: CanvasText;
+
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+
+    color-scheme: normal;
+  }
+
+  .market-data-panel__tab:focus-visible {
+    outline-color: Highlight;
+  }
+
+  .market-data-panel__tab:disabled,
+  .market-data-panel__tab.is-disabled,
+  .market-data-panel__tab[aria-disabled="true"] {
+    color: GrayText;
+  }
+
+  .market-data-panel[aria-busy="true"]::after {
+    border-color: GrayText;
+    border-block-start-color: Highlight;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion: Operating System
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .market-data-panel__tab,
+  .market-data-panel__tab::after {
+    transition: none;
+  }
+
+  .market-data-panel__panel.active,
+  .market-data-panel__panel.is-active,
+  .market-data-panel__panel[aria-hidden="false"],
+  .market-data-panel[aria-busy="true"]::after {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion: Design-system Preference
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .market-data-panel__tab,
+  .market-data-panel__tab::after {
+    transition: none;
+  }
+
+  .market-data-panel__panel.active,
+  .market-data-panel__panel.is-active,
+  .market-data-panel__panel[aria-hidden="false"],
+  .market-data-panel[aria-busy="true"]::after {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .market-data-panel {
+    --market-data-panel-bg: transparent;
+    --market-data-panel-border: #000000;
+    --market-data-panel-divider: #000000;
+
+    --market-data-panel-color: #000000;
+    --market-data-panel-muted: #333333;
+
+    --market-data-panel-shadow: none;
+
+    background: transparent;
+    color: #000000;
+
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+
+    color-scheme: light;
+  }
+
+  .market-data-panel__nav {
+    display: none;
+  }
+
+  .market-data-panel__panel,
+  .market-data-panel__panel[hidden],
+  .market-data-panel__panel[aria-hidden="true"] {
+    display: block !important;
+
+    padding: 1rem;
+
+    color: #000000;
+
+    animation: none;
+  }
+
+  .market-data-panel__panel + .market-data-panel__panel {
+    border-block-start: 1px solid #000000;
+  }
+
+  .market-data-panel__empty,
+  .market-data-panel[aria-busy="true"]::after {
+    display: none;
+  }
+}

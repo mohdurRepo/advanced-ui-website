@@ -1,0 +1,509 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Market Ranking
+   ========================================================================== */
+
+/**
+ * Reusable ordered ranking for market gainers and losers.
+ *
+ * The ordered list preserves ranking semantics without inheriting global
+ * table styling.
+ *
+ * Desktop:
+ *
+ * Company | Price | Change
+ *
+ * Mobile:
+ *
+ * Company
+ * Price   | Change
+ */
+
+.market-ranking {
+  --market-ranking-columns: minmax(0, 1.3fr) minmax(5rem, 0.5fr)
+    minmax(9rem, 0.9fr);
+
+  --market-ranking-divider: var(
+    --market-data-panel-divider,
+    var(--color-border)
+  );
+
+  --market-ranking-color: var(--market-data-panel-color, var(--color-heading));
+
+  --market-ranking-muted: var(
+    --market-data-panel-muted,
+    var(--color-text-muted)
+  );
+
+  --market-ranking-hover-bg: rgb(255 255 255 / 0.06);
+
+  --market-ranking-padding-block: 0.625rem;
+  --market-ranking-padding-inline: 0.75rem;
+
+  min-inline-size: 0;
+
+  color: var(--market-ranking-color);
+}
+
+/* ==========================================================================
+   Column Header
+   ========================================================================== */
+
+.market-ranking__header {
+  display: grid;
+  grid-template-columns: var(--market-ranking-columns);
+  align-items: center;
+
+  min-inline-size: 0;
+  padding-block: 0.625rem;
+  padding-inline: var(--market-ranking-padding-inline);
+
+  border-block-end: 1px solid var(--market-ranking-divider);
+
+  color: var(--market-ranking-muted);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Header Labels
+   ========================================================================== */
+
+/**
+ * `.market-ranking__heading` is preferred in new markup.
+ *
+ * The descendant span selector keeps existing implementations compatible.
+ */
+
+.market-ranking__heading,
+.market-ranking__header span {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.market-ranking__heading:not(:first-child),
+.market-ranking__header span:not(:first-child) {
+  padding-inline-start: 0.75rem;
+}
+
+/* ==========================================================================
+   Ranking List
+   ========================================================================== */
+
+.market-ranking__list {
+  display: grid;
+
+  min-inline-size: 0;
+  padding: 0;
+  margin: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Ranking Item
+   ========================================================================== */
+
+.market-ranking__item {
+  display: grid;
+  grid-template-columns: var(--market-ranking-columns);
+  align-items: center;
+
+  min-inline-size: 0;
+  padding-block: var(--market-ranking-padding-block);
+  padding-inline: var(--market-ranking-padding-inline);
+
+  border-block-end: 1px solid var(--market-ranking-divider);
+
+  @include ds.transition(background-color, "fast");
+}
+
+.market-ranking__item:last-child {
+  border-block-end: 0;
+}
+
+.market-ranking__item:hover {
+  background: var(--market-ranking-hover-bg);
+}
+
+/* ==========================================================================
+   Company
+   ========================================================================== */
+
+.market-ranking__company {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  color: var(--market-ranking-color);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Company Link
+   ========================================================================== */
+
+a.market-ranking__company,
+.market-ranking__company a {
+  color: inherit;
+
+  text-decoration: none;
+}
+
+a.market-ranking__company:hover,
+.market-ranking__company a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+a.market-ranking__company:focus {
+  outline: none;
+}
+
+a.market-ranking__company:focus-visible,
+.market-ranking__company a:focus-visible {
+  @include ds.focus-ring(currentColor);
+}
+
+/* ==========================================================================
+   Metric
+   ========================================================================== */
+
+/**
+ * The metric establishes the inherited color.
+ *
+ * When `.price-up`, `.price-down`, or `.price-neutral` is applied to the
+ * metric, its value and icon inherit the semantic state automatically.
+ */
+
+.market-ranking__metric {
+  display: grid;
+  align-content: center;
+  gap: 0.1875rem;
+
+  min-inline-size: 0;
+  padding-inline-start: 0.75rem;
+}
+
+/* ==========================================================================
+   Metric Label
+   ========================================================================== */
+
+/**
+ * Desktop column headers provide the visible labels.
+ *
+ * Row-level labels remain available to assistive technology and become
+ * visible in the mobile card layout.
+ */
+
+.market-ranking__metric-label {
+  position: absolute;
+
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+
+  overflow: hidden;
+
+  border: 0;
+
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Metric Value
+   ========================================================================== */
+
+.market-ranking__metric-value {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+
+  min-inline-size: 0;
+  margin: 0;
+
+  color: inherit;
+
+  direction: ltr;
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("medium");
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-tight);
+  text-align: start;
+  unicode-bidi: isolate;
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Value Content
+   ========================================================================== */
+
+.market-ranking__metric-value data,
+.market-ranking__metric-value span {
+  min-inline-size: 0;
+
+  color: inherit;
+}
+
+/* ==========================================================================
+   Price
+   ========================================================================== */
+
+.market-ranking__metric--price .market-ranking__metric-value {
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Change
+   ========================================================================== */
+
+.market-ranking__metric--change .market-ranking__metric-value {
+  flex-wrap: nowrap;
+
+  font-weight: ds.font-weight("bold");
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Change Icon
+   ========================================================================== */
+
+.market-ranking__change-icon,
+.market-ranking__metric-value .has-icon {
+  --icon-size: 0.5625rem;
+
+  flex: 0 0 auto;
+
+  color: currentColor;
+}
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
+.market-ranking__empty {
+  display: grid;
+  place-items: center;
+
+  min-block-size: 7rem;
+  padding: 1.25rem;
+
+  color: var(--market-ranking-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+  text-align: center;
+
+  text-wrap: pretty;
+}
+
+.market-ranking__empty[hidden] {
+  display: none;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.market-ranking--compact {
+  --market-ranking-padding-block: 0.5rem;
+  --market-ranking-padding-inline: 0.625rem;
+}
+
+.market-ranking--compact .market-ranking__header {
+  padding-block: 0.5rem;
+}
+
+.market-ranking--compact .market-ranking__company,
+.market-ranking--compact .market-ranking__metric-value {
+  font-size: var(--text-xs);
+}
+
+/* ==========================================================================
+   Comfortable Variant
+   ========================================================================== */
+
+.market-ranking--comfortable {
+  --market-ranking-padding-block: 0.75rem;
+  --market-ranking-padding-inline: 0.875rem;
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .market-ranking {
+    --market-ranking-columns: repeat(2, minmax(0, 1fr));
+    --market-ranking-padding-block: 0.75rem;
+    --market-ranking-padding-inline: 0.5rem;
+  }
+
+  .market-ranking__header {
+    display: none;
+  }
+
+  .market-ranking__item {
+    grid-template-columns: var(--market-ranking-columns);
+    gap: 0.75rem 0;
+  }
+
+  .market-ranking__company {
+    grid-column: 1 / -1;
+
+    padding-block-end: 0.625rem;
+
+    border-block-end: 1px solid var(--market-ranking-divider);
+
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .market-ranking__metric {
+    gap: 0.25rem;
+
+    padding-inline-start: 0;
+  }
+
+  .market-ranking__metric + .market-ranking__metric {
+    padding-inline-start: 0.75rem;
+
+    border-inline-start: 1px solid var(--market-ranking-divider);
+  }
+
+  .market-ranking__metric-label {
+    position: static;
+
+    inline-size: auto;
+    block-size: auto;
+    padding: 0;
+    margin: 0;
+
+    overflow: visible;
+
+    color: var(--market-ranking-muted);
+
+    font-size: var(--text-xs);
+    font-weight: ds.font-weight("medium");
+    line-height: var(--line-height-normal);
+
+    clip: auto;
+    clip-path: none;
+
+    white-space: normal;
+  }
+
+  .market-ranking__metric-value {
+    font-size: var(--text-sm);
+    font-weight: ds.font-weight("bold");
+  }
+
+  .market-ranking__empty {
+    min-block-size: 6rem;
+    padding: 1rem;
+
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-ranking {
+    --market-ranking-divider: currentColor;
+    --market-ranking-color: currentColor;
+    --market-ranking-muted: currentColor;
+    --market-ranking-hover-bg: transparent;
+  }
+
+  .market-ranking__header,
+  .market-ranking__item,
+  .market-ranking__company,
+  .market-ranking__metric + .market-ranking__metric {
+    border-width: 2px;
+  }
+
+  .market-ranking__company,
+  .market-ranking__metric-value {
+    font-weight: ds.font-weight("heavy");
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .market-ranking {
+    --market-ranking-divider: CanvasText;
+    --market-ranking-color: CanvasText;
+    --market-ranking-muted: CanvasText;
+    --market-ranking-hover-bg: Canvas;
+  }
+
+  .market-ranking__item:hover {
+    color: Highlight;
+  }
+
+  a.market-ranking__company:focus-visible,
+  .market-ranking__company a:focus-visible {
+    outline-color: Highlight;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .market-ranking__item {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .market-ranking__item {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .market-ranking {
+    --market-ranking-divider: #000000;
+    --market-ranking-color: #000000;
+    --market-ranking-muted: #333333;
+    --market-ranking-hover-bg: transparent;
+
+    break-inside: avoid;
+  }
+
+  .market-ranking__item {
+    break-inside: avoid;
+  }
+}

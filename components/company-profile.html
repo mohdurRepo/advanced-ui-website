@@ -5412,32 +5412,33 @@
           </nav>
         </div>
       </div>
-
       <!-- ==========================================================================
      Company Profile Hero
      ========================================================================== -->
 
       <section
-        class="hero-section surface-dark company-profile-section"
+        class="hero-section surface-hero"
         aria-labelledby="company-profile-title"
       >
         <div class="hero-section__background" aria-hidden="true"></div>
 
         <div class="container hero-section__content">
-          <div class="company-profile-hero">
+          <div
+            class="market-data-hero market-data-hero--compact-panel market-data-hero--center"
+          >
             <!-- ====================================================================
-           Company Information
+           Company Identity
            ================================================================= -->
 
-            <div class="company-profile-hero__main">
-              <div class="company-identity">
-                <!-- Company Name and Logo -->
+            <div class="market-data-hero__primary">
+              <div class="market-data-hero__content">
+                <header class="market-identity">
+                  <!-- Company Logo and Name -->
 
-                <header class="company-identity__header">
-                  <div class="company-identity__brand">
-                    <div class="company-identity__logo-wrap">
+                  <div class="market-identity__brand">
+                    <div class="market-identity__media">
                       <img
-                        class="company-identity__logo"
+                        class="market-identity__logo"
                         src="/assets/images/al-rajhi-logo.png"
                         alt=""
                         width="128"
@@ -5447,119 +5448,116 @@
                       />
                     </div>
 
-                    <h2
-                      id="company-profile-title"
-                      class="company-identity__name"
+                    <div class="market-identity__heading">
+                      <h1
+                        id="company-profile-title"
+                        class="market-identity__title"
+                      >
+                        Al Rajhi Bank
+                      </h1>
+                    </div>
+                  </div>
+
+                  <!-- Trading Identity and Utilities -->
+
+                  <div class="market-identity__toolbar">
+                    <div
+                      class="market-identity__codes"
+                      aria-label="Trading code 1120, symbol ALRAJHI"
+                      dir="ltr"
                     >
-                      Al Rajhi Bank
-                    </h2>
+                      <span class="market-identity__code">1120</span>
+                      <span class="market-identity__symbol">ALRAJHI</span>
+                    </div>
+
+                    <div
+                      class="market-identity__utilities"
+                      aria-label="Company profile actions"
+                    >
+                      <button
+                        class="market-identity__utility has-icon icon-star-outline"
+                        type="button"
+                        aria-label="Add Al Rajhi Bank to watchlist"
+                        aria-pressed="false"
+                      ></button>
+
+                      <button
+                        class="market-identity__utility has-icon icon-share"
+                        type="button"
+                        aria-label="Share Al Rajhi Bank profile"
+                      ></button>
+                    </div>
                   </div>
-                </header>
 
-                <!-- Instrument Identity and Utility Actions -->
+                  <!-- Company Classification -->
 
-                <div class="company-identity__instrument-row">
-                  <div
-                    class="company-identity__instrument"
-                    aria-label="Trading code 1120, symbol ALRAJHI"
-                    dir="ltr"
-                  >
-                    <span class="company-identity__code">1120</span>
-                    <span class="company-identity__symbol">ALRAJHI</span>
-                  </div>
-
-                  <div
-                    class="company-identity__utilities"
-                    aria-label="Company profile actions"
-                  >
-                    <button
-                      class="company-identity__utility has-icon icon-star-outline"
-                      type="button"
-                      aria-label="Add Al Rajhi Bank to watchlist"
-                      aria-pressed="false"
-                    ></button>
-
-                    <button
-                      class="company-identity__utility has-icon icon-share"
-                      type="button"
-                      aria-label="Share Al Rajhi Bank profile"
-                    ></button>
-                  </div>
-                </div>
-
-                <!-- Company Classification -->
-
-                <div class="company-identity__meta-scroll">
                   <dl
-                    class="company-identity__meta"
+                    class="market-identity__metadata"
                     aria-label="Company classification"
                   >
-                    <div class="company-identity__meta-item">
-                      <dt class="company-identity__meta-label">Market Type</dt>
+                    <div class="market-identity__meta">
+                      <dt class="market-identity__label">Market Type</dt>
 
-                      <dd class="company-identity__meta-value">Main Market</dd>
+                      <dd class="market-identity__value">Main Market</dd>
                     </div>
 
-                    <div class="company-identity__meta-item">
-                      <dt class="company-identity__meta-label">
-                        Industry Group
-                      </dt>
+                    <div class="market-identity__meta">
+                      <dt class="market-identity__label">Industry Group</dt>
 
-                      <dd class="company-identity__meta-value">Banks</dd>
+                      <dd class="market-identity__value">Banks</dd>
                     </div>
 
-                    <div class="company-identity__meta-item">
-                      <dt class="company-identity__meta-label">Share Type</dt>
+                    <div class="market-identity__meta">
+                      <dt class="market-identity__label">Share Type</dt>
 
-                      <dd class="company-identity__meta-value">
-                        Common Shares
-                      </dd>
+                      <dd class="market-identity__value">Common Shares</dd>
                     </div>
                   </dl>
-                </div>
 
-                <!-- Related Instruments -->
+                  <!-- Related Instruments -->
 
-                <div class="company-identity__products-scroll">
                   <nav
-                    class="company-identity__products"
+                    class="market-identity__related"
                     aria-label="Related Al Rajhi Bank instruments"
                   >
-                    <a class="company-identity__product" href="#">
+                    <a class="market-identity__link" href="#al-rajhi-sukuk">
                       <span>Al Rajhi Sukuk</span>
 
                       <span
-                        class="company-identity__product-icon has-icon icon-chevron-right icon-flip-rtl"
+                        class="market-identity__link-icon has-icon icon-chevron-right icon-flip-rtl"
                         aria-hidden="true"
                       ></span>
                     </a>
 
-                    <a class="company-identity__product" href="#">
+                    <a class="market-identity__link" href="#options">
                       <span>Options</span>
 
                       <span
-                        class="company-identity__product-icon has-icon icon-chevron-right icon-flip-rtl"
+                        class="market-identity__link-icon has-icon icon-chevron-right icon-flip-rtl"
                         aria-hidden="true"
                       ></span>
                     </a>
 
-                    <a class="company-identity__product" href="#">
+                    <a class="market-identity__link" href="#futures">
                       <span>Futures</span>
 
                       <span
-                        class="company-identity__product-icon has-icon icon-chevron-right icon-flip-rtl"
+                        class="market-identity__link-icon has-icon icon-chevron-right icon-flip-rtl"
                         aria-hidden="true"
                       ></span>
                     </a>
                   </nav>
-                </div>
+                </header>
 
-                <!-- Price and Primary Actions -->
+                <!-- ================================================================
+               Price and Primary Actions
+               ============================================================== -->
 
-                <footer class="company-profile-hero__footer">
+                <div class="market-data-hero__footer">
                   <div
                     class="instrument-price"
                     aria-label="Current share price: 96.75 Saudi riyals. Increased by 0.65 Saudi riyals, or 0.68 percent."
+                    aria-live="polite"
                     dir="ltr"
                   >
                     <div class="instrument-price__current">
@@ -5590,12 +5588,12 @@
                   </div>
 
                   <nav
-                    class="company-profile-hero__actions"
+                    class="market-data-hero__actions"
                     aria-label="Company investment actions"
                   >
                     <a
-                      class="btn btn-light company-profile-hero__action"
-                      href="#"
+                      class="btn btn-light market-data-hero__action"
+                      href="#invest"
                     >
                       <span>Invest Now</span>
 
@@ -5606,8 +5604,8 @@
                     </a>
 
                     <a
-                      class="btn btn-outline-light company-profile-hero__action"
-                      href="#"
+                      class="btn btn-outline-light market-data-hero__action"
+                      href="#peer-comparison"
                     >
                       <span>Peer Comparison</span>
 
@@ -5617,146 +5615,151 @@
                       ></span>
                     </a>
                   </nav>
-                </footer>
+                </div>
               </div>
             </div>
 
             <!-- ====================================================================
-           Market Snapshot
+           Company Market Data
            ================================================================= -->
 
             <aside
-              class="company-profile-hero__aside market-snapshot"
-              aria-labelledby="company-market-snapshot-title"
+              class="market-data-hero__secondary market-data-panel"
+              aria-labelledby="company-market-data-title"
             >
-              <h2 id="company-market-snapshot-title" class="visually-hidden">
-                Al Rajhi Bank market snapshot
+              <h2 id="company-market-data-title" class="visually-hidden">
+                Al Rajhi Bank market data
               </h2>
 
-              <div class="tabs market-snapshot__tabs" data-tabs>
-                <!-- Snapshot Navigation -->
+              <div class="tabs market-data-panel__tabs" data-tabs>
+                <!-- Tab Navigation -->
 
                 <div
-                  class="tabs-nav market-snapshot__nav"
+                  class="tabs-nav market-data-panel__nav"
                   role="tablist"
-                  aria-label="Market snapshot views"
+                  aria-label="Company market data views"
                 >
                   <button
-                    class="tab-link market-snapshot__tab active"
-                    id="company-snapshot-trade-tab"
+                    class="tab-link market-data-panel__tab active"
+                    id="company-trade-updates-tab"
                     type="button"
                     role="tab"
                     aria-selected="true"
-                    aria-controls="company-snapshot-trade-panel"
+                    aria-controls="company-trade-updates-panel"
                     tabindex="0"
-                    data-tab-target="company-snapshot-trade-panel"
+                    data-tab-target="company-trade-updates-panel"
                   >
                     Trade Updates
                   </button>
 
                   <button
-                    class="tab-link market-snapshot__tab"
-                    id="company-snapshot-performance-tab"
+                    class="tab-link market-data-panel__tab"
+                    id="company-performance-tab"
                     type="button"
                     role="tab"
                     aria-selected="false"
-                    aria-controls="company-snapshot-performance-panel"
+                    aria-controls="company-performance-panel"
                     tabindex="-1"
-                    data-tab-target="company-snapshot-performance-panel"
+                    data-tab-target="company-performance-panel"
                   >
                     Performance
                   </button>
                 </div>
 
-                <!-- Snapshot Content -->
+                <!-- Tab Content -->
 
-                <div class="tabs-content market-snapshot__content">
+                <div class="tabs-content market-data-panel__content">
                   <!-- ==============================================================
                  Trade Updates
-                 =========================================================== -->
+                 ============================================================ -->
 
                   <section
-                    class="tab-pane market-snapshot__panel active"
-                    id="company-snapshot-trade-panel"
+                    class="tab-pane market-data-panel__panel active"
+                    id="company-trade-updates-panel"
                     role="tabpanel"
-                    aria-labelledby="company-snapshot-trade-tab"
+                    aria-labelledby="company-trade-updates-tab"
                   >
-                    <dl class="market-snapshot__grid">
-                      <div class="market-snapshot__item">
-                        <dt class="market-snapshot__label">Previous Close</dt>
+                    <h3 class="visually-hidden">Company trade updates</h3>
 
-                        <dd class="market-snapshot__value">
+                    <dl
+                      class="market-metrics market-metrics--2 market-metrics--compact"
+                      aria-label="Company trade updates"
+                    >
+                      <div class="market-metrics__item">
+                        <dt class="market-metrics__label">Previous Close</dt>
+
+                        <dd class="market-metrics__value">
                           <data value="96.10">96.10</data>
                         </dd>
                       </div>
 
-                      <div class="market-snapshot__item">
-                        <dt class="market-snapshot__label">Number of Trades</dt>
+                      <div class="market-metrics__item">
+                        <dt class="market-metrics__label">Number of Trades</dt>
 
-                        <dd class="market-snapshot__value">
+                        <dd class="market-metrics__value">
                           <data value="4620">4,620</data>
                         </dd>
                       </div>
 
-                      <div class="market-snapshot__item">
-                        <dt class="market-snapshot__label">Open</dt>
+                      <div class="market-metrics__item">
+                        <dt class="market-metrics__label">Open</dt>
 
-                        <dd class="market-snapshot__value">
+                        <dd class="market-metrics__value">
                           <data value="96.10">96.10</data>
                         </dd>
                       </div>
 
-                      <div class="market-snapshot__item">
-                        <dt class="market-snapshot__label">
+                      <div class="market-metrics__item">
+                        <dt class="market-metrics__label">
                           <span>Average Trade Size</span>
 
                           <span
-                            class="tooltip tooltip-start market-snapshot__tooltip"
+                            class="tooltip tooltip-start market-metrics__tooltip"
                             data-tooltip="Average trade size is calculated by dividing traded volume by the number of trades."
                           >
                             <button
-                              class="market-snapshot__info has-icon icon-info-warning"
+                              class="market-metrics__info has-icon icon-info-warning"
                               type="button"
                               aria-label="More information about average trade size"
                             ></button>
                           </span>
                         </dt>
 
-                        <dd class="market-snapshot__value">
+                        <dd class="market-metrics__value">
                           <data value="285">285</data>
                         </dd>
                       </div>
 
-                      <div class="market-snapshot__item">
-                        <dt class="market-snapshot__label">High</dt>
+                      <div class="market-metrics__item">
+                        <dt class="market-metrics__label">High</dt>
 
-                        <dd class="market-snapshot__value">
+                        <dd class="market-metrics__value">
                           <data value="96.90">96.90</data>
                         </dd>
                       </div>
 
-                      <div class="market-snapshot__item">
-                        <dt class="market-snapshot__label">Volume Traded</dt>
+                      <div class="market-metrics__item">
+                        <dt class="market-metrics__label">Volume Traded</dt>
 
-                        <dd class="market-snapshot__value">
+                        <dd class="market-metrics__value">
                           <data value="1317345">1,317,345</data>
                         </dd>
                       </div>
 
-                      <div class="market-snapshot__item">
-                        <dt class="market-snapshot__label">Low</dt>
+                      <div class="market-metrics__item">
+                        <dt class="market-metrics__label">Low</dt>
 
-                        <dd class="market-snapshot__value">
+                        <dd class="market-metrics__value">
                           <data value="96.05">96.05</data>
                         </dd>
                       </div>
 
-                      <div class="market-snapshot__item">
-                        <dt class="market-snapshot__label">Value Traded</dt>
+                      <div class="market-metrics__item">
+                        <dt class="market-metrics__label">Value Traded</dt>
 
-                        <dd class="market-snapshot__value">
+                        <dd class="market-metrics__value">
                           <span
-                            class="market-snapshot__currency has-icon icon-riyal"
+                            class="market-metrics__currency has-icon icon-riyal"
                             aria-hidden="true"
                           ></span>
 
@@ -5768,210 +5771,249 @@
 
                   <!-- ==============================================================
                  Performance
-                 =========================================================== -->
+                 ============================================================ -->
 
                   <section
-                    class="tab-pane market-snapshot__panel"
-                    id="company-snapshot-performance-panel"
+                    class="tab-pane market-data-panel__panel"
+                    id="company-performance-panel"
                     role="tabpanel"
-                    aria-labelledby="company-snapshot-performance-tab"
+                    aria-labelledby="company-performance-tab"
                     hidden
                   >
-                    <div class="market-snapshot__groups">
+                    <h3 class="visually-hidden">Company market performance</h3>
+
+                    <div class="market-data-group-list">
                       <!-- Last Trade -->
 
                       <section
-                        class="market-snapshot__group"
+                        class="market-data-group market-data-group--featured"
                         aria-labelledby="company-last-trade-title"
                       >
-                        <h3
-                          id="company-last-trade-title"
-                          class="market-snapshot__group-title"
-                        >
-                          Last Trade
-                        </h3>
-
-                        <dl
-                          class="market-snapshot__grid market-snapshot__grid--trade"
-                        >
-                          <div class="market-snapshot__item">
-                            <dt class="market-snapshot__label">Price</dt>
-
-                            <dd class="market-snapshot__value">
-                              <data value="103">103.00</data>
-                            </dd>
-                          </div>
-
-                          <div class="market-snapshot__item">
-                            <dt class="market-snapshot__label">Change %</dt>
-
-                            <dd class="market-snapshot__value price-down">
-                              <span
-                                class="market-snapshot__direction has-icon icon-triangle-down"
-                                aria-hidden="true"
-                              ></span>
-
-                              <data value="-1.06">−1.06</data>
-                            </dd>
-                          </div>
-                        </dl>
-                      </section>
-
-                      <!-- Best Bid and Best Offer -->
-
-                      <div class="market-snapshot__group-row">
-                        <section
-                          class="market-snapshot__group"
-                          aria-labelledby="company-best-bid-title"
-                        >
-                          <h3
-                            id="company-best-bid-title"
-                            class="market-snapshot__group-title"
+                        <header class="market-data-group__header">
+                          <h4
+                            id="company-last-trade-title"
+                            class="market-data-group__title"
                           >
-                            Best Bid
-                          </h3>
+                            Last Trade
+                          </h4>
+                        </header>
 
+                        <div class="market-data-group__body">
                           <dl
-                            class="market-snapshot__grid market-snapshot__grid--quote"
+                            class="market-metrics market-metrics--2 market-metrics--compact"
+                            aria-label="Last trade details"
                           >
-                            <div class="market-snapshot__item">
-                              <dt class="market-snapshot__label">Price</dt>
+                            <div class="market-metrics__item">
+                              <dt class="market-metrics__label">Price</dt>
 
-                              <dd class="market-snapshot__value">
+                              <dd class="market-metrics__value">
                                 <data value="103">103.00</data>
                               </dd>
                             </div>
 
-                            <div class="market-snapshot__item">
-                              <dt class="market-snapshot__label">Volume</dt>
+                            <div class="market-metrics__item">
+                              <dt class="market-metrics__label">
+                                Change Percentage
+                              </dt>
 
-                              <dd class="market-snapshot__value">
-                                <data value="3401">3,401</data>
+                              <dd class="market-metrics__value price-down">
+                                <span
+                                  class="market-metrics__direction has-icon icon-triangle-down"
+                                  aria-hidden="true"
+                                ></span>
+
+                                <data value="-1.06">−1.06%</data>
                               </dd>
                             </div>
                           </dl>
-                        </section>
+                        </div>
+                      </section>
 
-                        <section
-                          class="market-snapshot__group"
-                          aria-labelledby="company-best-offer-title"
-                        >
-                          <h3
-                            id="company-best-offer-title"
-                            class="market-snapshot__group-title"
-                          >
-                            Best Offer
-                          </h3>
-
-                          <dl
-                            class="market-snapshot__grid market-snapshot__grid--quote"
-                          >
-                            <div class="market-snapshot__item">
-                              <dt class="market-snapshot__label">Price</dt>
-
-                              <dd class="market-snapshot__value">
-                                <data value="103.10">103.10</data>
-                              </dd>
-                            </div>
-
-                            <div class="market-snapshot__item">
-                              <dt class="market-snapshot__label">Volume</dt>
-
-                              <dd class="market-snapshot__value">
-                                <data value="14650">14,650</data>
-                              </dd>
-                            </div>
-                          </dl>
-                        </section>
-                      </div>
-
-                      <!-- 52 Week -->
+                      <!-- Orders -->
 
                       <section
-                        class="market-snapshot__group"
+                        class="market-data-group"
+                        aria-labelledby="company-order-book-title"
+                      >
+                        <header class="market-data-group__header">
+                          <h4
+                            id="company-order-book-title"
+                            class="market-data-group__title"
+                          >
+                            Orders
+                          </h4>
+                        </header>
+
+                        <div class="market-data-group__body">
+                          <!-- Best Bid -->
+
+                          <div
+                            class="market-data-group__row"
+                            aria-labelledby="company-best-bid-title"
+                          >
+                            <h5
+                              id="company-best-bid-title"
+                              class="market-data-group__row-title"
+                            >
+                              Best Bid
+                            </h5>
+
+                            <dl
+                              class="market-metrics market-metrics--2 market-metrics--compact"
+                              aria-label="Best bid details"
+                            >
+                              <div class="market-metrics__item">
+                                <dt class="market-metrics__label">Price</dt>
+
+                                <dd class="market-metrics__value">
+                                  <data value="103">103.00</data>
+                                </dd>
+                              </div>
+
+                              <div class="market-metrics__item">
+                                <dt class="market-metrics__label">Volume</dt>
+
+                                <dd class="market-metrics__value">
+                                  <data value="3401">3,401</data>
+                                </dd>
+                              </div>
+                            </dl>
+                          </div>
+
+                          <!-- Best Offer -->
+
+                          <div
+                            class="market-data-group__row"
+                            aria-labelledby="company-best-offer-title"
+                          >
+                            <h5
+                              id="company-best-offer-title"
+                              class="market-data-group__row-title"
+                            >
+                              Best Offer
+                            </h5>
+
+                            <dl
+                              class="market-metrics market-metrics--2 market-metrics--compact"
+                              aria-label="Best offer details"
+                            >
+                              <div class="market-metrics__item">
+                                <dt class="market-metrics__label">Price</dt>
+
+                                <dd class="market-metrics__value">
+                                  <data value="103.10">103.10</data>
+                                </dd>
+                              </div>
+
+                              <div class="market-metrics__item">
+                                <dt class="market-metrics__label">Volume</dt>
+
+                                <dd class="market-metrics__value">
+                                  <data value="14650">14,650</data>
+                                </dd>
+                              </div>
+                            </dl>
+                          </div>
+                        </div>
+                      </section>
+
+                      <!-- 52-week Performance -->
+
+                      <section
+                        class="market-data-group"
                         aria-labelledby="company-52-week-title"
                       >
-                        <h3
-                          id="company-52-week-title"
-                          class="market-snapshot__group-title"
-                        >
-                          52 Week
-                        </h3>
+                        <header class="market-data-group__header">
+                          <h4
+                            id="company-52-week-title"
+                            class="market-data-group__title"
+                          >
+                            52 Week
+                          </h4>
+                        </header>
 
-                        <dl
-                          class="market-snapshot__grid market-snapshot__grid--three"
-                        >
-                          <div class="market-snapshot__item">
-                            <dt class="market-snapshot__label">Low</dt>
+                        <div class="market-data-group__body">
+                          <dl
+                            class="market-metrics market-metrics--3 market-metrics--compact"
+                            aria-label="52-week performance"
+                          >
+                            <div class="market-metrics__item">
+                              <dt class="market-metrics__label">Low</dt>
 
-                            <dd class="market-snapshot__value">
-                              <data value="87.80">87.80</data>
-                            </dd>
-                          </div>
+                              <dd class="market-metrics__value">
+                                <data value="87.80">87.80</data>
+                              </dd>
+                            </div>
 
-                          <div class="market-snapshot__item">
-                            <dt class="market-snapshot__label">High</dt>
+                            <div class="market-metrics__item">
+                              <dt class="market-metrics__label">High</dt>
 
-                            <dd class="market-snapshot__value">
-                              <data value="113">113.00</data>
-                            </dd>
-                          </div>
+                              <dd class="market-metrics__value">
+                                <data value="113">113.00</data>
+                              </dd>
+                            </div>
 
-                          <div class="market-snapshot__item">
-                            <dt class="market-snapshot__label">Change</dt>
+                            <div class="market-metrics__item">
+                              <dt class="market-metrics__label">Change</dt>
 
-                            <dd class="market-snapshot__value price-up">
-                              <span
-                                class="market-snapshot__direction has-icon icon-triangle-up"
-                                aria-hidden="true"
-                              ></span>
+                              <dd class="market-metrics__value price-up">
+                                <span
+                                  class="market-metrics__direction has-icon icon-triangle-up"
+                                  aria-hidden="true"
+                                ></span>
 
-                              <data value="17.05">17.05</data>
-                            </dd>
-                          </div>
-                        </dl>
+                                <data value="17.05">17.05</data>
+                              </dd>
+                            </div>
+                          </dl>
+                        </div>
                       </section>
 
                       <!-- Historical Performance -->
 
                       <section
-                        class="market-snapshot__group"
-                        aria-labelledby="company-performance-periods-title"
+                        class="market-data-group"
+                        aria-labelledby="company-period-performance-title"
                       >
-                        <h3
-                          id="company-performance-periods-title"
-                          class="market-snapshot__group-title"
-                        >
-                          Performance
-                        </h3>
+                        <header class="market-data-group__header">
+                          <h4
+                            id="company-period-performance-title"
+                            class="market-data-group__title"
+                          >
+                            Performance
+                          </h4>
+                        </header>
 
-                        <dl
-                          class="market-snapshot__grid market-snapshot__grid--three"
-                        >
-                          <div class="market-snapshot__item">
-                            <dt class="market-snapshot__label">YTD</dt>
+                        <div class="market-data-group__body">
+                          <dl
+                            class="market-metrics market-metrics--3 market-metrics--compact"
+                            aria-label="Historical company performance"
+                          >
+                            <div class="market-metrics__item">
+                              <dt class="market-metrics__label">YTD</dt>
 
-                            <dd class="market-snapshot__value price-neutral">
-                              <data value="95.8">95.8</data>
-                            </dd>
-                          </div>
+                              <dd class="market-metrics__value price-neutral">
+                                <data value="95.8">95.8</data>
+                              </dd>
+                            </div>
 
-                          <div class="market-snapshot__item">
-                            <dt class="market-snapshot__label">1 Year</dt>
+                            <div class="market-metrics__item">
+                              <dt class="market-metrics__label">1 Year</dt>
 
-                            <dd class="market-snapshot__value">
-                              <data value="88">88</data>
-                            </dd>
-                          </div>
+                              <dd class="market-metrics__value">
+                                <data value="88">88</data>
+                              </dd>
+                            </div>
 
-                          <div class="market-snapshot__item">
-                            <dt class="market-snapshot__label">3 Years</dt>
+                            <div class="market-metrics__item">
+                              <dt class="market-metrics__label">3 Years</dt>
 
-                            <dd class="market-snapshot__value">
-                              <data value="84.3">84.3</data>
-                            </dd>
-                          </div>
-                        </dl>
+                              <dd class="market-metrics__value">
+                                <data value="84.3">84.3</data>
+                              </dd>
+                            </div>
+                          </dl>
+                        </div>
                       </section>
                     </div>
                   </section>

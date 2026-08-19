@@ -1,0 +1,376 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Market Data Group List
+   ========================================================================== */
+
+/**
+ * Arranges related market-data groups inside a panel.
+ *
+ * Examples:
+ *
+ * - Last Trade
+ * - Orders
+ * - Best Bid and Best Offer
+ * - Settlement information
+ */
+
+.market-data-group-list {
+  display: grid;
+  gap: 0.75rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Market Data Group
+   ========================================================================== */
+
+.market-data-group {
+  --market-data-group-bg: rgb(255 255 255 / 0.035);
+  --market-data-group-featured-bg: rgb(255 255 255 / 0.055);
+
+  --market-data-group-border: var(
+    --market-data-panel-divider,
+    var(--color-border)
+  );
+
+  --market-data-group-color: var(
+    --market-data-panel-color,
+    var(--color-heading)
+  );
+
+  --market-data-group-muted: var(
+    --market-data-panel-muted,
+    var(--color-text-muted)
+  );
+
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  border: 1px solid var(--market-data-group-border);
+  border-radius: var(--radius-md);
+
+  background: var(--market-data-group-bg);
+  color: var(--market-data-group-color);
+}
+
+/* ==========================================================================
+   Featured Group
+   ========================================================================== */
+
+.market-data-group--featured {
+  background: var(--market-data-group-featured-bg);
+}
+
+/* ==========================================================================
+   Group Header
+   ========================================================================== */
+
+.market-data-group__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  min-inline-size: 0;
+  padding-block: 0.625rem;
+  padding-inline: 0.75rem;
+
+  border-block-end: 1px solid var(--market-data-group-border);
+}
+
+/* ==========================================================================
+   Group Title
+   ========================================================================== */
+
+.market-data-group__title {
+  min-inline-size: 0;
+  margin: 0;
+
+  color: var(--market-data-group-color);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Group Description
+   ========================================================================== */
+
+.market-data-group__description {
+  margin: 0;
+
+  color: var(--market-data-group-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Group Body
+   ========================================================================== */
+
+.market-data-group__body {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Metrics inside Groups
+   ========================================================================== */
+
+/**
+ * The group itself supplies the outer boundary. Metrics keep their internal
+ * column dividers without drawing an additional bottom edge.
+ */
+
+.market-data-group__body .market-metrics__item {
+  border-block-end: 0;
+}
+
+/* ==========================================================================
+   Group Row
+   ========================================================================== */
+
+/**
+ * A row combines a named market state with its related values.
+ *
+ * Example:
+ *
+ * Best Bid | Yield | Price | Volume
+ */
+
+.market-data-group__row {
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 0.34fr) minmax(0, 1fr);
+
+  align-items: stretch;
+
+  min-inline-size: 0;
+
+  border-block-end: 1px solid var(--market-data-group-border);
+}
+
+.market-data-group__row:last-child {
+  border-block-end: 0;
+}
+
+/* ==========================================================================
+   Row Title
+   ========================================================================== */
+
+.market-data-group__row-title {
+  display: flex;
+  align-items: center;
+
+  min-inline-size: 0;
+  padding-block: 0.625rem;
+  padding-inline: 0.75rem;
+  margin: 0;
+
+  border-inline-end: 1px solid var(--market-data-group-border);
+
+  color: var(--market-data-group-color);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Row Metrics
+   ========================================================================== */
+
+.market-data-group__row .market-metrics {
+  align-self: stretch;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Date and Time
+   ========================================================================== */
+
+.market-data-group__datetime {
+  display: grid;
+  gap: 0.125rem;
+
+  min-inline-size: 0;
+
+  direction: ltr;
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-tight);
+  unicode-bidi: isolate;
+}
+
+.market-data-group__date,
+.market-data-group__time {
+  display: block;
+
+  min-inline-size: 0;
+
+  white-space: nowrap;
+}
+
+.market-data-group__time {
+  color: var(--market-data-group-muted);
+
+  font-size: 0.875em;
+  font-weight: ds.font-weight("medium");
+}
+
+/* ==========================================================================
+   Flat Variant
+   ========================================================================== */
+
+/**
+ * Removes the local surface when a group is already inside a visually dense
+ * container.
+ */
+
+.market-data-group--flat {
+  border-inline: 0;
+  border-radius: 0;
+
+  background: transparent;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .market-data-group--featured .market-metrics--4 {
+    --market-metrics-columns: 2;
+  }
+
+  .market-data-group--featured .market-metrics--4 .market-metrics__item {
+    border-block-end: 1px solid var(--market-data-group-border);
+  }
+
+  .market-data-group--featured
+    .market-metrics--4
+    .market-metrics__item:last-child {
+    border-block-end: 0;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .market-data-group__row {
+    grid-template-columns: minmax(5.5rem, 0.28fr) minmax(0, 1fr);
+  }
+
+  .market-data-group__row-title {
+    padding-inline: 0.625rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .market-data-group-list {
+    gap: 0.625rem;
+  }
+
+  .market-data-group__header {
+    padding-block: 0.625rem;
+    padding-inline: 0.625rem;
+  }
+
+  .market-data-group__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .market-data-group__row-title {
+    min-block-size: auto;
+    padding-block: 0.5rem;
+    padding-inline: 0.625rem;
+
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--market-data-group-border);
+  }
+
+  .market-data-group__datetime {
+    gap: 0.1875rem;
+  }
+
+  .market-data-group__date,
+  .market-data-group__time {
+    white-space: normal;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-data-group {
+    --market-data-group-bg: transparent;
+    --market-data-group-featured-bg: transparent;
+    --market-data-group-border: currentColor;
+    --market-data-group-color: currentColor;
+    --market-data-group-muted: currentColor;
+
+    border-width: 2px;
+  }
+
+  .market-data-group__header,
+  .market-data-group__row,
+  .market-data-group__row-title {
+    border-width: 2px;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .market-data-group {
+    --market-data-group-bg: Canvas;
+    --market-data-group-featured-bg: Canvas;
+    --market-data-group-border: CanvasText;
+    --market-data-group-color: CanvasText;
+    --market-data-group-muted: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .market-data-group {
+    --market-data-group-bg: transparent;
+    --market-data-group-featured-bg: transparent;
+    --market-data-group-border: #000000;
+    --market-data-group-color: #000000;
+    --market-data-group-muted: #333333;
+
+    break-inside: avoid;
+  }
+
+  .market-data-group__row {
+    break-inside: avoid;
+  }
+}
