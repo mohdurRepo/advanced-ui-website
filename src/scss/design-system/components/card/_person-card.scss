@@ -4,20 +4,31 @@
    Person Card
    ========================================================================== */
 
-/*
- * Reusable profile card for:
+/**
+ * Interactive profile Card for:
  *
- * - board members
- * - executives
- * - leadership teams
- * - speakers
- * - professional directories
+ * - board members;
+ * - executives;
+ * - leadership teams;
+ * - speakers;
+ * - professional directories.
  *
- * The card supports a portrait presentation on larger screens and switches
- * to a compact horizontal composition on mobile.
+ * Recommended markup:
+ *
+ * <button
+ *   class="card person-card"
+ *   type="button"
+ *   aria-haspopup="dialog"
+ *   aria-controls="person-profile"
+ * >
+ *
+ * The generic `.card` class owns the surface, border, radius, elevation,
+ * shared pattern, and foundational states.
  */
 
 .person-card {
+  /* Backward-compatible semantic tokens */
+
   --person-card-bg: var(--color-surface);
   --person-card-color: var(--color-text);
   --person-card-heading: var(--color-heading);
@@ -26,17 +37,38 @@
   --person-card-border: var(--color-border);
   --person-card-border-hover: var(--color-primary);
 
+  /* Media */
+
   --person-card-media-bg: var(--color-surface-alt);
   --person-card-media-ratio: 8 / 9;
   --person-card-image-position: center top;
 
+  /* Layout */
+
   --person-card-padding: #{ds.space(4)};
   --person-card-gap: #{ds.space(4)};
 
-  appearance: none;
+  /* Motion */
 
-  position: relative;
-  isolation: isolate;
+  --person-card-hover-translate: -0.1875rem;
+  --person-card-image-scale: 1.025;
+  --person-card-action-translate: 0.2rem;
+
+  /* Shared Card mappings */
+
+  --card-bg: var(--person-card-bg);
+  --card-color: var(--person-card-color);
+  --card-heading-color: var(--person-card-heading);
+  --card-muted-color: var(--person-card-muted);
+
+  --card-border-color: var(--person-card-border);
+  --card-hover-border-color: var(--person-card-border-hover);
+
+  --card-pattern-size: 11rem;
+  --card-pattern-opacity: 0.07;
+  --card-pattern-hover-opacity: 0.13;
+
+  appearance: none;
 
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
@@ -44,26 +76,26 @@
   inline-size: 100%;
   min-inline-size: 0;
   block-size: 100%;
+
   padding: 0;
 
-  overflow: hidden;
-
-  border: 1px solid var(--person-card-border);
-  border-radius: var(--radius-lg);
-
-  background: var(--person-card-bg);
-  color: var(--person-card-color);
-
-  box-shadow: var(--shadow-sm);
+  /**
+   * The media region clips itself. The Card root remains visible so keyboard
+   * focus rings and contextual overlays are not clipped.
+   */
+  overflow: visible;
 
   font: inherit;
 
   text-align: start;
 
   cursor: pointer;
+  touch-action: manipulation;
+
+  -webkit-tap-highlight-color: transparent;
 
   @include ds.transition(
-    (border-color, box-shadow, transform, background-color),
+    (background-color, border-color, box-shadow, transform),
     "fast"
   );
 }
@@ -78,11 +110,16 @@
   display: block;
 
   inline-size: 100%;
+  min-inline-size: 0;
   aspect-ratio: var(--person-card-media-ratio);
 
   overflow: hidden;
 
   border-block-end: 1px solid var(--person-card-border);
+  border-start-start-radius: calc(
+    var(--card-radius) - var(--card-border-width)
+  );
+  border-start-end-radius: calc(var(--card-radius) - var(--card-border-width));
 
   background: var(--person-card-media-bg);
 }
@@ -115,8 +152,8 @@
 
   background: linear-gradient(
     180deg,
-    transparent 70%,
-    rgb(0 31 51 / 0.12) 100%
+    transparent 68%,
+    rgb(0 31 51 / 0.14) 100%
   );
 
   opacity: 0;
@@ -131,6 +168,9 @@
    ========================================================================== */
 
 .person-card__body {
+  position: relative;
+  z-index: 0;
+
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -138,6 +178,7 @@
 
   min-inline-size: 0;
   min-block-size: 0;
+
   padding: var(--person-card-padding);
 }
 
@@ -148,7 +189,7 @@
 .person-card__identity {
   display: grid;
   align-content: start;
-  gap: ds.space(1);
+  gap: #{ds.space(1)};
 
   min-inline-size: 0;
 }
@@ -165,6 +206,7 @@
   line-height: var(--line-height-tight);
 
   overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 /* ==========================================================================
@@ -178,6 +220,7 @@
   line-height: var(--line-height-normal);
 
   overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 /* ==========================================================================
@@ -189,7 +232,10 @@
 
   display: inline-flex;
   align-items: center;
-  gap: ds.space(2);
+  gap: #{ds.space(2)};
+
+  inline-size: fit-content;
+  max-inline-size: 100%;
 
   margin-block-start: auto;
 
@@ -198,45 +244,63 @@
   font-size: var(--text-sm);
   font-weight: ds.font-weight("bold");
   line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
 }
 
-/*
- * The registered icon is rendered by ::before. Row reversal keeps the
- * chevron at the visual end without relying on direct-child selectors.
+/* ==========================================================================
+   Action Icon
+   ========================================================================== */
+
+/**
+ * The icon is rendered through `::before`.
+ *
+ * `order` places it at the logical action end. The independent `translate`
+ * property preserves the transform owned by `.icon-flip-rtl`.
  */
 
-.person-card__action.has-icon {
-  flex-direction: row-reverse;
+.person-card__action::before {
+  order: 2;
+
+  flex: 0 0 auto;
+
+  translate: 0 0;
+
+  @include ds.transition(translate, "fast");
 }
 
 /* ==========================================================================
    Hover
    ========================================================================== */
 
-.person-card:hover {
-  border-color: var(--person-card-border-hover);
+@media (hover: hover) and (pointer: fine) {
+  .person-card:hover:not(:disabled):not(.is-disabled) {
+    border-color: var(--person-card-border-hover);
 
-  box-shadow: var(--shadow-md);
+    box-shadow: var(--card-hover-shadow);
 
-  transform: translateY(-0.1875rem);
-}
+    transform: translateY(var(--person-card-hover-translate));
+  }
 
-.person-card:hover .person-card__image {
-  transform: scale(1.025);
-}
+  .person-card:hover:not(:disabled):not(.is-disabled)::before {
+    opacity: var(--card-pattern-hover-opacity);
 
-.person-card:hover .person-card__media::after {
-  opacity: 1;
-}
+    transform: scale(1.025);
+  }
 
-/* ==========================================================================
-   Active
-   ========================================================================== */
+  .person-card:hover:not(:disabled):not(.is-disabled) .person-card__image {
+    transform: scale(var(--person-card-image-scale));
+  }
 
-.person-card:active {
-  box-shadow: var(--shadow-sm);
+  .person-card:hover:not(:disabled):not(.is-disabled)
+    .person-card__media::after {
+    opacity: 1;
+  }
 
-  transform: translateY(0);
+  .person-card:hover:not(:disabled):not(.is-disabled)
+    .person-card__action::before {
+    translate: var(--person-card-action-translate) 0;
+  }
 }
 
 /* ==========================================================================
@@ -248,7 +312,33 @@
 }
 
 .person-card:focus-visible {
+  border-color: var(--person-card-border-hover);
+
   @include ds.focus-ring;
+}
+
+.person-card:focus-visible::before {
+  opacity: var(--card-pattern-hover-opacity);
+
+  transform: scale(1.025);
+}
+
+.person-card:focus-visible .person-card__media::after {
+  opacity: 1;
+}
+
+.person-card:focus-visible .person-card__action::before {
+  translate: var(--person-card-action-translate) 0;
+}
+
+/* ==========================================================================
+   Active
+   ========================================================================== */
+
+.person-card:active:not(:disabled):not(.is-disabled) {
+  box-shadow: var(--card-shadow);
+
+  transform: translateY(0);
 }
 
 /* ==========================================================================
@@ -258,9 +348,15 @@
 .person-card:disabled,
 .person-card.is-disabled,
 .person-card[aria-disabled="true"] {
-  border-color: var(--color-disabled);
+  --person-card-border: var(--color-disabled);
+  --person-card-color: var(--color-on-disabled);
+  --person-card-heading: var(--color-on-disabled);
+  --person-card-muted: var(--color-on-disabled);
 
-  color: var(--color-on-disabled);
+  --card-pattern-opacity: 0.03;
+  --card-pattern-hover-opacity: 0.03;
+
+  background: var(--color-disabled);
 
   box-shadow: none;
 
@@ -274,7 +370,37 @@
 .person-card[aria-disabled="true"] .person-card__image {
   filter: grayscale(1);
 
-  opacity: 0.65;
+  opacity: 0.62;
+}
+
+.person-card:disabled .person-card__media::after,
+.person-card.is-disabled .person-card__media::after,
+.person-card[aria-disabled="true"] .person-card__media::after {
+  display: none;
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.person-card[aria-busy="true"] {
+  cursor: wait;
+  pointer-events: none;
+}
+
+.person-card[aria-busy="true"] .person-card__media,
+.person-card[aria-busy="true"] .person-card__body {
+  opacity: 0.56;
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .person-card {
+  --person-card-action-translate: -0.2rem;
+
+  text-align: start;
 }
 
 /* ==========================================================================
@@ -286,6 +412,7 @@
     --person-card-padding: #{ds.space(3)};
     --person-card-gap: #{ds.space(3)};
     --person-card-media-ratio: 4 / 5;
+    --card-pattern-size: 10rem;
   }
 
   .person-card__name {
@@ -297,22 +424,21 @@
    Mobile
    ========================================================================== */
 
-/*
- * Mobile cards become horizontal. This keeps the portrait useful while
- * preventing one card from occupying nearly the entire viewport.
+/**
+ * Mobile Cards become horizontal so the portrait remains useful without one
+ * profile occupying most of the viewport.
  */
 
 @include ds.respond-down("sm") {
   .person-card {
     --person-card-padding: #{ds.space(3)};
     --person-card-gap: #{ds.space(3)};
+    --card-pattern-size: 8rem;
 
     grid-template-columns: 7.5rem minmax(0, 1fr);
     grid-template-rows: minmax(9.5rem, auto);
 
     min-block-size: 9.5rem;
-
-    border-radius: var(--radius-md);
   }
 
   .person-card__media {
@@ -322,6 +448,15 @@
 
     border-block-end: 0;
     border-inline-end: 1px solid var(--person-card-border);
+
+    border-start-start-radius: calc(
+      var(--card-radius) - var(--card-border-width)
+    );
+    border-start-end-radius: 0;
+    border-end-start-radius: calc(
+      var(--card-radius) - var(--card-border-width)
+    );
+    border-end-end-radius: 0;
   }
 
   .person-card__body {
@@ -357,8 +492,9 @@
   }
 
   .person-card__body {
-    gap: ds.space(2);
-    padding: ds.space(2);
+    gap: #{ds.space(2)};
+
+    padding: #{ds.space(2)};
   }
 
   .person-card__name {
@@ -367,11 +503,16 @@
 }
 
 /* ==========================================================================
-   RTL
+   Dark Theme
    ========================================================================== */
 
-html[dir="rtl"] .person-card {
-  text-align: start;
+html[data-theme="dark"] .person-card {
+  --card-pattern-opacity: 0.11;
+  --card-pattern-hover-opacity: 0.18;
+}
+
+html[data-theme="dark"] .person-card__media::after {
+  background: linear-gradient(180deg, transparent 62%, rgb(0 0 0 / 0.26) 100%);
 }
 
 /* ==========================================================================
@@ -380,7 +521,7 @@ html[dir="rtl"] .person-card {
 
 html[data-contrast="high"] .person-card {
   border-width: 2px;
-  border-color: var(--color-border-strong);
+  border-color: currentColor;
 
   box-shadow: none;
 }
@@ -398,6 +539,14 @@ html[data-contrast="high"] .person-card__media {
 
 html[data-contrast="high"] .person-card__media::after {
   display: none;
+}
+
+html[data-contrast="high"] .person-card__action {
+  color: currentColor;
+
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
 }
 
 /* ==========================================================================
@@ -420,6 +569,10 @@ html[data-contrast="high"] .person-card__media::after {
     background: Canvas;
   }
 
+  .person-card__media::after {
+    display: none;
+  }
+
   .person-card__name,
   .person-card__role {
     color: CanvasText;
@@ -427,6 +580,21 @@ html[data-contrast="high"] .person-card__media::after {
 
   .person-card__action {
     color: LinkText;
+  }
+
+  .person-card:hover,
+  .person-card:focus-visible {
+    border-color: Highlight;
+
+    transform: none;
+  }
+
+  .person-card:disabled,
+  .person-card.is-disabled,
+  .person-card[aria-disabled="true"] {
+    border-color: GrayText;
+
+    color: GrayText;
   }
 }
 
@@ -436,29 +604,71 @@ html[data-contrast="high"] .person-card__media::after {
 
 @media (prefers-reduced-motion: reduce) {
   .person-card,
+  .person-card::before,
   .person-card__image,
-  .person-card__media::after {
+  .person-card__media::after,
+  .person-card__action::before {
     transition: none;
   }
 
   .person-card:hover,
-  .person-card:active {
+  .person-card:active,
+  .person-card:hover::before,
+  .person-card:focus-visible::before,
+  .person-card:hover .person-card__image,
+  .person-card:hover .person-card__action::before,
+  .person-card:focus-visible .person-card__action::before {
     transform: none;
-  }
-
-  .person-card:hover .person-card__image {
-    transform: none;
+    translate: none;
   }
 }
 
 html[data-motion="reduce"] .person-card,
+html[data-motion="reduce"] .person-card::before,
 html[data-motion="reduce"] .person-card__image,
-html[data-motion="reduce"] .person-card__media::after {
+html[data-motion="reduce"] .person-card__media::after,
+html[data-motion="reduce"] .person-card__action::before {
   transition: none;
 }
 
 html[data-motion="reduce"] .person-card:hover,
 html[data-motion="reduce"] .person-card:active,
-html[data-motion="reduce"] .person-card:hover .person-card__image {
+html[data-motion="reduce"] .person-card:hover::before,
+html[data-motion="reduce"] .person-card:focus-visible::before,
+html[data-motion="reduce"] .person-card:hover .person-card__image,
+html[data-motion="reduce"] .person-card:hover .person-card__action::before,
+html[data-motion="reduce"]
+  .person-card:focus-visible
+  .person-card__action::before {
   transform: none;
+  translate: none;
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .person-card {
+    min-block-size: 0;
+
+    break-inside: avoid;
+
+    border-color: #000000;
+
+    background: transparent;
+    color: #000000;
+
+    box-shadow: none;
+    transform: none;
+  }
+
+  .person-card::before,
+  .person-card__media::after {
+    display: none;
+  }
+
+  .person-card__action {
+    display: none;
+  }
 }

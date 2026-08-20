@@ -4,8 +4,8 @@
    Navigation Card
    ========================================================================== */
 
-/*
- * Reusable destination Card with one principal navigation action.
+/**
+ * Single-destination Card whose complete surface acts as the link.
  *
  * Recommended structure:
  *
@@ -14,17 +14,26 @@
  *   <span class="navigation-card__body">...</span>
  * </a>
  *
- * The entire Card is the link. Do not place nested buttons or links inside
+ * Do not place nested links, buttons, or other interactive controls inside
  * this component.
  */
 
 .navigation-card {
+  /* Media */
+
   --navigation-card-media-ratio: 16 / 9;
   --navigation-card-media-width: 36%;
   --navigation-card-media-min-width: 9rem;
 
+  /* Content */
+
   --navigation-card-content-gap: #{ds.space(3)};
   --navigation-card-accent-size: 0.25rem;
+
+  /* Motion */
+
+  --navigation-card-action-translate: 0.2rem;
+  --navigation-card-media-scale: 1.025;
 
   display: flex;
   flex-direction: column;
@@ -35,7 +44,23 @@
 
   text-decoration: none;
 
+  cursor: pointer;
+  touch-action: manipulation;
+
+  -webkit-tap-highlight-color: transparent;
+
   @include ds.transition((border-color, box-shadow, transform), "fast");
+}
+
+/* ==========================================================================
+   Link Color
+   ========================================================================== */
+
+.navigation-card:link,
+.navigation-card:visited {
+  color: var(--card-color);
+
+  text-decoration: none;
 }
 
 /* ==========================================================================
@@ -46,7 +71,6 @@
   position: relative;
 
   display: block;
-
   flex: 0 0 auto;
 
   inline-size: 100%;
@@ -67,9 +91,12 @@
   );
 }
 
-/*
- * The overlay improves readability when future variants place labels or
- * status content over the image.
+/* ==========================================================================
+   Media Overlay
+   ========================================================================== */
+
+/**
+ * The overlay supports future labels and status content placed over media.
  */
 
 .navigation-card__media::after {
@@ -77,8 +104,9 @@
 
   position: absolute;
   inset: 0;
+  z-index: 1;
 
-  background: linear-gradient(180deg, transparent 60%, rgb(0 0 0 / 0.14) 100%);
+  background: linear-gradient(180deg, transparent 58%, rgb(0 0 0 / 0.14) 100%);
 
   pointer-events: none;
 }
@@ -118,23 +146,23 @@
   gap: var(--navigation-card-content-gap);
 
   min-inline-size: 0;
+
   padding-block: var(--card-padding-block);
   padding-inline: var(--card-padding-inline);
 }
 
 /* ==========================================================================
-   Accent
+   Interaction Accent
    ========================================================================== */
 
-/*
- * A restrained accent appears during hover and keyboard focus.
+/**
+ * A restrained logical-start accent indicates hover and keyboard focus.
  */
 
 .navigation-card__body::before {
   content: "";
 
   position: absolute;
-
   inset-block: var(--card-padding-block);
   inset-inline-start: 0;
 
@@ -149,6 +177,8 @@
   transform: scaleY(0.4);
   transform-origin: center;
 
+  pointer-events: none;
+
   @include ds.transition((opacity, transform), "fast");
 }
 
@@ -158,7 +188,8 @@
 
 .navigation-card__header {
   display: grid;
-  gap: ds.space(2);
+  align-content: start;
+  gap: #{ds.space(2)};
 
   min-inline-size: 0;
 }
@@ -176,6 +207,8 @@
 
   letter-spacing: 0.06em;
   text-transform: uppercase;
+
+  overflow-wrap: anywhere;
 }
 
 /* ==========================================================================
@@ -208,15 +241,16 @@
   line-height: var(--line-height-relaxed);
 
   overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 /* ==========================================================================
    Action
    ========================================================================== */
 
-/*
+/**
  * This is visual action text rather than a nested interactive element.
- * The Navigation Card itself is the link.
+ * The Navigation Card itself remains the only link.
  */
 
 .navigation-card__action {
@@ -224,35 +258,52 @@
 
   display: inline-flex;
   align-items: center;
-  gap: ds.space(2);
+  gap: #{ds.space(2)};
 
   inline-size: fit-content;
   max-inline-size: 100%;
+
   margin-block-start: auto;
-  padding-block-start: ds.space(2);
+  padding-block-start: #{ds.space(2)};
 
   color: var(--color-primary);
 
   font-size: var(--text-sm);
   font-weight: ds.font-weight("bold");
   line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
 }
+
+/* ==========================================================================
+   Action Icon
+   ========================================================================== */
+
+/**
+ * `translate` is intentionally used instead of `transform`.
+ *
+ * The shared `.icon-flip-rtl` utility owns the icon's transform. Using the
+ * independent translate property prevents hover motion from replacing the
+ * RTL scale transform.
+ */
 
 .navigation-card__action::before {
   order: 2;
 
-  @include ds.transition(transform, "fast");
+  translate: 0 0;
+
+  @include ds.transition(translate, "fast");
 }
 
 /* ==========================================================================
    Horizontal Variant
    ========================================================================== */
 
-/*
- * Used by category master pages.
+/**
+ * Used by category and landing pages.
  *
- * A 36% media column gives the description and action sufficient room when
- * two Cards are displayed in the same grid row.
+ * The media occupies the logical inline start. The content receives the
+ * remaining width without overflow.
  */
 
 .navigation-card--horizontal {
@@ -263,6 +314,7 @@
       var(--navigation-card-media-width)
     )
     minmax(0, 1fr);
+
   align-items: stretch;
 }
 
@@ -297,6 +349,8 @@
 .navigation-card--featured {
   --card-border-color: var(--color-primary);
   --card-shadow: var(--shadow-md);
+  --card-pattern-opacity: 0.11;
+  --card-pattern-hover-opacity: 0.18;
 }
 
 .navigation-card--featured .navigation-card__title {
@@ -307,11 +361,10 @@
    Without Media
    ========================================================================== */
 
-/*
- * Use when a category does not have an approved image.
+/**
+ * Use when a destination does not have approved media.
  *
- * Do not output an empty or broken img element. Remove the media markup and
- * apply this modifier instead.
+ * Remove the media markup instead of outputting an empty or broken image.
  */
 
 .navigation-card--no-media {
@@ -327,32 +380,36 @@
    Hover
    ========================================================================== */
 
-.navigation-card:hover {
-  border-color: var(--card-hover-border-color);
+@media (hover: hover) and (pointer: fine) {
+  .navigation-card:hover {
+    border-color: var(--card-hover-border-color);
 
-  box-shadow: var(--card-hover-shadow);
+    box-shadow: var(--card-hover-shadow);
 
-  transform: translateY(var(--card-hover-translate));
-}
+    transform: translateY(var(--card-hover-translate));
+  }
 
-.navigation-card:hover .navigation-card__image,
-.navigation-card:hover .navigation-card__media img,
-.navigation-card:hover .navigation-card__media video {
-  transform: scale(1.025);
-}
+  .navigation-card:hover::before {
+    opacity: var(--card-pattern-hover-opacity);
 
-.navigation-card:hover .navigation-card__body::before {
-  opacity: 1;
+    transform: scale(1.025);
+  }
 
-  transform: scaleY(1);
-}
+  .navigation-card:hover .navigation-card__image,
+  .navigation-card:hover .navigation-card__media img,
+  .navigation-card:hover .navigation-card__media video {
+    transform: scale(var(--navigation-card-media-scale));
+  }
 
-.navigation-card:hover .navigation-card__action::before {
-  transform: translateX(0.2rem);
-}
+  .navigation-card:hover .navigation-card__body::before {
+    opacity: 1;
 
-html[dir="rtl"] .navigation-card:hover .navigation-card__action::before {
-  transform: translateX(-0.2rem);
+    transform: scaleY(1);
+  }
+
+  .navigation-card:hover .navigation-card__action::before {
+    translate: var(--navigation-card-action-translate) 0;
+  }
 }
 
 /* ==========================================================================
@@ -364,7 +421,15 @@ html[dir="rtl"] .navigation-card:hover .navigation-card__action::before {
 }
 
 .navigation-card:focus-visible {
+  border-color: var(--color-primary);
+
   @include ds.focus-ring;
+}
+
+.navigation-card:focus-visible::before {
+  opacity: var(--card-pattern-hover-opacity);
+
+  transform: scale(1.025);
 }
 
 .navigation-card:focus-visible .navigation-card__body::before {
@@ -373,30 +438,58 @@ html[dir="rtl"] .navigation-card:hover .navigation-card__action::before {
   transform: scaleY(1);
 }
 
+.navigation-card:focus-visible .navigation-card__action::before {
+  translate: var(--navigation-card-action-translate) 0;
+}
+
 /* ==========================================================================
    Active
    ========================================================================== */
 
 .navigation-card:active {
+  box-shadow: var(--card-shadow);
+
   transform: translateY(0);
+}
+
+/* ==========================================================================
+   Disabled
+   ========================================================================== */
+
+.navigation-card.is-disabled,
+.navigation-card[aria-disabled="true"] {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .navigation-card {
+  --navigation-card-action-translate: -0.2rem;
+}
+
+html[dir="rtl"] .navigation-card__eyebrow {
+  letter-spacing: 0;
 }
 
 /* ==========================================================================
    Constrained Card Container
    ========================================================================== */
 
-/*
- * Horizontal Cards become vertical when an individual grid column becomes
+/**
+ * Horizontal Cards become vertical when their individual container becomes
  * too narrow for a professional two-region layout.
  */
 
 @container (max-width: 31.99rem) {
-  .card-grid-container .navigation-card--horizontal {
+  .navigation-card--horizontal {
     display: flex;
     flex-direction: column;
   }
 
-  .card-grid-container .navigation-card--horizontal .navigation-card__media {
+  .navigation-card--horizontal .navigation-card__media {
     inline-size: 100%;
     block-size: auto;
     min-block-size: 0;
@@ -445,28 +538,46 @@ html[dir="rtl"] .navigation-card:hover .navigation-card__action::before {
   .navigation-card--featured .navigation-card__title {
     font-size: var(--text-lg);
   }
+
+  .navigation-card__action {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] .navigation-card__media {
+  background: linear-gradient(
+    135deg,
+    var(--color-surface-alt),
+    var(--color-border-strong)
+  );
+}
+
+html[data-theme="dark"] .navigation-card__media::after {
+  background: linear-gradient(180deg, transparent 52%, rgb(0 0 0 / 0.24) 100%);
 }
 
 /* ==========================================================================
    High Contrast
    ========================================================================== */
 
-html[data-contrast="high"] {
-  .navigation-card__media::after {
-    display: none;
-  }
+html[data-contrast="high"] .navigation-card__media::after {
+  display: none;
+}
 
-  .navigation-card__body::before {
-    background: currentColor;
-  }
+html[data-contrast="high"] .navigation-card__body::before {
+  background: currentColor;
+}
 
-  .navigation-card__action {
-    color: currentColor;
+html[data-contrast="high"] .navigation-card__action {
+  color: currentColor;
 
-    text-decoration-line: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 0.2em;
-  }
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
 }
 
 /* ==========================================================================
@@ -482,15 +593,32 @@ html[data-contrast="high"] {
   }
 
   .navigation-card__media {
+    border-color: CanvasText;
+
     background: Canvas;
+  }
+
+  .navigation-card__media::after {
+    display: none;
   }
 
   .navigation-card__body::before {
     background: Highlight;
   }
 
+  .navigation-card__title,
+  .navigation-card__description,
+  .navigation-card__eyebrow {
+    color: CanvasText;
+  }
+
   .navigation-card__action {
     color: LinkText;
+  }
+
+  .navigation-card:hover,
+  .navigation-card:focus-visible {
+    border-color: Highlight;
   }
 }
 
@@ -500,6 +628,7 @@ html[data-contrast="high"] {
 
 @media (prefers-reduced-motion: reduce) {
   .navigation-card,
+  .navigation-card::before,
   .navigation-card__image,
   .navigation-card__media img,
   .navigation-card__media video,
@@ -509,29 +638,64 @@ html[data-contrast="high"] {
   }
 
   .navigation-card:hover,
+  .navigation-card:hover::before,
+  .navigation-card:focus-visible::before,
   .navigation-card:hover .navigation-card__image,
   .navigation-card:hover .navigation-card__media img,
   .navigation-card:hover .navigation-card__media video,
-  .navigation-card:hover .navigation-card__action::before {
+  .navigation-card:hover .navigation-card__action::before,
+  .navigation-card:focus-visible .navigation-card__action::before {
     transform: none;
+    translate: none;
   }
 }
 
-html[data-motion="reduce"] {
-  .navigation-card,
-  .navigation-card__image,
-  .navigation-card__media img,
-  .navigation-card__media video,
-  .navigation-card__body::before,
+html[data-motion="reduce"] .navigation-card,
+html[data-motion="reduce"] .navigation-card::before,
+html[data-motion="reduce"] .navigation-card__image,
+html[data-motion="reduce"] .navigation-card__media img,
+html[data-motion="reduce"] .navigation-card__media video,
+html[data-motion="reduce"] .navigation-card__body::before,
+html[data-motion="reduce"] .navigation-card__action::before {
+  transition: none;
+}
+
+html[data-motion="reduce"] .navigation-card:hover,
+html[data-motion="reduce"] .navigation-card:hover::before,
+html[data-motion="reduce"] .navigation-card:focus-visible::before,
+html[data-motion="reduce"] .navigation-card:hover .navigation-card__image,
+html[data-motion="reduce"] .navigation-card:hover .navigation-card__media img,
+html[data-motion="reduce"] .navigation-card:hover .navigation-card__media video,
+html[data-motion="reduce"]
+  .navigation-card:hover
+  .navigation-card__action::before,
+html[data-motion="reduce"]
+  .navigation-card:focus-visible
   .navigation-card__action::before {
-    transition: none;
+  transform: none;
+  translate: none;
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .navigation-card {
+    break-inside: avoid;
+
+    color: #000000;
+
+    box-shadow: none;
+    transform: none;
   }
 
-  .navigation-card:hover,
-  .navigation-card:hover .navigation-card__image,
-  .navigation-card:hover .navigation-card__media img,
-  .navigation-card:hover .navigation-card__media video,
-  .navigation-card:hover .navigation-card__action::before {
-    transform: none;
+  .navigation-card__media::after,
+  .navigation-card__body::before {
+    display: none;
+  }
+
+  .navigation-card__action {
+    color: #000000;
   }
 }

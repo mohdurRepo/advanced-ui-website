@@ -1,24 +1,21 @@
 @use "../../abstracts" as ds;
 
 /* ==========================================================================
-   Card Foundation
+   Card
    ========================================================================== */
 
-/*
- * Generic content container.
+/**
+ * Generic Card foundation.
  *
- * This component owns only:
+ * The base Card owns:
  *
- * - surface
- * - border
- * - radius
- * - shadow
- * - structural regions
- * - spacing
- * - generic visual variants
+ * - semantic surface tokens;
+ * - border, radius, elevation, and spacing;
+ * - shared structural regions;
+ * - the website-wide bottom-end pattern;
+ * - common interaction and state behavior.
  *
- * Specialized components such as navigation-card and resource-card compose
- * this foundation without adding business-specific behavior here.
+ * Specialized Cards remain responsible for their own composition.
  */
 
 .card {
@@ -29,20 +26,19 @@
   --card-heading-color: var(--color-heading);
   --card-muted-color: var(--color-text-muted);
 
-  /* Border */
+  /* Border and shape */
 
   --card-border-width: 1px;
   --card-border-style: solid;
   --card-border-color: var(--color-border);
-
-  /* Shape */
-
+  --card-hover-border-color: var(--color-border-strong);
   --card-radius: var(--radius-lg);
 
   /* Elevation */
 
   --card-shadow: var(--shadow-sm);
   --card-hover-shadow: var(--shadow-md);
+  --card-hover-translate: -0.125rem;
 
   /* Spacing */
 
@@ -50,16 +46,21 @@
   --card-padding-inline: #{ds.space(4)};
   --card-gap: #{ds.space(4)};
 
-  /* Interaction */
+  /* Decorative pattern */
 
-  --card-hover-border-color: var(--color-border-strong);
-  --card-hover-translate: -0.125rem;
+  --card-pattern-image: url("/assets/images/financial-bg-pattern.png");
+  --card-pattern-color: var(--color-primary);
+  --card-pattern-size: 13rem;
+  --card-pattern-opacity: 0.075;
+  --card-pattern-hover-opacity: 0.13;
 
   position: relative;
+  isolation: isolate;
 
   display: flex;
   flex-direction: column;
 
+  inline-size: 100%;
   min-inline-size: 0;
 
   border: var(--card-border-width) var(--card-border-style)
@@ -73,19 +74,68 @@
 }
 
 /* ==========================================================================
+   Decorative Pattern
+   ========================================================================== */
+
+/**
+ * The shared pattern remains behind Card content and does not require the
+ * Card itself to clip overflow. Focus rings, dropdowns, and popovers can
+ * therefore extend beyond the Card boundary.
+ */
+
+.card::before {
+  content: "";
+
+  position: absolute;
+  inset-inline-end: 0;
+  inset-block-end: 0;
+  z-index: -1;
+
+  inline-size: var(--card-pattern-size);
+  block-size: var(--card-pattern-size);
+
+  border-end-end-radius: calc(var(--card-radius) - var(--card-border-width));
+
+  overflow: hidden;
+
+  background-color: var(--card-pattern-color);
+
+  opacity: var(--card-pattern-opacity);
+
+  pointer-events: none;
+
+  transform-origin: right bottom;
+
+  -webkit-mask-image: var(--card-pattern-image);
+  mask-image: var(--card-pattern-image);
+
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  -webkit-mask-position: right bottom;
+  mask-position: right bottom;
+
+  -webkit-mask-size: contain;
+  mask-size: contain;
+
+  @include ds.transition((opacity, transform), "fast");
+}
+
+/* ==========================================================================
    Header
    ========================================================================== */
 
 .card-header,
 .card__header {
+  position: relative;
+
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: ds.space(3);
-
-  flex: 0 0 auto;
+  gap: var(--card-gap);
 
   min-inline-size: 0;
+
   padding-block: var(--card-padding-block);
   padding-inline: var(--card-padding-inline);
 }
@@ -96,18 +146,21 @@
 
 .card-body,
 .card__body {
+  position: relative;
+
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
   gap: var(--card-gap);
 
   min-inline-size: 0;
+
   padding-block: var(--card-padding-block);
   padding-inline: var(--card-padding-inline);
 }
 
-/*
- * Avoid doubled padding when structural regions are combined.
+/**
+ * Prevent duplicate vertical padding between adjacent Card regions.
  */
 
 .card-header + .card-body,
@@ -123,14 +176,16 @@
 
 .card-footer,
 .card__footer {
+  position: relative;
+
   display: flex;
-  flex: 0 0 auto;
-  flex-wrap: wrap;
   align-items: center;
-  gap: ds.space(2);
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--card-gap);
 
   min-inline-size: 0;
-  margin-block-start: auto;
+
   padding-block: var(--card-padding-block);
   padding-inline: var(--card-padding-inline);
 }
@@ -146,29 +201,33 @@
    Divided Regions
    ========================================================================== */
 
-.card--divided .card-header,
-.card--divided .card__header {
-  border-block-end: 1px solid var(--card-border-color);
+.card-header--divided,
+.card__header--divided {
+  border-block-end: var(--card-border-width) solid var(--card-border-color);
 }
 
-.card--divided .card-footer,
-.card--divided .card__footer {
-  border-block-start: 1px solid var(--card-border-color);
+.card-footer--divided,
+.card__footer--divided {
+  border-block-start: var(--card-border-width) solid var(--card-border-color);
 }
 
-/*
- * Restore normal padding when a region owns a divider.
- */
-
-.card--divided .card-header + .card-body,
-.card--divided .card-header + .card__body,
-.card--divided .card__header + .card-body,
-.card--divided .card__header + .card__body,
-.card--divided .card-body + .card-footer,
-.card--divided .card-body + .card__footer,
-.card--divided .card__body + .card-footer,
-.card--divided .card__body + .card__footer {
+.card-body + .card-footer--divided,
+.card-body + .card__footer--divided,
+.card__body + .card-footer--divided,
+.card__body + .card__footer--divided {
   padding-block-start: var(--card-padding-block);
+}
+
+/* ==========================================================================
+   Heading Content
+   ========================================================================== */
+
+.card__heading {
+  display: grid;
+  align-content: start;
+  gap: #{ds.space(1)};
+
+  min-inline-size: 0;
 }
 
 /* ==========================================================================
@@ -185,6 +244,7 @@
   font-weight: ds.font-weight("bold");
   line-height: var(--line-height-tight);
 
+  overflow-wrap: anywhere;
   text-wrap: balance;
 }
 
@@ -201,6 +261,8 @@
   font-size: var(--text-sm);
   font-weight: ds.font-weight("medium");
   line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
 }
 
 /* ==========================================================================
@@ -213,11 +275,14 @@
 
   color: var(--card-color);
 
+  font-size: var(--text-base);
   line-height: var(--line-height-relaxed);
+
+  overflow-wrap: anywhere;
 }
 
-.card-text-muted,
-.card__text--muted {
+.card-muted,
+.card__muted {
   color: var(--card-muted-color);
 }
 
@@ -225,19 +290,14 @@
    Media
    ========================================================================== */
 
-/*
- * The media region owns its clipping rather than the Card itself.
- * This allows dropdowns, menus, focus rings, and popovers to extend beyond
- * the Card without being cut off.
+/**
+ * Media clips independently so the Card root can continue allowing overlays
+ * and focus indicators to extend beyond its boundary.
  */
 
 .card-media,
 .card__media {
   position: relative;
-
-  display: block;
-
-  flex: 0 0 auto;
 
   min-inline-size: 0;
 
@@ -277,9 +337,9 @@
 .card-actions,
 .card__actions {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: ds.space(2);
+  flex-wrap: wrap;
+  gap: #{ds.space(2)};
 
   min-inline-size: 0;
 }
@@ -292,6 +352,7 @@
   --card-padding-block: #{ds.space(3)};
   --card-padding-inline: #{ds.space(3)};
   --card-gap: #{ds.space(3)};
+  --card-pattern-size: 10rem;
 }
 
 /* ==========================================================================
@@ -302,31 +363,7 @@
   --card-padding-block: #{ds.space(6)};
   --card-padding-inline: #{ds.space(6)};
   --card-gap: #{ds.space(5)};
-}
-
-/* ==========================================================================
-   Flat Variant
-   ========================================================================== */
-
-.card--flat {
-  --card-shadow: none;
-}
-
-/* ==========================================================================
-   Borderless Variant
-   ========================================================================== */
-
-.card--borderless {
-  --card-border-width: 0;
-  --card-shadow: none;
-}
-
-/* ==========================================================================
-   Elevated Variant
-   ========================================================================== */
-
-.card--elevated {
-  --card-shadow: var(--shadow-md);
+  --card-pattern-size: 16rem;
 }
 
 /* ==========================================================================
@@ -338,17 +375,54 @@
 }
 
 /* ==========================================================================
-   Interactive Variant
+   Flat Card
    ========================================================================== */
 
-/*
- * Use this only when the Card represents one principal destination or
- * interaction.
- *
- * Cards containing several unrelated controls should not use this modifier.
+.card--flat {
+  --card-shadow: none;
+  --card-hover-shadow: none;
+}
+
+/* ==========================================================================
+   Borderless Card
+   ========================================================================== */
+
+.card--borderless {
+  --card-border-width: 0px;
+  --card-shadow: none;
+}
+
+/* ==========================================================================
+   Elevated Card
+   ========================================================================== */
+
+.card--elevated {
+  --card-shadow: var(--shadow-md);
+  --card-hover-shadow: var(--shadow-lg);
+}
+
+/* ==========================================================================
+   Pattern Opt-out
+   ========================================================================== */
+
+/**
+ * Use only when a Card's media or specialized decoration already owns the
+ * complete visual background.
  */
 
+.card--no-pattern {
+  --card-pattern-image: none;
+  --card-pattern-opacity: 0;
+  --card-pattern-hover-opacity: 0;
+}
+
+/* ==========================================================================
+   Interactive Card
+   ========================================================================== */
+
 .card--interactive {
+  cursor: pointer;
+
   @include ds.transition((border-color, box-shadow, transform), "fast");
 }
 
@@ -360,10 +434,15 @@
   transform: translateY(var(--card-hover-translate));
 }
 
+.card--interactive:hover::before,
+.card--interactive:focus-within::before {
+  opacity: var(--card-pattern-hover-opacity);
+
+  transform: scale(1.025);
+}
+
 .card--interactive:focus-within {
   border-color: var(--color-primary);
-
-  box-shadow: var(--card-hover-shadow);
 }
 
 /* ==========================================================================
@@ -371,12 +450,19 @@
    ========================================================================== */
 
 .card.is-selected,
-.card[aria-selected="true"] {
+.card[aria-selected="true"],
+.card[data-selected="true"] {
   border-color: var(--color-primary);
 
   box-shadow:
-    0 0 0 1px var(--color-primary),
-    var(--card-shadow);
+    var(--card-shadow),
+    0 0 0 1px var(--color-primary);
+}
+
+.card.is-selected::before,
+.card[aria-selected="true"]::before,
+.card[data-selected="true"]::before {
+  opacity: var(--card-pattern-hover-opacity);
 }
 
 /* ==========================================================================
@@ -385,26 +471,24 @@
 
 .card.is-disabled,
 .card[aria-disabled="true"] {
-  color: var(--color-on-disabled);
+  --card-color: var(--color-on-disabled);
+  --card-heading-color: var(--color-on-disabled);
+  --card-muted-color: var(--color-on-disabled);
+  --card-border-color: var(--color-disabled);
+  --card-pattern-opacity: 0.035;
+
+  background: var(--color-disabled);
 
   cursor: not-allowed;
+  pointer-events: none;
 }
 
-.card.is-disabled,
-.card[aria-disabled="true"] {
-  opacity: 0.72;
-}
-
+.card.is-disabled .btn,
 .card.is-disabled a,
 .card.is-disabled button,
-.card.is-disabled input,
-.card.is-disabled select,
-.card.is-disabled textarea,
+.card[aria-disabled="true"] .btn,
 .card[aria-disabled="true"] a,
-.card[aria-disabled="true"] button,
-.card[aria-disabled="true"] input,
-.card[aria-disabled="true"] select,
-.card[aria-disabled="true"] textarea {
+.card[aria-disabled="true"] button {
   pointer-events: none;
 }
 
@@ -414,6 +498,40 @@
 
 .card[aria-busy="true"] {
   cursor: wait;
+}
+
+.card[aria-busy="true"] .card-header,
+.card[aria-busy="true"] .card__header,
+.card[aria-busy="true"] .card-body,
+.card[aria-busy="true"] .card__body,
+.card[aria-busy="true"] .card-footer,
+.card[aria-busy="true"] .card__footer {
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .card::before {
+  transform-origin: left bottom;
+
+  -webkit-mask-position: left bottom;
+  mask-position: left bottom;
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+/**
+ * The pattern uses the active semantic primary color, with slightly stronger
+ * opacity on dark page surfaces so it remains visible without becoming noisy.
+ */
+
+html[data-theme="dark"] .card {
+  --card-pattern-opacity: 0.12;
+  --card-pattern-hover-opacity: 0.2;
 }
 
 /* ==========================================================================
@@ -426,12 +544,28 @@
     --card-padding-inline: #{ds.space(3)};
     --card-gap: #{ds.space(3)};
     --card-radius: var(--radius-md);
+    --card-pattern-size: 10rem;
   }
 
-  .card--comfortable {
-    --card-padding-block: #{ds.space(4)};
-    --card-padding-inline: #{ds.space(4)};
-    --card-gap: #{ds.space(4)};
+  .card-title,
+  .card__title {
+    font-size: var(--text-base);
+  }
+
+  .card-text,
+  .card__text {
+    font-size: var(--text-sm);
+  }
+
+  .card-footer,
+  .card__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .card-actions,
+  .card__actions {
+    inline-size: 100%;
   }
 }
 
@@ -439,25 +573,23 @@
    High Contrast
    ========================================================================== */
 
-html[data-contrast="high"] {
-  .card {
-    --card-border-width: 2px;
-    --card-border-color: currentColor;
-    --card-shadow: none;
-    --card-hover-shadow: none;
-  }
+html[data-contrast="high"] .card {
+  --card-border-color: currentColor;
+  --card-hover-border-color: currentColor;
+  --card-shadow: none;
+  --card-hover-shadow: none;
 
-  .card--borderless {
-    --card-border-width: 2px;
-  }
+  border-width: 2px;
+}
 
-  .card.is-selected,
-  .card[aria-selected="true"] {
-    outline: 2px solid currentColor;
-    outline-offset: 2px;
+html[data-contrast="high"] .card::before {
+  display: none;
+}
 
-    box-shadow: none;
-  }
+html[data-contrast="high"] .card.is-selected,
+html[data-contrast="high"] .card[aria-selected="true"],
+html[data-contrast="high"] .card[data-selected="true"] {
+  box-shadow: inset 0 0 0 2px currentColor;
 }
 
 /* ==========================================================================
@@ -474,12 +606,34 @@ html[data-contrast="high"] {
     box-shadow: none;
   }
 
-  .card.is-selected,
-  .card[aria-selected="true"] {
-    border-color: Highlight;
+  .card::before {
+    display: none;
+  }
 
-    outline: 2px solid Highlight;
-    outline-offset: 2px;
+  .card-title,
+  .card__title,
+  .card-subtitle,
+  .card__subtitle,
+  .card-text,
+  .card__text,
+  .card-muted,
+  .card__muted {
+    color: CanvasText;
+  }
+
+  .card--interactive:hover,
+  .card--interactive:focus-within,
+  .card.is-selected,
+  .card[aria-selected="true"],
+  .card[data-selected="true"] {
+    border-color: Highlight;
+  }
+
+  .card.is-disabled,
+  .card[aria-disabled="true"] {
+    border-color: GrayText;
+
+    color: GrayText;
   }
 }
 
@@ -488,18 +642,48 @@ html[data-contrast="high"] {
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  .card--interactive {
+  .card,
+  .card::before {
     transition: none;
   }
 
   .card--interactive:hover {
     transform: none;
   }
+
+  .card--interactive:hover::before,
+  .card--interactive:focus-within::before {
+    transform: none;
+  }
 }
 
-html[data-motion="reduce"] {
-  .card--interactive {
-    transition: none;
+html[data-motion="reduce"] .card,
+html[data-motion="reduce"] .card::before {
+  transition: none;
+}
+
+html[data-motion="reduce"] .card--interactive:hover,
+html[data-motion="reduce"] .card--interactive:hover::before,
+html[data-motion="reduce"] .card--interactive:focus-within::before {
+  transform: none;
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .card {
+    border-color: #000000;
+
+    background: transparent;
+    color: #000000;
+
+    box-shadow: none;
+  }
+
+  .card::before {
+    display: none;
   }
 
   .card--interactive:hover {

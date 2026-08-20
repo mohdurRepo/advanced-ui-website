@@ -4,25 +4,49 @@
    Offering Results
    ========================================================================== */
 
+/**
+ * Collection composition for listing offering Cards.
+ *
+ * The individual Card remains independent from this results wrapper.
+ */
+
+.offering-results {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Results Header
+   ========================================================================== */
+
 .offering-results__header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: ds.space(4);
+  gap: #{ds.space(4)};
 
   min-inline-size: 0;
-  margin-block-end: ds.space(5);
+
+  margin-block-end: #{ds.space(5)};
 }
+
+/* ==========================================================================
+   Results Heading
+   ========================================================================== */
 
 .offering-results__heading {
   display: grid;
-  gap: ds.space(1);
+  align-content: start;
+  gap: #{ds.space(1)};
 
   flex: 1 1 30rem;
 
   min-inline-size: 0;
 }
+
+/* ==========================================================================
+   Results Title
+   ========================================================================== */
 
 .offering-results__title {
   margin: 0;
@@ -33,17 +57,26 @@
   font-weight: ds.font-weight("heavy");
   line-height: var(--line-height-tight);
 
+  overflow-wrap: anywhere;
   text-wrap: balance;
 }
 
+/* ==========================================================================
+   Results Description
+   ========================================================================== */
+
 .offering-results__description {
   max-inline-size: 70ch;
+
   margin: 0;
 
   color: var(--color-text-muted);
 
   font-size: var(--text-base);
   line-height: var(--line-height-relaxed);
+
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 /* ==========================================================================
@@ -54,13 +87,14 @@
   display: inline-flex;
   align-items: baseline;
   justify-content: center;
-  gap: ds.space(1);
+  gap: #{ds.space(1)};
 
   flex: 0 0 auto;
 
   min-block-size: 2.25rem;
-  padding-block: ds.space(1);
-  padding-inline: ds.space(3);
+
+  padding-block: #{ds.space(1)};
+  padding-inline: #{ds.space(3)};
 
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
@@ -75,6 +109,9 @@
 }
 
 .offering-results__count-value {
+  direction: ltr;
+  unicode-bidi: isolate;
+
   color: var(--color-heading);
 
   font-variant-numeric: tabular-nums;
@@ -85,13 +122,24 @@
    Results Grid
    ========================================================================== */
 
+/**
+ * Use with the design-system `.grid` class:
+ *
+ * <div class="grid offering-results__grid">
+ */
+
 .offering-results__grid {
+  --grid-gap: #{ds.space(4)};
+
   grid-template-columns: minmax(0, 1fr);
 
   align-items: stretch;
-  gap: ds.space(4);
 
   min-inline-size: 0;
+}
+
+.offering-results__grid .offering-card {
+  block-size: 100%;
 }
 
 @include ds.respond-up("lg") {
@@ -111,91 +159,110 @@
    ========================================================================== */
 
 .offering-results__pagination {
-  margin-block-start: ds.space(6);
+  margin-block-start: #{ds.space(6)};
 }
 
 /* ==========================================================================
    Offering Card
    ========================================================================== */
 
+/**
+ * Website Card for current and historical offering information.
+ *
+ * Required composition:
+ *
+ * <article class="card offering-card">
+ *
+ * The design-system `.card` class owns:
+ *
+ * - surface;
+ * - border and radius;
+ * - elevation;
+ * - shared bottom-end pattern;
+ * - foundational Card states.
+ */
+
 .offering-card {
+  /* Backward-compatible semantic tokens */
+
   --offering-card-bg: var(--color-surface);
   --offering-card-color: var(--color-text);
+  --offering-card-heading: var(--color-heading);
+  --offering-card-muted: var(--color-text-muted);
+
   --offering-card-border: var(--color-border);
   --offering-card-footer-bg: var(--color-surface-alt);
 
-  --offering-card-pattern: radial-gradient(
-    circle at center,
-    color-mix(in oklab, var(--color-primary), transparent 84%) 0 1px,
-    transparent 1.5px
-  );
+  /* Layout */
 
-  position: relative;
-  isolation: isolate;
+  --offering-card-padding: #{ds.space(4)};
+  --offering-card-section-gap: #{ds.space(4)};
+
+  /* Shared Card mappings */
+
+  --card-bg: var(--offering-card-bg);
+  --card-color: var(--offering-card-color);
+  --card-heading-color: var(--offering-card-heading);
+  --card-muted-color: var(--offering-card-muted);
+
+  --card-border-color: var(--offering-card-border);
+
+  --card-pattern-size: 14rem;
+  --card-pattern-opacity: 0.075;
+  --card-pattern-hover-opacity: 0.14;
 
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
 
   min-inline-size: 0;
   block-size: 100%;
 
-  border: 1px solid var(--offering-card-border);
-  border-radius: var(--radius-lg);
-
-  background: var(--offering-card-bg);
-  color: var(--offering-card-color);
-
-  box-shadow: var(--shadow-sm);
-
-  overflow: hidden;
+  overflow: visible;
 
   @include ds.transition((border-color, box-shadow, transform), "fast");
 }
 
 /* ==========================================================================
-   Decorative Pattern
+   Card Content Layers
    ========================================================================== */
 
-.offering-card::before {
-  content: "";
-
-  position: absolute;
-  inset-inline-end: -3rem;
-  inset-block-end: -4rem;
-  z-index: -1;
-
-  inline-size: 14rem;
-  block-size: 14rem;
-
-  border-radius: 50%;
-
-  background-image: var(--offering-card-pattern);
-  background-size: 0.75rem 0.75rem;
-
-  opacity: 0.42;
-
-  mask-image: radial-gradient(circle, black 0%, transparent 72%);
-  -webkit-mask-image: radial-gradient(circle, black 0%, transparent 72%);
-
-  pointer-events: none;
+.offering-card__header,
+.offering-card__body,
+.offering-card__footer {
+  position: relative;
+  z-index: 0;
 }
 
 /* ==========================================================================
    Card Interaction
    ========================================================================== */
 
-.offering-card:hover {
-  border-color: var(--color-border-strong);
+@media (hover: hover) and (pointer: fine) {
+  .offering-card:hover {
+    border-color: var(--card-hover-border-color);
 
-  box-shadow: var(--shadow-md);
+    box-shadow: var(--card-hover-shadow);
 
-  transform: translateY(-0.125rem);
+    transform: translateY(var(--card-hover-translate));
+  }
+
+  .offering-card:hover::before {
+    opacity: var(--card-pattern-hover-opacity);
+
+    transform: scale(1.025);
+  }
 }
 
 .offering-card:focus-within {
   border-color: var(--color-primary);
 
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--card-hover-shadow);
+}
+
+.offering-card:focus-within::before {
+  opacity: var(--card-pattern-hover-opacity);
+
+  transform: scale(1.025);
 }
 
 /* ==========================================================================
@@ -206,11 +273,12 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
-  gap: ds.space(3);
+  gap: #{ds.space(3)};
 
   min-inline-size: 0;
   min-block-size: 6.5rem;
-  padding: ds.space(4);
+
+  padding: var(--offering-card-padding);
 
   border-block-end: 1px solid var(--offering-card-border);
 }
@@ -225,21 +293,27 @@
   display: inline-grid;
   place-items: center;
 
+  flex: 0 0 auto;
+
   inline-size: 3rem;
   block-size: 3rem;
+
+  overflow: hidden;
 
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
 
   background: var(--color-surface-alt);
-  color: var(--color-heading);
+  color: var(--offering-card-heading);
 
   font-size: var(--text-xs);
   font-weight: ds.font-weight("bold");
   line-height: 1;
-
-  overflow: hidden;
 }
+
+/* ==========================================================================
+   Logo Image
+   ========================================================================== */
 
 .offering-card__logo-image {
   display: block;
@@ -250,15 +324,21 @@
   object-fit: contain;
 }
 
+/* ==========================================================================
+   Logo Fallback
+   ========================================================================== */
+
 .offering-card__logo-fallback {
   display: inline-grid;
   place-items: center;
 
   inline-size: 100%;
   block-size: 100%;
-  padding: ds.space(1);
+
+  padding: #{ds.space(1)};
 
   text-align: center;
+  overflow-wrap: anywhere;
 }
 
 /* ==========================================================================
@@ -273,10 +353,14 @@
   min-inline-size: 0;
 }
 
+/* ==========================================================================
+   Company Title
+   ========================================================================== */
+
 .offering-card__title {
   margin: 0;
 
-  color: var(--color-heading);
+  color: var(--offering-card-heading);
 
   font-size: var(--text-base);
   font-weight: ds.font-weight("bold");
@@ -287,8 +371,14 @@
   hyphens: none;
 }
 
+/* ==========================================================================
+   Company Link
+   ========================================================================== */
+
 .offering-card__company-link {
   display: -webkit-box;
+
+  border-radius: var(--radius-sm);
 
   color: inherit;
 
@@ -303,8 +393,16 @@
   @include ds.transition(color, "fast");
 }
 
+.offering-card__company-link:visited {
+  color: inherit;
+}
+
 .offering-card__company-link:hover {
   color: var(--color-primary);
+
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
 }
 
 .offering-card__company-link:focus {
@@ -315,11 +413,15 @@
   @include ds.focus-ring;
 }
 
+/* ==========================================================================
+   Symbol
+   ========================================================================== */
+
 .offering-card__symbol {
   direction: ltr;
   unicode-bidi: isolate;
 
-  color: var(--color-text-muted);
+  color: var(--offering-card-muted);
 
   font-size: var(--text-xs);
   line-height: var(--line-height-normal);
@@ -343,14 +445,15 @@
 
   max-inline-size: 9rem;
   min-block-size: 1.75rem;
+
   padding-block: 0.25rem;
-  padding-inline: ds.space(2);
+  padding-inline: #{ds.space(2)};
 
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
 
   background: var(--color-surface-alt);
-  color: var(--color-text-muted);
+  color: var(--offering-card-muted);
 
   font-size: var(--text-xs);
   font-weight: ds.font-weight("bold");
@@ -361,12 +464,46 @@
 }
 
 /* ==========================================================================
+   Status Variants
+   ========================================================================== */
+
+.offering-card__status.is-open,
+.offering-card__status[data-status="open"] {
+  border-color: var(--color-success);
+
+  background: color-mix(
+    in srgb,
+    var(--color-success) 10%,
+    var(--color-surface)
+  );
+  color: var(--color-success);
+}
+
+.offering-card__status.is-upcoming,
+.offering-card__status[data-status="upcoming"] {
+  border-color: var(--color-primary);
+
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 10%,
+    var(--color-surface)
+  );
+  color: var(--color-primary);
+}
+
+.offering-card__status.is-closed,
+.offering-card__status[data-status="closed"] {
+  color: var(--offering-card-muted);
+}
+
+/* ==========================================================================
    Card Body
    ========================================================================== */
 
 .offering-card__body {
   min-inline-size: 0;
-  padding: ds.space(4);
+
+  padding: var(--offering-card-padding);
 }
 
 /* ==========================================================================
@@ -377,16 +514,21 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: start;
-  gap: ds.space(4) ds.space(5);
+  gap: var(--offering-card-section-gap);
 
   min-inline-size: 0;
+
   margin: 0;
 }
+
+/* ==========================================================================
+   Offering Detail
+   ========================================================================== */
 
 .offering-card__detail {
   display: grid;
   align-content: start;
-  gap: ds.space(1);
+  gap: #{ds.space(1)};
 
   min-inline-size: 0;
 }
@@ -395,20 +537,29 @@
   grid-column: 1 / -1;
 }
 
-.offering-card__detail-label,
-.offering-card__detail-value {
-  margin: 0;
-}
+/* ==========================================================================
+   Detail Label
+   ========================================================================== */
 
 .offering-card__detail-label {
-  color: var(--color-text-muted);
+  margin: 0;
+
+  color: var(--offering-card-muted);
 
   font-size: var(--text-xs);
   line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
 }
 
+/* ==========================================================================
+   Detail Value
+   ========================================================================== */
+
 .offering-card__detail-value {
-  color: var(--color-heading);
+  margin: 0;
+
+  color: var(--offering-card-heading);
 
   font-size: var(--text-sm);
   font-weight: ds.font-weight("bold");
@@ -434,50 +585,79 @@
   display: inline-flex;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: 0 ds.space(1);
+  gap: 0 #{ds.space(1)};
 }
 
 /* ==========================================================================
    Card Footer
    ========================================================================== */
 
+/**
+ * The translucent footer allows the shared bottom-end Card pattern to remain
+ * visible without reducing action readability.
+ */
+
 .offering-card__footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: ds.space(3);
+  gap: #{ds.space(3)};
 
   min-inline-size: 0;
-  padding: ds.space(4);
+
+  padding: var(--offering-card-padding);
 
   border-block-start: 1px solid var(--offering-card-border);
+  border-end-start-radius: calc(var(--card-radius) - var(--card-border-width));
+  border-end-end-radius: calc(var(--card-radius) - var(--card-border-width));
 
-  background: var(--offering-card-footer-bg);
+  background: color-mix(
+    in srgb,
+    var(--offering-card-footer-bg) 78%,
+    transparent
+  );
 }
 
 /* ==========================================================================
-   Card Actions
+   Footer Fallback
    ========================================================================== */
 
-.offering-card__primary-action,
-.offering-card__document-action {
+@supports not (background: color-mix(in srgb, white, transparent)) {
+  .offering-card__footer {
+    background: var(--offering-card-footer-bg);
+  }
+}
+
+/* ==========================================================================
+   Primary Action
+   ========================================================================== */
+
+.offering-card__primary-action {
   flex: 0 0 auto;
 }
+
+/* ==========================================================================
+   Document Action
+   ========================================================================== */
 
 .offering-card__document-action {
   --icon-size: 1rem;
 
   display: inline-flex;
   align-items: center;
-  gap: ds.space(2);
+  justify-content: center;
+  gap: #{ds.space(2)};
+
+  flex: 0 0 auto;
 
   min-block-size: 2.75rem;
-  padding-inline: ds.space(2);
+
+  padding-inline: #{ds.space(2)};
 
   border-radius: var(--radius-sm);
 
-  color: var(--color-heading);
+  color: var(--offering-card-heading);
 
   font-size: var(--text-sm);
   font-weight: ds.font-weight("bold");
@@ -486,6 +666,10 @@
   text-decoration: none;
 
   @include ds.transition((background-color, color), "fast");
+}
+
+.offering-card__document-action:visited {
+  color: var(--offering-card-heading);
 }
 
 .offering-card__document-action:hover {
@@ -499,6 +683,52 @@
 
 .offering-card__document-action:focus-visible {
   @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.offering-card[aria-busy="true"] {
+  cursor: wait;
+}
+
+.offering-card[aria-busy="true"] .offering-card__header,
+.offering-card[aria-busy="true"] .offering-card__body,
+.offering-card[aria-busy="true"] .offering-card__footer {
+  pointer-events: none;
+
+  opacity: 0.56;
+}
+
+/* ==========================================================================
+   Unavailable State
+   ========================================================================== */
+
+.offering-card.is-unavailable,
+.offering-card[data-available="false"] {
+  --card-pattern-opacity: 0.03;
+  --card-pattern-hover-opacity: 0.03;
+
+  box-shadow: none;
+
+  cursor: not-allowed;
+}
+
+.offering-card.is-unavailable .offering-card__header,
+.offering-card.is-unavailable .offering-card__body,
+.offering-card.is-unavailable .offering-card__footer,
+.offering-card[data-available="false"] .offering-card__header,
+.offering-card[data-available="false"] .offering-card__body,
+.offering-card[data-available="false"] .offering-card__footer {
+  opacity: 0.68;
+}
+
+.offering-card.is-unavailable a,
+.offering-card.is-unavailable button,
+.offering-card[data-available="false"] a,
+.offering-card[data-available="false"] button {
+  pointer-events: none;
 }
 
 /* ==========================================================================
@@ -541,9 +771,9 @@
   .offering-results__header {
     display: grid;
     justify-items: start;
+    gap: #{ds.space(3)};
 
-    gap: ds.space(3);
-    margin-block-end: ds.space(4);
+    margin-block-end: #{ds.space(4)};
   }
 
   .offering-results__title {
@@ -559,22 +789,25 @@
   }
 
   .offering-results__grid {
-    gap: ds.space(3);
+    --grid-gap: #{ds.space(3)};
   }
 
   .offering-results__pagination {
-    margin-block-start: ds.space(4);
+    margin-block-start: #{ds.space(4)};
   }
 
   .offering-card {
-    border-radius: var(--radius-md);
+    --offering-card-padding: #{ds.space(3)};
+    --offering-card-section-gap: #{ds.space(3)};
+
+    --card-pattern-size: 10rem;
   }
 
   .offering-card__header {
     grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: #{ds.space(2)};
 
-    gap: ds.space(2);
-    padding: ds.space(3);
+    min-block-size: auto;
   }
 
   .offering-card__logo {
@@ -582,15 +815,8 @@
     block-size: 2.75rem;
   }
 
-  .offering-card__body,
-  .offering-card__footer {
-    padding: ds.space(3);
-  }
-
   .offering-card__details {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    gap: ds.space(3);
+    gap: #{ds.space(3)};
   }
 }
 
@@ -627,39 +853,42 @@
   .offering-card__document-action {
     inline-size: 100%;
   }
+}
 
-  .offering-card__document-action {
-    justify-content: center;
-  }
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] .offering-card {
+  --card-pattern-opacity: 0.12;
+  --card-pattern-hover-opacity: 0.2;
 }
 
 /* ==========================================================================
    High Contrast
    ========================================================================== */
 
-html[data-contrast="high"] {
-  .offering-card {
-    border-width: 2px;
-    border-color: var(--color-border-strong);
+html[data-contrast="high"] .offering-card {
+  border-width: 2px;
+  border-color: currentColor;
 
-    box-shadow: none;
-  }
+  box-shadow: none;
+}
 
-  .offering-card::before {
-    display: none;
-  }
+html[data-contrast="high"] .offering-card::before {
+  display: none;
+}
 
-  .offering-card__header,
-  .offering-card__footer {
-    border-color: var(--color-border-strong);
-  }
+html[data-contrast="high"] .offering-card__header,
+html[data-contrast="high"] .offering-card__footer {
+  border-color: currentColor;
+}
 
-  .offering-card__logo,
-  .offering-card__status,
-  .offering-results__count {
-    border-width: 2px;
-    border-color: currentColor;
-  }
+html[data-contrast="high"] .offering-card__logo,
+html[data-contrast="high"] .offering-card__status,
+html[data-contrast="high"] .offering-results__count {
+  border-width: 2px;
+  border-color: currentColor;
 }
 
 /* ==========================================================================
@@ -677,12 +906,22 @@ html[data-contrast="high"] {
     color: CanvasText;
   }
 
+  .offering-card::before {
+    display: none;
+  }
+
+  .offering-card__header,
   .offering-card__footer {
+    border-color: CanvasText;
+
     background: Canvas;
   }
 
-  .offering-card::before {
-    display: none;
+  .offering-card__title,
+  .offering-card__symbol,
+  .offering-card__detail-label,
+  .offering-card__detail-value {
+    color: CanvasText;
   }
 }
 
@@ -692,24 +931,60 @@ html[data-contrast="high"] {
 
 @media (prefers-reduced-motion: reduce) {
   .offering-card,
+  .offering-card::before,
   .offering-card__company-link,
   .offering-card__document-action {
     transition: none;
   }
 
-  .offering-card:hover {
+  .offering-card:hover,
+  .offering-card:hover::before,
+  .offering-card:focus-within::before {
     transform: none;
   }
 }
 
-html[data-motion="reduce"] {
-  .offering-card,
-  .offering-card__company-link,
-  .offering-card__document-action {
-    transition: none;
+html[data-motion="reduce"] .offering-card,
+html[data-motion="reduce"] .offering-card::before,
+html[data-motion="reduce"] .offering-card__company-link,
+html[data-motion="reduce"] .offering-card__document-action {
+  transition: none;
+}
+
+html[data-motion="reduce"] .offering-card:hover,
+html[data-motion="reduce"] .offering-card:hover::before,
+html[data-motion="reduce"] .offering-card:focus-within::before {
+  transform: none;
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .offering-card {
+    break-inside: avoid;
+
+    border-color: #000000;
+
+    background: transparent;
+    color: #000000;
+
+    box-shadow: none;
+    transform: none;
   }
 
-  .offering-card:hover {
-    transform: none;
+  .offering-card::before {
+    display: none;
+  }
+
+  .offering-card__footer {
+    background: transparent;
+  }
+
+  .offering-results__pagination,
+  .offering-card__primary-action,
+  .offering-card__document-action {
+    display: none;
   }
 }

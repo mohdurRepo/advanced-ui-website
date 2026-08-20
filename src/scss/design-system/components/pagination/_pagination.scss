@@ -4,41 +4,53 @@
    Pagination
    ========================================================================== */
 
-/*
+/**
  * Generic navigation for paginated result sets.
  *
- * Pagination should use real links whenever each page has a URL. This gives:
+ * Use real links whenever each page has a URL. This preserves:
  *
- * - progressive enhancement
- * - browser history
- * - open-in-new-tab support
- * - search-engine discoverability
+ * - progressive enhancement;
+ * - browser history;
+ * - open-in-new-tab support;
+ * - bookmarkable result pages;
+ * - search-engine discoverability.
  *
- * Buttons may be used only when pagination is entirely client-controlled.
+ * Buttons should be used only when pagination is fully client-controlled.
  */
 
 .pagination {
+  /* Sizing */
+
   --pagination-gap: #{ds.space(1)};
+  --pagination-layout-gap: #{ds.space(3)};
+
   --pagination-control-size: 2.75rem;
-  --pagination-control-padding: #{ds.space(2)};
+  --pagination-control-padding-block: #{ds.space(2)};
+  --pagination-control-padding-inline: #{ds.space(2)};
+
+  /* Default state */
 
   --pagination-bg: var(--color-surface);
   --pagination-color: var(--color-text);
   --pagination-border: var(--color-border);
 
+  /* Hover state */
+
   --pagination-hover-bg: var(--color-surface-alt);
   --pagination-hover-color: var(--color-primary);
   --pagination-hover-border: var(--color-border-strong);
 
-  --pagination-active-bg: var(--color-primary);
-  --pagination-active-color: var(--color-on-primary);
-  --pagination-active-border: var(--color-primary);
+  /* Current page */
+
+  --pagination-current-bg: var(--color-primary);
+  --pagination-current-color: var(--color-on-primary);
+  --pagination-current-border: var(--color-primary);
 
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  gap: ds.space(3);
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--pagination-layout-gap);
 
   inline-size: 100%;
   min-inline-size: 0;
@@ -48,16 +60,31 @@
    Result Summary
    ========================================================================== */
 
+/**
+ * Optional result-range summary:
+ *
+ * Showing 1–20 of 266 issuers
+ */
+
 .pagination__summary {
+  flex: 1 1 14rem;
+
+  min-inline-size: 0;
   margin: 0;
 
   color: var(--color-text-muted);
 
   font-size: var(--text-sm);
   line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
 }
 
-.pagination__summary strong {
+.pagination__summary strong,
+.pagination__summary-value {
+  direction: ltr;
+  unicode-bidi: isolate;
+
   color: var(--color-heading);
 
   font-variant-numeric: tabular-nums;
@@ -70,13 +97,15 @@
 
 .pagination__list {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
   gap: var(--pagination-gap);
 
   min-inline-size: 0;
+
   margin: 0;
+  margin-inline-start: auto;
   padding: 0;
 
   list-style: none;
@@ -92,11 +121,39 @@
   justify-content: center;
 
   flex: 0 0 auto;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Compact Status Item
+   ========================================================================== */
+
+/**
+ * Render this item in the list for narrow screens:
+ *
+ * <li class="pagination__item pagination__item--status">
+ *   <span class="pagination__status">
+ *     Page <strong>1</strong> of <strong>14</strong>
+ *   </span>
+ * </li>
+ */
+
+.pagination__item--status {
+  display: none;
 }
 
 /* ==========================================================================
    Page Link
    ========================================================================== */
+
+/**
+ * `.pagination__link` may be applied to:
+ *
+ * - an anchor for URL-based pagination;
+ * - a button for client-controlled pagination;
+ * - a span representing a disabled control.
+ */
 
 .pagination__link {
   appearance: none;
@@ -104,12 +161,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: ds.space(2);
+  gap: #{ds.space(2)};
 
   min-inline-size: var(--pagination-control-size);
   min-block-size: var(--pagination-control-size);
-  padding-block: var(--pagination-control-padding);
-  padding-inline: var(--pagination-control-padding);
+
+  padding-block: var(--pagination-control-padding-block);
+  padding-inline: var(--pagination-control-padding-inline);
 
   border: 1px solid var(--pagination-border);
   border-radius: var(--radius-md);
@@ -128,7 +186,10 @@
   white-space: nowrap;
 
   cursor: pointer;
+  touch-action: manipulation;
   user-select: none;
+
+  -webkit-tap-highlight-color: transparent;
 
   @include ds.transition(
     (background-color, border-color, color, box-shadow, transform),
@@ -136,14 +197,28 @@
   );
 }
 
-.pagination__link:hover:not([aria-current="page"]):not(
-    [aria-disabled="true"]
-  ):not(.is-disabled) {
-  border-color: var(--pagination-hover-border);
-
-  background: var(--pagination-hover-bg);
-  color: var(--pagination-hover-color);
+.pagination__link:visited {
+  color: var(--pagination-color);
 }
+
+/* ==========================================================================
+   Hover
+   ========================================================================== */
+
+@media (hover: hover) and (pointer: fine) {
+  .pagination__link:hover:not([aria-current="page"]):not(
+      [aria-disabled="true"]
+    ):not(.is-disabled):not(:disabled) {
+    border-color: var(--pagination-hover-border);
+
+    background: var(--pagination-hover-bg);
+    color: var(--pagination-hover-color);
+  }
+}
+
+/* ==========================================================================
+   Focus
+   ========================================================================== */
 
 .pagination__link:focus {
   outline: none;
@@ -156,9 +231,13 @@
   @include ds.focus-ring;
 }
 
+/* ==========================================================================
+   Active
+   ========================================================================== */
+
 .pagination__link:active:not([aria-current="page"]):not(
     [aria-disabled="true"]
-  ):not(.is-disabled) {
+  ):not(.is-disabled):not(:disabled) {
   transform: translateY(1px);
 }
 
@@ -166,19 +245,42 @@
    Current Page
    ========================================================================== */
 
+/**
+ * `aria-current="page"` is the authoritative state.
+ *
+ * `.is-current` remains available for JavaScript styling hooks but should
+ * always be accompanied by the ARIA attribute.
+ */
+
 .pagination__link[aria-current="page"],
 .pagination__link.is-current {
-  border-color: var(--pagination-active-border);
+  border-color: var(--pagination-current-border);
 
-  background: var(--pagination-active-bg);
-  color: var(--pagination-active-color);
+  background: var(--pagination-current-bg);
+  color: var(--pagination-current-color);
 
   cursor: default;
+}
+
+.pagination__link[aria-current="page"]:visited,
+.pagination__link.is-current:visited {
+  color: var(--pagination-current-color);
 }
 
 /* ==========================================================================
    Disabled State
    ========================================================================== */
+
+/**
+ * For URL pagination, prefer a span without an href:
+ *
+ * <span
+ *   class="pagination__link pagination__link--previous is-disabled"
+ *   aria-disabled="true"
+ * >
+ *
+ * For client pagination, use a native disabled button.
+ */
 
 .pagination__link[aria-disabled="true"],
 .pagination__link.is-disabled,
@@ -198,7 +300,7 @@
 
 .pagination__link--previous,
 .pagination__link--next {
-  padding-inline: ds.space(3);
+  padding-inline: #{ds.space(3)};
 }
 
 .pagination__link--previous.has-icon,
@@ -212,12 +314,21 @@
 
 .pagination__link--first,
 .pagination__link--last {
-  padding-inline: ds.space(3);
+  padding-inline: #{ds.space(3)};
 }
 
 .pagination__link--first.has-icon,
 .pagination__link--last.has-icon {
   --icon-size: 0.875rem;
+}
+
+/* ==========================================================================
+   Control Label
+   ========================================================================== */
+
+.pagination__link-text,
+.pagination__control-label {
+  min-inline-size: 0;
 }
 
 /* ==========================================================================
@@ -230,7 +341,8 @@
 
   min-inline-size: var(--pagination-control-size);
   min-block-size: var(--pagination-control-size);
-  padding-inline: var(--pagination-control-padding);
+
+  padding-inline: var(--pagination-control-padding-inline);
 
   color: var(--color-text-muted);
 
@@ -247,17 +359,17 @@
    Compact Page Status
    ========================================================================== */
 
-/*
- * This status is intended for smaller screens where a long page-number list
- * would be difficult to scan or operate.
- */
-
 .pagination__status {
-  display: none;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.35em;
 
+  min-inline-size: 0;
   min-block-size: var(--pagination-control-size);
-  padding-block: var(--pagination-control-padding);
-  padding-inline: ds.space(3);
+
+  padding-block: var(--pagination-control-padding-block);
+  padding-inline: #{ds.space(2)};
 
   color: var(--color-text-muted);
 
@@ -266,27 +378,50 @@
   font-weight: ds.font-weight("medium");
   line-height: 1;
 
+  text-align: center;
   white-space: nowrap;
 }
 
+.pagination__status strong,
 .pagination__status-current,
 .pagination__status-total {
+  direction: ltr;
+  unicode-bidi: isolate;
+
   color: var(--color-heading);
 
   font-weight: ds.font-weight("bold");
 }
 
 /* ==========================================================================
-   Layout Variants
+   Start Alignment
    ========================================================================== */
 
 .pagination--start {
   justify-content: flex-start;
 }
 
+.pagination--start .pagination__list {
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+}
+
+/* ==========================================================================
+   End Alignment
+   ========================================================================== */
+
 .pagination--end {
   justify-content: flex-end;
 }
+
+.pagination--end .pagination__list {
+  margin-inline-start: auto;
+  margin-inline-end: 0;
+}
+
+/* ==========================================================================
+   Space-Between Alignment
+   ========================================================================== */
 
 .pagination--between {
   justify-content: space-between;
@@ -298,14 +433,15 @@
 
 .pagination--compact {
   --pagination-control-size: 2.5rem;
-  --pagination-control-padding: #{ds.space(1)};
+  --pagination-control-padding-block: #{ds.space(1)};
+  --pagination-control-padding-inline: #{ds.space(1)};
 }
 
 .pagination--compact .pagination__link--previous,
 .pagination--compact .pagination__link--next,
 .pagination--compact .pagination__link--first,
 .pagination--compact .pagination__link--last {
-  padding-inline: ds.space(2);
+  padding-inline: #{ds.space(2)};
 }
 
 /* ==========================================================================
@@ -326,13 +462,15 @@
   background: transparent;
 }
 
-.pagination--minimal
-  .pagination__link:hover:not([aria-current="page"]):not(
-    [aria-disabled="true"]
-  ):not(.is-disabled) {
-  border-color: var(--pagination-hover-border);
+@media (hover: hover) and (pointer: fine) {
+  .pagination--minimal
+    .pagination__link:hover:not([aria-current="page"]):not(
+      [aria-disabled="true"]
+    ):not(.is-disabled):not(:disabled) {
+    border-color: var(--pagination-hover-border);
 
-  background: var(--pagination-hover-bg);
+    background: var(--pagination-hover-bg);
+  }
 }
 
 /* ==========================================================================
@@ -353,19 +491,33 @@
 
 @include ds.respond-down("sm") {
   .pagination {
-    justify-content: space-between;
-    gap: ds.space(2);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: #{ds.space(2)};
+
+    justify-content: stretch;
   }
 
   .pagination__summary {
-    flex-basis: 100%;
+    inline-size: 100%;
 
     text-align: center;
   }
 
-  /*
-   * Hide numbered pages and ellipses on mobile.
-   * Previous, next and the compact status remain visible.
+  .pagination__list {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: #{ds.space(2)};
+
+    inline-size: 100%;
+
+    margin-inline: 0;
+  }
+
+  /**
+   * Numbered pages, ellipses, and boundary controls are replaced by the
+   * compact Page X of Y status.
    */
 
   .pagination__item--page,
@@ -375,20 +527,55 @@
     display: none;
   }
 
-  .pagination__status {
+  .pagination__item--previous {
+    grid-column: 1;
+
+    justify-self: start;
+  }
+
+  .pagination__item--status {
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
+
+    grid-column: 2;
+
+    justify-self: center;
+  }
+
+  .pagination__item--next {
+    grid-column: 3;
+
+    justify-self: end;
   }
 
   .pagination__link--previous,
   .pagination__link--next {
+    min-inline-size: var(--pagination-control-size);
+  }
+}
+
+/* ==========================================================================
+   Very Small Screens
+   ========================================================================== */
+
+@media (max-width: 24rem) {
+  .pagination__link--previous,
+  .pagination__link--next {
     inline-size: var(--pagination-control-size);
+
     padding: 0;
   }
 
-  .pagination__link-text {
+  .pagination__link--previous .pagination__link-text,
+  .pagination__link--next .pagination__link-text,
+  .pagination__link--previous .pagination__control-label,
+  .pagination__link--next .pagination__control-label {
     @include ds.visually-hidden;
+  }
+
+  .pagination__status {
+    padding-inline: #{ds.space(1)};
+
+    font-size: var(--text-xs);
   }
 }
 
@@ -396,27 +583,25 @@
    High Contrast
    ========================================================================== */
 
-html[data-contrast="high"] {
-  .pagination__link {
-    border-width: 2px;
-    border-color: currentColor;
-  }
+html[data-contrast="high"] .pagination__link {
+  border-width: 2px;
+  border-color: currentColor;
+}
 
-  .pagination__link[aria-current="page"],
-  .pagination__link.is-current {
-    background: var(--color-text);
-    color: var(--color-bg);
-  }
+html[data-contrast="high"] .pagination__link[aria-current="page"],
+html[data-contrast="high"] .pagination__link.is-current {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
 
-  .pagination__link[aria-disabled="true"],
-  .pagination__link.is-disabled,
-  .pagination__link:disabled {
-    border-style: dashed;
+html[data-contrast="high"] .pagination__link[aria-disabled="true"],
+html[data-contrast="high"] .pagination__link.is-disabled,
+html[data-contrast="high"] .pagination__link:disabled {
+  border-style: dashed;
 
-    color: currentColor;
+  color: currentColor;
 
-    opacity: 0.7;
-  }
+  opacity: 0.7;
 }
 
 /* ==========================================================================
@@ -449,7 +634,15 @@ html[data-contrast="high"] {
   .pagination__link[aria-disabled="true"],
   .pagination__link.is-disabled,
   .pagination__link:disabled {
+    border-color: GrayText;
+
     color: GrayText;
+  }
+
+  .pagination__summary,
+  .pagination__status,
+  .pagination__ellipsis {
+    color: CanvasText;
   }
 }
 
@@ -467,12 +660,20 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
-  .pagination__link {
-    transition: none;
-  }
+html[data-motion="reduce"] .pagination__link {
+  transition: none;
+}
 
-  .pagination__link:active {
-    transform: none;
+html[data-motion="reduce"] .pagination__link:active {
+  transform: none;
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .pagination {
+    display: none;
   }
 }
