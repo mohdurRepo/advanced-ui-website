@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+  <!-- Floating Head Core -->
+  <circle cx="12" cy="7.5" r="4" stroke="currentColor" stroke-width="2"/>
+  
+  <!-- Ergonomic Curved Shoulders Contour -->
+  <path d="M4.5 20C4.5 16.5 8 14.5 12 14.5C16 14.5 19.5 16.5 19.5 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+</svg>
