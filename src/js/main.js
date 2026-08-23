@@ -43,9 +43,13 @@ import { initMarketCharts } from "./components/market-chart";
 import { initIndicesHeatmap } from "./components/market-summary";
 
 /* ==========================================================================
+   Watchlist Components
+   ========================================================================== */
+import { initWatchlists } from "./components/watchlist";
+
+/* ==========================================================================
    Application State
    ========================================================================== */
-
 let applicationInitialized = false;
 
 /* ==========================================================================
@@ -115,6 +119,8 @@ function initApp() {
   initCalendar();
   initHomeSpotlight();
   initExchangePerformance();
+
+  initWatchlists();
 }
 
 /* ==========================================================================

@@ -5,18 +5,26 @@
    ========================================================================== */
 
 /*
- * The responsive wrapper is the only horizontal-overflow owner for native
- * design-system tables.
+ * Native-table horizontal overflow owner.
  *
- * For keyboard access, add:
+ * Required accessible markup when a table can overflow:
  *
- * - tabindex="0"
- * - role="region"
- * - aria-label or aria-labelledby
+ * <div
+ *   class="table-responsive"
+ *   tabindex="0"
+ *   role="region"
+ *   aria-label="Descriptive table label"
+ * >
+ *   <table class="table table-wide">…</table>
+ * </div>
+ *
+ * DataTables manages its own `.dt-scroll-body`; vendor DataTables styles
+ * handle that generated structure separately.
  */
 
 .table-responsive {
   --table-responsive-scroll-padding: 0.75rem;
+  --table-responsive-scrollbar-color: var(--color-border-strong);
 
   position: relative;
 
@@ -28,10 +36,9 @@
   overflow-y: hidden;
 
   overscroll-behavior-inline: contain;
-
   scroll-padding-inline: var(--table-responsive-scroll-padding);
 
-  scrollbar-color: var(--color-border-strong) transparent;
+  scrollbar-color: var(--table-responsive-scrollbar-color) transparent;
   scrollbar-width: thin;
 
   -webkit-overflow-scrolling: touch;
@@ -50,40 +57,43 @@
 }
 
 /* ==========================================================================
-   Width Variants
+   Table Width Variants
    ========================================================================== */
 
 /*
- * Use `.table-nowrap` for intentionally dense data that must retain each
- * column width. The wrapper contains resulting horizontal overflow.
+ * `.table-nowrap`
+ *
+ * Use for intentionally dense datasets where cell labels and values must
+ * remain on one line. The wrapper contains the resulting overflow.
  */
 
-.table-responsive .table-nowrap {
+.table-responsive > .table.table-nowrap {
   inline-size: max-content;
   min-inline-size: 100%;
 }
 
 /*
- * Use `.table-wide` where readable column widths need a configurable minimum.
+ * `.table-wide`
  *
- * Override --table-min-inline-size on a page or table variant when needed.
+ * Use where readable columns require a defined minimum table width.
+ * A page or component may locally override `--table-min-inline-size`.
  */
 
-.table-responsive .table-wide {
+.table-responsive > .table.table-wide {
   inline-size: max(100%, var(--table-min-inline-size, 64rem));
 }
 
-.table-responsive .table-wide.table-nowrap {
+.table-responsive > .table.table-wide.table-nowrap {
   inline-size: max-content;
   min-inline-size: max(100%, var(--table-min-inline-size, 64rem));
 }
 
 /*
- * Standard tables fill their available content region without creating
- * accidental document overflow.
+ * Standard tables fill their container and never create accidental document
+ * overflow. This deliberately excludes the explicit width variants above.
  */
 
-.table-responsive .table:not(.table-nowrap):not(.table-wide) {
+.table-responsive > .table:not(.table-nowrap):not(.table-wide) {
   inline-size: 100%;
   max-inline-size: 100%;
 }
@@ -104,7 +114,7 @@
 .table-responsive::-webkit-scrollbar-thumb {
   border-radius: var(--radius-pill);
 
-  background: var(--color-border-strong);
+  background: var(--table-responsive-scrollbar-color);
 }
 
 .table-responsive::-webkit-scrollbar-thumb:hover {
@@ -116,8 +126,8 @@
    ========================================================================== */
 
 /*
- * Explicit compact and comfortable variants preserve their selected density.
- * Only default-density tables become denser as available space reduces.
+ * Explicit compact and comfortable variants retain their chosen density.
+ * Only the default table density tightens at smaller viewports.
  */
 
 @include ds.respond-down("md") {
@@ -143,11 +153,7 @@
    ========================================================================== */
 
 html[data-contrast="high"] .table-responsive {
-  scrollbar-color: currentColor transparent;
-}
-
-html[data-contrast="high"] .table-responsive::-webkit-scrollbar-thumb {
-  background: currentColor;
+  --table-responsive-scrollbar-color: currentColor;
 }
 
 html[data-contrast="high"] .table-responsive[tabindex]:focus-visible {
@@ -160,11 +166,9 @@ html[data-contrast="high"] .table-responsive[tabindex]:focus-visible {
 
 @media (forced-colors: active) {
   .table-responsive {
-    scrollbar-color: CanvasText Canvas;
-  }
+    --table-responsive-scrollbar-color: CanvasText;
 
-  .table-responsive::-webkit-scrollbar-thumb {
-    background: CanvasText;
+    scrollbar-color: CanvasText Canvas;
   }
 
   .table-responsive[tabindex]:focus-visible {

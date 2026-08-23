@@ -1,29 +1,59 @@
 @use "../../../design-system/abstracts" as ds;
 
 /* ==========================================================================
-   Watchlist Foundation
+   Watchlist
+   ========================================================================== */
+
+/**
+ * Watchlist page composition.
+ *
+ * Shared design-system components continue to own:
+ *
+ * - buttons
+ * - dropdown behavior
+ * - tabs
+ * - tables
+ * - responsive table overflow
+ * - forms
+ * - modals
+ * - icons
+ *
+ * This partial owns:
+ *
+ * - watchlist workspace composition
+ * - selection states
+ * - watchlist table sizing
+ * - market values and sparklines
+ * - row-action placement
+ * - mobile watchlist cards
+ * - watchlist action-dialog content
+ */
+
+/* ==========================================================================
+   Foundation
    ========================================================================== */
 
 .watchlist-page {
   --watchlist-gap: #{ds.space(4)};
+
   --watchlist-table-min-width: 72rem;
+
   --watchlist-selection-width: 3.25rem;
+  --watchlist-action-width: 3.5rem;
   --watchlist-company-width: 15rem;
   --watchlist-chart-width: 8rem;
-  --watchlist-action-width: 3.25rem;
+
+  --watchlist-selected-bg: var(--color-surface-selected);
+  --watchlist-selected-border: var(--color-primary);
+
+  --watchlist-action-size: 2.5rem;
 
   min-inline-size: 0;
 }
 
 /* ==========================================================================
-   Equal-height Workspace
+   Workspace Layout
    ========================================================================== */
-
-/*
- * Grid stretching establishes the shared row height.
- * The min-block-size declarations allow nested flex/grid children to shrink,
- * which is required for the announcement list's internal scrolling.
- */
 
 .watchlist-layout {
   align-items: stretch;
@@ -63,10 +93,15 @@
   min-block-size: 0;
 }
 
+/* ==========================================================================
+   Workspace
+   ========================================================================== */
+
 .watchlist-page__workspace {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
+
   gap: var(--watchlist-gap);
 
   inline-size: 100%;
@@ -82,6 +117,7 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
+
   gap: ds.space(3);
 
   min-inline-size: 0;
@@ -94,6 +130,10 @@
 .watchlist-page__header p {
   margin: 0;
 }
+
+/* ==========================================================================
+   Create Action
+   ========================================================================== */
 
 .watchlist-page__create {
   flex: 0 0 auto;
@@ -132,6 +172,10 @@
   min-block-size: 0;
 }
 
+/* ==========================================================================
+   Tab
+   ========================================================================== */
+
 .watchlist-tab {
   position: relative;
 
@@ -169,6 +213,7 @@
 
   min-inline-size: 1.5rem;
   min-block-size: 1.5rem;
+
   padding-inline: ds.space(1);
 
   border: 1px solid var(--color-border);
@@ -178,9 +223,10 @@
   color: var(--color-text-muted);
 
   font-size: var(--text-xs);
-  font-variant-numeric: tabular-nums;
   font-weight: ds.font-weight("bold");
   line-height: 1;
+
+  font-variant-numeric: tabular-nums;
 }
 
 .watchlist-tab .tab-link.active .badge,
@@ -196,7 +242,7 @@
 }
 
 /* ==========================================================================
-   Tab Menu Placement
+   Tab Menu
    ========================================================================== */
 
 .watchlist-tab__menu {
@@ -218,8 +264,10 @@
 
   inline-size: 2.25rem;
   min-inline-size: 2.25rem;
+
   block-size: 2.25rem;
   min-block-size: 2.25rem;
+
   padding: 0;
 
   border: 0;
@@ -265,49 +313,82 @@
    Selection Bar
    ========================================================================== */
 
+/**
+ * JavaScript owns:
+ *
+ * - visibility
+ * - selected company count
+ * - select-all state
+ * - indeterminate state
+ */
+
 .watchlist-selection-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+
   gap: ds.space(3);
 
   margin-block-end: ds.space(3);
-  padding: ds.space(3);
+
+  padding: ds.space(3) ds.space(4);
 
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
 
-  background: var(--color-surface-alt);
+  background: var(--color-surface);
   color: var(--color-text);
+
+  box-shadow: var(--shadow-sm);
 }
 
 .watchlist-selection-bar[hidden] {
   display: none;
 }
 
+/* ==========================================================================
+   Selection Status
+   ========================================================================== */
+
 .watchlist-selection-bar__status {
+  display: inline-flex;
+  align-items: baseline;
+
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+
   margin: 0;
 
   color: var(--color-text-muted);
 
   font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+
   font-variant-numeric: tabular-nums;
 }
 
 .watchlist-selection-bar__status strong {
   color: var(--color-heading);
+
+  font-weight: ds.font-weight("bold");
 }
+
+/* ==========================================================================
+   Selection Actions
+   ========================================================================== */
 
 .watchlist-selection-bar__actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+
   gap: ds.space(2);
 }
 
 /* ==========================================================================
-   Data Views and Table
+   Data Presentations
    ========================================================================== */
 
 .watchlist-page__table-view,
@@ -319,30 +400,33 @@
   display: none;
 }
 
+/* ==========================================================================
+   Table
+   ========================================================================== */
+
 .watchlist-table {
   --table-fixed-column-1-width: var(--watchlist-selection-width);
-  --table-fixed-column-2-width: var(--watchlist-company-width);
+  --table-fixed-column-2-width: var(--watchlist-action-width);
+  --table-fixed-column-3-width: var(--watchlist-company-width);
 
   min-inline-size: var(--watchlist-table-min-width);
 }
+
+/* ==========================================================================
+   Selection Column
+   ========================================================================== */
 
 .watchlist-table .table-selection-column,
 .watchlist-table .table-selection-cell {
   inline-size: var(--watchlist-selection-width);
   min-inline-size: var(--watchlist-selection-width);
-}
-
-.watchlist-table__company {
-  inline-size: var(--watchlist-company-width);
-  min-inline-size: var(--watchlist-company-width);
-}
-
-.watchlist-table__chart {
-  inline-size: var(--watchlist-chart-width);
-  min-inline-size: var(--watchlist-chart-width);
 
   text-align: center;
 }
+
+/* ==========================================================================
+   Action Column
+   ========================================================================== */
 
 .watchlist-table__action {
   inline-size: var(--watchlist-action-width);
@@ -351,22 +435,62 @@
   text-align: center;
 }
 
-.watchlist-table tbody tr.is-selected {
-  box-shadow: inset 0.1875rem 0 0 var(--color-primary);
-}
+/* ==========================================================================
+   Company Column
+   ========================================================================== */
 
-html[dir="rtl"] .watchlist-table tbody tr.is-selected {
-  box-shadow: inset -0.1875rem 0 0 var(--color-primary);
+.watchlist-table__company {
+  inline-size: var(--watchlist-company-width);
+  min-inline-size: var(--watchlist-company-width);
 }
 
 /* ==========================================================================
-   Market Change and Sparkline
+   Chart Column
+   ========================================================================== */
+
+.watchlist-table__chart {
+  inline-size: var(--watchlist-chart-width);
+  min-inline-size: var(--watchlist-chart-width);
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Selection Controls
+   ========================================================================== */
+
+.watchlist-table input[type="checkbox"],
+.watchlist-card input[type="checkbox"] {
+  margin: 0;
+
+  accent-color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Selected Table Row
+   ========================================================================== */
+
+.watchlist-table tbody tr.is-selected,
+.watchlist-table tbody tr[aria-selected="true"] {
+  background: var(--watchlist-selected-bg);
+
+  box-shadow: inset 0.1875rem 0 0 var(--watchlist-selected-border);
+}
+
+html[dir="rtl"] .watchlist-table tbody tr.is-selected,
+html[dir="rtl"] .watchlist-table tbody tr[aria-selected="true"] {
+  box-shadow: inset -0.1875rem 0 0 var(--watchlist-selected-border);
+}
+
+/* ==========================================================================
+   Market Change
    ========================================================================== */
 
 .watchlist-change {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
+
   gap: ds.space(1);
 
   direction: ltr;
@@ -376,22 +500,27 @@ html[dir="rtl"] .watchlist-table tbody tr.is-selected {
 
   font-variant-numeric: tabular-nums;
   font-weight: ds.font-weight("bold");
+
   white-space: nowrap;
 }
 
 .watchlist-change--positive,
 .watchlist-sparkline--positive {
-  color: var(--color-success);
+  color: var(--color-market-positive);
 }
 
 .watchlist-change--negative,
 .watchlist-sparkline--negative {
-  color: var(--color-danger);
+  color: var(--color-market-negative);
 }
 
 .watchlist-change--neutral {
-  color: var(--color-text-muted);
+  color: var(--color-market-neutral);
 }
+
+/* ==========================================================================
+   Sparkline
+   ========================================================================== */
 
 .watchlist-sparkline {
   display: inline-flex;
@@ -415,11 +544,13 @@ html[dir="rtl"] .watchlist-table tbody tr.is-selected {
 
 .watchlist-sparkline__area {
   fill: currentColor;
+
   opacity: 0.12;
 }
 
 .watchlist-sparkline__line {
   fill: none;
+
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -429,7 +560,36 @@ html[dir="rtl"] .watchlist-table tbody tr.is-selected {
 }
 
 /* ==========================================================================
-   Row Action
+   Row Action Menu
+   ========================================================================== */
+
+/**
+ * The table is horizontally scrollable, therefore its overflow container must
+ * remain intact.
+ *
+ * The actions column sits near the logical-start side of the table. Opening
+ * the menu toward logical-end would cause it to extend outside the scroll
+ * viewport and become clipped.
+ *
+ * The menu therefore anchors from inline-start and expands into the available
+ * table content.
+ */
+
+.watchlist-row-menu {
+  position: relative;
+  isolation: isolate;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.watchlist-row-menu.is-open {
+  z-index: calc(var(--z-popover) + 1);
+}
+
+/* ==========================================================================
+   Row Action Trigger
    ========================================================================== */
 
 .watchlist-row-action {
@@ -438,10 +598,12 @@ html[dir="rtl"] .watchlist-table tbody tr.is-selected {
   display: inline-grid;
   place-items: center;
 
-  inline-size: 2.5rem;
-  min-inline-size: 2.5rem;
-  block-size: 2.5rem;
-  min-block-size: 2.5rem;
+  inline-size: var(--watchlist-action-size);
+  min-inline-size: var(--watchlist-action-size);
+
+  block-size: var(--watchlist-action-size);
+  min-block-size: var(--watchlist-action-size);
+
   padding: 0;
 
   border: 1px solid transparent;
@@ -458,11 +620,12 @@ html[dir="rtl"] .watchlist-table tbody tr.is-selected {
   );
 }
 
-.watchlist-row-action:hover:not(:disabled) {
-  border-color: var(--color-danger);
+.watchlist-row-action:hover:not(:disabled),
+.watchlist-row-action[aria-expanded="true"] {
+  border-color: var(--color-border);
 
   background: var(--color-surface-alt);
-  color: var(--color-danger);
+  color: var(--color-heading);
 }
 
 .watchlist-row-action:focus {
@@ -477,12 +640,90 @@ html[dir="rtl"] .watchlist-table tbody tr.is-selected {
   transform: scale(0.94);
 }
 
+.watchlist-row-action:disabled,
+.watchlist-row-action[aria-disabled="true"] {
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Row Dropdown
+   ========================================================================== */
+
+/**
+ * Important:
+ *
+ * Do not position this menu with inset-inline-end: 0.
+ *
+ * The action column is close to the logical-start boundary, so opening toward
+ * that boundary can cause the responsive table wrapper to clip the menu.
+ */
+
+.watchlist-row-menu .dropdown-menu {
+  z-index: calc(var(--z-popover) + 2);
+
+  inset-block-start: calc(100% + #{ds.space(1)});
+  inset-block-end: auto;
+
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+
+  min-inline-size: 13.5rem;
+
+  text-align: start;
+}
+
+.watchlist-row-menu .dropdown-menu[hidden] {
+  display: none;
+}
+
+/* ==========================================================================
+   Upward Row Dropdown
+   ========================================================================== */
+
+/**
+ * Apply .watchlist-row-menu--up to rows near the bottom edge when needed.
+ */
+
+.watchlist-row-menu--up .dropdown-menu {
+  inset-block-start: auto;
+  inset-block-end: calc(100% + #{ds.space(1)});
+}
+
+/* ==========================================================================
+   Row Dropdown Icons
+   ========================================================================== */
+
+.watchlist-row-menu .dropdown-item .has-icon {
+  --icon-size: 1rem;
+
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   Destructive Action
+   ========================================================================== */
+
+.watchlist-action--danger {
+  color: var(--color-danger);
+}
+
+.watchlist-action--danger:hover,
+.watchlist-action--danger:focus-visible {
+  background: color-mix(in oklab, var(--color-danger), transparent 92%);
+
+  color: var(--color-danger);
+}
+
 /* ==========================================================================
    Mobile Cards
    ========================================================================== */
 
 .watchlist-card-list {
   display: grid;
+
   gap: ds.space(3);
 
   margin: 0;
@@ -491,9 +732,18 @@ html[dir="rtl"] .watchlist-table tbody tr.is-selected {
   list-style: none;
 }
 
+/* ==========================================================================
+   Card
+   ========================================================================== */
+
 .watchlist-card {
+  position: relative;
+
   display: grid;
+
   gap: ds.space(3);
+
+  min-inline-size: 0;
 
   padding: ds.space(4);
 
@@ -504,25 +754,61 @@ html[dir="rtl"] .watchlist-table tbody tr.is-selected {
   color: var(--color-text);
 
   box-shadow: var(--shadow-sm);
+
+  @include ds.transition((border-color, background-color), "fast");
 }
 
+/* ==========================================================================
+   Selected Card
+   ========================================================================== */
+
 .watchlist-card.is-selected {
-  border-color: var(--color-primary);
+  border-color: var(--watchlist-selected-border);
+
+  background: var(--watchlist-selected-bg);
 }
+
+/* ==========================================================================
+   Card Header
+   ========================================================================== */
 
 .watchlist-card__header,
 .watchlist-card__footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: ds.space(3);
 
   min-inline-size: 0;
 }
 
+.watchlist-card__header-start {
+  display: flex;
+  align-items: center;
+
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+}
+
+.watchlist-card__actions {
+  display: inline-flex;
+  align-items: center;
+
+  gap: ds.space(1);
+
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   Card Metrics
+   ========================================================================== */
+
 .watchlist-card__metrics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+
   gap: ds.space(3);
 
   margin: 0;
@@ -530,24 +816,45 @@ html[dir="rtl"] .watchlist-table tbody tr.is-selected {
 
 .watchlist-card__metric {
   display: grid;
+
   gap: ds.space(1);
 
   min-inline-size: 0;
 }
 
 .watchlist-card__metric dt {
+  margin: 0;
+
   color: var(--color-text-muted);
 
   font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
 }
 
 .watchlist-card__metric dd {
+  min-inline-size: 0;
+
   margin: 0;
 
   color: var(--color-heading);
 
-  font-variant-numeric: tabular-nums;
+  font-size: var(--text-sm);
   font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  font-variant-numeric: tabular-nums;
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Card Footer
+   ========================================================================== */
+
+.watchlist-card__footer {
+  padding-block-start: ds.space(3);
+
+  border-block-start: 1px solid var(--color-border);
 }
 
 /* ==========================================================================
@@ -557,6 +864,7 @@ html[dir="rtl"] .watchlist-table tbody tr.is-selected {
 .watchlist-empty {
   display: grid;
   justify-items: center;
+
   gap: ds.space(3);
 
   padding-block: ds.space(8);
@@ -590,7 +898,266 @@ html[dir="rtl"] .watchlist-table tbody tr.is-selected {
 }
 
 /* ==========================================================================
-   Responsive
+   Watchlist Action Dialog
+   ========================================================================== */
+
+/**
+ * Page-specific content inside the reusable modal component.
+ */
+
+.watchlist-action-dialog {
+  display: flex;
+  flex-direction: column;
+
+  gap: ds.space(5);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Dialog Introduction
+   ========================================================================== */
+
+.watchlist-action-dialog__intro {
+  display: flex;
+  flex-direction: column;
+
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+}
+
+.watchlist-action-dialog__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-xl);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+.watchlist-action-dialog__description {
+  max-inline-size: 42rem;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Selected Companies Summary
+   ========================================================================== */
+
+.watchlist-action-dialog__selection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+
+  padding: ds.space(3) ds.space(4);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+}
+
+.watchlist-action-dialog__selection-label {
+  min-inline-size: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+}
+
+.watchlist-action-dialog__selection-count {
+  flex: 0 0 auto;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Move Destination List
+   ========================================================================== */
+
+.watchlist-move-list {
+  display: grid;
+
+  gap: ds.space(2);
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Move Destination
+   ========================================================================== */
+
+.watchlist-move-option {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+
+  padding: ds.space(3) ds.space(4);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  cursor: pointer;
+
+  @include ds.transition((border-color, background-color), "fast");
+}
+
+.watchlist-move-option:hover {
+  border-color: var(--color-border-strong);
+
+  background: var(--color-surface-hover);
+}
+
+.watchlist-move-option:has(input:checked) {
+  border-color: var(--color-primary);
+
+  background: var(--color-surface-selected);
+}
+
+.watchlist-move-option input {
+  flex: 0 0 auto;
+
+  margin: 0;
+
+  accent-color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Move Destination Content
+   ========================================================================== */
+
+.watchlist-move-option__content {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  gap: 0.125rem;
+
+  min-inline-size: 0;
+}
+
+.watchlist-move-option__name {
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("medium");
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.watchlist-move-option__meta {
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Remove Confirmation
+   ========================================================================== */
+
+.watchlist-remove-warning {
+  display: flex;
+  align-items: flex-start;
+
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+
+  padding: ds.space(3) ds.space(4);
+
+  border-inline-start: 0.1875rem solid var(--color-danger);
+
+  background: color-mix(in oklab, var(--color-danger), transparent 94%);
+
+  color: var(--color-text);
+}
+
+.watchlist-remove-warning__icon {
+  --icon-size: 1rem;
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: 2rem;
+  block-size: 2rem;
+
+  flex: 0 0 auto;
+
+  border-radius: var(--radius-pill);
+
+  background: var(--color-danger);
+  color: var(--color-on-danger);
+}
+
+.watchlist-remove-warning__content {
+  display: flex;
+  flex-direction: column;
+
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+}
+
+.watchlist-remove-warning__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+}
+
+.watchlist-remove-warning__text {
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Large Tablet
    ========================================================================== */
 
 @include ds.respond-down("lg") {
@@ -610,6 +1177,10 @@ html[dir="rtl"] .watchlist-table tbody tr.is-selected {
   }
 }
 
+/* ==========================================================================
+   Tablet / Mobile Data Presentation
+   ========================================================================== */
+
 @include ds.respond-down("md") {
   .watchlist-page__table-view {
     display: none;
@@ -619,6 +1190,10 @@ html[dir="rtl"] .watchlist-table tbody tr.is-selected {
     display: block;
   }
 }
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
 
 @include ds.respond-down("sm") {
   .watchlist-page {
@@ -638,30 +1213,61 @@ html[dir="rtl"] .watchlist-table tbody tr.is-selected {
   .watchlist-selection-bar {
     align-items: stretch;
     flex-direction: column;
+
+    padding: ds.space(3);
   }
 
-  .watchlist-selection-bar__actions,
-  .watchlist-selection-bar__actions .btn {
+  .watchlist-selection-bar__actions {
     inline-size: 100%;
+  }
+
+  .watchlist-selection-bar__actions .btn {
+    flex: 1 1 auto;
   }
 
   .watchlist-card {
     padding: ds.space(3);
+
     border-radius: var(--radius-md);
+  }
+
+  .watchlist-card__metrics {
+    gap: ds.space(2);
+  }
+
+  .watchlist-row-menu .dropdown-menu {
+    min-inline-size: 12rem;
+  }
+
+  .watchlist-action-dialog {
+    gap: ds.space(4);
+  }
+
+  .watchlist-action-dialog__title {
+    font-size: var(--text-lg);
+  }
+
+  .watchlist-action-dialog__selection,
+  .watchlist-move-option,
+  .watchlist-remove-warning {
+    padding: ds.space(3);
   }
 }
 
 /* ==========================================================================
-   High Contrast and Forced Colors
+   High Contrast
    ========================================================================== */
 
 html[data-contrast="high"] {
   .watchlist-selection-bar,
-  .watchlist-card {
+  .watchlist-card,
+  .watchlist-action-dialog__selection,
+  .watchlist-move-option {
     border-width: 2px;
     border-color: var(--color-border-strong);
   }
 
+  .watchlist-selection-bar,
   .watchlist-card {
     box-shadow: none;
   }
@@ -671,9 +1277,18 @@ html[data-contrast="high"] {
     border-color: currentColor;
   }
 
-  .watchlist-table tbody tr.is-selected {
+  .watchlist-table tbody tr.is-selected,
+  .watchlist-table tbody tr[aria-selected="true"] {
     box-shadow: none;
+
     outline: var(--focus-ring-width) solid var(--focus-ring);
+
+    outline-offset: -2px;
+  }
+
+  .watchlist-card.is-selected {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+
     outline-offset: -2px;
   }
 
@@ -681,24 +1296,80 @@ html[data-contrast="high"] {
   .watchlist-sparkline {
     color: currentColor;
   }
+
+  .watchlist-row-action {
+    border-color: currentColor;
+  }
+
+  .watchlist-action--danger {
+    color: currentColor;
+
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  .watchlist-remove-warning {
+    border-inline-start-width: 0.25rem;
+
+    background: transparent;
+  }
+
+  .watchlist-remove-warning__icon {
+    border: 2px solid currentColor;
+
+    background: transparent;
+    color: currentColor;
+  }
 }
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
 
 @media (forced-colors: active) {
   .watchlist-selection-bar,
-  .watchlist-card {
+  .watchlist-card,
+  .watchlist-action-dialog__selection,
+  .watchlist-move-option {
     border-color: CanvasText;
 
     background: Canvas;
     color: CanvasText;
   }
 
-  .watchlist-card.is-selected {
+  .watchlist-card.is-selected,
+  .watchlist-move-option:has(input:checked) {
     outline: 2px solid Highlight;
     outline-offset: -2px;
   }
 
   .watchlist-change,
   .watchlist-sparkline {
+    color: CanvasText;
+  }
+
+  .watchlist-row-action {
+    border-color: ButtonText;
+
+    background: ButtonFace;
+    color: ButtonText;
+  }
+
+  .watchlist-action--danger {
+    color: CanvasText;
+  }
+
+  .watchlist-remove-warning {
+    border-color: Highlight;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .watchlist-remove-warning__icon {
+    border: 1px solid CanvasText;
+
+    background: Canvas;
     color: CanvasText;
   }
 }
@@ -709,14 +1380,26 @@ html[data-contrast="high"] {
 
 @media (prefers-reduced-motion: reduce) {
   .watchlist-tab__menu-trigger,
-  .watchlist-row-action {
+  .watchlist-row-action,
+  .watchlist-card,
+  .watchlist-move-option {
     transition: none;
+  }
+
+  .watchlist-row-action:active {
+    transform: none;
   }
 }
 
 html[data-motion="reduce"] {
   .watchlist-tab__menu-trigger,
-  .watchlist-row-action {
+  .watchlist-row-action,
+  .watchlist-card,
+  .watchlist-move-option {
     transition: none;
+  }
+
+  .watchlist-row-action:active {
+    transform: none;
   }
 }

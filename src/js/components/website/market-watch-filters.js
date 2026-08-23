@@ -3,10 +3,11 @@
    ========================================================================== */
 
 /*
- * Owns filter UI state only.
+ * Owns the filter controls and their state.
  *
- * Native selects remain the source of truth.
- * The column picker is a checkbox disclosure, not a fake multi-select.
+ * Native <select> elements remain the source of truth.
+ * The shared custom-select component may enhance them later, including
+ * searchable Industry Group selection, without changing this module.
  */
 
 function getForm(root) {
@@ -53,22 +54,30 @@ export function createMarketWatchFilters(root = document, options = {}) {
 
   const elements = {
     industry: form.querySelector('[data-market-watch-filter="industry"]'),
+
     tableView: form.querySelector('[data-market-watch-filter="table-view"]'),
+
     watchlistOnly: form.querySelector(
       '[data-market-watch-filter="watchlist-only"]',
     ),
+
     columnsTrigger: form.querySelector("[data-market-watch-columns-trigger]"),
+
     columnsPanel: form.querySelector("[data-market-watch-columns-panel]"),
+
     columnsSummary: form.querySelector("[data-market-watch-columns-summary]"),
   };
 
   const state = {
     industry:
       options.initialState?.industry || elements.industry?.value || "all",
+
     tableView: String(
       options.initialState?.tableView || elements.tableView?.value || "1",
     ),
+
     watchlistOnly: Boolean(options.initialState?.watchlistOnly),
+
     visibleGroups: new Set(options.initialState?.visibleGroups || []),
   };
 
@@ -94,14 +103,18 @@ export function createMarketWatchFilters(root = document, options = {}) {
     return [...form.querySelectorAll("[data-market-watch-column]")];
   }
 
-  function updateColumnSummary() {
+  function getAvailableGroupIds() {
+    return [...availableGroups.keys()];
+  }
+
+  function updateColumnsSummary() {
     if (!elements.columnsSummary) {
       return;
     }
 
     const availableCount = availableGroups.size;
-    const selectedCount = [...state.visibleGroups].filter((group) =>
-      availableGroups.has(group),
+    const selectedCount = getAvailableGroupIds().filter((id) =>
+      state.visibleGroups.has(id),
     ).length;
 
     if (availableCount === 0 || selectedCount === availableCount) {
@@ -123,17 +136,17 @@ export function createMarketWatchFilters(root = document, options = {}) {
     getColumnInputs().forEach((input) => {
       const groupId = input.dataset.marketWatchColumn;
       const option = input.closest(".filter-bar__column-option");
-      const isAvailable = availableGroups.has(groupId);
+      const available = availableGroups.has(groupId);
 
-      input.checked = state.visibleGroups.has(groupId);
-      input.disabled = !isAvailable;
+      input.checked = available && state.visibleGroups.has(groupId);
+      input.disabled = !available;
 
       if (option) {
-        option.hidden = !isAvailable;
+        option.hidden = !available;
       }
     });
 
-    updateColumnSummary();
+    updateColumnsSummary();
   }
 
   function openColumnsPanel() {
@@ -172,36 +185,46 @@ export function createMarketWatchFilters(root = document, options = {}) {
     openColumnsPanel();
   }
 
+  /*
+   * Called after a Table View changes.
+   * It only updates which groups are available; the page coordinator chooses
+   * the visible groups for that view immediately afterward.
+   */
+
   function setAvailableGroups(groups = []) {
     availableGroups = new Map(
       groups.map((group) => [group.id || group.key, group]),
     );
 
-    /*
-     * A view can expose fewer groups than another view. Remove selections that
-     * are not available in the new view and select newly available groups by
-     * default, preserving the intuitive “Show All” default.
-     */
-
     state.visibleGroups = new Set(
-      [...state.visibleGroups].filter((group) => availableGroups.has(group)),
+      [...state.visibleGroups].filter((groupId) =>
+        availableGroups.has(groupId),
+      ),
     );
-
-    availableGroups.forEach((group, id) => {
-      if (!state.visibleGroups.size || group.visible !== false) {
-        state.visibleGroups.add(id);
-      }
-    });
 
     syncColumnInputs();
   }
 
   function setVisibleGroups(groups = []) {
     state.visibleGroups = new Set(
-      unique(groups).filter((group) => availableGroups.has(group)),
+      unique(groups).filter((groupId) => availableGroups.has(groupId)),
     );
 
     syncColumnInputs();
+  }
+
+  function selectAllGroups() {
+    state.visibleGroups = new Set(getAvailableGroupIds());
+
+    syncColumnInputs();
+    emitChange("columns");
+  }
+
+  function clearAllGroups() {
+    state.visibleGroups.clear();
+
+    syncColumnInputs();
+    emitChange("columns");
   }
 
   function setState(nextState = {}) {
@@ -230,49 +253,90 @@ export function createMarketWatchFilters(root = document, options = {}) {
     }
 
     if (nextState.visibleGroups !== undefined) {
-      setVisibleGroups(nextState.visibleGroups);
+      state.visibleGroups = new Set(nextState.visibleGroups);
     }
+
+    syncColumnInputs();
   }
 
   async function handleWatchlistChange(event) {
-    const requested = event.currentTarget.checked;
+    const input = event.currentTarget;
+    const requested = input.checked;
 
-    /*
-     * The page module will later provide this guard:
-     *
-     * - signed-in user: return true
-     * - anonymous user: open login popup, return false
-     */
+    try {
+      const allowed = await Promise.resolve(
+        options.onWatchlistIntent?.(requested) ?? true,
+      );
 
-    const allowed = await Promise.resolve(
-      options.onWatchlistIntent?.(requested) ?? true,
-    );
+      if (!allowed) {
+        input.checked = state.watchlistOnly;
 
-    if (!allowed) {
-      event.currentTarget.checked = state.watchlistOnly;
+        return;
+      }
+
+      state.watchlistOnly = requested;
+      emitChange("watchlist");
+    } catch (error) {
+      input.checked = state.watchlistOnly;
+
+      console.error("[Market Watch] Watchlist intent failed.", error);
+    }
+  }
+
+  function handleColumnsPanelAction(event) {
+    const action = event.currentTarget.dataset.marketWatchColumnsAction;
+
+    if (action === "select-all") {
+      selectAllGroups();
 
       return;
     }
 
-    state.watchlistOnly = requested;
-    emitChange("watchlist");
+    if (action === "clear-all") {
+      clearAllGroups();
+    }
+  }
+
+  function handleColumnChange(event) {
+    const groupId = event.currentTarget.dataset.marketWatchColumn;
+
+    if (!availableGroups.has(groupId)) {
+      return;
+    }
+
+    if (event.currentTarget.checked) {
+      state.visibleGroups.add(groupId);
+    } else {
+      state.visibleGroups.delete(groupId);
+    }
+
+    syncColumnInputs();
+    emitChange("columns");
   }
 
   function handleDocumentPointerDown(event) {
-    if (!isColumnsPanelOpen || form.contains(event.target)) {
+    if (!isColumnsPanelOpen) {
       return;
     }
 
-    closeColumnsPanel();
+    const clickedPanel = elements.columnsPanel?.contains(event.target);
+    const clickedTrigger = elements.columnsTrigger?.contains(event.target);
+
+    if (!clickedPanel && !clickedTrigger) {
+      closeColumnsPanel();
+    }
   }
 
   function handleDocumentKeyDown(event) {
-    if (event.key === "Escape" && isColumnsPanelOpen) {
-      event.preventDefault();
-      closeColumnsPanel({
-        restoreFocus: true,
-      });
+    if (event.key !== "Escape" || !isColumnsPanelOpen) {
+      return;
     }
+
+    event.preventDefault();
+
+    closeColumnsPanel({
+      restoreFocus: true,
+    });
   }
 
   function bindEvents() {
@@ -311,24 +375,15 @@ export function createMarketWatchFilters(root = document, options = {}) {
     );
 
     $form.on(
+      "click.marketWatchFilters",
+      "[data-market-watch-columns-action]",
+      handleColumnsPanelAction,
+    );
+
+    $form.on(
       "change.marketWatchFilters",
       "[data-market-watch-column]",
-      (event) => {
-        const groupId = event.currentTarget.dataset.marketWatchColumn;
-
-        if (!availableGroups.has(groupId)) {
-          return;
-        }
-
-        if (event.currentTarget.checked) {
-          state.visibleGroups.add(groupId);
-        } else {
-          state.visibleGroups.delete(groupId);
-        }
-
-        syncColumnInputs();
-        emitChange("columns");
-      },
+      handleColumnChange,
     );
 
     $(document).on("pointerdown.marketWatchFilters", handleDocumentPointerDown);
@@ -345,15 +400,19 @@ export function createMarketWatchFilters(root = document, options = {}) {
 
   bindEvents();
 
-  setState(state);
-
   return Object.freeze({
     getState,
     setState,
+
     setAvailableGroups,
     setVisibleGroups,
+
+    selectAllGroups,
+    clearAllGroups,
+
     openColumnsPanel,
     closeColumnsPanel,
+
     destroy,
   });
 }

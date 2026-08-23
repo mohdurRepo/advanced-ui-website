@@ -3,15 +3,17 @@
    ========================================================================== */
 
 /*
- * Renders the mobile presentation from the same rows and schema used by the
- * desktop DataTable.
+ * Mobile presentation only.
  *
- * It does not:
- * - fetch data
- * - initialize DataTables
- * - manage breakpoints
- * - manage filters
+ * It consumes the same:
+ * - schema
+ * - formatter output
+ * - API rows
+ *
+ * as the desktop DataTable. It never initializes DataTables.
  */
+
+const SKELETON_CARD_COUNT = 4;
 
 function getContainer(root) {
   const container = root?.matches?.("[data-market-watch-cards]")
@@ -35,15 +37,6 @@ function getJQuery() {
   return $;
 }
 
-function getSecurityKey(row, index) {
-  return String(
-    row.companyRef ||
-      row.companySymbol ||
-      row.symbol ||
-      `market-watch-card-${index}`,
-  );
-}
-
 function createElement(tagName, className, text) {
   const element = document.createElement(tagName);
 
@@ -62,11 +55,21 @@ function appendRenderedHtml(parent, html) {
   const template = document.createElement("template");
 
   /*
-   * `renderCell()` outputs escaped API values and controlled component markup.
+   * Market Watch formatters escape API values before returning component HTML.
    */
 
   template.innerHTML = html;
   parent.append(template.content);
+}
+
+function getSecurityKey(row, index) {
+  return String(
+    row.companyRef ||
+      row.companyCode ||
+      row.companySymbol ||
+      row.symbol ||
+      `market-watch-card-${index}`,
+  );
 }
 
 /* ==========================================================================
@@ -80,64 +83,110 @@ export function createMarketWatchMobile(root, options = {}) {
 
   const schema = options.schema;
   const formatters = options.formatters;
-  const labels = {
-    noData: "No data available.",
-    details: "View details",
-    hideDetails: "Hide details",
-    uncategorized: "Other",
-    ...options.labels,
-  };
 
   if (!schema || !formatters) {
     throw new Error("Market Watch mobile cards require schema and formatters.");
   }
 
-  let activeViewId = options.initialViewId || schema.defaultViewId;
+  const labels = {
+    noData: "No data available.",
+    details: "View details",
+    hideDetails: "Hide details",
+    price: "Price",
+    change: "Change",
+    uncategorized: "Other",
+    ...options.labels,
+  };
+
+  let activeViewId = schema.getView(
+    options.initialViewId || schema.defaultViewId,
+  ).id;
+
   let activeRows = [];
+  let visibleGroups = new Set();
+  let cardIndex = 0;
 
   function getColumns() {
     return schema.getColumns(activeViewId);
   }
 
-  function getMobileColumns() {
-    return getColumns().filter(
-      (column) => column.mobile && !column.mobilePrimary,
-    );
+  function isColumnVisible(column) {
+    return !column.visibilityGroup || visibleGroups.has(column.visibilityGroup);
   }
 
-  function groupRows(rows) {
-    return rows.reduce((groups, row) => {
-      const name = row[schema.rowGroupField] || labels.uncategorized;
-
-      if (!groups.has(name)) {
-        groups.set(name, []);
-      }
-
-      groups.get(name).push(row);
-
-      return groups;
-    }, new Map());
+  function getDetailColumns() {
+    return getColumns().filter(
+      (column) =>
+        column.mobile && !column.mobilePrimary && isColumnVisible(column),
+    );
   }
 
   function getSummaryColumns() {
     const columns = getColumns();
 
     return {
-      price: columns.find((column) => column.key === "last-price"),
-      change: columns.find((column) => column.key === "change-percent"),
+      price:
+        columns.find((column) => column.key === "last-price") ||
+        columns.find((column) => column.format === "price") ||
+        null,
+
+      change:
+        columns.find((column) => column.key === "change-percent") ||
+        columns.find((column) => column.format === "change") ||
+        null,
     };
   }
 
-  function createCard(row, index) {
-    const key = getSecurityKey(row, index);
-    const detailsId = `market-watch-card-details-${index}`;
+  function groupRows(rows) {
+    return rows.reduce((groups, row) => {
+      const groupName = row[schema.rowGroupField] || labels.uncategorized;
+
+      if (!groups.has(groupName)) {
+        groups.set(groupName, []);
+      }
+
+      groups.get(groupName).push(row);
+
+      return groups;
+    }, new Map());
+  }
+
+  function createMetric(label, column, row, className) {
+    const metric = createElement(
+      "div",
+      `market-watch-card__metric ${className}`,
+    );
+    const metricLabel = createElement(
+      "span",
+      "market-watch-card__metric-label",
+      label,
+    );
+    const metricValue = createElement(
+      "span",
+      "market-watch-card__metric-value",
+    );
+
+    appendRenderedHtml(metricValue, formatters.renderCell(column, row));
+
+    metric.append(metricLabel, metricValue);
+
+    return metric;
+  }
+
+  function createCard(row) {
+    const currentIndex = cardIndex;
+    const securityKey = getSecurityKey(row, currentIndex);
+    const detailsId = `market-watch-card-details-${currentIndex}`;
+
+    cardIndex += 1;
+
     const card = createElement("article", "market-watch-card");
     const header = createElement("div", "market-watch-card__header");
     const identity = createElement("div", "market-watch-card__identity");
-    const summary = createElement("div", "market-watch-card__summary");
+    const metrics = createElement("div", "market-watch-card__metrics");
     const actions = createElement("div", "market-watch-card__actions");
     const details = createElement("div", "market-watch-card__details");
-    const grid = createElement("dl", "market-watch-card__details-grid");
+    const fields = createElement("dl", "market-watch-card__details-grid");
 
     const securityColumn = getColumns().find(
       (column) => column.key === "security",
@@ -150,25 +199,25 @@ export function createMarketWatchMobile(root, options = {}) {
     const summaryColumns = getSummaryColumns();
 
     if (summaryColumns.price) {
-      const price = createElement("span", "market-watch-card__price");
-
-      appendRenderedHtml(
-        price,
-        formatters.renderCell(summaryColumns.price, row),
+      metrics.append(
+        createMetric(
+          labels.price,
+          summaryColumns.price,
+          row,
+          "market-watch-card__metric--price",
+        ),
       );
-
-      summary.append(price);
     }
 
     if (summaryColumns.change) {
-      const change = createElement("span", "market-watch-card__change");
-
-      appendRenderedHtml(
-        change,
-        formatters.renderCell(summaryColumns.change, row),
+      metrics.append(
+        createMetric(
+          labels.change,
+          summaryColumns.change,
+          row,
+          "market-watch-card__metric--change",
+        ),
       );
-
-      summary.append(change);
     }
 
     const toggle = createElement(
@@ -178,18 +227,25 @@ export function createMarketWatchMobile(root, options = {}) {
     );
 
     toggle.type = "button";
-    toggle.setAttribute("aria-expanded", "false");
     toggle.setAttribute("aria-controls", detailsId);
+    toggle.setAttribute("aria-expanded", "false");
     toggle.setAttribute("data-market-watch-card-toggle", "");
 
     actions.append(toggle);
 
-    header.append(identity, summary, actions);
+    getDetailColumns().forEach((column) => {
+      /*
+       * Price and change already appear in the card summary. Keep detail
+       * fields concise by excluding them from the expanded grid.
+       */
 
-    details.id = detailsId;
-    details.hidden = true;
+      if (
+        column.key === summaryColumns.price?.key ||
+        column.key === summaryColumns.change?.key
+      ) {
+        return;
+      }
 
-    getMobileColumns().forEach((column) => {
       const field = createElement("div", "market-watch-card__field");
       const term = createElement(
         "dt",
@@ -201,40 +257,75 @@ export function createMarketWatchMobile(root, options = {}) {
       appendRenderedHtml(description, formatters.renderCell(column, row));
 
       field.append(term, description);
-      grid.append(field);
+      fields.append(field);
     });
 
-    details.append(grid);
+    details.id = detailsId;
+    details.hidden = true;
+    details.append(fields);
 
-    card.dataset.marketWatchSecurity = key;
+    header.append(identity, metrics, actions);
+
+    card.dataset.marketWatchSecurity = securityKey;
     card.append(header, details);
 
     return card;
   }
 
-  function renderEmptyState() {
+  function renderLoading() {
+    const fragment = document.createDocumentFragment();
+
+    for (let index = 0; index < SKELETON_CARD_COUNT; index += 1) {
+      const card = createElement(
+        "article",
+        "market-watch-card market-watch-card--loading",
+      );
+
+      card.setAttribute("aria-hidden", "true");
+      card.innerHTML = `
+        <div class="market-watch-card__header">
+          <div class="market-watch-card__identity">
+            <span class="table-skeleton table-skeleton-sm"></span>
+            <span class="table-skeleton table-skeleton-lg"></span>
+          </div>
+
+          <div class="market-watch-card__metrics">
+            <span class="table-skeleton table-skeleton-sm"></span>
+            <span class="table-skeleton table-skeleton-sm"></span>
+          </div>
+        </div>
+      `;
+
+      fragment.append(card);
+    }
+
+    container.replaceChildren(fragment);
+  }
+
+  function renderEmpty(message) {
     const empty = createElement(
       "p",
       "market-watch-cards__empty",
-      labels.noData,
+      message || labels.noData,
     );
 
     container.replaceChildren(empty);
   }
 
-  function render() {
+  function renderRows() {
     if (!activeRows.length) {
-      renderEmptyState();
+      renderEmpty(labels.noData);
 
       return;
     }
 
+    cardIndex = 0;
+
     const fragment = document.createDocumentFragment();
-    let cardIndex = 0;
 
     groupRows(activeRows).forEach((rows, groupName) => {
       const group = createElement("section", "market-watch-card-group");
-      const heading = createElement(
+      const title = createElement(
         "h3",
         "market-watch-card-group__title",
         groupName,
@@ -242,11 +333,10 @@ export function createMarketWatchMobile(root, options = {}) {
       const list = createElement("div", "market-watch-card-group__list");
 
       rows.forEach((row) => {
-        list.append(createCard(row, cardIndex));
-        cardIndex += 1;
+        list.append(createCard(row));
       });
 
-      group.append(heading, list);
+      group.append(title, list);
       fragment.append(group);
     });
 
@@ -255,31 +345,47 @@ export function createMarketWatchMobile(root, options = {}) {
 
   function setRows(rows = []) {
     activeRows = Array.isArray(rows) ? rows : [];
-    render();
+    renderRows();
+  }
+
+  function showLoading() {
+    activeRows = [];
+    renderLoading();
+  }
+
+  function showEmpty(message) {
+    activeRows = [];
+    renderEmpty(message);
   }
 
   function setView(viewId) {
     activeViewId = schema.getView(viewId).id;
-    render();
+    renderRows();
+  }
+
+  function setVisibleGroups(groups = []) {
+    visibleGroups = new Set(groups);
+    renderRows();
   }
 
   function handleCardToggle(event) {
     const button = event.currentTarget;
     const card = button.closest(".market-watch-card");
-    const detailsId = button.getAttribute("aria-controls");
-    const details = document.getElementById(detailsId);
+    const details = document.getElementById(
+      button.getAttribute("aria-controls"),
+    );
 
     if (!card || !details) {
       return;
     }
 
-    const isOpen = button.getAttribute("aria-expanded") === "true";
+    const isExpanded = button.getAttribute("aria-expanded") === "true";
 
-    button.setAttribute("aria-expanded", String(!isOpen));
-    button.textContent = isOpen ? labels.details : labels.hideDetails;
+    button.setAttribute("aria-expanded", String(!isExpanded));
+    button.textContent = isExpanded ? labels.details : labels.hideDetails;
 
-    details.hidden = isOpen;
-    card.classList.toggle("is-expanded", !isOpen);
+    details.hidden = isExpanded;
+    card.classList.toggle("is-expanded", !isExpanded);
   }
 
   function destroy() {
@@ -293,12 +399,14 @@ export function createMarketWatchMobile(root, options = {}) {
     handleCardToggle,
   );
 
-  render();
-
   return Object.freeze({
     setRows,
     setView,
-    render,
+    setVisibleGroups,
+
+    showLoading,
+    showEmpty,
+
     destroy,
   });
 }

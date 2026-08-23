@@ -5,20 +5,28 @@
    ========================================================================== */
 
 /*
- * Shared horizontal-navigation affordance for native tables and DataTables.
+ * Shared horizontal-navigation affordance for native responsive tables and
+ * DataTables scroll containers.
  *
- * JavaScript controls:
+ * JavaScript owns:
  *
  * - [data-table-overflow]
  * - [data-table-scroll-direction]
- * - button visibility and labels
+ * - jump-button visibility, icon, and accessible label
+ *
+ * This partial owns:
+ *
+ * - visual scroll affordances
+ * - viewport-sticky navigation control
+ * - FixedHeader-safe stacking
+ * - logical LTR / RTL positioning
  */
 
 .table-shell {
+  /* Control */
+
   --table-navigation-control-size: 2.75rem;
   --table-navigation-control-inset: 0.75rem;
-  --table-navigation-edge-size: clamp(2.5rem, 6vw, 4.5rem);
-  --table-navigation-edge-color: var(--table-bg, var(--color-surface));
 
   --table-navigation-control-bg: var(--color-primary);
   --table-navigation-control-color: var(--color-on-primary);
@@ -28,15 +36,29 @@
   --table-navigation-control-hover-color: var(--color-surface);
   --table-navigation-control-hover-border: var(--color-heading);
 
+  /* Edge hints */
+
+  --table-navigation-edge-size: clamp(2.5rem, 6vw, 4.5rem);
+  --table-navigation-edge-color: var(--table-bg, var(--color-surface));
+
   /*
-   * Market Watch uses a two-row header. Smaller tables may override this token
-   * locally when their fixed header is shorter.
+   * This is only the table header height. A page can override it for a
+   * one-row header or a denser table.
    */
   --table-navigation-header-block-size: 5.75rem;
 
+  /*
+   * FixedHeader uses --z-sticky. The control intentionally sits above it,
+   * while remaining beneath global dialogs and application overlays.
+   */
   --table-navigation-edge-z: calc(var(--z-sticky) + 1);
-  --table-navigation-control-z: var(--z-tooltip);
+  --table-navigation-control-z: calc(var(--z-sticky) + 2);
 
+  /*
+   * Keep the jump control below both the sticky site header and the fixed
+   * DataTables header. The shell is deliberately not an overflow owner:
+   * `.table-responsive` and `.dt-scroll-body` own horizontal scrolling.
+   */
   --table-navigation-sticky-offset: calc(
     var(--site-header-block-size, var(--app-header-height, 0px)) +
       var(--table-navigation-header-block-size) +
@@ -44,6 +66,7 @@
   );
 
   position: relative;
+  isolation: isolate;
 
   display: grid;
   grid-template-areas: "table";
@@ -70,10 +93,16 @@
    Scroll Control
    ========================================================================== */
 
+/*
+ * The control shares the table grid area, but remains a sticky grid item.
+ * Therefore it follows viewport scrolling for the full height of the table
+ * shell, instead of being tied to the horizontally scrollable DataTables
+ * body or native responsive wrapper.
+ */
+
 .table-scroll-jump {
   position: sticky;
   inset-block-start: var(--table-navigation-sticky-offset);
-
   z-index: var(--table-navigation-control-z);
 
   grid-area: table;
@@ -86,7 +115,6 @@
 
   inline-size: var(--table-navigation-control-size);
   block-size: var(--table-navigation-control-size);
-
   margin-inline-end: var(--table-navigation-control-inset);
   padding: 0;
 
@@ -105,6 +133,11 @@
     "fast"
   );
 }
+
+/*
+ * “Start” and “end” are logical directions. `justify-self` automatically
+ * maps start/end correctly in LTR and RTL documents.
+ */
 
 .table-scroll-jump[data-table-scroll-direction="start"] {
   justify-self: start;
@@ -156,14 +189,17 @@
    Overflow Edge Hints
    ========================================================================== */
 
+/*
+ * Decorative logical-edge fades are grid overlays. They do not become sticky:
+ * the jump control is the persistent affordance, and non-sticky fades avoid
+ * competing with DataTables FixedHeader during vertical scrolling.
+ */
+
 .table-shell[data-table-overflow="start"]::before,
 .table-shell[data-table-overflow="both"]::before,
 .table-shell[data-table-overflow="end"]::after,
 .table-shell[data-table-overflow="both"]::after {
   content: "";
-
-  position: sticky;
-  inset-block-start: 0;
 
   z-index: var(--table-navigation-edge-z);
 

@@ -3,17 +3,18 @@
    ========================================================================== */
 
 /*
- * This module defines data only.
+ * One source of truth for:
  *
- * It does not:
- * - fetch data
- * - use jQuery
- * - initialize DataTables
- * - create HTML
- * - touch the DOM
+ * - available table views
+ * - column labels and API fields
+ * - grouped headers
+ * - visible-column picker groups
+ * - desktop and mobile column metadata
  *
- * The schema is consumed by the table, mobile, and filter modules.
+ * This module intentionally has no DOM, DataTables, jQuery, or API code.
  */
+
+const DEFAULT_VIEW_ID = "1";
 
 const DEFAULT_LABELS = Object.freeze({
   sector: "Sector",
@@ -43,24 +44,58 @@ const DEFAULT_LABELS = Object.freeze({
   yield: "Yield",
 });
 
-const DEFAULT_VIEW_ID = "1";
+/* ==========================================================================
+   Labels
+   ========================================================================== */
+
+/*
+ * Some legacy properties contain `<br>` for historic table headings.
+ * Labels are always plain text in the refactored table; wrapping is CSS-owned.
+ */
+
+function cleanLabel(value) {
+  return String(value ?? "")
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<[^>]*>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 function labelFor(labels, key) {
-  return labels[key] || DEFAULT_LABELS[key] || key;
+  return cleanLabel(labels[key] || DEFAULT_LABELS[key] || key);
 }
+
+/* ==========================================================================
+   Column Definition
+   ========================================================================== */
 
 function defineColumn(definition) {
   return Object.freeze({
     data: null,
     format: "text",
+
     headerGroup: null,
     visibilityGroup: null,
-    orderable: true,
+
+    /*
+     * Market Watch is an information table, not an interactive sorting grid.
+     * All columns explicitly remain non-sortable.
+     */
+    orderable: false,
+
     pinned: false,
 
     /*
-     * `mobilePrimary` appears in the top card identity area.
-     * `mobile` appears in the expandable mobile detail grid.
+     * These dimensions are applied by `market-watch-table.js`.
+     * They prevent the Company column from becoming full width after all
+     * optional groups are temporarily hidden.
+     */
+    width: null,
+    minWidth: null,
+    maxWidth: null,
+
+    /*
+     * Mobile identity is rendered separately from the mobile detail grid.
      */
     mobilePrimary: false,
     mobile: true,
@@ -69,7 +104,11 @@ function defineColumn(definition) {
   });
 }
 
-function getGroups(labels) {
+/* ==========================================================================
+   Groups
+   ========================================================================== */
+
+function createGroups(labels) {
   return Object.freeze({
     range: Object.freeze({
       id: "range",
@@ -98,53 +137,72 @@ function getGroups(labels) {
     "best-bid": Object.freeze({
       id: "best-bid",
       label: labelFor(labels, "bestBid"),
-      picker: false,
+      picker: true,
     }),
 
     "best-offer": Object.freeze({
       id: "best-offer",
       label: labelFor(labels, "bestOffer"),
-      picker: false,
-    }),
-
-    "bid-offer": Object.freeze({
-      id: "bid-offer",
-      label: `${labelFor(labels, "bestBid")} / ${labelFor(
-        labels,
-        "bestOffer",
-      )}`,
       picker: true,
     }),
   });
 }
 
+/* ==========================================================================
+   Shared Columns
+   ========================================================================== */
+
+function createSecurityColumn(labels) {
+  return defineColumn({
+    key: "security",
+    label: labelFor(labels, "company"),
+    format: "security",
+
+    pinned: true,
+
+    width: "15.5rem",
+    minWidth: "15.5rem",
+    maxWidth: "15.5rem",
+
+    mobilePrimary: true,
+    mobile: false,
+  });
+}
+
+function createRangeColumn(labels) {
+  return defineColumn({
+    key: "range",
+    label: labelFor(labels, "range"),
+    format: "range",
+
+    visibilityGroup: "range",
+
+    width: "8.5rem",
+    minWidth: "8.5rem",
+  });
+}
+
+/* ==========================================================================
+   Views
+   ========================================================================== */
+
 function createOverviewColumns(labels) {
   return Object.freeze([
-    defineColumn({
-      key: "security",
-      label: labelFor(labels, "company"),
-      format: "security",
-      pinned: true,
-      orderable: false,
-      mobilePrimary: true,
-      mobile: false,
-    }),
+    createSecurityColumn(labels),
 
-    defineColumn({
-      key: "range",
-      label: labelFor(labels, "range"),
-      format: "range",
-      visibilityGroup: "range",
-      orderable: false,
-    }),
+    createRangeColumn(labels),
 
     defineColumn({
       key: "last-price",
       label: labelFor(labels, "price"),
       data: "lastTradePriceModified",
       format: "price",
+
       headerGroup: "last-trade",
       visibilityGroup: "last-trade",
+
+      width: "6.25rem",
+      minWidth: "6.25rem",
     }),
 
     defineColumn({
@@ -152,8 +210,12 @@ function createOverviewColumns(labels) {
       label: labelFor(labels, "volume"),
       data: "lastTradeQuantity",
       format: "quantity",
+
       headerGroup: "last-trade",
       visibilityGroup: "last-trade",
+
+      width: "6.5rem",
+      minWidth: "6.5rem",
     }),
 
     defineColumn({
@@ -162,8 +224,12 @@ function createOverviewColumns(labels) {
       data: "netChangeModified",
       format: "change",
       changeField: "netChangeModified",
+
       headerGroup: "last-trade",
       visibilityGroup: "last-trade",
+
+      width: "6.75rem",
+      minWidth: "6.75rem",
     }),
 
     defineColumn({
@@ -173,26 +239,38 @@ function createOverviewColumns(labels) {
       format: "change",
       changeField: "precentChange",
       suffix: "%",
+
       headerGroup: "last-trade",
       visibilityGroup: "last-trade",
+
+      width: "6.5rem",
+      minWidth: "6.5rem",
     }),
 
     defineColumn({
       key: "trade-count",
       label: labelFor(labels, "numberOfTrades"),
       data: "nuOfTrades",
-      format: "quantity",
+      format: "full-number",
+
       headerGroup: "cumulative",
       visibilityGroup: "cumulative",
+
+      width: "7rem",
+      minWidth: "7rem",
     }),
 
     defineColumn({
       key: "traded-volume",
       label: labelFor(labels, "volumeTraded"),
       data: "volumeTraded",
-      format: "quantity",
+      format: "full-number",
+
       headerGroup: "cumulative",
       visibilityGroup: "cumulative",
+
+      width: "8.5rem",
+      minWidth: "8.5rem",
     }),
 
     defineColumn({
@@ -200,8 +278,12 @@ function createOverviewColumns(labels) {
       label: labelFor(labels, "open"),
       data: "todayOpenModified",
       format: "price",
+
       headerGroup: "trading",
       visibilityGroup: "trading",
+
+      width: "6rem",
+      minWidth: "6rem",
     }),
 
     defineColumn({
@@ -209,8 +291,12 @@ function createOverviewColumns(labels) {
       label: labelFor(labels, "high"),
       data: "highPriceModified",
       format: "price",
+
       headerGroup: "trading",
       visibilityGroup: "trading",
+
+      width: "6rem",
+      minWidth: "6rem",
     }),
 
     defineColumn({
@@ -218,8 +304,12 @@ function createOverviewColumns(labels) {
       label: labelFor(labels, "low"),
       data: "lowPriceModified",
       format: "price",
+
       headerGroup: "trading",
       visibilityGroup: "trading",
+
+      width: "6rem",
+      minWidth: "6rem",
     }),
 
     defineColumn({
@@ -227,17 +317,25 @@ function createOverviewColumns(labels) {
       label: labelFor(labels, "price"),
       data: "bidPriceModified",
       format: "market-order-or-price",
+
       headerGroup: "best-bid",
-      visibilityGroup: "bid-offer",
+      visibilityGroup: "best-bid",
+
+      width: "6.25rem",
+      minWidth: "6.25rem",
     }),
 
     defineColumn({
       key: "best-bid-volume",
       label: labelFor(labels, "volume"),
       data: "bidQuantity",
-      format: "quantity",
+      format: "full-number",
+
       headerGroup: "best-bid",
-      visibilityGroup: "bid-offer",
+      visibilityGroup: "best-bid",
+
+      width: "7.5rem",
+      minWidth: "7.5rem",
     }),
 
     defineColumn({
@@ -245,48 +343,46 @@ function createOverviewColumns(labels) {
       label: labelFor(labels, "price"),
       data: "askPrice",
       format: "market-order-or-price",
+
       headerGroup: "best-offer",
-      visibilityGroup: "bid-offer",
+      visibilityGroup: "best-offer",
+
+      width: "6.25rem",
+      minWidth: "6.25rem",
     }),
 
     defineColumn({
       key: "best-offer-volume",
       label: labelFor(labels, "volume"),
       data: "askQuantityModified",
-      format: "quantity",
+      format: "full-number",
+
       headerGroup: "best-offer",
-      visibilityGroup: "bid-offer",
+      visibilityGroup: "best-offer",
+
+      width: "7.5rem",
+      minWidth: "7.5rem",
     }),
   ]);
 }
 
 function createTradingColumns(labels) {
   return Object.freeze([
-    defineColumn({
-      key: "security",
-      label: labelFor(labels, "company"),
-      format: "security",
-      pinned: true,
-      orderable: false,
-      mobilePrimary: true,
-      mobile: false,
-    }),
+    createSecurityColumn(labels),
 
-    defineColumn({
-      key: "range",
-      label: labelFor(labels, "range"),
-      format: "range",
-      visibilityGroup: "range",
-      orderable: false,
-    }),
+    createRangeColumn(labels),
 
     defineColumn({
       key: "last-price",
       label: labelFor(labels, "price"),
       data: "lastTradePriceModified",
       format: "price",
+
       headerGroup: "last-trade",
       visibilityGroup: "last-trade",
+
+      width: "6.5rem",
+      minWidth: "6.5rem",
     }),
 
     defineColumn({
@@ -295,8 +391,12 @@ function createTradingColumns(labels) {
       data: "netChangeModified",
       format: "change",
       changeField: "netChangeModified",
+
       headerGroup: "last-trade",
       visibilityGroup: "last-trade",
+
+      width: "7rem",
+      minWidth: "7rem",
     }),
 
     defineColumn({
@@ -306,8 +406,12 @@ function createTradingColumns(labels) {
       format: "change",
       changeField: "precentChange",
       suffix: "%",
+
       headerGroup: "last-trade",
       visibilityGroup: "last-trade",
+
+      width: "6.75rem",
+      minWidth: "6.75rem",
     }),
 
     defineColumn({
@@ -315,8 +419,12 @@ function createTradingColumns(labels) {
       label: labelFor(labels, "open"),
       data: "todayOpenModified",
       format: "price",
+
       headerGroup: "trading",
       visibilityGroup: "trading",
+
+      width: "6.25rem",
+      minWidth: "6.25rem",
     }),
 
     defineColumn({
@@ -324,8 +432,12 @@ function createTradingColumns(labels) {
       label: labelFor(labels, "high"),
       data: "highPriceModified",
       format: "price",
+
       headerGroup: "trading",
       visibilityGroup: "trading",
+
+      width: "6.25rem",
+      minWidth: "6.25rem",
     }),
 
     defineColumn({
@@ -333,8 +445,12 @@ function createTradingColumns(labels) {
       label: labelFor(labels, "low"),
       data: "lowPriceModified",
       format: "price",
+
       headerGroup: "trading",
       visibilityGroup: "trading",
+
+      width: "6.25rem",
+      minWidth: "6.25rem",
     }),
   ]);
 }
@@ -346,6 +462,9 @@ function createPerformanceColumns(labels) {
       label: labelFor(labels, "sector"),
       data: "sectorName",
       format: "text",
+
+      width: "10rem",
+      minWidth: "10rem",
     }),
 
     defineColumn({
@@ -353,54 +472,56 @@ function createPerformanceColumns(labels) {
       label: labelFor(labels, "symbol"),
       data: "companySymbol",
       format: "text",
+
+      width: "6rem",
+      minWidth: "6rem",
     }),
 
-    defineColumn({
-      key: "security",
-      label: labelFor(labels, "company"),
-      format: "security",
-      pinned: true,
-      orderable: false,
-      mobilePrimary: true,
-      mobile: false,
-    }),
+    createSecurityColumn(labels),
 
-    defineColumn({
-      key: "range",
-      label: labelFor(labels, "range"),
-      format: "range",
-      visibilityGroup: "range",
-      orderable: false,
-    }),
+    createRangeColumn(labels),
 
     defineColumn({
       key: "market-cap",
       label: labelFor(labels, "marketCap"),
       data: "marketCap",
-      format: "plain-number",
+      format: "full-number",
+
+      width: "9rem",
+      minWidth: "9rem",
     }),
 
     defineColumn({
       key: "per",
       label: labelFor(labels, "per"),
       data: "PER",
-      format: "plain-number",
+      format: "full-number",
+
+      width: "6rem",
+      minWidth: "6rem",
     }),
 
     defineColumn({
       key: "volume",
       label: labelFor(labels, "volume"),
       data: "lastTradeQuantity",
-      format: "quantity",
+      format: "full-number",
+
       headerGroup: "cumulative",
       visibilityGroup: "cumulative",
+
+      width: "8rem",
+      minWidth: "8rem",
     }),
 
     defineColumn({
       key: "yield",
       label: labelFor(labels, "yield"),
       data: "yield",
-      format: "plain-number",
+      format: "full-number",
+
+      width: "6rem",
+      minWidth: "6rem",
     }),
   ]);
 }
@@ -411,7 +532,7 @@ function createPerformanceColumns(labels) {
 
 export function createMarketWatchSchema(config = {}) {
   const labels = config.labels?.table || {};
-  const groups = getGroups(labels);
+  const groups = createGroups(labels);
 
   const views = Object.freeze({
     1: Object.freeze({
@@ -445,40 +566,42 @@ export function createMarketWatchSchema(config = {}) {
   }
 
   function getHeaderGroups(viewId) {
-    const result = [];
+    const orderedGroups = [];
 
     getColumns(viewId).forEach((column) => {
       if (!column.headerGroup) {
         return;
       }
 
-      const existing = result.find((group) => group.id === column.headerGroup);
+      const existingGroup = orderedGroups.find(
+        (group) => group.id === column.headerGroup,
+      );
 
-      if (existing) {
-        existing.columns.push(column);
+      if (existingGroup) {
+        existingGroup.columns.push(column);
 
         return;
       }
 
-      result.push({
+      orderedGroups.push({
         id: column.headerGroup,
         label: groups[column.headerGroup].label,
         columns: [column],
       });
     });
 
-    return result;
+    return orderedGroups;
   }
 
   function getPickerGroups(viewId) {
-    const activeGroups = new Set(
+    const available = new Set(
       getColumns(viewId)
         .map((column) => column.visibilityGroup)
         .filter(Boolean),
     );
 
     return Object.values(groups).filter(
-      (group) => group.picker && activeGroups.has(group.id),
+      (group) => group.picker && available.has(group.id),
     );
   }
 
@@ -495,6 +618,7 @@ export function createMarketWatchSchema(config = {}) {
   return Object.freeze({
     defaultViewId: DEFAULT_VIEW_ID,
     rowGroupField: "sectorName",
+
     views,
     groups,
 

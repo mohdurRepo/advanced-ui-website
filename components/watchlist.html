@@ -1707,7 +1707,7 @@
                     >
                       Edit profile
                     </a>
-                    
+
                     <div class="dropdown-separator" role="separator"></div>
 
                     <!-- Log Out -->
@@ -1741,14 +1741,17 @@
             <!-- ==================================================================
            Primary Watchlist Region
            ================================================================== -->
+            <!-- ==========================================================================
+     Watchlist Workspace
+     ========================================================================== -->
 
             <div class="split-layout__primary">
               <div class="content-page">
                 <div class="content-page__panel">
                   <div class="watchlist-page__workspace">
-                    <!-- ==========================================================
-                   Workspace Header
-                   ========================================================== -->
+                    <!-- ==================================================================
+             Header
+             ================================================================== -->
 
                     <header class="watchlist-page__header">
                       <div class="stack stack--xs">
@@ -1777,26 +1780,26 @@
                       </div>
                     </header>
 
-                    <!-- ==========================================================================
-     Watchlist Tabs
-     ========================================================================== -->
+                    <!-- ==================================================================
+             Watchlist Tabs
+             ================================================================== -->
 
                     <div class="tabs watchlist-tabs" data-tabs>
-                      <!-- ========================================================================
-       Tab Navigation
-       ======================================================================== -->
+                      <!-- ================================================================
+               Navigation
+               ================================================================ -->
 
                       <div
                         class="tabs-nav"
                         role="tablist"
                         aria-label="Your watchlists"
                       >
-                        <!-- Watchlist One Tab -->
+                        <!-- Watchlist 1 -->
 
                         <button
                           class="tab-link active"
-                          type="button"
                           id="watchlist-one-tab"
+                          type="button"
                           role="tab"
                           aria-selected="true"
                           aria-controls="watchlist-one-panel"
@@ -1813,7 +1816,7 @@
                           </span>
                         </button>
 
-                        <!-- Watchlist One Actions -->
+                        <!-- Watchlist 1 menu -->
 
                         <div
                           class="dropdown dropdown--end watchlist-tab__menu"
@@ -1821,8 +1824,8 @@
                         >
                           <button
                             class="dropdown-trigger dropdown-trigger--icon watchlist-tab__menu-trigger has-icon icon-menu-dots-vertical"
-                            type="button"
                             id="watchlist-one-menu-trigger"
+                            type="button"
                             aria-label="Manage Watchlist 1"
                             aria-haspopup="menu"
                             aria-expanded="false"
@@ -1872,12 +1875,12 @@
                           </div>
                         </div>
 
-                        <!-- Watchlist Two Tab -->
+                        <!-- Watchlist 2 -->
 
                         <button
                           class="tab-link"
-                          type="button"
                           id="watchlist-two-tab"
+                          type="button"
                           role="tab"
                           aria-selected="false"
                           aria-controls="watchlist-two-panel"
@@ -1894,7 +1897,7 @@
                           </span>
                         </button>
 
-                        <!-- Watchlist Two Actions -->
+                        <!-- Watchlist 2 menu -->
 
                         <div
                           class="dropdown dropdown--end watchlist-tab__menu"
@@ -1902,8 +1905,8 @@
                         >
                           <button
                             class="dropdown-trigger dropdown-trigger--icon watchlist-tab__menu-trigger has-icon icon-menu-dots-vertical"
-                            type="button"
                             id="watchlist-two-menu-trigger"
+                            type="button"
                             aria-label="Manage Watchlist 2"
                             aria-haspopup="menu"
                             aria-expanded="false"
@@ -1954,14 +1957,14 @@
                         </div>
                       </div>
 
-                      <!-- ========================================================================
-       Tab Panels
-       ======================================================================== -->
+                      <!-- ================================================================
+               Panels
+               ================================================================ -->
 
                       <div class="tabs-content">
-                        <!-- ======================================================================
-         Watchlist One Panel
-         ====================================================================== -->
+                        <!-- ==============================================================
+                 Watchlist 1
+                 ============================================================== -->
 
                         <section
                           class="tab-pane active"
@@ -1970,7 +1973,9 @@
                           aria-labelledby="watchlist-one-tab"
                           tabindex="0"
                         >
-                          <!-- Selection Actions -->
+                          <!-- ============================================================
+                   Bulk Selection
+                   ============================================================ -->
 
                           <div
                             class="watchlist-selection-bar"
@@ -1982,12 +1987,12 @@
                               aria-live="polite"
                             >
                               <strong data-watchlist-selection-count>0</strong>
-                              selected
+                              <span>selected</span>
                             </p>
 
                             <div class="watchlist-selection-bar__actions">
                               <button
-                                class="btn btn-sm btn-outline has-icon icon-folder-import"
+                                class="btn btn-sm btn-outline-primary has-icon icon-folder-import"
                                 type="button"
                                 data-watchlist-move-selected
                               >
@@ -1995,7 +2000,7 @@
                               </button>
 
                               <button
-                                class="btn btn-sm btn-danger-outline has-icon icon-trash-delete"
+                                class="btn btn-sm btn-outline-danger has-icon icon-trash-delete"
                                 type="button"
                                 data-watchlist-remove-selected
                               >
@@ -2004,19 +2009,18 @@
                             </div>
                           </div>
 
-                          <!-- Desktop Table -->
-
-                          <!-- ==========================================================================
-     Watchlist One: Desktop Table
-     ========================================================================== -->
+                          <!-- ============================================================
+                   Desktop Table
+                   ============================================================ -->
 
                           <div class="watchlist-page__table-view">
-                            <div class="table-shell">
+                            <div class="table-shell" data-table-shell>
                               <div
                                 class="table-responsive"
                                 tabindex="0"
                                 role="region"
                                 aria-label="Watchlist 1 companies"
+                                data-table-scroll
                               >
                                 <table
                                   class="table table-hover table-nowrap watchlist-table"
@@ -2026,10 +2030,6 @@
                                     Companies included in Watchlist 1 with their
                                     latest market information
                                   </caption>
-
-                                  <!-- ================================================================
-             Column Widths
-             ================================================================ -->
 
                                   <colgroup>
                                     <col
@@ -2047,14 +2047,12 @@
                                     <col />
                                   </colgroup>
 
-                                  <!-- ================================================================
-             Header
-             ================================================================ -->
+                                  <!-- ====================================================
+                           Header
+                           ==================================================== -->
 
                                   <thead>
                                     <tr>
-                                      <!-- Select All -->
-
                                       <th
                                         class="table-selection-column"
                                         scope="col"
@@ -2074,8 +2072,6 @@
                                         />
                                       </th>
 
-                                      <!-- Row Actions -->
-
                                       <th
                                         class="watchlist-table__action"
                                         scope="col"
@@ -2085,16 +2081,12 @@
                                         </span>
                                       </th>
 
-                                      <!-- Company -->
-
                                       <th
                                         class="watchlist-table__company"
                                         scope="col"
                                       >
                                         Company
                                       </th>
-
-                                      <!-- Market Data -->
 
                                       <th class="numeric" scope="col">Value</th>
 
@@ -2112,14 +2104,14 @@
                                     </tr>
                                   </thead>
 
-                                  <!-- ================================================================
-             Body
-             ================================================================ -->
+                                  <!-- ====================================================
+                           Body
+                           ==================================================== -->
 
                                   <tbody>
-                                    <!-- ==============================================================
-               Saudi Aramco
-               ============================================================== -->
+                                    <!-- ==================================================
+                             Saudi Aramco
+                             ================================================== -->
 
                                     <tr data-watchlist-company="2222">
                                       <td class="table-selection-cell">
@@ -2140,12 +2132,53 @@
                                       </td>
 
                                       <td class="watchlist-table__action">
-                                        <button
-                                          class="watchlist-row-action has-icon icon-trash-delete"
-                                          type="button"
-                                          aria-label="Remove Saudi Aramco from Watchlist 1"
-                                          data-watchlist-remove="2222"
-                                        ></button>
+                                        <div
+                                          class="dropdown dropdown--end watchlist-row-menu"
+                                          data-dropdown
+                                        >
+                                          <button
+                                            class="dropdown-trigger dropdown-trigger--icon watchlist-row-action has-icon icon-menu-dots-vertical"
+                                            id="watchlist-row-2222-menu-trigger"
+                                            type="button"
+                                            aria-label="Actions for Saudi Aramco"
+                                            aria-haspopup="menu"
+                                            aria-expanded="false"
+                                            aria-controls="watchlist-row-2222-menu"
+                                            data-dropdown-trigger
+                                          ></button>
+
+                                          <div
+                                            class="dropdown-menu"
+                                            id="watchlist-row-2222-menu"
+                                            role="menu"
+                                            aria-labelledby="watchlist-row-2222-menu-trigger"
+                                            hidden
+                                            data-dropdown-menu
+                                          >
+                                            <button
+                                              class="dropdown-item has-icon icon-folder-import"
+                                              type="button"
+                                              role="menuitem"
+                                              data-watchlist-move="2222"
+                                            >
+                                              Move to watchlist
+                                            </button>
+
+                                            <div
+                                              class="dropdown-separator"
+                                              role="separator"
+                                            ></div>
+
+                                            <button
+                                              class="dropdown-item dropdown-item--danger watchlist-action--danger has-icon icon-trash-delete"
+                                              type="button"
+                                              role="menuitem"
+                                              data-watchlist-remove="2222"
+                                            >
+                                              Remove from watchlist
+                                            </button>
+                                          </div>
+                                        </div>
                                       </td>
 
                                       <th
@@ -2210,9 +2243,9 @@
                                       </td>
                                     </tr>
 
-                                    <!-- ==============================================================
-               ACWA Power
-               ============================================================== -->
+                                    <!-- ==================================================
+                             ACWA Power
+                             ================================================== -->
 
                                     <tr data-watchlist-company="2082">
                                       <td class="table-selection-cell">
@@ -2233,12 +2266,53 @@
                                       </td>
 
                                       <td class="watchlist-table__action">
-                                        <button
-                                          class="watchlist-row-action has-icon icon-trash-delete"
-                                          type="button"
-                                          aria-label="Remove ACWA Power from Watchlist 1"
-                                          data-watchlist-remove="2082"
-                                        ></button>
+                                        <div
+                                          class="dropdown dropdown--end watchlist-row-menu"
+                                          data-dropdown
+                                        >
+                                          <button
+                                            class="dropdown-trigger dropdown-trigger--icon watchlist-row-action has-icon icon-menu-dots-vertical"
+                                            id="watchlist-row-2082-menu-trigger"
+                                            type="button"
+                                            aria-label="Actions for ACWA Power"
+                                            aria-haspopup="menu"
+                                            aria-expanded="false"
+                                            aria-controls="watchlist-row-2082-menu"
+                                            data-dropdown-trigger
+                                          ></button>
+
+                                          <div
+                                            class="dropdown-menu"
+                                            id="watchlist-row-2082-menu"
+                                            role="menu"
+                                            aria-labelledby="watchlist-row-2082-menu-trigger"
+                                            hidden
+                                            data-dropdown-menu
+                                          >
+                                            <button
+                                              class="dropdown-item has-icon icon-folder-import"
+                                              type="button"
+                                              role="menuitem"
+                                              data-watchlist-move="2082"
+                                            >
+                                              Move to watchlist
+                                            </button>
+
+                                            <div
+                                              class="dropdown-separator"
+                                              role="separator"
+                                            ></div>
+
+                                            <button
+                                              class="dropdown-item dropdown-item--danger watchlist-action--danger has-icon icon-trash-delete"
+                                              type="button"
+                                              role="menuitem"
+                                              data-watchlist-remove="2082"
+                                            >
+                                              Remove from watchlist
+                                            </button>
+                                          </div>
+                                        </div>
                                       </td>
 
                                       <th
@@ -2303,9 +2377,9 @@
                                       </td>
                                     </tr>
 
-                                    <!-- ==============================================================
-               Al Rajhi Bank
-               ============================================================== -->
+                                    <!-- ==================================================
+                             Al Rajhi Bank
+                             ================================================== -->
 
                                     <tr data-watchlist-company="1120">
                                       <td class="table-selection-cell">
@@ -2326,12 +2400,53 @@
                                       </td>
 
                                       <td class="watchlist-table__action">
-                                        <button
-                                          class="watchlist-row-action has-icon icon-trash-delete"
-                                          type="button"
-                                          aria-label="Remove Al Rajhi Bank from Watchlist 1"
-                                          data-watchlist-remove="1120"
-                                        ></button>
+                                        <div
+                                          class="dropdown dropdown--end watchlist-row-menu"
+                                          data-dropdown
+                                        >
+                                          <button
+                                            class="dropdown-trigger dropdown-trigger--icon watchlist-row-action has-icon icon-menu-dots-vertical"
+                                            id="watchlist-row-1120-menu-trigger"
+                                            type="button"
+                                            aria-label="Actions for Al Rajhi Bank"
+                                            aria-haspopup="menu"
+                                            aria-expanded="false"
+                                            aria-controls="watchlist-row-1120-menu"
+                                            data-dropdown-trigger
+                                          ></button>
+
+                                          <div
+                                            class="dropdown-menu"
+                                            id="watchlist-row-1120-menu"
+                                            role="menu"
+                                            aria-labelledby="watchlist-row-1120-menu-trigger"
+                                            hidden
+                                            data-dropdown-menu
+                                          >
+                                            <button
+                                              class="dropdown-item has-icon icon-folder-import"
+                                              type="button"
+                                              role="menuitem"
+                                              data-watchlist-move="1120"
+                                            >
+                                              Move to watchlist
+                                            </button>
+
+                                            <div
+                                              class="dropdown-separator"
+                                              role="separator"
+                                            ></div>
+
+                                            <button
+                                              class="dropdown-item dropdown-item--danger watchlist-action--danger has-icon icon-trash-delete"
+                                              type="button"
+                                              role="menuitem"
+                                              data-watchlist-remove="1120"
+                                            >
+                                              Remove from watchlist
+                                            </button>
+                                          </div>
+                                        </div>
                                       </td>
 
                                       <th
@@ -2396,9 +2511,9 @@
                                       </td>
                                     </tr>
 
-                                    <!-- ==============================================================
-               Saudi National Bank
-               ============================================================== -->
+                                    <!-- ==================================================
+                             Saudi National Bank
+                             ================================================== -->
 
                                     <tr data-watchlist-company="1180">
                                       <td class="table-selection-cell">
@@ -2419,12 +2534,53 @@
                                       </td>
 
                                       <td class="watchlist-table__action">
-                                        <button
-                                          class="watchlist-row-action has-icon icon-trash-delete"
-                                          type="button"
-                                          aria-label="Remove Saudi National Bank from Watchlist 1"
-                                          data-watchlist-remove="1180"
-                                        ></button>
+                                        <div
+                                          class="dropdown dropdown--end watchlist-row-menu"
+                                          data-dropdown
+                                        >
+                                          <button
+                                            class="dropdown-trigger dropdown-trigger--icon watchlist-row-action has-icon icon-menu-dots-vertical"
+                                            id="watchlist-row-1180-menu-trigger"
+                                            type="button"
+                                            aria-label="Actions for Saudi National Bank"
+                                            aria-haspopup="menu"
+                                            aria-expanded="false"
+                                            aria-controls="watchlist-row-1180-menu"
+                                            data-dropdown-trigger
+                                          ></button>
+
+                                          <div
+                                            class="dropdown-menu"
+                                            id="watchlist-row-1180-menu"
+                                            role="menu"
+                                            aria-labelledby="watchlist-row-1180-menu-trigger"
+                                            hidden
+                                            data-dropdown-menu
+                                          >
+                                            <button
+                                              class="dropdown-item has-icon icon-folder-import"
+                                              type="button"
+                                              role="menuitem"
+                                              data-watchlist-move="1180"
+                                            >
+                                              Move to watchlist
+                                            </button>
+
+                                            <div
+                                              class="dropdown-separator"
+                                              role="separator"
+                                            ></div>
+
+                                            <button
+                                              class="dropdown-item dropdown-item--danger watchlist-action--danger has-icon icon-trash-delete"
+                                              type="button"
+                                              role="menuitem"
+                                              data-watchlist-remove="1180"
+                                            >
+                                              Remove from watchlist
+                                            </button>
+                                          </div>
+                                        </div>
                                       </td>
 
                                       <th
@@ -2489,9 +2645,9 @@
                                       </td>
                                     </tr>
 
-                                    <!-- ==============================================================
-               SABIC
-               ============================================================== -->
+                                    <!-- ==================================================
+                             SABIC
+                             ================================================== -->
 
                                     <tr data-watchlist-company="2010">
                                       <td class="table-selection-cell">
@@ -2512,12 +2668,53 @@
                                       </td>
 
                                       <td class="watchlist-table__action">
-                                        <button
-                                          class="watchlist-row-action has-icon icon-trash-delete"
-                                          type="button"
-                                          aria-label="Remove SABIC from Watchlist 1"
-                                          data-watchlist-remove="2010"
-                                        ></button>
+                                        <div
+                                          class="dropdown dropdown--end watchlist-row-menu"
+                                          data-dropdown
+                                        >
+                                          <button
+                                            class="dropdown-trigger dropdown-trigger--icon watchlist-row-action has-icon icon-menu-dots-vertical"
+                                            id="watchlist-row-2010-menu-trigger"
+                                            type="button"
+                                            aria-label="Actions for SABIC"
+                                            aria-haspopup="menu"
+                                            aria-expanded="false"
+                                            aria-controls="watchlist-row-2010-menu"
+                                            data-dropdown-trigger
+                                          ></button>
+
+                                          <div
+                                            class="dropdown-menu"
+                                            id="watchlist-row-2010-menu"
+                                            role="menu"
+                                            aria-labelledby="watchlist-row-2010-menu-trigger"
+                                            hidden
+                                            data-dropdown-menu
+                                          >
+                                            <button
+                                              class="dropdown-item has-icon icon-folder-import"
+                                              type="button"
+                                              role="menuitem"
+                                              data-watchlist-move="2010"
+                                            >
+                                              Move to watchlist
+                                            </button>
+
+                                            <div
+                                              class="dropdown-separator"
+                                              role="separator"
+                                            ></div>
+
+                                            <button
+                                              class="dropdown-item dropdown-item--danger watchlist-action--danger has-icon icon-trash-delete"
+                                              type="button"
+                                              role="menuitem"
+                                              data-watchlist-remove="2010"
+                                            >
+                                              Remove from watchlist
+                                            </button>
+                                          </div>
+                                        </div>
                                       </td>
 
                                       <th
@@ -2585,7 +2782,9 @@
                                 </table>
                               </div>
 
-                              <!-- Horizontal Scroll Control -->
+                              <!-- ========================================================
+                       Horizontal Navigation
+                       ======================================================== -->
 
                               <button
                                 class="table-scroll-jump has-icon icon-chevron-right icon-flip-rtl"
@@ -2598,11 +2797,9 @@
                             </div>
                           </div>
 
-                          <!-- Mobile Cards -->
-
-                          <!-- ==========================================================================
-     Watchlist One: Mobile Cards
-     ========================================================================== -->
+                          <!-- ============================================================
+                   Mobile Cards
+                   ============================================================ -->
 
                           <div
                             class="watchlist-page__card-view"
@@ -2612,9 +2809,9 @@
                               class="watchlist-card-list"
                               data-watchlist-cards="watchlist-1"
                             >
-                              <!-- ======================================================================
-         Saudi Aramco
-         ====================================================================== -->
+                              <!-- ========================================================
+                       Saudi Aramco
+                       ======================================================== -->
 
                               <li
                                 class="watchlist-card"
@@ -2658,18 +2855,58 @@
                                     </span>
                                   </label>
 
-                                  <button
-                                    class="watchlist-row-action has-icon icon-trash-delete"
-                                    type="button"
-                                    aria-label="Remove Saudi Aramco from Watchlist 1"
-                                    data-watchlist-remove="2222"
-                                  ></button>
+                                  <div
+                                    class="dropdown dropdown--end watchlist-row-menu"
+                                    data-dropdown
+                                  >
+                                    <button
+                                      class="dropdown-trigger dropdown-trigger--icon watchlist-row-action has-icon icon-menu-dots-vertical"
+                                      id="watchlist-card-2222-menu-trigger"
+                                      type="button"
+                                      aria-label="Actions for Saudi Aramco"
+                                      aria-haspopup="menu"
+                                      aria-expanded="false"
+                                      aria-controls="watchlist-card-2222-menu"
+                                      data-dropdown-trigger
+                                    ></button>
+
+                                    <div
+                                      class="dropdown-menu"
+                                      id="watchlist-card-2222-menu"
+                                      role="menu"
+                                      aria-labelledby="watchlist-card-2222-menu-trigger"
+                                      hidden
+                                      data-dropdown-menu
+                                    >
+                                      <button
+                                        class="dropdown-item has-icon icon-folder-import"
+                                        type="button"
+                                        role="menuitem"
+                                        data-watchlist-move="2222"
+                                      >
+                                        Move to watchlist
+                                      </button>
+
+                                      <div
+                                        class="dropdown-separator"
+                                        role="separator"
+                                      ></div>
+
+                                      <button
+                                        class="dropdown-item dropdown-item--danger watchlist-action--danger has-icon icon-trash-delete"
+                                        type="button"
+                                        role="menuitem"
+                                        data-watchlist-remove="2222"
+                                      >
+                                        Remove from watchlist
+                                      </button>
+                                    </div>
+                                  </div>
                                 </div>
 
                                 <dl class="watchlist-card__metrics">
                                   <div class="watchlist-card__metric">
                                     <dt>Value</dt>
-
                                     <dd dir="ltr" data-numeric>
                                       295,547,661.40
                                     </dd>
@@ -2677,13 +2914,11 @@
 
                                   <div class="watchlist-card__metric">
                                     <dt>Volume</dt>
-
                                     <dd dir="ltr" data-numeric>11,082,651</dd>
                                   </div>
 
                                   <div class="watchlist-card__metric">
                                     <dt>Last Price</dt>
-
                                     <dd dir="ltr" data-numeric>26.72</dd>
                                   </div>
 
@@ -2709,9 +2944,9 @@
                                 </dl>
                               </li>
 
-                              <!-- ======================================================================
-         ACWA Power
-         ====================================================================== -->
+                              <!-- ========================================================
+                       ACWA Power
+                       ======================================================== -->
 
                               <li
                                 class="watchlist-card"
@@ -2755,30 +2990,68 @@
                                     </span>
                                   </label>
 
-                                  <button
-                                    class="watchlist-row-action has-icon icon-trash-delete"
-                                    type="button"
-                                    aria-label="Remove ACWA Power from Watchlist 1"
-                                    data-watchlist-remove="2082"
-                                  ></button>
+                                  <div
+                                    class="dropdown dropdown--end watchlist-row-menu"
+                                    data-dropdown
+                                  >
+                                    <button
+                                      class="dropdown-trigger dropdown-trigger--icon watchlist-row-action has-icon icon-menu-dots-vertical"
+                                      id="watchlist-card-2082-menu-trigger"
+                                      type="button"
+                                      aria-label="Actions for ACWA Power"
+                                      aria-haspopup="menu"
+                                      aria-expanded="false"
+                                      aria-controls="watchlist-card-2082-menu"
+                                      data-dropdown-trigger
+                                    ></button>
+
+                                    <div
+                                      class="dropdown-menu"
+                                      id="watchlist-card-2082-menu"
+                                      role="menu"
+                                      aria-labelledby="watchlist-card-2082-menu-trigger"
+                                      hidden
+                                      data-dropdown-menu
+                                    >
+                                      <button
+                                        class="dropdown-item has-icon icon-folder-import"
+                                        type="button"
+                                        role="menuitem"
+                                        data-watchlist-move="2082"
+                                      >
+                                        Move to watchlist
+                                      </button>
+
+                                      <div
+                                        class="dropdown-separator"
+                                        role="separator"
+                                      ></div>
+
+                                      <button
+                                        class="dropdown-item dropdown-item--danger watchlist-action--danger has-icon icon-trash-delete"
+                                        type="button"
+                                        role="menuitem"
+                                        data-watchlist-remove="2082"
+                                      >
+                                        Remove from watchlist
+                                      </button>
+                                    </div>
+                                  </div>
                                 </div>
 
                                 <dl class="watchlist-card__metrics">
                                   <div class="watchlist-card__metric">
                                     <dt>Value</dt>
-
                                     <dd dir="ltr" data-numeric>3,409,621.34</dd>
                                   </div>
 
                                   <div class="watchlist-card__metric">
                                     <dt>Volume</dt>
-
                                     <dd dir="ltr" data-numeric>68,583</dd>
                                   </div>
 
                                   <div class="watchlist-card__metric">
                                     <dt>Last Price</dt>
-
                                     <dd dir="ltr" data-numeric>49.20</dd>
                                   </div>
 
@@ -2804,9 +3077,9 @@
                                 </dl>
                               </li>
 
-                              <!-- ======================================================================
-         Al Rajhi Bank
-         ====================================================================== -->
+                              <!-- ========================================================
+                       Al Rajhi Bank
+                       ======================================================== -->
 
                               <li
                                 class="watchlist-card"
@@ -2850,18 +3123,58 @@
                                     </span>
                                   </label>
 
-                                  <button
-                                    class="watchlist-row-action has-icon icon-trash-delete"
-                                    type="button"
-                                    aria-label="Remove Al Rajhi Bank from Watchlist 1"
-                                    data-watchlist-remove="1120"
-                                  ></button>
+                                  <div
+                                    class="dropdown dropdown--end watchlist-row-menu"
+                                    data-dropdown
+                                  >
+                                    <button
+                                      class="dropdown-trigger dropdown-trigger--icon watchlist-row-action has-icon icon-menu-dots-vertical"
+                                      id="watchlist-card-1120-menu-trigger"
+                                      type="button"
+                                      aria-label="Actions for Al Rajhi Bank"
+                                      aria-haspopup="menu"
+                                      aria-expanded="false"
+                                      aria-controls="watchlist-card-1120-menu"
+                                      data-dropdown-trigger
+                                    ></button>
+
+                                    <div
+                                      class="dropdown-menu"
+                                      id="watchlist-card-1120-menu"
+                                      role="menu"
+                                      aria-labelledby="watchlist-card-1120-menu-trigger"
+                                      hidden
+                                      data-dropdown-menu
+                                    >
+                                      <button
+                                        class="dropdown-item has-icon icon-folder-import"
+                                        type="button"
+                                        role="menuitem"
+                                        data-watchlist-move="1120"
+                                      >
+                                        Move to watchlist
+                                      </button>
+
+                                      <div
+                                        class="dropdown-separator"
+                                        role="separator"
+                                      ></div>
+
+                                      <button
+                                        class="dropdown-item dropdown-item--danger watchlist-action--danger has-icon icon-trash-delete"
+                                        type="button"
+                                        role="menuitem"
+                                        data-watchlist-remove="1120"
+                                      >
+                                        Remove from watchlist
+                                      </button>
+                                    </div>
+                                  </div>
                                 </div>
 
                                 <dl class="watchlist-card__metrics">
                                   <div class="watchlist-card__metric">
                                     <dt>Value</dt>
-
                                     <dd dir="ltr" data-numeric>
                                       28,746,920.80
                                     </dd>
@@ -2869,13 +3182,11 @@
 
                                   <div class="watchlist-card__metric">
                                     <dt>Volume</dt>
-
                                     <dd dir="ltr" data-numeric>303,238</dd>
                                   </div>
 
                                   <div class="watchlist-card__metric">
                                     <dt>Last Price</dt>
-
                                     <dd dir="ltr" data-numeric>94.80</dd>
                                   </div>
 
@@ -2901,9 +3212,9 @@
                                 </dl>
                               </li>
 
-                              <!-- ======================================================================
-         Saudi National Bank
-         ====================================================================== -->
+                              <!-- ========================================================
+                       Saudi National Bank
+                       ======================================================== -->
 
                               <li
                                 class="watchlist-card"
@@ -2947,18 +3258,58 @@
                                     </span>
                                   </label>
 
-                                  <button
-                                    class="watchlist-row-action has-icon icon-trash-delete"
-                                    type="button"
-                                    aria-label="Remove Saudi National Bank from Watchlist 1"
-                                    data-watchlist-remove="1180"
-                                  ></button>
+                                  <div
+                                    class="dropdown dropdown--end watchlist-row-menu"
+                                    data-dropdown
+                                  >
+                                    <button
+                                      class="dropdown-trigger dropdown-trigger--icon watchlist-row-action has-icon icon-menu-dots-vertical"
+                                      id="watchlist-card-1180-menu-trigger"
+                                      type="button"
+                                      aria-label="Actions for Saudi National Bank"
+                                      aria-haspopup="menu"
+                                      aria-expanded="false"
+                                      aria-controls="watchlist-card-1180-menu"
+                                      data-dropdown-trigger
+                                    ></button>
+
+                                    <div
+                                      class="dropdown-menu"
+                                      id="watchlist-card-1180-menu"
+                                      role="menu"
+                                      aria-labelledby="watchlist-card-1180-menu-trigger"
+                                      hidden
+                                      data-dropdown-menu
+                                    >
+                                      <button
+                                        class="dropdown-item has-icon icon-folder-import"
+                                        type="button"
+                                        role="menuitem"
+                                        data-watchlist-move="1180"
+                                      >
+                                        Move to watchlist
+                                      </button>
+
+                                      <div
+                                        class="dropdown-separator"
+                                        role="separator"
+                                      ></div>
+
+                                      <button
+                                        class="dropdown-item dropdown-item--danger watchlist-action--danger has-icon icon-trash-delete"
+                                        type="button"
+                                        role="menuitem"
+                                        data-watchlist-remove="1180"
+                                      >
+                                        Remove from watchlist
+                                      </button>
+                                    </div>
+                                  </div>
                                 </div>
 
                                 <dl class="watchlist-card__metrics">
                                   <div class="watchlist-card__metric">
                                     <dt>Value</dt>
-
                                     <dd dir="ltr" data-numeric>
                                       17,338,256.25
                                     </dd>
@@ -2966,13 +3317,11 @@
 
                                   <div class="watchlist-card__metric">
                                     <dt>Volume</dt>
-
                                     <dd dir="ltr" data-numeric>478,297</dd>
                                   </div>
 
                                   <div class="watchlist-card__metric">
                                     <dt>Last Price</dt>
-
                                     <dd dir="ltr" data-numeric>36.25</dd>
                                   </div>
 
@@ -2998,9 +3347,9 @@
                                 </dl>
                               </li>
 
-                              <!-- ======================================================================
-         SABIC
-         ====================================================================== -->
+                              <!-- ========================================================
+                       SABIC
+                       ======================================================== -->
 
                               <li
                                 class="watchlist-card"
@@ -3044,18 +3393,58 @@
                                     </span>
                                   </label>
 
-                                  <button
-                                    class="watchlist-row-action has-icon icon-trash-delete"
-                                    type="button"
-                                    aria-label="Remove SABIC from Watchlist 1"
-                                    data-watchlist-remove="2010"
-                                  ></button>
+                                  <div
+                                    class="dropdown dropdown--end watchlist-row-menu"
+                                    data-dropdown
+                                  >
+                                    <button
+                                      class="dropdown-trigger dropdown-trigger--icon watchlist-row-action has-icon icon-menu-dots-vertical"
+                                      id="watchlist-card-2010-menu-trigger"
+                                      type="button"
+                                      aria-label="Actions for SABIC"
+                                      aria-haspopup="menu"
+                                      aria-expanded="false"
+                                      aria-controls="watchlist-card-2010-menu"
+                                      data-dropdown-trigger
+                                    ></button>
+
+                                    <div
+                                      class="dropdown-menu"
+                                      id="watchlist-card-2010-menu"
+                                      role="menu"
+                                      aria-labelledby="watchlist-card-2010-menu-trigger"
+                                      hidden
+                                      data-dropdown-menu
+                                    >
+                                      <button
+                                        class="dropdown-item has-icon icon-folder-import"
+                                        type="button"
+                                        role="menuitem"
+                                        data-watchlist-move="2010"
+                                      >
+                                        Move to watchlist
+                                      </button>
+
+                                      <div
+                                        class="dropdown-separator"
+                                        role="separator"
+                                      ></div>
+
+                                      <button
+                                        class="dropdown-item dropdown-item--danger watchlist-action--danger has-icon icon-trash-delete"
+                                        type="button"
+                                        role="menuitem"
+                                        data-watchlist-remove="2010"
+                                      >
+                                        Remove from watchlist
+                                      </button>
+                                    </div>
+                                  </div>
                                 </div>
 
                                 <dl class="watchlist-card__metrics">
                                   <div class="watchlist-card__metric">
                                     <dt>Value</dt>
-
                                     <dd dir="ltr" data-numeric>
                                       42,886,792.40
                                     </dd>
@@ -3063,13 +3452,11 @@
 
                                   <div class="watchlist-card__metric">
                                     <dt>Volume</dt>
-
                                     <dd dir="ltr" data-numeric>626,999</dd>
                                   </div>
 
                                   <div class="watchlist-card__metric">
                                     <dt>Last Price</dt>
-
                                     <dd dir="ltr" data-numeric>68.40</dd>
                                   </div>
 
@@ -3098,9 +3485,9 @@
                           </div>
                         </section>
 
-                        <!-- ======================================================================
-         Watchlist Two Panel
-         ====================================================================== -->
+                        <!-- ==============================================================
+                 Watchlist 2
+                 ============================================================== -->
 
                         <section
                           class="tab-pane"
@@ -3110,8 +3497,6 @@
                           tabindex="0"
                           hidden
                         >
-                          <!-- Selection Actions -->
-
                           <div
                             class="watchlist-selection-bar"
                             hidden
@@ -3122,12 +3507,12 @@
                               aria-live="polite"
                             >
                               <strong data-watchlist-selection-count>0</strong>
-                              selected
+                              <span>selected</span>
                             </p>
 
                             <div class="watchlist-selection-bar__actions">
                               <button
-                                class="btn btn-sm btn-outline has-icon icon-folder-import"
+                                class="btn btn-sm btn-outline-primary has-icon icon-folder-import"
                                 type="button"
                                 data-watchlist-move-selected
                               >
@@ -3135,7 +3520,7 @@
                               </button>
 
                               <button
-                                class="btn btn-sm btn-danger-outline has-icon icon-trash-delete"
+                                class="btn btn-sm btn-outline-danger has-icon icon-trash-delete"
                                 type="button"
                                 data-watchlist-remove-selected
                               >
@@ -3144,16 +3529,41 @@
                             </div>
                           </div>
 
-                          <!-- Desktop Table -->
+                          <!-- Keep your Watchlist 2 data here when ready. -->
 
                           <div class="watchlist-page__table-view">
-                            <!-- Watchlist 2 table goes here next. -->
+                            <div class="watchlist-empty">
+                              <span
+                                class="watchlist-empty__icon has-icon icon-bookmark-ribbon-outline"
+                                aria-hidden="true"
+                              ></span>
+
+                              <h3 class="watchlist-empty__title">
+                                Watchlist 2
+                              </h3>
+
+                              <p class="watchlist-empty__text">
+                                Add the Watchlist 2 companies here using the
+                                same table structure as Watchlist 1.
+                              </p>
+                            </div>
                           </div>
 
-                          <!-- Mobile Cards -->
-
                           <div class="watchlist-page__card-view">
-                            <!-- Watchlist 2 mobile cards go here next. -->
+                            <div class="watchlist-empty">
+                              <span
+                                class="watchlist-empty__icon has-icon icon-bookmark-ribbon-outline"
+                                aria-hidden="true"
+                              ></span>
+
+                              <h3 class="watchlist-empty__title">
+                                Watchlist 2
+                              </h3>
+
+                              <p class="watchlist-empty__text">
+                                Mobile company cards will appear here.
+                              </p>
+                            </div>
                           </div>
                         </section>
                       </div>

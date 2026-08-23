@@ -7,10 +7,17 @@
 /*
  * Field layout and control alignment for `.filter-bar`.
  *
- * Structural grid utilities control the number of columns; this file provides
- * form-specific spacing, predictable label rows, and integrations for custom
- * select and date controls.
+ * This partial owns:
+ *
+ * - field sizing and label alignment
+ * - select and date-control integration
+ * - Market Watch column-picker popover
+ * - legend presentation
  */
+
+/* ==========================================================================
+   Fields Layout
+   ========================================================================== */
 
 .filter-bar__fields {
   flex: 1 1 auto;
@@ -34,6 +41,8 @@
    ========================================================================== */
 
 .filter-bar__field {
+  position: relative;
+
   display: grid;
   grid-template-rows: auto auto;
   align-content: start;
@@ -60,8 +69,8 @@
 }
 
 /*
- * Keeps labels, legends, selects, dates, and standard controls aligned across
- * every field in the same toolbar row.
+ * A consistent label row ensures selects, the column picker, date controls,
+ * and other form controls align cleanly within a toolbar.
  */
 
 .filter-bar__field .form-label,
@@ -206,6 +215,242 @@
 }
 
 /* ==========================================================================
+   Column Picker
+   ========================================================================== */
+
+/*
+ * The trigger is a normal button, while the panel contains native checkbox
+ * labels. This gives mouse, touch, keyboard, and screen-reader users the same
+ * reliable interaction model.
+ */
+
+.filter-bar__columns {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: ds.space(2);
+
+  inline-size: 100%;
+  min-block-size: var(--filter-bar-control-block-size);
+
+  text-align: start;
+}
+
+.filter-bar__columns-label {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filter-bar__columns-icon {
+  flex: 0 0 auto;
+
+  @include ds.transition(transform, "fast");
+}
+
+.filter-bar__columns[aria-expanded="true"] .filter-bar__columns-icon {
+  transform: rotate(180deg);
+}
+
+/*
+ * The panel is deliberately anchored to the field instead of the viewport.
+ * That keeps it correctly positioned in LTR, RTL, a constrained container,
+ * and inside any page layout.
+ */
+
+.filter-bar__columns-menu {
+  position: absolute;
+  z-index: var(--z-popover);
+
+  inset-block-start: calc(100% + #{ds.space(2)});
+  inset-inline: 0;
+
+  display: grid;
+  gap: ds.space(3);
+
+  min-inline-size: min(100%, 19rem);
+  padding: ds.space(3);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  box-shadow: var(--shadow-lg);
+}
+
+.filter-bar__columns-menu[hidden] {
+  display: none;
+}
+
+/* ==========================================================================
+   Column Picker Actions
+   ========================================================================== */
+
+.filter-bar__columns-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: ds.space(2);
+
+  padding-block-end: ds.space(2);
+
+  border-block-end: 1px solid var(--color-border);
+}
+
+.filter-bar__columns-action,
+.filter-bar__columns-menu [data-market-watch-columns-action] {
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+  color: var(--color-link);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("semibold");
+
+  text-decoration: underline;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+
+  cursor: pointer;
+
+  @include ds.transition(color, "fast");
+}
+
+.filter-bar__columns-action:hover,
+.filter-bar__columns-menu [data-market-watch-columns-action]:hover {
+  color: var(--color-link-hover);
+}
+
+.filter-bar__columns-action:focus-visible,
+.filter-bar__columns-menu [data-market-watch-columns-action]:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Column Picker Options
+   ========================================================================== */
+
+.filter-bar__columns-options {
+  display: grid;
+  gap: ds.space(2);
+}
+
+/*
+ * Preferred markup:
+ *
+ * <label class="filter-bar__columns-option">
+ *   <input type="checkbox" data-market-watch-column="range">
+ *   <span>52 Week Range</span>
+ * </label>
+ *
+ * The compatibility selector below also supports the previous button-based
+ * `role="menuitemcheckbox"` markup during migration.
+ */
+
+.filter-bar__columns-option {
+  display: flex;
+  align-items: center;
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+
+  color: var(--color-text);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+
+  cursor: pointer;
+}
+
+.filter-bar__columns-option input {
+  flex: 0 0 auto;
+
+  inline-size: 1rem;
+  block-size: 1rem;
+  margin: 0;
+
+  accent-color: var(--color-primary);
+}
+
+.filter-bar__columns-option > span {
+  min-inline-size: 0;
+
+  overflow-wrap: anywhere;
+}
+
+/*
+ * Legacy markup support. It can be removed once all pages use native
+ * checkbox labels.
+ */
+
+.filter-bar__columns-menu [role="menuitemcheckbox"] {
+  display: flex;
+  align-items: center;
+  gap: ds.space(2);
+
+  inline-size: 100%;
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+  color: var(--color-text);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+  text-align: start;
+
+  cursor: pointer;
+}
+
+.filter-bar__columns-menu [role="menuitemcheckbox"]::before {
+  content: "";
+
+  flex: 0 0 auto;
+
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+
+  background: var(--color-surface);
+}
+
+.filter-bar__columns-menu
+  [role="menuitemcheckbox"][aria-checked="true"]::before {
+  border-color: var(--color-primary);
+
+  background:
+    linear-gradient(
+      135deg,
+      transparent 42%,
+      var(--color-on-primary) 42% 54%,
+      transparent 54%
+    ),
+    linear-gradient(
+      45deg,
+      transparent 46%,
+      var(--color-on-primary) 46% 58%,
+      transparent 58%
+    ),
+    var(--color-primary);
+}
+
+.filter-bar__columns-menu [role="menuitemcheckbox"]:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
    Supporting Text
    ========================================================================== */
 
@@ -271,7 +516,7 @@
 }
 
 /* ==========================================================================
-   Large Tablet
+   Responsive
    ========================================================================== */
 
 @include ds.respond-down("lg") {
@@ -279,10 +524,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-
-/* ==========================================================================
-   Tablet
-   ========================================================================== */
 
 @include ds.respond-down("md") {
   .filter-bar__fields.grid-3 {
@@ -295,10 +536,6 @@
     gap: ds.space(2);
   }
 }
-
-/* ==========================================================================
-   Mobile
-   ========================================================================== */
 
 @include ds.respond-down("sm") {
   .filter-bar__fields.grid-2,
@@ -317,10 +554,17 @@
   .filter-bar__field .custom-date__native-range {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .filter-bar__columns-menu {
+    position: static;
+
+    min-inline-size: 0;
+    margin-block-start: 0;
+  }
 }
 
 /* ==========================================================================
-   High Contrast
+   High Contrast and Forced Colors
    ========================================================================== */
 
 html[data-contrast="high"] .filter-bar__legend-indicator {
@@ -328,9 +572,16 @@ html[data-contrast="high"] .filter-bar__legend-indicator {
   outline-offset: 1px;
 }
 
-/* ==========================================================================
-   Forced Colors
-   ========================================================================== */
+html[data-contrast="high"] .filter-bar__columns-menu {
+  border-width: 2px;
+
+  box-shadow: none;
+}
+
+html[data-contrast="high"] .filter-bar__columns-option input {
+  outline: 1px solid currentColor;
+  outline-offset: 1px;
+}
 
 @media (forced-colors: active) {
   .filter-bar__legend-indicator {
@@ -338,4 +589,40 @@ html[data-contrast="high"] .filter-bar__legend-indicator {
 
     background: CanvasText;
   }
+
+  .filter-bar__columns-menu {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+  }
+
+  .filter-bar__columns-menu [role="menuitemcheckbox"]::before {
+    border-color: CanvasText;
+
+    background: Canvas;
+  }
+
+  .filter-bar__columns-menu
+    [role="menuitemcheckbox"][aria-checked="true"]::before {
+    border-color: Highlight;
+
+    background: Highlight;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-bar__columns-icon {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] .filter-bar__columns-icon {
+  transition: none;
 }

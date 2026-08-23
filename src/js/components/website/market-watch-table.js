@@ -3,14 +3,18 @@
    ========================================================================== */
 
 /*
- * Owns the single desktop DataTable instance.
+ * Owns one desktop DataTable instance.
  *
- * It does not:
- * - fetch API data
- * - bind filter controls
- * - render mobile cards
- * - manage authentication
+ * Responsibilities:
+ * - view-specific header construction
+ * - DataTables setup
+ * - grouped rows
+ * - column visibility
+ * - skeleton, empty, and error states
+ * - FixedColumns / FixedHeader re-layout
  */
+
+const SKELETON_ROW_COUNT = 5;
 
 function getTable(root) {
   const table = root?.matches?.("[data-market-watch-table]")
@@ -35,23 +39,17 @@ function getDataTableConstructor() {
 function createHeaderCell({
   label,
   scope,
-  colSpan,
-  rowSpan,
-  className,
+  rowSpan = 1,
+  colSpan = 1,
+  className = "",
   attributes = {},
 }) {
   const cell = document.createElement("th");
 
   cell.scope = scope;
   cell.textContent = label;
-
-  if (colSpan) {
-    cell.colSpan = colSpan;
-  }
-
-  if (rowSpan) {
-    cell.rowSpan = rowSpan;
-  }
+  cell.rowSpan = rowSpan;
+  cell.colSpan = colSpan;
 
   if (className) {
     cell.className = className;
@@ -62,83 +60,6 @@ function createHeaderCell({
   });
 
   return cell;
-}
-
-function createTableHeader(table, schema, viewId) {
-  const columns = schema.getColumns(viewId);
-  const headerGroups = schema.getHeaderGroups(viewId);
-  const hasGroupedColumns = headerGroups.length > 0;
-
-  const thead = document.createElement("thead");
-  const topRow = document.createElement("tr");
-  const leafRow = document.createElement("tr");
-
-  let columnIndex = 0;
-
-  while (columnIndex < columns.length) {
-    const column = columns[columnIndex];
-
-    if (!column.headerGroup) {
-      topRow.append(
-        createHeaderCell({
-          label: column.label,
-          scope: "col",
-          rowSpan: hasGroupedColumns ? 2 : 1,
-          className: column.pinned
-            ? "table-market__security"
-            : "table-market__number",
-          attributes: {
-            "data-market-watch-column": column.key,
-          },
-        }),
-      );
-
-      columnIndex += 1;
-
-      continue;
-    }
-
-    const group = headerGroups.find((item) => item.id === column.headerGroup);
-
-    const groupColumns = group.columns;
-
-    topRow.append(
-      createHeaderCell({
-        label: group.label,
-        scope: "colgroup",
-        colSpan: groupColumns.length,
-        className: "table-market__group-heading",
-        attributes: {
-          "data-market-watch-header-group": group.id,
-        },
-      }),
-    );
-
-    groupColumns.forEach((groupColumn) => {
-      leafRow.append(
-        createHeaderCell({
-          label: groupColumn.label,
-          scope: "col",
-          className: "table-market__number",
-          attributes: {
-            "data-market-watch-column": groupColumn.key,
-            "data-market-watch-column-group": groupColumn.visibilityGroup || "",
-          },
-        }),
-      );
-    });
-
-    columnIndex += groupColumns.length;
-  }
-
-  thead.append(topRow);
-
-  if (hasGroupedColumns) {
-    thead.append(leafRow);
-  }
-
-  table.tHead?.remove();
-  table.prepend(thead);
 }
 
 function createGroupRow(group, columnCount) {
@@ -161,22 +82,99 @@ function createGroupRow(group, columnCount) {
   return row;
 }
 
-function getSortValue(column, row, formatters) {
-  if (column.format === "security") {
-    return row.acrynomName || row.company || row.companySymbol || "";
+function createTableHeader(table, schema, viewId) {
+  const columns = schema.getColumns(viewId);
+  const groupedColumns = schema.getHeaderGroups(viewId);
+  const hasGroups = groupedColumns.length > 0;
+
+  const thead = document.createElement("thead");
+  const topRow = document.createElement("tr");
+  const leafRow = document.createElement("tr");
+
+  let index = 0;
+
+  while (index < columns.length) {
+    const column = columns[index];
+
+    if (!column.headerGroup) {
+      topRow.append(
+        createHeaderCell({
+          label: column.label,
+          scope: "col",
+          rowSpan: hasGroups ? 2 : 1,
+          className: column.pinned
+            ? "table-market__security"
+            : "table-market__number",
+          attributes: {
+            "data-market-watch-column": column.key,
+          },
+        }),
+      );
+
+      index += 1;
+
+      continue;
+    }
+
+    const group = groupedColumns.find((item) => item.id === column.headerGroup);
+
+    topRow.append(
+      createHeaderCell({
+        label: group.label,
+        scope: "colgroup",
+        colSpan: group.columns.length,
+        className: "table-market__group-heading",
+        attributes: {
+          "data-market-watch-header-group": group.id,
+        },
+      }),
+    );
+
+    group.columns.forEach((groupColumn) => {
+      leafRow.append(
+        createHeaderCell({
+          label: groupColumn.label,
+          scope: "col",
+          className: "table-market__number",
+          attributes: {
+            "data-market-watch-column": groupColumn.key,
+            "data-market-watch-column-group": groupColumn.visibilityGroup || "",
+          },
+        }),
+      );
+    });
+
+    index += group.columns.length;
   }
 
-  if (column.format === "range") {
-    return formatters.toNumber(row.lastTradePriceModified) ?? -Infinity;
+  thead.append(topRow);
+
+  if (hasGroups) {
+    thead.append(leafRow);
   }
 
-  if (column.format === "change") {
-    return formatters.toNumber(row[column.changeField]) ?? 0;
-  }
+  table.tHead?.remove();
+  table.prepend(thead);
+}
 
-  const numericValue = formatters.toNumber(row[column.data]);
+function createSkeletonMarkup(index) {
+  const size = ["table-skeleton-lg", "table-skeleton-md", "table-skeleton-sm"][
+    index % 3
+  ];
 
-  return numericValue ?? row[column.data] ?? "";
+  return `<span class="table-skeleton ${size}" aria-hidden="true"></span>`;
+}
+
+function createLoadingRows() {
+  return Array.from(
+    {
+      length: SKELETON_ROW_COUNT,
+    },
+    (_, index) => ({
+      __marketWatchState: "loading",
+      __marketWatchLoadingIndex: index,
+    }),
+  );
 }
 
 /* ==========================================================================
@@ -186,129 +184,92 @@ function getSortValue(column, row, formatters) {
 export function createMarketWatchTable(root, options = {}) {
   const table = getTable(root);
   const DataTable = getDataTableConstructor();
+
   const schema = options.schema;
   const formatters = options.formatters;
   const config = options.config || {};
 
   if (!schema || !formatters) {
-    throw new Error("Market Watch table requires both schema and formatters.");
+    throw new Error("Market Watch table requires schema and formatters.");
   }
 
   let api = null;
   let activeViewId = null;
   let activeRows = [];
+  let emptyMessage = config.labels?.noData || "No data available.";
+  let tableState = "empty";
 
-  function scheduleLayoutRefresh() {
-    /*
-     * `datatable-layout.js` already listens to resize and refreshes:
-     * - FixedHeader offset
-     * - FixedColumns layout
-     * - table scroll navigation
-     */
-
-    window.requestAnimationFrame(() => {
-      window.dispatchEvent(new Event("resize"));
-    });
+  function getColumns() {
+    return schema.getColumns(activeViewId);
   }
 
-  function getColumns(viewId) {
-    return schema.getColumns(viewId);
+  function isLoadingRow(row) {
+    return row?.__marketWatchState === "loading";
   }
 
-  function getDataTableColumns(viewId) {
-    return getColumns(viewId).map((column) => ({
+  function getSortValue(column, row) {
+    if (column.format === "security") {
+      return row.acrynomName || row.company || row.companySymbol || "";
+    }
+
+    if (column.format === "range") {
+      return formatters.toNumber(row.lastTradePriceModified) ?? -Infinity;
+    }
+
+    if (column.format === "change") {
+      return formatters.toNumber(row[column.changeField]) ?? 0;
+    }
+
+    return formatters.toNumber(row[column.data]) ?? row[column.data] ?? "";
+  }
+
+  function getDataTableColumns() {
+    return getColumns().map((column, index) => ({
       data: column.data,
       name: column.key,
-      orderable: column.orderable,
+      orderable: false,
+
+      /*
+       * DataTables uses this width while calculating scroll and FixedColumns.
+       * Market SCSS supplies the accompanying min/max width contract.
+       */
+      width: column.width || undefined,
+
       className: column.pinned
         ? "table-market__security"
         : "table-market__number",
 
       render(data, type, row) {
+        if (isLoadingRow(row)) {
+          return type === "display"
+            ? createSkeletonMarkup(row.__marketWatchLoadingIndex + index)
+            : "";
+        }
+
         if (type === "display" || type === "filter") {
           return formatters.renderCell(column, row);
         }
 
-        return getSortValue(column, row, formatters);
+        return getSortValue(column, row);
       },
     }));
   }
 
-  function createDataTable(viewId) {
-    const columns = getColumns(viewId);
-
-    createTableHeader(table, schema, viewId);
-
-    api = new DataTable(table, {
-      data: activeRows,
-      columns: getDataTableColumns(viewId),
-
-      autoWidth: false,
-      deferRender: true,
-
-      scrollX: true,
-      scrollCollapse: true,
-
-      paging: true,
-      pageLength: 25,
-      lengthChange: false,
-
-      searching: false,
-      ordering: true,
-      order: [],
-
-      info: true,
-      processing: true,
-
-      fixedHeader: {
-        header: true,
-      },
-
-      fixedColumns: {
-        start: 1,
-      },
-
-      rowGroup: {
-        dataSrc: schema.rowGroupField,
-
-        startRender(rows, group) {
-          return createGroupRow(group, columns.length);
-        },
-      },
-
-      language: {
-        emptyTable: config.labels?.noData || "No data available.",
-        zeroRecords: config.labels?.noData || "No matching records found.",
-      },
-
-      layout: {
-        topStart: null,
-        topEnd: null,
-        bottomStart: "info",
-        bottomEnd: "paging",
-      },
-
-      drawCallback() {
-        syncGroupHeaders();
-        scheduleLayoutRefresh();
-      },
-    });
-
-    activeViewId = String(viewId);
-
-    syncGroupHeaders();
-    scheduleLayoutRefresh();
-  }
-
-  function destroyDataTable() {
-    if (!api) {
+  function applyEmptyState() {
+    if (tableState === "loading" || api?.rows().count()) {
       return;
     }
 
-    api.destroy();
-    api = null;
+    const emptyCell = table.tBodies[0]?.querySelector("td.dt-empty");
 
-    table.tBodies[0]?.replaceChildren();
+    if (!emptyCell) {
+      return;
+    }
+
+    const row = emptyCell.closest("tr");
+
+    row?.classList.add("table-empty");
+    emptyCell.textContent = emptyMessage;
   }
 
   function syncGroupHeaders() {
@@ -316,7 +277,7 @@ export function createMarketWatchTable(root, options = {}) {
       return;
     }
 
-    const columns = getColumns(activeViewId);
+    const columns = getColumns();
 
     table
       .querySelectorAll("[data-market-watch-header-group]")
@@ -332,19 +293,161 @@ export function createMarketWatchTable(root, options = {}) {
       });
   }
 
+  function refreshDataTableExtensions() {
+    if (!api) {
+      return;
+    }
+
+    api.columns.adjust();
+
+    const fixedColumns = api.fixedColumns?.();
+
+    fixedColumns?.relayout?.();
+
+    api.fixedHeader?.adjust?.();
+
+    /*
+     * The generic DataTables layout module responds to resize by refreshing
+     * its site-header offset and the reusable table scroll navigation.
+     */
+
+    window.dispatchEvent(new Event("resize"));
+  }
+
+  function scheduleLayoutRefresh() {
+    window.requestAnimationFrame(() => {
+      refreshDataTableExtensions();
+
+      /*
+       * FixedColumns measures after the browser has applied newly visible
+       * cells. A second frame avoids stale Company-column measurements after
+       * Select All / Clear All transitions.
+       */
+
+      window.requestAnimationFrame(refreshDataTableExtensions);
+    });
+  }
+
+  function createDataTable(viewId) {
+    const columns = schema.getColumns(viewId);
+
+    createTableHeader(table, schema, viewId);
+
+    api = new DataTable(table, {
+      data: activeRows,
+      columns: getDataTableColumns(),
+
+      autoWidth: false,
+      deferRender: true,
+
+      scrollX: true,
+      scrollCollapse: true,
+
+      /*
+       * Market Watch is a continuous market board. It has no client sorting,
+       * paging, information counter, search field, or length selector.
+       */
+
+      paging: false,
+      searching: false,
+      ordering: false,
+      info: false,
+      lengthChange: false,
+
+      processing: false,
+
+      fixedHeader: {
+        header: true,
+      },
+
+      fixedColumns: {
+        start: 1,
+      },
+
+      rowGroup: {
+        dataSrc: schema.rowGroupField,
+
+        startRender(rows, group) {
+          const rowData = rows.data().toArray();
+
+          if (rowData.some(isLoadingRow)) {
+            return null;
+          }
+
+          return createGroupRow(group, columns.length);
+        },
+      },
+
+      language: {
+        emptyTable: emptyMessage,
+        zeroRecords: emptyMessage,
+      },
+
+      layout: {
+        topStart: null,
+        topEnd: null,
+        bottomStart: null,
+        bottomEnd: null,
+      },
+
+      createdRow(rowElement, rowData) {
+        if (isLoadingRow(rowData)) {
+          rowElement.classList.add("table-loading");
+
+          return;
+        }
+
+        const security =
+          rowData.companyRef ||
+          rowData.companyCode ||
+          rowData.companySymbol ||
+          rowData.symbol;
+
+        if (security) {
+          rowElement.dataset.marketWatchSecurity = security;
+        }
+      },
+
+      drawCallback() {
+        syncGroupHeaders();
+        applyEmptyState();
+        scheduleLayoutRefresh();
+      },
+    });
+
+    activeViewId = String(viewId);
+    syncGroupHeaders();
+    scheduleLayoutRefresh();
+  }
+
+  function destroyDataTable() {
+    if (!api) {
+      return;
+    }
+
+    api.destroy();
+    api = null;
+
+    table.tBodies[0]?.replaceChildren();
+  }
+
   function setView(viewId) {
     const nextViewId = schema.getView(viewId).id;
 
-    if (nextViewId === activeViewId && api) {
+    if (api && nextViewId === activeViewId) {
       return;
     }
 
     destroyDataTable();
+
+    activeViewId = nextViewId;
     createDataTable(nextViewId);
   }
 
   function setRows(rows = []) {
     activeRows = Array.isArray(rows) ? rows : [];
+    tableState = activeRows.length ? "ready" : "empty";
+    emptyMessage = config.labels?.noData || "No data available.";
 
     if (!api) {
       return;
@@ -353,6 +456,38 @@ export function createMarketWatchTable(root, options = {}) {
     api.clear();
     api.rows.add(activeRows);
     api.draw();
+
+    scheduleLayoutRefresh();
+  }
+
+  function showLoading() {
+    tableState = "loading";
+    activeRows = createLoadingRows();
+
+    if (!api) {
+      return;
+    }
+
+    api.clear();
+    api.rows.add(activeRows);
+    api.draw();
+
+    scheduleLayoutRefresh();
+  }
+
+  function showEmpty(message) {
+    tableState = "empty";
+    activeRows = [];
+    emptyMessage = message || config.labels?.noData || "No data available.";
+
+    if (!api) {
+      return;
+    }
+
+    api.clear();
+    api.draw();
+
+    scheduleLayoutRefresh();
   }
 
   function setVisibleGroups(visibleGroups = []) {
@@ -362,7 +497,7 @@ export function createMarketWatchTable(root, options = {}) {
 
     const selectedGroups = new Set(visibleGroups);
 
-    getColumns(activeViewId).forEach((column, index) => {
+    getColumns().forEach((column, index) => {
       if (!column.visibilityGroup) {
         return;
       }
@@ -390,14 +525,23 @@ export function createMarketWatchTable(root, options = {}) {
     destroyDataTable();
   }
 
-  setView(options.initialViewId || schema.defaultViewId);
+  activeViewId = schema.getView(
+    options.initialViewId || schema.defaultViewId,
+  ).id;
+
+  createDataTable(activeViewId);
 
   return Object.freeze({
     setView,
     setRows,
     setVisibleGroups,
+
+    showLoading,
+    showEmpty,
+
     getApi,
     getViewId,
+
     destroy,
   });
 }

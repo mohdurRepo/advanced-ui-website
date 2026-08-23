@@ -3,18 +3,12 @@
    ========================================================================== */
 
 /*
- * Shared display formatting for desktop and mobile.
+ * Shared formatting and safe component markup for:
  *
- * This module:
- * - safely escapes API content
- * - renders company, favourite, range, and market values
- * - preserves auction handling
+ * - DataTables desktop cells
+ * - mobile cards
  *
- * It does not:
- * - fetch data
- * - bind events
- * - call login popups
- * - initialize DataTables
+ * No API requests, event binding, or DataTables initialization belongs here.
  */
 
 function toNumber(value) {
@@ -22,7 +16,16 @@ function toNumber(value) {
     return null;
   }
 
-  const number = Number(String(value).replace(/,/g, "").trim());
+  const normalized = String(value)
+    .replace(/,/g, "")
+    .replace(/[^\d.+-]/g, "")
+    .trim();
+
+  if (!normalized || normalized === "+" || normalized === "-") {
+    return null;
+  }
+
+  const number = Number(normalized);
 
   return Number.isFinite(number) ? number : null;
 }
@@ -36,20 +39,6 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
-function safeUrl(value) {
-  if (!value) {
-    return "#";
-  }
-
-  try {
-    const url = new URL(value, window.location.origin);
-
-    return ["http:", "https:"].includes(url.protocol) ? url.href : "#";
-  } catch {
-    return "#";
-  }
-}
-
 function displayValue(value, fallback = "-") {
   return value === null || value === undefined || value === ""
     ? fallback
@@ -60,43 +49,47 @@ function isEnabled(value) {
   return [true, 1, "1", "true", "TRUE", "yes", "YES", "y", "Y"].includes(value);
 }
 
+function safeUrl(value) {
+  if (!value) {
+    return "";
+  }
+
+  try {
+    const url = new URL(value, window.location.origin);
+
+    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+  } catch {
+    return "";
+  }
+}
+
+function joinUrl(baseUrl, path) {
+  if (!baseUrl || !path) {
+    return "";
+  }
+
+  return `${String(baseUrl).replace(/\/+$/, "")}/${String(path).replace(
+    /^\/+/,
+    "",
+  )}`;
+}
+
 function getCompanyReference(row) {
-  return row.companyRef || row.companySymbol || row.symbol || "";
+  return (
+    row.companyRef || row.companyCode || row.companySymbol || row.symbol || ""
+  );
 }
 
 function getCompanyName(row) {
   return row.acrynomName || row.company || row.name || "-";
 }
 
-function getCompanyUrl(row) {
-  return row.companyUrl || row.companyURL || "#";
+function getCompanySymbol(row) {
+  return row.companySymbol || row.symbol || "";
 }
 
-function getCompanyStatus(row, labels) {
-  const status = Number(row.companyStatus);
-
-  if (status === 1) {
-    return {
-      className: "market-company-status--primary",
-      label: labels.losses20To35 || "",
-    };
-  }
-
-  if (status === 2) {
-    return {
-      className: "market-company-status--warning",
-      label: labels.losses35To50 || "",
-    };
-  }
-
-  if (status === 3) {
-    return {
-      className: "market-company-status--danger",
-      label: labels.losses50More || "",
-    };
-  }
-
-  return null;
+function getCompanyUrl(row) {
+  return row.companyUrl || row.companyURL || "";
 }
 
 /* ==========================================================================
@@ -107,7 +100,20 @@ export function createMarketWatchFormatters(config = {}) {
   const locale = config.locale || document.documentElement.lang || "en";
   const labels = config.labels || {};
   const isAuction = Boolean(config.market?.isAuction);
-  const marketOrderLabel = labels.marketOrder || "MO";
+
+  /*
+   * Configure in the JSP:
+   *
+   * assets: {
+   *   companyLogoBaseUrl: "https://example.example.com"
+   * }
+   */
+
+  const companyLogoBaseUrl = config.assets?.companyLogoBaseUrl || "";
+
+  const fullNumberFormatter = new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 0,
+  });
 
   function isAuctionZero(value) {
     return isAuction && toNumber(value) === 0;
@@ -121,13 +127,36 @@ export function createMarketWatchFormatters(config = {}) {
     return escapeHtml(isAuctionZero(value) ? "-" : displayValue(value));
   }
 
+  /*
+   * Preserves API-provided compact values such as `7.84M`.
+   */
+
   function formatQuantity(value) {
     return escapeHtml(isAuctionZero(value) ? "-" : displayValue(value));
   }
 
+  /*
+   * Used for cumulative volume, number of trades, bid/offer volume,
+   * market cap, and other values that must display their full precision.
+   *
+   * Example: 12123209 -> 12,123,209
+   */
+
+  function formatFullNumber(value) {
+    if (isAuctionZero(value)) {
+      return "-";
+    }
+
+    const number = toNumber(value);
+
+    return number === null
+      ? escapeHtml(displayValue(value))
+      : fullNumberFormatter.format(number);
+  }
+
   function formatMarketOrderOrPrice(value) {
     if (isAuctionZero(value)) {
-      return escapeHtml(marketOrderLabel);
+      return escapeHtml(labels.marketOrder || "MO");
     }
 
     return escapeHtml(displayValue(value));
@@ -152,27 +181,81 @@ export function createMarketWatchFormatters(config = {}) {
       return '<span class="market-neutral">-</span>';
     }
 
-    const state = getChangeState(numericValue);
-    const value = `${displayValue(display)}${suffix}`;
+    const text = displayValue(display);
+    const value = suffix && !text.endsWith(suffix) ? `${text}${suffix}` : text;
 
     return `
-      <span class="market-change market-${state}">
+      <span class="market-change market-${getChangeState(numericValue)}">
         ${escapeHtml(value)}
       </span>
     `.trim();
   }
 
+  /* ==========================================================================
+     Company Identity
+     ========================================================================== */
+
+  function getCompanyStatus(row) {
+    const status = Number(row.companyStatus);
+    const statusLabels = labels.status || {};
+
+    if (status === 1) {
+      return {
+        className: "market-company-status--primary ylwSymbol",
+        label: statusLabels.losses20To35 || "",
+      };
+    }
+
+    if (status === 2) {
+      return {
+        className: "market-company-status--warning orgSymbol",
+        label: statusLabels.losses35To50 || "",
+      };
+    }
+
+    if (status === 3) {
+      return {
+        className: "market-company-status--danger redSymbol",
+        label: statusLabels.losses50More || "",
+      };
+    }
+
+    return null;
+  }
+
+  function getCompanyLogoUrl(row) {
+    /*
+     * The direct API image URL has priority. Otherwise build:
+     *
+     * https://example.example.com/{companyCode}.png
+     */
+
+    const directUrl = row.companyLogo || row.logoUrl || row.logo;
+
+    if (safeUrl(directUrl)) {
+      return safeUrl(directUrl);
+    }
+
+    const code = row.companyCode || getCompanyReference(row);
+
+    return safeUrl(
+      joinUrl(companyLogoBaseUrl, `${encodeURIComponent(code)}.png`),
+    );
+  }
+
   function renderFavorite(row) {
     const reference = getCompanyReference(row);
     const active = isEnabled(row.watchlist);
-    const label = active ? "Remove from watchlist" : "Add to watchlist";
+    const label = active
+      ? labels.removeFromWatchlist || "Remove from watchlist"
+      : labels.addToWatchlist || "Add to watchlist";
 
     return `
       <button
         class="table-market__favorite has-icon icon-star"
         type="button"
         aria-pressed="${active}"
-        aria-label="${label}"
+        aria-label="${escapeHtml(label)}"
         data-market-watch-favorite
         data-market-watch-security="${escapeHtml(reference)}"
       ></button>
@@ -180,7 +263,7 @@ export function createMarketWatchFormatters(config = {}) {
   }
 
   function renderCompanyStatus(row) {
-    const status = getCompanyStatus(row, labels.status || {});
+    const status = getCompanyStatus(row);
 
     if (!status) {
       return "";
@@ -198,14 +281,14 @@ export function createMarketWatchFormatters(config = {}) {
   function renderSecurity(row) {
     const reference = getCompanyReference(row);
     const name = getCompanyName(row);
-    const symbol = row.companySymbol || row.symbol || "";
-    const logo = row.companyLogo || row.logoUrl || row.logo || "";
-    const url = safeUrl(getCompanyUrl(row));
+    const symbol = getCompanySymbol(row);
+    const companyUrl = safeUrl(getCompanyUrl(row)) || "#";
+    const logoUrl = getCompanyLogoUrl(row);
 
-    const logoMarkup = logo
+    const logo = logoUrl
       ? `
           <span class="table-market__logo">
-            <img src="${escapeHtml(logo)}" alt="" />
+            <img src="${escapeHtml(logoUrl)}" alt="" />
           </span>
         `
       : `
@@ -218,11 +301,11 @@ export function createMarketWatchFormatters(config = {}) {
       <div class="table-market__security-cell">
         ${renderFavorite(row)}
 
-        ${logoMarkup}
+        ${logo}
 
         <a
           class="table-market__security-link"
-          href="${escapeHtml(url)}"
+          href="${escapeHtml(companyUrl)}"
           data-market-watch-security-link="${escapeHtml(reference)}"
         >
           <span class="table-market__name">
@@ -240,6 +323,10 @@ export function createMarketWatchFormatters(config = {}) {
     `.trim();
   }
 
+  /* ==========================================================================
+     52-Week Range
+     ========================================================================== */
+
   function getRangePosition(low, high, value) {
     const lowNumber = toNumber(low);
     const highNumber = toNumber(high);
@@ -249,15 +336,16 @@ export function createMarketWatchFormatters(config = {}) {
       lowNumber === null ||
       highNumber === null ||
       valueNumber === null ||
-      highNumber <= lowNumber
+      highNumber <= lowNumber ||
+      isAuctionZero(value)
     ) {
       return null;
     }
 
-    const percentage =
+    const position =
       ((valueNumber - lowNumber) / (highNumber - lowNumber)) * 100;
 
-    return Math.min(100, Math.max(0, percentage));
+    return Math.min(100, Math.max(0, position));
   }
 
   function renderRange(row) {
@@ -266,24 +354,16 @@ export function createMarketWatchFormatters(config = {}) {
     const value = row.lastTradePriceModified;
     const position = getRangePosition(low, high, value);
 
-    const marker =
+    const style =
       position === null
         ? ""
-        : `
-          <span
-            class="table-market__range-marker"
-            aria-hidden="true"
-          ></span>
-        `;
+        : ` style="--range-position: ${position.toFixed(2)}%"`;
 
     return `
       <div
         class="table-market__range"
-        ${
-          position === null
-            ? ""
-            : `style="--range-position: ${position.toFixed(2)}%"`
-        }
+        data-range-has-value="${position !== null}"
+        ${style}
       >
         <div
           class="table-market__range-track"
@@ -292,7 +372,18 @@ export function createMarketWatchFormatters(config = {}) {
             `52 week range: ${displayValue(low)} to ${displayValue(high)}`,
           )}"
         >
-          ${marker}
+          <span class="table-market__range-fill" aria-hidden="true"></span>
+
+          ${
+            position === null
+              ? ""
+              : `
+                  <span
+                    class="table-market__range-marker"
+                    aria-hidden="true"
+                  ></span>
+                `
+          }
         </div>
 
         <div class="table-market__range-values" aria-hidden="true">
@@ -302,6 +393,10 @@ export function createMarketWatchFormatters(config = {}) {
       </div>
     `.trim();
   }
+
+  /* ==========================================================================
+     Cell Renderer
+     ========================================================================== */
 
   function renderCell(column, row) {
     const value = column.data ? row[column.data] : null;
@@ -317,8 +412,10 @@ export function createMarketWatchFormatters(config = {}) {
         return formatPrice(value);
 
       case "quantity":
-      case "plain-number":
         return formatQuantity(value);
+
+      case "full-number":
+        return formatFullNumber(value);
 
       case "market-order-or-price":
         return formatMarketOrderOrPrice(value);
@@ -338,15 +435,19 @@ export function createMarketWatchFormatters(config = {}) {
 
   return Object.freeze({
     locale,
+
     escapeHtml,
     toNumber,
     displayValue,
     isEnabled,
+
     formatText,
     formatPrice,
     formatQuantity,
+    formatFullNumber,
     formatMarketOrderOrPrice,
     formatChange,
+
     renderFavorite,
     renderSecurity,
     renderRange,

@@ -10,15 +10,16 @@ import { createMarketWatchTable } from "./market-watch-table.js";
 import { createMarketWatchMobile } from "./market-watch-mobile.js";
 
 /*
- * This is the only Market Watch entry module.
+ * The only Market Watch entry module.
  *
  * It coordinates:
- * - filters
- * - API requests
+ * - filter state
+ * - one API request flow
  * - desktop DataTable
  * - mobile cards
+ * - responsive presentation switching
  *
- * It contains no legacy refresh timer, no resize rebuild, and no DataTableCore.
+ * It has no polling, live refresh, or resize reinitialization.
  */
 
 function getElement(root, selector, required = true) {
@@ -56,14 +57,14 @@ function formatUpdatedAt(value, locale) {
     return String(value);
   }
 
-  return new Intl.DateTimeFormat(locale, {
+  return new Intl.DateTimeFormat(locale || "en", {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);
 }
 
 /* ==========================================================================
-   Public Page Initializer
+   Public Initializer
    ========================================================================== */
 
 export function initMarketWatchPage(
@@ -79,16 +80,28 @@ export function initMarketWatchPage(
   const elements = {
     desktopView: getElement(root, "[data-market-watch-desktop-view]"),
     mobileView: getElement(root, "[data-market-watch-mobile-view]"),
+    table: getElement(root, "[data-market-watch-table]"),
+
     summary: getElement(root, "[data-market-watch-summary]", false),
     updated: getElement(root, "[data-market-watch-updated]", false),
     status: getElement(root, "[data-market-watch-status]", false),
-    table: getElement(root, "[data-market-watch-table]"),
   };
 
   const labels = {
     loading: "Loading market data…",
     loadError: "Market data could not be loaded. Please try again.",
     noData: "No data available.",
+
+    showAll: "Show All",
+    noColumns: "No columns selected",
+    selectedSuffix: "selected",
+
+    details: "View details",
+    hideDetails: "Hide details",
+    price: "Price",
+    change: "Change",
+    uncategorized: "Other",
+
     ...pageConfig.labels,
   };
 
@@ -98,19 +111,31 @@ export function initMarketWatchPage(
 
   const initialState = {
     industry: pageConfig.initialState?.industry || "all",
+
     tableView: String(
       pageConfig.initialState?.tableView || schema.defaultViewId,
     ),
+
     watchlistOnly: Boolean(pageConfig.initialState?.watchlistOnly),
+
     visibleGroups: pageConfig.initialState?.visibleGroups || [],
   };
 
-  const visibleGroupsByView = new Map();
   let activeState = {
     ...initialState,
   };
+
+  let filters;
+  let mediaQuery;
   let requestVersion = 0;
-  let mediaQuery = null;
+
+  /*
+   * Each Table View owns a separate visible-column selection.
+   * Switching from Overview to Trading must not lose the user’s Overview
+   * choices, and switching back restores them.
+   */
+
+  const visibleGroupsByView = new Map();
 
   const table = createMarketWatchTable(root, {
     schema,
@@ -127,12 +152,15 @@ export function initMarketWatchPage(
     initialViewId: activeState.tableView,
     labels: {
       noData: labels.noData,
+      details: labels.details,
+      hideDetails: labels.hideDetails,
+      price: labels.price,
+      change: labels.change,
+      uncategorized: labels.uncategorized,
     },
   });
 
-  let filters;
-
-  function setStatus(message = "", type = "") {
+  function setStatus(message = "", state = "") {
     if (!elements.status) {
       return;
     }
@@ -140,8 +168,8 @@ export function initMarketWatchPage(
     elements.status.textContent = message;
     elements.status.hidden = !message;
 
-    if (type) {
-      elements.status.dataset.state = type;
+    if (state) {
+      elements.status.dataset.state = state;
     } else {
       delete elements.status.dataset.state;
     }
@@ -151,11 +179,14 @@ export function initMarketWatchPage(
     elements.table.setAttribute("aria-busy", String(isLoading));
 
     if (isLoading) {
-      setStatus(labels.loading, "loading");
+      table.showLoading();
+      mobile.showLoading();
 
       if (elements.summary) {
         elements.summary.textContent = labels.loading;
       }
+
+      setStatus(labels.loading, "loading");
 
       return;
     }
@@ -183,24 +214,25 @@ export function initMarketWatchPage(
     elements.updated.hidden = !updatedAt;
   }
 
-  function getVisibleGroupsForView(viewId) {
-    const saved = visibleGroupsByView.get(viewId);
-
-    if (saved) {
-      return saved;
-    }
-
+  function getDefaultVisibleGroups(viewId) {
     return schema.getPickerGroups(viewId).map((group) => group.id);
+  }
+
+  function getVisibleGroupsForView(viewId) {
+    return visibleGroupsByView.get(viewId) || getDefaultVisibleGroups(viewId);
   }
 
   function syncColumnGroups(viewId) {
     const pickerGroups = schema.getPickerGroups(viewId);
-    const visibleGroups = getVisibleGroupsForView(viewId);
+    const selectedGroups = getVisibleGroupsForView(viewId);
 
     filters.setAvailableGroups(pickerGroups);
-    filters.setVisibleGroups(visibleGroups);
+    filters.setVisibleGroups(selectedGroups);
 
-    table.setVisibleGroups(visibleGroups);
+    table.setVisibleGroups(selectedGroups);
+    mobile.setVisibleGroups(selectedGroups);
+
+    activeState.visibleGroups = [...selectedGroups];
   }
 
   function setView(viewId) {
@@ -210,6 +242,7 @@ export function initMarketWatchPage(
 
     table.setView(view.id);
     mobile.setView(view.id);
+
     syncColumnGroups(view.id);
   }
 
@@ -222,15 +255,22 @@ export function initMarketWatchPage(
       const result = await service.load(activeState);
 
       /*
-       * A cancelled or older request must never overwrite newer filter state.
+       * A response from an older/cancelled request must never overwrite data
+       * selected by a newer filter change.
        */
 
       if (version !== requestVersion) {
         return;
       }
 
-      table.setRows(result.rows);
-      mobile.setRows(result.rows);
+      if (result.rows.length) {
+        table.setRows(result.rows);
+        mobile.setRows(result.rows);
+      } else {
+        table.showEmpty(labels.noData);
+        mobile.showEmpty(labels.noData);
+      }
+
       setResultsSummary(result);
       setStatus();
     } catch (error) {
@@ -238,8 +278,8 @@ export function initMarketWatchPage(
         return;
       }
 
-      table.setRows([]);
-      mobile.setRows([]);
+      table.showEmpty(labels.loadError);
+      mobile.showEmpty(labels.loadError);
 
       if (elements.summary) {
         elements.summary.textContent = labels.loadError;
@@ -259,12 +299,19 @@ export function initMarketWatchPage(
     elements.desktopView.hidden = isMobile;
     elements.mobileView.hidden = !isMobile;
 
-    if (!isMobile) {
-      window.requestAnimationFrame(() => {
-        table.getApi()?.columns.adjust();
-        window.dispatchEvent(new Event("resize"));
-      });
+    if (isMobile) {
+      return;
     }
+
+    /*
+     * The existing generic DataTables layout module refreshes FixedHeader,
+     * FixedColumns, and table navigation after this resize event.
+     */
+
+    window.requestAnimationFrame(() => {
+      table.getApi()?.columns.adjust();
+      window.dispatchEvent(new Event("resize"));
+    });
   }
 
   function handleBreakpointChange(event) {
@@ -281,7 +328,9 @@ export function initMarketWatchPage(
       const groups = [...activeState.visibleGroups];
 
       visibleGroupsByView.set(activeState.tableView, groups);
+
       table.setVisibleGroups(groups);
+      mobile.setVisibleGroups(groups);
 
       return;
     }
@@ -295,9 +344,8 @@ export function initMarketWatchPage(
 
   function handleWatchlistIntent(requested) {
     /*
-     * Authentication is intentionally only a page integration point for now.
-     * When the site login popup is connected, listen for this event and open
-     * the popup. Returning false restores the switch without fetching data.
+     * The login popup is intentionally not implemented in this refactor step.
+     * A later site-level listener can handle this event and open the popup.
      */
 
     if (requested && pageConfig.authentication?.isAuthenticated === false) {
@@ -323,13 +371,11 @@ export function initMarketWatchPage(
       return;
     }
 
-    const security = button.dataset.marketWatchSecurity || "";
-
     root.dispatchEvent(
       new CustomEvent("market-watch:favorite-request", {
         bubbles: true,
         detail: {
-          security,
+          security: button.dataset.marketWatchSecurity || "",
           button,
         },
       }),
@@ -347,16 +393,11 @@ export function initMarketWatchPage(
     onWatchlistIntent: handleWatchlistIntent,
   });
 
-  /*
-   * Each view keeps its own visible-column selection. The default is that all
-   * groups available in that view are shown.
-   */
-
   visibleGroupsByView.set(
     activeState.tableView,
     initialState.visibleGroups.length
       ? initialState.visibleGroups
-      : schema.getPickerGroups(activeState.tableView).map((group) => group.id),
+      : getDefaultVisibleGroups(activeState.tableView),
   );
 
   setView(activeState.tableView);
@@ -390,11 +431,13 @@ export function initMarketWatchPage(
       requestVersion += 1;
 
       service.cancel();
+
       filters.destroy();
       table.destroy();
       mobile.destroy();
 
       mediaQuery?.removeEventListener("change", handleBreakpointChange);
+
       $(root).off(".marketWatchPage");
     },
   });
@@ -410,7 +453,6 @@ function startMarketWatchPage() {
   }
 
   window.marketWatchPage?.destroy();
-
   window.marketWatchPage = initMarketWatchPage();
 }
 
