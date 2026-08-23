@@ -5,23 +5,18 @@
    ========================================================================== */
 
 /*
- * Shared result-collection layout for directory pages.
+ * Shared result-collection layout for entity directories.
  *
  * Owns:
  *
- * - grid collection
- * - list collection
- * - responsive columns
- * - result item containment
- * - view visibility
- * - view-changing state
+ * - grid and list collection layouts;
+ * - view visibility;
+ * - responsive grid columns;
+ * - connected-list presentation;
+ * - loading and updating states.
  *
- * Feature-specific files continue to own:
- *
- * - issuer cards and rows
- * - member cards and rows
- * - foreign-investor rows
- * - entity-specific typography and metadata
+ * Entity Cards and rows remain responsible for their own content and
+ * responsive presentation.
  */
 
 .directory-results {
@@ -44,10 +39,16 @@
   padding: 0;
 
   list-style: none;
+
+  @include ds.transition((opacity, transform), "fast");
+}
+
+.directory-results__collection[hidden] {
+  display: none;
 }
 
 /* ==========================================================================
-   Grid View
+   Grid Collection
    ========================================================================== */
 
 .directory-results__collection--grid {
@@ -60,8 +61,19 @@
   gap: var(--directory-results-gap);
 }
 
+.directory-results__collection--grid .directory-results__item {
+  display: flex;
+
+  min-inline-size: 0;
+}
+
+.directory-results__collection--grid .card {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
 /* ==========================================================================
-   List View
+   List Collection
    ========================================================================== */
 
 .directory-results__collection--list {
@@ -80,33 +92,12 @@
 }
 
 /* ==========================================================================
-   Equal-height Grid Items
-   ========================================================================== */
-
-.directory-results__collection--grid .directory-results__item {
-  display: flex;
-}
-
-.directory-results__collection--grid .directory-results__item .card {
-  inline-size: 100%;
-  block-size: 100%;
-}
-
-/* ==========================================================================
-   Hidden View
-   ========================================================================== */
-
-.directory-results__collection[hidden] {
-  display: none;
-}
-
-/* ==========================================================================
-   Data-view State
+   View State
    ========================================================================== */
 
 /*
- * These selectors allow a JavaScript controller to update only the parent
- * state. The hidden attribute should still be maintained for accessibility.
+ * JavaScript should maintain `[hidden]` for accessibility. The data attribute
+ * provides a lightweight visual fallback while a view change is in progress.
  */
 
 .directory-results[data-view="grid"] .directory-results__collection--list {
@@ -118,7 +109,7 @@
 }
 
 /* ==========================================================================
-   Busy State
+   Loading and Updating
    ========================================================================== */
 
 .directory-results[aria-busy="true"] {
@@ -128,19 +119,10 @@
 }
 
 .directory-results[aria-busy="true"] .directory-results__collection {
-  pointer-events: none;
-
   opacity: 0.55;
+
+  pointer-events: none;
 }
-
-/* ==========================================================================
-   Updating State
-   ========================================================================== */
-
-/*
- * The updating class may be applied briefly while client-rendered result
- * markup is being replaced.
- */
 
 .directory-results.is-updating .directory-results__collection {
   opacity: 0.55;
@@ -149,7 +131,7 @@
 }
 
 /* ==========================================================================
-   Grid Column Variants
+   Grid Variants
    ========================================================================== */
 
 .directory-results--grid-2 {
@@ -164,18 +146,10 @@
   --directory-results-grid-columns: 4;
 }
 
-/* ==========================================================================
-   Comfortable Variant
-   ========================================================================== */
-
 .directory-results--comfortable {
   --directory-results-gap: #{ds.space(5)};
   --directory-results-list-gap: #{ds.space(4)};
 }
-
-/* ==========================================================================
-   Compact Variant
-   ========================================================================== */
 
 .directory-results--compact {
   --directory-results-gap: #{ds.space(3)};
@@ -183,12 +157,12 @@
 }
 
 /* ==========================================================================
-   List Surface Variant
+   Connected List
    ========================================================================== */
 
 /*
- * Optional connected list presentation. Feature-specific row components may
- * use this variant when individual rows should appear as one collection.
+ * Use only where individual row borders should read as one continuous
+ * collection. Standard directories should preserve independent row surfaces.
  */
 
 .directory-results--connected .directory-results__collection--list {
@@ -215,14 +189,6 @@
 }
 
 /* ==========================================================================
-   View Transition
-   ========================================================================== */
-
-.directory-results__collection {
-  @include ds.transition((opacity, transform), "fast");
-}
-
-/* ==========================================================================
    Large Desktop
    ========================================================================== */
 
@@ -233,7 +199,7 @@
 }
 
 /* ==========================================================================
-   Tablet
+   Large Tablet
    ========================================================================== */
 
 @include ds.respond-down("lg") {
@@ -241,8 +207,8 @@
     --directory-results-grid-columns: 2;
   }
 
-  .directory-results--grid-4,
-  .directory-results--grid-3 {
+  .directory-results--grid-3,
+  .directory-results--grid-4 {
     --directory-results-grid-columns: 2;
   }
 }
@@ -260,11 +226,6 @@
     --directory-results-gap: #{ds.space(3)};
     --directory-results-list-gap: #{ds.space(3)};
   }
-
-  /*
-   * Mobile uses the feature component's optimized card presentation.
-   * Both desktop view collections may therefore share a single-column layout.
-   */
 
   .directory-results__collection--grid,
   .directory-results__collection--list {

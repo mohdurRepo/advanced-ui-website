@@ -1,285 +1,23 @@
-@use "../../../../design-system/abstracts" as *;
+@use "../../../../design-system/abstracts" as ds;
 
 /* ==========================================================================
    Financial Documents
    ========================================================================== */
 
-/*
- * Document presentation patterns:
+/**
+ * Financial document presentation.
  *
- * 1. Matrix:
- *    Financial statements organized by reporting period and year.
+ * Financial statement matrices use the reusable design-system table
+ * component directly.
  *
- * 2. Document cards:
- *    XBRL, Board, and ESG reports.
+ * This partial owns only:
+ *
+ * - financial document lists
+ * - financial document cards
+ * - document metadata
+ * - document format indicators
+ * - document-specific responsive behavior
  */
-
-/* ==========================================================================
-   Document Matrix Wrapper
-   ========================================================================== */
-
-.financial-document-matrix-wrap {
-  position: relative;
-
-  inline-size: 100%;
-  min-inline-size: 0;
-  max-inline-size: 100%;
-
-  overflow-x: auto;
-  overflow-y: hidden;
-
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-
-  background: var(--color-surface);
-
-  overscroll-behavior-inline: contain;
-  scrollbar-color: var(--color-border-strong) transparent;
-  scrollbar-width: thin;
-
-  touch-action: pan-x;
-
-  -webkit-overflow-scrolling: touch;
-
-  &:focus {
-    outline: none;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-
-  &::-webkit-scrollbar {
-    block-size: 0.5rem;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    border: 0.125rem solid transparent;
-    border-radius: var(--radius-pill);
-
-    background: var(--color-border-strong);
-    background-clip: padding-box;
-  }
-}
-
-/* ==========================================================================
-   Document Matrix
-   ========================================================================== */
-
-.financial-document-matrix {
-  inline-size: 100%;
-  min-inline-size: 100%;
-
-  margin: 0;
-
-  border: 0;
-  border-collapse: separate;
-  border-spacing: 0;
-
-  background: var(--color-surface);
-  color: var(--color-text);
-
-  font-size: var(--text-sm);
-  line-height: var(--line-height-normal);
-
-  font-variant-numeric: tabular-nums;
-}
-
-/* ==========================================================================
-   Matrix Header
-   ========================================================================== */
-
-.financial-document-matrix thead th {
-  position: sticky;
-  inset-block-start: 0;
-  z-index: 2;
-
-  padding: 0.875rem 1rem;
-
-  border: 0;
-  border-block-end: 1px solid var(--color-border);
-
-  background: var(--color-surface-alt);
-  color: var(--color-heading);
-
-  font-size: var(--text-xs);
-  font-weight: font-weight("bold");
-  line-height: var(--line-height-tight);
-
-  text-align: center;
-  white-space: nowrap;
-}
-
-/* ==========================================================================
-   First Header Column
-   ========================================================================== */
-
-.financial-document-matrix thead th:first-child {
-  inset-inline-start: 0;
-  z-index: 4;
-
-  min-inline-size: 9rem;
-
-  text-align: start;
-}
-
-/* ==========================================================================
-   Matrix Body Cells
-   ========================================================================== */
-
-.financial-document-matrix tbody th,
-.financial-document-matrix tbody td {
-  padding: 0.875rem 1rem;
-
-  border: 0;
-  border-block-end: 1px solid var(--color-border);
-
-  background: var(--color-surface);
-  color: var(--color-text);
-
-  text-align: center;
-  vertical-align: middle;
-}
-
-/* ==========================================================================
-   Matrix Row Headers
-   ========================================================================== */
-
-.financial-document-matrix tbody th {
-  position: sticky;
-  inset-inline-start: 0;
-  z-index: 1;
-
-  min-inline-size: 9rem;
-
-  color: var(--color-heading);
-
-  font-size: var(--text-sm);
-  font-weight: font-weight("bold");
-
-  text-align: start;
-  white-space: nowrap;
-}
-
-/* ==========================================================================
-   Matrix Final Row
-   ========================================================================== */
-
-.financial-document-matrix tbody tr:last-child th,
-.financial-document-matrix tbody tr:last-child td {
-  border-block-end: 0;
-}
-
-/* ==========================================================================
-   Alternating Matrix Rows
-   ========================================================================== */
-
-.financial-document-matrix tbody tr:nth-child(even) th,
-.financial-document-matrix tbody tr:nth-child(even) td {
-  background: color-mix(
-    in oklab,
-    var(--color-surface-alt),
-    var(--color-surface) 55%
-  );
-}
-
-/* ==========================================================================
-   Matrix Row Hover
-   ========================================================================== */
-
-.financial-document-matrix tbody tr:hover th,
-.financial-document-matrix tbody tr:hover td {
-  background: color-mix(
-    in oklab,
-    var(--color-primary),
-    var(--color-surface) 95%
-  );
-}
-
-/* ==========================================================================
-   Matrix Document Link
-   ========================================================================== */
-
-.financial-document-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
-
-  min-inline-size: max-content;
-
-  padding: 0.375rem 0.5rem;
-
-  border-radius: var(--radius-sm);
-
-  color: var(--color-primary);
-
-  font-size: var(--text-xs);
-  font-weight: font-weight("semibold");
-  line-height: var(--line-height-tight);
-
-  text-decoration: none;
-  white-space: nowrap;
-
-  &:hover {
-    background: color-mix(in oklab, var(--color-primary), transparent 92%);
-
-    color: var(--color-primary-hover, var(--color-primary));
-  }
-
-  &:focus {
-    outline: none;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-}
-
-/* ==========================================================================
-   Matrix Link Icon
-   ========================================================================== */
-
-.financial-document-link__icon {
-  --icon-size: 0.875rem;
-
-  flex: 0 0 auto;
-
-  color: currentColor;
-}
-
-/* ==========================================================================
-   Matrix Link Date
-   ========================================================================== */
-
-.financial-document-link__date {
-  color: inherit;
-
-  font: inherit;
-
-  white-space: nowrap;
-}
-
-/* ==========================================================================
-   Unavailable Document
-   ========================================================================== */
-
-.financial-document__unavailable {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  min-inline-size: 2rem;
-
-  color: var(--color-text-muted);
-
-  font-size: var(--text-sm);
-  font-weight: font-weight("medium");
-}
 
 /* ==========================================================================
    Document List
@@ -290,7 +28,8 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
 
   align-items: stretch;
-  gap: 0.875rem;
+
+  gap: var(--space-4);
 
   min-inline-size: 0;
 
@@ -313,8 +52,19 @@
    Document Card
    ========================================================================== */
 
+/**
+ * Reusable financial document object.
+ *
+ * Structure:
+ *
+ * ┌────────┬───────────────────────┬────────┬────────────┐
+ * │ Icon   │ Title + metadata      │ Format │ Action     │
+ * └────────┴───────────────────────┴────────┴────────────┘
+ */
+
 .financial-document-card {
   display: grid;
+
   grid-template-columns:
     auto
     minmax(0, 1fr)
@@ -324,12 +74,13 @@
   grid-template-areas: "icon body format action";
 
   align-items: center;
-  gap: 1rem;
+
+  gap: var(--space-4);
 
   min-inline-size: 0;
   min-block-size: 100%;
 
-  padding: 1rem;
+  padding: var(--space-4);
 
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -337,45 +88,30 @@
   background: var(--color-surface);
   color: var(--color-text);
 
-  box-shadow: none;
-
   text-decoration: none;
 
-  @include transition((transform, box-shadow), fast);
+  @include ds.transition(
+    (background-color, border-color, box-shadow, transform),
+    "fast"
+  );
+}
 
-  &:hover {
-    border-color: color-mix(
-      in oklab,
-      var(--color-primary),
-      var(--color-border) 45%
-    );
+.financial-document-card:hover {
+  border-color: var(--color-border-strong);
 
-    background: color-mix(
-      in oklab,
-      var(--color-primary),
-      var(--color-surface) 97%
-    );
+  background: var(--color-surface-hover);
 
-    box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sm);
 
-    transform: translateY(-0.125rem);
+  transform: translateY(-0.125rem);
+}
 
-    .financial-document-card__title {
-      color: var(--color-primary);
-    }
-  }
-
-  &:focus {
-    outline: none;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
+.financial-document-card:focus-visible {
+  @include ds.focus-ring;
 }
 
 /* ==========================================================================
-   Document Card Icon
+   Document Icon
    ========================================================================== */
 
 .financial-document-card__icon {
@@ -391,29 +127,29 @@
 
   flex: 0 0 auto;
 
-  border: 1px solid color-mix(in oklab, var(--color-primary), transparent 76%);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
 
-  background: color-mix(in oklab, var(--color-primary), transparent 92%);
-
+  background: var(--color-surface-alt);
   color: var(--color-primary);
 }
 
 /* ==========================================================================
-   Document Card Body
+   Document Body
    ========================================================================== */
 
 .financial-document-card__body {
   grid-area: body;
 
   display: grid;
-  gap: 0.375rem;
+
+  gap: var(--space-1);
 
   min-inline-size: 0;
 }
 
 /* ==========================================================================
-   Document Card Title
+   Document Title
    ========================================================================== */
 
 .financial-document-card__title {
@@ -422,30 +158,35 @@
   color: var(--color-heading);
 
   font-size: var(--text-sm);
-  font-weight: font-weight("bold");
+  font-weight: ds.font-weight("medium");
   line-height: var(--line-height-tight);
 
   overflow-wrap: anywhere;
 
-  @include transition(color, fast);
+  @include ds.transition(color, "fast");
+}
+
+.financial-document-card:hover .financial-document-card__title {
+  color: var(--color-primary);
 }
 
 /* ==========================================================================
-   Document Card Metadata
+   Document Metadata
    ========================================================================== */
 
 .financial-document-card__meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.375rem 0.625rem;
+
+  gap: var(--space-1) var(--space-3);
 
   min-inline-size: 0;
 
   color: var(--color-text-muted);
 
   font-size: var(--text-xs);
-  font-weight: font-weight("medium");
+  font-weight: ds.font-weight("regular");
   line-height: var(--line-height-normal);
 
   font-variant-numeric: tabular-nums;
@@ -460,17 +201,17 @@
   font: inherit;
 
   white-space: nowrap;
+}
 
-  &::before {
-    content: "";
+.financial-document-card__meta time::before {
+  content: "";
 
-    inline-size: 1px;
-    block-size: 0.75rem;
+  inline-size: 1px;
+  block-size: 0.75rem;
 
-    margin-inline-end: 0.625rem;
+  margin-inline-end: var(--space-3);
 
-    background: var(--color-border);
-  }
+  background: var(--color-border);
 }
 
 /* ==========================================================================
@@ -487,17 +228,16 @@
   min-inline-size: 3.25rem;
   min-block-size: 1.75rem;
 
-  padding-inline: 0.5rem;
+  padding-inline: var(--space-2);
 
-  border: 1px solid color-mix(in oklab, var(--color-primary), transparent 76%);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
 
-  background: color-mix(in oklab, var(--color-primary), transparent 93%);
-
+  background: var(--color-surface-alt);
   color: var(--color-primary);
 
-  font-size: 0.6875rem;
-  font-weight: font-weight("bold");
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("medium");
   line-height: var(--line-height-tight);
 
   text-transform: uppercase;
@@ -507,7 +247,7 @@
 }
 
 /* ==========================================================================
-   Document Card Action
+   Document Action
    ========================================================================== */
 
 .financial-document-card__action {
@@ -515,28 +255,42 @@
 
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
+
+  gap: var(--space-1);
 
   color: var(--color-primary);
 
   font-size: var(--text-xs);
-  font-weight: font-weight("semibold");
+  font-weight: ds.font-weight("medium");
   line-height: var(--line-height-tight);
 
   white-space: nowrap;
+}
 
+.financial-document-card__action .has-icon {
+  --icon-size: 0.75rem;
+
+  flex: 0 0 auto;
+
+  @include ds.transition(transform, "fast");
+}
+
+.financial-document-card:hover .financial-document-card__action .has-icon {
+  transform: translateX(0.125rem);
+}
+
+html[dir="rtl"]
+  .financial-document-card:hover
+  .financial-document-card__action
   .has-icon {
-    --icon-size: 0.75rem;
-
-    flex: 0 0 auto;
-  }
+  transform: translateX(-0.125rem);
 }
 
 /* ==========================================================================
    Large Tablet
    ========================================================================== */
 
-@include respond-down(lg) {
+@include ds.respond-down("lg") {
   .financial-document-list {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -546,13 +300,7 @@
    Tablet
    ========================================================================== */
 
-@include respond-down(md) {
-  .financial-document-matrix thead th,
-  .financial-document-matrix tbody th,
-  .financial-document-matrix tbody td {
-    padding-inline: 0.875rem;
-  }
-
+@include ds.respond-down("md") {
   .financial-document-card {
     grid-template-columns:
       auto
@@ -563,7 +311,7 @@
       "icon body format"
       "icon action action";
 
-    gap: 0.625rem 0.875rem;
+    gap: var(--space-2) var(--space-3);
   }
 
   .financial-document-card__action {
@@ -575,38 +323,9 @@
    Mobile
    ========================================================================== */
 
-@include respond-down(sm) {
-  .financial-document-matrix-wrap {
-    border-radius: var(--radius-md);
-  }
-
-  .financial-document-matrix {
-    font-size: var(--text-xs);
-  }
-
-  .financial-document-matrix thead th,
-  .financial-document-matrix tbody th,
-  .financial-document-matrix tbody td {
-    padding: 0.75rem;
-  }
-
-  .financial-document-matrix thead th:first-child,
-  .financial-document-matrix tbody th {
-    min-inline-size: 7.5rem;
-  }
-
-  .financial-document-link {
-    padding-inline: 0.375rem;
-
-    font-size: 0.6875rem;
-  }
-
-  .financial-document-link__icon {
-    --icon-size: 0.75rem;
-  }
-
+@include ds.respond-down("sm") {
   .financial-document-list {
-    gap: 0.75rem;
+    gap: var(--space-3);
   }
 
   .financial-document-card {
@@ -619,7 +338,7 @@
       "icon body format"
       "action action action";
 
-    padding: 0.875rem;
+    padding: var(--space-3);
 
     border-radius: var(--radius-md);
   }
@@ -636,7 +355,7 @@
 
     inline-size: 100%;
 
-    padding-block-start: 0.625rem;
+    padding-block-start: var(--space-2);
 
     border-block-start: 1px solid var(--color-border);
   }
@@ -664,69 +383,58 @@
 }
 
 /* ==========================================================================
-   Dark Theme
-   ========================================================================== */
-
-html[data-theme="dark"] {
-  .financial-document-matrix tbody tr:nth-child(even) th,
-  .financial-document-matrix tbody tr:nth-child(even) td {
-    background: color-mix(
-      in oklab,
-      var(--color-surface-alt),
-      var(--color-surface) 65%
-    );
-  }
-
-  .financial-document-matrix tbody tr:hover th,
-  .financial-document-matrix tbody tr:hover td {
-    background: color-mix(
-      in oklab,
-      var(--color-primary),
-      var(--color-surface) 91%
-    );
-  }
-
-  .financial-document-card:hover {
-    box-shadow: none;
-  }
-}
-
-/* ==========================================================================
    High Contrast
    ========================================================================== */
 
 html[data-contrast="high"] {
-  .financial-document-matrix-wrap,
-  .financial-document-card {
+  .financial-document-card,
+  .financial-document-card__icon,
+  .financial-document-card__format {
     border-width: 2px;
+  }
 
+  .financial-document-card {
     box-shadow: none;
-  }
-
-  .financial-document-matrix thead th,
-  .financial-document-matrix tbody th,
-  .financial-document-matrix tbody td {
-    border-block-end-width: 2px;
-  }
-
-  .financial-document-matrix tbody tr:nth-child(even) th,
-  .financial-document-matrix tbody tr:nth-child(even) td,
-  .financial-document-matrix tbody tr:hover th,
-  .financial-document-matrix tbody tr:hover td {
-    background: var(--color-surface);
   }
 
   .financial-document-card__icon,
   .financial-document-card__format {
-    border-width: 2px;
-
     background: transparent;
     color: currentColor;
   }
 
   .financial-document-card__meta,
-  .financial-document__unavailable {
+  .financial-document-card__action {
     color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .financial-document-card,
+  .financial-document-card__icon,
+  .financial-document-card__format {
+    border-color: CanvasText;
+  }
+
+  .financial-document-card {
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .financial-document-card__icon,
+  .financial-document-card__title,
+  .financial-document-card__meta,
+  .financial-document-card__format,
+  .financial-document-card__action {
+    color: CanvasText;
+  }
+
+  .financial-document-card:focus-visible {
+    outline-color: Highlight;
   }
 }
 
@@ -734,13 +442,28 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+@media (prefers-reduced-motion: reduce) {
   .financial-document-card,
-  .financial-document-card__title {
+  .financial-document-card__title,
+  .financial-document-card__action .has-icon {
     transition: none;
   }
 
-  .financial-document-card:hover {
+  .financial-document-card:hover,
+  .financial-document-card:hover .financial-document-card__action .has-icon {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .financial-document-card,
+  .financial-document-card__title,
+  .financial-document-card__action .has-icon {
+    transition: none;
+  }
+
+  .financial-document-card:hover,
+  .financial-document-card:hover .financial-document-card__action .has-icon {
     transform: none;
   }
 }

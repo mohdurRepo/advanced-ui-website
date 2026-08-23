@@ -1,11 +1,27 @@
-/* ========================================================================== 
-   Sticky Table Tokens
+/* ==========================================================================
+   Sticky Tables
    ========================================================================== */
+
+/*
+ * Shared sticky behavior for native design-system tables.
+ *
+ * Sticky headers respect the website header through:
+ *
+ * --table-sticky-block-offset
+ *
+ * JavaScript updates --site-header-block-size with the actual rendered header
+ * height. The fallback keeps tables usable before JavaScript runs.
+ */
 
 .table-sticky,
 .table-sticky-head,
 .table-fixed-column,
 .table-fixed-columns {
+  --table-sticky-block-offset: var(
+    --site-header-block-size,
+    var(--app-header-height, 0px)
+  );
+
   --table-sticky-body-z: 2;
   --table-sticky-header-z: 4;
   --table-sticky-intersection-z: 6;
@@ -13,67 +29,50 @@
   --table-sticky-bg: var(--table-bg);
   --table-sticky-head-bg: var(--table-head-bg);
   --table-sticky-foot-bg: var(--table-foot-bg);
+
   --table-sticky-hover-bg: var(--table-row-hover-bg);
   --table-sticky-selected-bg: var(--table-row-selected-bg);
   --table-sticky-disabled-bg: var(--table-bg);
 
   --table-sticky-boundary-color: var(--table-border-strong);
-  --table-sticky-shadow: 0.375rem 0 0.75rem rgb(0 0 0 / 0.05);
-  --table-sticky-shadow-rtl: -0.375rem 0 0.75rem rgb(0 0 0 / 0.05);
+  --table-sticky-shadow: 0.375rem 0 0.875rem rgb(0 0 0 / 0.06);
+  --table-sticky-shadow-rtl: -0.375rem 0 0.875rem rgb(0 0 0 / 0.06);
 
   border-collapse: separate;
   border-spacing: 0;
 }
 
-/*
- * Sticky cells must use opaque surfaces because scrolling content physically
- * moves underneath them.
- */
-
-@supports (background: color-mix(in oklab, white, black)) {
-  .table-sticky,
-  .table-sticky-head,
-  .table-fixed-column,
-  .table-fixed-columns {
-    --table-sticky-hover-bg: color-mix(
-      in oklab,
-      var(--color-primary) 8%,
-      var(--table-bg)
-    );
-    --table-sticky-selected-bg: color-mix(
-      in oklab,
-      var(--color-primary) 12%,
-      var(--table-bg)
-    );
-  }
-}
-
-/* ========================================================================== 
+/* ==========================================================================
    Sticky Header
    ========================================================================== */
 
 .table-sticky-head thead th,
 .table-sticky-head thead td {
   position: sticky;
-  inset-block-start: var(--table-sticky-block-offset, 0);
+  inset-block-start: var(--table-sticky-block-offset);
 
   z-index: var(--table-sticky-header-z);
 
   background: var(--table-sticky-head-bg);
+  background-clip: padding-box;
 }
 
-/* ========================================================================== 
-   Explicit Sticky Cell API
+/* ==========================================================================
+   Explicit Sticky Column API
    ========================================================================== */
 
 /*
- * Add `.table-sticky` to the table and `.table-sticky-start` to every cell in
- * a sticky column. Additional columns set their accumulated logical offset:
+ * Apply `.table-sticky-start` to every cell in a fixed-start column.
  *
- * style="--table-sticky-offset: 7rem; --table-sticky-size: 15rem"
+ * For another fixed column:
+ *
+ * style="--table-sticky-offset: 14rem; --table-sticky-size: 12rem"
+ *
+ * This selector deliberately includes `.table`: it must outrank the base
+ * `.table tbody th` / `.table tbody td` transparent background rules.
  */
 
-.table-sticky-start {
+.table .table-sticky-start {
   position: sticky;
   inset-inline-start: var(--table-sticky-offset, 0);
 
@@ -83,33 +82,27 @@
   min-inline-size: var(--table-sticky-size, auto);
   max-inline-size: var(--table-sticky-size, none);
 
-  background: var(--table-sticky-bg);
-  background-clip: border-box;
+  background-color: var(--table-sticky-bg);
+  background-clip: padding-box;
 
   isolation: isolate;
 }
 
-thead .table-sticky-start {
+.table.table-sticky-head thead .table-sticky-start {
   z-index: var(--table-sticky-intersection-z);
 
-  background: var(--table-sticky-head-bg);
+  background-color: var(--table-sticky-head-bg);
 }
 
-tfoot .table-sticky-start {
-  z-index: var(--table-sticky-intersection-z);
-
-  background: var(--table-sticky-foot-bg);
-}
-
-/* ========================================================================== 
-   Explicit Sticky Boundary
-   ========================================================================== */
-
-.table-sticky-boundary {
+.table .table-sticky-start.table-sticky-boundary {
   box-shadow: var(--table-sticky-shadow);
 }
 
-.table-sticky-boundary::after {
+/* ==========================================================================
+   Sticky Boundary
+   ========================================================================== */
+
+.table .table-sticky-boundary::after {
   content: "";
 
   position: absolute;
@@ -125,48 +118,72 @@ tfoot .table-sticky-start {
   pointer-events: none;
 }
 
-html[dir="rtl"] .table-sticky-boundary {
+html[dir="rtl"] .table .table-sticky-start.table-sticky-boundary {
   box-shadow: var(--table-sticky-shadow-rtl);
 }
 
-/* ========================================================================== 
-   Compatibility: Fixed First Column
+/* ==========================================================================
+   Compatibility: First Fixed Column
    ========================================================================== */
 
-/* FIXED: Target only tbody/tfoot cells, and header cells that belong to the FIRST row */
-.table-fixed-column tbody td:first-child,
-.table-fixed-column tbody th:first-child,
-.table-fixed-column tfoot td:first-child,
-.table-fixed-column tfoot th:first-child,
-.table-fixed-column thead tr:first-child th:first-child,
-.table-fixed-column thead tr:first-child td:first-child {
+/*
+ * This compatibility API is for simple tables only.
+ *
+ * Group rows are excluded because their first cell usually spans the complete
+ * row and is not a normal fixed data column.
+ */
+
+.table-fixed-column tbody > tr:not(.table-group-row) > :first-child,
+.table-fixed-column tfoot > tr > :first-child,
+.table-fixed-column thead > tr:first-child > :first-child {
   position: sticky;
   inset-inline-start: 0;
 
   z-index: var(--table-sticky-body-z);
 
-  background: var(--table-sticky-bg);
-  background-clip: border-box;
+  background-color: var(--table-sticky-bg);
+  background-clip: padding-box;
 
   isolation: isolate;
 }
 
-/* FIXED: Isolate the correct head layout layer index boundary to the top level row */
-.table-fixed-column thead tr:first-child th:first-child,
-.table-fixed-column thead tr:first-child td:first-child {
-  z-index: var(--table-sticky-intersection-z);
-  background: var(--table-sticky-head-bg);
-}
-
-.table-fixed-column tfoot th:first-child,
-.table-fixed-column tfoot td:first-child {
+.table-fixed-column thead > tr:first-child > :first-child {
   z-index: var(--table-sticky-intersection-z);
 
-  background: var(--table-sticky-foot-bg);
+  background-color: var(--table-sticky-head-bg);
 }
 
-/* ========================================================================== 
-   Compatibility: Fixed First Two Columns
+.table-fixed-column tbody > tr:not(.table-group-row) > :first-child,
+.table-fixed-column thead > tr:first-child > :first-child {
+  box-shadow: var(--table-sticky-shadow);
+}
+
+.table-fixed-column tbody > tr:not(.table-group-row) > :first-child::after,
+.table-fixed-column thead > tr:first-child > :first-child::after {
+  content: "";
+
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: -1px;
+
+  inline-size: 1px;
+
+  background: var(--table-sticky-boundary-color);
+
+  pointer-events: none;
+}
+
+html[dir="rtl"]
+  .table-fixed-column
+  tbody
+  > tr:not(.table-group-row)
+  > :first-child,
+html[dir="rtl"] .table-fixed-column thead > tr:first-child > :first-child {
+  box-shadow: var(--table-sticky-shadow-rtl);
+}
+
+/* ==========================================================================
+   Compatibility: First Two Fixed Columns
    ========================================================================== */
 
 .table-fixed-columns {
@@ -174,105 +191,61 @@ html[dir="rtl"] .table-sticky-boundary {
   --table-fixed-column-2-width: 15rem;
 }
 
-/* FIXED: Apply positioning rules strictly to tbody, tfoot, and the first row block of the head */
-.table-fixed-columns tbody th:nth-child(1),
-.table-fixed-columns tbody td:nth-child(1),
-.table-fixed-columns tbody th:nth-child(2),
-.table-fixed-columns tbody td:nth-child(2),
-.table-fixed-columns tfoot th:nth-child(1),
-.table-fixed-columns tfoot td:nth-child(1),
-.table-fixed-columns tfoot th:nth-child(2),
-.table-fixed-columns tfoot td:nth-child(2),
-.table-fixed-columns thead tr:first-child th:nth-child(1),
-.table-fixed-columns thead tr:first-child td:nth-child(1),
-.table-fixed-columns thead tr:first-child th:nth-child(2),
-.table-fixed-columns thead tr:first-child td:nth-child(2) {
+.table-fixed-columns tbody > tr:not(.table-group-row) > :first-child,
+.table-fixed-columns tfoot > tr > :first-child,
+.table-fixed-columns thead > tr:first-child > :first-child {
   position: sticky;
+  inset-inline-start: 0;
 
   z-index: var(--table-sticky-body-z);
-
-  background: var(--table-sticky-bg);
-  background-clip: border-box;
-
-  isolation: isolate;
-}
-
-/* FIXED: Target column width spacing properties across correct structural depths */
-.table-fixed-columns tbody th:nth-child(1),
-.table-fixed-columns tbody td:nth-child(1),
-.table-fixed-columns tfoot th:nth-child(1),
-.table-fixed-columns tfoot td:nth-child(1),
-.table-fixed-columns thead tr:first-child th:nth-child(1),
-.table-fixed-columns thead tr:first-child td:nth-child(1) {
-  inset-inline-start: 0;
 
   inline-size: var(--table-fixed-column-1-width);
   min-inline-size: var(--table-fixed-column-1-width);
   max-inline-size: var(--table-fixed-column-1-width);
+
+  background-color: var(--table-sticky-bg);
+  background-clip: padding-box;
+
+  isolation: isolate;
 }
 
-.table-fixed-columns tbody th:nth-child(2),
-.table-fixed-columns tbody td:nth-child(2),
-.table-fixed-columns tfoot th:nth-child(2),
-.table-fixed-columns tfoot td:nth-child(2),
-.table-fixed-columns thead tr:first-child th:nth-child(2),
-.table-fixed-columns thead tr:first-child td:nth-child(2) {
+.table-fixed-columns tbody > tr:not(.table-group-row) > :nth-child(2),
+.table-fixed-columns tfoot > tr > :nth-child(2),
+.table-fixed-columns thead > tr:first-child > :nth-child(2) {
+  position: sticky;
   inset-inline-start: var(--table-fixed-column-1-width);
+
+  z-index: var(--table-sticky-body-z);
 
   inline-size: var(--table-fixed-column-2-width);
   min-inline-size: var(--table-fixed-column-2-width);
   max-inline-size: var(--table-fixed-column-2-width);
+
+  background-color: var(--table-sticky-bg);
+  background-clip: padding-box;
+
+  isolation: isolate;
 }
 
-.table-fixed-columns thead tr:first-child th:nth-child(1),
-.table-fixed-columns thead tr:first-child th:nth-child(2),
-.table-fixed-columns thead tr:first-child td:nth-child(1),
-.table-fixed-columns thead tr:first-child td:nth-child(2) {
+.table-fixed-columns thead > tr:first-child > :first-child,
+.table-fixed-columns thead > tr:first-child > :nth-child(2) {
   z-index: var(--table-sticky-intersection-z);
 
-  background: var(--table-sticky-head-bg);
+  background-color: var(--table-sticky-head-bg);
 }
 
-.table-fixed-columns tfoot th:nth-child(1),
-.table-fixed-columns tfoot th:nth-child(2),
-.table-fixed-columns tfoot td:nth-child(1),
-.table-fixed-columns tfoot td:nth-child(2) {
-  z-index: var(--table-sticky-intersection-z);
-
-  background: var(--table-sticky-foot-bg);
-}
-
-/* ========================================================================== 
-   Compatibility Boundaries
-   ========================================================================== */
-
-/* FIXED: Scoped boundary layout indicators to only impact first row targets */
-.table-fixed-column tbody td:first-child,
-.table-fixed-column tbody th:first-child,
-.table-fixed-column thead tr:first-child th:first-child,
-.table-fixed-column thead tr:first-child td:first-child,
-.table-fixed-columns tbody th:nth-child(2),
-.table-fixed-columns tbody td:nth-child(2),
-.table-fixed-columns thead tr:first-child th:nth-child(2),
-.table-fixed-columns thead tr:first-child td:nth-child(2) {
+.table-fixed-columns tbody > tr:not(.table-group-row) > :nth-child(2),
+.table-fixed-columns thead > tr:first-child > :nth-child(2) {
   box-shadow: var(--table-sticky-shadow);
 }
 
-.table-fixed-column tbody td:first-child::after,
-.table-fixed-column tbody th:first-child::after,
-.table-fixed-column thead tr:first-child th:first-child::after,
-.table-fixed-column thead tr:first-child td:first-child::after,
-.table-fixed-columns tbody th:nth-child(2)::after,
-.table-fixed-columns tbody td:nth-child(2)::after,
-.table-fixed-columns thead tr:first-child th:nth-child(2)::after,
-.table-fixed-columns thead tr:first-child td:nth-child(2)::after {
+.table-fixed-columns tbody > tr:not(.table-group-row) > :nth-child(2)::after,
+.table-fixed-columns thead > tr:first-child > :nth-child(2)::after {
   content: "";
 
   position: absolute;
   inset-block: 0;
   inset-inline-end: -1px;
-
-  z-index: 1;
 
   inline-size: 1px;
 
@@ -281,81 +254,93 @@ html[dir="rtl"] .table-sticky-boundary {
   pointer-events: none;
 }
 
-html[dir="rtl"] .table-fixed-column tbody td:first-child,
-html[dir="rtl"] .table-fixed-column tbody th:first-child,
-html[dir="rtl"] .table-fixed-column thead tr:first-child th:first-child,
-html[dir="rtl"] .table-fixed-column thead tr:first-child td:first-child,
-html[dir="rtl"] .table-fixed-columns tbody th:nth-child(2),
-html[dir="rtl"] .table-fixed-columns tbody td:nth-child(2),
-html[dir="rtl"] .table-fixed-columns thead tr:first-child th:nth-child(2),
-html[dir="rtl"] .table-fixed-columns thead tr:first-child td:nth-child(2) {
+html[dir="rtl"]
+  .table-fixed-columns
+  tbody
+  > tr:not(.table-group-row)
+  > :nth-child(2),
+html[dir="rtl"] .table-fixed-columns thead > tr:first-child > :nth-child(2) {
   box-shadow: var(--table-sticky-shadow-rtl);
 }
 
-
-/* ========================================================================== 
-   Row Surface Preservation
+/* ==========================================================================
+   Row-State Surface Preservation
    ========================================================================== */
 
-.table-striped tbody tr:nth-child(even) > .table-sticky-start,
-.table-striped.table-fixed-column tbody tr:nth-child(even) > :first-child,
-.table-striped.table-fixed-columns tbody tr:nth-child(even) > :nth-child(1),
-.table-striped.table-fixed-columns tbody tr:nth-child(even) > :nth-child(2) {
-  background: var(--table-striped-bg);
+.table-striped tbody tr:nth-child(even) .table-sticky-start,
+.table-striped.table-fixed-column
+  tbody
+  > tr:nth-child(even):not(.table-group-row)
+  > :first-child,
+.table-striped.table-fixed-columns
+  tbody
+  > tr:nth-child(even):not(.table-group-row)
+  > :first-child,
+.table-striped.table-fixed-columns
+  tbody
+  > tr:nth-child(even):not(.table-group-row)
+  > :nth-child(2) {
+  background-color: var(--table-striped-bg);
 }
 
-.table-hover tbody tr:hover > .table-sticky-start,
-.table-hover.table-fixed-column tbody tr:hover > :first-child,
-.table-hover.table-fixed-columns tbody tr:hover > :nth-child(1),
-.table-hover.table-fixed-columns tbody tr:hover > :nth-child(2) {
-  background: var(--table-sticky-hover-bg);
+.table-hover tbody tr:hover .table-sticky-start,
+.table-hover.table-fixed-column
+  tbody
+  > tr:hover:not(.table-group-row)
+  > :first-child,
+.table-hover.table-fixed-columns
+  tbody
+  > tr:hover:not(.table-group-row)
+  > :first-child,
+.table-hover.table-fixed-columns
+  tbody
+  > tr:hover:not(.table-group-row)
+  > :nth-child(2) {
+  background-color: var(--table-sticky-hover-bg);
 }
 
-.table tbody tr.is-selected > .table-sticky-start,
-.table tbody tr[aria-selected="true"] > .table-sticky-start,
-.table-fixed-column tbody tr.is-selected > :first-child,
-.table-fixed-column tbody tr[aria-selected="true"] > :first-child,
-.table-fixed-columns tbody tr.is-selected > :nth-child(1),
-.table-fixed-columns tbody tr.is-selected > :nth-child(2),
-.table-fixed-columns tbody tr[aria-selected="true"] > :nth-child(1),
-.table-fixed-columns tbody tr[aria-selected="true"] > :nth-child(2) {
-  background: var(--table-sticky-selected-bg);
+.table tbody tr.is-selected .table-sticky-start,
+.table tbody tr[aria-selected="true"] .table-sticky-start,
+.table-fixed-column tbody > tr.is-selected > :first-child,
+.table-fixed-column tbody > tr[aria-selected="true"] > :first-child,
+.table-fixed-columns tbody > tr.is-selected > :first-child,
+.table-fixed-columns tbody > tr.is-selected > :nth-child(2),
+.table-fixed-columns tbody > tr[aria-selected="true"] > :first-child,
+.table-fixed-columns tbody > tr[aria-selected="true"] > :nth-child(2) {
+  background-color: var(--table-sticky-selected-bg);
 }
 
-.table tbody tr.is-disabled > .table-sticky-start,
-.table tbody tr[aria-disabled="true"] > .table-sticky-start,
-.table-fixed-column tbody tr.is-disabled > :first-child,
-.table-fixed-column tbody tr[aria-disabled="true"] > :first-child,
-.table-fixed-columns tbody tr.is-disabled > :nth-child(1),
-.table-fixed-columns tbody tr.is-disabled > :nth-child(2),
-.table-fixed-columns tbody tr[aria-disabled="true"] > :nth-child(1),
-.table-fixed-columns tbody tr[aria-disabled="true"] > :nth-child(2) {
-  background: var(--table-sticky-disabled-bg);
+.table tbody tr.is-disabled .table-sticky-start,
+.table tbody tr[aria-disabled="true"] .table-sticky-start,
+.table-fixed-column tbody > tr.is-disabled > :first-child,
+.table-fixed-column tbody > tr[aria-disabled="true"] > :first-child,
+.table-fixed-columns tbody > tr.is-disabled > :first-child,
+.table-fixed-columns tbody > tr.is-disabled > :nth-child(2),
+.table-fixed-columns tbody > tr[aria-disabled="true"] > :first-child,
+.table-fixed-columns tbody > tr[aria-disabled="true"] > :nth-child(2) {
+  background-color: var(--table-sticky-disabled-bg);
 }
 
-/* ========================================================================== 
-   Group and Summary Surface Preservation
+/* ==========================================================================
+   Group and Summary Rows
    ========================================================================== */
 
-.table-group-row > .table-sticky-start,
-.table-group-row > .table-group-label-sticky,
-.table-fixed-column .table-group-row > :first-child,
-.table-fixed-columns .table-group-row > :nth-child(1),
-.table-fixed-columns .table-group-row > :nth-child(2) {
-  background: var(--table-group-bg);
+.table .table-group-row .table-sticky-start,
+.table .table-group-row .table-group-label-sticky {
+  background-color: var(--table-group-bg);
   color: var(--table-group-color);
 }
 
-.table-total-row > .table-sticky-start,
+.table .table-total-row .table-sticky-start,
 .table-fixed-column .table-total-row > :first-child,
-.table-fixed-columns .table-total-row > :nth-child(1),
+.table-fixed-columns .table-total-row > :first-child,
 .table-fixed-columns .table-total-row > :nth-child(2) {
-  background: var(--table-summary-bg);
+  background-color: var(--table-summary-bg);
   color: var(--table-summary-color);
 }
 
-/* ========================================================================== 
-   High Contrast
+/* ==========================================================================
+   High Contrast and Forced Colors
    ========================================================================== */
 
 html[data-contrast="high"] .table-sticky,
@@ -367,21 +352,29 @@ html[data-contrast="high"] .table-fixed-columns {
   --table-sticky-boundary-color: var(--color-border-strong);
 }
 
-html[data-contrast="high"] .table-sticky-boundary::after,
-html[data-contrast="high"] .table-fixed-column thead tr:first-child th:first-child::after,
-html[data-contrast="high"] .table-fixed-column thead tr:first-child td:first-child::after,
-html[data-contrast="high"] .table-fixed-column tbody td:first-child::after,
-html[data-contrast="high"] .table-fixed-column tbody th:first-child::after,
-html[data-contrast="high"] .table-fixed-columns thead tr:first-child th:nth-child(2)::after,
-html[data-contrast="high"] .table-fixed-columns thead tr:first-child td:nth-child(2)::after,
-html[data-contrast="high"] .table-fixed-columns tbody th:nth-child(2)::after,
-html[data-contrast="high"] .table-fixed-columns tbody td:nth-child(2)::after {
+html[data-contrast="high"] .table .table-sticky-boundary::after,
+html[data-contrast="high"]
+  .table-fixed-column
+  tbody
+  > tr:not(.table-group-row)
+  > :first-child::after,
+html[data-contrast="high"]
+  .table-fixed-column
+  thead
+  > tr:first-child
+  > :first-child::after,
+html[data-contrast="high"]
+  .table-fixed-columns
+  tbody
+  > tr:not(.table-group-row)
+  > :nth-child(2)::after,
+html[data-contrast="high"]
+  .table-fixed-columns
+  thead
+  > tr:first-child
+  > :nth-child(2)::after {
   inline-size: 2px;
 }
-
-/* ========================================================================== 
-   Forced Colors
-   ========================================================================== */
 
 @media (forced-colors: active) {
   .table-sticky,
@@ -397,17 +390,5 @@ html[data-contrast="high"] .table-fixed-columns tbody td:nth-child(2)::after {
     --table-sticky-boundary-color: CanvasText;
     --table-sticky-shadow: none;
     --table-sticky-shadow-rtl: none;
-  }
-
-  .table-sticky-boundary::after,
-  .table-fixed-column thead tr:first-child th:first-child::after,
-  .table-fixed-column thead tr:first-child td:first-child::after,
-  .table-fixed-column tbody td:first-child::after,
-  .table-fixed-column tbody th:first-child::after,
-  .table-fixed-columns thead tr:first-child th:nth-child(2)::after,
-  .table-fixed-columns thead tr:first-child td:nth-child(2)::after,
-  .table-fixed-columns tbody th:nth-child(2)::after,
-  .table-fixed-columns tbody td:nth-child(2)::after {
-    inline-size: 2px;
   }
 }

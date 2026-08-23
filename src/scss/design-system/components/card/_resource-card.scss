@@ -4,28 +4,22 @@
    Resource Card
    ========================================================================== */
 
-/**
- * Reusable multi-action Card for documents and downloadable resources.
+/*
+ * A document and downloadable-resource card.
  *
- * Appropriate for:
- *
- * - reports;
- * - publications;
- * - circulars;
- * - spreadsheets;
- * - downloadable documents.
- *
- * Required composition:
+ * Use:
  *
  * <article class="card resource-card">
  *
- * The generic `.card` class owns the surface, border, radius, elevation,
- * shared pattern, and foundational states. This component owns only the
- * resource-specific layout and presentation.
+ * Variants:
+ *
+ * - .resource-card--compact: smaller full-resource card
+ * - .resource-card--brief: title, optional update date, and one action
+ * - .resource-card--featured: editorially highlighted resource
  */
 
 .resource-card {
-  /* Backward-compatible semantic tokens */
+  /* Semantic colours */
 
   --resource-card-bg: var(--color-surface);
   --resource-card-color: var(--color-text);
@@ -35,6 +29,8 @@
   --resource-card-border: var(--color-border);
   --resource-card-accent: var(--color-primary);
 
+  /* Shape and elevation */
+
   --resource-card-radius: var(--radius-lg);
   --resource-card-shadow: var(--shadow-sm);
   --resource-card-hover-shadow: var(--shadow-md);
@@ -42,7 +38,7 @@
   /* Layout */
 
   --resource-card-padding: clamp(1rem, 1.5vw, 1.25rem);
-  --resource-card-gap: 1rem;
+  --resource-card-gap: #{ds.space(4)};
   --resource-card-min-height: 21rem;
 
   /* Shared Card mappings */
@@ -74,12 +70,6 @@
 
   min-block-size: var(--resource-card-min-height);
 
-  /**
-   * Do not clip the Card root. Focus rings, tooltips, and contextual menus
-   * must remain free to extend beyond its border.
-   */
-  overflow: visible;
-
   @include ds.transition((border-color, box-shadow, transform), "normal");
 }
 
@@ -91,7 +81,7 @@
 .resource-card__body,
 .resource-card__footer {
   position: relative;
-  z-index: 0;
+  z-index: 1;
 }
 
 /* ==========================================================================
@@ -102,36 +92,26 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: #{ds.space(3)};
+  gap: ds.space(3);
 
   min-inline-size: 0;
-
   padding: var(--resource-card-padding);
   padding-block-end: 0;
 }
 
-/* ==========================================================================
-   Heading Content
-   ========================================================================== */
-
 .resource-card__heading {
   display: grid;
   align-content: start;
-  gap: #{ds.space(2)};
+  gap: ds.space(2);
 
   flex: 1 1 auto;
 
   min-inline-size: 0;
 }
 
-/* ==========================================================================
-   Eyebrow / Category
-   ========================================================================== */
-
 .resource-card__eyebrow {
   inline-size: fit-content;
   max-inline-size: 100%;
-
   padding-block: 0.25rem;
   padding-inline: 0.625rem;
 
@@ -150,10 +130,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
-/* ==========================================================================
-   Resource Icon
-   ========================================================================== */
 
 .resource-card__icon {
   --icon-size: 1.25rem;
@@ -178,10 +154,6 @@
   );
 }
 
-/* ==========================================================================
-   Title
-   ========================================================================== */
-
 .resource-card__title {
   margin: 0;
 
@@ -194,18 +166,6 @@
   overflow-wrap: anywhere;
   text-wrap: balance;
 }
-
-/* ==========================================================================
-   Title Link
-   ========================================================================== */
-
-/**
- * The title remains an independent link because Resource Cards may contain
- * additional download and format actions.
- *
- * Do not stretch this link over the complete Card, as that would overlap the
- * footer actions and create conflicting interactive regions.
- */
 
 .resource-card__title-link {
   border-radius: var(--radius-sm);
@@ -248,13 +208,8 @@
   gap: var(--resource-card-gap);
 
   min-inline-size: 0;
-
   padding: var(--resource-card-padding);
 }
-
-/* ==========================================================================
-   Description
-   ========================================================================== */
 
 .resource-card__description {
   margin: 0;
@@ -268,18 +223,13 @@
   text-wrap: pretty;
 }
 
-/* ==========================================================================
-   Metadata
-   ========================================================================== */
-
 .resource-card__meta {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: #{ds.space(2)} #{ds.space(3)};
+  gap: ds.space(2) ds.space(3);
 
   min-inline-size: 0;
-
   margin-block-start: auto;
 
   color: var(--resource-card-muted);
@@ -288,16 +238,12 @@
   line-height: var(--line-height-normal);
 }
 
-/* ==========================================================================
-   Metadata Item
-   ========================================================================== */
-
 .resource-card__meta-item {
   --icon-size: 0.875rem;
 
   display: inline-flex;
   align-items: center;
-  gap: #{ds.space(1)};
+  gap: ds.space(1);
 
   min-inline-size: 0;
 }
@@ -308,17 +254,9 @@
   color: currentColor;
 }
 
-/* ==========================================================================
-   Metadata Label
-   ========================================================================== */
-
 .resource-card__meta-label {
   color: var(--resource-card-muted);
 }
-
-/* ==========================================================================
-   Metadata Value
-   ========================================================================== */
 
 .resource-card__meta-value {
   direction: ltr;
@@ -334,17 +272,11 @@
    Footer
    ========================================================================== */
 
-/**
- * A lightly translucent footer allows the shared Card pattern to remain
- * visible through the bottom-end region.
- */
-
 .resource-card__footer {
   display: grid;
-  gap: #{ds.space(3)};
+  gap: ds.space(3);
 
   margin-block-start: auto;
-
   padding: var(--resource-card-padding);
 
   border-block-start: 1px solid var(--resource-card-border);
@@ -355,12 +287,8 @@
     var(--resource-card-radius) - var(--card-border-width)
   );
 
-  background: color-mix(in srgb, var(--resource-card-bg) 78%, transparent);
+  background: color-mix(in srgb, var(--resource-card-bg) 76%, transparent);
 }
-
-/* ==========================================================================
-   Footer Fallback
-   ========================================================================== */
 
 @supports not (background: color-mix(in srgb, white, transparent)) {
   .resource-card__footer {
@@ -372,15 +300,11 @@
   }
 }
 
-/* ==========================================================================
-   File Information
-   ========================================================================== */
-
 .resource-card__file {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: #{ds.space(1)};
+  gap: ds.space(1);
 
   min-inline-size: 0;
 
@@ -389,10 +313,6 @@
   font-size: var(--text-xs);
   line-height: var(--line-height-normal);
 }
-
-/* ==========================================================================
-   File Type
-   ========================================================================== */
 
 .resource-card__file-type {
   direction: ltr;
@@ -404,10 +324,6 @@
   text-transform: uppercase;
 }
 
-/* ==========================================================================
-   File Size
-   ========================================================================== */
-
 .resource-card__file-size {
   direction: ltr;
   unicode-bidi: isolate;
@@ -415,16 +331,12 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ==========================================================================
-   Actions
-   ========================================================================== */
-
 .resource-card__actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: #{ds.space(2)};
+  gap: ds.space(2);
 
   min-inline-size: 0;
 }
@@ -435,10 +347,6 @@
 
   flex: 0 0 auto;
 }
-
-/* ==========================================================================
-   Primary and Download Actions
-   ========================================================================== */
 
 .resource-card__primary-action,
 .resource-card__download {
@@ -451,7 +359,7 @@
 }
 
 /* ==========================================================================
-   Hover
+   Interaction
    ========================================================================== */
 
 @media (hover: hover) and (pointer: fine) {
@@ -461,12 +369,6 @@
     box-shadow: var(--resource-card-hover-shadow);
 
     transform: translateY(-0.25rem);
-  }
-
-  .resource-card:hover::before {
-    opacity: var(--resource-card-pattern-hover-opacity);
-
-    transform: scale(1.035);
   }
 
   .resource-card:hover .resource-card__icon {
@@ -479,20 +381,10 @@
   }
 }
 
-/* ==========================================================================
-   Focus Within
-   ========================================================================== */
-
 .resource-card:focus-within {
   border-color: var(--resource-card-accent);
 
   box-shadow: var(--resource-card-hover-shadow);
-}
-
-.resource-card:focus-within::before {
-  opacity: var(--resource-card-pattern-hover-opacity);
-
-  transform: scale(1.035);
 }
 
 .resource-card:focus-within .resource-card__icon {
@@ -524,15 +416,46 @@
 }
 
 /* ==========================================================================
-   Featured Variant
+   Brief Resource Variant
    ========================================================================== */
 
-/**
- * Featured is an explicit editorial state.
- *
- * It must never be inferred from Card position or applied automatically to
- * the first item in a collection.
+/*
+ * For concise resources containing only a title, optional category, optional
+ * update date, and a single primary action.
  */
+
+.resource-card--brief {
+  --resource-card-min-height: 0;
+  --resource-card-padding: clamp(1rem, 1.5vw, 1.25rem);
+  --resource-card-gap: ds.space(3);
+
+  --resource-card-pattern-size: 13rem;
+  --resource-card-pattern-opacity: 0.16;
+  --resource-card-pattern-hover-opacity: 0.26;
+}
+
+.resource-card--brief .resource-card__body {
+  flex: 0 0 auto;
+
+  padding-block-start: ds.space(3);
+  padding-block-end: ds.space(3);
+}
+
+.resource-card--brief .resource-card__meta {
+  margin-block-start: 0;
+}
+
+.resource-card--brief .resource-card__footer {
+  margin-block-start: 0;
+}
+
+.resource-card--brief .resource-card__description:empty {
+  display: none;
+}
+
+/* ==========================================================================
+   Featured Variant
+   ========================================================================== */
 
 .resource-card--featured {
   --resource-card-bg: var(--color-primary);
@@ -544,8 +467,8 @@
   --resource-card-accent: var(--color-on-primary);
 
   --resource-card-pattern-color: var(--color-on-primary);
-  --resource-card-pattern-opacity: 0.13;
-  --resource-card-pattern-hover-opacity: 0.22;
+  --resource-card-pattern-opacity: 0.16;
+  --resource-card-pattern-hover-opacity: 0.28;
 }
 
 @supports (color: color-mix(in srgb, white, transparent)) {
@@ -585,7 +508,7 @@
 }
 
 /* ==========================================================================
-   Unavailable State
+   Unavailable and Loading States
    ========================================================================== */
 
 .resource-card.is-unavailable,
@@ -617,10 +540,6 @@
   pointer-events: none;
 }
 
-/* ==========================================================================
-   Loading State
-   ========================================================================== */
-
 .resource-card.is-loading,
 .resource-card[aria-busy="true"] {
   cursor: wait;
@@ -634,11 +553,6 @@
 .resource-card[aria-busy="true"] .resource-card__body,
 .resource-card[aria-busy="true"] .resource-card__footer {
   visibility: hidden;
-}
-
-.resource-card.is-loading::before,
-.resource-card[aria-busy="true"]::before {
-  display: none;
 }
 
 .resource-card.is-loading::after,
@@ -671,7 +585,7 @@
 }
 
 /* ==========================================================================
-   Touch Devices
+   Responsive
    ========================================================================== */
 
 @media (hover: none), (pointer: coarse) {
@@ -681,20 +595,16 @@
   }
 }
 
-/* ==========================================================================
-   Tablet
-   ========================================================================== */
-
 @include ds.respond-down("md") {
   .resource-card {
     --resource-card-min-height: 20rem;
     --resource-card-pattern-size: 13rem;
   }
-}
 
-/* ==========================================================================
-   Mobile
-   ========================================================================== */
+  .resource-card--brief {
+    --resource-card-min-height: 0;
+  }
+}
 
 @include ds.respond-down("sm") {
   .resource-card {
@@ -715,7 +625,7 @@
   }
 
   .resource-card__footer {
-    gap: #{ds.space(2)};
+    gap: ds.space(2);
   }
 
   .resource-card__actions {
@@ -725,10 +635,14 @@
   .resource-card__actions .btn {
     flex: 1 1 auto;
   }
+
+  .resource-card--brief {
+    --resource-card-pattern-size: 10rem;
+  }
 }
 
 /* ==========================================================================
-   Dark Theme
+   Theme and Accessibility
    ========================================================================== */
 
 html[data-theme="dark"] .resource-card {
@@ -736,25 +650,21 @@ html[data-theme="dark"] .resource-card {
   --resource-card-pattern-hover-opacity: 0.23;
 }
 
-html[data-theme="dark"] .resource-card--featured {
-  --resource-card-pattern-opacity: 0.14;
-  --resource-card-pattern-hover-opacity: 0.23;
+html[data-theme="dark"] .resource-card--brief {
+  --resource-card-pattern-opacity: 0.2;
+  --resource-card-pattern-hover-opacity: 0.3;
 }
 
-/* ==========================================================================
-   High Contrast
-   ========================================================================== */
+html[data-theme="dark"] .resource-card--featured {
+  --resource-card-pattern-opacity: 0.16;
+  --resource-card-pattern-hover-opacity: 0.26;
+}
 
 html[data-contrast="high"] .resource-card {
   border-width: 2px;
   border-color: currentColor;
 
   box-shadow: none;
-}
-
-html[data-contrast="high"] .resource-card::before,
-html[data-contrast="high"] .resource-card::after {
-  display: none;
 }
 
 html[data-contrast="high"] .resource-card:hover,
@@ -778,10 +688,6 @@ html[data-contrast="high"] .resource-card--featured {
   --resource-card-muted: var(--color-bg);
 }
 
-/* ==========================================================================
-   Forced Colors
-   ========================================================================== */
-
 @media (forced-colors: active) {
   .resource-card {
     border-color: CanvasText;
@@ -790,11 +696,6 @@ html[data-contrast="high"] .resource-card--featured {
     color: CanvasText;
 
     box-shadow: none;
-  }
-
-  .resource-card::before,
-  .resource-card::after {
-    display: none;
   }
 
   .resource-card__icon,
@@ -823,19 +724,16 @@ html[data-contrast="high"] .resource-card--featured {
 }
 
 /* ==========================================================================
-   Reduced Motion
+   Motion and Print
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
   .resource-card,
-  .resource-card::before,
   .resource-card__icon {
     transition: none;
   }
 
   .resource-card:hover,
-  .resource-card:hover::before,
-  .resource-card:focus-within::before,
   .resource-card:hover .resource-card__icon {
     transform: none;
   }
@@ -847,14 +745,11 @@ html[data-contrast="high"] .resource-card--featured {
 }
 
 html[data-motion="reduce"] .resource-card,
-html[data-motion="reduce"] .resource-card::before,
 html[data-motion="reduce"] .resource-card__icon {
   transition: none;
 }
 
 html[data-motion="reduce"] .resource-card:hover,
-html[data-motion="reduce"] .resource-card:hover::before,
-html[data-motion="reduce"] .resource-card:focus-within::before,
 html[data-motion="reduce"] .resource-card:hover .resource-card__icon {
   transform: none;
 }
@@ -863,10 +758,6 @@ html[data-motion="reduce"] .resource-card.is-loading::after,
 html[data-motion="reduce"] .resource-card[aria-busy="true"]::after {
   animation: none;
 }
-
-/* ==========================================================================
-   Print
-   ========================================================================== */
 
 @media print {
   .resource-card {
@@ -881,11 +772,6 @@ html[data-motion="reduce"] .resource-card[aria-busy="true"]::after {
 
     box-shadow: none;
     transform: none;
-  }
-
-  .resource-card::before,
-  .resource-card::after {
-    display: none;
   }
 
   .resource-card__footer {

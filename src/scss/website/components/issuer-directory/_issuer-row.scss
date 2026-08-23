@@ -4,18 +4,34 @@
    Issuer Row
    ========================================================================== */
 
-/*
+/**
  * List-view presentation for one listed issuer.
  *
- * Owns:
+ * This component owns:
  *
- * - favorite control at the beginning of the identity
- * - compact issuer identity and logo
- * - aligned directory metadata
- * - market movement
- * - trailing profile action
- * - responsive mobile-card transformation
+ * - compact issuer identity and logo;
+ * - favourite control;
+ * - aligned comparison fields;
+ * - price movement;
+ * - profile action;
+ * - responsive mobile-card transformation.
+ *
+ * It intentionally does not use the decorative Card pattern because dense
+ * comparison rows should remain visually quiet and quickly scannable.
  */
+
+.issuer-row,
+.issuer-list-header {
+  --issuer-directory-columns: minmax(19rem, 2fr) minmax(7rem, 0.8fr)
+    minmax(8rem, 1fr) minmax(10rem, 1.15fr) minmax(7rem, 0.75fr)
+    minmax(8rem, auto);
+
+  --issuer-directory-column-gap: #{ds.space(4)};
+}
+
+/* ==========================================================================
+   Row
+   ========================================================================== */
 
 .issuer-row {
   --issuer-row-logo-size: 3rem;
@@ -28,24 +44,27 @@
   --issuer-row-border: var(--color-border);
   --issuer-row-border-hover: var(--color-primary);
 
+  --issuer-row-positive: var(--color-market-positive, var(--color-success));
+  --issuer-row-negative: var(--color-market-negative, var(--color-danger));
+  --issuer-row-neutral: var(--color-market-neutral, var(--color-text-muted));
+
   position: relative;
   isolation: isolate;
 
   display: grid;
-  grid-template-columns:
-    minmax(19rem, 2fr)
-    minmax(7rem, 0.8fr)
-    minmax(8rem, 1fr)
-    minmax(10rem, 1.15fr)
-    minmax(7rem, 0.75fr)
-    auto;
+  grid-template-columns: var(--issuer-directory-columns);
   align-items: center;
-  gap: ds.space(4);
+  gap: var(--issuer-directory-column-gap);
 
   inline-size: 100%;
   min-inline-size: 0;
+
   margin: 0;
-  padding: ds.space(3) ds.space(4);
+
+  padding-block: #{ds.space(3)};
+  padding-inline: #{ds.space(4)};
+
+  overflow: visible;
 
   border: 1px solid var(--issuer-row-border);
   border-radius: var(--radius-md);
@@ -55,28 +74,46 @@
 
   box-shadow: var(--shadow-sm);
 
-  @include ds.transition((border-color, box-shadow, background-color), "fast");
+  @include ds.transition((background-color, border-color, box-shadow), "fast");
+}
+
+/* ==========================================================================
+   Row Interaction
+   ========================================================================== */
+
+@media (hover: hover) and (pointer: fine) {
+  .issuer-row:hover {
+    border-color: var(--issuer-row-border-hover);
+
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.issuer-row:focus-within {
+  border-color: var(--issuer-row-border-hover);
+
+  box-shadow: var(--shadow-md);
 }
 
 /* ==========================================================================
    Identity
    ========================================================================== */
 
-/*
- * The favorite is deliberately the first element, followed by the logo and
- * issuer identity. This provides a predictable action position in every row.
+/**
+ * The favourite action remains first, followed by the logo and issuer name.
+ * This gives the action a predictable position in every result.
  */
 
 .issuer-row__identity {
   display: flex;
   align-items: center;
-  gap: ds.space(3);
+  gap: #{ds.space(3)};
 
   min-inline-size: 0;
 }
 
 /* ==========================================================================
-   Favorite
+   Favourite
    ========================================================================== */
 
 .issuer-row__favorite {
@@ -85,11 +122,13 @@
   appearance: none;
 
   display: inline-grid;
-  flex: 0 0 auto;
   place-items: center;
 
-  inline-size: 2.5rem;
-  block-size: 2.5rem;
+  flex: 0 0 auto;
+
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+
   padding: 0;
 
   border: 1px solid transparent;
@@ -101,6 +140,9 @@
   font: inherit;
 
   cursor: pointer;
+  touch-action: manipulation;
+
+  -webkit-tap-highlight-color: transparent;
 
   @include ds.transition(
     (background-color, border-color, color, transform),
@@ -112,11 +154,25 @@
   margin: 0;
 }
 
-.issuer-row__favorite:hover:not(:disabled):not(.is-disabled) {
-  border-color: var(--issuer-row-border);
+/* ==========================================================================
+   Favourite Interaction
+   ========================================================================== */
 
-  background: var(--color-surface-alt);
-  color: var(--color-primary);
+@media (hover: hover) and (pointer: fine) {
+  .issuer-row__favorite:hover:not(:disabled):not(.is-disabled):not(
+      [aria-disabled="true"]
+    ) {
+    border-color: var(--issuer-row-border);
+
+    background: var(--color-surface-alt);
+    color: var(--color-primary);
+  }
+}
+
+.issuer-row__favorite:active:not(:disabled):not(.is-disabled):not(
+    [aria-disabled="true"]
+  ) {
+  transform: scale(0.94);
 }
 
 .issuer-row__favorite:focus {
@@ -127,23 +183,37 @@
   @include ds.focus-ring;
 }
 
-.issuer-row__favorite:active:not(:disabled):not(.is-disabled) {
-  transform: scale(0.94);
-}
+/* ==========================================================================
+   Selected Favourite
+   ========================================================================== */
 
 .issuer-row__favorite.is-active,
 .issuer-row__favorite[aria-pressed="true"] {
+  border-color: var(--color-primary);
+
+  background: var(--color-surface-alt);
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 10%,
+    var(--color-surface)
+  );
   color: var(--color-primary);
 }
+
+/* ==========================================================================
+   Disabled Favourite
+   ========================================================================== */
 
 .issuer-row__favorite:disabled,
 .issuer-row__favorite.is-disabled,
 .issuer-row__favorite[aria-disabled="true"] {
+  border-color: transparent;
+
   color: var(--color-on-disabled);
 
   cursor: not-allowed;
 
-  opacity: 0.6;
+  opacity: 0.65;
 }
 
 /* ==========================================================================
@@ -152,8 +222,9 @@
 
 .issuer-row__logo {
   display: grid;
-  flex: 0 0 auto;
   place-items: center;
+
+  flex: 0 0 auto;
 
   inline-size: var(--issuer-row-logo-size);
   block-size: var(--issuer-row-logo-size);
@@ -167,12 +238,17 @@
   color: var(--issuer-row-heading);
 }
 
+/* ==========================================================================
+   Logo Image
+   ========================================================================== */
+
 .issuer-row__logo-image {
   display: block;
 
   inline-size: 100%;
   block-size: 100%;
-  padding: ds.space(1);
+
+  padding: #{ds.space(1)};
 
   background: var(--color-surface);
 
@@ -190,7 +266,8 @@
 
   inline-size: 100%;
   block-size: 100%;
-  padding: ds.space(1);
+
+  padding: #{ds.space(1)};
 
   color: var(--issuer-row-heading);
 
@@ -200,6 +277,8 @@
 
   text-align: center;
   text-transform: uppercase;
+
+  overflow-wrap: anywhere;
 }
 
 /* ==========================================================================
@@ -209,7 +288,7 @@
 .issuer-row__identity-content {
   display: grid;
   align-content: center;
-  gap: ds.space(1);
+  gap: #{ds.space(1)};
 
   min-inline-size: 0;
 }
@@ -219,6 +298,8 @@
    ========================================================================== */
 
 .issuer-row__name {
+  min-inline-size: 0;
+
   margin: 0;
 
   overflow: hidden;
@@ -233,7 +314,13 @@
   white-space: nowrap;
 }
 
+/* ==========================================================================
+   Name Link
+   ========================================================================== */
+
 .issuer-row__name-link {
+  border-radius: var(--radius-sm);
+
   color: inherit;
 
   text-decoration: none;
@@ -241,6 +328,10 @@
   text-underline-offset: 0.2em;
 
   @include ds.transition(color, "fast");
+}
+
+.issuer-row__name-link:visited {
+  color: inherit;
 }
 
 .issuer-row__name-link:hover {
@@ -258,7 +349,7 @@
 }
 
 /* ==========================================================================
-   Code
+   Issuer Code
    ========================================================================== */
 
 .issuer-row__code {
@@ -279,7 +370,7 @@
 .issuer-row__field {
   display: grid;
   align-content: center;
-  gap: ds.space(1);
+  gap: #{ds.space(1)};
 
   min-inline-size: 0;
 }
@@ -288,9 +379,11 @@
    Field Label
    ========================================================================== */
 
-/*
- * Desktop labels are supplied by the shared list header. Per-row labels
- * become visible when the row changes into its mobile-card composition.
+/**
+ * Desktop labels are supplied by `.issuer-list-header`.
+ *
+ * Per-row labels remain available to assistive technology and become visible
+ * when the layout changes into its mobile-card presentation.
  */
 
 .issuer-row__label {
@@ -298,10 +391,12 @@
 
   inline-size: 1px;
   block-size: 1px;
+
   margin: -1px;
   padding: 0;
 
   overflow: hidden;
+
   clip: rect(0 0 0 0);
   clip-path: inset(50%);
 
@@ -348,7 +443,7 @@
 
   display: inline-flex;
   align-items: center;
-  gap: ds.space(1);
+  gap: #{ds.space(1)};
 
   inline-size: fit-content;
   max-inline-size: 100%;
@@ -365,26 +460,32 @@
   margin: 0;
 }
 
+/* ==========================================================================
+   Movement States
+   ========================================================================== */
+
+/**
+ * Existing Issuer Row modifiers remain supported.
+ *
+ * New markup may additionally use `.price-up`, `.price-down`, and
+ * `.price-neutral`.
+ */
+
 .issuer-row__movement--positive {
-  color: var(--color-market-positive);
+  color: var(--issuer-row-positive);
 }
 
 .issuer-row__movement--negative {
-  color: var(--color-market-negative);
+  color: var(--issuer-row-negative);
 }
 
 .issuer-row__movement--neutral {
-  color: var(--color-market-neutral);
+  color: var(--issuer-row-neutral);
 }
 
 /* ==========================================================================
    Profile Action
    ========================================================================== */
-
-/*
- * The profile action occupies the final grid track but does not require a
- * visible “Actions” column heading.
- */
 
 .issuer-row__profile {
   --icon-size: 0.875rem;
@@ -392,46 +493,30 @@
   justify-self: end;
 
   inline-size: fit-content;
-  min-inline-size: max-content;
-}
-
-/* ==========================================================================
-   Hover and Focus
-   ========================================================================== */
-
-.issuer-row:hover,
-.issuer-row:focus-within {
-  border-color: var(--issuer-row-border-hover);
-
-  box-shadow: var(--shadow-md);
+  min-inline-size: 8rem;
 }
 
 /* ==========================================================================
    Column Header
    ========================================================================== */
 
-/*
- * The final empty track aligns with the profile button but has no visible
- * Actions label.
+/**
+ * The final track aligns with the profile action. It may remain visually
+ * empty because individual profile links have accessible names.
  */
 
 .issuer-list-header {
   display: grid;
-  grid-template-columns:
-    minmax(19rem, 2fr)
-    minmax(7rem, 0.8fr)
-    minmax(8rem, 1fr)
-    minmax(10rem, 1.15fr)
-    minmax(7rem, 0.75fr)
-    auto;
+  grid-template-columns: var(--issuer-directory-columns);
   align-items: center;
-  gap: ds.space(4);
+  gap: var(--issuer-directory-column-gap);
 
   min-inline-size: 0;
-  padding-block: ds.space(2);
-  padding-inline: ds.space(4);
 
-  color: var(--issuer-row-muted);
+  padding-block: #{ds.space(2)};
+  padding-inline: #{ds.space(4)};
+
+  color: var(--color-text-muted);
 
   font-size: var(--text-xs);
   font-weight: ds.font-weight("bold");
@@ -440,10 +525,31 @@
 
 .issuer-list-header__label {
   min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .issuer-list-header__profile {
   min-inline-size: 8rem;
+}
+
+/* ==========================================================================
+   Busy State
+   ========================================================================== */
+
+.issuer-row[aria-busy="true"] {
+  cursor: wait;
+}
+
+.issuer-row[aria-busy="true"] .issuer-row__identity,
+.issuer-row[aria-busy="true"] .issuer-row__field,
+.issuer-row[aria-busy="true"] .issuer-row__profile {
+  pointer-events: none;
+
+  opacity: 0.56;
 }
 
 /* ==========================================================================
@@ -453,17 +559,13 @@
 @include ds.respond-down("xl") {
   .issuer-row,
   .issuer-list-header {
-    grid-template-columns:
-      minmax(17rem, 2fr)
-      minmax(7rem, 0.85fr)
-      minmax(8rem, 1fr)
-      minmax(7rem, 0.75fr)
-      auto;
+    --issuer-directory-columns: minmax(17rem, 2fr) minmax(7rem, 0.85fr)
+      minmax(8rem, 1fr) minmax(7rem, 0.75fr) minmax(8rem, auto);
   }
 
-  /*
-   * Sector is removed as a dedicated comparison column at this width.
-   * It remains available in the grid view and mobile composition.
+  /**
+   * Sector is removed as a dedicated comparison column at this width. It
+   * remains available in the grid view and the mobile composition.
    */
 
   .issuer-row__field--sector,
@@ -479,13 +581,10 @@
 @include ds.respond-down("lg") {
   .issuer-row,
   .issuer-list-header {
-    grid-template-columns:
-      minmax(15rem, 2fr)
-      minmax(7rem, 1fr)
-      minmax(7rem, 0.8fr)
-      auto;
+    --issuer-directory-columns: minmax(15rem, 2fr) minmax(7rem, 1fr)
+      minmax(7rem, 0.8fr) minmax(8rem, auto);
 
-    gap: ds.space(3);
+    --issuer-directory-column-gap: #{ds.space(3)};
   }
 
   .issuer-row__field--market,
@@ -494,7 +593,9 @@
   }
 
   .issuer-row__profile {
-    padding-inline: ds.space(3);
+    min-inline-size: 7rem;
+
+    padding-inline: #{ds.space(3)};
   }
 }
 
@@ -512,9 +613,9 @@
 
     grid-template-columns: minmax(0, 1fr);
     align-items: start;
-    gap: ds.space(3);
+    gap: #{ds.space(3)};
 
-    padding: ds.space(3);
+    padding: #{ds.space(3)};
 
     border-radius: var(--radius-md);
   }
@@ -534,8 +635,9 @@
     grid-template-columns:
       minmax(6.5rem, 0.4fr)
       minmax(0, 1fr);
+
     align-items: baseline;
-    gap: ds.space(2);
+    gap: #{ds.space(2)};
   }
 
   .issuer-row__label {
@@ -543,12 +645,16 @@
 
     inline-size: auto;
     block-size: auto;
+
     margin: 0;
     padding: 0;
 
     overflow: visible;
+
     clip: auto;
     clip-path: none;
+
+    border: 0;
 
     color: var(--issuer-row-muted);
 
@@ -565,6 +671,8 @@
 
     text-overflow: clip;
     white-space: normal;
+
+    overflow-wrap: anywhere;
   }
 
   .issuer-row__name {
@@ -572,16 +680,18 @@
 
     text-overflow: clip;
     white-space: normal;
+
+    overflow-wrap: anywhere;
   }
 
   .issuer-row__profile {
     grid-column: 1;
-
     justify-self: stretch;
 
     inline-size: 100%;
     min-inline-size: 0;
-    margin-block-start: ds.space(1);
+
+    margin-block-start: #{ds.space(1)};
   }
 }
 
@@ -594,12 +704,7 @@
     display: grid;
     grid-template-columns: auto auto minmax(0, 1fr);
     align-items: start;
-    gap: ds.space(2);
-  }
-
-  .issuer-row__favorite {
-    inline-size: 2.25rem;
-    block-size: 2.25rem;
+    gap: #{ds.space(2)};
   }
 
   .issuer-row__field,
@@ -639,7 +744,6 @@
   .issuer-row__field--market,
   .issuer-row__field--sector {
     grid-template-columns: minmax(0, 1fr);
-
     gap: 0.125rem;
   }
 }
@@ -648,24 +752,26 @@
    High Contrast
    ========================================================================== */
 
-html[data-contrast="high"] {
-  .issuer-row,
-  .issuer-row__logo {
-    border-width: 2px;
-    border-color: currentColor;
+html[data-contrast="high"] .issuer-row,
+html[data-contrast="high"] .issuer-row__logo {
+  border-width: 2px;
+  border-color: currentColor;
 
-    box-shadow: none;
-  }
+  box-shadow: none;
+}
 
-  .issuer-row:hover,
-  .issuer-row:focus-within {
-    border-color: currentColor;
-  }
+html[data-contrast="high"] .issuer-row:hover,
+html[data-contrast="high"] .issuer-row:focus-within {
+  border-color: currentColor;
+}
 
-  .issuer-row__favorite {
-    border-color: currentColor;
-    color: currentColor;
-  }
+html[data-contrast="high"] .issuer-row__favorite {
+  border-color: currentColor;
+  color: currentColor;
+}
+
+html[data-contrast="high"] .issuer-row__movement {
+  color: currentColor;
 }
 
 /* ==========================================================================
@@ -684,17 +790,21 @@ html[data-contrast="high"] {
   }
 
   .issuer-row__name,
-  .issuer-row__value {
+  .issuer-row__value,
+  .issuer-row__movement,
+  .issuer-row__label {
     color: CanvasText;
   }
 
   .issuer-row__profile,
-  .issuer-row__favorite,
-  .issuer-row__movement {
+  .issuer-row__favorite {
     color: LinkText;
   }
 
   .issuer-row__favorite[aria-pressed="true"] {
+    border-color: Highlight;
+
+    background: Canvas;
     color: Highlight;
   }
 }
@@ -715,16 +825,14 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
-  .issuer-row,
-  .issuer-row__name-link,
-  .issuer-row__favorite {
-    transition: none;
-  }
+html[data-motion="reduce"] .issuer-row,
+html[data-motion="reduce"] .issuer-row__name-link,
+html[data-motion="reduce"] .issuer-row__favorite {
+  transition: none;
+}
 
-  .issuer-row__favorite:active {
-    transform: none;
-  }
+html[data-motion="reduce"] .issuer-row__favorite:active {
+  transform: none;
 }
 
 /* ==========================================================================
@@ -732,6 +840,13 @@ html[data-motion="reduce"] {
    ========================================================================== */
 
 @media print {
+  .issuer-row,
+  .issuer-list-header {
+    --issuer-directory-columns: minmax(15rem, 2fr) minmax(7rem, 0.8fr)
+      minmax(7rem, 0.8fr) minmax(9rem, 1fr) minmax(6rem, 0.75fr)
+      minmax(7rem, auto);
+  }
+
   .issuer-list-header {
     display: grid;
   }
@@ -745,6 +860,16 @@ html[data-motion="reduce"] {
     color: #000000;
 
     box-shadow: none;
+  }
+
+  .issuer-row__field--market,
+  .issuer-row__field--sector {
+    display: grid;
+  }
+
+  .issuer-list-header__label--market,
+  .issuer-list-header__label--sector {
+    display: block;
   }
 
   .issuer-row__favorite {

@@ -5,19 +5,11 @@
    ========================================================================== */
 
 /*
- * Website-level financial table presentation.
+ * Website-specific market-data presentation.
  *
- * The generic design-system table continues to own:
- *
- * - base table structure
- * - row borders
- * - hover behavior
- * - responsive overflow
- * - fixed columns
- * - horizontal navigation
- * - DataTables integration
- *
- * This file owns market-specific presentation only.
+ * Shared table structure, scrolling, FixedColumns, FixedHeader, RowGroup,
+ * navigation, and generic row states remain owned by the design system and
+ * DataTables adapter.
  */
 
 .table-market {
@@ -27,6 +19,10 @@
   --table-market-group-bg: var(--color-primary);
   --table-market-group-color: var(--color-on-primary);
 
+  --table-group-bg: var(--table-market-group-bg);
+  --table-group-color: var(--table-market-group-color);
+  --table-group-border: var(--color-border);
+
   --table-market-header-border: var(--color-border);
   --table-market-header-border-strong: var(--color-border-strong);
 
@@ -35,7 +31,19 @@
   --table-market-summary-bg: var(--color-surface-alt);
   --table-market-summary-color: var(--color-heading);
 
+  --table-row-selected-bg: var(--color-surface-alt);
+
   font-variant-numeric: tabular-nums;
+}
+
+@supports (background: color-mix(in oklab, white, black)) {
+  .table-market {
+    --table-row-selected-bg: color-mix(
+      in oklab,
+      var(--color-primary),
+      var(--color-surface) 92%
+    );
+  }
 }
 
 .table-market th,
@@ -44,15 +52,8 @@
 }
 
 /* ==========================================================================
-   Market Watch Width
+   Market Watch Layout
    ========================================================================== */
-
-/*
- * Fill the available desktop workspace first.
- *
- * Horizontal overflow should appear only when the available viewport becomes
- * too narrow for readable market data.
- */
 
 .table-market--watch {
   inline-size: 100%;
@@ -61,17 +62,13 @@
   table-layout: auto;
 }
 
-/* ==========================================================================
-   Desktop Density
-   ========================================================================== */
-
 .table-market--watch th,
 .table-market--watch td {
   padding-inline: ds.space(2);
 }
 
 /* ==========================================================================
-   Complex Header
+   Market Watch Header
    ========================================================================== */
 
 .table-market--watch thead {
@@ -85,7 +82,7 @@
   border-inline-end: 1px solid var(--table-market-header-border-strong);
 
   background: var(--table-head-bg);
-  color: var(--table-head-color, var(--color-heading));
+  color: var(--table-head-color);
 
   font-weight: ds.font-weight("semibold");
   line-height: var(--line-height-tight);
@@ -100,9 +97,7 @@
   border-inline-end: 0;
 }
 
-/* ==========================================================================
-   First Header Row
-   ========================================================================== */
+/* Top-level groups remain centered. */
 
 .table-market--watch thead tr:first-child th {
   padding-block: ds.space(3);
@@ -113,9 +108,9 @@
   font-weight: ds.font-weight("bold");
 }
 
-/* ==========================================================================
-   Second Header Row
-   ========================================================================== */
+.table-market--watch thead tr:first-child .table-market__security {
+  text-align: start;
+}
 
 .table-market--watch thead tr:nth-child(2) th {
   padding-block: ds.space(2);
@@ -124,25 +119,32 @@
   font-weight: ds.font-weight("semibold");
 }
 
-/* ==========================================================================
-   Group Heading
-   ========================================================================== */
+/*
+ * Numeric leaf headers align with their values.
+ * This matches price, volume, percentage, and trade-number columns.
+ */
+
+.table-market--watch thead tr:nth-child(2) .table-market__number {
+  text-align: end;
+}
+
+.table-market--watch
+  thead
+  tr:nth-child(2)
+  .table-market__number
+  .table-market__column-label {
+  align-items: flex-end;
+
+  text-align: end;
+}
 
 .table-market__group-heading {
   text-align: center;
   white-space: nowrap;
 }
 
-/* ==========================================================================
-   Rowspan Header Cells
-   ========================================================================== */
-
 .table-market--watch thead tr:first-child th[rowspan="2"] {
   vertical-align: middle;
-}
-
-.table-market--watch thead .table-market__security {
-  text-align: start;
 }
 
 /* ==========================================================================
@@ -167,19 +169,8 @@
 }
 
 /* ==========================================================================
-   Security Column
+   Company Identity
    ========================================================================== */
-
-/*
- * Complete security identity:
- *
- * favorite
- * logo
- * company
- * symbol
- *
- * The generic .table-fixed-column utility makes this first column sticky.
- */
 
 .table-market__security {
   inline-size: var(--table-market-company-width);
@@ -187,10 +178,6 @@
 
   text-align: start;
 }
-
-/* ==========================================================================
-   Security Cell
-   ========================================================================== */
 
 .table-market__security-cell {
   display: flex;
@@ -200,10 +187,6 @@
 
   min-inline-size: 0;
 }
-
-/* ==========================================================================
-   Favorite
-   ========================================================================== */
 
 .table-market__favorite {
   display: inline-flex;
@@ -228,7 +211,7 @@
   @include ds.transition((background-color, color, transform), "fast");
 }
 
-.table-market__favorite:hover {
+.table-market__favorite:hover:not(:disabled) {
   background: var(--color-surface-alt);
   color: var(--color-primary);
 }
@@ -237,17 +220,13 @@
   @include ds.focus-ring;
 }
 
-.table-market__favorite:active {
+.table-market__favorite:active:not(:disabled) {
   transform: scale(0.94);
 }
 
 .table-market__favorite[aria-pressed="true"] {
   color: var(--color-primary);
 }
-
-/* ==========================================================================
-   Company Logo
-   ========================================================================== */
 
 .table-market__logo {
   display: inline-flex;
@@ -276,10 +255,6 @@
   object-fit: contain;
 }
 
-/* ==========================================================================
-   Security Link
-   ========================================================================== */
-
 .table-market__security-link {
   display: inline-flex;
   flex-direction: column;
@@ -296,9 +271,9 @@
   color: var(--color-primary);
 }
 
-/* ==========================================================================
-   Company Name
-   ========================================================================== */
+.table-market__security-link:focus-visible {
+  @include ds.focus-ring;
+}
 
 .table-market__name {
   display: block;
@@ -314,10 +289,6 @@
   @include ds.truncate;
 }
 
-/* ==========================================================================
-   Symbol
-   ========================================================================== */
-
 .table-market__symbol {
   display: block;
 
@@ -329,19 +300,13 @@
 }
 
 /* ==========================================================================
-   52 Week Range Cell
+   52-Week Range
    ========================================================================== */
-
-/*
- * Local stacking context prevents the range marker and tooltip from painting
- * above the fixed Company column during horizontal scrolling.
- */
 
 .table-market__range {
   position: relative;
-  isolation: isolate;
 
-  z-index: 0;
+  isolation: isolate;
 
   inline-size: var(--table-market-range-width);
   min-inline-size: var(--table-market-range-width);
@@ -349,15 +314,8 @@
   padding-inline: ds.space(2);
 }
 
-/* ==========================================================================
-   Range Track
-   ========================================================================== */
-
 .table-market__range-track {
   position: relative;
-  isolation: isolate;
-
-  z-index: 0;
 
   inline-size: 100%;
   block-size: 0.5rem;
@@ -369,19 +327,12 @@
   cursor: help;
 }
 
-/* ==========================================================================
-   Range Progress
-   ========================================================================== */
-
 .table-market__range-track::before {
   content: "";
 
   position: absolute;
-
   inset-block: 0;
   inset-inline-start: 0;
-
-  z-index: 0;
 
   inline-size: var(--range-position, 50%);
 
@@ -390,13 +341,8 @@
   background: var(--color-primary);
 }
 
-/* ==========================================================================
-   Range Marker
-   ========================================================================== */
-
 .table-market__range-marker {
   position: absolute;
-
   inset-block-start: 50%;
   inset-inline-start: var(--range-position, 50%);
 
@@ -415,23 +361,36 @@
   @include ds.transition((transform, box-shadow), "fast");
 }
 
-html[dir="rtl"] {
-  .table-market__range-marker {
-    transform: translate(50%, -50%);
-  }
+html[dir="rtl"] .table-market__range-marker {
+  transform: translate(50%, -50%);
 }
 
+.table-market__range-values {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: ds.space(1);
+
+  margin-block-start: ds.space(1);
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+
+  white-space: nowrap;
+}
 /* ==========================================================================
-   Range Tooltip
+   52-Week Range Interaction
    ========================================================================== */
 
 .table-market__range-track::after {
   content: attr(data-range-value);
 
   position: absolute;
-
-  inset-inline-start: var(--range-position, 50%);
   inset-block-end: calc(100% + 0.5rem);
+  inset-inline-start: var(--range-position, 50%);
 
   z-index: 2;
 
@@ -458,14 +417,9 @@ html[dir="rtl"] {
   @include ds.transition((opacity, transform), "fast");
 }
 
-html[dir="rtl"] {
-  .table-market__range-track::after {
-    transform: translateX(50%) translateY(0.25rem);
-  }
+html[dir="rtl"] .table-market__range-track::after {
+  transform: translateX(50%) translateY(0.25rem);
 }
-/* ==========================================================================
-   Range Interaction
-   ========================================================================== */
 
 .table-market__range-track:hover::after,
 .table-market__range-track:focus-within::after {
@@ -474,11 +428,9 @@ html[dir="rtl"] {
   transform: translateX(-50%) translateY(0);
 }
 
-html[dir="rtl"] {
-  .table-market__range-track:hover::after,
-  .table-market__range-track:focus-within::after {
-    transform: translateX(50%) translateY(0);
-  }
+html[dir="rtl"] .table-market__range-track:hover::after,
+html[dir="rtl"] .table-market__range-track:focus-within::after {
+  transform: translateX(50%) translateY(0);
 }
 
 .table-market__range-track:hover .table-market__range-marker {
@@ -487,35 +439,12 @@ html[dir="rtl"] {
   box-shadow: 0 0 0 0.2rem rgb(from var(--color-primary) r g b / 0.14);
 }
 
-html[dir="rtl"] {
-  .table-market__range-track:hover .table-market__range-marker {
-    transform: translate(50%, -50%) scale(1.15);
-  }
+html[dir="rtl"] .table-market__range-track:hover .table-market__range-marker {
+  transform: translate(50%, -50%) scale(1.15);
 }
 
 /* ==========================================================================
-   Range Values
-   ========================================================================== */
-
-.table-market__range-values {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: ds.space(1);
-
-  margin-block-start: ds.space(1);
-
-  color: var(--color-text-muted);
-
-  font-size: var(--text-xs);
-  line-height: var(--line-height-normal);
-
-  white-space: nowrap;
-}
-
-/* ==========================================================================
-   Numeric Columns
+   Market Numeric Values
    ========================================================================== */
 
 .table-market__number,
@@ -523,6 +452,11 @@ html[dir="rtl"] {
 .table-market__change,
 .table-market__volume {
   min-inline-size: 0;
+
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  font-variant-numeric: tabular-nums;
 
   text-align: end;
   white-space: nowrap;
@@ -545,128 +479,73 @@ html[dir="rtl"] {
 .table-market__change {
   min-inline-size: 4.75rem;
 
-  color: var(--price-state-color, inherit);
+  color: var(--price-state-color, var(--color-text));
 
   font-weight: ds.font-weight("semibold");
 }
 
+/*
+ * Apply these classes to the same cell as `.table-market__change`, or to an
+ * inner element returned by a DataTables render function.
+ */
+
+.table-market .price-up,
+.table-market .market-positive {
+  --price-state-color: var(--color-market-positive);
+
+  color: var(--color-market-positive);
+}
+
+.table-market .price-down,
+.table-market .market-negative {
+  --price-state-color: var(--color-market-negative);
+
+  color: var(--color-market-negative);
+}
+
+.table-market .price-neutral,
+.table-market .market-neutral {
+  --price-state-color: var(--color-market-neutral);
+
+  color: var(--color-market-neutral);
+}
+
 /* ==========================================================================
-   Market Group Row
+   Market Group Rows
    ========================================================================== */
 
 /*
- * Group rows use two cells:
- *
- * 1. sticky sector label aligned with Company
- * 2. continuation surface spanning the remaining columns
- *
- * This keeps the group identity visible while horizontally scrolling.
+ * This remains compatible with static HTML while the generic
+ * `.table-group-row` styles own the actual surface and sticky behavior.
  */
 
 .table-market tbody .table-market__group-row {
-  background: var(--table-market-group-bg);
-  color: var(--table-market-group-color);
+  --table-group-bg: var(--table-market-group-bg);
+  --table-group-color: var(--table-market-group-color);
+
+  background: var(--table-group-bg);
+  color: var(--table-group-color);
 }
 
-/* ==========================================================================
-   Group Label
-   ========================================================================== */
-
 .table-market tbody .table-market__group-row > .table-market__group-label {
-  position: sticky;
-  inset-inline-start: 0;
-
-  z-index: calc(var(--z-sticky) + 1);
-
   inline-size: var(--table-market-company-width);
   min-inline-size: var(--table-market-company-width);
 
-  padding-block: ds.space(2);
-  padding-inline: ds.space(3);
-
-  border-block: 1px solid var(--color-border);
   border-inline-end: 1px solid var(--color-border-strong);
-
-  background: var(--table-market-group-bg);
-  color: var(--table-market-group-color);
-
-  font-weight: ds.font-weight("bold");
-
-  text-align: start;
-  white-space: nowrap;
 }
-
-/* ==========================================================================
-   Group Continuation
-   ========================================================================== */
-
-.table-market tbody .table-market__group-row > .table-market__group-fill {
-  padding: 0;
-
-  border-block: 1px solid var(--color-border);
-
-  background: var(--table-market-group-bg);
-}
-
-/* ==========================================================================
-   Body Borders
-   ========================================================================== */
-
-/*
- * Keep the financial body clean.
- * Header grouping provides the vertical hierarchy.
- */
 
 .table-market--watch tbody td {
   border-inline: 0;
 }
 
 /* ==========================================================================
-   Sticky Company Boundary
+   Results Variant
    ========================================================================== */
-
-.table-market--watch.table-fixed-column tbody td:first-child {
-  border-inline-end: 1px solid var(--color-border-strong);
-
-  background: var(--color-surface);
-}
-
-.table-market--watch.table-fixed-column thead th:first-child {
-  background: var(--table-head-bg);
-}
-
-.table-market--watch.table-fixed-column
-  tbody
-  tr:not(.table-market__group-row):hover
-  td:first-child {
-  background: var(--table-row-hover-bg);
-}
-
-/* ==========================================================================
-   Results Table
-   ========================================================================== */
-
-/*
- * Used by flat market-data result sets such as:
- *
- * - Negotiated Deals
- * - Accumulated Losses
- * - Listed Tradable Rights
- * - Suspended / Delisted / Transformed Companies
- * - OTC Trading
- *
- * Unlike Market Watch, these tables do not require the complex grouped
- * two-row header.
- */
 
 .table-market--results {
   inline-size: 100%;
 
   table-layout: auto;
-}
-
-.table-market--results thead {
-  background: var(--table-head-bg);
 }
 
 .table-market--results thead th {
@@ -676,7 +555,7 @@ html[dir="rtl"] {
   border-block-end: 1px solid var(--color-border-strong);
 
   background: var(--table-head-bg);
-  color: var(--table-head-color, var(--color-heading));
+  color: var(--table-head-color);
 
   font-size: var(--text-sm);
   font-weight: ds.font-weight("bold");
@@ -691,239 +570,7 @@ html[dir="rtl"] {
 .table-market--results tbody td {
   padding-block: ds.space(3);
   padding-inline: ds.space(3);
-
-  vertical-align: middle;
 }
-
-/* ==========================================================================
-   Derivatives Table
-   ========================================================================== */
-
-/*
- * Compact market-table variant for derivatives contracts.
- *
- * Unlike Market Watch:
- *
- * - the fixed first column contains Instrument Type
- * - the first column does not need the wider company identity layout
- * - the table has a flat single-row header
- * - company names are represented by RowGroup rows
- */
-
-.table-market--derivatives {
-  --table-market-company-width: 8rem;
-
-  inline-size: 100%;
-  min-inline-size: 78rem;
-
-  table-layout: auto;
-}
-
-/* ==========================================================================
-   Derivatives Header
-   ========================================================================== */
-
-.table-market--derivatives thead {
-  background: var(--table-head-bg);
-}
-
-.table-market--derivatives thead th {
-  padding-block: ds.space(3);
-  padding-inline: ds.space(2);
-
-  border-block-end: 1px solid var(--table-market-header-border-strong);
-  border-inline-end: 1px solid var(--table-market-header-border);
-
-  background: var(--table-head-bg);
-  color: var(--table-head-color, var(--color-heading));
-
-  font-size: var(--text-sm);
-  font-weight: ds.font-weight("bold");
-  line-height: var(--line-height-tight);
-
-  vertical-align: middle;
-
-  white-space: nowrap;
-}
-
-.table-market--derivatives thead tr > th:last-child {
-  border-inline-end: 0;
-}
-
-/* ==========================================================================
-   Fixed Instrument Type Column
-   ========================================================================== */
-
-.table-market--derivatives .table-market__security {
-  inline-size: var(--table-market-company-width);
-  min-inline-size: var(--table-market-company-width);
-
-  text-align: start;
-}
-
-/* ==========================================================================
-   Group Alignment
-   ========================================================================== */
-
-/*
- * Keep the company RowGroup label exactly aligned with the fixed
- * Instrument Type column.
- */
-
-.table-market--derivatives .table-market__group-label {
-  inline-size: var(--table-market-company-width);
-  min-inline-size: var(--table-market-company-width);
-}
-
-/* ==========================================================================
-   Body Density
-   ========================================================================== */
-
-.table-market--derivatives tbody td,
-.table-market--derivatives tbody th {
-  padding-block: ds.space(3);
-  padding-inline: ds.space(2);
-
-  vertical-align: middle;
-}
-
-/* ==========================================================================
-   Fixed Column Boundary
-   ========================================================================== */
-
-.table-market--derivatives.table-fixed-column tbody td:first-child {
-  border-inline-end: 1px solid var(--color-border-strong);
-}
-
-.table-market--derivatives.table-fixed-column thead th:first-child {
-  border-inline-end: 1px solid var(--color-border-strong);
-}
-
-/* ==========================================================================
-   Symbol
-   ========================================================================== */
-
-.table-market--derivatives .table-market__security-link {
-  display: inline-flex;
-
-  min-inline-size: 0;
-
-  color: var(--color-heading);
-}
-
-.table-market--derivatives .table-market__symbol {
-  color: inherit;
-
-  font-size: var(--text-sm);
-  font-weight: ds.font-weight("semibold");
-
-  white-space: nowrap;
-}
-
-/* ==========================================================================
-   Links
-   ========================================================================== */
-
-.table-market--derivatives tbody a:not(.btn) {
-  color: var(--color-heading);
-
-  font-weight: ds.font-weight("semibold");
-  text-decoration: none;
-}
-
-.table-market--derivatives tbody a:not(.btn):hover {
-  color: var(--color-primary);
-
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
-}
-
-/* ==========================================================================
-   Numeric Columns
-   ========================================================================== */
-
-.table-market--derivatives .table-market__number {
-  text-align: end;
-
-  white-space: nowrap;
-}
-
-/* ==========================================================================
-   Column Sizing
-   ========================================================================== */
-
-.table-market--derivatives th:nth-child(2),
-.table-market--derivatives td:nth-child(2) {
-  min-inline-size: 8rem;
-}
-
-.table-market--derivatives th:nth-child(3),
-.table-market--derivatives td:nth-child(3) {
-  min-inline-size: 7rem;
-}
-
-.table-market--derivatives th:nth-child(4),
-.table-market--derivatives td:nth-child(4),
-.table-market--derivatives th:nth-child(5),
-.table-market--derivatives td:nth-child(5),
-.table-market--derivatives th:nth-child(7),
-.table-market--derivatives td:nth-child(7) {
-  min-inline-size: 6.5rem;
-}
-
-.table-market--derivatives th:nth-child(10),
-.table-market--derivatives td:nth-child(10),
-.table-market--derivatives th:nth-child(11),
-.table-market--derivatives td:nth-child(11),
-.table-market--derivatives th:nth-child(13),
-.table-market--derivatives td:nth-child(13) {
-  min-inline-size: 7rem;
-}
-
-/* ==========================================================================
-   Tablet
-   ========================================================================== */
-
-@include ds.respond-down("lg") {
-  .table-market--derivatives {
-    --table-market-company-width: 7.5rem;
-
-    min-inline-size: 76rem;
-  }
-}
-
-/* ==========================================================================
-   High Contrast
-   ========================================================================== */
-
-html[data-contrast="high"] {
-  .table-market--derivatives thead th {
-    border-color: currentColor;
-  }
-
-  .table-market--derivatives.table-fixed-column tbody td:first-child,
-  .table-market--derivatives.table-fixed-column thead th:first-child {
-    border-inline-end-color: currentColor;
-  }
-}
-
-/* ==========================================================================
-   Results Numeric Alignment
-   ========================================================================== */
-
-/*
- * Add .table-market__number to financial values when numeric alignment
- * is required. This avoids hard-coding column numbers and keeps the table
- * reusable when columns are shown or hidden.
- */
-
-.table-market--results .table-market__number {
-  text-align: end;
-}
-
-/* ==========================================================================
-   Results Company
-   ========================================================================== */
 
 .table-market--results .table-market__company {
   color: var(--color-heading);
@@ -931,26 +578,13 @@ html[data-contrast="high"] {
   font-weight: ds.font-weight("semibold");
 }
 
-/* ==========================================================================
-   Results Count
-   ========================================================================== */
-
-/*
- * Recommended structure:
- *
- * <div class="table-market__results">
- *   <strong>Results:</strong>
- *   <span>12</span>
- * </div>
- */
-
 .table-market__results {
   display: flex;
   align-items: baseline;
 
   gap: ds.space(1);
 
-  min-width: 0;
+  min-inline-size: 0;
 
   color: var(--color-text);
 }
@@ -962,21 +596,12 @@ html[data-contrast="high"] {
 }
 
 .table-market__results span {
-  color: var(--color-text);
-
   font-variant-numeric: tabular-nums;
 }
 
 /* ==========================================================================
-   Summary / Total Row
+   Summary Rows
    ========================================================================== */
-
-/*
- * A total is a financial summary, not another ordinary data record.
- *
- * The subtle surface treatment gives it hierarchy without introducing
- * the heavy blue band from the reference implementation.
- */
 
 .table-market__summary-row {
   background: var(--table-market-summary-bg);
@@ -993,116 +618,33 @@ html[data-contrast="high"] {
   font-weight: ds.font-weight("semibold");
 }
 
-.table-market__summary-label {
-  color: var(--color-heading);
-
-  font-weight: ds.font-weight("bold");
-  text-align: start;
-}
-
+.table-market__summary-label,
 .table-market__summary-value {
   color: var(--color-heading);
 
   font-weight: ds.font-weight("bold");
-  text-align: end;
+}
 
+.table-market__summary-label {
+  text-align: start;
+}
+
+.table-market__summary-value {
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  text-align: end;
   white-space: nowrap;
 }
 
 /* ==========================================================================
-   Selected Row
-   ========================================================================== */
-
-.table-market tbody tr.is-selected {
-  background: var(--color-surface-alt);
-}
-
-@supports (background: color-mix(in oklab, white, black)) {
-  .table-market tbody tr.is-selected {
-    background: color-mix(
-      in oklab,
-      var(--color-primary),
-      var(--color-surface) 92%
-    );
-  }
-}
-
-/* ==========================================================================
-   Updating State
-   ========================================================================== */
-
-.table-market td.is-updating {
-  position: relative;
-}
-
-.table-market td.is-updating::after {
-  content: "";
-
-  position: absolute;
-
-  inset-inline: 0.5rem;
-  inset-block-end: 0.25rem;
-
-  block-size: 2px;
-
-  border-radius: var(--radius-pill);
-
-  background: currentColor;
-
-  opacity: 0.45;
-
-  animation: table-market-update 1s ease-in-out infinite;
-}
-
-/* ==========================================================================
-   RowGroup Compatibility
-   ========================================================================== */
-
-.table-market tr.dtrg-group,
-.table-market tr.dtrg-start {
-  background: var(--table-market-group-bg);
-}
-
-.table-market tr.dtrg-group > th,
-.table-market tr.dtrg-group > td,
-.table-market tr.dtrg-start > th,
-.table-market tr.dtrg-start > td {
-  padding-block: ds.space(2);
-  padding-inline: ds.space(3);
-
-  border-block: 1px solid var(--color-border);
-
-  background: var(--table-market-group-bg);
-  color: var(--table-market-group-color);
-
-  font-weight: ds.font-weight("bold");
-
-  text-align: start;
-}
-
-/* Preserve group colors in hover-enabled tables. */
-
-.table-market.table-hover
-  tbody
-  .table-market__group-row:hover
-  > .table-market__group-label,
-.table-market.table-hover
-  tbody
-  .table-market__group-row:hover
-  > .table-market__group-fill {
-  background: var(--table-market-group-bg);
-  color: var(--table-market-group-color);
-}
-
-/* ==========================================================================
-   Dark Market Surfaces
+   Dark Surfaces
    ========================================================================== */
 
 .surface-market .table-market,
 .surface-insights .table-market {
   --table-bg: var(--color-surface);
   --table-color: var(--color-text);
-  --table-border: var(--color-border);
 
   --table-head-bg: var(--color-surface-alt);
   --table-head-color: var(--color-heading);
@@ -1125,13 +667,8 @@ html[data-contrast="high"] {
   color: var(--color-heading);
 }
 
-.surface-market .table-market__logo,
-.surface-insights .table-market__logo {
-  background: var(--color-surface-alt);
-}
-
 /* ==========================================================================
-   Tablet
+   Responsive
    ========================================================================== */
 
 @include ds.respond-down("lg") {
@@ -1145,18 +682,10 @@ html[data-contrast="high"] {
   }
 }
 
-/* ==========================================================================
-   Mobile
-   ========================================================================== */
-
 @include ds.respond-down("sm") {
   .table-market {
     --table-market-company-width: 12rem;
     --table-market-range-width: 7.5rem;
-  }
-
-  .table-market__security-cell {
-    gap: ds.space(2);
   }
 
   .table-market__logo {
@@ -1166,10 +695,6 @@ html[data-contrast="high"] {
 
   .table-market__name {
     max-inline-size: 7rem;
-  }
-
-  .table-market__results {
-    font-size: var(--text-sm);
   }
 
   .table-market--results thead th,
@@ -1182,65 +707,35 @@ html[data-contrast="high"] {
    High Contrast
    ========================================================================== */
 
-html[data-contrast="high"] {
-  .table-market--watch thead th,
-  .table-market--results thead th {
-    border-color: currentColor;
-  }
-
-  .table-market__logo {
-    border-width: 2px;
-    border-color: currentColor;
-  }
-
-  .table-market__favorite {
-    color: currentColor;
-  }
-
-  .table-market__favorite[aria-pressed="true"] {
-    outline: 2px solid currentColor;
-  }
-
-  .table-market__range-track {
-    border: 1px solid currentColor;
-
-    background: transparent;
-  }
-
-  .table-market__range-track::before,
-  .table-market__range-marker {
-    background: currentColor;
-  }
-
-  .table-market__range-track::after {
-    border: 2px solid currentColor;
-
-    background: var(--color-surface);
-    color: currentColor;
-  }
-
-  .table-market__group-label,
-  .table-market__group-fill,
-  .table-market__summary-row th,
-  .table-market__summary-row td {
-    border-color: currentColor;
-  }
-
-  .table-market td.is-updating::after {
-    block-size: 3px;
-
-    opacity: 1;
-  }
+html[data-contrast="high"] .table-market__logo {
+  border-width: 2px;
+  border-color: currentColor;
 }
 
-/* ==========================================================================
-   Motion
-   ========================================================================== */
+html[data-contrast="high"] .table-market__favorite {
+  color: currentColor;
+}
 
-@keyframes table-market-update {
-  50% {
-    opacity: 1;
-  }
+html[data-contrast="high"] .table-market__favorite[aria-pressed="true"] {
+  outline: 2px solid currentColor;
+}
+
+html[data-contrast="high"] .table-market__range-track {
+  border: 1px solid currentColor;
+
+  background: transparent;
+}
+
+html[data-contrast="high"] .table-market__range-track::before,
+html[data-contrast="high"] .table-market__range-marker {
+  background: currentColor;
+}
+
+html[data-contrast="high"] .table-market__range-track::after {
+  border: 2px solid currentColor;
+
+  background: var(--color-surface);
+  color: currentColor;
 }
 
 /* ==========================================================================
@@ -1253,24 +748,10 @@ html[data-contrast="high"] {
   .table-market__range-track::after {
     transition: none;
   }
-
-  .table-market td.is-updating::after {
-    animation: none;
-
-    opacity: 1;
-  }
 }
 
-html[data-motion="reduce"] {
-  .table-market__favorite,
-  .table-market__range-marker,
-  .table-market__range-track::after {
-    transition: none;
-  }
-
-  .table-market td.is-updating::after {
-    animation: none;
-
-    opacity: 1;
-  }
+html[data-motion="reduce"] .table-market__favorite,
+html[data-motion="reduce"] .table-market__range-marker,
+html[data-motion="reduce"] .table-market__range-track::after {
+  transition: none;
 }

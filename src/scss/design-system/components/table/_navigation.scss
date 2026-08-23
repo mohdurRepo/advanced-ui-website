@@ -1,57 +1,84 @@
 @use "../../abstracts" as ds;
 
-/* ========================================================================== 
-   Table Shell
+/* ==========================================================================
+   Table Navigation
    ========================================================================== */
 
 /*
- * Provides a local positioning and stacking context for table navigation.
- * Horizontal overflow remains owned by `.table-responsive`.
+ * Shared horizontal-navigation affordance for native tables and DataTables.
+ *
+ * JavaScript controls:
+ *
+ * - [data-table-overflow]
+ * - [data-table-scroll-direction]
+ * - button visibility and labels
  */
 
 .table-shell {
   --table-navigation-control-size: 2.75rem;
-  --table-navigation-control-bg: var(--color-surface);
-  --table-navigation-control-color: var(--color-heading);
-  --table-navigation-control-border: var(--color-border);
-  --table-navigation-control-hover-bg: var(--color-primary);
-  --table-navigation-control-hover-color: var(--color-on-primary);
-  --table-navigation-control-hover-border: var(--color-primary);
-
-  --table-navigation-edge-size: 3rem;
+  --table-navigation-control-inset: 0.75rem;
+  --table-navigation-edge-size: clamp(2.5rem, 6vw, 4.5rem);
   --table-navigation-edge-color: var(--table-bg, var(--color-surface));
 
-  --table-navigation-edge-z: 1;
-  --table-navigation-control-z: 2;
+  --table-navigation-control-bg: var(--color-primary);
+  --table-navigation-control-color: var(--color-on-primary);
+  --table-navigation-control-border: var(--color-primary);
+
+  --table-navigation-control-hover-bg: var(--color-heading);
+  --table-navigation-control-hover-color: var(--color-surface);
+  --table-navigation-control-hover-border: var(--color-heading);
+
+  /*
+   * Market Watch uses a two-row header. Smaller tables may override this token
+   * locally when their fixed header is shorter.
+   */
+  --table-navigation-header-block-size: 5.75rem;
+
+  --table-navigation-edge-z: calc(var(--z-sticky) + 1);
+  --table-navigation-control-z: var(--z-tooltip);
+
+  --table-navigation-sticky-offset: calc(
+    var(--site-header-block-size, var(--app-header-height, 0px)) +
+      var(--table-navigation-header-block-size) +
+      var(--table-navigation-control-inset)
+  );
 
   position: relative;
-  isolation: isolate;
+
+  display: grid;
+  grid-template-areas: "table";
 
   inline-size: 100%;
   max-inline-size: 100%;
   min-inline-size: 0;
+
+  overflow: visible;
 }
 
-/* ========================================================================== 
-   Floating Jump Control
+/* ==========================================================================
+   Table Region
    ========================================================================== */
 
-/*
- * JavaScript owns visibility, direction, labels, and scroll behavior.
- *
- * Required attributes:
- *
- * - type="button"
- * - data-table-scroll-direction="start|end"
- * - an accessible name describing the current destination
- */
+.table-shell .table-responsive,
+.table-shell .dt-container {
+  grid-area: table;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Scroll Control
+   ========================================================================== */
 
 .table-scroll-jump {
-  position: absolute;
-  inset-block-start: 20%;
-  inset-inline-end: var(--space-2, #{ds.space(2)});
+  position: sticky;
+  inset-block-start: var(--table-navigation-sticky-offset);
 
   z-index: var(--table-navigation-control-z);
+
+  grid-area: table;
+  align-self: start;
+  justify-self: end;
 
   display: inline-flex;
   align-items: center;
@@ -60,6 +87,7 @@
   inline-size: var(--table-navigation-control-size);
   block-size: var(--table-navigation-control-size);
 
+  margin-inline-end: var(--table-navigation-control-inset);
   padding: 0;
 
   border: 1px solid var(--table-navigation-control-border);
@@ -68,11 +96,9 @@
   background: var(--table-navigation-control-bg);
   color: var(--table-navigation-control-color);
 
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 0.5rem 1.25rem rgb(0 31 51 / 0.22);
 
   cursor: pointer;
-
-  transform: translateY(-50%);
 
   @include ds.transition(
     (background-color, border-color, color, box-shadow, opacity, transform),
@@ -80,34 +106,41 @@
   );
 }
 
-.table-scroll-jump[data-table-scroll-direction="start"],
-.table-scroll-jump[data-table-scroll-direction="end"] {
-  inset-inline-start: auto;
-  inset-inline-end: var(--space-2, #{ds.space(2)});
+.table-scroll-jump[data-table-scroll-direction="start"] {
+  justify-self: start;
+
+  margin-inline-start: var(--table-navigation-control-inset);
+  margin-inline-end: 0;
 }
 
-.table-scroll-jump:hover:not(:disabled) {
+.table-scroll-jump:hover:not(:disabled):not([aria-disabled="true"]) {
   border-color: var(--table-navigation-control-hover-border);
 
   background: var(--table-navigation-control-hover-bg);
   color: var(--table-navigation-control-hover-color);
 
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 0.75rem 1.5rem rgb(0 31 51 / 0.28);
+
+  transform: translateY(-0.125rem);
+}
+
+.table-scroll-jump:focus {
+  outline: none;
 }
 
 .table-scroll-jump:focus-visible {
   @include ds.focus-ring;
 }
 
-.table-scroll-jump:active:not(:disabled) {
-  transform: translateY(-50%) scale(0.94);
+.table-scroll-jump:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: scale(0.94);
 }
 
 .table-scroll-jump:disabled,
 .table-scroll-jump[aria-disabled="true"] {
   border-color: var(--color-disabled);
 
-  background: var(--table-navigation-control-bg);
+  background: var(--color-surface-alt);
   color: var(--color-on-disabled);
 
   box-shadow: none;
@@ -119,14 +152,9 @@
   display: none !important;
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Overflow Edge Hints
    ========================================================================== */
-
-/*
- * The shell's data attribute describes which logical edges have additional
- * off-screen content. Decorative hints never receive pointer events.
- */
 
 .table-shell[data-table-overflow="start"]::before,
 .table-shell[data-table-overflow="both"]::before,
@@ -134,10 +162,13 @@
 .table-shell[data-table-overflow="both"]::after {
   content: "";
 
-  position: absolute;
-  inset-block: 0;
+  position: sticky;
+  inset-block-start: 0;
 
   z-index: var(--table-navigation-edge-z);
+
+  grid-area: table;
+  align-self: stretch;
 
   inline-size: var(--table-navigation-edge-size);
 
@@ -146,36 +177,36 @@
 
 .table-shell[data-table-overflow="start"]::before,
 .table-shell[data-table-overflow="both"]::before {
-  inset-inline-start: 0;
+  justify-self: start;
 
   background: linear-gradient(
     to right,
-    var(--table-navigation-edge-color),
-    transparent
+    var(--table-navigation-edge-color) 0%,
+    rgb(255 255 255 / 0) 100%
   );
 }
 
 .table-shell[data-table-overflow="end"]::after,
 .table-shell[data-table-overflow="both"]::after {
-  inset-inline-end: 0;
+  justify-self: end;
 
   background: linear-gradient(
     to left,
-    var(--table-navigation-edge-color),
-    transparent
+    var(--table-navigation-edge-color) 0%,
+    rgb(255 255 255 / 0) 100%
   );
 }
 
-/* ========================================================================== 
-   RTL Edge Hints
+/* ==========================================================================
+   RTL
    ========================================================================== */
 
 html[dir="rtl"] .table-shell[data-table-overflow="start"]::before,
 html[dir="rtl"] .table-shell[data-table-overflow="both"]::before {
   background: linear-gradient(
     to left,
-    var(--table-navigation-edge-color),
-    transparent
+    var(--table-navigation-edge-color) 0%,
+    rgb(255 255 255 / 0) 100%
   );
 }
 
@@ -183,29 +214,23 @@ html[dir="rtl"] .table-shell[data-table-overflow="end"]::after,
 html[dir="rtl"] .table-shell[data-table-overflow="both"]::after {
   background: linear-gradient(
     to right,
-    var(--table-navigation-edge-color),
-    transparent
+    var(--table-navigation-edge-color) 0%,
+    rgb(255 255 255 / 0) 100%
   );
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Small Screens
    ========================================================================== */
 
 @include ds.respond-down("sm") {
   .table-shell {
-    --table-navigation-control-size: 2.75rem;
-    --table-navigation-edge-size: 2rem;
-  }
-
-  .table-scroll-jump,
-  .table-scroll-jump[data-table-scroll-direction="start"],
-  .table-scroll-jump[data-table-scroll-direction="end"] {
-    inset-inline-end: var(--space-1, #{ds.space(1)});
+    --table-navigation-control-inset: 0.5rem;
+    --table-navigation-edge-size: 2.5rem;
   }
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Coarse Pointer
    ========================================================================== */
 
@@ -215,13 +240,20 @@ html[dir="rtl"] .table-shell[data-table-overflow="both"]::after {
   }
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    High Contrast
    ========================================================================== */
 
 html[data-contrast="high"] .table-shell {
-  --table-navigation-control-border: var(--color-border-strong);
   --table-navigation-edge-size: 0;
+
+  --table-navigation-control-bg: var(--color-surface);
+  --table-navigation-control-color: currentColor;
+  --table-navigation-control-border: currentColor;
+
+  --table-navigation-control-hover-bg: var(--color-surface);
+  --table-navigation-control-hover-color: currentColor;
+  --table-navigation-control-hover-border: currentColor;
 }
 
 html[data-contrast="high"] .table-scroll-jump {
@@ -230,25 +262,18 @@ html[data-contrast="high"] .table-scroll-jump {
   box-shadow: none;
 }
 
-html[data-contrast="high"] .table-scroll-jump:hover,
-html[data-contrast="high"] .table-scroll-jump:focus-visible {
-  border-color: currentColor;
-}
-
-html[data-contrast="high"] .table-shell::before,
-html[data-contrast="high"] .table-shell::after {
-  display: none;
-}
-
-/* ========================================================================== 
+/* ==========================================================================
    Forced Colors
    ========================================================================== */
 
 @media (forced-colors: active) {
   .table-shell {
+    --table-navigation-edge-size: 0;
+
     --table-navigation-control-bg: ButtonFace;
     --table-navigation-control-color: ButtonText;
     --table-navigation-control-border: ButtonText;
+
     --table-navigation-control-hover-bg: Highlight;
     --table-navigation-control-hover-color: HighlightText;
     --table-navigation-control-hover-border: Highlight;
@@ -259,14 +284,9 @@ html[data-contrast="high"] .table-shell::after {
 
     box-shadow: none;
   }
-
-  .table-shell::before,
-  .table-shell::after {
-    display: none;
-  }
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Reduced Motion
    ========================================================================== */
 
@@ -277,7 +297,7 @@ html[data-contrast="high"] .table-shell::after {
 
   .table-scroll-jump:hover,
   .table-scroll-jump:active {
-    transform: translateY(-50%);
+    transform: none;
   }
 }
 
@@ -287,5 +307,5 @@ html[data-motion="reduce"] .table-scroll-jump {
 
 html[data-motion="reduce"] .table-scroll-jump:hover,
 html[data-motion="reduce"] .table-scroll-jump:active {
-  transform: translateY(-50%);
+  transform: none;
 }

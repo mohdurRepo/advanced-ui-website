@@ -5,19 +5,11 @@
    ========================================================================== */
 
 /*
- * Shared results toolbar for directory pages.
+ * Shared toolbar for directory result collections.
  *
- * Owns:
- *
- * - result summary
- * - live result count
- * - optional supporting status
- * - optional sorting region
- * - grid/list view switch
- * - responsive toolbar composition
- *
- * On mobile, the view switch is hidden because directory results use their
- * optimized mobile presentation automatically.
+ * Owns result status, optional sorting, and the grid/list view switch.
+ * Mobile hides the view switch because both views become a single-column,
+ * component-optimised presentation.
  */
 
 .directory-toolbar {
@@ -30,7 +22,7 @@
   --directory-toolbar-control-color: var(--color-text-muted);
   --directory-toolbar-control-border: var(--color-border);
 
-  --directory-toolbar-control-hover-bg: var(--color-surface-hover);
+  --directory-toolbar-control-hover-bg: var(--color-surface-alt);
   --directory-toolbar-control-hover-color: var(--color-heading);
   --directory-toolbar-control-hover-border: var(--color-border-strong);
 
@@ -56,7 +48,7 @@
 }
 
 /* ==========================================================================
-   Summary
+   Result Summary
    ========================================================================== */
 
 .directory-toolbar__summary {
@@ -68,10 +60,6 @@
   min-inline-size: 0;
 }
 
-/* ==========================================================================
-   Results Status
-   ========================================================================== */
-
 .directory-toolbar__status {
   margin: 0;
 
@@ -81,28 +69,19 @@
   line-height: var(--line-height-normal);
 }
 
-/* ==========================================================================
-   Result Count
-   ========================================================================== */
-
 .directory-toolbar__count {
+  direction: ltr;
+  unicode-bidi: isolate;
+
   color: var(--color-heading);
 
   font-variant-numeric: tabular-nums;
   font-weight: ds.font-weight("bold");
 }
 
-/* ==========================================================================
-   Result Entity
-   ========================================================================== */
-
 .directory-toolbar__entity {
   color: var(--directory-toolbar-muted);
 }
-
-/* ==========================================================================
-   Supporting Status
-   ========================================================================== */
 
 .directory-toolbar__supporting {
   display: inline-flex;
@@ -115,10 +94,6 @@
   line-height: var(--line-height-normal);
 }
 
-/* ==========================================================================
-   Separator
-   ========================================================================== */
-
 .directory-toolbar__separator {
   inline-size: 1px;
   block-size: 1rem;
@@ -127,7 +102,7 @@
 }
 
 /* ==========================================================================
-   Actions
+   Actions and Sort
    ========================================================================== */
 
 .directory-toolbar__actions {
@@ -139,10 +114,6 @@
 
   min-inline-size: 0;
 }
-
-/* ==========================================================================
-   Sort Region
-   ========================================================================== */
 
 .directory-toolbar__sort {
   display: inline-flex;
@@ -183,10 +154,6 @@
   background: var(--color-surface-alt);
 }
 
-/* ==========================================================================
-   View Control
-   ========================================================================== */
-
 .directory-view-switch__control {
   --icon-size: 1.125rem;
 
@@ -216,17 +183,9 @@
   );
 }
 
-/* ==========================================================================
-   View Control Icon
-   ========================================================================== */
-
 .directory-view-switch__control::before {
   margin: 0;
 }
-
-/* ==========================================================================
-   View Hover
-   ========================================================================== */
 
 .directory-view-switch__control:hover:not(:disabled):not(.is-disabled) {
   border-color: var(--directory-toolbar-control-hover-border);
@@ -234,10 +193,6 @@
   background: var(--directory-toolbar-control-hover-bg);
   color: var(--directory-toolbar-control-hover-color);
 }
-
-/* ==========================================================================
-   View Focus
-   ========================================================================== */
 
 .directory-view-switch__control:focus {
   outline: none;
@@ -250,10 +205,6 @@
   @include ds.focus-ring;
 }
 
-/* ==========================================================================
-   Active View
-   ========================================================================== */
-
 .directory-view-switch__control.is-active,
 .directory-view-switch__control[aria-pressed="true"] {
   border-color: var(--directory-toolbar-control-active-border);
@@ -263,10 +214,6 @@
 
   box-shadow: var(--shadow-sm);
 }
-
-/* ==========================================================================
-   Disabled View
-   ========================================================================== */
 
 .directory-view-switch__control:disabled,
 .directory-view-switch__control.is-disabled,
@@ -279,7 +226,7 @@
 }
 
 /* ==========================================================================
-   Busy State
+   States and Variants
    ========================================================================== */
 
 .directory-toolbar[aria-busy="true"] {
@@ -290,10 +237,6 @@
   pointer-events: none;
 }
 
-/* ==========================================================================
-   Compact Variant
-   ========================================================================== */
-
 .directory-toolbar--compact {
   --directory-toolbar-control-size: 2.375rem;
 
@@ -303,10 +246,6 @@
 .directory-toolbar--compact .directory-toolbar__status {
   font-size: var(--text-xs);
 }
-
-/* ==========================================================================
-   Elevated Variant
-   ========================================================================== */
 
 .directory-toolbar--surface {
   padding: ds.space(3);
@@ -347,25 +286,23 @@
   .directory-toolbar {
     align-items: stretch;
     flex-direction: column;
-
     gap: ds.space(2);
+
     padding-block: ds.space(2);
+  }
+
+  .directory-toolbar__summary,
+  .directory-toolbar__actions,
+  .directory-toolbar__sort {
+    inline-size: 100%;
   }
 
   .directory-toolbar__summary {
     justify-content: space-between;
-
-    inline-size: 100%;
   }
 
   .directory-toolbar__actions {
     justify-content: flex-start;
-
-    inline-size: 100%;
-  }
-
-  .directory-toolbar__sort {
-    inline-size: 100%;
   }
 
   .directory-toolbar__sort-control {
@@ -373,16 +310,8 @@
     min-inline-size: 0;
   }
 
-  /*
-   * Mobile result cards have one purpose-built presentation. Showing a view
-   * switch when both choices collapse into the same layout is misleading.
-   */
-
+  .directory-toolbar__separator,
   .directory-view-switch {
-    display: none;
-  }
-
-  .directory-toolbar__separator {
     display: none;
   }
 }

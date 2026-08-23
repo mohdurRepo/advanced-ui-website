@@ -5,34 +5,16 @@
    ========================================================================== */
 
 /*
- * Shared website-level foundation for searchable directories.
+ * Shared foundation for searchable entity directories.
  *
- * Intended for:
+ * Used by:
  *
  * - Issuer Directory
  * - Member Directory
  * - Foreign Investor Directory
- * - Other entity-based directories
  *
- * This file owns:
- *
- * - directory surface
- * - section rhythm
- * - directory header
- * - heading and description
- * - entity count
- * - filter and alphabet regions
- * - result-region composition
- * - footer placement
- * - responsive shell behavior
- *
- * Dedicated partials own:
- *
- * - alphabetical navigation
- * - result toolbar and view controls
- * - grid/list result layouts
- * - loading, empty and error states
- * - feature-specific cards and rows
+ * Dedicated partials own the alphabet navigation, toolbar, result layouts,
+ * feedback states, and entity-specific Card or row components.
  */
 
 .directory {
@@ -88,13 +70,9 @@
   box-shadow: var(--directory-shadow);
 }
 
-/* ==========================================================================
-   Decorative Surface
-   ========================================================================== */
-
 /*
- * A low-opacity brand pattern provides visual continuity with other
- * informational and data-heavy website surfaces.
+ * A restrained pattern differentiates the complete directory workspace from
+ * the individual Cards and rows it contains.
  */
 
 .directory__surface::before {
@@ -143,10 +121,6 @@
   min-inline-size: 0;
 }
 
-/* ==========================================================================
-   Heading
-   ========================================================================== */
-
 .directory__heading {
   display: grid;
   align-content: start;
@@ -164,6 +138,7 @@
   font-weight: ds.font-weight("heavy");
   line-height: var(--line-height-tight);
 
+  overflow-wrap: anywhere;
   text-wrap: balance;
 }
 
@@ -175,6 +150,8 @@
 
   font-size: var(--text-base);
   line-height: var(--line-height-relaxed);
+
+  overflow-wrap: anywhere;
 }
 
 /* ==========================================================================
@@ -205,44 +182,31 @@
 }
 
 .directory__count-value {
+  direction: ltr;
+  unicode-bidi: isolate;
+
   color: var(--directory-heading-color);
 
-  font-weight: ds.font-weight("bold");
   font-variant-numeric: tabular-nums;
+  font-weight: ds.font-weight("bold");
 }
 
 /* ==========================================================================
-   Filter Region
+   Composed Regions
    ========================================================================== */
 
 /*
- * The filter-bar component owns its own internal presentation. This wrapper
- * provides directory-level placement and containment only.
+ * These wrappers own placement only. Their child components retain control of
+ * their internal styling and interaction.
  */
 
-.directory__filters {
+.directory__filters,
+.directory__alphabet,
+.directory__active-filters,
+.directory__results-header,
+.directory__results {
   min-inline-size: 0;
 }
-
-/* ==========================================================================
-   Alphabet Region
-   ========================================================================== */
-
-.directory__alphabet {
-  min-inline-size: 0;
-}
-
-/* ==========================================================================
-   Active Filter Region
-   ========================================================================== */
-
-.directory__active-filters {
-  min-inline-size: 0;
-}
-
-/* ==========================================================================
-   Results Workspace
-   ========================================================================== */
 
 .directory__workspace {
   display: grid;
@@ -252,37 +216,9 @@
   min-inline-size: 0;
 }
 
-/* ==========================================================================
-   Results Header
-   ========================================================================== */
-
-/*
- * Detailed toolbar presentation belongs to _directory-toolbar.scss.
- */
-
-.directory__results-header {
-  min-inline-size: 0;
-}
-
-/* ==========================================================================
-   Results
-   ========================================================================== */
-
-/*
- * Grid and list presentation belong to _directory-results.scss.
- */
-
-.directory__results {
-  min-inline-size: 0;
-}
-
 .directory__results[aria-busy="true"] {
   cursor: wait;
 }
-
-/* ==========================================================================
-   Footer
-   ========================================================================== */
 
 .directory__footer {
   display: flex;
@@ -296,13 +232,11 @@
 }
 
 /* ==========================================================================
-   Connected Filter Variant
+   Variants
    ========================================================================== */
 
 /*
- * Use when the filter bar and directory surface are rendered as one connected
- * workspace. This keeps the shared foundation reusable for both composed and
- * standalone page structures.
+ * Use when a filter bar is visually connected to this workspace.
  */
 
 .directory--connected .directory__surface {
@@ -310,16 +244,14 @@
   border-start-end-radius: 0;
 }
 
-/* ==========================================================================
-   Flush Variant
-   ========================================================================== */
-
 /*
- * Use inside an existing content-page or other parent surface.
+ * Use inside an existing parent surface, such as a content-page panel.
  */
 
 .directory--flush .directory__surface {
   padding: 0;
+
+  overflow: visible;
 
   border: 0;
   border-radius: 0;
@@ -332,10 +264,6 @@
 .directory--flush .directory__surface::before {
   display: none;
 }
-
-/* ==========================================================================
-   Compact Variant
-   ========================================================================== */
 
 .directory--compact {
   --directory-padding-block: #{ds.space(4)};
@@ -390,7 +318,6 @@
   .directory__header {
     align-items: stretch;
     flex-direction: column;
-
     gap: ds.space(3);
   }
 
@@ -406,8 +333,6 @@
     align-self: flex-start;
 
     min-block-size: 2.25rem;
-    padding-block: ds.space(2);
-    padding-inline: ds.space(3);
 
     font-size: var(--text-xs);
   }
@@ -441,7 +366,7 @@ html[dir="rtl"] .directory__surface::before {
 
 html[data-contrast="high"] .directory__surface {
   border-width: 2px;
-  border-color: var(--color-border-strong);
+  border-color: var(--directory-border-strong);
 
   box-shadow: none;
 }

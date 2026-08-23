@@ -5619,25 +5619,19 @@
                     </p>
                   </header>
 
-                  <!-- ==============================================================
-                 Exchange-member filters
-                 ============================================================== -->
-
                   <!-- ==========================================================================
-     Exchange Member Filters
-     ========================================================================== -->
+  Exchange Member Filters
+  ========================================================================== -->
 
                   <form
                     class="filter-bar filter-bar--stacked"
+                    id="exchange-member-directory-filter-form"
                     action="/trading/participants/member-directory/"
                     method="get"
+                    role="search"
                     data-directory-filter-form
                     data-exchange-member-filter-form
                   >
-                    <!-- ========================================================================
-       Header
-       ======================================================================== -->
-
                     <header class="filter-bar__header">
                       <div class="filter-bar__heading">
                         <h2
@@ -5654,16 +5648,8 @@
                       </div>
                     </header>
 
-                    <!-- ========================================================================
-       Primary Filters
-       ======================================================================== -->
-
                     <div class="filter-bar__inner">
                       <div class="filter-bar__fields grid-2">
-                        <!-- ====================================================================
-           Member Search
-           ==================================================================== -->
-
                         <div class="filter-bar__field">
                           <label
                             class="form-label"
@@ -5678,22 +5664,21 @@
                               id="exchange-member-search"
                               name="query"
                               type="search"
-                              placeholder="Search by member name"
+                              inputmode="search"
                               autocomplete="off"
-                              enterkeyhint="search"
+                              placeholder="Search by member name"
+                              aria-describedby="exchange-member-search-help"
                               data-directory-search
                             />
-
-                            <span
-                              class="form-control-icon has-icon icon-search"
-                              aria-hidden="true"
-                            ></span>
                           </div>
-                        </div>
 
-                        <!-- ====================================================================
-           Market
-           ==================================================================== -->
+                          <p
+                            class="form-help visually-hidden"
+                            id="exchange-member-search-help"
+                          >
+                            Enter all or part of an exchange member name.
+                          </p>
+                        </div>
 
                         <div class="filter-bar__field">
                           <label
@@ -5735,10 +5720,6 @@
                         </div>
                       </div>
 
-                      <!-- ======================================================================
-         Actions
-         ====================================================================== -->
-
                       <div class="filter-bar__actions">
                         <button
                           class="btn btn-primary has-icon icon-search"
@@ -5757,309 +5738,362 @@
                       </div>
                     </div>
 
-                    <!-- ========================================================================
-       Alphabetical Navigation
-       ======================================================================== -->
-
                     <div class="filter-bar__secondary">
                       <div class="filter-bar__secondary-content">
                         <div
-                          class="directory-alphabet"
+                          class="directory-alphabet directory-alphabet--quiet"
                           aria-labelledby="exchange-member-alphabet-title"
                           data-directory-alphabet
                         >
-                          <div class="directory-alphabet__header">
-                            <h3
-                              class="directory-alphabet__title"
-                              id="exchange-member-alphabet-title"
-                            >
-                              Browse alphabetically
-                            </h3>
+                          <header class="directory-alphabet__header">
+                            <div class="directory-alphabet__heading">
+                              <h3
+                                class="directory-alphabet__label"
+                                id="exchange-member-alphabet-title"
+                              >
+                                Browse alphabetically
+                              </h3>
 
-                            <p class="directory-alphabet__description">
-                              Choose the first letter of the member name.
-                            </p>
-                          </div>
+                              <p class="directory-alphabet__description">
+                                Choose the first letter of the member name.
+                              </p>
+                            </div>
+                          </header>
 
-                          <div
-                            class="directory-alphabet__viewport"
-                            tabindex="0"
-                            aria-label="Member name initials"
-                          >
+                          <div class="directory-alphabet__frame">
                             <div
-                              class="directory-alphabet__list"
+                              class="directory-alphabet__scroller"
+                              tabindex="0"
                               role="group"
                               aria-label="Filter exchange members by first letter"
                             >
-                              <button
-                                class="directory-alphabet__control is-active"
-                                type="button"
-                                aria-pressed="true"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter=""
-                              >
-                                All
-                              </button>
+                              <ul class="directory-alphabet__list">
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control directory-alphabet__control--all is-active"
+                                    type="button"
+                                    aria-label="Show all exchange members"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="true"
+                                    data-directory-letter=""
+                                  >
+                                    All
+                                  </button>
+                                </li>
 
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="A"
-                              >
-                                A
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="B"
-                              >
-                                B
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="C"
-                              >
-                                C
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="D"
-                              >
-                                D
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="E"
-                              >
-                                E
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="F"
-                              >
-                                F
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="G"
-                              >
-                                G
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="H"
-                              >
-                                H
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="I"
-                              >
-                                I
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="J"
-                              >
-                                J
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="K"
-                              >
-                                K
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="L"
-                              >
-                                L
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="M"
-                              >
-                                M
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="N"
-                              >
-                                N
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="O"
-                              >
-                                O
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="P"
-                              >
-                                P
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="Q"
-                              >
-                                Q
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="R"
-                              >
-                                R
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="S"
-                              >
-                                S
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="T"
-                              >
-                                T
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="U"
-                              >
-                                U
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="V"
-                              >
-                                V
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="W"
-                              >
-                                W
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="X"
-                              >
-                                X
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="Y"
-                              >
-                                Y
-                              </button>
-
-                              <button
-                                class="directory-alphabet__control"
-                                type="button"
-                                aria-pressed="false"
-                                aria-controls="exchange-member-grid exchange-member-list"
-                                data-directory-letter="Z"
-                              >
-                                Z
-                              </button>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with A"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="A"
+                                  >
+                                    A
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with B"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="B"
+                                  >
+                                    B
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with C"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="C"
+                                  >
+                                    C
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with D"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="D"
+                                  >
+                                    D
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with E"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="E"
+                                  >
+                                    E
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with F"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="F"
+                                  >
+                                    F
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with G"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="G"
+                                  >
+                                    G
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with H"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="H"
+                                  >
+                                    H
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with I"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="I"
+                                  >
+                                    I
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with J"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="J"
+                                  >
+                                    J
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with K"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="K"
+                                  >
+                                    K
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with L"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="L"
+                                  >
+                                    L
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with M"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="M"
+                                  >
+                                    M
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with N"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="N"
+                                  >
+                                    N
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with O"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="O"
+                                  >
+                                    O
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with P"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="P"
+                                  >
+                                    P
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with Q"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="Q"
+                                  >
+                                    Q
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with R"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="R"
+                                  >
+                                    R
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with S"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="S"
+                                  >
+                                    S
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with T"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="T"
+                                  >
+                                    T
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with U"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="U"
+                                  >
+                                    U
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with V"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="V"
+                                  >
+                                    V
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with W"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="W"
+                                  >
+                                    W
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with X"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="X"
+                                  >
+                                    X
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with Y"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="Y"
+                                  >
+                                    Y
+                                  </button>
+                                </li>
+                                <li class="directory-alphabet__item">
+                                  <button
+                                    class="directory-alphabet__control"
+                                    type="button"
+                                    aria-label="Show exchange members beginning with Z"
+                                    aria-controls="exchange-member-grid exchange-member-list"
+                                    aria-pressed="false"
+                                    data-directory-letter="Z"
+                                  >
+                                    Z
+                                  </button>
+                                </li>
+                              </ul>
                             </div>
                           </div>
 
@@ -6073,14 +6107,9 @@
                       </div>
                     </div>
                   </form>
-
-                  <!-- ==============================================================
-                 Exchange-member results
-                 ============================================================== -->
-
                   <!-- ==========================================================================
-     Exchange Member Results
-     ========================================================================== -->
+  Exchange Member Results
+  ========================================================================== -->
 
                   <section
                     class="directory"
@@ -6091,10 +6120,6 @@
                   >
                     <div class="directory__surface">
                       <div class="directory__content">
-                        <!-- ====================================================================
-           Directory Header
-           ==================================================================== -->
-
                         <header class="directory__header">
                           <div class="directory__heading">
                             <h2
@@ -6120,15 +6145,7 @@
                           </div>
                         </header>
 
-                        <!-- ====================================================================
-           Directory Workspace
-           ==================================================================== -->
-
                         <div class="directory__workspace">
-                          <!-- ==================================================================
-             Results Toolbar
-             ================================================================== -->
-
                           <div class="directory__results-header">
                             <div class="directory-toolbar">
                               <div class="directory-toolbar__summary">
@@ -6175,10 +6192,6 @@
                             </div>
                           </div>
 
-                          <!-- ==================================================================
-             Accessible Live Status
-             ================================================================== -->
-
                           <div
                             class="directory__live-status visually-hidden"
                             role="status"
@@ -6188,27 +6201,18 @@
                             data-view-live-status
                           ></div>
 
-                          <!-- ==================================================================
-             Results
-             ================================================================== -->
-
                           <div
                             class="directory__results directory-results directory-results--grid-3"
                             data-directory-results
                           >
-                            <!-- ================================================================
-               Grid View
-               ================================================================ -->
+                            <!-- Grid view -->
 
                             <div
+                              class="directory-results__view"
                               id="exchange-member-grid"
                               data-view-panel="grid"
                               data-directory-grid
                             >
-                              <!-- ==============================================================
-                 Group A
-                 ============================================================== -->
-
                               <section
                                 class="directory-group"
                                 aria-labelledby="exchange-member-grid-group-a-title"
@@ -6222,21 +6226,17 @@
                                     A
                                   </h3>
 
-                                  <span class="directory-group__count">
-                                    3 members
-                                  </span>
+                                  <span class="directory-group__count"
+                                    >3 members</span
+                                  >
                                 </header>
 
                                 <ul
                                   class="directory-results__collection directory-results__collection--grid"
                                   aria-label="Exchange members beginning with A"
                                 >
-                                  <!-- ==========================================================
-                     ANB Capital
-                     ========================================================== -->
-
                                   <li class="directory-results__item">
-                                    <article class="member-card">
+                                    <article class="card member-card">
                                       <div class="member-card__media">
                                         <img
                                           class="member-card__logo"
@@ -6253,7 +6253,6 @@
                                           <h4 class="member-card__name">
                                             ANB Capital
                                           </h4>
-
                                           <p
                                             class="member-card__supporting-name"
                                           >
@@ -6270,7 +6269,6 @@
                                             >
                                               Markets
                                             </dt>
-
                                             <dd
                                               class="member-card__metadata-value"
                                             >
@@ -6282,7 +6280,6 @@
                                                 >
                                                   Cash Market
                                                 </li>
-
                                                 <li
                                                   class="member-card__metadata-list-item"
                                                 >
@@ -6300,7 +6297,6 @@
                                             >
                                               Member type
                                             </dt>
-
                                             <dd
                                               class="member-card__metadata-value"
                                             >
@@ -6316,7 +6312,6 @@
                                             >
                                               Location
                                             </dt>
-
                                             <dd
                                               class="member-card__metadata-value"
                                             >
@@ -6366,7 +6361,6 @@
                                           rel="noopener noreferrer"
                                         >
                                           Website
-
                                           <span class="visually-hidden">
                                             opens in a new window
                                           </span>
@@ -6375,12 +6369,8 @@
                                     </article>
                                   </li>
 
-                                  <!-- ==========================================================
-                     Al Rajhi Capital
-                     ========================================================== -->
-
                                   <li class="directory-results__item">
-                                    <article class="member-card">
+                                    <article class="card member-card">
                                       <div class="member-card__media">
                                         <img
                                           class="member-card__logo"
@@ -6397,7 +6387,6 @@
                                           <h4 class="member-card__name">
                                             Al Rajhi Capital
                                           </h4>
-
                                           <p
                                             class="member-card__supporting-name"
                                           >
@@ -6414,7 +6403,6 @@
                                             >
                                               Markets
                                             </dt>
-
                                             <dd
                                               class="member-card__metadata-value"
                                             >
@@ -6426,7 +6414,6 @@
                                                 >
                                                   Cash Market
                                                 </li>
-
                                                 <li
                                                   class="member-card__metadata-list-item"
                                                 >
@@ -6444,7 +6431,6 @@
                                             >
                                               Member type
                                             </dt>
-
                                             <dd
                                               class="member-card__metadata-value"
                                             >
@@ -6460,7 +6446,6 @@
                                             >
                                               Location
                                             </dt>
-
                                             <dd
                                               class="member-card__metadata-value"
                                             >
@@ -6510,7 +6495,6 @@
                                           rel="noopener noreferrer"
                                         >
                                           Website
-
                                           <span class="visually-hidden">
                                             opens in a new window
                                           </span>
@@ -6519,12 +6503,8 @@
                                     </article>
                                   </li>
 
-                                  <!-- ==========================================================
-                     Al Khair Capital
-                     ========================================================== -->
-
                                   <li class="directory-results__item">
-                                    <article class="member-card">
+                                    <article class="card member-card">
                                       <div class="member-card__media">
                                         <img
                                           class="member-card__logo"
@@ -6541,7 +6521,6 @@
                                           <h4 class="member-card__name">
                                             Al Khair Capital Saudi Arabia
                                           </h4>
-
                                           <p
                                             class="member-card__supporting-name"
                                           >
@@ -6558,7 +6537,6 @@
                                             >
                                               Markets
                                             </dt>
-
                                             <dd
                                               class="member-card__metadata-value"
                                             >
@@ -6582,7 +6560,6 @@
                                             >
                                               Member type
                                             </dt>
-
                                             <dd
                                               class="member-card__metadata-value"
                                             >
@@ -6598,7 +6575,6 @@
                                             >
                                               Location
                                             </dt>
-
                                             <dd
                                               class="member-card__metadata-value"
                                             >
@@ -6648,7 +6624,6 @@
                                           rel="noopener noreferrer"
                                         >
                                           Website
-
                                           <span class="visually-hidden">
                                             opens in a new window
                                           </span>
@@ -6660,20 +6635,15 @@
                               </section>
                             </div>
 
-                            <!-- ================================================================
-               List View
-               ================================================================ -->
+                            <!-- List view -->
 
                             <div
+                              class="directory-results__view directory-results__view--list"
                               id="exchange-member-list"
                               data-view-panel="list"
                               data-directory-list
                               hidden
                             >
-                              <!-- ==============================================================
-                 Group A
-                 ============================================================== -->
-
                               <section
                                 class="directory-group directory-group--list"
                                 aria-labelledby="exchange-member-list-group-a-title"
@@ -6687,16 +6657,12 @@
                                     A
                                   </h3>
 
-                                  <span class="directory-group__count">
-                                    3 members
-                                  </span>
+                                  <span class="directory-group__count"
+                                    >3 members</span
+                                  >
                                 </header>
 
                                 <div class="directory-group__items">
-                                  <!-- ==========================================================
-                     ANB Capital
-                     ========================================================== -->
-
                                   <article
                                     class="directory-results__item member-row"
                                   >
@@ -6719,7 +6685,6 @@
                                         <h4 class="member-row__name">
                                           ANB Capital
                                         </h4>
-
                                         <p class="member-row__supporting-name">
                                           Arab National Investment Company
                                         </p>
@@ -6729,17 +6694,15 @@
                                     <div
                                       class="member-row__cell member-row__cell--classification"
                                     >
-                                      <span class="member-row__label">
-                                        Member type
-                                      </span>
-
+                                      <span class="member-row__label"
+                                        >Member type</span
+                                      >
                                       <ul class="member-row__classification">
                                         <li
                                           class="member-row__classification-item"
                                         >
                                           Trading
                                         </li>
-
                                         <li
                                           class="member-row__classification-item"
                                         >
@@ -6749,15 +6712,13 @@
                                     </div>
 
                                     <div class="member-row__cell">
-                                      <span class="member-row__label">
-                                        Markets
-                                      </span>
-
+                                      <span class="member-row__label"
+                                        >Markets</span
+                                      >
                                       <ul class="member-row__value-list">
                                         <li class="member-row__value-list-item">
                                           Cash Market
                                         </li>
-
                                         <li class="member-row__value-list-item">
                                           Derivatives Market
                                         </li>
@@ -6767,10 +6728,9 @@
                                     <div
                                       class="member-row__cell member-row__cell--secondary"
                                     >
-                                      <span class="member-row__label">
-                                        Contact
-                                      </span>
-
+                                      <span class="member-row__label"
+                                        >Contact</span
+                                      >
                                       <div class="member-row__contact">
                                         <div
                                           class="member-row__contact-item has-icon icon-phone"
@@ -6781,7 +6741,6 @@
                                             +966 11 406 2500
                                           </span>
                                         </div>
-
                                         <div
                                           class="member-row__contact-item has-icon icon-mail"
                                         >
@@ -6805,10 +6764,6 @@
                                     </button>
                                   </article>
 
-                                  <!-- ==========================================================
-                     Al Rajhi Capital
-                     ========================================================== -->
-
                                   <article
                                     class="directory-results__item member-row"
                                   >
@@ -6831,7 +6786,6 @@
                                         <h4 class="member-row__name">
                                           Al Rajhi Capital
                                         </h4>
-
                                         <p class="member-row__supporting-name">
                                           Al Rajhi Financial Company
                                         </p>
@@ -6841,10 +6795,9 @@
                                     <div
                                       class="member-row__cell member-row__cell--classification"
                                     >
-                                      <span class="member-row__label">
-                                        Member type
-                                      </span>
-
+                                      <span class="member-row__label"
+                                        >Member type</span
+                                      >
                                       <ul class="member-row__classification">
                                         <li
                                           class="member-row__classification-item"
@@ -6855,15 +6808,13 @@
                                     </div>
 
                                     <div class="member-row__cell">
-                                      <span class="member-row__label">
-                                        Markets
-                                      </span>
-
+                                      <span class="member-row__label"
+                                        >Markets</span
+                                      >
                                       <ul class="member-row__value-list">
                                         <li class="member-row__value-list-item">
                                           Cash Market
                                         </li>
-
                                         <li class="member-row__value-list-item">
                                           Sukuk &amp; Bonds
                                         </li>
@@ -6873,10 +6824,9 @@
                                     <div
                                       class="member-row__cell member-row__cell--secondary"
                                     >
-                                      <span class="member-row__label">
-                                        Contact
-                                      </span>
-
+                                      <span class="member-row__label"
+                                        >Contact</span
+                                      >
                                       <div class="member-row__contact">
                                         <div
                                           class="member-row__contact-item has-icon icon-phone"
@@ -6887,7 +6837,6 @@
                                             +966 11 211 6000
                                           </span>
                                         </div>
-
                                         <div
                                           class="member-row__contact-item has-icon icon-mail"
                                         >
@@ -6911,10 +6860,6 @@
                                     </button>
                                   </article>
 
-                                  <!-- ==========================================================
-                     Al Khair Capital
-                     ========================================================== -->
-
                                   <article
                                     class="directory-results__item member-row"
                                   >
@@ -6937,7 +6882,6 @@
                                         <h4 class="member-row__name">
                                           Al Khair Capital Saudi Arabia
                                         </h4>
-
                                         <p class="member-row__supporting-name">
                                           Al Khair Capital
                                         </p>
@@ -6947,10 +6891,9 @@
                                     <div
                                       class="member-row__cell member-row__cell--classification"
                                     >
-                                      <span class="member-row__label">
-                                        Member type
-                                      </span>
-
+                                      <span class="member-row__label"
+                                        >Member type</span
+                                      >
                                       <ul class="member-row__classification">
                                         <li
                                           class="member-row__classification-item"
@@ -6961,10 +6904,9 @@
                                     </div>
 
                                     <div class="member-row__cell">
-                                      <span class="member-row__label">
-                                        Markets
-                                      </span>
-
+                                      <span class="member-row__label"
+                                        >Markets</span
+                                      >
                                       <ul class="member-row__value-list">
                                         <li class="member-row__value-list-item">
                                           Cash Market
@@ -6975,10 +6917,9 @@
                                     <div
                                       class="member-row__cell member-row__cell--secondary"
                                     >
-                                      <span class="member-row__label">
-                                        Contact
-                                      </span>
-
+                                      <span class="member-row__label"
+                                        >Contact</span
+                                      >
                                       <div class="member-row__contact">
                                         <div
                                           class="member-row__contact-item has-icon icon-phone"
@@ -6989,7 +6930,6 @@
                                             +966 11 218 1000
                                           </span>
                                         </div>
-
                                         <div
                                           class="member-row__contact-item has-icon icon-mail"
                                         >
@@ -7017,96 +6957,88 @@
                             </div>
                           </div>
 
-                          <!-- ==================================================================
-             Pagination
-             ================================================================== -->
+                          <!-- Keep the established pagination markup/classes unchanged. -->
 
-                          <nav
-                            class="pagination"
-                            aria-label="Exchange member result pages"
-                          >
-                            <a
-                              class="pagination__control pagination__control--previous is-disabled"
-                              href="#"
-                              aria-label="Previous page"
-                              aria-disabled="true"
-                              tabindex="-1"
+                          <footer class="directory__footer">
+                            <nav
+                              class="pagination"
+                              aria-label="Exchange member directory pages"
+                              data-directory-pagination
                             >
-                              <span
-                                class="has-icon icon-chevron-left icon-flip-rtl"
-                                aria-hidden="true"
-                              ></span>
+                              <p class="pagination__status">
+                                Showing <strong>1–3</strong> of
+                                <strong>33</strong> members
+                              </p>
 
-                              <span class="pagination__control-label">
-                                Previous
-                              </span>
-                            </a>
+                              <ol class="pagination__list">
+                                <li class="pagination__item">
+                                  <span
+                                    class="pagination__link pagination__link--previous is-disabled has-icon icon-chevron-left icon-flip-rtl"
+                                    aria-disabled="true"
+                                  >
+                                    Previous
+                                  </span>
+                                </li>
 
-                            <ol class="pagination__list">
-                              <li class="pagination__item">
-                                <a
-                                  class="pagination__link is-active"
-                                  href="?page=1"
-                                  aria-label="Page 1"
-                                  aria-current="page"
+                                <li class="pagination__item">
+                                  <a
+                                    class="pagination__link is-current"
+                                    href="?page=1"
+                                    aria-label="Page 1"
+                                    aria-current="page"
+                                  >
+                                    1
+                                  </a>
+                                </li>
+
+                                <li class="pagination__item">
+                                  <a
+                                    class="pagination__link"
+                                    href="?page=2"
+                                    aria-label="Page 2"
+                                    >2</a
+                                  >
+                                </li>
+
+                                <li class="pagination__item">
+                                  <a
+                                    class="pagination__link"
+                                    href="?page=3"
+                                    aria-label="Page 3"
+                                    >3</a
+                                  >
+                                </li>
+
+                                <li
+                                  class="pagination__item pagination__item--ellipsis"
+                                  aria-hidden="true"
                                 >
-                                  1
-                                </a>
-                              </li>
+                                  <span class="pagination__ellipsis">…</span>
+                                </li>
 
-                              <li class="pagination__item">
-                                <a
-                                  class="pagination__link"
-                                  href="?page=2"
-                                  aria-label="Page 2"
-                                >
-                                  2
-                                </a>
-                              </li>
+                                <li class="pagination__item">
+                                  <a
+                                    class="pagination__link"
+                                    href="?page=11"
+                                    aria-label="Page 11"
+                                  >
+                                    11
+                                  </a>
+                                </li>
 
-                              <li class="pagination__item">
-                                <a
-                                  class="pagination__link"
-                                  href="?page=3"
-                                  aria-label="Page 3"
-                                >
-                                  3
-                                </a>
-                              </li>
-
-                              <li
-                                class="pagination__item pagination__item--ellipsis"
-                                aria-hidden="true"
-                              >
-                                <span class="pagination__ellipsis">…</span>
-                              </li>
-
-                              <li class="pagination__item">
-                                <a
-                                  class="pagination__link"
-                                  href="?page=11"
-                                  aria-label="Page 11"
-                                >
-                                  11
-                                </a>
-                              </li>
-                            </ol>
-
-                            <a
-                              class="pagination__control pagination__control--next"
-                              href="?page=2"
-                              aria-label="Next page"
-                            >
-                              <span class="pagination__control-label">
-                                Next
-                              </span>
-
-                              <span
-                                class="has-icon icon-chevron-right icon-flip-rtl"
-                                aria-hidden="true"
-                              ></span>
-                            </a>
-                          </nav>
+                                <li class="pagination__item">
+                                  <a
+                                    class="pagination__link pagination__link--next has-icon icon-chevron-right icon-flip-rtl icon-end"
+                                    href="?page=2"
+                                    aria-label="Go to next page"
+                                    rel="next"
+                                  >
+                                    Next
+                                  </a>
+                                </li>
+                              </ol>
+                            </nav>
+                          </footer>
                         </div>
                       </div>
                     </div>
@@ -7136,18 +7068,17 @@
                     </p>
                   </header>
 
-                  <!-- ==============================================================
-                 Foreign-investor filters
-                 ============================================================== -->
-
                   <!-- ==========================================================================
-     Foreign Investor Filters
-     ========================================================================== -->
+  Foreign Investor Filters
+  ========================================================================== -->
 
                   <form
                     class="filter-bar filter-bar--stacked"
+                    id="foreign-investor-directory-filter-form"
                     action="/trading/participants/member-directory/"
                     method="get"
+                    role="search"
+                    data-directory-filter-form
                     data-foreign-investor-filter-form
                   >
                     <input
@@ -7155,10 +7086,6 @@
                       type="hidden"
                       value="foreign-investors"
                     />
-
-                    <!-- ========================================================================
-       Header
-       ======================================================================== -->
 
                     <header class="filter-bar__header">
                       <div class="filter-bar__heading">
@@ -7176,16 +7103,8 @@
                       </div>
                     </header>
 
-                    <!-- ========================================================================
-       Filters
-       ======================================================================== -->
-
                     <div class="filter-bar__inner">
                       <div class="filter-bar__fields grid-2">
-                        <!-- ====================================================================
-           Search
-           ==================================================================== -->
-
                         <div class="filter-bar__field">
                           <label
                             class="form-label"
@@ -7200,21 +7119,22 @@
                               id="foreign-investor-search"
                               name="query"
                               type="search"
-                              placeholder="Search by member or partner name"
+                              inputmode="search"
                               autocomplete="off"
-                              enterkeyhint="search"
+                              placeholder="Search by member or partner name"
+                              aria-describedby="foreign-investor-search-help"
+                              data-directory-search
                             />
-
-                            <span
-                              class="form-control-icon has-icon icon-search"
-                              aria-hidden="true"
-                            ></span>
                           </div>
-                        </div>
 
-                        <!-- ====================================================================
-           Investor Type
-           ==================================================================== -->
+                          <p
+                            class="form-help visually-hidden"
+                            id="foreign-investor-search-help"
+                          >
+                            Enter all or part of an exchange member or
+                            foreign-investor partner name.
+                          </p>
+                        </div>
 
                         <div class="filter-bar__field">
                           <label class="form-label" for="foreign-investor-type">
@@ -7229,17 +7149,15 @@
                                 class="form-select custom-select__native"
                                 id="foreign-investor-type"
                                 name="investorType"
+                                data-directory-investor-type
                               >
                                 <option value="" selected>
                                   All investor types
                                 </option>
-
                                 <option value="retail">Retail</option>
-
                                 <option value="institutional">
                                   Institutional
                                 </option>
-
                                 <option value="qualified-foreign-investor">
                                   Qualified Foreign Investor
                                 </option>
@@ -7253,10 +7171,6 @@
                           </div>
                         </div>
                       </div>
-
-                      <!-- ======================================================================
-         Actions
-         ====================================================================== -->
 
                       <div class="filter-bar__actions">
                         <button
@@ -7277,13 +7191,9 @@
                     </div>
                   </form>
 
-                  <!-- ==============================================================
-                 Foreign-investor results
-                 ============================================================== -->
-
                   <!-- ==========================================================================
-     Foreign Investor Member Results
-     ========================================================================== -->
+  Foreign Investor Results
+  ========================================================================== -->
 
                   <section
                     class="directory"
@@ -7294,10 +7204,6 @@
                   >
                     <div class="directory__surface">
                       <div class="directory__content">
-                        <!-- ====================================================================
-           Directory Header
-           ==================================================================== -->
-
                         <header class="directory__header">
                           <div class="directory__heading">
                             <h2
@@ -7309,8 +7215,8 @@
 
                             <p class="directory__description">
                               Review exchange members, supported investor
-                              classifications, and their approved
-                              foreign-investor partners.
+                              classifications, and approved foreign-investor
+                              partners.
                             </p>
                           </div>
 
@@ -7324,15 +7230,7 @@
                           </div>
                         </header>
 
-                        <!-- ====================================================================
-           Directory Workspace
-           ==================================================================== -->
-
                         <div class="directory__workspace">
-                          <!-- ==================================================================
-             Results Toolbar
-             ================================================================== -->
-
                           <div class="directory__results-header">
                             <div class="directory-toolbar">
                               <div class="directory-toolbar__summary">
@@ -7360,7 +7258,7 @@
                                   <button
                                     class="directory-view-switch__control has-icon icon-grid-bento-view is-active"
                                     type="button"
-                                    aria-label="Show results in grid view"
+                                    aria-label="Show foreign-investor members in grid view"
                                     aria-controls="foreign-investor-grid"
                                     aria-pressed="true"
                                     data-view-control="grid"
@@ -7369,7 +7267,7 @@
                                   <button
                                     class="directory-view-switch__control has-icon icon-list-bullet"
                                     type="button"
-                                    aria-label="Show results in list view"
+                                    aria-label="Show foreign-investor members in list view"
                                     aria-controls="foreign-investor-list"
                                     aria-pressed="false"
                                     data-view-control="list"
@@ -7379,646 +7277,627 @@
                             </div>
                           </div>
 
-                          <!-- ==================================================================
-             Accessible Status
-             ================================================================== -->
-
                           <div
                             class="directory__live-status visually-hidden"
                             role="status"
                             aria-live="polite"
                             aria-atomic="true"
+                            data-directory-live-status
                             data-view-live-status
                           ></div>
-
-                          <!-- ==================================================================
-             Results
-             ================================================================== -->
 
                           <div
                             class="directory__results directory-results directory-results--grid-3"
                             data-directory-results
                           >
-                            <!-- ================================================================
-               Grid View
-               ================================================================ -->
+                            <!-- Grid view -->
 
-                            <ul
-                              class="directory-results__collection directory-results__collection--grid"
+                            <div
+                              class="directory-results__view"
                               id="foreign-investor-grid"
-                              aria-label="Foreign-investor members in grid view"
                               data-view-panel="grid"
                               data-directory-grid
                             >
-                              <!-- ==============================================================
-                 Al Rajhi Capital
-                 ============================================================== -->
-
-                              <li class="directory-results__item">
-                                <article class="member-card">
-                                  <div class="member-card__media">
-                                    <img
-                                      class="member-card__logo"
-                                      src="/assets/images/members/alrajhi-capital.png"
-                                      alt="Al Rajhi Capital"
-                                      width="240"
-                                      height="96"
-                                      loading="lazy"
-                                    />
-                                  </div>
-
-                                  <div class="member-card__body">
-                                    <div class="member-card__identity">
-                                      <h3 class="member-card__name">
-                                        Al Rajhi Capital
-                                      </h3>
-
-                                      <p class="member-card__supporting-name">
-                                        Al Rajhi Financial Company
-                                      </p>
+                              <ul
+                                class="directory-results__collection directory-results__collection--grid"
+                                aria-label="Foreign-investor members"
+                              >
+                                <li class="directory-results__item">
+                                  <article class="card member-card">
+                                    <div class="member-card__media">
+                                      <img
+                                        class="member-card__logo"
+                                        src="/assets/images/members/alrajhi-capital.png"
+                                        alt="Al Rajhi Capital"
+                                        width="240"
+                                        height="96"
+                                        loading="lazy"
+                                      />
                                     </div>
 
-                                    <dl class="member-card__metadata">
-                                      <div class="member-card__metadata-item">
-                                        <dt class="member-card__metadata-label">
-                                          Investor types
-                                        </dt>
-
-                                        <dd class="member-card__metadata-value">
-                                          Retail and Institutional
-                                        </dd>
+                                    <div class="member-card__body">
+                                      <div class="member-card__identity">
+                                        <h3 class="member-card__name">
+                                          Al Rajhi Capital
+                                        </h3>
+                                        <p class="member-card__supporting-name">
+                                          Al Rajhi Financial Company
+                                        </p>
                                       </div>
 
-                                      <div class="member-card__metadata-item">
-                                        <dt class="member-card__metadata-label">
-                                          Partner count
-                                        </dt>
+                                      <dl class="member-card__metadata">
+                                        <div class="member-card__metadata-item">
+                                          <dt
+                                            class="member-card__metadata-label"
+                                          >
+                                            Investor types
+                                          </dt>
+                                          <dd
+                                            class="member-card__metadata-value"
+                                          >
+                                            Retail and Institutional
+                                          </dd>
+                                        </div>
 
-                                        <dd class="member-card__metadata-value">
-                                          5 partners
-                                        </dd>
-                                      </div>
+                                        <div class="member-card__metadata-item">
+                                          <dt
+                                            class="member-card__metadata-label"
+                                          >
+                                            Partner count
+                                          </dt>
+                                          <dd
+                                            class="member-card__metadata-value"
+                                          >
+                                            5 partners
+                                          </dd>
+                                        </div>
 
-                                      <div
-                                        class="member-card__metadata-item member-card__metadata-item--wide"
-                                      >
-                                        <dt class="member-card__metadata-label">
-                                          Partners
-                                        </dt>
-
-                                        <dd class="member-card__metadata-value">
-                                          Avior Capital Markets, CI Capital, GTN
-                                          Middle East, Arqaam Capital and
-                                          Aventicum Capital Management
-                                        </dd>
-                                      </div>
-                                    </dl>
-                                  </div>
-
-                                  <footer class="member-card__footer">
-                                    <button
-                                      class="btn btn-outline-primary member-card__profile has-icon icon-arrow-up-right icon-end"
-                                      type="button"
-                                      aria-haspopup="dialog"
-                                      aria-controls="member-profile-alrajhi"
-                                      data-modal-open="member-profile-alrajhi"
-                                    >
-                                      Open profile
-                                    </button>
-
-                                    <a
-                                      class="member-card__website has-icon icon-globe"
-                                      href="https://www.alrajhi-capital.com/"
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      Website
-
-                                      <span class="visually-hidden">
-                                        opens in a new window
-                                      </span>
-                                    </a>
-                                  </footer>
-                                </article>
-                              </li>
-
-                              <!-- ==============================================================
-                 Citigroup Saudi Arabia
-                 ============================================================== -->
-
-                              <li class="directory-results__item">
-                                <article class="member-card">
-                                  <div class="member-card__media">
-                                    <img
-                                      class="member-card__logo"
-                                      src="/assets/images/members/citigroup-saudi-arabia.png"
-                                      alt="Citigroup Saudi Arabia"
-                                      width="240"
-                                      height="96"
-                                      loading="lazy"
-                                    />
-                                  </div>
-
-                                  <div class="member-card__body">
-                                    <div class="member-card__identity">
-                                      <h3 class="member-card__name">
-                                        Citigroup Saudi Arabia
-                                      </h3>
-
-                                      <p class="member-card__supporting-name">
-                                        Citi
-                                      </p>
+                                        <div
+                                          class="member-card__metadata-item member-card__metadata-item--wide"
+                                        >
+                                          <dt
+                                            class="member-card__metadata-label"
+                                          >
+                                            Partners
+                                          </dt>
+                                          <dd
+                                            class="member-card__metadata-value"
+                                          >
+                                            Avior Capital Markets, CI Capital,
+                                            GTN Middle East, Arqaam Capital and
+                                            Aventicum Capital Management
+                                          </dd>
+                                        </div>
+                                      </dl>
                                     </div>
 
-                                    <dl class="member-card__metadata">
-                                      <div class="member-card__metadata-item">
-                                        <dt class="member-card__metadata-label">
-                                          Investor types
-                                        </dt>
-
-                                        <dd class="member-card__metadata-value">
-                                          Institutional
-                                        </dd>
-                                      </div>
-
-                                      <div class="member-card__metadata-item">
-                                        <dt class="member-card__metadata-label">
-                                          Partner count
-                                        </dt>
-
-                                        <dd class="member-card__metadata-value">
-                                          1 partner
-                                        </dd>
-                                      </div>
-
-                                      <div
-                                        class="member-card__metadata-item member-card__metadata-item--wide"
+                                    <footer class="member-card__footer">
+                                      <button
+                                        class="btn btn-outline-primary member-card__profile has-icon icon-arrow-up-right icon-end"
+                                        type="button"
+                                        aria-haspopup="dialog"
+                                        aria-controls="member-profile-alrajhi"
+                                        data-modal-open="member-profile-alrajhi"
                                       >
-                                        <dt class="member-card__metadata-label">
-                                          Partners
-                                        </dt>
+                                        Open profile
+                                      </button>
 
-                                        <dd class="member-card__metadata-value">
-                                          Citigroup Financial Products Inc.
-                                          (USA)
-                                        </dd>
-                                      </div>
-                                    </dl>
-                                  </div>
+                                      <a
+                                        class="member-card__website has-icon icon-globe"
+                                        href="https://www.alrajhi-capital.com/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        Website
+                                        <span class="visually-hidden">
+                                          opens in a new window
+                                        </span>
+                                      </a>
+                                    </footer>
+                                  </article>
+                                </li>
 
-                                  <footer class="member-card__footer">
-                                    <button
-                                      class="btn btn-outline-primary member-card__profile has-icon icon-arrow-up-right icon-end"
-                                      type="button"
-                                      aria-haspopup="dialog"
-                                      aria-controls="member-profile-citi"
-                                      data-modal-open="member-profile-citi"
-                                    >
-                                      Open profile
-                                    </button>
-
-                                    <a
-                                      class="member-card__website has-icon icon-globe"
-                                      href="https://www.citigroup.com/"
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      Website
-
-                                      <span class="visually-hidden">
-                                        opens in a new window
-                                      </span>
-                                    </a>
-                                  </footer>
-                                </article>
-                              </li>
-
-                              <!-- ==============================================================
-                 Derayah Financial
-                 ============================================================== -->
-
-                              <li class="directory-results__item">
-                                <article class="member-card">
-                                  <div class="member-card__media">
-                                    <img
-                                      class="member-card__logo"
-                                      src="/assets/images/members/derayah-financial.png"
-                                      alt="Derayah Financial"
-                                      width="240"
-                                      height="96"
-                                      loading="lazy"
-                                    />
-                                  </div>
-
-                                  <div class="member-card__body">
-                                    <div class="member-card__identity">
-                                      <h3 class="member-card__name">
-                                        Derayah Financial
-                                      </h3>
-
-                                      <p class="member-card__supporting-name">
-                                        Derayah
-                                      </p>
+                                <li class="directory-results__item">
+                                  <article class="card member-card">
+                                    <div class="member-card__media">
+                                      <img
+                                        class="member-card__logo"
+                                        src="/assets/images/members/citigroup-saudi-arabia.png"
+                                        alt="Citigroup Saudi Arabia"
+                                        width="240"
+                                        height="96"
+                                        loading="lazy"
+                                      />
                                     </div>
 
-                                    <dl class="member-card__metadata">
-                                      <div class="member-card__metadata-item">
-                                        <dt class="member-card__metadata-label">
-                                          Investor types
-                                        </dt>
-
-                                        <dd class="member-card__metadata-value">
-                                          Retail and Institutional
-                                        </dd>
+                                    <div class="member-card__body">
+                                      <div class="member-card__identity">
+                                        <h3 class="member-card__name">
+                                          Citigroup Saudi Arabia
+                                        </h3>
+                                        <p class="member-card__supporting-name">
+                                          Citi
+                                        </p>
                                       </div>
 
-                                      <div class="member-card__metadata-item">
-                                        <dt class="member-card__metadata-label">
-                                          Partner count
-                                        </dt>
+                                      <dl class="member-card__metadata">
+                                        <div class="member-card__metadata-item">
+                                          <dt
+                                            class="member-card__metadata-label"
+                                          >
+                                            Investor types
+                                          </dt>
+                                          <dd
+                                            class="member-card__metadata-value"
+                                          >
+                                            Institutional
+                                          </dd>
+                                        </div>
 
-                                        <dd class="member-card__metadata-value">
-                                          No listed partners
-                                        </dd>
-                                      </div>
+                                        <div class="member-card__metadata-item">
+                                          <dt
+                                            class="member-card__metadata-label"
+                                          >
+                                            Partner count
+                                          </dt>
+                                          <dd
+                                            class="member-card__metadata-value"
+                                          >
+                                            1 partner
+                                          </dd>
+                                        </div>
 
-                                      <div
-                                        class="member-card__metadata-item member-card__metadata-item--wide"
+                                        <div
+                                          class="member-card__metadata-item member-card__metadata-item--wide"
+                                        >
+                                          <dt
+                                            class="member-card__metadata-label"
+                                          >
+                                            Partners
+                                          </dt>
+                                          <dd
+                                            class="member-card__metadata-value"
+                                          >
+                                            Citigroup Financial Products Inc.
+                                            (USA)
+                                          </dd>
+                                        </div>
+                                      </dl>
+                                    </div>
+
+                                    <footer class="member-card__footer">
+                                      <button
+                                        class="btn btn-outline-primary member-card__profile has-icon icon-arrow-up-right icon-end"
+                                        type="button"
+                                        aria-haspopup="dialog"
+                                        aria-controls="member-profile-citi"
+                                        data-modal-open="member-profile-citi"
                                       >
-                                        <dt class="member-card__metadata-label">
-                                          Partners
-                                        </dt>
+                                        Open profile
+                                      </button>
 
-                                        <dd class="member-card__metadata-value">
-                                          Information is available from the
-                                          member profile.
-                                        </dd>
+                                      <a
+                                        class="member-card__website has-icon icon-globe"
+                                        href="https://www.citigroup.com/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        Website
+                                        <span class="visually-hidden">
+                                          opens in a new window
+                                        </span>
+                                      </a>
+                                    </footer>
+                                  </article>
+                                </li>
+
+                                <li class="directory-results__item">
+                                  <article class="card member-card">
+                                    <div class="member-card__media">
+                                      <img
+                                        class="member-card__logo"
+                                        src="/assets/images/members/derayah-financial.png"
+                                        alt="Derayah Financial"
+                                        width="240"
+                                        height="96"
+                                        loading="lazy"
+                                      />
+                                    </div>
+
+                                    <div class="member-card__body">
+                                      <div class="member-card__identity">
+                                        <h3 class="member-card__name">
+                                          Derayah Financial
+                                        </h3>
+                                        <p class="member-card__supporting-name">
+                                          Derayah
+                                        </p>
                                       </div>
-                                    </dl>
-                                  </div>
 
-                                  <footer class="member-card__footer">
-                                    <button
-                                      class="btn btn-outline-primary member-card__profile has-icon icon-arrow-up-right icon-end"
-                                      type="button"
-                                      aria-haspopup="dialog"
-                                      aria-controls="member-profile-derayah"
-                                      data-modal-open="member-profile-derayah"
-                                    >
-                                      Open profile
-                                    </button>
+                                      <dl class="member-card__metadata">
+                                        <div class="member-card__metadata-item">
+                                          <dt
+                                            class="member-card__metadata-label"
+                                          >
+                                            Investor types
+                                          </dt>
+                                          <dd
+                                            class="member-card__metadata-value"
+                                          >
+                                            Retail and Institutional
+                                          </dd>
+                                        </div>
 
-                                    <a
-                                      class="member-card__website has-icon icon-globe"
-                                      href="https://www.derayah.com/"
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      Website
+                                        <div class="member-card__metadata-item">
+                                          <dt
+                                            class="member-card__metadata-label"
+                                          >
+                                            Partner count
+                                          </dt>
+                                          <dd
+                                            class="member-card__metadata-value"
+                                          >
+                                            No listed partners
+                                          </dd>
+                                        </div>
 
-                                      <span class="visually-hidden">
-                                        opens in a new window
-                                      </span>
-                                    </a>
-                                  </footer>
-                                </article>
-                              </li>
-                            </ul>
+                                        <div
+                                          class="member-card__metadata-item member-card__metadata-item--wide"
+                                        >
+                                          <dt
+                                            class="member-card__metadata-label"
+                                          >
+                                            Partners
+                                          </dt>
+                                          <dd
+                                            class="member-card__metadata-value"
+                                          >
+                                            Information is available from the
+                                            member profile.
+                                          </dd>
+                                        </div>
+                                      </dl>
+                                    </div>
 
-                            <!-- ================================================================
-               List View
-               ================================================================ -->
+                                    <footer class="member-card__footer">
+                                      <button
+                                        class="btn btn-outline-primary member-card__profile has-icon icon-arrow-up-right icon-end"
+                                        type="button"
+                                        aria-haspopup="dialog"
+                                        aria-controls="member-profile-derayah"
+                                        data-modal-open="member-profile-derayah"
+                                      >
+                                        Open profile
+                                      </button>
+
+                                      <a
+                                        class="member-card__website has-icon icon-globe"
+                                        href="https://www.derayah.com/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        Website
+                                        <span class="visually-hidden">
+                                          opens in a new window
+                                        </span>
+                                      </a>
+                                    </footer>
+                                  </article>
+                                </li>
+                              </ul>
+                            </div>
+
+                            <!-- List view -->
 
                             <div
-                              class="directory-results__collection directory-results__collection--list"
+                              class="directory-results__view directory-results__view--list"
                               id="foreign-investor-list"
-                              aria-label="Foreign-investor members in list view"
                               data-view-panel="list"
                               data-directory-list
                               hidden
                             >
-                              <!-- ==============================================================
-                 Al Rajhi Capital
-                 ============================================================== -->
-
-                              <article
-                                class="directory-results__item member-row"
+                              <div
+                                class="directory-results__collection directory-results__collection--list"
                               >
-                                <div class="member-row__identity">
-                                  <span
-                                    class="member-row__logo"
-                                    aria-hidden="true"
+                                <article
+                                  class="directory-results__item member-row"
+                                >
+                                  <div class="member-row__identity">
+                                    <span
+                                      class="member-row__logo"
+                                      aria-hidden="true"
+                                    >
+                                      <img
+                                        class="member-row__logo-image"
+                                        src="/assets/images/members/alrajhi-capital.png"
+                                        alt=""
+                                        width="64"
+                                        height="64"
+                                        loading="lazy"
+                                      />
+                                    </span>
+
+                                    <div class="member-row__identity-content">
+                                      <h3 class="member-row__name">
+                                        Al Rajhi Capital
+                                      </h3>
+                                      <p class="member-row__supporting-name">
+                                        Al Rajhi Financial Company
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div
+                                    class="member-row__cell member-row__cell--classification"
                                   >
-                                    <img
-                                      class="member-row__logo-image"
-                                      src="/assets/images/members/alrajhi-capital.png"
-                                      alt=""
-                                      width="64"
-                                      height="64"
-                                      loading="lazy"
-                                    />
-                                  </span>
+                                    <span class="member-row__label"
+                                      >Investor types</span
+                                    >
+                                    <ul class="member-row__classification">
+                                      <li
+                                        class="member-row__classification-item"
+                                      >
+                                        Retail
+                                      </li>
+                                      <li
+                                        class="member-row__classification-item"
+                                      >
+                                        Institutional
+                                      </li>
+                                    </ul>
+                                  </div>
 
-                                  <div class="member-row__identity-content">
-                                    <h3 class="member-row__name">
-                                      Al Rajhi Capital
-                                    </h3>
+                                  <div class="member-row__cell">
+                                    <span class="member-row__label"
+                                      >Partner count</span
+                                    >
+                                    <p class="member-row__value">5 partners</p>
+                                  </div>
 
-                                    <p class="member-row__supporting-name">
-                                      Al Rajhi Financial Company
+                                  <div
+                                    class="member-row__cell member-row__cell--secondary"
+                                  >
+                                    <span class="member-row__label"
+                                      >Partners</span
+                                    >
+                                    <p class="member-row__partners">
+                                      Avior Capital Markets, CI Capital, GTN
+                                      Middle East, Arqaam Capital and Aventicum
+                                      Capital Management
                                     </p>
                                   </div>
-                                </div>
 
-                                <div
-                                  class="member-row__cell member-row__cell--classification"
-                                >
-                                  <span class="member-row__label">
-                                    Investor types
-                                  </span>
-
-                                  <ul class="member-row__classification">
-                                    <li class="member-row__classification-item">
-                                      Retail
-                                    </li>
-
-                                    <li class="member-row__classification-item">
-                                      Institutional
-                                    </li>
-                                  </ul>
-                                </div>
-
-                                <div class="member-row__cell">
-                                  <span class="member-row__label">
-                                    Partner count
-                                  </span>
-
-                                  <p class="member-row__value">5 partners</p>
-                                </div>
-
-                                <div
-                                  class="member-row__cell member-row__cell--secondary"
-                                >
-                                  <span class="member-row__label">
-                                    Partners
-                                  </span>
-
-                                  <p class="member-row__partners">
-                                    Avior Capital Markets, CI Capital, GTN
-                                    Middle East, Arqaam Capital and Aventicum
-                                    Capital Management
-                                  </p>
-                                </div>
-
-                                <button
-                                  class="btn btn-outline-primary member-row__profile has-icon icon-arrow-up-right icon-end"
-                                  type="button"
-                                  aria-haspopup="dialog"
-                                  aria-controls="member-profile-alrajhi"
-                                  data-modal-open="member-profile-alrajhi"
-                                >
-                                  Open profile
-                                </button>
-                              </article>
-
-                              <!-- ==============================================================
-                 Citigroup Saudi Arabia
-                 ============================================================== -->
-
-                              <article
-                                class="directory-results__item member-row"
-                              >
-                                <div class="member-row__identity">
-                                  <span
-                                    class="member-row__logo"
-                                    aria-hidden="true"
+                                  <button
+                                    class="btn btn-outline-primary member-row__profile has-icon icon-arrow-up-right icon-end"
+                                    type="button"
+                                    aria-haspopup="dialog"
+                                    aria-controls="member-profile-alrajhi"
+                                    data-modal-open="member-profile-alrajhi"
                                   >
-                                    <img
-                                      class="member-row__logo-image"
-                                      src="/assets/images/members/citigroup-saudi-arabia.png"
-                                      alt=""
-                                      width="64"
-                                      height="64"
-                                      loading="lazy"
-                                    />
-                                  </span>
+                                    Open profile
+                                  </button>
+                                </article>
 
-                                  <div class="member-row__identity-content">
-                                    <h3 class="member-row__name">
-                                      Citigroup Saudi Arabia
-                                    </h3>
+                                <article
+                                  class="directory-results__item member-row"
+                                >
+                                  <div class="member-row__identity">
+                                    <span
+                                      class="member-row__logo"
+                                      aria-hidden="true"
+                                    >
+                                      <img
+                                        class="member-row__logo-image"
+                                        src="/assets/images/members/citigroup-saudi-arabia.png"
+                                        alt=""
+                                        width="64"
+                                        height="64"
+                                        loading="lazy"
+                                      />
+                                    </span>
 
-                                    <p class="member-row__supporting-name">
-                                      Citi
+                                    <div class="member-row__identity-content">
+                                      <h3 class="member-row__name">
+                                        Citigroup Saudi Arabia
+                                      </h3>
+                                      <p class="member-row__supporting-name">
+                                        Citi
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div
+                                    class="member-row__cell member-row__cell--classification"
+                                  >
+                                    <span class="member-row__label"
+                                      >Investor types</span
+                                    >
+                                    <ul class="member-row__classification">
+                                      <li
+                                        class="member-row__classification-item"
+                                      >
+                                        Institutional
+                                      </li>
+                                    </ul>
+                                  </div>
+
+                                  <div class="member-row__cell">
+                                    <span class="member-row__label"
+                                      >Partner count</span
+                                    >
+                                    <p class="member-row__value">1 partner</p>
+                                  </div>
+
+                                  <div
+                                    class="member-row__cell member-row__cell--secondary"
+                                  >
+                                    <span class="member-row__label"
+                                      >Partners</span
+                                    >
+                                    <p class="member-row__partners">
+                                      Citigroup Financial Products Inc. (USA)
                                     </p>
                                   </div>
-                                </div>
 
-                                <div
-                                  class="member-row__cell member-row__cell--classification"
-                                >
-                                  <span class="member-row__label">
-                                    Investor types
-                                  </span>
-
-                                  <ul class="member-row__classification">
-                                    <li class="member-row__classification-item">
-                                      Institutional
-                                    </li>
-                                  </ul>
-                                </div>
-
-                                <div class="member-row__cell">
-                                  <span class="member-row__label">
-                                    Partner count
-                                  </span>
-
-                                  <p class="member-row__value">1 partner</p>
-                                </div>
-
-                                <div
-                                  class="member-row__cell member-row__cell--secondary"
-                                >
-                                  <span class="member-row__label">
-                                    Partners
-                                  </span>
-
-                                  <p class="member-row__partners">
-                                    Citigroup Financial Products Inc. (USA)
-                                  </p>
-                                </div>
-
-                                <button
-                                  class="btn btn-outline-primary member-row__profile has-icon icon-arrow-up-right icon-end"
-                                  type="button"
-                                  aria-haspopup="dialog"
-                                  aria-controls="member-profile-citi"
-                                  data-modal-open="member-profile-citi"
-                                >
-                                  Open profile
-                                </button>
-                              </article>
-
-                              <!-- ==============================================================
-                 Derayah Financial
-                 ============================================================== -->
-
-                              <article
-                                class="directory-results__item member-row"
-                              >
-                                <div class="member-row__identity">
-                                  <span
-                                    class="member-row__logo"
-                                    aria-hidden="true"
+                                  <button
+                                    class="btn btn-outline-primary member-row__profile has-icon icon-arrow-up-right icon-end"
+                                    type="button"
+                                    aria-haspopup="dialog"
+                                    aria-controls="member-profile-citi"
+                                    data-modal-open="member-profile-citi"
                                   >
-                                    <img
-                                      class="member-row__logo-image"
-                                      src="/assets/images/members/derayah-financial.png"
-                                      alt=""
-                                      width="64"
-                                      height="64"
-                                      loading="lazy"
-                                    />
-                                  </span>
+                                    Open profile
+                                  </button>
+                                </article>
 
-                                  <div class="member-row__identity-content">
-                                    <h3 class="member-row__name">
-                                      Derayah Financial
-                                    </h3>
+                                <article
+                                  class="directory-results__item member-row"
+                                >
+                                  <div class="member-row__identity">
+                                    <span
+                                      class="member-row__logo"
+                                      aria-hidden="true"
+                                    >
+                                      <img
+                                        class="member-row__logo-image"
+                                        src="/assets/images/members/derayah-financial.png"
+                                        alt=""
+                                        width="64"
+                                        height="64"
+                                        loading="lazy"
+                                      />
+                                    </span>
 
-                                    <p class="member-row__supporting-name">
-                                      Derayah
+                                    <div class="member-row__identity-content">
+                                      <h3 class="member-row__name">
+                                        Derayah Financial
+                                      </h3>
+                                      <p class="member-row__supporting-name">
+                                        Derayah
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div
+                                    class="member-row__cell member-row__cell--classification"
+                                  >
+                                    <span class="member-row__label"
+                                      >Investor types</span
+                                    >
+                                    <ul class="member-row__classification">
+                                      <li
+                                        class="member-row__classification-item"
+                                      >
+                                        Retail
+                                      </li>
+                                      <li
+                                        class="member-row__classification-item"
+                                      >
+                                        Institutional
+                                      </li>
+                                    </ul>
+                                  </div>
+
+                                  <div class="member-row__cell">
+                                    <span class="member-row__label"
+                                      >Partner count</span
+                                    >
+                                    <p class="member-row__value">
+                                      No listed partners
                                     </p>
                                   </div>
-                                </div>
 
-                                <div
-                                  class="member-row__cell member-row__cell--classification"
-                                >
-                                  <span class="member-row__label">
-                                    Investor types
-                                  </span>
+                                  <div
+                                    class="member-row__cell member-row__cell--secondary"
+                                  >
+                                    <span class="member-row__label"
+                                      >Partners</span
+                                    >
+                                    <p class="member-row__partners">
+                                      Information is available from the member
+                                      profile.
+                                    </p>
+                                  </div>
 
-                                  <ul class="member-row__classification">
-                                    <li class="member-row__classification-item">
-                                      Retail
-                                    </li>
-
-                                    <li class="member-row__classification-item">
-                                      Institutional
-                                    </li>
-                                  </ul>
-                                </div>
-
-                                <div class="member-row__cell">
-                                  <span class="member-row__label">
-                                    Partner count
-                                  </span>
-
-                                  <p class="member-row__value">
-                                    No listed partners
-                                  </p>
-                                </div>
-
-                                <div
-                                  class="member-row__cell member-row__cell--secondary"
-                                >
-                                  <span class="member-row__label">
-                                    Partners
-                                  </span>
-
-                                  <p class="member-row__partners">
-                                    Information is available from the member
-                                    profile.
-                                  </p>
-                                </div>
-
-                                <button
-                                  class="btn btn-outline-primary member-row__profile has-icon icon-arrow-up-right icon-end"
-                                  type="button"
-                                  aria-haspopup="dialog"
-                                  aria-controls="member-profile-derayah"
-                                  data-modal-open="member-profile-derayah"
-                                >
-                                  Open profile
-                                </button>
-                              </article>
+                                  <button
+                                    class="btn btn-outline-primary member-row__profile has-icon icon-arrow-up-right icon-end"
+                                    type="button"
+                                    aria-haspopup="dialog"
+                                    aria-controls="member-profile-derayah"
+                                    data-modal-open="member-profile-derayah"
+                                  >
+                                    Open profile
+                                  </button>
+                                </article>
+                              </div>
                             </div>
                           </div>
 
-                          <!-- ==================================================================
-             Pagination
-             ================================================================== -->
-
-                          <nav
-                            class="pagination"
-                            aria-label="Foreign-investor member result pages"
-                          >
-                            <a
-                              class="pagination__control pagination__control--previous is-disabled"
-                              href="#"
-                              aria-label="Previous page"
-                              aria-disabled="true"
-                              tabindex="-1"
+                          <footer class="directory__footer">
+                            <nav
+                              class="pagination"
+                              aria-label="Foreign-investor member directory pages"
+                              data-directory-pagination
                             >
-                              <span
-                                class="has-icon icon-chevron-left icon-flip-rtl"
-                                aria-hidden="true"
-                              ></span>
+                              <p class="pagination__status">
+                                Showing <strong>1–3</strong> of
+                                <strong>7</strong> members
+                              </p>
 
-                              <span class="pagination__control-label">
-                                Previous
-                              </span>
-                            </a>
+                              <ol class="pagination__list">
+                                <li class="pagination__item">
+                                  <span
+                                    class="pagination__link pagination__link--previous is-disabled has-icon icon-chevron-left icon-flip-rtl"
+                                    aria-disabled="true"
+                                  >
+                                    Previous
+                                  </span>
+                                </li>
 
-                            <ol class="pagination__list">
-                              <li class="pagination__item">
-                                <a
-                                  class="pagination__link is-active"
-                                  href="?category=foreign-investors&amp;page=1"
-                                  aria-label="Page 1"
-                                  aria-current="page"
-                                >
-                                  1
-                                </a>
-                              </li>
+                                <li class="pagination__item">
+                                  <a
+                                    class="pagination__link is-current"
+                                    href="?category=foreign-investors&amp;page=1"
+                                    aria-label="Page 1"
+                                    aria-current="page"
+                                  >
+                                    1
+                                  </a>
+                                </li>
 
-                              <li class="pagination__item">
-                                <a
-                                  class="pagination__link"
-                                  href="?category=foreign-investors&amp;page=2"
-                                  aria-label="Page 2"
-                                >
-                                  2
-                                </a>
-                              </li>
+                                <li class="pagination__item">
+                                  <a
+                                    class="pagination__link"
+                                    href="?category=foreign-investors&amp;page=2"
+                                    aria-label="Page 2"
+                                  >
+                                    2
+                                  </a>
+                                </li>
 
-                              <li class="pagination__item">
-                                <a
-                                  class="pagination__link"
-                                  href="?category=foreign-investors&amp;page=3"
-                                  aria-label="Page 3"
-                                >
-                                  3
-                                </a>
-                              </li>
-                            </ol>
+                                <li class="pagination__item">
+                                  <a
+                                    class="pagination__link"
+                                    href="?category=foreign-investors&amp;page=3"
+                                    aria-label="Page 3"
+                                  >
+                                    3
+                                  </a>
+                                </li>
 
-                            <a
-                              class="pagination__control pagination__control--next"
-                              href="?category=foreign-investors&amp;page=2"
-                              aria-label="Next page"
-                            >
-                              <span class="pagination__control-label">
-                                Next
-                              </span>
-
-                              <span
-                                class="has-icon icon-chevron-right icon-flip-rtl"
-                                aria-hidden="true"
-                              ></span>
-                            </a>
-                          </nav>
+                                <li class="pagination__item">
+                                  <a
+                                    class="pagination__link pagination__link--next has-icon icon-chevron-right icon-flip-rtl icon-end"
+                                    href="?category=foreign-investors&amp;page=2"
+                                    aria-label="Go to next page"
+                                    rel="next"
+                                  >
+                                    Next
+                                  </a>
+                                </li>
+                              </ol>
+                            </nav>
+                          </footer>
                         </div>
                       </div>
                     </div>

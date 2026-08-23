@@ -5,16 +5,10 @@
    ========================================================================== */
 
 /*
- * Reusable alphabetical navigation for directory results.
+ * Scrollable alphabetical navigation for entity directories.
  *
- * Intended for:
- *
- * - Issuer Directory
- * - Member Directory
- * - Other name-based directories
- *
- * The HTML supplies the available alphabet, allowing localized character
- * sets without changing this component.
+ * The HTML determines available characters, so this supports localized
+ * alphabets without changing component CSS.
  */
 
 .directory-alphabet {
@@ -23,7 +17,7 @@
   --directory-alphabet-border-strong: var(--color-border-strong);
 
   --directory-alphabet-color: var(--color-text-muted);
-  --directory-alphabet-hover-bg: var(--color-surface-hover);
+  --directory-alphabet-hover-bg: var(--color-surface);
   --directory-alphabet-hover-color: var(--color-heading);
 
   --directory-alphabet-active-bg: var(--color-primary);
@@ -36,10 +30,7 @@
   --directory-alphabet-control-size: 2.75rem;
   --directory-alphabet-gap: #{ds.space(1)};
 
-  position: relative;
-
   display: grid;
-  flex: 1 1 100%;
   gap: ds.space(2);
 
   inline-size: 100%;
@@ -62,18 +53,9 @@
   min-inline-size: 0;
 }
 
-/* ==========================================================================
-   Heading
-   ========================================================================== */
-
-.directory-alphabet__heading,
-.directory-alphabet__header > div {
+.directory-alphabet__heading {
   min-inline-size: 0;
 }
-
-/* ==========================================================================
-   Label
-   ========================================================================== */
 
 .directory-alphabet__label {
   margin: 0;
@@ -85,13 +67,8 @@
   line-height: var(--line-height-normal);
 }
 
-/* ==========================================================================
-   Description
-   ========================================================================== */
-
 .directory-alphabet__description {
-  margin-block-start: ds.space(1);
-  margin-block-end: 0;
+  margin-block: ds.space(1) 0;
 
   color: var(--color-text-muted);
 
@@ -102,11 +79,6 @@
 /* ==========================================================================
    Scroll Frame
    ========================================================================== */
-
-/*
- * The frame clips the scrollable row and provides subtle edge fades when the
- * alphabet is wider than the available viewport.
- */
 
 .directory-alphabet__frame {
   position: relative;
@@ -124,7 +96,7 @@
 }
 
 /* ==========================================================================
-   Edge Fades
+   Scroll Hints
    ========================================================================== */
 
 .directory-alphabet__frame::before,
@@ -161,7 +133,7 @@
 }
 
 /* ==========================================================================
-   Scroller
+   Scroller and List
    ========================================================================== */
 
 .directory-alphabet__scroller {
@@ -192,21 +164,12 @@
   @include ds.focus-ring;
 }
 
-/* ==========================================================================
-   List
-   ========================================================================== */
-
-/*
- * The list fills the available surface but retains natural control widths.
- * When the controls exceed the viewport, the scroller handles the overflow.
- */
-
 .directory-alphabet__list {
   display: flex;
   align-items: stretch;
   gap: var(--directory-alphabet-gap);
 
-  inline-size: max-content;
+  inline-size: 100%;
   min-inline-size: 100%;
 
   margin: 0;
@@ -216,19 +179,19 @@
   list-style: none;
 }
 
-/* ==========================================================================
-   Item
-   ========================================================================== */
-
 .directory-alphabet__item {
   display: flex;
-  flex: 0 0 auto;
+  flex: 1 0 var(--directory-alphabet-control-size);
 
   min-inline-size: 0;
 }
 
+.directory-alphabet__item:first-child {
+  flex-basis: 4rem;
+}
+
 /* ==========================================================================
-   Control
+   Controls
    ========================================================================== */
 
 .directory-alphabet__control {
@@ -237,6 +200,7 @@
   display: inline-grid;
   place-items: center;
 
+  inline-size: 100%;
   min-inline-size: var(--directory-alphabet-control-size);
   block-size: var(--directory-alphabet-control-size);
   padding-inline: ds.space(2);
@@ -265,18 +229,10 @@
   );
 }
 
-/* ==========================================================================
-   All Control
-   ========================================================================== */
-
 .directory-alphabet__control--all {
   min-inline-size: 4rem;
   padding-inline: ds.space(3);
 }
-
-/* ==========================================================================
-   Hover
-   ========================================================================== */
 
 .directory-alphabet__control:hover:not(:disabled):not(.is-disabled) {
   border-color: var(--directory-alphabet-border-strong);
@@ -284,10 +240,6 @@
   background: var(--directory-alphabet-hover-bg);
   color: var(--directory-alphabet-hover-color);
 }
-
-/* ==========================================================================
-   Focus
-   ========================================================================== */
 
 .directory-alphabet__control:focus {
   outline: none;
@@ -300,10 +252,6 @@
   @include ds.focus-ring;
 }
 
-/* ==========================================================================
-   Selected
-   ========================================================================== */
-
 .directory-alphabet__control.is-active,
 .directory-alphabet__control[aria-pressed="true"],
 .directory-alphabet__control[aria-current="true"] {
@@ -315,13 +263,9 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* ==========================================================================
-   Disabled and Empty Letters
-   ========================================================================== */
-
 /*
- * Letters without matching groups remain visible so the alphabet retains a
- * predictable structure. They may be disabled through native or ARIA state.
+ * Keep unavailable letters visible: this preserves predictable alphabet
+ * navigation while clearly communicating that no result exists.
  */
 
 .directory-alphabet__control:disabled,
@@ -337,10 +281,6 @@
   opacity: 0.55;
 }
 
-/* ==========================================================================
-   Optional Result Count
-   ========================================================================== */
-
 .directory-alphabet__count {
   margin-inline-start: 0.25em;
 
@@ -352,7 +292,7 @@
 }
 
 /* ==========================================================================
-   Busy State
+   States and Variants
    ========================================================================== */
 
 .directory-alphabet[aria-busy="true"] {
@@ -363,10 +303,6 @@
   pointer-events: none;
 }
 
-/* ==========================================================================
-   Compact Variant
-   ========================================================================== */
-
 .directory-alphabet--compact {
   --directory-alphabet-control-size: 2.375rem;
   --directory-alphabet-gap: 0.125rem;
@@ -375,10 +311,6 @@
 .directory-alphabet--compact .directory-alphabet__control {
   font-size: var(--text-xs);
 }
-
-/* ==========================================================================
-   Quiet Variant
-   ========================================================================== */
 
 .directory-alphabet--quiet .directory-alphabet__frame {
   border-inline: 0;
@@ -399,12 +331,6 @@
 /* ==========================================================================
    Filter Bar Integration
    ========================================================================== */
-
-/*
- * The alphabet is frequently placed inside the filter bar's secondary row.
- * These rules ensure that it owns the complete available width instead of
- * shrinking to the intrinsic width of its controls.
- */
 
 .filter-bar__secondary-content .directory-alphabet {
   flex: 1 1 100%;
@@ -457,7 +383,6 @@ html[dir="rtl"] .directory-alphabet__frame::after {
   .directory-alphabet__header {
     align-items: flex-start;
     flex-direction: column;
-
     gap: ds.space(1);
   }
 

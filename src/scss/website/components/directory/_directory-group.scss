@@ -5,23 +5,10 @@
    ========================================================================== */
 
 /*
- * Reusable alphabetical grouping for directory results.
+ * Alphabetical grouping for directory results.
  *
- * Intended for:
- *
- * - Issuer Directory
- * - Member Directory
- * - Other alphabetically grouped directories
- *
- * This component owns:
- *
- * - spacing between letter groups
- * - group heading and result count
- * - grid collection spacing
- * - list-row spacing
- * - filtered and hidden group states
- *
- * It does not own the internal presentation of cards or list rows.
+ * The group owns only its heading, count, spacing, and busy/hidden states.
+ * `_directory-results.scss` owns grid and list collection layout.
  */
 
 .directory-group {
@@ -44,27 +31,22 @@
 }
 
 /* ==========================================================================
-   Hidden Group
+   Visibility
    ========================================================================== */
 
-/*
- * Author-level display declarations can otherwise override the browser's
- * default [hidden] rule.
- */
-
 .directory-group[hidden],
-.directory-group.is-hidden {
+.directory-group.is-hidden,
+.directory-group.is-empty {
   display: none;
 }
 
 /* ==========================================================================
-   Group Header
+   Header
    ========================================================================== */
 
 .directory-group__header {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
   flex-wrap: wrap;
   gap: ds.space(2);
 
@@ -74,10 +56,6 @@
 
   border-block-end: 1px solid var(--directory-group-border);
 }
-
-/* ==========================================================================
-   Group Letter
-   ========================================================================== */
 
 .directory-group__title {
   display: inline-grid;
@@ -103,10 +81,6 @@
   text-transform: uppercase;
 }
 
-/* ==========================================================================
-   Group Count
-   ========================================================================== */
-
 .directory-group__count {
   display: inline-flex;
   align-items: center;
@@ -130,110 +104,30 @@
 }
 
 /* ==========================================================================
-   Directory View Composition
+   List Composition
    ========================================================================== */
 
 /*
- * Each view contains one or more alphabetical groups.
- */
-
-.directory-results__view {
-  inline-size: 100%;
-  min-inline-size: 0;
-}
-
-.directory-results__view[hidden] {
-  display: none;
-}
-
-/* ==========================================================================
-   Grid View Groups
-   ========================================================================== */
-
-.directory-results__view--grid {
-  display: grid;
-  align-content: start;
-  gap: ds.space(8);
-}
-
-/*
- * Preserve the existing three-column grid inside every alphabetical group.
- */
-
-.directory-results__view--grid .directory-results__collection--grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-items: stretch;
-  gap: ds.space(4);
-
-  inline-size: 100%;
-  min-inline-size: 0;
-
-  margin: 0;
-  padding: 0;
-
-  list-style: none;
-}
-
-.directory-results__view--grid .directory-results__item {
-  min-inline-size: 0;
-  block-size: 100%;
-}
-
-/* ==========================================================================
-   List View Groups
-   ========================================================================== */
-
-.directory-results__view--list {
-  display: grid;
-  align-content: start;
-  gap: ds.space(5);
-
-  inline-size: 100%;
-  min-inline-size: 0;
-}
-
-/*
- * List groups use slightly tighter spacing than grid groups while retaining
- * a clear visual boundary between consecutive alphabet sections.
+ * Grid groups use `.directory-results__collection--grid`; list groups use
+ * this wrapper to keep their row rhythm independent of the card grid.
  */
 
 .directory-group--list {
   gap: ds.space(3);
 }
 
-.directory-group--list + .directory-group--list {
-  margin-block-start: ds.space(3);
-}
-
-/* ==========================================================================
-   List Group Items
-   ========================================================================== */
-
 .directory-group__items {
   display: grid;
   align-content: start;
-  gap: ds.space(3);
+  gap: var(--directory-results-list-gap, #{ds.space(3)});
 
   inline-size: 100%;
   min-inline-size: 0;
 }
 
-/*
- * Ensure list rows do not inherit margins from article or content defaults.
- */
-
 .directory-group__items .directory-results__item {
   min-inline-size: 0;
   margin: 0;
-}
-
-/* ==========================================================================
-   Empty Group
-   ========================================================================== */
-
-.directory-group.is-empty {
-  display: none;
 }
 
 /* ==========================================================================
@@ -246,19 +140,9 @@
 
 .directory-group[aria-busy="true"] .directory-group__items,
 .directory-group[aria-busy="true"] .directory-results__collection--grid {
-  opacity: 0.65;
+  opacity: 0.6;
 
   pointer-events: none;
-}
-
-/* ==========================================================================
-   Large Tablet
-   ========================================================================== */
-
-@include ds.respond-down("xl") {
-  .directory-results__view--grid .directory-results__collection--grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 /* ==========================================================================
@@ -266,16 +150,8 @@
    ========================================================================== */
 
 @include ds.respond-down("lg") {
-  .directory-results__view--grid {
-    gap: ds.space(6);
-  }
-
-  .directory-results__view--list {
-    gap: ds.space(4);
-  }
-
-  .directory-group--list + .directory-group--list {
-    margin-block-start: ds.space(2);
+  .directory-group--list {
+    gap: ds.space(3);
   }
 }
 
@@ -289,8 +165,6 @@
   }
 
   .directory-group__header {
-    gap: ds.space(2);
-
     padding-block-end: ds.space(2);
   }
 
@@ -309,26 +183,8 @@
     font-size: var(--text-xs);
   }
 
-  .directory-results__view--grid {
-    gap: ds.space(6);
-  }
-
-  .directory-results__view--grid .directory-results__collection--grid {
-    grid-template-columns: minmax(0, 1fr);
-
-    gap: ds.space(3);
-  }
-
-  .directory-results__view--list {
-    gap: ds.space(4);
-  }
-
   .directory-group__items {
     gap: ds.space(3);
-  }
-
-  .directory-group--list + .directory-group--list {
-    margin-block-start: ds.space(2);
   }
 }
 
@@ -336,27 +192,25 @@
    High Contrast
    ========================================================================== */
 
-html[data-contrast="high"] {
-  .directory-group__header {
-    border-block-end-width: 2px;
-    border-color: currentColor;
-  }
+html[data-contrast="high"] .directory-group__header {
+  border-block-end-width: 2px;
+  border-color: currentColor;
+}
 
-  .directory-group__title {
-    outline: 2px solid currentColor;
-    outline-offset: -2px;
+html[data-contrast="high"] .directory-group__title {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
 
-    background: var(--color-surface);
-    color: currentColor;
-  }
+  background: var(--color-surface);
+  color: currentColor;
+}
 
-  .directory-group__count {
-    border-width: 2px;
-    border-color: currentColor;
+html[data-contrast="high"] .directory-group__count {
+  border-width: 2px;
+  border-color: currentColor;
 
-    background: var(--color-surface);
-    color: currentColor;
-  }
+  background: var(--color-surface);
+  color: currentColor;
 }
 
 /* ==========================================================================
@@ -383,36 +237,10 @@ html[data-contrast="high"] {
 }
 
 /* ==========================================================================
-   Reduced Motion
-   ========================================================================== */
-
-@media (prefers-reduced-motion: reduce) {
-  .directory-group[aria-busy="true"] .directory-group__items,
-  .directory-group[aria-busy="true"] .directory-results__collection--grid {
-    transition: none;
-  }
-}
-
-html[data-motion="reduce"] {
-  .directory-group[aria-busy="true"] .directory-group__items,
-  .directory-group[aria-busy="true"] .directory-results__collection--grid {
-    transition: none;
-  }
-}
-
-/* ==========================================================================
    Print
    ========================================================================== */
 
 @media print {
-  .directory-results__view--list {
-    display: none;
-  }
-
-  .directory-results__view--grid {
-    display: block;
-  }
-
   .directory-group {
     break-inside: avoid;
 
@@ -425,9 +253,5 @@ html[data-motion="reduce"] {
 
     background: transparent;
     color: currentColor;
-  }
-
-  .directory-results__view--grid .directory-results__collection--grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

@@ -1,258 +1,60 @@
-@use "../../../../design-system/abstracts" as *;
+@use "../../../../design-system/abstracts" as ds;
 
 /* ==========================================================================
    Financial Tables
    ========================================================================== */
 
-.financial-table-wrap {
-  position: relative;
-
-  inline-size: 100%;
-  min-inline-size: 0;
-  max-inline-size: 100%;
-
-  overflow-x: auto;
-  overflow-y: hidden;
-
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-
-  background: var(--color-surface);
-
-  overscroll-behavior-inline: contain;
-  scrollbar-color: var(--color-border-strong) transparent;
-  scrollbar-width: thin;
-
-  touch-action: pan-x;
-
-  -webkit-overflow-scrolling: touch;
-
-  &:focus {
-    outline: none;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-
-  &::-webkit-scrollbar {
-    block-size: 0.5rem;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    border: 0.125rem solid transparent;
-    border-radius: var(--radius-pill);
-
-    background: var(--color-border-strong);
-    background-clip: padding-box;
-  }
-}
-
-/* ==========================================================================
-   Base Table
-   ========================================================================== */
-
-.financial-table {
-  inline-size: 100%;
-  min-inline-size: 100%;
-
-  margin: 0;
-
-  border: 0;
-  border-collapse: separate;
-  border-spacing: 0;
-
-  background: var(--color-surface);
-  color: var(--color-text);
-
-  font-size: var(--text-sm);
-  line-height: var(--line-height-normal);
-
-  font-variant-numeric: tabular-nums;
-}
-
-/* ==========================================================================
-   Table Head
-   ========================================================================== */
-
-.financial-table thead {
-  color: var(--color-heading);
-}
-
-/* ==========================================================================
-   Header Cells
-   ========================================================================== */
-
-.financial-table thead th {
-  position: sticky;
-  inset-block-start: 0;
-  z-index: 2;
-
-  padding: 0.875rem 1rem;
-
-  border: 0;
-  border-block-end: 1px solid var(--color-border);
-
-  background: var(--color-surface-alt);
-  color: var(--color-heading);
-
-  font-size: var(--text-xs);
-  font-weight: font-weight("bold");
-  line-height: var(--line-height-tight);
-
-  text-align: start;
-  white-space: nowrap;
-}
-
-/* ==========================================================================
-   Body Cells
-   ========================================================================== */
-
-.financial-table tbody td {
-  padding: 0.9375rem 1rem;
-
-  border: 0;
-  border-block-end: 1px solid var(--color-border);
-
-  background: var(--color-surface);
-  color: var(--color-text);
-
-  font-size: var(--text-sm);
-  font-weight: font-weight("regular");
-  line-height: var(--line-height-normal);
-
-  text-align: start;
-  vertical-align: middle;
-}
-
-/* ==========================================================================
-   Final Row
-   ========================================================================== */
-
-.financial-table tbody tr:last-child td {
-  border-block-end: 0;
-}
-
-/* ==========================================================================
-   Alternating Rows
-   ========================================================================== */
-
-.financial-table tbody tr:nth-child(even) td {
-  background: color-mix(
-    in oklab,
-    var(--color-surface-alt),
-    var(--color-surface) 55%
-  );
-}
-
-/* ==========================================================================
-   Row Hover
-   ========================================================================== */
-
-.financial-table tbody tr:hover td {
-  background: color-mix(
-    in oklab,
-    var(--color-primary),
-    var(--color-surface) 95%
-  );
-}
-
-/* ==========================================================================
-   Numeric Cells
-   ========================================================================== */
-
-.financial-table thead th[data-type="number"],
-.financial-table tbody td[data-type="number"] {
-  text-align: end;
-}
-
-/* ==========================================================================
-   Date Cells
-   ========================================================================== */
-
-.financial-table thead th[data-type="date"],
-.financial-table tbody td[data-type="date"] {
-  white-space: nowrap;
-}
-
-.financial-table time {
-  color: inherit;
-
-  font: inherit;
-
-  white-space: nowrap;
-}
-
-/* ==========================================================================
-   Text Content
-   ========================================================================== */
-
-.financial-table__text {
-  display: inline-block;
-
-  min-inline-size: 0;
-
-  color: inherit;
-
-  overflow-wrap: anywhere;
-}
-
-/* ==========================================================================
-   Primary Cell Content
-   ========================================================================== */
-
-.financial-table__cell-main {
-  display: grid;
-  gap: 0.25rem;
-
-  min-inline-size: 0;
-}
-
-.financial-table__cell-title {
-  color: var(--color-heading);
-
-  font-size: inherit;
-  font-weight: font-weight("bold");
-  line-height: var(--line-height-tight);
-
-  overflow-wrap: anywhere;
-}
-
-.financial-table__cell-note {
-  display: block;
-
-  margin-block-start: 0.25rem;
-
-  color: var(--color-text-muted);
-
-  font-size: var(--text-xs);
-  font-weight: font-weight("regular");
-  line-height: var(--line-height-normal);
-
-  overflow-wrap: anywhere;
-}
+/**
+ * Financial-specific extensions for the reusable design-system table.
+ *
+ * The design system owns:
+ *
+ * - table structure
+ * - responsive overflow
+ * - header and body styling
+ * - striped and hover states
+ * - density
+ * - numeric alignment
+ * - sticky positioning
+ * - grouped and summary rows
+ * - empty and loading states
+ * - accessibility and motion preferences
+ *
+ * This partial owns only financial-domain presentation that cannot be
+ * expressed through the reusable table API.
+ */
 
 /* ==========================================================================
    Financial Value
    ========================================================================== */
 
+/**
+ * Composes a financial amount with optional:
+ *
+ * - currency icon
+ * - numeric amount
+ * - unit
+ *
+ * Numeric direction is isolated so values remain predictable in both
+ * LTR and RTL documents.
+ */
+
 .financial-value {
   display: inline-flex;
   align-items: baseline;
   justify-content: flex-end;
-  gap: 0.375rem;
+  gap: var(--space-1, 0.25rem);
 
   max-inline-size: 100%;
 
+  direction: ltr;
+  unicode-bidi: isolate;
+
   color: inherit;
 
-  white-space: nowrap;
-
   font-variant-numeric: tabular-nums;
+
+  white-space: nowrap;
 }
 
 /* ==========================================================================
@@ -262,7 +64,7 @@
 .financial-value--strong {
   color: var(--color-heading);
 
-  font-weight: font-weight("bold");
+  font-weight: ds.font-weight("bold");
 }
 
 /* ==========================================================================
@@ -300,376 +102,81 @@
   color: var(--color-text-muted);
 
   font-size: var(--text-xs);
-  font-weight: font-weight("medium");
-}
-
-/* ==========================================================================
-   Financial Group Flag
-   ========================================================================== */
-
-/*
- * Used by:
- *
- * - Balance Sheet
- * - Statement of Income
- * - Cash Flows
- */
-
-.financial-table__row--subtotal td {
-  position: relative;
-
-  padding-block: 0.75rem;
-
-  border-block-end: 1px solid
-    color-mix(in oklab, var(--color-primary), transparent 74%);
-
-  background: color-mix(
-    in oklab,
-    var(--color-primary),
-    var(--color-surface) 93%
-  );
-
-  color: var(--color-heading);
-
-  font-weight: font-weight("bold");
-
-  &::before {
-    content: "";
-
-    position: absolute;
-
-    inset-block: 0.625rem;
-    inset-inline-start: 0;
-
-    inline-size: 0.1875rem;
-
-    border-radius: var(--radius-pill);
-
-    background: var(--color-primary);
-  }
-}
-
-.financial-table__row--subtotal:hover td,
-.financial-table__row--subtotal:nth-child(even) td {
-  background: color-mix(
-    in oklab,
-    var(--color-primary),
-    var(--color-surface) 93%
-  );
-}
-
-/* ==========================================================================
-   Total Row
-   ========================================================================== */
-
-.financial-table__row--total td {
-  border-block-start: 1px solid var(--color-border-strong);
-
-  background: var(--color-surface-alt);
-  color: var(--color-heading);
-
-  font-weight: font-weight("bold");
-}
-
-.financial-table__row--total:hover td,
-.financial-table__row--total:nth-child(even) td {
-  background: var(--color-surface-alt);
-}
-
-/* ==========================================================================
-   Muted Row
-   ========================================================================== */
-
-.financial-table__row--muted td {
-  color: var(--color-text-muted);
-}
-
-/* ==========================================================================
-   Dividends Table
-   ========================================================================== */
-
-.financial-table--dividends {
-  min-inline-size: 100%;
-}
-
-.financial-table--dividends th:last-child,
-.financial-table--dividends td:last-child {
-  inline-size: 11rem;
+  font-weight: ds.font-weight("medium");
 }
 
 /* ==========================================================================
    Financial Statement Table
    ========================================================================== */
 
-.financial-table--statements {
-  min-inline-size: 100%;
+/**
+ * Financial statements usually contain a large metric column followed by
+ * multiple period/value columns.
+ *
+ * Generic table behavior remains owned by the design system. This modifier
+ * defines only the domain-specific metric-column width.
+ */
+
+.table-financial-statements {
+  --financial-metric-column-min: 14rem;
+  --financial-metric-column-max: 20rem;
 }
 
 /* ==========================================================================
-   Sticky Financial Metric Column
+   Financial Metric Column
    ========================================================================== */
 
-.financial-table--statements thead th:first-child {
-  position: sticky;
-  inset-inline-start: 0;
-  z-index: 4;
-
-  min-inline-size: 14rem;
-  max-inline-size: 20rem;
-
-  background: var(--color-surface-alt);
-}
-
-.financial-table--statements
-  tbody
-  tr:not(.financial-table__row--subtotal)
-  td:first-child {
-  position: sticky;
-  inset-inline-start: 0;
-  z-index: 1;
-
-  min-inline-size: 14rem;
-  max-inline-size: 20rem;
-
-  background: var(--color-surface);
+.table-financial-statements .financial-metric-column {
+  min-inline-size: var(--financial-metric-column-min);
+  max-inline-size: var(--financial-metric-column-max);
 }
 
 /* ==========================================================================
-   Sticky Column Alternating State
+   Financial Metric
    ========================================================================== */
 
-.financial-table--statements
-  tbody
-  tr:nth-child(even):not(.financial-table__row--subtotal)
-  td:first-child {
-  background: color-mix(
-    in oklab,
-    var(--color-surface-alt),
-    var(--color-surface) 55%
-  );
+/**
+ * Optional composition for statement labels requiring a primary label and
+ * supporting note.
+ */
+
+.financial-metric {
+  display: flex;
+  flex-direction: column;
+  gap: var(--table-cell-content-gap, 0.125rem);
+
+  min-inline-size: 0;
 }
 
-/* ==========================================================================
-   Sticky Column Hover State
-   ========================================================================== */
+.financial-metric__name {
+  color: var(--color-heading);
 
-.financial-table--statements
-  tbody
-  tr:hover:not(.financial-table__row--subtotal)
-  td:first-child {
-  background: color-mix(
-    in oklab,
-    var(--color-primary),
-    var(--color-surface) 95%
-  );
+  font-weight: ds.font-weight("medium");
+
+  overflow-wrap: anywhere;
 }
 
-/* ==========================================================================
-   Compact Table
-   ========================================================================== */
-
-.financial-table--compact thead th {
-  padding-block: 0.75rem;
-}
-
-.financial-table--compact tbody td {
-  padding-block: 0.75rem;
-}
-
-/* ==========================================================================
-   Empty Table Row
-   ========================================================================== */
-
-.financial-table__empty td {
-  padding: clamp(2rem, 5vw, 4rem) 1rem;
-
+.financial-metric__note {
   color: var(--color-text-muted);
 
-  text-align: center;
-}
+  font-size: var(--text-xs);
 
-.financial-table__empty:hover td,
-.financial-table__empty:nth-child(even) td {
-  background: var(--color-surface);
+  overflow-wrap: anywhere;
 }
 
 /* ==========================================================================
-   Tablet
+   Responsive Statement Metric
    ========================================================================== */
 
-@include respond-down(md) {
-  .financial-table thead th,
-  .financial-table tbody td {
-    padding-inline: 0.875rem;
-  }
-
-  .financial-table--statements thead th:first-child,
-  .financial-table--statements
-    tbody
-    tr:not(.financial-table__row--subtotal)
-    td:first-child {
-    min-inline-size: 13rem;
+@include ds.respond-down("md") {
+  .table-financial-statements {
+    --financial-metric-column-min: 13rem;
   }
 }
 
-/* ==========================================================================
-   Mobile
-   ========================================================================== */
-
-@include respond-down(sm) {
-  .financial-table-wrap {
-    border-radius: var(--radius-md);
-  }
-
-  .financial-table {
-    font-size: var(--text-xs);
-  }
-
-  .financial-table thead th,
-  .financial-table tbody td {
-    padding: 0.75rem;
-  }
-
-  .financial-table--statements thead th:first-child,
-  .financial-table--statements
-    tbody
-    tr:not(.financial-table__row--subtotal)
-    td:first-child {
-    min-inline-size: 11rem;
-  }
-
-  /* ========================================================================
-     Mobile Dividend Cards
-     ===================================================================== */
-
-  .financial-content-shell--dividends {
-    .financial-content-shell__body {
-      padding: 0.875rem;
-    }
-
-    .financial-table-wrap {
-      overflow: visible;
-
-      border: 0;
-      border-radius: 0;
-
-      background: transparent;
-
-      &:focus-visible {
-        outline: none;
-        box-shadow: none;
-      }
-    }
-  }
-
-  .financial-table--dividends {
-    display: block;
-
-    min-inline-size: 0;
-
-    border: 0;
-
-    background: transparent;
-  }
-
-  .financial-table--dividends thead {
-    position: absolute;
-
-    inline-size: 1px;
-    block-size: 1px;
-
-    margin: -1px;
-    padding: 0;
-
-    overflow: hidden;
-
-    clip: rect(0 0 0 0);
-    clip-path: inset(50%);
-
-    white-space: nowrap;
-  }
-
-  .financial-table--dividends tbody {
-    display: grid;
-    gap: 0.875rem;
-
-    inline-size: 100%;
-  }
-
-  .financial-table--dividends tr {
-    display: block;
-
-    min-inline-size: 0;
-
-    overflow: hidden;
-
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-
-    background: var(--color-surface);
-
-    box-shadow: var(--shadow-sm);
-  }
-
-  .financial-table--dividends tbody td {
-    display: grid;
-    grid-template-columns:
-      minmax(7.5rem, 0.9fr)
-      minmax(0, 1.1fr);
-
-    align-items: center;
-    gap: 1rem;
-
-    inline-size: 100%;
-
-    padding: 0.75rem 0.875rem;
-
-    border-block-end: 1px solid var(--color-border);
-
-    background: transparent;
-
-    text-align: end;
-    white-space: normal;
-
-    &::before {
-      content: attr(data-label);
-
-      min-inline-size: 0;
-
-      color: var(--color-text-muted);
-
-      font-size: 0.6875rem;
-      font-weight: font-weight("semibold");
-      line-height: var(--line-height-tight);
-
-      text-align: start;
-    }
-  }
-
-  .financial-table--dividends tbody tr:hover td,
-  .financial-table--dividends tbody tr:nth-child(even) td {
-    background: transparent;
-  }
-
-  .financial-table--dividends tbody td:last-child {
-    inline-size: 100%;
-
-    border-block-end: 0;
-  }
-
-  .financial-table--dividends tbody td[data-type="date"],
-  .financial-table--dividends tbody td[data-type="number"] {
-    text-align: end;
-  }
-
-  .financial-table--dividends tbody td[data-type="number"] .financial-value {
-    justify-self: end;
-  }
-
-  .financial-table--dividends .financial-table__text {
-    justify-self: end;
-
-    text-align: end;
+@include ds.respond-down("sm") {
+  .table-financial-statements {
+    --financial-metric-column-min: 11rem;
   }
 
   .financial-value__currency {
@@ -678,138 +185,25 @@
 }
 
 /* ==========================================================================
-   Extra Small Screens
-   ========================================================================== */
-
-@media (max-width: 360px) {
-  .financial-table--dividends tbody td {
-    grid-template-columns:
-      minmax(6.75rem, 0.9fr)
-      minmax(0, 1.1fr);
-
-    gap: 0.625rem;
-
-    padding-inline: 0.75rem;
-  }
-}
-
-/* ==========================================================================
-   Dark Theme
-   ========================================================================== */
-
-html[data-theme="dark"] {
-  .financial-table tbody tr:nth-child(even) td {
-    background: color-mix(
-      in oklab,
-      var(--color-surface-alt),
-      var(--color-surface) 65%
-    );
-  }
-
-  .financial-table tbody tr:hover td {
-    background: color-mix(
-      in oklab,
-      var(--color-primary),
-      var(--color-surface) 91%
-    );
-  }
-
-  .financial-table__row--subtotal td,
-  .financial-table__row--subtotal:hover td,
-  .financial-table__row--subtotal:nth-child(even) td {
-    background: color-mix(
-      in oklab,
-      var(--color-primary),
-      var(--color-surface) 88%
-    );
-  }
-
-  .financial-table--statements
-    tbody
-    tr:nth-child(even):not(.financial-table__row--subtotal)
-    td:first-child {
-    background: color-mix(
-      in oklab,
-      var(--color-surface-alt),
-      var(--color-surface) 65%
-    );
-  }
-
-  .financial-table--statements
-    tbody
-    tr:hover:not(.financial-table__row--subtotal)
-    td:first-child {
-    background: color-mix(
-      in oklab,
-      var(--color-primary),
-      var(--color-surface) 91%
-    );
-  }
-
-  @include respond-down(sm) {
-    .financial-table--dividends tr {
-      box-shadow: none;
-    }
-
-    .financial-table--dividends tbody tr:hover td,
-    .financial-table--dividends tbody tr:nth-child(even) td {
-      background: transparent;
-    }
-  }
-}
-
-/* ==========================================================================
    High Contrast
    ========================================================================== */
 
 html[data-contrast="high"] {
-  .financial-table-wrap {
-    border-width: 2px;
-  }
-
-  .financial-table thead th,
-  .financial-table tbody td {
-    border-block-end-width: 2px;
-  }
-
-  .financial-table tbody tr:nth-child(even) td,
-  .financial-table tbody tr:hover td {
-    background: var(--color-surface);
-  }
-
-  .financial-table__row--subtotal td,
-  .financial-table__row--subtotal:hover td,
-  .financial-table__row--subtotal:nth-child(even) td {
-    border-block-end: 2px solid currentColor;
-
-    background: var(--color-surface);
-  }
-
-  .financial-table__row--subtotal td::before {
-    inline-size: 0.25rem;
-
-    background: currentColor;
-  }
-
-  .financial-table__row--total td {
-    border-block-start-width: 2px;
-  }
-
   .financial-value__currency,
   .financial-value__unit,
-  .financial-table__cell-note {
+  .financial-metric__note {
     color: currentColor;
   }
+}
 
-  @include respond-down(sm) {
-    .financial-content-shell--dividends .financial-table-wrap {
-      border: 0;
-    }
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
 
-    .financial-table--dividends tr {
-      border-width: 2px;
-
-      box-shadow: none;
-    }
+@media (forced-colors: active) {
+  .financial-value__currency,
+  .financial-value__unit,
+  .financial-metric__note {
+    color: CanvasText;
   }
 }

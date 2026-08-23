@@ -5546,22 +5546,22 @@
       >
         <div class="container">
           <form
-            class="filter-bar filter-bar--stacked"
             id="issuer-directory-filter-form"
+            class="filter-bar filter-bar--stacked"
             action="/trading/participants/issuer-directory/"
             method="get"
             role="search"
             data-directory-filter-form
           >
-            <!-- ====================================================================
+            <!-- ================================================================
            Header
-           ==================================================================== -->
+           ================================================================ -->
 
             <header class="filter-bar__header">
               <div class="filter-bar__heading">
                 <h2
-                  class="filter-bar__title"
                   id="issuer-directory-filters-title"
+                  class="filter-bar__title"
                 >
                   Find an issuer
                 </h2>
@@ -5573,46 +5573,36 @@
               </div>
             </header>
 
-            <!-- ====================================================================
+            <!-- ================================================================
            Primary Filters
-           ==================================================================== -->
+           ================================================================ -->
 
             <div class="filter-bar__inner">
-              <div class="filter-bar__fields grid-3">
-                <!-- ================================================================
-               Company or Symbol
-               ================================================================ -->
-
+              <div class="filter-bar__fields grid grid-3">
                 <div class="filter-bar__field">
                   <label class="form-label" for="issuer-directory-search">
                     Company or symbol
                   </label>
 
-                  <div class="form-control-wrap">
-                    <input
-                      class="form-control"
-                      id="issuer-directory-search"
-                      name="query"
-                      type="search"
-                      inputmode="search"
-                      autocomplete="off"
-                      placeholder="Search by company name or symbol"
-                      aria-describedby="issuer-directory-search-help"
-                      data-directory-search
-                    />
-                  </div>
+                  <input
+                    id="issuer-directory-search"
+                    class="form-control"
+                    name="query"
+                    type="search"
+                    inputmode="search"
+                    autocomplete="off"
+                    placeholder="Search by company name or symbol"
+                    aria-describedby="issuer-directory-search-help"
+                    data-directory-search
+                  />
 
                   <p
-                    class="form-help visually-hidden"
                     id="issuer-directory-search-help"
+                    class="form-help visually-hidden"
                   >
                     Enter all or part of an issuer name or trading symbol.
                   </p>
                 </div>
-
-                <!-- ================================================================
-               Market
-               ================================================================ -->
 
                 <div class="filter-bar__field">
                   <label class="form-label" for="issuer-directory-market">
@@ -5622,23 +5612,20 @@
                   <div class="custom-select" data-custom-select>
                     <div class="form-select-wrap custom-select__fallback">
                       <select
-                        class="form-select custom-select__native"
                         id="issuer-directory-market"
+                        class="form-select custom-select__native"
                         name="market"
                         data-directory-market
                       >
                         <option value="" selected>All markets</option>
                         <option value="main-market">Main Market</option>
                         <option value="nomu">Nomu – Parallel Market</option>
-
                         <option value="exchange-traded-funds">
                           Exchange-Traded Funds
                         </option>
-
                         <option value="reits">
                           Real Estate Investment Traded Funds
                         </option>
-
                         <option value="sukuk-bonds">Sukuk and Bonds</option>
                       </select>
 
@@ -5650,10 +5637,6 @@
                   </div>
                 </div>
 
-                <!-- ================================================================
-               Sector
-               ================================================================ -->
-
                 <div class="filter-bar__field">
                   <label class="form-label" for="issuer-directory-sector">
                     Sector
@@ -5662,8 +5645,8 @@
                   <div class="custom-select" data-custom-select>
                     <div class="form-select-wrap custom-select__fallback">
                       <select
-                        class="form-select custom-select__native"
                         id="issuer-directory-sector"
+                        class="form-select custom-select__native"
                         name="sector"
                         data-directory-sector
                       >
@@ -5671,49 +5654,35 @@
                         <option value="energy">Energy</option>
                         <option value="materials">Materials</option>
                         <option value="capital-goods">Capital Goods</option>
-
                         <option value="commercial-services">
                           Commercial and Professional Services
                         </option>
-
                         <option value="transportation">Transportation</option>
-
                         <option value="consumer-services">
                           Consumer Services
                         </option>
-
                         <option value="media-entertainment">
                           Media and Entertainment
                         </option>
-
                         <option value="retailing">
                           Consumer Discretionary Distribution and Retail
                         </option>
-
                         <option value="food-beverages">
                           Food and Beverages
                         </option>
-
                         <option value="healthcare">Health Care</option>
-
                         <option value="banks">Banks</option>
-
                         <option value="financial-services">
                           Financial Services
                         </option>
-
                         <option value="insurance">Insurance</option>
-
                         <option value="software-services">
                           Software and Services
                         </option>
-
                         <option value="telecommunication-services">
                           Telecommunication Services
                         </option>
-
                         <option value="utilities">Utilities</option>
-
                         <option value="real-estate-management">
                           Real Estate Management and Development
                         </option>
@@ -5728,31 +5697,29 @@
                 </div>
               </div>
 
-              <!-- ================================================================
-             Actions
-             ================================================================ -->
-
               <div class="filter-bar__actions">
-                <button
-                  class="btn btn-primary has-icon icon-search"
-                  type="submit"
-                >
-                  Search
-                </button>
+                <div class="filter-bar__action-group">
+                  <button
+                    class="btn btn-primary has-icon icon-search"
+                    type="submit"
+                  >
+                    Search
+                  </button>
 
-                <button
-                  class="btn btn-outline-primary has-icon icon-sync-refresh"
-                  type="reset"
-                  data-directory-filter-reset
-                >
-                  Reset
-                </button>
+                  <button
+                    class="btn btn-outline-primary has-icon icon-sync-refresh"
+                    type="reset"
+                    data-directory-filter-reset
+                  >
+                    Reset
+                  </button>
+                </div>
               </div>
             </div>
 
-            <!-- ====================================================================
+            <!-- ================================================================
            Alphabetical Filter
-           ==================================================================== -->
+           ================================================================ -->
 
             <div class="filter-bar__secondary">
               <div class="filter-bar__secondary-content">
@@ -5761,15 +5728,11 @@
                   aria-labelledby="issuer-directory-alphabet-title"
                   data-directory-alphabet
                 >
-                  <!-- ==============================================================
-                 Alphabet Header
-                 ============================================================== -->
-
                   <header class="directory-alphabet__header">
                     <div class="directory-alphabet__heading">
                       <h3
-                        class="directory-alphabet__label"
                         id="issuer-directory-alphabet-title"
+                        class="directory-alphabet__label"
                       >
                         Browse alphabetically
                       </h3>
@@ -5780,10 +5743,6 @@
                     </div>
                   </header>
 
-                  <!-- ==============================================================
-                 Alphabet Controls
-                 ============================================================== -->
-
                   <div class="directory-alphabet__frame">
                     <div
                       class="directory-alphabet__scroller"
@@ -5792,13 +5751,10 @@
                       aria-label="Filter issuers by first letter"
                     >
                       <ul class="directory-alphabet__list">
-                        <!-- All -->
-
                         <li class="directory-alphabet__item">
                           <button
                             class="directory-alphabet__control directory-alphabet__control--all is-active"
                             type="button"
-                            aria-label="Show all issuers"
                             aria-controls="issuer-directory-grid issuer-directory-list"
                             aria-pressed="true"
                             data-directory-letter=""
@@ -5806,8 +5762,6 @@
                             All
                           </button>
                         </li>
-
-                        <!-- A -->
 
                         <li class="directory-alphabet__item">
                           <button
@@ -5822,8 +5776,6 @@
                           </button>
                         </li>
 
-                        <!-- B -->
-
                         <li class="directory-alphabet__item">
                           <button
                             class="directory-alphabet__control"
@@ -5836,8 +5788,6 @@
                             B
                           </button>
                         </li>
-
-                        <!-- C -->
 
                         <li class="directory-alphabet__item">
                           <button
@@ -5852,8 +5802,6 @@
                           </button>
                         </li>
 
-                        <!-- D -->
-
                         <li class="directory-alphabet__item">
                           <button
                             class="directory-alphabet__control"
@@ -5866,8 +5814,6 @@
                             D
                           </button>
                         </li>
-
-                        <!-- E -->
 
                         <li class="directory-alphabet__item">
                           <button
@@ -5882,8 +5828,6 @@
                           </button>
                         </li>
 
-                        <!-- F -->
-
                         <li class="directory-alphabet__item">
                           <button
                             class="directory-alphabet__control"
@@ -5896,8 +5840,6 @@
                             F
                           </button>
                         </li>
-
-                        <!-- G -->
 
                         <li class="directory-alphabet__item">
                           <button
@@ -5912,8 +5854,6 @@
                           </button>
                         </li>
 
-                        <!-- H -->
-
                         <li class="directory-alphabet__item">
                           <button
                             class="directory-alphabet__control"
@@ -5926,8 +5866,6 @@
                             H
                           </button>
                         </li>
-
-                        <!-- I -->
 
                         <li class="directory-alphabet__item">
                           <button
@@ -5942,8 +5880,6 @@
                           </button>
                         </li>
 
-                        <!-- J -->
-
                         <li class="directory-alphabet__item">
                           <button
                             class="directory-alphabet__control"
@@ -5956,8 +5892,6 @@
                             J
                           </button>
                         </li>
-
-                        <!-- K -->
 
                         <li class="directory-alphabet__item">
                           <button
@@ -5972,8 +5906,6 @@
                           </button>
                         </li>
 
-                        <!-- L -->
-
                         <li class="directory-alphabet__item">
                           <button
                             class="directory-alphabet__control"
@@ -5986,8 +5918,6 @@
                             L
                           </button>
                         </li>
-
-                        <!-- M -->
 
                         <li class="directory-alphabet__item">
                           <button
@@ -6002,8 +5932,6 @@
                           </button>
                         </li>
 
-                        <!-- N -->
-
                         <li class="directory-alphabet__item">
                           <button
                             class="directory-alphabet__control"
@@ -6016,8 +5944,6 @@
                             N
                           </button>
                         </li>
-
-                        <!-- O -->
 
                         <li class="directory-alphabet__item">
                           <button
@@ -6032,8 +5958,6 @@
                           </button>
                         </li>
 
-                        <!-- P -->
-
                         <li class="directory-alphabet__item">
                           <button
                             class="directory-alphabet__control"
@@ -6046,8 +5970,6 @@
                             P
                           </button>
                         </li>
-
-                        <!-- Q -->
 
                         <li class="directory-alphabet__item">
                           <button
@@ -6062,8 +5984,6 @@
                           </button>
                         </li>
 
-                        <!-- R -->
-
                         <li class="directory-alphabet__item">
                           <button
                             class="directory-alphabet__control"
@@ -6076,8 +5996,6 @@
                             R
                           </button>
                         </li>
-
-                        <!-- S -->
 
                         <li class="directory-alphabet__item">
                           <button
@@ -6092,8 +6010,6 @@
                           </button>
                         </li>
 
-                        <!-- T -->
-
                         <li class="directory-alphabet__item">
                           <button
                             class="directory-alphabet__control"
@@ -6106,8 +6022,6 @@
                             T
                           </button>
                         </li>
-
-                        <!-- U -->
 
                         <li class="directory-alphabet__item">
                           <button
@@ -6122,8 +6036,6 @@
                           </button>
                         </li>
 
-                        <!-- V -->
-
                         <li class="directory-alphabet__item">
                           <button
                             class="directory-alphabet__control"
@@ -6136,8 +6048,6 @@
                             V
                           </button>
                         </li>
-
-                        <!-- W -->
 
                         <li class="directory-alphabet__item">
                           <button
@@ -6152,8 +6062,6 @@
                           </button>
                         </li>
 
-                        <!-- X -->
-
                         <li class="directory-alphabet__item">
                           <button
                             class="directory-alphabet__control"
@@ -6167,8 +6075,6 @@
                           </button>
                         </li>
 
-                        <!-- Y -->
-
                         <li class="directory-alphabet__item">
                           <button
                             class="directory-alphabet__control"
@@ -6181,8 +6087,6 @@
                             Y
                           </button>
                         </li>
-
-                        <!-- Z -->
 
                         <li class="directory-alphabet__item">
                           <button
@@ -6203,10 +6107,6 @@
               </div>
             </div>
 
-            <!-- ====================================================================
-           Selected Alphabet Value
-           ==================================================================== -->
-
             <input
               type="hidden"
               name="letter"
@@ -6216,7 +6116,6 @@
           </form>
         </div>
       </section>
-
       <!-- ==========================================================================
      Issuer Directory Results
      ========================================================================== -->
@@ -6231,19 +6130,16 @@
         <div class="container">
           <div class="directory__surface">
             <div class="directory__content">
-              <!-- ==================================================================
-             Directory Header
-             ================================================================== -->
-
               <header class="directory__header">
                 <div class="directory__heading">
-                  <h2 class="directory__title" id="issuer-results-title">
+                  <h2 id="issuer-results-title" class="directory__title">
                     Listed issuers
                   </h2>
 
                   <p class="directory__description">
                     Browse issuer profiles and review their market
-                    classification, trading symbol, and sector.
+                    classification, trading symbol, sector, and latest daily
+                    movement.
                   </p>
                 </div>
 
@@ -6252,14 +6148,10 @@
                   role="status"
                   aria-label="266 issuers found"
                 >
-                  <strong class="directory__count-value">266</strong>
+                  <span class="directory__count-value">266</span>
                   <span class="directory__count-label">issuers</span>
                 </div>
               </header>
-
-              <!-- ==================================================================
-             Directory Workspace
-             ================================================================== -->
 
               <div class="directory__workspace">
                 <!-- ================================================================
@@ -6306,10 +6198,6 @@
                   </div>
                 </div>
 
-                <!-- ================================================================
-               Accessible Live Status
-               ================================================================ -->
-
                 <div
                   class="directory__live-status visually-hidden"
                   role="status"
@@ -6326,22 +6214,19 @@
                 <div
                   class="directory__results directory-results directory-results--grid-3"
                   data-directory-results
+                  data-view="grid"
                 >
                   <!-- ==============================================================
                  Grid View
                  ============================================================== -->
 
                   <div
-                    class="directory-results__view directory-results__view--grid"
                     id="issuer-directory-grid"
+                    class="stack stack--xl"
                     aria-label="Issuers in grid view"
                     data-view-panel="grid"
                     data-directory-grid
                   >
-                    <!-- ============================================================
-                   Letter Group A
-                   ============================================================ -->
-
                     <section
                       class="directory-group"
                       aria-labelledby="issuer-grid-group-a-title"
@@ -6349,21 +6234,19 @@
                     >
                       <header class="directory-group__header">
                         <h3
-                          class="directory-group__title"
                           id="issuer-grid-group-a-title"
+                          class="directory-group__title"
                         >
                           A
                         </h3>
 
-                        <span class="directory-group__count"> 3 issuers </span>
+                        <span class="directory-group__count">3 issuers</span>
                       </header>
 
                       <ul
                         class="directory-results__collection directory-results__collection--grid"
                         aria-label="Issuers beginning with A"
                       >
-                        <!-- Abdullah Al Othaim Markets -->
-
                         <li class="directory-results__item">
                           <article class="card issuer-card">
                             <header class="issuer-card__header">
@@ -6396,14 +6279,12 @@
                                     <span class="issuer-card__symbol-value">
                                       OTHAIM MARKET
                                     </span>
-
                                     <span
                                       class="issuer-card__symbol-separator"
                                       aria-hidden="true"
                                     >
                                       ·
                                     </span>
-
                                     <span class="issuer-card__code">4001</span>
                                   </div>
                                 </div>
@@ -6424,7 +6305,6 @@
                                   <dt class="issuer-card__metadata-label">
                                     Market
                                   </dt>
-
                                   <dd class="issuer-card__metadata-value">
                                     Main Market
                                   </dd>
@@ -6434,7 +6314,6 @@
                                   <dt class="issuer-card__metadata-label">
                                     Sector
                                   </dt>
-
                                   <dd class="issuer-card__metadata-value">
                                     Consumer Staples Distribution and Retail
                                   </dd>
@@ -6444,9 +6323,8 @@
                                   <dt class="issuer-card__metadata-label">
                                     Daily change
                                   </dt>
-
                                   <dd
-                                    class="issuer-card__movement issuer-card__movement--positive has-icon icon-triangle-up"
+                                    class="issuer-card__movement price-up has-icon icon-triangle-up"
                                   >
                                     <span class="visually-hidden"
                                       >Increased by</span
@@ -6467,8 +6345,6 @@
                             </footer>
                           </article>
                         </li>
-
-                        <!-- Abo Moati -->
 
                         <li class="directory-results__item">
                           <article class="card issuer-card">
@@ -6503,14 +6379,12 @@
                                     <span class="issuer-card__symbol-value">
                                       ABO MOATI
                                     </span>
-
                                     <span
                                       class="issuer-card__symbol-separator"
                                       aria-hidden="true"
                                     >
                                       ·
                                     </span>
-
                                     <span class="issuer-card__code">4191</span>
                                   </div>
                                 </div>
@@ -6531,7 +6405,6 @@
                                   <dt class="issuer-card__metadata-label">
                                     Market
                                   </dt>
-
                                   <dd class="issuer-card__metadata-value">
                                     Main Market
                                   </dd>
@@ -6541,7 +6414,6 @@
                                   <dt class="issuer-card__metadata-label">
                                     Sector
                                   </dt>
-
                                   <dd class="issuer-card__metadata-value">
                                     Consumer Discretionary Distribution and
                                     Retail
@@ -6552,9 +6424,8 @@
                                   <dt class="issuer-card__metadata-label">
                                     Daily change
                                   </dt>
-
                                   <dd
-                                    class="issuer-card__movement issuer-card__movement--negative has-icon icon-triangle-down"
+                                    class="issuer-card__movement price-down has-icon icon-triangle-down"
                                   >
                                     <span class="visually-hidden"
                                       >Decreased by</span
@@ -6575,8 +6446,6 @@
                             </footer>
                           </article>
                         </li>
-
-                        <!-- ACWA Power -->
 
                         <li class="directory-results__item">
                           <article class="card issuer-card">
@@ -6610,14 +6479,12 @@
                                     <span class="issuer-card__symbol-value">
                                       ACWA POWER
                                     </span>
-
                                     <span
                                       class="issuer-card__symbol-separator"
                                       aria-hidden="true"
                                     >
                                       ·
                                     </span>
-
                                     <span class="issuer-card__code">2082</span>
                                   </div>
                                 </div>
@@ -6638,7 +6505,6 @@
                                   <dt class="issuer-card__metadata-label">
                                     Market
                                   </dt>
-
                                   <dd class="issuer-card__metadata-value">
                                     Main Market
                                   </dd>
@@ -6648,7 +6514,6 @@
                                   <dt class="issuer-card__metadata-label">
                                     Sector
                                   </dt>
-
                                   <dd class="issuer-card__metadata-value">
                                     Utilities
                                   </dd>
@@ -6658,9 +6523,8 @@
                                   <dt class="issuer-card__metadata-label">
                                     Daily change
                                   </dt>
-
                                   <dd
-                                    class="issuer-card__movement issuer-card__movement--positive has-icon icon-triangle-up"
+                                    class="issuer-card__movement price-up has-icon icon-triangle-up"
                                   >
                                     <span class="visually-hidden"
                                       >Increased by</span
@@ -6684,10 +6548,6 @@
                       </ul>
                     </section>
 
-                    <!-- ============================================================
-                   Letter Group B
-                   ============================================================ -->
-
                     <section
                       class="directory-group"
                       aria-labelledby="issuer-grid-group-b-title"
@@ -6695,21 +6555,19 @@
                     >
                       <header class="directory-group__header">
                         <h3
-                          class="directory-group__title"
                           id="issuer-grid-group-b-title"
+                          class="directory-group__title"
                         >
                           B
                         </h3>
 
-                        <span class="directory-group__count"> 2 issuers </span>
+                        <span class="directory-group__count">2 issuers</span>
                       </header>
 
                       <ul
                         class="directory-results__collection directory-results__collection--grid"
                         aria-label="Issuers beginning with B"
                       >
-                        <!-- Bank AlJazira -->
-
                         <li class="directory-results__item">
                           <article class="card issuer-card">
                             <header class="issuer-card__header">
@@ -6742,14 +6600,12 @@
                                     <span class="issuer-card__symbol-value">
                                       BANK ALJAZIRA
                                     </span>
-
                                     <span
                                       class="issuer-card__symbol-separator"
                                       aria-hidden="true"
                                     >
                                       ·
                                     </span>
-
                                     <span class="issuer-card__code">1020</span>
                                   </div>
                                 </div>
@@ -6770,7 +6626,6 @@
                                   <dt class="issuer-card__metadata-label">
                                     Market
                                   </dt>
-
                                   <dd class="issuer-card__metadata-value">
                                     Main Market
                                   </dd>
@@ -6780,7 +6635,6 @@
                                   <dt class="issuer-card__metadata-label">
                                     Sector
                                   </dt>
-
                                   <dd class="issuer-card__metadata-value">
                                     Banks
                                   </dd>
@@ -6790,14 +6644,10 @@
                                   <dt class="issuer-card__metadata-label">
                                     Daily change
                                   </dt>
-
                                   <dd
-                                    class="issuer-card__movement issuer-card__movement--positive has-icon icon-triangle-up"
+                                    class="issuer-card__movement price-neutral"
                                   >
-                                    <span class="visually-hidden"
-                                      >Increased by</span
-                                    >
-                                    +0.24%
+                                    0.00%
                                   </dd>
                                 </div>
                               </dl>
@@ -6813,8 +6663,6 @@
                             </footer>
                           </article>
                         </li>
-
-                        <!-- Bupa Arabia -->
 
                         <li class="directory-results__item">
                           <article class="card issuer-card">
@@ -6848,14 +6696,12 @@
                                     <span class="issuer-card__symbol-value">
                                       BUPA ARABIA
                                     </span>
-
                                     <span
                                       class="issuer-card__symbol-separator"
                                       aria-hidden="true"
                                     >
                                       ·
                                     </span>
-
                                     <span class="issuer-card__code">8210</span>
                                   </div>
                                 </div>
@@ -6876,7 +6722,6 @@
                                   <dt class="issuer-card__metadata-label">
                                     Market
                                   </dt>
-
                                   <dd class="issuer-card__metadata-value">
                                     Main Market
                                   </dd>
@@ -6886,7 +6731,6 @@
                                   <dt class="issuer-card__metadata-label">
                                     Sector
                                   </dt>
-
                                   <dd class="issuer-card__metadata-value">
                                     Insurance
                                   </dd>
@@ -6896,14 +6740,13 @@
                                   <dt class="issuer-card__metadata-label">
                                     Daily change
                                   </dt>
-
                                   <dd
-                                    class="issuer-card__movement issuer-card__movement--negative has-icon icon-triangle-down"
+                                    class="issuer-card__movement price-down has-icon icon-triangle-down"
                                   >
                                     <span class="visually-hidden"
                                       >Decreased by</span
                                     >
-                                    −0.12%
+                                    −0.27%
                                   </dd>
                                 </div>
                               </dl>
@@ -6928,45 +6771,13 @@
                  ============================================================== -->
 
                   <div
-                    class="directory-results__view directory-results__view--list"
                     id="issuer-directory-list"
+                    class="stack stack--lg"
                     aria-label="Issuers in list view"
                     data-view-panel="list"
                     data-directory-list
                     hidden
                   >
-                    <!-- ============================================================
-                   List Header
-                   ============================================================ -->
-
-                    <div class="issuer-list-header" aria-hidden="true">
-                      <span class="issuer-list-header__label"> Issuer </span>
-
-                      <span class="issuer-list-header__label"> Symbol </span>
-
-                      <span
-                        class="issuer-list-header__label issuer-list-header__label--market"
-                      >
-                        Market
-                      </span>
-
-                      <span
-                        class="issuer-list-header__label issuer-list-header__label--sector"
-                      >
-                        Sector
-                      </span>
-
-                      <span class="issuer-list-header__label">
-                        Daily change
-                      </span>
-
-                      <span class="issuer-list-header__profile"></span>
-                    </div>
-
-                    <!-- ============================================================
-                   Letter Group A
-                   ============================================================ -->
-
                     <section
                       class="directory-group directory-group--list"
                       aria-labelledby="issuer-list-group-a-title"
@@ -6974,21 +6785,19 @@
                     >
                       <header class="directory-group__header">
                         <h3
-                          class="directory-group__title"
                           id="issuer-list-group-a-title"
+                          class="directory-group__title"
                         >
                           A
                         </h3>
 
-                        <span class="directory-group__count"> 3 issuers </span>
+                        <span class="directory-group__count">3 issuers</span>
                       </header>
 
                       <div
                         class="directory-group__items"
                         aria-label="Issuers beginning with A"
                       >
-                        <!-- Abdullah Al Othaim Markets -->
-
                         <article class="directory-results__item issuer-row">
                           <div class="issuer-row__identity">
                             <button
@@ -7020,43 +6829,35 @@
                                 </a>
                               </h4>
 
-                              <span class="issuer-row__code"> 4001 </span>
+                              <span class="issuer-row__code">4001</span>
                             </div>
                           </div>
 
                           <div class="issuer-row__field">
-                            <span class="issuer-row__label"> Symbol </span>
-
-                            <span class="issuer-row__value">
-                              OTHAIM MARKET
-                            </span>
+                            <span class="issuer-row__label">Symbol</span>
+                            <span class="issuer-row__value">OTHAIM MARKET</span>
                           </div>
 
                           <div
                             class="issuer-row__field issuer-row__field--market"
                           >
-                            <span class="issuer-row__label"> Market </span>
-
-                            <span class="issuer-row__value"> Main Market </span>
+                            <span class="issuer-row__label">Market</span>
+                            <span class="issuer-row__value">Main Market</span>
                           </div>
 
                           <div
                             class="issuer-row__field issuer-row__field--sector"
                           >
-                            <span class="issuer-row__label"> Sector </span>
-
+                            <span class="issuer-row__label">Sector</span>
                             <span class="issuer-row__value">
                               Consumer Staples Distribution and Retail
                             </span>
                           </div>
 
                           <div class="issuer-row__field">
-                            <span class="issuer-row__label">
-                              Daily change
-                            </span>
-
+                            <span class="issuer-row__label">Daily change</span>
                             <span
-                              class="issuer-row__movement issuer-row__movement--positive has-icon icon-triangle-up"
+                              class="issuer-row__movement price-up has-icon icon-triangle-up"
                             >
                               <span class="visually-hidden">Increased by</span>
                               +0.31%
@@ -7071,8 +6872,6 @@
                             View profile
                           </a>
                         </article>
-
-                        <!-- Abo Moati -->
 
                         <article class="directory-results__item issuer-row">
                           <div class="issuer-row__identity">
@@ -7106,41 +6905,35 @@
                                 </a>
                               </h4>
 
-                              <span class="issuer-row__code"> 4191 </span>
+                              <span class="issuer-row__code">4191</span>
                             </div>
                           </div>
 
                           <div class="issuer-row__field">
-                            <span class="issuer-row__label"> Symbol </span>
-
-                            <span class="issuer-row__value"> ABO MOATI </span>
+                            <span class="issuer-row__label">Symbol</span>
+                            <span class="issuer-row__value">ABO MOATI</span>
                           </div>
 
                           <div
                             class="issuer-row__field issuer-row__field--market"
                           >
-                            <span class="issuer-row__label"> Market </span>
-
-                            <span class="issuer-row__value"> Main Market </span>
+                            <span class="issuer-row__label">Market</span>
+                            <span class="issuer-row__value">Main Market</span>
                           </div>
 
                           <div
                             class="issuer-row__field issuer-row__field--sector"
                           >
-                            <span class="issuer-row__label"> Sector </span>
-
+                            <span class="issuer-row__label">Sector</span>
                             <span class="issuer-row__value">
                               Consumer Discretionary Distribution and Retail
                             </span>
                           </div>
 
                           <div class="issuer-row__field">
-                            <span class="issuer-row__label">
-                              Daily change
-                            </span>
-
+                            <span class="issuer-row__label">Daily change</span>
                             <span
-                              class="issuer-row__movement issuer-row__movement--negative has-icon icon-triangle-down"
+                              class="issuer-row__movement price-down has-icon icon-triangle-down"
                             >
                               <span class="visually-hidden">Decreased by</span>
                               −0.18%
@@ -7155,8 +6948,6 @@
                             View profile
                           </a>
                         </article>
-
-                        <!-- ACWA Power -->
 
                         <article class="directory-results__item issuer-row">
                           <div class="issuer-row__identity">
@@ -7189,39 +6980,33 @@
                                 </a>
                               </h4>
 
-                              <span class="issuer-row__code"> 2082 </span>
+                              <span class="issuer-row__code">2082</span>
                             </div>
                           </div>
 
                           <div class="issuer-row__field">
-                            <span class="issuer-row__label"> Symbol </span>
-
-                            <span class="issuer-row__value"> ACWA POWER </span>
+                            <span class="issuer-row__label">Symbol</span>
+                            <span class="issuer-row__value">ACWA POWER</span>
                           </div>
 
                           <div
                             class="issuer-row__field issuer-row__field--market"
                           >
-                            <span class="issuer-row__label"> Market </span>
-
-                            <span class="issuer-row__value"> Main Market </span>
+                            <span class="issuer-row__label">Market</span>
+                            <span class="issuer-row__value">Main Market</span>
                           </div>
 
                           <div
                             class="issuer-row__field issuer-row__field--sector"
                           >
-                            <span class="issuer-row__label"> Sector </span>
-
-                            <span class="issuer-row__value"> Utilities </span>
+                            <span class="issuer-row__label">Sector</span>
+                            <span class="issuer-row__value">Utilities</span>
                           </div>
 
                           <div class="issuer-row__field">
-                            <span class="issuer-row__label">
-                              Daily change
-                            </span>
-
+                            <span class="issuer-row__label">Daily change</span>
                             <span
-                              class="issuer-row__movement issuer-row__movement--positive has-icon icon-triangle-up"
+                              class="issuer-row__movement price-up has-icon icon-triangle-up"
                             >
                               <span class="visually-hidden">Increased by</span>
                               +0.50%
@@ -7239,10 +7024,6 @@
                       </div>
                     </section>
 
-                    <!-- ============================================================
-                   Letter Group B
-                   ============================================================ -->
-
                     <section
                       class="directory-group directory-group--list"
                       aria-labelledby="issuer-list-group-b-title"
@@ -7250,21 +7031,19 @@
                     >
                       <header class="directory-group__header">
                         <h3
-                          class="directory-group__title"
                           id="issuer-list-group-b-title"
+                          class="directory-group__title"
                         >
                           B
                         </h3>
 
-                        <span class="directory-group__count"> 2 issuers </span>
+                        <span class="directory-group__count">2 issuers</span>
                       </header>
 
                       <div
                         class="directory-group__items"
                         aria-label="Issuers beginning with B"
                       >
-                        <!-- Bank AlJazira -->
-
                         <article class="directory-results__item issuer-row">
                           <div class="issuer-row__identity">
                             <button
@@ -7296,44 +7075,33 @@
                                 </a>
                               </h4>
 
-                              <span class="issuer-row__code"> 1020 </span>
+                              <span class="issuer-row__code">1020</span>
                             </div>
                           </div>
 
                           <div class="issuer-row__field">
-                            <span class="issuer-row__label"> Symbol </span>
-
-                            <span class="issuer-row__value">
-                              BANK ALJAZIRA
-                            </span>
+                            <span class="issuer-row__label">Symbol</span>
+                            <span class="issuer-row__value">BANK ALJAZIRA</span>
                           </div>
 
                           <div
                             class="issuer-row__field issuer-row__field--market"
                           >
-                            <span class="issuer-row__label"> Market </span>
-
-                            <span class="issuer-row__value"> Main Market </span>
+                            <span class="issuer-row__label">Market</span>
+                            <span class="issuer-row__value">Main Market</span>
                           </div>
 
                           <div
                             class="issuer-row__field issuer-row__field--sector"
                           >
-                            <span class="issuer-row__label"> Sector </span>
-
-                            <span class="issuer-row__value"> Banks </span>
+                            <span class="issuer-row__label">Sector</span>
+                            <span class="issuer-row__value">Banks</span>
                           </div>
 
                           <div class="issuer-row__field">
-                            <span class="issuer-row__label">
-                              Daily change
-                            </span>
-
-                            <span
-                              class="issuer-row__movement issuer-row__movement--positive has-icon icon-triangle-up"
-                            >
-                              <span class="visually-hidden">Increased by</span>
-                              +0.24%
+                            <span class="issuer-row__label">Daily change</span>
+                            <span class="issuer-row__movement price-neutral">
+                              0.00%
                             </span>
                           </div>
 
@@ -7345,8 +7113,6 @@
                             View profile
                           </a>
                         </article>
-
-                        <!-- Bupa Arabia -->
 
                         <article class="directory-results__item issuer-row">
                           <div class="issuer-row__identity">
@@ -7379,42 +7145,36 @@
                                 </a>
                               </h4>
 
-                              <span class="issuer-row__code"> 8210 </span>
+                              <span class="issuer-row__code">8210</span>
                             </div>
                           </div>
 
                           <div class="issuer-row__field">
-                            <span class="issuer-row__label"> Symbol </span>
-
-                            <span class="issuer-row__value"> BUPA ARABIA </span>
+                            <span class="issuer-row__label">Symbol</span>
+                            <span class="issuer-row__value">BUPA ARABIA</span>
                           </div>
 
                           <div
                             class="issuer-row__field issuer-row__field--market"
                           >
-                            <span class="issuer-row__label"> Market </span>
-
-                            <span class="issuer-row__value"> Main Market </span>
+                            <span class="issuer-row__label">Market</span>
+                            <span class="issuer-row__value">Main Market</span>
                           </div>
 
                           <div
                             class="issuer-row__field issuer-row__field--sector"
                           >
-                            <span class="issuer-row__label"> Sector </span>
-
-                            <span class="issuer-row__value"> Insurance </span>
+                            <span class="issuer-row__label">Sector</span>
+                            <span class="issuer-row__value">Insurance</span>
                           </div>
 
                           <div class="issuer-row__field">
-                            <span class="issuer-row__label">
-                              Daily change
-                            </span>
-
+                            <span class="issuer-row__label">Daily change</span>
                             <span
-                              class="issuer-row__movement issuer-row__movement--negative has-icon icon-triangle-down"
+                              class="issuer-row__movement price-down has-icon icon-triangle-down"
                             >
                               <span class="visually-hidden">Decreased by</span>
-                              −0.12%
+                              −0.27%
                             </span>
                           </div>
 
@@ -7434,7 +7194,6 @@
                 <!-- ================================================================
                Pagination
                ================================================================ -->
-
                 <footer class="directory__footer">
                   <nav
                     class="pagination"
@@ -7450,8 +7209,6 @@
                     </p>
 
                     <ol class="pagination__list">
-                      <!-- Previous -->
-
                       <li class="pagination__item">
                         <span
                           class="pagination__link pagination__link--previous is-disabled has-icon icon-chevron-left icon-flip-rtl"
@@ -7460,8 +7217,6 @@
                           Previous
                         </span>
                       </li>
-
-                      <!-- Page 1 -->
 
                       <li class="pagination__item">
                         <a
@@ -7474,8 +7229,6 @@
                         </a>
                       </li>
 
-                      <!-- Page 2 -->
-
                       <li class="pagination__item">
                         <a
                           class="pagination__link"
@@ -7485,8 +7238,6 @@
                           2
                         </a>
                       </li>
-
-                      <!-- Page 3 -->
 
                       <li class="pagination__item">
                         <a
@@ -7498,16 +7249,12 @@
                         </a>
                       </li>
 
-                      <!-- Omitted Pages -->
-
                       <li
                         class="pagination__item pagination__item--ellipsis"
                         aria-hidden="true"
                       >
                         <span class="pagination__ellipsis">…</span>
                       </li>
-
-                      <!-- Last Page -->
 
                       <li class="pagination__item">
                         <a
@@ -7518,8 +7265,6 @@
                           54
                         </a>
                       </li>
-
-                      <!-- Next -->
 
                       <li class="pagination__item">
                         <a

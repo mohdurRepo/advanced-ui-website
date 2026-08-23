@@ -79,12 +79,14 @@
             </button>
           </div>
         </div>
-
-        <section class="mt-8">
-          <h2 class="mb-4">Accordion System</h2>
+        <section class="mt-8" aria-labelledby="accordion-system-title">
+          <h2 id="accordion-system-title" class="mb-4">Accordion System</h2>
 
           <div class="grid-2">
-            <!-- Single Open -->
+            <!-- ================================================================
+         Single Open Accordion
+         ================================================================ -->
+
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title">Single Open Accordion</h3>
@@ -92,14 +94,19 @@
 
               <div class="card-body">
                 <div class="accordion">
+                  <!-- Item 1 -->
                   <div class="accordion-item is-open">
                     <button
+                      id="accordion-single-trigger-1"
                       class="accordion-trigger"
                       type="button"
                       data-accordion-trigger
                       aria-expanded="true"
+                      aria-controls="accordion-single-panel-1"
                     >
-                      <span>What is this design system?</span>
+                      <span class="accordion-trigger__label">
+                        What is this design system?
+                      </span>
 
                       <span
                         class="has-icon icon-chevron-down accordion-icon"
@@ -107,7 +114,12 @@
                       ></span>
                     </button>
 
-                    <div class="accordion-panel">
+                    <div
+                      id="accordion-single-panel-1"
+                      class="accordion-panel"
+                      role="region"
+                      aria-labelledby="accordion-single-trigger-1"
+                    >
                       <div class="accordion-panel-inner">
                         This is the reusable frontend foundation for the
                         project.
@@ -115,14 +127,19 @@
                     </div>
                   </div>
 
+                  <!-- Item 2 -->
                   <div class="accordion-item">
                     <button
+                      id="accordion-single-trigger-2"
                       class="accordion-trigger"
                       type="button"
                       data-accordion-trigger
                       aria-expanded="false"
+                      aria-controls="accordion-single-panel-2"
                     >
-                      <span>Does it support RTL?</span>
+                      <span class="accordion-trigger__label">
+                        Does it support RTL?
+                      </span>
 
                       <span
                         class="has-icon icon-chevron-down accordion-icon"
@@ -130,7 +147,12 @@
                       ></span>
                     </button>
 
-                    <div class="accordion-panel">
+                    <div
+                      id="accordion-single-panel-2"
+                      class="accordion-panel"
+                      role="region"
+                      aria-labelledby="accordion-single-trigger-2"
+                    >
                       <div class="accordion-panel-inner">
                         Yes. It supports Arabic and English using logical CSS
                         properties.
@@ -138,14 +160,19 @@
                     </div>
                   </div>
 
+                  <!-- Item 3 -->
                   <div class="accordion-item">
                     <button
+                      id="accordion-single-trigger-3"
                       class="accordion-trigger"
                       type="button"
                       data-accordion-trigger
                       aria-expanded="false"
+                      aria-controls="accordion-single-panel-3"
                     >
-                      <span>Does it support dark mode?</span>
+                      <span class="accordion-trigger__label">
+                        Does it support dark mode?
+                      </span>
 
                       <span
                         class="has-icon icon-chevron-down accordion-icon"
@@ -153,7 +180,12 @@
                       ></span>
                     </button>
 
-                    <div class="accordion-panel">
+                    <div
+                      id="accordion-single-panel-3"
+                      class="accordion-panel"
+                      role="region"
+                      aria-labelledby="accordion-single-trigger-3"
+                    >
                       <div class="accordion-panel-inner">
                         Yes. The theme system is based on semantic CSS
                         variables.
@@ -164,7 +196,10 @@
               </div>
             </div>
 
-            <!-- Multiple Open -->
+            <!-- ================================================================
+         Multiple Open Accordion
+         ================================================================ -->
+
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title">Multiple Open Accordion</h3>
@@ -175,14 +210,37 @@
                   class="accordion accordion-elevated"
                   data-accordion-multiple
                 >
+                  <!-- Bulk Action -->
+                  <div class="accordion-actions">
+                    <button
+                      class="btn btn-ghost btn-sm"
+                      type="button"
+                      data-accordion-expand-all
+                      aria-expanded="false"
+                    >
+                      <span
+                        class="has-icon icon-add-plus"
+                        data-accordion-expand-icon
+                        aria-hidden="true"
+                      ></span>
+
+                      <span data-accordion-expand-label> Expand all </span>
+                    </button>
+                  </div>
+
+                  <!-- Item 1 -->
                   <div class="accordion-item">
                     <button
+                      id="accordion-multiple-trigger-1"
                       class="accordion-trigger"
                       type="button"
                       data-accordion-trigger
                       aria-expanded="false"
+                      aria-controls="accordion-multiple-panel-1"
                     >
-                      <span>Market information</span>
+                      <span class="accordion-trigger__label">
+                        Market information
+                      </span>
 
                       <span
                         class="has-icon icon-chevron-down accordion-icon"
@@ -190,21 +248,31 @@
                       ></span>
                     </button>
 
-                    <div class="accordion-panel">
+                    <div
+                      id="accordion-multiple-panel-1"
+                      class="accordion-panel"
+                      role="region"
+                      aria-labelledby="accordion-multiple-trigger-1"
+                    >
                       <div class="accordion-panel-inner">
                         Useful for market summary and company profile details.
                       </div>
                     </div>
                   </div>
 
+                  <!-- Item 2 -->
                   <div class="accordion-item">
                     <button
+                      id="accordion-multiple-trigger-2"
                       class="accordion-trigger"
                       type="button"
                       data-accordion-trigger
                       aria-expanded="false"
+                      aria-controls="accordion-multiple-panel-2"
                     >
-                      <span>Announcements</span>
+                      <span class="accordion-trigger__label">
+                        Announcements
+                      </span>
 
                       <span
                         class="has-icon icon-chevron-down accordion-icon"
@@ -212,21 +280,31 @@
                       ></span>
                     </button>
 
-                    <div class="accordion-panel">
+                    <div
+                      id="accordion-multiple-panel-2"
+                      class="accordion-panel"
+                      role="region"
+                      aria-labelledby="accordion-multiple-trigger-2"
+                    >
                       <div class="accordion-panel-inner">
                         Useful for grouped announcement content.
                       </div>
                     </div>
                   </div>
 
+                  <!-- Item 3 -->
                   <div class="accordion-item">
                     <button
+                      id="accordion-multiple-trigger-3"
                       class="accordion-trigger"
                       type="button"
                       data-accordion-trigger
                       aria-expanded="false"
+                      aria-controls="accordion-multiple-panel-3"
                     >
-                      <span>FAQ section</span>
+                      <span class="accordion-trigger__label">
+                        FAQ section
+                      </span>
 
                       <span
                         class="has-icon icon-chevron-down accordion-icon"
@@ -234,7 +312,12 @@
                       ></span>
                     </button>
 
-                    <div class="accordion-panel">
+                    <div
+                      id="accordion-multiple-panel-3"
+                      class="accordion-panel"
+                      role="region"
+                      aria-labelledby="accordion-multiple-trigger-3"
+                    >
                       <div class="accordion-panel-inner">
                         Useful for FAQ and investor education pages.
                       </div>

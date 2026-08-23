@@ -5685,13 +5685,7 @@
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <!-- ==================================================================
-             Second Row
-             ================================================================== -->
-
-              <div class="filter-bar__fields grid-3">
                 <!-- ================================================================
                Industry
                ================================================================ -->
@@ -5874,8 +5868,8 @@
       </section>
 
       <!-- ==========================================================================
-     Announcement Results
-     ========================================================================== -->
+  Announcement Results
+  ========================================================================== -->
 
       <section
         class="section"
@@ -5884,25 +5878,18 @@
       >
         <div class="container">
           <section
-            class="announcement-feed"
+            class="content-feed"
             aria-labelledby="announcement-results-title"
             aria-describedby="announcement-results-description"
           >
-            <!-- ====================================================================
-           Header
-           ==================================================================== -->
-
-            <header class="announcement-feed__header">
-              <div class="announcement-feed__heading">
-                <h2
-                  class="announcement-feed__title"
-                  id="announcement-results-title"
-                >
+            <header class="content-feed__header">
+              <div class="content-feed__heading">
+                <h2 class="content-feed__title" id="announcement-results-title">
                   Announcements
                 </h2>
 
                 <p
-                  class="announcement-feed__description"
+                  class="content-feed__description"
                   id="announcement-results-description"
                 >
                   Review the latest issuer and financial-advisor announcements.
@@ -5910,92 +5897,72 @@
               </div>
 
               <span
-                class="announcement-feed__count"
+                class="content-feed__count"
                 aria-label="7,311 announcements"
               >
-                <strong>7,311</strong>
+                <strong class="content-feed__count-value">7,311</strong>
                 <span>announcements</span>
               </span>
             </header>
 
-            <!-- ====================================================================
-           Results Toolbar
-           ==================================================================== -->
-
-            <div class="announcement-feed__toolbar">
-              <p class="announcement-feed__status" aria-live="polite">
+            <div class="content-feed__toolbar">
+              <p class="content-feed__status" aria-live="polite">
                 Showing <strong>1–4</strong> of <strong>7,311</strong>
                 announcements
               </p>
 
               <nav
-                class="announcement-feed__periods"
+                class="content-feed__periods"
                 aria-label="Announcement period"
               >
-                <span class="announcement-feed__period-label">
-                  Select a period
-                </span>
+                <span class="content-feed__period-label">Select a period</span>
 
                 <a
-                  class="announcement-feed__period is-active"
+                  class="content-feed__period is-active"
                   href="?period=7d"
                   aria-current="page"
                 >
                   7D
                 </a>
 
-                <a class="announcement-feed__period" href="?period=1m"> 1M </a>
-
-                <a class="announcement-feed__period" href="?period=3m"> 3M </a>
-
-                <a class="announcement-feed__period" href="?period=6m"> 6M </a>
-
-                <a class="announcement-feed__period" href="?period=1y"> 1Y </a>
-
-                <a class="announcement-feed__period" href="?period=3y"> 3Y </a>
-
-                <a class="announcement-feed__period" href="?period=5y"> 5Y </a>
+                <a class="content-feed__period" href="?period=1m">1M</a>
+                <a class="content-feed__period" href="?period=3m">3M</a>
+                <a class="content-feed__period" href="?period=6m">6M</a>
+                <a class="content-feed__period" href="?period=1y">1Y</a>
+                <a class="content-feed__period" href="?period=3y">3Y</a>
+                <a class="content-feed__period" href="?period=5y">5Y</a>
               </nav>
             </div>
 
-            <!-- ====================================================================
-           Results
-           ==================================================================== -->
-
-            <ol class="announcement-feed__list">
-              <!-- ================================================================
-             Perfect Presentation
-             ================================================================ -->
-
-              <li class="announcement-feed__item">
-                <article class="announcement-item">
-                  <figure class="announcement-item__logo">
+            <ol class="content-feed__list">
+              <li class="content-feed__list-item">
+                <article class="content-item">
+                  <figure class="content-item__media">
                     <img
-                      class="announcement-item__logo-image"
+                      class="content-item__image"
                       src="/assets/images/companies/2p.svg"
                       alt="Perfect Presentation for Commercial Services Company logo"
-                      loading="lazy"
                       width="64"
                       height="64"
+                      loading="lazy"
                     />
                   </figure>
 
-                  <div class="announcement-item__content">
-                    <div class="announcement-item__summary">
-                      <span class="announcement-item__type"> Issuer </span>
+                  <div class="content-item__content">
+                    <div class="content-item__summary">
+                      <span class="content-item__category">Issuer</span>
+                      <span class="content-item__symbol">7204</span>
 
-                      <span class="announcement-item__symbol"> 7204 </span>
-
-                      <span class="announcement-item__company">
+                      <span class="content-item__entity">
                         Perfect Presentation for Commercial Services Co.
                       </span>
 
                       <span
-                        class="announcement-item__change announcement-item__change--positive"
+                        class="content-item__change price-up"
                         aria-label="Up 4.19 points, 2.11 percent"
                       >
                         <span
-                          class="announcement-item__change-indicator"
+                          class="content-item__change-indicator"
                           aria-hidden="true"
                         >
                           ▲
@@ -6005,9 +5972,9 @@
                       </span>
                     </div>
 
-                    <h3 class="announcement-item__title">
+                    <h3 class="content-item__title">
                       <a
-                        class="announcement-item__link"
+                        class="content-item__link"
                         href="/announcements/perfect-presentation-ordinary-general-assembly/"
                       >
                         Perfect Presentation for Commercial Services Co.
@@ -6016,73 +5983,63 @@
                       </a>
                     </h3>
 
-                    <footer class="announcement-item__footer">
-                      <p class="announcement-item__publisher">
+                    <footer class="content-item__footer">
+                      <p class="content-item__source">
                         <span
-                          class="announcement-item__publisher-icon"
+                          class="content-item__source-mark"
                           aria-hidden="true"
                         ></span>
 
                         <span>
                           Published by
-                          <span class="announcement-item__publisher-name">
+                          <span class="content-item__source-name">
                             Perfect Presentation for Commercial Services Co.
                           </span>
                         </span>
                       </p>
 
                       <time
-                        class="announcement-item__time"
+                        class="content-item__time"
                         datetime="2026-01-06T18:00:00+03:00"
                       >
-                        <span class="announcement-item__date">
-                          06/01/2026
-                        </span>
-
-                        <span class="announcement-item__date-secondary">
-                          17/07/1447
-                        </span>
-
-                        <span class="announcement-item__clock"> 18:00 </span>
+                        <span class="content-item__date">06/01/2026</span>
+                        <span class="content-item__date-secondary"
+                          >17/07/1447</span
+                        >
+                        <span class="content-item__clock">18:00</span>
                       </time>
                     </footer>
                   </div>
                 </article>
               </li>
 
-              <!-- ================================================================
-             SEDCO Capital REIT
-             ================================================================ -->
-
-              <li class="announcement-feed__item">
-                <article class="announcement-item">
-                  <figure class="announcement-item__logo">
+              <li class="content-feed__list-item">
+                <article class="content-item">
+                  <figure class="content-item__media">
                     <img
-                      class="announcement-item__logo-image"
+                      class="content-item__image"
                       src="/assets/images/companies/sedco-capital-reit.svg"
                       alt="SEDCO Capital REIT Fund logo"
-                      loading="lazy"
                       width="64"
                       height="64"
+                      loading="lazy"
                     />
                   </figure>
 
-                  <div class="announcement-item__content">
-                    <div class="announcement-item__summary">
-                      <span class="announcement-item__type"> Fund </span>
-
-                      <span class="announcement-item__symbol"> 4344 </span>
-
-                      <span class="announcement-item__company">
+                  <div class="content-item__content">
+                    <div class="content-item__summary">
+                      <span class="content-item__category">Fund</span>
+                      <span class="content-item__symbol">4344</span>
+                      <span class="content-item__entity">
                         SEDCO Capital REIT Fund
                       </span>
 
                       <span
-                        class="announcement-item__change announcement-item__change--positive"
+                        class="content-item__change price-up"
                         aria-label="Up 0.04 points, 1.35 percent"
                       >
                         <span
-                          class="announcement-item__change-indicator"
+                          class="content-item__change-indicator"
                           aria-hidden="true"
                         >
                           ▲
@@ -6092,9 +6049,9 @@
                       </span>
                     </div>
 
-                    <h3 class="announcement-item__title">
+                    <h3 class="content-item__title">
                       <a
-                        class="announcement-item__link"
+                        class="content-item__link"
                         href="/announcements/sedco-capital-reit-material-development/"
                       >
                         SEDCO Capital announces a material development relating
@@ -6102,73 +6059,63 @@
                       </a>
                     </h3>
 
-                    <footer class="announcement-item__footer">
-                      <p class="announcement-item__publisher">
+                    <footer class="content-item__footer">
+                      <p class="content-item__source">
                         <span
-                          class="announcement-item__publisher-icon"
+                          class="content-item__source-mark"
                           aria-hidden="true"
                         ></span>
 
                         <span>
                           Published by
-                          <span class="announcement-item__publisher-name">
+                          <span class="content-item__source-name">
                             SEDCO Capital
                           </span>
                         </span>
                       </p>
 
                       <time
-                        class="announcement-item__time"
+                        class="content-item__time"
                         datetime="2026-01-06T15:25:00+03:00"
                       >
-                        <span class="announcement-item__date">
-                          06/01/2026
-                        </span>
-
-                        <span class="announcement-item__date-secondary">
-                          17/07/1447
-                        </span>
-
-                        <span class="announcement-item__clock"> 15:25 </span>
+                        <span class="content-item__date">06/01/2026</span>
+                        <span class="content-item__date-secondary"
+                          >17/07/1447</span
+                        >
+                        <span class="content-item__clock">15:25</span>
                       </time>
                     </footer>
                   </div>
                 </article>
               </li>
 
-              <!-- ================================================================
-             Group Five
-             ================================================================ -->
-
-              <li class="announcement-feed__item">
-                <article class="announcement-item">
-                  <figure class="announcement-item__logo">
+              <li class="content-feed__list-item">
+                <article class="content-item">
+                  <figure class="content-item__media">
                     <img
-                      class="announcement-item__logo-image"
+                      class="content-item__image"
                       src="/assets/images/companies/group-five.svg"
                       alt="Group Five Pipe Saudi Company logo"
-                      loading="lazy"
                       width="64"
                       height="64"
+                      loading="lazy"
                     />
                   </figure>
 
-                  <div class="announcement-item__content">
-                    <div class="announcement-item__summary">
-                      <span class="announcement-item__type"> Issuer </span>
-
-                      <span class="announcement-item__symbol"> 9523 </span>
-
-                      <span class="announcement-item__company">
+                  <div class="content-item__content">
+                    <div class="content-item__summary">
+                      <span class="content-item__category">Issuer</span>
+                      <span class="content-item__symbol">9523</span>
+                      <span class="content-item__entity">
                         Group Five Pipe Saudi Co.
                       </span>
 
                       <span
-                        class="announcement-item__change announcement-item__change--negative"
+                        class="content-item__change price-down"
                         aria-label="Down 0.85 points, 0.27 percent"
                       >
                         <span
-                          class="announcement-item__change-indicator"
+                          class="content-item__change-indicator"
                           aria-hidden="true"
                         >
                           ▼
@@ -6178,9 +6125,9 @@
                       </span>
                     </div>
 
-                    <h3 class="announcement-item__title">
+                    <h3 class="content-item__title">
                       <a
-                        class="announcement-item__link"
+                        class="content-item__link"
                         href="/announcements/group-five-ordinary-general-assembly/"
                       >
                         Group Five Pipe Saudi Co. announces the invitation of
@@ -6189,73 +6136,63 @@
                       </a>
                     </h3>
 
-                    <footer class="announcement-item__footer">
-                      <p class="announcement-item__publisher">
+                    <footer class="content-item__footer">
+                      <p class="content-item__source">
                         <span
-                          class="announcement-item__publisher-icon"
+                          class="content-item__source-mark"
                           aria-hidden="true"
                         ></span>
 
                         <span>
                           Published by
-                          <span class="announcement-item__publisher-name">
+                          <span class="content-item__source-name">
                             Group Five Pipe Saudi Co.
                           </span>
                         </span>
                       </p>
 
                       <time
-                        class="announcement-item__time"
+                        class="content-item__time"
                         datetime="2026-01-06T14:30:00+03:00"
                       >
-                        <span class="announcement-item__date">
-                          06/01/2026
-                        </span>
-
-                        <span class="announcement-item__date-secondary">
-                          17/07/1447
-                        </span>
-
-                        <span class="announcement-item__clock"> 14:30 </span>
+                        <span class="content-item__date">06/01/2026</span>
+                        <span class="content-item__date-secondary"
+                          >17/07/1447</span
+                        >
+                        <span class="content-item__clock">14:30</span>
                       </time>
                     </footer>
                   </div>
                 </article>
               </li>
 
-              <!-- ================================================================
-             Arabian Drilling
-             ================================================================ -->
-
-              <li class="announcement-feed__item">
-                <article class="announcement-item">
-                  <figure class="announcement-item__logo">
+              <li class="content-feed__list-item">
+                <article class="content-item">
+                  <figure class="content-item__media">
                     <img
-                      class="announcement-item__logo-image"
+                      class="content-item__image"
                       src="/assets/images/companies/arabian-drilling.svg"
                       alt="Arabian Drilling Company logo"
-                      loading="lazy"
                       width="64"
                       height="64"
+                      loading="lazy"
                     />
                   </figure>
 
-                  <div class="announcement-item__content">
-                    <div class="announcement-item__summary">
-                      <span class="announcement-item__type"> Issuer </span>
-
-                      <span class="announcement-item__symbol"> 2381 </span>
-
-                      <span class="announcement-item__company">
-                        Arabian Drilling Co.
-                      </span>
+                  <div class="content-item__content">
+                    <div class="content-item__summary">
+                      <span class="content-item__category">Issuer</span>
+                      <span class="content-item__symbol">2381</span>
+                      <span class="content-item__entity"
+                        >Arabian Drilling Co.</span
+                      >
 
                       <span
-                        class="announcement-item__change announcement-item__change--positive"
+                        class="content-item__change price-up"
                         aria-label="Up 0.46 points, 0.31 percent"
                       >
                         <span
-                          class="announcement-item__change-indicator"
+                          class="content-item__change-indicator"
                           aria-hidden="true"
                         >
                           ▲
@@ -6265,9 +6202,9 @@
                       </span>
                     </div>
 
-                    <h3 class="announcement-item__title">
+                    <h3 class="content-item__title">
                       <a
-                        class="announcement-item__link"
+                        class="content-item__link"
                         href="/announcements/arabian-drilling-services-contract/"
                       >
                         Arabian Drilling Co. announces the award of a drilling
@@ -6275,34 +6212,30 @@
                       </a>
                     </h3>
 
-                    <footer class="announcement-item__footer">
-                      <p class="announcement-item__publisher">
+                    <footer class="content-item__footer">
+                      <p class="content-item__source">
                         <span
-                          class="announcement-item__publisher-icon"
+                          class="content-item__source-mark"
                           aria-hidden="true"
                         ></span>
 
                         <span>
                           Published by
-                          <span class="announcement-item__publisher-name">
+                          <span class="content-item__source-name">
                             Arabian Drilling Co.
                           </span>
                         </span>
                       </p>
 
                       <time
-                        class="announcement-item__time"
+                        class="content-item__time"
                         datetime="2026-01-06T13:44:00+03:00"
                       >
-                        <span class="announcement-item__date">
-                          06/01/2026
-                        </span>
-
-                        <span class="announcement-item__date-secondary">
-                          17/07/1447
-                        </span>
-
-                        <span class="announcement-item__clock"> 13:44 </span>
+                        <span class="content-item__date">06/01/2026</span>
+                        <span class="content-item__date-secondary"
+                          >17/07/1447</span
+                        >
+                        <span class="content-item__clock">13:44</span>
                       </time>
                     </footer>
                   </div>
@@ -6310,33 +6243,33 @@
               </li>
             </ol>
 
-            <!-- ====================================================================
-           Pagination
-           ==================================================================== -->
-
-            <footer class="announcement-feed__footer">
-              <nav class="pagination" aria-label="Announcement results pages">
-                <a
-                  class="pagination__control pagination__control--previous is-disabled"
-                  href="?page=1"
-                  aria-disabled="true"
-                  tabindex="-1"
-                >
-                  <span
-                    class="has-icon icon-chevron-left icon-flip-rtl"
-                    aria-hidden="true"
-                  ></span>
-
-                  <span>Previous</span>
-                </a>
+            <footer class="content-feed__footer">
+              <nav
+                class="pagination"
+                aria-label="Announcement result pages"
+                data-announcement-pagination
+              >
+                <p class="pagination__status">
+                  Showing <strong>1–4</strong> of <strong>7,311</strong>
+                  announcements
+                </p>
 
                 <ol class="pagination__list">
                   <li class="pagination__item">
+                    <span
+                      class="pagination__link pagination__link--previous is-disabled has-icon icon-chevron-left icon-flip-rtl"
+                      aria-disabled="true"
+                    >
+                      Previous
+                    </span>
+                  </li>
+
+                  <li class="pagination__item">
                     <a
-                      class="pagination__link is-active"
+                      class="pagination__link is-current"
                       href="?page=1"
-                      aria-current="page"
                       aria-label="Page 1"
+                      aria-current="page"
                     >
                       1
                     </a>
@@ -6366,7 +6299,7 @@
                     class="pagination__item pagination__item--ellipsis"
                     aria-hidden="true"
                   >
-                    …
+                    <span class="pagination__ellipsis">…</span>
                   </li>
 
                   <li class="pagination__item">
@@ -6378,19 +6311,18 @@
                       1828
                     </a>
                   </li>
+
+                  <li class="pagination__item">
+                    <a
+                      class="pagination__link pagination__link--next has-icon icon-chevron-right icon-flip-rtl icon-end"
+                      href="?page=2"
+                      aria-label="Go to next page"
+                      rel="next"
+                    >
+                      Next
+                    </a>
+                  </li>
                 </ol>
-
-                <a
-                  class="pagination__control pagination__control--next"
-                  href="?page=2"
-                >
-                  <span>Next</span>
-
-                  <span
-                    class="has-icon icon-chevron-right icon-flip-rtl"
-                    aria-hidden="true"
-                  ></span>
-                </a>
               </nav>
             </footer>
           </section>

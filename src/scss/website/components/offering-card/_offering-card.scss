@@ -4,18 +4,22 @@
    Offering Results
    ========================================================================== */
 
-/**
- * Collection composition for listing offering Cards.
+/*
+ * Page-level composition for offering collections.
  *
- * The individual Card remains independent from this results wrapper.
+ * The shared grid utility owns grid fundamentals; `.offering-card` owns
+ * individual offering presentation and actions.
  */
 
 .offering-results {
+  --offering-results-gap: #{ds.space(4)};
+  --offering-results-section-gap: #{ds.space(5)};
+
   min-inline-size: 0;
 }
 
 /* ==========================================================================
-   Results Header
+   Header
    ========================================================================== */
 
 .offering-results__header {
@@ -23,30 +27,20 @@
   align-items: flex-end;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: #{ds.space(4)};
+  gap: ds.space(4);
 
   min-inline-size: 0;
-
-  margin-block-end: #{ds.space(5)};
+  margin-block-end: var(--offering-results-section-gap);
 }
-
-/* ==========================================================================
-   Results Heading
-   ========================================================================== */
 
 .offering-results__heading {
   display: grid;
-  align-content: start;
-  gap: #{ds.space(1)};
+  gap: ds.space(1);
 
   flex: 1 1 30rem;
 
   min-inline-size: 0;
 }
-
-/* ==========================================================================
-   Results Title
-   ========================================================================== */
 
 .offering-results__title {
   margin: 0;
@@ -61,13 +55,8 @@
   text-wrap: balance;
 }
 
-/* ==========================================================================
-   Results Description
-   ========================================================================== */
-
 .offering-results__description {
   max-inline-size: 70ch;
-
   margin: 0;
 
   color: var(--color-text-muted);
@@ -76,25 +65,23 @@
   line-height: var(--line-height-relaxed);
 
   overflow-wrap: anywhere;
-  text-wrap: pretty;
 }
 
 /* ==========================================================================
-   Results Count
+   Result Count
    ========================================================================== */
 
 .offering-results__count {
   display: inline-flex;
   align-items: baseline;
   justify-content: center;
-  gap: #{ds.space(1)};
+  gap: ds.space(1);
 
   flex: 0 0 auto;
 
   min-block-size: 2.25rem;
-
-  padding-block: #{ds.space(1)};
-  padding-inline: #{ds.space(3)};
+  padding-block: ds.space(1);
+  padding-inline: ds.space(3);
 
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
@@ -119,17 +106,17 @@
 }
 
 /* ==========================================================================
-   Results Grid
+   Grid
    ========================================================================== */
 
-/**
- * Use with the design-system `.grid` class:
+/*
+ * Use with the design-system grid class:
  *
  * <div class="grid offering-results__grid">
  */
 
 .offering-results__grid {
-  --grid-gap: #{ds.space(4)};
+  --grid-gap: var(--offering-results-gap);
 
   grid-template-columns: minmax(0, 1fr);
 
@@ -155,599 +142,22 @@
 }
 
 /* ==========================================================================
-   Results Pagination
+   Pagination
    ========================================================================== */
 
 .offering-results__pagination {
-  margin-block-start: #{ds.space(6)};
+  margin-block-start: ds.space(6);
 }
 
 /* ==========================================================================
-   Offering Card
-   ========================================================================== */
-
-/**
- * Website Card for current and historical offering information.
- *
- * Required composition:
- *
- * <article class="card offering-card">
- *
- * The design-system `.card` class owns:
- *
- * - surface;
- * - border and radius;
- * - elevation;
- * - shared bottom-end pattern;
- * - foundational Card states.
- */
-
-.offering-card {
-  /* Backward-compatible semantic tokens */
-
-  --offering-card-bg: var(--color-surface);
-  --offering-card-color: var(--color-text);
-  --offering-card-heading: var(--color-heading);
-  --offering-card-muted: var(--color-text-muted);
-
-  --offering-card-border: var(--color-border);
-  --offering-card-footer-bg: var(--color-surface-alt);
-
-  /* Layout */
-
-  --offering-card-padding: #{ds.space(4)};
-  --offering-card-section-gap: #{ds.space(4)};
-
-  /* Shared Card mappings */
-
-  --card-bg: var(--offering-card-bg);
-  --card-color: var(--offering-card-color);
-  --card-heading-color: var(--offering-card-heading);
-  --card-muted-color: var(--offering-card-muted);
-
-  --card-border-color: var(--offering-card-border);
-
-  --card-pattern-size: 14rem;
-  --card-pattern-opacity: 0.075;
-  --card-pattern-hover-opacity: 0.14;
-
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-
-  min-inline-size: 0;
-  block-size: 100%;
-
-  overflow: visible;
-
-  @include ds.transition((border-color, box-shadow, transform), "fast");
-}
-
-/* ==========================================================================
-   Card Content Layers
-   ========================================================================== */
-
-.offering-card__header,
-.offering-card__body,
-.offering-card__footer {
-  position: relative;
-  z-index: 0;
-}
-
-/* ==========================================================================
-   Card Interaction
-   ========================================================================== */
-
-@media (hover: hover) and (pointer: fine) {
-  .offering-card:hover {
-    border-color: var(--card-hover-border-color);
-
-    box-shadow: var(--card-hover-shadow);
-
-    transform: translateY(var(--card-hover-translate));
-  }
-
-  .offering-card:hover::before {
-    opacity: var(--card-pattern-hover-opacity);
-
-    transform: scale(1.025);
-  }
-}
-
-.offering-card:focus-within {
-  border-color: var(--color-primary);
-
-  box-shadow: var(--card-hover-shadow);
-}
-
-.offering-card:focus-within::before {
-  opacity: var(--card-pattern-hover-opacity);
-
-  transform: scale(1.025);
-}
-
-/* ==========================================================================
-   Card Header
-   ========================================================================== */
-
-.offering-card__header {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: start;
-  gap: #{ds.space(3)};
-
-  min-inline-size: 0;
-  min-block-size: 6.5rem;
-
-  padding: var(--offering-card-padding);
-
-  border-block-end: 1px solid var(--offering-card-border);
-}
-
-/* ==========================================================================
-   Company Logo
-   ========================================================================== */
-
-.offering-card__logo {
-  position: relative;
-
-  display: inline-grid;
-  place-items: center;
-
-  flex: 0 0 auto;
-
-  inline-size: 3rem;
-  block-size: 3rem;
-
-  overflow: hidden;
-
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-
-  background: var(--color-surface-alt);
-  color: var(--offering-card-heading);
-
-  font-size: var(--text-xs);
-  font-weight: ds.font-weight("bold");
-  line-height: 1;
-}
-
-/* ==========================================================================
-   Logo Image
-   ========================================================================== */
-
-.offering-card__logo-image {
-  display: block;
-
-  inline-size: 100%;
-  block-size: 100%;
-
-  object-fit: contain;
-}
-
-/* ==========================================================================
-   Logo Fallback
-   ========================================================================== */
-
-.offering-card__logo-fallback {
-  display: inline-grid;
-  place-items: center;
-
-  inline-size: 100%;
-  block-size: 100%;
-
-  padding: #{ds.space(1)};
-
-  text-align: center;
-  overflow-wrap: anywhere;
-}
-
-/* ==========================================================================
-   Company Identity
-   ========================================================================== */
-
-.offering-card__identity {
-  display: grid;
-  align-content: start;
-  gap: 0.125rem;
-
-  min-inline-size: 0;
-}
-
-/* ==========================================================================
-   Company Title
-   ========================================================================== */
-
-.offering-card__title {
-  margin: 0;
-
-  color: var(--offering-card-heading);
-
-  font-size: var(--text-base);
-  font-weight: ds.font-weight("bold");
-  line-height: var(--line-height-tight);
-
-  overflow-wrap: normal;
-  word-break: normal;
-  hyphens: none;
-}
-
-/* ==========================================================================
-   Company Link
-   ========================================================================== */
-
-.offering-card__company-link {
-  display: -webkit-box;
-
-  border-radius: var(--radius-sm);
-
-  color: inherit;
-
-  overflow: hidden;
-
-  text-decoration: none;
-
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-
-  @include ds.transition(color, "fast");
-}
-
-.offering-card__company-link:visited {
-  color: inherit;
-}
-
-.offering-card__company-link:hover {
-  color: var(--color-primary);
-
-  text-decoration-line: underline;
-  text-decoration-thickness: 0.08em;
-  text-underline-offset: 0.18em;
-}
-
-.offering-card__company-link:focus {
-  outline: none;
-}
-
-.offering-card__company-link:focus-visible {
-  @include ds.focus-ring;
-}
-
-/* ==========================================================================
-   Symbol
-   ========================================================================== */
-
-.offering-card__symbol {
-  direction: ltr;
-  unicode-bidi: isolate;
-
-  color: var(--offering-card-muted);
-
-  font-size: var(--text-xs);
-  line-height: var(--line-height-normal);
-
-  overflow: hidden;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ==========================================================================
-   Offering Status
-   ========================================================================== */
-
-.offering-card__status {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  align-self: start;
-
-  max-inline-size: 9rem;
-  min-block-size: 1.75rem;
-
-  padding-block: 0.25rem;
-  padding-inline: #{ds.space(2)};
-
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-
-  background: var(--color-surface-alt);
-  color: var(--offering-card-muted);
-
-  font-size: var(--text-xs);
-  font-weight: ds.font-weight("bold");
-  line-height: 1.15;
-
-  text-align: center;
-  white-space: normal;
-}
-
-/* ==========================================================================
-   Status Variants
-   ========================================================================== */
-
-.offering-card__status.is-open,
-.offering-card__status[data-status="open"] {
-  border-color: var(--color-success);
-
-  background: color-mix(
-    in srgb,
-    var(--color-success) 10%,
-    var(--color-surface)
-  );
-  color: var(--color-success);
-}
-
-.offering-card__status.is-upcoming,
-.offering-card__status[data-status="upcoming"] {
-  border-color: var(--color-primary);
-
-  background: color-mix(
-    in srgb,
-    var(--color-primary) 10%,
-    var(--color-surface)
-  );
-  color: var(--color-primary);
-}
-
-.offering-card__status.is-closed,
-.offering-card__status[data-status="closed"] {
-  color: var(--offering-card-muted);
-}
-
-/* ==========================================================================
-   Card Body
-   ========================================================================== */
-
-.offering-card__body {
-  min-inline-size: 0;
-
-  padding: var(--offering-card-padding);
-}
-
-/* ==========================================================================
-   Offering Details
-   ========================================================================== */
-
-.offering-card__details {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-content: start;
-  gap: var(--offering-card-section-gap);
-
-  min-inline-size: 0;
-
-  margin: 0;
-}
-
-/* ==========================================================================
-   Offering Detail
-   ========================================================================== */
-
-.offering-card__detail {
-  display: grid;
-  align-content: start;
-  gap: #{ds.space(1)};
-
-  min-inline-size: 0;
-}
-
-.offering-card__detail--wide {
-  grid-column: 1 / -1;
-}
-
-/* ==========================================================================
-   Detail Label
-   ========================================================================== */
-
-.offering-card__detail-label {
-  margin: 0;
-
-  color: var(--offering-card-muted);
-
-  font-size: var(--text-xs);
-  line-height: var(--line-height-normal);
-
-  overflow-wrap: anywhere;
-}
-
-/* ==========================================================================
-   Detail Value
-   ========================================================================== */
-
-.offering-card__detail-value {
-  margin: 0;
-
-  color: var(--offering-card-heading);
-
-  font-size: var(--text-sm);
-  font-weight: ds.font-weight("bold");
-  line-height: var(--line-height-normal);
-
-  overflow-wrap: break-word;
-  word-break: normal;
-}
-
-/* ==========================================================================
-   Numeric and Date Details
-   ========================================================================== */
-
-.offering-card__detail-value[data-numeric],
-.offering-card__date-range {
-  direction: ltr;
-  unicode-bidi: isolate;
-
-  font-variant-numeric: tabular-nums;
-}
-
-.offering-card__date-range {
-  display: inline-flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 0 #{ds.space(1)};
-}
-
-/* ==========================================================================
-   Card Footer
-   ========================================================================== */
-
-/**
- * The translucent footer allows the shared bottom-end Card pattern to remain
- * visible without reducing action readability.
- */
-
-.offering-card__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: #{ds.space(3)};
-
-  min-inline-size: 0;
-
-  padding: var(--offering-card-padding);
-
-  border-block-start: 1px solid var(--offering-card-border);
-  border-end-start-radius: calc(var(--card-radius) - var(--card-border-width));
-  border-end-end-radius: calc(var(--card-radius) - var(--card-border-width));
-
-  background: color-mix(
-    in srgb,
-    var(--offering-card-footer-bg) 78%,
-    transparent
-  );
-}
-
-/* ==========================================================================
-   Footer Fallback
-   ========================================================================== */
-
-@supports not (background: color-mix(in srgb, white, transparent)) {
-  .offering-card__footer {
-    background: var(--offering-card-footer-bg);
-  }
-}
-
-/* ==========================================================================
-   Primary Action
-   ========================================================================== */
-
-.offering-card__primary-action {
-  flex: 0 0 auto;
-}
-
-/* ==========================================================================
-   Document Action
-   ========================================================================== */
-
-.offering-card__document-action {
-  --icon-size: 1rem;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: #{ds.space(2)};
-
-  flex: 0 0 auto;
-
-  min-block-size: 2.75rem;
-
-  padding-inline: #{ds.space(2)};
-
-  border-radius: var(--radius-sm);
-
-  color: var(--offering-card-heading);
-
-  font-size: var(--text-sm);
-  font-weight: ds.font-weight("bold");
-  line-height: 1;
-
-  text-decoration: none;
-
-  @include ds.transition((background-color, color), "fast");
-}
-
-.offering-card__document-action:visited {
-  color: var(--offering-card-heading);
-}
-
-.offering-card__document-action:hover {
-  background: var(--color-surface);
-  color: var(--color-primary);
-}
-
-.offering-card__document-action:focus {
-  outline: none;
-}
-
-.offering-card__document-action:focus-visible {
-  @include ds.focus-ring;
-}
-
-/* ==========================================================================
-   Loading State
-   ========================================================================== */
-
-.offering-card[aria-busy="true"] {
-  cursor: wait;
-}
-
-.offering-card[aria-busy="true"] .offering-card__header,
-.offering-card[aria-busy="true"] .offering-card__body,
-.offering-card[aria-busy="true"] .offering-card__footer {
-  pointer-events: none;
-
-  opacity: 0.56;
-}
-
-/* ==========================================================================
-   Unavailable State
-   ========================================================================== */
-
-.offering-card.is-unavailable,
-.offering-card[data-available="false"] {
-  --card-pattern-opacity: 0.03;
-  --card-pattern-hover-opacity: 0.03;
-
-  box-shadow: none;
-
-  cursor: not-allowed;
-}
-
-.offering-card.is-unavailable .offering-card__header,
-.offering-card.is-unavailable .offering-card__body,
-.offering-card.is-unavailable .offering-card__footer,
-.offering-card[data-available="false"] .offering-card__header,
-.offering-card[data-available="false"] .offering-card__body,
-.offering-card[data-available="false"] .offering-card__footer {
-  opacity: 0.68;
-}
-
-.offering-card.is-unavailable a,
-.offering-card.is-unavailable button,
-.offering-card[data-available="false"] a,
-.offering-card[data-available="false"] button {
-  pointer-events: none;
-}
-
-/* ==========================================================================
-   Large Tablet
+   Tablet
    ========================================================================== */
 
 @include ds.respond-down("lg") {
   .offering-results__title {
     font-size: var(--text-xl);
   }
-
-  .offering-card__header {
-    min-block-size: 6rem;
-  }
 }
-
-/* ==========================================================================
-   Tablet
-   ========================================================================== */
 
 @include ds.respond-down("md") {
   .offering-results__header {
@@ -757,10 +167,6 @@
   .offering-results__heading {
     flex-basis: 100%;
   }
-
-  .offering-card__header {
-    min-block-size: auto;
-  }
 }
 
 /* ==========================================================================
@@ -768,12 +174,15 @@
    ========================================================================== */
 
 @include ds.respond-down("sm") {
+  .offering-results {
+    --offering-results-gap: #{ds.space(3)};
+    --offering-results-section-gap: #{ds.space(4)};
+  }
+
   .offering-results__header {
     display: grid;
     justify-items: start;
-    gap: #{ds.space(3)};
-
-    margin-block-end: #{ds.space(4)};
+    gap: ds.space(3);
   }
 
   .offering-results__title {
@@ -786,109 +195,25 @@
 
   .offering-results__count {
     min-block-size: 2rem;
-  }
 
-  .offering-results__grid {
-    --grid-gap: #{ds.space(3)};
+    font-size: var(--text-xs);
   }
 
   .offering-results__pagination {
-    margin-block-start: #{ds.space(4)};
+    margin-block-start: ds.space(4);
   }
-
-  .offering-card {
-    --offering-card-padding: #{ds.space(3)};
-    --offering-card-section-gap: #{ds.space(3)};
-
-    --card-pattern-size: 10rem;
-  }
-
-  .offering-card__header {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: #{ds.space(2)};
-
-    min-block-size: auto;
-  }
-
-  .offering-card__logo {
-    inline-size: 2.75rem;
-    block-size: 2.75rem;
-  }
-
-  .offering-card__details {
-    gap: #{ds.space(3)};
-  }
-}
-
-/* ==========================================================================
-   Very Small Screens
-   ========================================================================== */
-
-@media (max-width: 24rem) {
-  .offering-card__header {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .offering-card__status {
-    grid-column: 1 / -1;
-    justify-self: start;
-
-    max-inline-size: 100%;
-  }
-
-  .offering-card__details {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .offering-card__detail--wide {
-    grid-column: auto;
-  }
-
-  .offering-card__footer {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .offering-card__primary-action,
-  .offering-card__document-action {
-    inline-size: 100%;
-  }
-}
-
-/* ==========================================================================
-   Dark Theme
-   ========================================================================== */
-
-html[data-theme="dark"] .offering-card {
-  --card-pattern-opacity: 0.12;
-  --card-pattern-hover-opacity: 0.2;
 }
 
 /* ==========================================================================
    High Contrast
    ========================================================================== */
 
-html[data-contrast="high"] .offering-card {
-  border-width: 2px;
-  border-color: currentColor;
-
-  box-shadow: none;
-}
-
-html[data-contrast="high"] .offering-card::before {
-  display: none;
-}
-
-html[data-contrast="high"] .offering-card__header,
-html[data-contrast="high"] .offering-card__footer {
-  border-color: currentColor;
-}
-
-html[data-contrast="high"] .offering-card__logo,
-html[data-contrast="high"] .offering-card__status,
 html[data-contrast="high"] .offering-results__count {
   border-width: 2px;
   border-color: currentColor;
+
+  background: var(--color-surface);
+  color: currentColor;
 }
 
 /* ==========================================================================
@@ -896,65 +221,12 @@ html[data-contrast="high"] .offering-results__count {
    ========================================================================== */
 
 @media (forced-colors: active) {
-  .offering-card,
-  .offering-card__logo,
-  .offering-card__status,
   .offering-results__count {
     border-color: CanvasText;
 
     background: Canvas;
     color: CanvasText;
   }
-
-  .offering-card::before {
-    display: none;
-  }
-
-  .offering-card__header,
-  .offering-card__footer {
-    border-color: CanvasText;
-
-    background: Canvas;
-  }
-
-  .offering-card__title,
-  .offering-card__symbol,
-  .offering-card__detail-label,
-  .offering-card__detail-value {
-    color: CanvasText;
-  }
-}
-
-/* ==========================================================================
-   Reduced Motion
-   ========================================================================== */
-
-@media (prefers-reduced-motion: reduce) {
-  .offering-card,
-  .offering-card::before,
-  .offering-card__company-link,
-  .offering-card__document-action {
-    transition: none;
-  }
-
-  .offering-card:hover,
-  .offering-card:hover::before,
-  .offering-card:focus-within::before {
-    transform: none;
-  }
-}
-
-html[data-motion="reduce"] .offering-card,
-html[data-motion="reduce"] .offering-card::before,
-html[data-motion="reduce"] .offering-card__company-link,
-html[data-motion="reduce"] .offering-card__document-action {
-  transition: none;
-}
-
-html[data-motion="reduce"] .offering-card:hover,
-html[data-motion="reduce"] .offering-card:hover::before,
-html[data-motion="reduce"] .offering-card:focus-within::before {
-  transform: none;
 }
 
 /* ==========================================================================
@@ -962,29 +234,11 @@ html[data-motion="reduce"] .offering-card:focus-within::before {
    ========================================================================== */
 
 @media print {
-  .offering-card {
-    break-inside: avoid;
-
-    border-color: #000000;
-
-    background: transparent;
-    color: #000000;
-
-    box-shadow: none;
-    transform: none;
-  }
-
-  .offering-card::before {
+  .offering-results__pagination {
     display: none;
   }
 
-  .offering-card__footer {
-    background: transparent;
-  }
-
-  .offering-results__pagination,
-  .offering-card__primary-action,
-  .offering-card__document-action {
-    display: none;
+  .offering-results__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

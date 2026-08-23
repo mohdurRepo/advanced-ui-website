@@ -5,19 +5,11 @@
    ========================================================================== */
 
 /*
- * Website composition for report-listing pages.
+ * Composition for report and publication listing pages.
  *
- * The design system continues to own:
- * - grid
- * - tabs
- * - resource cards
- * - buttons
- *
- * This component owns:
- * - report section rhythm
- * - report heading and count
- * - report-specific grid columns
- * - empty and loading presentation
+ * The design system owns tabs, buttons, grids, and resource-card internals.
+ * This component owns report-library rhythm, header hierarchy, grid
+ * progression, and feedback-state placement.
  */
 
 .report-library {
@@ -39,10 +31,6 @@
 
   min-inline-size: 0;
 }
-
-/* ==========================================================================
-   Heading Content
-   ========================================================================== */
 
 .report-library__heading {
   display: grid;
@@ -73,6 +61,8 @@
 
   font-size: var(--text-base);
   line-height: var(--line-height-relaxed);
+
+  overflow-wrap: anywhere;
 }
 
 /* ==========================================================================
@@ -117,68 +107,7 @@
 }
 
 /* ==========================================================================
-   Grid
-   ========================================================================== */
-
-/*
- * Use together with the design-system .grid class:
- *
- * <div class="grid report-library__grid">
- *
- * The design system supplies the grid behavior and gap foundation.
- * This modifier supplies the report-library column progression.
- */
-
-.report-library__grid {
-  --grid-gap: var(--report-library-gap);
-
-  grid-template-columns: minmax(0, 1fr);
-
-  align-items: stretch;
-
-  min-inline-size: 0;
-}
-
-/* ==========================================================================
-   Equal Card Height
-   ========================================================================== */
-
-.report-library__grid .resource-card {
-  block-size: 100%;
-}
-
-/* ==========================================================================
-   Two Columns
-   ========================================================================== */
-
-@include ds.respond-up("sm") {
-  .report-library__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-/* ==========================================================================
-   Three Columns
-   ========================================================================== */
-
-@include ds.respond-up("lg") {
-  .report-library__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-/* ==========================================================================
-   Four Columns
-   ========================================================================== */
-
-@include ds.respond-up("xxl") {
-  .report-library__grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-/* ==========================================================================
-   Content Region
+   Content and Panels
    ========================================================================== */
 
 .report-library__content {
@@ -188,10 +117,6 @@
 
   min-inline-size: 0;
 }
-
-/* ==========================================================================
-   Tab Panel
-   ========================================================================== */
 
 .report-library__panel {
   min-inline-size: 0;
@@ -205,6 +130,48 @@
 .report-library__panel.is-active,
 .report-library__panel[data-active="true"] {
   display: block;
+}
+
+/* ==========================================================================
+   Grid
+   ========================================================================== */
+
+/*
+ * Use with the shared `.grid` class:
+ *
+ * <div class="grid report-library__grid">
+ */
+
+.report-library__grid {
+  --grid-gap: var(--report-library-gap);
+
+  grid-template-columns: minmax(0, 1fr);
+
+  align-items: stretch;
+
+  min-inline-size: 0;
+}
+
+.report-library__grid .resource-card {
+  block-size: 100%;
+}
+
+@include ds.respond-up("sm") {
+  .report-library__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@include ds.respond-up("lg") {
+  .report-library__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@include ds.respond-up("xxl") {
+  .report-library__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 /* ==========================================================================
@@ -243,6 +210,8 @@
   font-size: var(--text-lg);
   font-weight: ds.font-weight("bold");
   line-height: var(--line-height-tight);
+
+  overflow-wrap: anywhere;
 }
 
 .report-library__empty-description {
@@ -251,6 +220,8 @@
 
   font-size: var(--text-sm);
   line-height: var(--line-height-relaxed);
+
+  overflow-wrap: anywhere;
 }
 
 /* ==========================================================================
@@ -263,6 +234,8 @@
 
 .report-library[aria-busy="true"] .report-library__grid {
   pointer-events: none;
+
+  opacity: 0.65;
 }
 
 /* ==========================================================================

@@ -5,30 +5,12 @@
    ========================================================================== */
 
 /*
- * Owns:
+ * Field layout and control alignment for `.filter-bar`.
  *
- * - field collections
- * - individual fields
- * - fieldset normalization
- * - consistent label rows
- * - control sizing and containment
- * - custom-select integration
- * - custom-date integration
- * - responsive filter grids
- * - supporting legends
- *
- * Structural grids continue to use:
- *
- * - .grid
- * - .grid-auto
- * - .grid-2
- * - .grid-3
- * - .grid-4
+ * Structural grid utilities control the number of columns; this file provides
+ * form-specific spacing, predictable label rows, and integrations for custom
+ * select and date controls.
  */
-
-/* ==========================================================================
-   Field Collection
-   ========================================================================== */
 
 .filter-bar__fields {
   flex: 1 1 auto;
@@ -36,10 +18,6 @@
   inline-size: 100%;
   min-inline-size: 0;
 }
-
-/* ==========================================================================
-   Design-System Grid Integration
-   ========================================================================== */
 
 .filter-bar__fields.grid,
 .filter-bar__fields.grid-auto,
@@ -66,21 +44,12 @@
   margin: 0;
 }
 
-/* ==========================================================================
-   Fieldset Reset
-   ========================================================================== */
-
 .filter-bar__field.form-fieldset {
   min-inline-size: 0;
   padding: 0;
 
   border: 0;
 }
-
-/*
- * Browsers give legends special layout behavior. Explicit sizing prevents
- * fieldset labels from sitting above adjacent standard labels.
- */
 
 .filter-bar__field.form-fieldset .form-label {
   float: none;
@@ -90,15 +59,9 @@
   padding: 0;
 }
 
-/* ==========================================================================
-   Consistent Label Row
-   ========================================================================== */
-
 /*
- * Every field reserves the same label row.
- *
- * This keeps selects, date controls, text fields, and disclosure controls
- * aligned even when one label uses a legend and another uses a label.
+ * Keeps labels, legends, selects, dates, and standard controls aligned across
+ * every field in the same toolbar row.
  */
 
 .filter-bar__field .form-label,
@@ -110,16 +73,12 @@
   margin: 0;
   padding: 0;
 
-  color: var(--color-heading);
+  color: var(--filter-bar-heading-color);
 
   font-size: var(--text-sm);
   font-weight: ds.font-weight("bold");
   line-height: var(--line-height-normal);
 }
-
-/* ==========================================================================
-   Form Group Reset
-   ========================================================================== */
 
 .filter-bar__field .form-group,
 .filter-bar__field.form-group {
@@ -127,7 +86,7 @@
 }
 
 /* ==========================================================================
-   Control Width
+   Shared Control Sizing
    ========================================================================== */
 
 .filter-bar__field .form-control,
@@ -145,17 +104,6 @@
   min-inline-size: 0;
 }
 
-/* ==========================================================================
-   Shared Visible Control Size
-   ========================================================================== */
-
-/*
- * Use an explicit block size rather than only min-block-size.
- *
- * This ensures that native selects, enhanced selects, date triggers, and
- * normal inputs occupy exactly the same visual height.
- */
-
 .filter-bar__field .form-control,
 .filter-bar__field .form-select,
 .filter-bar__field .custom-select__trigger,
@@ -166,10 +114,6 @@
   block-size: var(--filter-bar-control-block-size);
   min-block-size: var(--filter-bar-control-block-size);
 }
-
-/* ==========================================================================
-   Select Wrapper
-   ========================================================================== */
 
 .filter-bar__field .form-select-wrap {
   display: flex;
@@ -256,10 +200,6 @@
   margin-inline-start: auto;
 }
 
-/* ==========================================================================
-   Native Date Range
-   ========================================================================== */
-
 .filter-bar__field .custom-date__native-range .form-control {
   inline-size: 100%;
   min-inline-size: 0;
@@ -272,18 +212,9 @@
 .filter-bar__field .form-help,
 .filter-bar__field .form-error,
 .filter-bar__field .form-success {
-  margin: 0;
-}
-
-/*
- * Supporting text belongs below the visible control and must not affect the
- * alignment of the label or control rows.
- */
-
-.filter-bar__field .form-help,
-.filter-bar__field .form-error,
-.filter-bar__field .form-success {
   align-self: start;
+
+  margin: 0;
 }
 
 /* ==========================================================================
@@ -299,10 +230,6 @@
   min-inline-size: 0;
 }
 
-/* ==========================================================================
-   Legend Item
-   ========================================================================== */
-
 .filter-bar__legend-item {
   display: inline-flex;
   align-items: center;
@@ -315,10 +242,6 @@
   font-size: var(--text-xs);
   line-height: var(--line-height-normal);
 }
-
-/* ==========================================================================
-   Legend Indicator
-   ========================================================================== */
 
 .filter-bar__legend-indicator {
   flex: 0 0 auto;
@@ -352,11 +275,6 @@
    ========================================================================== */
 
 @include ds.respond-down("lg") {
-  /*
-   * Four-column filters become two columns earlier than the global grid
-   * utility to preserve readable select and date controls.
-   */
-
   .filter-bar__fields.grid-4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -374,7 +292,6 @@
   .filter-bar__legend {
     align-items: flex-start;
     flex-direction: column;
-
     gap: ds.space(2);
   }
 }
@@ -388,10 +305,6 @@
   .filter-bar__fields.grid-3,
   .filter-bar__fields.grid-4 {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .filter-bar__field {
-    gap: ds.space(2);
   }
 
   .filter-bar__field .form-label,

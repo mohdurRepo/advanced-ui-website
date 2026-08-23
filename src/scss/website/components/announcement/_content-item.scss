@@ -1,63 +1,64 @@
 @use "../../../design-system/abstracts" as ds;
 
 /* ==========================================================================
-   Announcement Item
+   Content Item
    ========================================================================== */
 
 /*
- * Reusable announcement result.
+ * Reusable chronological or publication result.
  *
- * Layout:
+ * Suitable for:
  *
- * - logo at the inline start
- * - content uses all remaining width
- * - issuer metadata above the title
- * - publisher and publication time share the bottom row
+ * - announcements
+ * - regulatory disclosures
+ * - market news
+ * - company updates
+ * - publications
  *
- * No fixed date column is reserved, allowing long announcement titles to use
- * the full available width.
+ * The optional entity summary supports a category, symbol, publisher/company,
+ * and market movement without making the component announcement-specific.
  */
 
-.announcement-item {
-  --announcement-item-bg: var(--color-surface);
-  --announcement-item-color: var(--color-text);
-  --announcement-item-border: var(--color-border);
-  --announcement-item-hover-border: var(--color-border-strong);
-  --announcement-item-radius: var(--radius-lg);
-  --announcement-item-shadow: var(--shadow-sm);
+.content-item {
+  --content-item-bg: var(--color-surface);
+  --content-item-color: var(--color-text);
+  --content-item-border: var(--color-border);
+  --content-item-hover-border: var(--color-border-strong);
+  --content-item-radius: var(--radius-lg);
+  --content-item-shadow: var(--shadow-sm);
 
-  --announcement-item-logo-size: 4rem;
-  --announcement-item-gap: #{ds.space(4)};
-  --announcement-item-padding: #{ds.space(4)};
+  --content-item-media-size: 4rem;
+  --content-item-gap: #{ds.space(4)};
+  --content-item-padding: #{ds.space(4)};
 
   position: relative;
   isolation: isolate;
 
   display: grid;
   grid-template-columns:
-    var(--announcement-item-logo-size)
+    var(--content-item-media-size)
     minmax(0, 1fr);
   align-items: start;
-  gap: var(--announcement-item-gap);
+  gap: var(--content-item-gap);
 
   min-inline-size: 0;
-  padding: var(--announcement-item-padding);
+  padding: var(--content-item-padding);
 
-  border: 1px solid var(--announcement-item-border);
-  border-radius: var(--announcement-item-radius);
+  border: 1px solid var(--content-item-border);
+  border-radius: var(--content-item-radius);
 
-  background: var(--announcement-item-bg);
-  color: var(--announcement-item-color);
+  background: var(--content-item-bg);
+  color: var(--content-item-color);
 
-  box-shadow: var(--announcement-item-shadow);
+  box-shadow: var(--content-item-shadow);
 
   overflow: hidden;
 
   @include ds.transition((border-color, box-shadow, transform), "fast");
 }
 
-.announcement-item:hover {
-  border-color: var(--announcement-item-hover-border);
+.content-item:hover {
+  border-color: var(--content-item-hover-border);
 
   box-shadow: var(--shadow-md);
 
@@ -65,10 +66,10 @@
 }
 
 /* ==========================================================================
-   Logo
+   Media
    ========================================================================== */
 
-.announcement-item__logo {
+.content-item__media {
   position: relative;
   z-index: 1;
 
@@ -77,11 +78,11 @@
 
   align-self: start;
 
-  inline-size: var(--announcement-item-logo-size);
-  block-size: var(--announcement-item-logo-size);
+  inline-size: var(--content-item-media-size);
+  block-size: var(--content-item-media-size);
   min-inline-size: 0;
 
-  border: 1px solid var(--announcement-item-border);
+  border: 1px solid var(--content-item-border);
   border-radius: var(--radius-md);
 
   background: var(--color-surface-alt);
@@ -89,7 +90,7 @@
   overflow: hidden;
 }
 
-.announcement-item__logo-image {
+.content-item__image {
   display: block;
 
   inline-size: 100%;
@@ -100,7 +101,7 @@
   object-position: center;
 }
 
-.announcement-item__logo-fallback {
+.content-item__media-fallback {
   display: grid;
   place-items: center;
 
@@ -121,7 +122,7 @@
    Content
    ========================================================================== */
 
-.announcement-item__content {
+.content-item__content {
   position: relative;
   z-index: 1;
 
@@ -133,24 +134,40 @@
 }
 
 /* ==========================================================================
-   Issuer Summary
+   Entity Summary
    ========================================================================== */
 
-.announcement-item__summary {
-  display: flex;
+.content-item__summary {
+  display: grid;
+  grid-template-columns: max-content max-content minmax(0, 1fr);
   align-items: center;
-  flex-wrap: wrap;
   gap: ds.space(1) ds.space(2);
 
   min-inline-size: 0;
 }
 
-.announcement-item__type {
+.content-item__entity {
+  grid-column: 1 / -1;
+  grid-row: 1;
+
+  min-inline-size: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+}
+
+.content-item__category {
+  grid-column: 1;
+  grid-row: 2;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  flex: 0 0 auto;
 
   min-block-size: 1.5rem;
   padding-block: ds.space(1);
@@ -168,11 +185,12 @@
   white-space: nowrap;
 }
 
-.announcement-item__symbol {
+.content-item__symbol {
   direction: ltr;
   unicode-bidi: isolate;
 
-  flex: 0 0 auto;
+  grid-column: 2;
+  grid-row: 2;
 
   color: var(--color-heading);
 
@@ -183,30 +201,25 @@
   white-space: nowrap;
 }
 
-.announcement-item__company {
-  min-inline-size: 0;
-
-  color: var(--color-text-muted);
-
-  font-size: var(--text-sm);
-  line-height: var(--line-height-normal);
-}
-
 /* ==========================================================================
-   Market Movement
+   Market Change
    ========================================================================== */
 
-.announcement-item__change {
+.content-item__change {
   direction: ltr;
   unicode-bidi: isolate;
 
   display: inline-flex;
   align-items: center;
+  justify-self: end;
   gap: ds.space(1);
 
-  flex: 0 0 auto;
+  grid-column: 3;
+  grid-row: 2;
 
-  color: var(--color-market-neutral);
+  min-inline-size: 0;
+
+  color: var(--price-state-color, var(--color-market-neutral));
 
   font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
@@ -215,44 +228,47 @@
   white-space: nowrap;
 }
 
-.announcement-item__change-indicator {
-  display: inline-block;
-
+.content-item__change-indicator {
   color: currentColor;
 
   font-size: 0.75em;
   line-height: 1;
 }
+/*
+ * Use .price-up, .price-down, or .price-neutral on the same element when
+ * available. These modifiers provide a local fallback for standalone use.
+ */
 
-.announcement-item__change--positive {
-  color: var(--color-market-positive);
+.content-item__change--positive {
+  --price-state-color: var(--color-market-positive, var(--color-success));
 }
 
-.announcement-item__change--negative {
-  color: var(--color-market-negative);
+.content-item__change--negative {
+  --price-state-color: var(--color-market-negative, var(--color-danger));
 }
 
-.announcement-item__change--neutral {
-  color: var(--color-market-neutral);
+.content-item__change--neutral {
+  --price-state-color: var(--color-market-neutral, var(--color-text-muted));
 }
 
 /* ==========================================================================
-   Announcement Title
+   Title
    ========================================================================== */
 
-.announcement-item__title {
-  margin: 0;
-
+.content-item__title {
   min-inline-size: 0;
+  margin: 0;
 
   color: var(--color-heading);
 
   font-size: var(--text-md);
   font-weight: ds.font-weight("bold");
   line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
 }
 
-.announcement-item__link {
+.content-item__link {
   color: inherit;
 
   text-decoration: none;
@@ -262,17 +278,17 @@
   @include ds.transition(color, "fast");
 }
 
-.announcement-item__link:hover {
+.content-item__link:hover {
   color: var(--color-primary);
 
   text-decoration-line: underline;
 }
 
-.announcement-item__link:focus {
+.content-item__link:focus {
   outline: none;
 }
 
-.announcement-item__link:focus-visible {
+.content-item__link:focus-visible {
   @include ds.focus-ring;
 }
 
@@ -280,7 +296,7 @@
    Footer Metadata
    ========================================================================== */
 
-.announcement-item__footer {
+.content-item__footer {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -291,11 +307,7 @@
   margin-block-start: ds.space(1);
 }
 
-/* ==========================================================================
-   Publisher
-   ========================================================================== */
-
-.announcement-item__publisher {
+.content-item__source {
   display: inline-flex;
   align-items: center;
   gap: ds.space(2);
@@ -309,7 +321,7 @@
   line-height: var(--line-height-normal);
 }
 
-.announcement-item__publisher-icon {
+.content-item__source-mark {
   flex: 0 0 auto;
 
   inline-size: 0.5rem;
@@ -317,18 +329,16 @@
 
   border-radius: var(--radius-sm);
 
-  background: var(--color-text-muted);
+  background: currentColor;
 }
 
-.announcement-item__publisher-name {
+.content-item__source-name {
   min-inline-size: 0;
+
+  overflow-wrap: anywhere;
 }
 
-/* ==========================================================================
-   Publication Date and Time
-   ========================================================================== */
-
-.announcement-item__time {
+.content-item__time {
   direction: ltr;
   unicode-bidi: isolate;
 
@@ -352,38 +362,33 @@
   white-space: nowrap;
 }
 
-.announcement-item__date {
+.content-item__date {
   color: var(--color-heading);
 
   font-weight: ds.font-weight("bold");
 }
 
-.announcement-item__date-secondary,
-.announcement-item__clock {
+.content-item__date-secondary,
+.content-item__clock {
   padding-inline-start: ds.space(2);
 
   border-inline-start: 1px solid var(--color-border-strong);
 }
 
 /* ==========================================================================
-   Featured State
+   States
    ========================================================================== */
 
-/*
- * Featured styling is explicitly applied.
- * The first result is not selected automatically.
- */
-
-.announcement-item--featured {
-  --announcement-item-bg: var(--color-surface-selected);
-  --announcement-item-hover-border: var(--color-primary);
+.content-item--featured {
+  --content-item-bg: var(--color-surface-selected);
+  --content-item-hover-border: var(--color-primary);
 
   border-color: var(--color-primary);
 
   box-shadow: var(--shadow-md);
 }
 
-.announcement-item--featured::before {
+.content-item--featured::before {
   content: "";
 
   position: absolute;
@@ -398,11 +403,7 @@
   pointer-events: none;
 }
 
-/* ==========================================================================
-   Unread State
-   ========================================================================== */
-
-.announcement-item.is-unread::after {
+.content-item.is-unread::after {
   content: "";
 
   position: absolute;
@@ -421,11 +422,7 @@
   pointer-events: none;
 }
 
-/* ==========================================================================
-   Busy State
-   ========================================================================== */
-
-.announcement-item[aria-busy="true"] {
+.content-item[aria-busy="true"] {
   cursor: wait;
   opacity: 0.68;
 
@@ -437,24 +434,24 @@
    ========================================================================== */
 
 @include ds.respond-down("md") {
-  .announcement-item {
-    --announcement-item-logo-size: 3.5rem;
-    --announcement-item-gap: #{ds.space(3)};
-    --announcement-item-padding: #{ds.space(3)};
+  .content-item {
+    --content-item-media-size: 3.5rem;
+    --content-item-gap: #{ds.space(3)};
+    --content-item-padding: #{ds.space(3)};
   }
 
-  .announcement-item__title {
+  .content-item__title {
     font-size: var(--text-base);
   }
 
-  .announcement-item__footer {
+  .content-item__footer {
     align-items: flex-start;
     flex-direction: column;
 
     gap: ds.space(3);
   }
 
-  .announcement-item__time {
+  .content-item__time {
     justify-content: flex-start;
 
     margin-inline-start: 0;
@@ -468,40 +465,44 @@
    ========================================================================== */
 
 @include ds.respond-down("sm") {
-  .announcement-item {
+  .content-item {
     grid-template-columns: minmax(0, 1fr);
 
     border-radius: var(--radius-md);
   }
 
-  .announcement-item__logo {
+  .content-item__media {
     inline-size: 3.5rem;
     block-size: 3.5rem;
   }
 
-  .announcement-item__summary {
+  .content-item__summary {
     align-items: flex-start;
   }
 
-  .announcement-item__company {
+  .content-item__entity {
     flex-basis: 100%;
   }
 
-  .announcement-item__footer {
+  .content-item__footer {
     padding-block-start: ds.space(3);
 
-    border-block-start: 1px solid var(--announcement-item-border);
+    border-block-start: 1px solid var(--content-item-border);
   }
 
-  .announcement-item__publisher,
-  .announcement-item__time {
+  .content-item__source,
+  .content-item__time {
     inline-size: 100%;
   }
 
-  .announcement-item__time {
+  .content-item__time {
     justify-content: flex-end;
 
     text-align: end;
+  }
+
+  .content-item__change {
+    justify-self: start;
   }
 }
 
@@ -510,15 +511,20 @@
    ========================================================================== */
 
 @media (max-width: 24rem) {
-  .announcement-item__time {
+  .content-item__time {
     justify-content: flex-start;
 
     text-align: start;
   }
 
-  .announcement-item__date-secondary,
-  .announcement-item__clock {
+  .content-item__date-secondary,
+  .content-item__clock {
     padding-inline-start: ds.space(1);
+  }
+
+  .content-item__change {
+    grid-column: 1 / -1;
+    grid-row: 3;
   }
 }
 
@@ -526,10 +532,8 @@
    RTL
    ========================================================================== */
 
-html[dir="rtl"] {
-  .announcement-item__time {
-    direction: ltr;
-  }
+html[dir="rtl"] .content-item__time {
+  direction: ltr;
 }
 
 /* ==========================================================================
@@ -537,45 +541,46 @@ html[dir="rtl"] {
    ========================================================================== */
 
 html[data-contrast="high"] {
-  .announcement-item {
+  .content-item {
     border-width: 2px;
     border-color: var(--color-border-strong);
 
     box-shadow: none;
   }
 
-  .announcement-item:hover {
+  .content-item:hover {
     border-color: currentColor;
 
     box-shadow: none;
     transform: none;
   }
 
-  .announcement-item__logo,
-  .announcement-item__type {
+  .content-item__media,
+  .content-item__category {
     border-width: 2px;
     border-color: currentColor;
   }
 
-  .announcement-item__change {
+  .content-item__change,
+  .content-item__source-mark {
     color: currentColor;
   }
 
-  .announcement-item__publisher-icon {
+  .content-item__source-mark {
     background: currentColor;
   }
 
-  .announcement-item__date-secondary,
-  .announcement-item__clock,
-  .announcement-item__footer {
+  .content-item__date-secondary,
+  .content-item__clock,
+  .content-item__footer {
     border-color: currentColor;
   }
 
-  .announcement-item--featured {
+  .content-item--featured {
     border-color: currentColor;
   }
 
-  .announcement-item--featured::before {
+  .content-item--featured::before {
     background: currentColor;
   }
 }
@@ -585,36 +590,38 @@ html[data-contrast="high"] {
    ========================================================================== */
 
 @media (forced-colors: active) {
-  .announcement-item {
+  .content-item {
     border-color: CanvasText;
+
     background: Canvas;
     color: CanvasText;
   }
 
-  .announcement-item__logo,
-  .announcement-item__type {
+  .content-item__media,
+  .content-item__category {
     border-color: CanvasText;
+
     background: Canvas;
     color: CanvasText;
   }
 
-  .announcement-item__link:hover {
+  .content-item__link:hover {
     color: LinkText;
   }
 
-  .announcement-item__change,
-  .announcement-item__change--positive,
-  .announcement-item__change--negative,
-  .announcement-item__change--neutral {
+  .content-item__change,
+  .content-item__change--positive,
+  .content-item__change--negative,
+  .content-item__change--neutral {
     color: CanvasText;
   }
 
-  .announcement-item__publisher-icon {
+  .content-item__source-mark {
     background: CanvasText;
   }
 
-  .announcement-item--featured::before,
-  .announcement-item.is-unread::after {
+  .content-item--featured::before,
+  .content-item.is-unread::after {
     background: Highlight;
   }
 }
@@ -624,23 +631,19 @@ html[data-contrast="high"] {
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  .announcement-item,
-  .announcement-item__link {
+  .content-item {
     transition: none;
   }
 
-  .announcement-item:hover {
+  .content-item:hover {
     transform: none;
   }
 }
 
-html[data-motion="reduce"] {
-  .announcement-item,
-  .announcement-item__link {
-    transition: none;
-  }
+html[data-motion="reduce"] .content-item {
+  transition: none;
+}
 
-  .announcement-item:hover {
-    transform: none;
-  }
+html[data-motion="reduce"] .content-item:hover {
+  transform: none;
 }

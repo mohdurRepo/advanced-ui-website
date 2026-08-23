@@ -1,190 +1,255 @@
-@use "../../../../design-system/abstracts" as *;
+@use "../../../../design-system/abstracts" as ds;
 
 /* ==========================================================================
    Financial Panels
    ========================================================================== */
 
-/*
- * Feature-specific panel patterns:
+/**
+ * Financial panel presentation.
  *
- * - Financial filters
- * - Shareholding tables
- * - Foreign ownership summary
- * - Ownership meters
- * - Financial summary cards
+ * This file owns:
+ *
+ * - reusable financial section headings
+ * - lightweight subsection composition
+ * - foreign ownership presentation
+ * - financial value states
+ *
+ * It should not recreate:
+ *
+ * - generic cards
+ * - generic tables
+ * - buttons
+ * - tabs
+ * - document cards
+ * - layout primitives
  */
 
 /* ==========================================================================
-   Financial Filter
+   Financial Section Panel
    ========================================================================== */
 
-.financial-filter {
+.financial-section-panel,
+.financial-subsection-panel {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Section Heading
+   ========================================================================== */
+
+/**
+ * Shared content heading used inside financial panels.
+ *
+ * The heading itself is intentionally unboxed. Separation should come from
+ * spacing and typography rather than another bordered container.
+ */
+
+.financial-section-heading {
   display: flex;
-  align-items: flex-end;
-  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: clamp(var(--space-4), 3vw, var(--space-8));
 
   min-inline-size: 0;
-
-  padding: 1rem;
-
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-
-  background: var(--color-surface-alt);
 }
 
 /* ==========================================================================
-   Filter Fields
+   Heading Main
    ========================================================================== */
 
-.financial-filter__fields {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(12rem, 1fr));
-
+.financial-section-heading__main {
+  display: flex;
   flex: 1 1 auto;
+  flex-direction: column;
 
-  gap: 0.875rem;
-
-  min-inline-size: 0;
-}
-
-/* ==========================================================================
-   Filter Field
-   ========================================================================== */
-
-.financial-filter__field {
-  display: grid;
-  gap: 0.375rem;
+  gap: var(--space-1);
 
   min-inline-size: 0;
 }
 
 /* ==========================================================================
-   Filter Label
+   Eyebrow
    ========================================================================== */
 
-.financial-filter__label {
-  color: var(--color-heading);
+.financial-section-heading__eyebrow {
+  margin: 0;
+
+  color: var(--color-primary);
 
   font-size: var(--text-xs);
-  font-weight: font-weight("semibold");
+  font-weight: ds.font-weight("medium");
   line-height: var(--line-height-tight);
+
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* ==========================================================================
-   Filter Control
+   Title
    ========================================================================== */
 
-.financial-filter__control {
-  inline-size: 100%;
-  min-inline-size: 0;
-  min-block-size: 2.75rem;
+.financial-section-heading__title {
+  margin: 0;
 
-  padding: 0.625rem 0.75rem;
+  color: var(--color-heading);
 
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  font-size: var(--text-xl);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-tight);
 
-  background: var(--color-surface);
-  color: var(--color-text);
+  text-wrap: balance;
+}
 
-  font: inherit;
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.financial-section-heading__description {
+  max-inline-size: 50rem;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
   font-size: var(--text-sm);
-  font-weight: font-weight("medium");
+  font-weight: ds.font-weight("regular");
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Heading Metadata
+   ========================================================================== */
+
+/**
+ * Optional compact metadata placed beside the heading:
+ *
+ * Currency  SAR Thousands
+ * Last Updated  09 Jun 2022
+ * Records  3
+ */
+
+.financial-section-heading__meta {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+
+  gap: var(--space-2);
+
+  min-inline-size: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
   line-height: var(--line-height-normal);
+
+  white-space: nowrap;
+}
+
+.financial-section-heading__meta strong {
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Financial Value
+   ========================================================================== */
+
+/**
+ * Generic financial value composition.
+ *
+ * Directional state classes express meaning without coupling that meaning to
+ * a particular table or panel.
+ */
+
+.financial-value {
+  display: inline-flex;
+  align-items: baseline;
+
+  gap: var(--space-1);
+
+  min-inline-size: 0;
+
+  color: inherit;
+
+  direction: ltr;
+  unicode-bidi: isolate;
 
   font-variant-numeric: tabular-nums;
 
-  cursor: pointer;
+  white-space: nowrap;
+}
 
-  &:hover {
-    border-color: color-mix(
-      in oklab,
-      var(--color-primary),
-      var(--color-border) 45%
-    );
-  }
+.financial-value--strong {
+  color: var(--color-heading);
 
-  &:focus {
-    outline: none;
-  }
-
-  &:focus-visible {
-    border-color: var(--color-primary);
-
-    @include focus-ring;
-  }
-
-  &:disabled {
-    opacity: 0.55;
-
-    cursor: not-allowed;
-  }
+  font-weight: ds.font-weight("bold");
 }
 
 /* ==========================================================================
-   Date Control
+   Currency
    ========================================================================== */
 
-.financial-filter__control[type="date"] {
-  appearance: none;
+.financial-value__currency {
+  --icon-size: 0.8em;
 
-  color-scheme: light;
-
-  &::-webkit-calendar-picker-indicator {
-    opacity: 0.65;
-
-    cursor: pointer;
-  }
-}
-
-/* ==========================================================================
-   Filter Submit
-   ========================================================================== */
-
-.financial-filter__submit {
-  min-inline-size: 7.5rem;
-  min-block-size: 2.75rem;
-
+  display: inline-flex;
   flex: 0 0 auto;
 
-  justify-content: center;
-  gap: 0.5rem;
-
-  white-space: nowrap;
-
-  .has-icon {
-    --icon-size: 0.625rem;
-
-    flex: 0 0 auto;
-  }
+  color: var(--color-primary);
 }
 
 /* ==========================================================================
-   Shareholding Table
+   Amount
    ========================================================================== */
 
-.financial-table--shareholding {
-  min-inline-size: 100%;
+.financial-value__amount {
+  min-inline-size: 0;
 }
 
-.financial-table--shareholding td[role="rowheader"] {
-  min-inline-size: 14rem;
-  max-inline-size: 20rem;
+/* ==========================================================================
+   Value States
+   ========================================================================== */
+
+.financial-value--positive {
+  color: var(--color-market-positive);
+}
+
+.financial-value--negative {
+  color: var(--color-market-negative);
+}
+
+.financial-value--neutral {
+  color: var(--color-market-neutral);
 }
 
 /* ==========================================================================
    Foreign Ownership
    ========================================================================== */
 
+/**
+ * Domain-specific ownership presentation.
+ *
+ * Overview and metric blocks are meaningful data objects, therefore they may
+ * use surfaces. The surrounding financial panel remains visually open.
+ */
+
 .foreign-ownership {
   display: grid;
   grid-template-columns:
-    minmax(0, 1.1fr)
-    minmax(18rem, 0.9fr);
+    minmax(0, 1.25fr)
+    minmax(18rem, 0.75fr);
 
   align-items: stretch;
-  gap: clamp(1rem, 3vw, 2rem);
+
+  gap: var(--space-5);
 
   min-inline-size: 0;
 }
@@ -196,9 +261,18 @@
 .foreign-ownership__overview {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+
+  gap: var(--space-4);
 
   min-inline-size: 0;
+
+  padding: clamp(var(--space-4), 2vw, var(--space-5));
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 /* ==========================================================================
@@ -206,22 +280,17 @@
    ========================================================================== */
 
 .foreign-ownership__value {
-  margin-block: clamp(1rem, 2vw, 1.5rem);
-
   color: var(--color-heading);
 
-  font-size: clamp(var(--text-3xl), 1.75rem + 2vw, var(--text-5xl));
-  font-weight: font-weight("heavy");
+  font-size: clamp(var(--text-2xl), 1.4rem + 1.5vw, var(--text-4xl));
+
+  font-weight: ds.font-weight("bold");
   line-height: 1;
 
-  letter-spacing: -0.035em;
+  direction: ltr;
+  unicode-bidi: isolate;
 
   font-variant-numeric: tabular-nums;
-}
-
-.financial-information[dir="rtl"] .foreign-ownership__value,
-html[dir="rtl"] .foreign-ownership__value {
-  letter-spacing: 0;
 }
 
 /* ==========================================================================
@@ -232,11 +301,10 @@ html[dir="rtl"] .foreign-ownership__value {
   position: relative;
 
   inline-size: 100%;
-  block-size: 0.875rem;
+  block-size: 0.5rem;
 
   overflow: hidden;
 
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
 
   background: var(--color-surface-alt);
@@ -250,15 +318,17 @@ html[dir="rtl"] .foreign-ownership__value {
   display: block;
 
   inline-size: var(--foreign-ownership-progress, 0%);
+
+  max-inline-size: 100%;
   block-size: 100%;
 
   border-radius: inherit;
 
-  background: linear-gradient(
-    90deg,
-    color-mix(in oklab, var(--color-primary), #ffffff 18%),
-    var(--color-primary)
-  );
+  background: var(--color-primary);
+
+  transform-origin: inline-start;
+
+  @include ds.transition(inline-size, "normal");
 }
 
 /* ==========================================================================
@@ -269,15 +339,13 @@ html[dir="rtl"] .foreign-ownership__value {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
 
-  margin-block-start: 0.5rem;
+  gap: var(--space-3);
 
   color: var(--color-text-muted);
 
   font-size: var(--text-xs);
-  font-weight: font-weight("medium");
-  line-height: var(--line-height-tight);
+  line-height: var(--line-height-normal);
 
   font-variant-numeric: tabular-nums;
 }
@@ -290,8 +358,7 @@ html[dir="rtl"] .foreign-ownership__value {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 
-  align-content: stretch;
-  gap: 0.875rem;
+  gap: var(--space-3);
 
   min-inline-size: 0;
 
@@ -306,22 +373,20 @@ html[dir="rtl"] .foreign-ownership__value {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 0.75rem;
+
+  gap: var(--space-3);
 
   min-inline-size: 0;
-  min-block-size: 8rem;
+  min-block-size: 7rem;
 
-  padding: 1rem;
+  padding: var(--space-4);
 
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
 
   background: var(--color-surface);
+  color: var(--color-text);
 }
-
-/* ==========================================================================
-   Ownership Metric Label
-   ========================================================================== */
 
 .foreign-ownership__metric dt {
   margin: 0;
@@ -329,155 +394,94 @@ html[dir="rtl"] .foreign-ownership__value {
   color: var(--color-text-muted);
 
   font-size: var(--text-xs);
-  font-weight: font-weight("semibold");
+  font-weight: ds.font-weight("medium");
   line-height: var(--line-height-normal);
-
-  text-wrap: pretty;
 }
 
-/* ==========================================================================
-   Ownership Metric Value
-   ========================================================================== */
-
 .foreign-ownership__metric dd {
+  min-inline-size: 0;
+
   margin: 0;
 
   color: var(--color-heading);
 
-  font-size: clamp(var(--text-xl), 1rem + 0.75vw, var(--text-2xl));
-  font-weight: font-weight("heavy");
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("bold");
   line-height: var(--line-height-tight);
 
+  direction: ltr;
+  unicode-bidi: isolate;
+
   font-variant-numeric: tabular-nums;
+
+  overflow-wrap: anywhere;
 }
 
-/* ==========================================================================
-   Positive and Neutral Metric Values
-   ========================================================================== */
+/* Preserve semantic value-state colors inside metrics. */
 
 .foreign-ownership__metric dd.financial-value--positive {
-  color: var(--color-success);
+  color: var(--color-market-positive);
+}
+
+.foreign-ownership__metric dd.financial-value--negative {
+  color: var(--color-market-negative);
 }
 
 .foreign-ownership__metric dd.financial-value--neutral {
-  color: var(--color-text-muted);
+  color: var(--color-market-neutral);
 }
 
 /* ==========================================================================
-   Shared Summary Grid
+   Section Divider
    ========================================================================== */
 
-/*
- * Reused later for company, option, and ownership summaries.
+/**
+ * Optional lightweight separator when two financial objects need additional
+ * distinction without introducing another card.
  */
 
-.financial-summary-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+.financial-section-divider {
+  block-size: 1px;
 
-  gap: 0.875rem;
+  margin-block: var(--space-2);
 
-  min-inline-size: 0;
+  border: 0;
+
+  background: var(--color-border);
 }
 
 /* ==========================================================================
-   Summary Card
+   Supporting Note
    ========================================================================== */
 
-.financial-summary-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
+.financial-section-note {
+  max-inline-size: 52rem;
 
-  min-inline-size: 0;
-
-  padding: 1rem;
-
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-
-  background: var(--color-surface);
-}
-
-/* ==========================================================================
-   Summary Label
-   ========================================================================== */
-
-.financial-summary-card__label {
-  color: var(--color-text-muted);
-
-  font-size: var(--text-xs);
-  font-weight: font-weight("semibold");
-  line-height: var(--line-height-normal);
-}
-
-/* ==========================================================================
-   Summary Value
-   ========================================================================== */
-
-.financial-summary-card__value {
-  color: var(--color-heading);
-
-  font-size: clamp(var(--text-lg), 1rem + 0.6vw, var(--text-2xl));
-  font-weight: font-weight("heavy");
-  line-height: var(--line-height-tight);
-
-  font-variant-numeric: tabular-nums;
-}
-
-/* ==========================================================================
-   Summary Note
-   ========================================================================== */
-
-.financial-summary-card__note {
-  margin-block-start: auto;
+  margin: 0;
 
   color: var(--color-text-muted);
 
   font-size: var(--text-xs);
-  font-weight: font-weight("regular");
   line-height: var(--line-height-relaxed);
 
   text-wrap: pretty;
 }
 
 /* ==========================================================================
-   Large Tablet
+   Tablet
    ========================================================================== */
 
-@include respond-down(lg) {
+@include ds.respond-down("md") {
+  .financial-section-heading {
+    gap: var(--space-4);
+  }
+
   .foreign-ownership {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .foreign-ownership__metrics {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-/* ==========================================================================
-   Tablet
-   ========================================================================== */
-
-@include respond-down(md) {
-  .financial-filter {
-    align-items: stretch;
-  }
-
-  .financial-filter__fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .financial-filter__submit {
-    align-self: flex-end;
-  }
-
-  .foreign-ownership__metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .financial-table--shareholding td[role="rowheader"] {
-    min-inline-size: 12rem;
   }
 }
 
@@ -485,88 +489,63 @@ html[dir="rtl"] .foreign-ownership__value {
    Mobile
    ========================================================================== */
 
-@include respond-down(sm) {
-  .financial-filter {
+@include ds.respond-down("sm") {
+  .financial-section-heading {
     flex-direction: column;
-    align-items: stretch;
-    gap: 0.875rem;
 
-    padding: 0.875rem;
+    gap: var(--space-3);
+  }
+
+  .financial-section-heading__title {
+    font-size: var(--text-lg);
+  }
+
+  .financial-section-heading__description {
+    font-size: var(--text-xs);
+  }
+
+  .financial-section-heading__meta {
+    inline-size: 100%;
+  }
+
+  .foreign-ownership {
+    gap: var(--space-4);
+  }
+
+  .foreign-ownership__overview {
+    gap: var(--space-3);
+
+    padding: var(--space-3);
 
     border-radius: var(--radius-md);
   }
 
-  .financial-filter__fields {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .financial-filter__control {
-    min-block-size: 2.625rem;
-
-    font-size: var(--text-xs);
-  }
-
-  .financial-filter__submit {
-    inline-size: 100%;
-    min-block-size: 2.625rem;
-
-    align-self: stretch;
-  }
-
-  .financial-table--shareholding td[role="rowheader"] {
-    min-inline-size: 11rem;
-  }
-
-  .foreign-ownership {
-    gap: 1rem;
-  }
-
   .foreign-ownership__value {
-    margin-block: 1rem;
-
-    font-size: var(--text-3xl);
+    font-size: var(--text-2xl);
   }
 
   .foreign-ownership__metrics {
     grid-template-columns: minmax(0, 1fr);
-
-    gap: 0.75rem;
   }
 
   .foreign-ownership__metric {
     min-block-size: auto;
 
-    padding: 0.875rem;
-
-    border-radius: var(--radius-md);
+    padding: var(--space-3);
   }
 
   .foreign-ownership__metric dd {
-    font-size: var(--text-xl);
-  }
-
-  .financial-summary-card {
-    padding: 0.875rem;
-
-    border-radius: var(--radius-md);
+    font-size: var(--text-base);
   }
 }
 
 /* ==========================================================================
-   Dark Theme
+   RTL
    ========================================================================== */
 
-html[data-theme="dark"] {
-  .financial-filter__control[type="date"] {
-    color-scheme: dark;
-  }
-
-  .foreign-ownership__meter {
-    background: color-mix(
-      in oklab,
-      var(--color-surface-alt),
-      var(--color-bg) 12%
-    );
+html[dir="rtl"] {
+  .financial-section-heading__eyebrow {
+    letter-spacing: 0;
   }
 }
 
@@ -575,27 +554,76 @@ html[data-theme="dark"] {
    ========================================================================== */
 
 html[data-contrast="high"] {
-  .financial-filter,
-  .financial-filter__control,
-  .foreign-ownership__meter,
-  .foreign-ownership__metric,
-  .financial-summary-card {
+  .foreign-ownership__overview,
+  .foreign-ownership__metric {
     border-width: 2px;
+  }
+
+  .foreign-ownership__meter {
+    border: 2px solid currentColor;
+
+    background: transparent;
   }
 
   .foreign-ownership__meter-fill {
     background: currentColor;
   }
 
-  .foreign-ownership__meter-labels,
+  .financial-section-heading__description,
+  .financial-section-heading__meta,
+  .financial-section-note,
   .foreign-ownership__metric dt,
-  .financial-summary-card__label,
-  .financial-summary-card__note {
+  .foreign-ownership__meter-labels {
     color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .foreign-ownership__overview,
+  .foreign-ownership__metric {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
   }
 
-  .foreign-ownership__metric dd.financial-value--positive,
-  .foreign-ownership__metric dd.financial-value--neutral {
-    color: currentColor;
+  .foreign-ownership__meter {
+    border: 1px solid CanvasText;
+
+    background: Canvas;
   }
+
+  .foreign-ownership__meter-fill {
+    background: Highlight;
+  }
+
+  .financial-section-heading__eyebrow,
+  .financial-section-heading__title,
+  .financial-section-heading__description,
+  .financial-section-heading__meta,
+  .financial-section-note,
+  .foreign-ownership__value,
+  .foreign-ownership__metric dt,
+  .foreign-ownership__metric dd,
+  .foreign-ownership__meter-labels {
+    color: CanvasText;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .foreign-ownership__meter-fill {
+    transition: none;
+  }
+}
+
+html[data-motion="reduce"] .foreign-ownership__meter-fill {
+  transition: none;
 }

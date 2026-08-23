@@ -5,19 +5,16 @@
    ========================================================================== */
 
 /*
- * Shared feedback states for directory result regions.
+ * Feedback states for directory result regions:
  *
- * Supports:
+ * - loading;
+ * - updating;
+ * - empty directory;
+ * - no matching results;
+ * - recoverable error.
  *
- * - initial loading
- * - updating
- * - empty directory
- * - no matching results
- * - recoverable error
- *
- * The HTML controls which state is rendered. JavaScript should update the
- * result region's aria-busy state and announce meaningful changes through a
- * dedicated live region.
+ * JavaScript should update the relevant `aria-busy` state and announce
+ * meaningful changes through `.directory__live-status`.
  */
 
 .directory-state {
@@ -46,8 +43,13 @@
   text-align: center;
 }
 
+.directory-state[hidden],
+.directory-skeleton[hidden] {
+  display: none;
+}
+
 /* ==========================================================================
-   Icon
+   Icon and Content
    ========================================================================== */
 
 .directory-state__icon {
@@ -66,10 +68,6 @@
   color: var(--color-primary);
 }
 
-/* ==========================================================================
-   Content
-   ========================================================================== */
-
 .directory-state__content {
   display: grid;
   justify-items: center;
@@ -78,10 +76,6 @@
   max-inline-size: 36rem;
   min-inline-size: 0;
 }
-
-/* ==========================================================================
-   Title
-   ========================================================================== */
 
 .directory-state__title {
   margin: 0;
@@ -92,12 +86,9 @@
   font-weight: ds.font-weight("bold");
   line-height: var(--line-height-tight);
 
+  overflow-wrap: anywhere;
   text-wrap: balance;
 }
-
-/* ==========================================================================
-   Description
-   ========================================================================== */
 
 .directory-state__description {
   margin: 0;
@@ -106,11 +97,9 @@
 
   font-size: var(--text-sm);
   line-height: var(--line-height-relaxed);
-}
 
-/* ==========================================================================
-   Actions
-   ========================================================================== */
+  overflow-wrap: anywhere;
+}
 
 .directory-state__actions {
   display: flex;
@@ -124,63 +113,24 @@
 }
 
 /* ==========================================================================
-   Loading State
+   State Variants
    ========================================================================== */
 
 .directory-state--loading {
   cursor: wait;
 }
 
-/* ==========================================================================
-   Loading Indicator
-   ========================================================================== */
-
-.directory-state__loader {
-  position: relative;
-
-  inline-size: 3rem;
-  block-size: 3rem;
-
-  border: 0.25rem solid var(--color-border);
-  border-block-start-color: var(--color-primary);
-  border-radius: var(--radius-pill);
-
-  animation: directory-state-spin 0.8s linear infinite;
-}
-
-@keyframes directory-state-spin {
-  to {
-    transform: rotate(1turn);
-  }
-}
-
-/* ==========================================================================
-   Error State
-   ========================================================================== */
-
 .directory-state--error .directory-state__icon {
   color: var(--color-danger);
 }
-
-/* ==========================================================================
-   Empty State
-   ========================================================================== */
 
 .directory-state--empty .directory-state__icon {
   color: var(--color-text-muted);
 }
 
-/* ==========================================================================
-   No-results State
-   ========================================================================== */
-
 .directory-state--no-results .directory-state__icon {
   color: var(--color-primary);
 }
-
-/* ==========================================================================
-   Compact State
-   ========================================================================== */
 
 .directory-state--compact {
   min-block-size: 12rem;
@@ -198,10 +148,6 @@
 .directory-state--compact .directory-state__title {
   font-size: var(--text-lg);
 }
-
-/* ==========================================================================
-   Inline State
-   ========================================================================== */
 
 .directory-state--inline {
   display: flex;
@@ -242,6 +188,27 @@
 }
 
 /* ==========================================================================
+   Loading Indicator
+   ========================================================================== */
+
+.directory-state__loader {
+  inline-size: 3rem;
+  block-size: 3rem;
+
+  border: 0.25rem solid var(--color-border);
+  border-block-start-color: var(--color-primary);
+  border-radius: var(--radius-pill);
+
+  animation: directory-state-spin 0.8s linear infinite;
+}
+
+@keyframes directory-state-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* ==========================================================================
    Skeleton Collection
    ========================================================================== */
 
@@ -259,10 +226,6 @@
   min-inline-size: 0;
 }
 
-/* ==========================================================================
-   Skeleton Card
-   ========================================================================== */
-
 .directory-skeleton__item {
   display: grid;
   gap: ds.space(4);
@@ -278,10 +241,6 @@
 
   background: var(--color-surface);
 }
-
-/* ==========================================================================
-   Skeleton Blocks
-   ========================================================================== */
 
 .directory-skeleton__block {
   position: relative;
@@ -309,17 +268,9 @@
   block-size: 1.25rem;
 }
 
-.directory-skeleton__block--text {
-  inline-size: 100%;
-}
-
 .directory-skeleton__block--short {
   inline-size: 48%;
 }
-
-/* ==========================================================================
-   Skeleton Animation
-   ========================================================================== */
 
 .directory-skeleton__block::after {
   content: "";
@@ -349,11 +300,6 @@
    Screen-reader Status
    ========================================================================== */
 
-/*
- * This element remains visually hidden while providing result changes to
- * assistive technology.
- */
-
 .directory__live-status {
   position: absolute;
 
@@ -369,15 +315,6 @@
   border: 0;
 
   white-space: nowrap;
-}
-
-/* ==========================================================================
-   Hidden State
-   ========================================================================== */
-
-.directory-state[hidden],
-.directory-skeleton[hidden] {
-  display: none;
 }
 
 /* ==========================================================================

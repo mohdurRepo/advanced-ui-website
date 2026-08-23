@@ -1,21 +1,23 @@
 @use "../../abstracts" as ds;
 
-/* ========================================================================== 
+/* ==========================================================================
    Responsive Table Wrapper
    ========================================================================== */
 
 /*
- * This wrapper is the single horizontal-overflow owner for design-system
- * tables. It prevents wide tables from increasing the document width.
+ * The responsive wrapper is the only horizontal-overflow owner for native
+ * design-system tables.
  *
- * When keyboard scrolling is required, give the wrapper:
+ * For keyboard access, add:
  *
  * - tabindex="0"
  * - role="region"
- * - an accessible name using aria-label or aria-labelledby
+ * - aria-label or aria-labelledby
  */
 
 .table-responsive {
+  --table-responsive-scroll-padding: 0.75rem;
+
   position: relative;
 
   inline-size: 100%;
@@ -27,13 +29,15 @@
 
   overscroll-behavior-inline: contain;
 
+  scroll-padding-inline: var(--table-responsive-scroll-padding);
+
   scrollbar-color: var(--color-border-strong) transparent;
   scrollbar-width: thin;
 
   -webkit-overflow-scrolling: touch;
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Keyboard Focus
    ========================================================================== */
 
@@ -45,44 +49,46 @@
   @include ds.focus-ring;
 }
 
-/* ========================================================================== 
-   Wide Tables
+/* ==========================================================================
+   Width Variants
    ========================================================================== */
 
 /*
- * A nowrap table may intentionally exceed the available width. `max-content`
- * preserves its columns while the wrapper contains the resulting overflow.
+ * Use `.table-nowrap` for intentionally dense data that must retain each
+ * column width. The wrapper contains resulting horizontal overflow.
  */
 
-.table-responsive > .table-nowrap {
+.table-responsive .table-nowrap {
   inline-size: max-content;
   min-inline-size: 100%;
 }
 
 /*
- * `.table-wide` provides a configurable minimum width without forcing nowrap.
- * The value is defined by the variant and may be overridden per composition.
+ * Use `.table-wide` where readable column widths need a configurable minimum.
+ *
+ * Override --table-min-inline-size on a page or table variant when needed.
  */
 
-.table-responsive > .table-wide {
+.table-responsive .table-wide {
   inline-size: max(100%, var(--table-min-inline-size, 64rem));
 }
 
-.table-responsive > .table-wide.table-nowrap {
+.table-responsive .table-wide.table-nowrap {
   inline-size: max-content;
   min-inline-size: max(100%, var(--table-min-inline-size, 64rem));
 }
 
-/* ========================================================================== 
-   Normal Tables
-   ========================================================================== */
+/*
+ * Standard tables fill their available content region without creating
+ * accidental document overflow.
+ */
 
-.table-responsive > .table:not(.table-nowrap):not(.table-wide) {
+.table-responsive .table:not(.table-nowrap):not(.table-wide) {
   inline-size: 100%;
   max-inline-size: 100%;
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Scrollbar
    ========================================================================== */
 
@@ -105,13 +111,13 @@
   background: var(--color-text-muted);
 }
 
-/* ========================================================================== 
-   Default Responsive Density
+/* ==========================================================================
+   Responsive Density
    ========================================================================== */
 
 /*
- * Explicit compact and comfortable variants retain their chosen density.
- * Only the default table density changes as the viewport becomes constrained.
+ * Explicit compact and comfortable variants preserve their selected density.
+ * Only default-density tables become denser as available space reduces.
  */
 
 @include ds.respond-down("md") {
@@ -122,23 +128,17 @@
 }
 
 @include ds.respond-down("sm") {
+  .table-responsive {
+    --table-responsive-scroll-padding: 0.5rem;
+  }
+
   .table:not(.table-compact):not(.table-comfortable) {
     --table-cell-padding-block: var(--space-2, 0.5rem);
     --table-cell-padding-inline: 0.625rem;
   }
 }
 
-/* ========================================================================== 
-   Touch Scrolling
-   ========================================================================== */
-
-@media (pointer: coarse) {
-  .table-responsive {
-    scroll-snap-type: none;
-  }
-}
-
-/* ========================================================================== 
+/* ==========================================================================
    High Contrast
    ========================================================================== */
 
@@ -154,7 +154,7 @@ html[data-contrast="high"] .table-responsive[tabindex]:focus-visible {
   outline-width: var(--focus-ring-width, 4px);
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Forced Colors
    ========================================================================== */
 
@@ -173,7 +173,7 @@ html[data-contrast="high"] .table-responsive[tabindex]:focus-visible {
   }
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Reduced Motion
    ========================================================================== */
 

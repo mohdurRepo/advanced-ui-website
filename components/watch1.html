@@ -1,0 +1,809 @@
+  <!-- =========================================================================
+       Market Watch Hero
+       ========================================================================= -->
+
+  <section
+    class="hero-section market-summary-section"
+    aria-labelledby="market-watch-title"
+    aria-describedby="market-watch-description"
+  >
+    <div class="hero-section__background" aria-hidden="true"></div>
+
+    <div class="container hero-section__content">
+      <div class="market-summary market-summary--hero">
+        <header class="market-summary__header">
+          <div class="market-summary__brand">
+            <span
+              class="market-summary__brand-icon has-icon icon-tadawul"
+              aria-hidden="true"
+            ></span>
+
+            <h1 id="market-watch-title" class="market-summary__title">
+              <fmt:message key="marketwatch.todaywatch.v2.title" />
+            </h1>
+          </div>
+
+          <p
+            id="market-watch-description"
+            class="market-summary__description"
+          >
+            Follow listed securities, market prices, trading activity, and
+            performance across the Main Market.
+          </p>
+        </header>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       Market Watch Filters
+       ========================================================================= -->
+
+  <section
+    class="section market-watch-filters"
+    aria-labelledby="market-watch-filters-title"
+  >
+    <div class="container">
+      <form
+        class="filter-bar"
+        aria-labelledby="market-watch-filters-title"
+        data-market-watch-filters
+      >
+        <h2 class="visually-hidden" id="market-watch-filters-title">
+          Filter Market Watch data
+        </h2>
+
+        <input
+          type="hidden"
+          name="requestLocale"
+          value="<c:out value='${pageContext.request.locale.language}' />"
+          data-market-watch-locale
+        />
+
+        <!-- ===============================================================
+             Primary Controls
+             =============================================================== -->
+
+        <div class="filter-bar__inner">
+          <div class="filter-bar__fields grid-3">
+            <!-- Industry Group -->
+
+            <div class="filter-bar__field">
+              <label class="form-label" for="market-watch-industry">
+                <fmt:message key="marketwatch.todaywatch.v2.label.sector" />
+              </label>
+
+              <div class="custom-select" data-custom-select>
+                <div class="form-select-wrap custom-select__fallback">
+                  <select
+                    class="form-select custom-select__native"
+                    id="market-watch-industry"
+                    name="sectorParameter"
+                    data-market-watch-filter="industry"
+                  >
+                    <option
+                      value="all"
+                      <c:if test="${empty requestScope.selectedSector or requestScope.selectedSector eq 'all'}">selected</c:if>
+                    >
+                      <fmt:message
+                        key="marketwatch.todaywatch.v2.label.all.sectors"
+                      />
+                    </option>
+
+                    <c:forEach
+                      items="${requestScope.sectorList}"
+                      var="sectorItem"
+                    >
+                      <option
+                        value="<c:out value='${sectorItem.modifiedId}' />"
+                        <c:if test="${requestScope.selectedSector eq sectorItem.modifiedId}">selected</c:if>
+                      >
+                        <c:out value="${sectorItem.modifiedName}" />
+                      </option>
+                    </c:forEach>
+                  </select>
+
+                  <span
+                    class="form-select-icon has-icon icon-chevron-down"
+                    aria-hidden="true"
+                  ></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Table View -->
+
+            <div class="filter-bar__field">
+              <label class="form-label" for="market-watch-table-view">
+                <fmt:message
+                  key="marketwatch.todaywatch.v2.label.tableview"
+                />
+              </label>
+
+              <div class="custom-select filter-bar__view" data-custom-select>
+                <div class="form-select-wrap custom-select__fallback">
+                  <select
+                    class="form-select custom-select__native"
+                    id="market-watch-table-view"
+                    name="<%= MarketConstants.TABLE_VIEW_PARAMETER_ID %>"
+                    data-market-watch-filter="table-view"
+                  >
+                    <option
+                      value="1"
+                      <c:if test="${empty requestScope.selectedTableView or requestScope.selectedTableView eq '1'}">selected</c:if>
+                    >
+                      <fmt:message
+                        key="marketwatch.todaywatch.v2.label.tableview.default"
+                      />
+                    </option>
+
+                    <c:forEach
+                      items="${requestScope.tableViewList}"
+                      var="tableViewItem"
+                    >
+                      <option
+                        value="<c:out value='${tableViewItem.modifiedId}' />"
+                        <c:if test="${requestScope.selectedTableView eq tableViewItem.modifiedId}">selected</c:if>
+                      >
+                        <c:out value="${tableViewItem.modifiedName}" />
+                      </option>
+                    </c:forEach>
+                  </select>
+
+                  <span
+                    class="form-select-icon has-icon icon-chevron-down"
+                    aria-hidden="true"
+                  ></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Visible Columns -->
+
+            <fieldset class="filter-bar__field filter-bar__field--columns">
+              <legend
+                class="form-label-static"
+                id="market-watch-columns-label"
+              >
+                <fmt:message key="show.hide.column" />
+              </legend>
+
+              <button
+                class="btn btn-outline-primary filter-bar__columns"
+                type="button"
+                aria-controls="market-watch-columns-panel"
+                aria-expanded="false"
+                data-market-watch-columns-trigger
+              >
+                <span
+                  class="filter-bar__columns-label"
+                  data-market-watch-columns-summary
+                >
+                  <fmt:message key="show.hide.all" />
+                </span>
+
+                <span
+                  class="filter-bar__columns-icon has-icon icon-chevron-down"
+                  aria-hidden="true"
+                ></span>
+              </button>
+
+              <div
+                class="filter-bar__columns-panel"
+                id="market-watch-columns-panel"
+                aria-labelledby="market-watch-columns-label"
+                data-market-watch-columns-panel
+                hidden
+              >
+                <label class="filter-bar__column-option">
+                  <input
+                    type="checkbox"
+                    name="columns"
+                    value="range"
+                    checked
+                    data-market-watch-column="range"
+                  />
+                  <span>
+                    <fmt:message
+                      key="marketwatch.todaywatch.v2.table.column.header.D52WeekRange"
+                    />
+                  </span>
+                </label>
+
+                <label class="filter-bar__column-option">
+                  <input
+                    type="checkbox"
+                    name="columns"
+                    value="last-trade"
+                    checked
+                    data-market-watch-column="last-trade"
+                  />
+                  <span>
+                    <fmt:message
+                      key="marketwatch.todaywatch.v2.table.column.header.last.trade"
+                    />
+                  </span>
+                </label>
+
+                <label class="filter-bar__column-option">
+                  <input
+                    type="checkbox"
+                    name="columns"
+                    value="cumulative"
+                    checked
+                    data-market-watch-column="cumulative"
+                  />
+                  <span>
+                    <fmt:message
+                      key="derivatives.market.watch.table.column.header.cumulative"
+                    />
+                  </span>
+                </label>
+
+                <label class="filter-bar__column-option">
+                  <input
+                    type="checkbox"
+                    name="columns"
+                    value="trading"
+                    checked
+                    data-market-watch-column="trading"
+                  />
+                  <span>
+                    <fmt:message
+                      key="marketwatch.todaywatch.v2.table.column.header.today"
+                    />
+                  </span>
+                </label>
+
+                <label class="filter-bar__column-option">
+                  <input
+                    type="checkbox"
+                    name="columns"
+                    value="bid-offer"
+                    checked
+                    data-market-watch-column="bid-offer"
+                  />
+                  <span>Best Bid and Offer</span>
+                </label>
+              </div>
+            </fieldset>
+          </div>
+
+          <!-- Watchlist -->
+
+          <div class="filter-bar__actions">
+            <label class="form-switch">
+              <input
+                class="form-switch-input"
+                type="checkbox"
+                name="watchlistOnly"
+                value="true"
+                data-market-watch-filter="watchlist-only"
+                data-login-required
+              />
+
+              <span class="form-switch-label">Show watchlist only</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- ===============================================================
+             Market Legend
+             =============================================================== -->
+
+        <div class="filter-bar__secondary">
+          <div
+            class="filter-bar__secondary-content"
+            aria-label="Accumulated loss indicators"
+            role="list"
+          >
+            <div class="filter-bar__legend">
+              <span class="filter-bar__legend-item" role="listitem">
+                <span
+                  class="filter-bar__legend-indicator filter-bar__legend-indicator--danger"
+                  aria-hidden="true"
+                ></span>
+
+                <span>
+                  <fmt:message
+                    key="marketwatch.todaywatch.accumulated.losses.50.more"
+                  />
+                </span>
+              </span>
+
+              <span class="filter-bar__legend-item" role="listitem">
+                <span
+                  class="filter-bar__legend-indicator filter-bar__legend-indicator--warning"
+                  aria-hidden="true"
+                ></span>
+
+                <span>
+                  <fmt:message
+                    key="marketwatch.todaywatch.accumulated.losses.35.to.50"
+                  />
+                </span>
+              </span>
+
+              <span class="filter-bar__legend-item" role="listitem">
+                <span
+                  class="filter-bar__legend-indicator filter-bar__legend-indicator--primary"
+                  aria-hidden="true"
+                ></span>
+
+                <span>
+                  <fmt:message
+                    key="marketwatch.todaywatch.accumulated.losses.20.to.35"
+                  />
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+  <!-- =========================================================================
+     Market Watch Results
+     ========================================================================= -->
+
+<section
+  class="section market-watch-results"
+  aria-labelledby="market-watch-results-title"
+>
+  <div class="container">
+    <header class="market-watch-results__header">
+      <div>
+        <h2 id="market-watch-results-title">
+          Market Watch data
+        </h2>
+
+        <p
+          class="text-muted"
+          data-market-watch-summary
+          aria-live="polite"
+        >
+          Loading market data…
+        </p>
+      </div>
+
+      <p
+        class="market-watch-results__updated text-muted"
+        data-market-watch-updated
+        hidden
+      ></p>
+    </header>
+
+    <!-- ===============================================================
+         Desktop / Tablet DataTable
+         =============================================================== -->
+
+    <div
+      class="market-watch-results__desktop"
+      data-market-watch-desktop-view
+    >
+      <div class="table-shell" data-table-shell>
+        <table
+          class="table table-market table-market--watch table-hover table-nowrap"
+          id="market-watch-table"
+          data-market-watch-table
+          aria-describedby="market-watch-table-caption"
+        >
+          <caption
+            class="visually-hidden"
+            id="market-watch-table-caption"
+          >
+            Market Watch securities and trading data
+          </caption>
+
+          <thead>
+            <tr>
+              <!-- Fixed start column -->
+
+              <th
+                class="table-market__security"
+                scope="col"
+                rowspan="2"
+                data-market-watch-column="security"
+                data-market-watch-fixed
+              >
+                Company
+              </th>
+
+              <!-- Column groups -->
+
+              <th
+                class="table-market__number"
+                scope="col"
+                rowspan="2"
+                data-market-watch-column="range"
+                data-market-watch-column-group="range"
+              >
+                52 Week Range
+              </th>
+
+              <th
+                class="table-market__group-heading"
+                scope="colgroup"
+                colspan="4"
+                data-market-watch-column-group="last-trade"
+              >
+                Last Trade
+              </th>
+
+              <th
+                class="table-market__group-heading"
+                scope="colgroup"
+                colspan="2"
+                data-market-watch-column-group="cumulative"
+              >
+                Cumulative
+              </th>
+
+              <th
+                class="table-market__group-heading"
+                scope="colgroup"
+                colspan="3"
+                data-market-watch-column-group="trading"
+              >
+                Today’s Trading
+              </th>
+
+              <th
+                class="table-market__group-heading"
+                scope="colgroup"
+                colspan="2"
+                data-market-watch-column-group="bid-offer"
+              >
+                Best Bid
+              </th>
+
+              <th
+                class="table-market__group-heading"
+                scope="colgroup"
+                colspan="2"
+                data-market-watch-column-group="bid-offer"
+              >
+                Best Offer
+              </th>
+            </tr>
+
+            <tr>
+              <!-- Last trade -->
+
+              <th
+                class="table-market__number"
+                scope="col"
+                data-market-watch-column="last-price"
+                data-market-watch-column-group="last-trade"
+              >
+                Price
+              </th>
+
+              <th
+                class="table-market__number"
+                scope="col"
+                data-market-watch-column="last-volume"
+                data-market-watch-column-group="last-trade"
+              >
+                Volume
+              </th>
+
+              <th
+                class="table-market__number"
+                scope="col"
+                data-market-watch-column="change-value"
+                data-market-watch-column-group="last-trade"
+              >
+                <span class="table-market__column-label">
+                  <span>Change</span>
+                  <span>Value</span>
+                </span>
+              </th>
+
+              <th
+                class="table-market__number"
+                scope="col"
+                data-market-watch-column="change-percent"
+                data-market-watch-column-group="last-trade"
+              >
+                Change%
+              </th>
+
+              <!-- Cumulative -->
+
+              <th
+                class="table-market__number"
+                scope="col"
+                data-market-watch-column="trade-count"
+                data-market-watch-column-group="cumulative"
+              >
+                <span class="table-market__column-label">
+                  <span>No. of</span>
+                  <span>Trades</span>
+                </span>
+              </th>
+
+              <th
+                class="table-market__number"
+                scope="col"
+                data-market-watch-column="traded-volume"
+                data-market-watch-column-group="cumulative"
+              >
+                <span class="table-market__column-label">
+                  <span>Volume</span>
+                  <span>Traded</span>
+                </span>
+              </th>
+
+              <!-- Today's trading -->
+
+              <th
+                class="table-market__number"
+                scope="col"
+                data-market-watch-column="open"
+                data-market-watch-column-group="trading"
+              >
+                Open
+              </th>
+
+              <th
+                class="table-market__number"
+                scope="col"
+                data-market-watch-column="high"
+                data-market-watch-column-group="trading"
+              >
+                High
+              </th>
+
+              <th
+                class="table-market__number"
+                scope="col"
+                data-market-watch-column="low"
+                data-market-watch-column-group="trading"
+              >
+                Low
+              </th>
+
+              <!-- Best bid -->
+
+              <th
+                class="table-market__number"
+                scope="col"
+                data-market-watch-column="best-bid-price"
+                data-market-watch-column-group="bid-offer"
+              >
+                Price
+              </th>
+
+              <th
+                class="table-market__number"
+                scope="col"
+                data-market-watch-column="best-bid-volume"
+                data-market-watch-column-group="bid-offer"
+              >
+                Volume
+              </th>
+
+              <!-- Best offer -->
+
+              <th
+                class="table-market__number"
+                scope="col"
+                data-market-watch-column="best-offer-price"
+                data-market-watch-column-group="bid-offer"
+              >
+                Price
+              </th>
+
+              <th
+                class="table-market__number"
+                scope="col"
+                data-market-watch-column="best-offer-volume"
+                data-market-watch-column-group="bid-offer"
+              >
+                Volume
+              </th>
+            </tr>
+          </thead>
+
+          <!-- DataTables receives API rows; do not place legacy static rows here. -->
+
+          <tbody data-market-watch-table-body></tbody>
+        </table>
+
+        <button
+          class="table-scroll-jump has-icon"
+          type="button"
+          data-table-scroll-jump
+          hidden
+        ></button>
+      </div>
+    </div>
+
+    <!-- ===============================================================
+         Mobile Cards
+         =============================================================== -->
+
+    <section
+      class="market-watch-results__mobile"
+      aria-labelledby="market-watch-mobile-title"
+      data-market-watch-mobile-view
+      hidden
+    >
+      <h3 class="visually-hidden" id="market-watch-mobile-title">
+        Market Watch securities
+      </h3>
+
+      <!-- The mobile renderer inserts grouped security cards here. -->
+
+      <div
+        class="market-watch-cards"
+        data-market-watch-cards
+        aria-live="polite"
+      ></div>
+    </section>
+
+    <!-- ===============================================================
+         Shared Status
+         =============================================================== -->
+
+    <div
+      class="market-watch-results__status"
+      data-market-watch-status
+      aria-live="polite"
+      aria-atomic="true"
+      hidden
+    ></div>
+  </div>
+</section>
+<%-- =========================================================================
+     Market Watch Page Configuration
+     ========================================================================= --%>
+
+<c:set
+  var="marketWatchAuction"
+  value="${requestScope.marketStatusID == 1 or requestScope.marketStatusID == 6}"
+/>
+
+<script>
+  window.MarketWatchConfig = {
+    endpoint:
+      "<portlet:resourceURL id='getMainNomucMarketDetails'></portlet:resourceURL>",
+
+    locale: "<c:out value='${pageContext.request.locale.language}' />",
+
+    market: {
+      statusId: "<c:out value='${requestScope.marketStatusID}' />",
+      isAuction: ${marketWatchAuction}
+    },
+
+    initialState: {
+      industry:
+        "<c:out value='${empty requestScope.selectedSector ? "all" : requestScope.selectedSector}' />",
+
+      tableView:
+        "<c:out value='${empty requestScope.selectedTableView ? "1" : requestScope.selectedTableView}' />",
+
+      watchlistOnly: false,
+
+      visibleGroups: [
+        "range",
+        "last-trade",
+        "cumulative",
+        "trading",
+        "bid-offer"
+      ]
+    },
+
+    breakpoints: {
+      mobileMaxWidth: 767.98
+    },
+
+    labels: {
+      loading: "Loading market data…",
+      loadError: "Market data could not be loaded. Please try again.",
+
+      showAll: "<fmt:message key='show.hide.all' />",
+      noColumns: "<fmt:message key='show.hide.no.columns' />",
+      selectedSuffix: "<fmt:message key='selected' />",
+
+      noData: "<fmt:message key='no.data.available' />",
+
+      marketOrder:
+        "<fmt:message key='marketwatch.todaywatch.v2.marketOrder' />",
+
+      status: {
+        losses20To35:
+          "<fmt:message key='marketwatch.todaywatch.accumulated.losses.20.to.35' />",
+
+        losses35To50:
+          "<fmt:message key='marketwatch.todaywatch.accumulated.losses.35.to.50' />",
+
+        losses50More:
+          "<fmt:message key='marketwatch.todaywatch.accumulated.losses.50.more' />"
+      },
+
+      mobile: {
+        symbolCompany:
+          "<fmt:message key='marketwatch.todaywatch.v2.mobile.symbol.company' />",
+
+        priceChange:
+          "<fmt:message key='marketwatch.todaywatch.v2.mobile.price.change' />"
+      },
+
+      table: {
+        sector:
+          "<fmt:message key='marketwatch.todaywatch.v2.label.sector' />",
+
+        symbol:
+          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.symbol' />",
+
+        company:
+          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.company.name' />",
+
+        range:
+          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.D52WeekRange' />",
+
+        lastTrade:
+          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.last.trade' />",
+
+        price:
+          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.price' />",
+
+        volume:
+          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.volume' />",
+
+        changeValue:
+          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.change.value' />",
+
+        changePercent:
+          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.change.percent' />",
+
+        cumulative:
+          "<fmt:message key='derivatives.market.watch.table.column.header.cumulative' />",
+
+        numberOfTrades:
+          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.number.of.trades' />",
+
+        volumeTraded:
+          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.volume.traded' />",
+
+        trading:
+          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.today' />",
+
+        open:
+          "<fmt:message key='derivatives.market.watch.table.column.header.open' />",
+
+        high:
+          "<fmt:message key='derivatives.market.watch.table.column.header.high' />",
+
+        low:
+          "<fmt:message key='derivatives.market.watch.table.column.header.low' />",
+
+        bestBid:
+          "<fmt:message key='marketwatch.market.watch.table.column.header.best.bid' />",
+
+        bestOffer:
+          "<fmt:message key='marketwatch.market.watch.table.column.header.best.offer' />",
+
+        marketCap:
+          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.market.cap' />",
+
+        per:
+          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.per' />",
+
+        yield:
+          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.yield' />"
+      }
+    }
+  };
+</script>
+
+<%-- =========================================================================
+     Market Watch Entry Module
+     ========================================================================= --%>
+
+<script
+  type="module"
+  src="${pageContext.request.contextPath}/js/pages/market-watch/market-watch-page.js"
+></script>

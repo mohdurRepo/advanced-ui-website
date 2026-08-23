@@ -4,9 +4,35 @@
    Accordion
    ========================================================================== */
 
+/**
+ * Reusable disclosure group.
+ *
+ * Supports:
+ * - Single-open accordions
+ * - Multiple-open accordions
+ * - Optional expand / collapse all control
+ * - Disabled items
+ * - Light, dark, and high-contrast themes
+ * - RTL
+ * - Reduced motion
+ */
+
 .accordion {
+  --accordion-gap: var(--space-3);
+
   display: grid;
-  gap: 0.75rem;
+  gap: var(--accordion-gap);
+
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.accordion-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* ==========================================================================
@@ -14,12 +40,16 @@
    ========================================================================== */
 
 .accordion-item {
+  min-width: 0;
   overflow: hidden;
 
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 
   background: var(--color-surface);
   color: var(--color-text);
+
+  @include ds.transition((border-color, box-shadow), "fast");
 }
 
 /* ==========================================================================
@@ -30,10 +60,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--space-4);
 
   inline-size: 100%;
-  padding: 1.2rem 1.25rem;
+  min-width: 0;
+
+  padding: var(--space-5);
 
   border: 0;
 
@@ -42,22 +74,42 @@
 
   font: inherit;
   font-size: var(--text-base);
-  font-weight: ds.font-weight("bold");
+  font-weight: ds.font-weight("medium");
   line-height: var(--line-height-tight);
 
   text-align: start;
+
   cursor: pointer;
 
-  @include ds.transition((background-color, color, outline-color), "fast");
+  @include ds.transition((background-color, color), "fast");
 }
 
-.accordion-trigger:hover:not(:disabled):not(.is-disabled) {
-  background: var(--color-surface-alt);
+.accordion-trigger:hover:not(:disabled):not(.is-disabled):not(
+    [aria-disabled="true"]
+  ) {
+  background: var(--color-surface-hover);
 }
 
 .accordion-trigger:focus-visible {
+  position: relative;
+  z-index: 1;
+
   @include ds.focus-ring;
 }
+
+/* ==========================================================================
+   Trigger Content
+   ========================================================================== */
+
+.accordion-trigger__label {
+  min-width: 0;
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Disabled State
+   ========================================================================== */
 
 .accordion-trigger:disabled,
 .accordion-trigger.is-disabled,
@@ -65,7 +117,6 @@
   color: var(--color-on-disabled);
 
   cursor: not-allowed;
-  pointer-events: none;
 }
 
 /* ==========================================================================
@@ -80,8 +131,7 @@
   @include ds.transition(transform, "fast");
 }
 
-.accordion-item.is-open .accordion-icon,
-.accordion-trigger[aria-expanded="true"] .accordion-icon {
+.accordion-item.is-open .accordion-icon {
   transform: rotate(180deg);
 }
 
@@ -89,9 +139,17 @@
    Panel
    ========================================================================== */
 
+/**
+ * Panels remain in the document while collapsed so opening and closing can
+ * animate smoothly. The collapsed state is hidden from interaction through
+ * visibility rather than the HTML hidden attribute.
+ */
+
 .accordion-panel {
   display: grid;
   grid-template-rows: 0fr;
+
+  min-width: 0;
 
   visibility: hidden;
   opacity: 0;
@@ -100,15 +158,18 @@
 }
 
 .accordion-panel-inner {
+  min-width: 0;
   overflow: hidden;
 
-  padding: 0 1.25rem;
+  padding-inline: var(--space-5);
+  padding-block: 0;
 
   color: var(--color-text-muted);
+
   font-size: var(--text-sm);
   line-height: var(--line-height-relaxed);
 
-  @include ds.transition(padding-block-end, "normal");
+  @include ds.transition(padding-block, "normal");
 }
 
 /* ==========================================================================
@@ -123,48 +184,48 @@
 }
 
 .accordion-item.is-open .accordion-panel-inner {
-  padding: 0.75rem 1.25rem;
+  padding-block-end: var(--space-5);
 }
 
 /* ==========================================================================
-   ARIA-controlled State
-   ========================================================================== */
-
-.accordion-item:has(.accordion-trigger[aria-expanded="true"]) .accordion-panel {
-  grid-template-rows: 1fr;
-
-  visibility: visible;
-  opacity: 1;
-}
-
-.accordion-item:has(.accordion-trigger[aria-expanded="true"])
-  .accordion-panel-inner {
-  padding-block-end: 1.25rem;
-}
-
-/* ==========================================================================
-   Variants
+   Flush Variant
    ========================================================================== */
 
 .accordion-flush {
-  gap: 0;
+  --accordion-gap: 0;
 }
 
 .accordion-flush .accordion-item {
-  border-radius: 0;
+  border-radius: var(--radius-none);
   border-inline: 0;
 }
+
+.accordion-flush .accordion-item + .accordion-item {
+  border-block-start: 0;
+}
+
+/* ==========================================================================
+   Bordered Variant
+   ========================================================================== */
 
 .accordion-bordered .accordion-item {
   border-width: 2px;
 }
 
+/* ==========================================================================
+   Elevated Variant
+   ========================================================================== */
+
 .accordion-elevated .accordion-item {
   box-shadow: var(--shadow-sm);
 }
 
+/* ==========================================================================
+   Separated Variant
+   ========================================================================== */
+
 .accordion-separated {
-  gap: 1rem;
+  --accordion-gap: var(--space-4);
 }
 
 /* ==========================================================================
@@ -176,23 +237,51 @@ html[data-contrast="high"] .accordion-item {
 }
 
 /* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .accordion-item {
+    border-color: CanvasText;
+  }
+
+  .accordion-trigger {
+    forced-color-adjust: auto;
+  }
+
+  .accordion-trigger:focus-visible {
+    outline-color: Highlight;
+  }
+}
+
+/* ==========================================================================
    Reduced Motion
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
+  .accordion-item,
   .accordion-trigger,
   .accordion-icon,
   .accordion-panel,
   .accordion-panel-inner {
     transition: none;
   }
+
+  .accordion-icon {
+    transform: none;
+  }
 }
 
 html[data-motion="reduce"] {
+  .accordion-item,
   .accordion-trigger,
   .accordion-icon,
   .accordion-panel,
   .accordion-panel-inner {
     transition: none;
+  }
+
+  .accordion-icon {
+    transform: none;
   }
 }

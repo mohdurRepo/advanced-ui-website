@@ -1,0 +1,166 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Hero Callout
+   ========================================================================== */
+
+/*
+ * Compact supporting information inside a dark hero.
+ *
+ * Suitable for:
+ *
+ * - contact routes
+ * - executive guides
+ * - campaign notices
+ * - product support information
+ * - downloadable-resource prompts
+ *
+ * Layout placement remains owned by hero-section, split-layout, or another
+ * page composition component.
+ */
+
+.hero-callout {
+  --hero-callout-bg: rgb(0 31 51 / 0.46);
+  --hero-callout-border: rgb(255 255 255 / 0.12);
+  --hero-callout-color: var(--page-hero-fg, #ffffff);
+  --hero-callout-muted: var(--page-hero-muted, rgb(255 255 255 / 0.74));
+  --hero-callout-accent: var(--color-primary-light, #5f90ff);
+
+  --hero-callout-padding: clamp(1rem, 2vw, 1.25rem);
+  --hero-callout-gap: ds.space(2);
+
+  position: relative;
+  isolation: isolate;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--hero-callout-gap);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: var(--hero-callout-padding);
+
+  border: 1px solid var(--hero-callout-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--hero-callout-bg);
+  color: var(--hero-callout-color);
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.hero-callout__content {
+  display: grid;
+  align-content: start;
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+}
+
+.hero-callout__title,
+.hero-callout__description {
+  margin: 0;
+}
+
+.hero-callout__title {
+  color: var(--hero-callout-color);
+
+  font-size: var(--text-base);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  overflow-wrap: anywhere;
+}
+
+.hero-callout__description {
+  color: var(--hero-callout-muted);
+
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+}
+
+.hero-callout__link {
+  inline-size: fit-content;
+  max-inline-size: 100%;
+
+  color: var(--hero-callout-color);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.2em;
+}
+
+.hero-callout__link:hover {
+  color: var(--hero-callout-accent);
+}
+
+/* ==========================================================================
+   Decorative Icon
+   ========================================================================== */
+
+.hero-callout__icon {
+  --icon-size: clamp(2.75rem, 4vw, 3.5rem);
+
+  flex: 0 0 auto;
+
+  color: var(--hero-callout-accent);
+
+  opacity: 0.85;
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Compact Variant
+   ========================================================================== */
+
+.hero-callout--compact {
+  --hero-callout-padding: ds.space(3);
+
+  border-radius: var(--radius-md);
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .hero-callout {
+  --hero-callout-bg: #000000;
+  --hero-callout-border: #ffffff;
+  --hero-callout-color: #ffffff;
+  --hero-callout-muted: #ffffff;
+  --hero-callout-accent: #ffffff;
+
+  border-width: 2px;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .hero-callout {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .hero-callout__title,
+  .hero-callout__description,
+  .hero-callout__link,
+  .hero-callout__icon {
+    color: CanvasText;
+  }
+}

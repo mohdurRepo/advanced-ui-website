@@ -1,28 +1,48 @@
-@use "../../../../design-system/abstracts" as *;
+@use "../../../../design-system/abstracts" as ds;
 
 /* ==========================================================================
    Financial Information
    ========================================================================== */
 
+/**
+ * Top-level financial workspace.
+ *
+ * This follows the same surface architecture as Company Market Overview:
+ *
+ * section
+ * └── container
+ *     └── financial-information__surface
+ *         ├── introduction
+ *         ├── primary navigation
+ *         └── financial content
+ *
+ * The master surface is the only large section-level surface.
+ *
+ * Nested financial shells remain structural and transparent. Strong surfaces
+ * are reserved for meaningful content such as tables, charts, documents,
+ * metrics, and cards.
+ */
+
 .financial-information {
   --financial-information-bg: var(--color-bg);
   --financial-information-fg: var(--color-text);
-  --financial-information-heading: var(--color-heading);
-  --financial-information-muted: var(--color-text-muted);
-
-  --financial-information-intro-space: clamp(1.75rem, 3vw, 2.5rem);
-
-  /*
-   * Main section surface.
-   *
-   * These values intentionally match the Company Market Overview surface.
-   */
 
   --financial-information-surface-bg: var(--color-surface-alt);
   --financial-information-surface-border: var(--color-border);
-  --financial-information-surface-space: clamp(1rem, 2vw, 1.5rem);
 
-  position: relative;
+  --financial-information-surface-space: clamp(
+    var(--space-4),
+    2vw,
+    var(--space-6)
+  );
+
+  --financial-information-intro-gap: var(--space-2);
+
+  --financial-information-intro-space: clamp(
+    var(--space-8),
+    4vw,
+    var(--space-12)
+  );
 
   min-inline-size: 0;
 
@@ -39,18 +59,23 @@
 }
 
 /* ==========================================================================
-   Main Section Surface
+   Surface
    ========================================================================== */
 
-/*
- * Provides one shared visual boundary around the introduction, primary
- * navigation, and active financial content.
+/**
+ * One master Financial Information surface.
  *
- * Overflow remains visible so menus, tooltips, focus rings, and sticky
- * navigation are not clipped.
+ * Deliberately matches the successful Company Market Overview treatment:
+ *
+ * - surface-alt background
+ * - single subtle border
+ * - compact responsive spacing
+ * - no large radius or shadow
  */
 
 .financial-information__surface {
+  position: relative;
+
   min-inline-size: 0;
   min-block-size: 0;
 
@@ -75,14 +100,16 @@
 }
 
 /* ==========================================================================
-   Section Introduction
+   Introduction
    ========================================================================== */
 
 .financial-information__intro {
-  display: grid;
-  gap: 0.75rem;
+  display: flex;
+  flex-direction: column;
 
-  max-inline-size: 50rem;
+  gap: var(--financial-information-intro-gap);
+
+  max-inline-size: 52rem;
   min-inline-size: 0;
 
   margin-block-end: var(--financial-information-intro-space);
@@ -98,7 +125,7 @@
   color: var(--color-primary);
 
   font-size: var(--text-xs);
-  font-weight: font-weight("bold");
+  font-weight: ds.font-weight("medium");
   line-height: var(--line-height-tight);
 
   text-transform: uppercase;
@@ -112,11 +139,12 @@
 .financial-information__title {
   margin: 0;
 
-  color: var(--financial-information-heading);
+  color: var(--color-heading);
 
-  font-size: clamp(var(--text-2xl), 1.25rem + 1.4vw, var(--text-4xl));
-  font-weight: font-weight("heavy");
-  line-height: var(--line-height-tight);
+  font-size: clamp(var(--text-2xl), 1.45rem + 1.5vw, var(--text-4xl));
+
+  font-weight: ds.font-weight("heavy");
+  line-height: 1.08;
 
   text-wrap: balance;
 }
@@ -126,21 +154,21 @@
    ========================================================================== */
 
 .financial-information__description {
-  max-inline-size: 46rem;
+  max-inline-size: 48rem;
 
   margin: 0;
 
-  color: var(--financial-information-muted);
+  color: var(--color-text-muted);
 
-  font-size: clamp(var(--text-base), 0.95rem + 0.3vw, var(--text-lg));
-  font-weight: font-weight("regular");
+  font-size: var(--text-base);
+  font-weight: ds.font-weight("regular");
   line-height: var(--line-height-relaxed);
 
   text-wrap: pretty;
 }
 
 /* ==========================================================================
-   Tabs Foundation
+   Financial Tabs
    ========================================================================== */
 
 .financial-tabs,
@@ -150,7 +178,7 @@
 }
 
 .financial-primary-tabs__content {
-  margin-block-start: clamp(1.5rem, 3vw, 2rem);
+  margin-block-start: var(--space-6);
 }
 
 /* ==========================================================================
@@ -166,28 +194,28 @@
    Financial Content Shell
    ========================================================================== */
 
-/*
- * The content shell is the primary institutional surface for each financial
- * dataset. Inner cards should only be introduced when the content represents
- * a genuinely separate object, chart, summary, or document.
+/**
+ * Structural financial content wrapper.
+ *
+ * This must not become a second master surface inside
+ * .financial-information__surface.
+ *
+ * It owns spacing and composition only.
  */
 
 .financial-content-shell {
-  --financial-shell-bg: var(--color-surface);
-  --financial-shell-fg: var(--color-text);
   --financial-shell-heading: var(--color-heading);
+  --financial-shell-fg: var(--color-text);
   --financial-shell-muted: var(--color-text-muted);
   --financial-shell-border: var(--color-border);
 
-  --financial-shell-shadow: var(--shadow-sm);
+  --financial-shell-header-space-block: var(--space-4);
+  --financial-shell-body-space-block: var(--space-5);
+  --financial-shell-footer-space-block: var(--space-4);
 
-  --financial-shell-header-space: clamp(1.125rem, 2vw, 1.5rem);
-  --financial-shell-body-space: clamp(1rem, 2vw, 1.5rem);
-  --financial-shell-footer-space-block: clamp(0.875rem, 1.5vw, 1.125rem);
-  --financial-shell-footer-space-inline: clamp(1rem, 2vw, 1.5rem);
+  --financial-shell-space-inline: clamp(var(--space-4), 1.5vw, var(--space-5));
 
   position: relative;
-  isolation: isolate;
 
   display: flex;
   flex-direction: column;
@@ -195,16 +223,12 @@
   min-inline-size: 0;
   min-block-size: 0;
 
-  border: 1px solid var(--financial-shell-border);
-
-  background: var(--financial-shell-bg);
+  background: transparent;
   color: var(--financial-shell-fg);
-
-  box-shadow: var(--financial-shell-shadow);
 }
 
 /* ==========================================================================
-   Shell Children
+   Shell Child Safety
    ========================================================================== */
 
 .financial-content-shell > * {
@@ -220,17 +244,11 @@
 
   min-inline-size: 0;
 
-  padding: var(--financial-shell-header-space);
+  padding-block: var(--financial-shell-header-space-block) var(--space-3);
 
-  border-block-end: 1px solid var(--financial-shell-border);
+  padding-inline: var(--financial-shell-space-inline);
 
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in oklab, var(--color-primary), transparent 97%),
-      transparent 48%
-    ),
-    var(--financial-shell-bg);
+  background: transparent;
 }
 
 /* ==========================================================================
@@ -241,20 +259,23 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: clamp(1rem, 3vw, 2.5rem);
+
+  gap: clamp(var(--space-4), 3vw, var(--space-8));
 
   inline-size: 100%;
   min-inline-size: 0;
 }
 
 /* ==========================================================================
-   Header Main Content
+   Header Main
    ========================================================================== */
 
 .financial-content-header__main {
-  display: grid;
+  display: flex;
   flex: 1 1 auto;
-  gap: 0.375rem;
+  flex-direction: column;
+
+  gap: var(--space-1);
 
   min-inline-size: 0;
 }
@@ -268,8 +289,8 @@
 
   color: var(--financial-shell-heading);
 
-  font-size: clamp(var(--text-lg), 1rem + 0.45vw, var(--text-xl));
-  font-weight: font-weight("bold");
+  font-size: var(--text-xl);
+  font-weight: ds.font-weight("medium");
   line-height: var(--line-height-tight);
 
   text-wrap: balance;
@@ -280,14 +301,14 @@
    ========================================================================== */
 
 .financial-content-header__description {
-  max-inline-size: 48rem;
+  max-inline-size: 52rem;
 
   margin: 0;
 
   color: var(--financial-shell-muted);
 
   font-size: var(--text-sm);
-  font-weight: font-weight("regular");
+  font-weight: ds.font-weight("regular");
   line-height: var(--line-height-relaxed);
 
   text-wrap: pretty;
@@ -298,14 +319,19 @@
    ========================================================================== */
 
 .financial-content-header__meta {
-  display: grid;
+  display: inline-flex;
   flex: 0 0 auto;
-  justify-items: end;
-  gap: 0.25rem;
+  align-items: baseline;
 
-  min-inline-size: 7rem;
+  gap: var(--space-2);
+
+  min-inline-size: 0;
+
+  margin-block-start: 0.125rem;
 
   text-align: end;
+
+  white-space: nowrap;
 }
 
 /* ==========================================================================
@@ -316,7 +342,7 @@
   color: var(--financial-shell-muted);
 
   font-size: var(--text-xs);
-  font-weight: font-weight("medium");
+  font-weight: ds.font-weight("regular");
   line-height: var(--line-height-normal);
 }
 
@@ -328,7 +354,7 @@
   color: var(--financial-shell-heading);
 
   font-size: var(--text-sm);
-  font-weight: font-weight("bold");
+  font-weight: ds.font-weight("bold");
   line-height: var(--line-height-tight);
 
   font-variant-numeric: tabular-nums;
@@ -344,34 +370,41 @@
   min-inline-size: 0;
   min-block-size: 0;
 
-  padding: var(--financial-shell-body-space);
+  padding-block: var(--space-2) var(--financial-shell-body-space-block);
 
-  background: var(--financial-shell-bg);
+  padding-inline: var(--financial-shell-space-inline);
+
+  background: transparent;
 }
 
 /* ==========================================================================
    Shell Footer
    ========================================================================== */
 
+/**
+ * Supporting information only.
+ *
+ * The footer remains visually quiet and does not introduce another tinted
+ * surface.
+ */
+
 .financial-content-shell__footer {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  justify-content: flex-end;
-  gap: 1rem;
+  justify-content: flex-start;
+
+  gap: var(--space-4);
 
   min-inline-size: 0;
 
-  padding: var(--financial-shell-footer-space-block)
-    var(--financial-shell-footer-space-inline);
+  margin-inline: var(--financial-shell-space-inline);
+
+  padding-block: var(--space-3) var(--financial-shell-footer-space-block);
 
   border-block-start: 1px solid var(--financial-shell-border);
 
-  background: color-mix(
-    in oklab,
-    var(--financial-shell-bg),
-    var(--color-bg) 22%
-  );
+  background: transparent;
 }
 
 /* ==========================================================================
@@ -388,7 +421,7 @@
   color: var(--financial-shell-muted);
 
   font-size: var(--text-xs);
-  font-weight: font-weight("regular");
+  font-weight: ds.font-weight("regular");
   line-height: var(--line-height-relaxed);
 
   text-wrap: pretty;
@@ -398,76 +431,70 @@
    Footer Action
    ========================================================================== */
 
+/**
+ * Layout only.
+ *
+ * The shared .btn component continues to own button appearance.
+ */
+
 .financial-content-shell__action {
   flex: 0 0 auto;
 
-  min-inline-size: 7.5rem;
-
-  justify-content: center;
-  gap: 0.5rem;
-
   white-space: nowrap;
-
-  .has-icon {
-    --icon-size: 0.625rem;
-
-    flex: 0 0 auto;
-
-    @include transition(transform, fast);
-  }
-
-  &:hover .has-icon {
-    transform: translateX(0.125rem);
-  }
 }
 
 /* ==========================================================================
-   Flush Body Variant
+   Flush Shell
    ========================================================================== */
 
-/*
- * Used when a table, navigation layout, or document list must reach the
- * content-shell boundary without creating an additional padded container.
+/**
+ * Edge-to-edge content such as tables may remove body inline spacing.
  */
 
-.financial-content-shell--flush {
-  .financial-content-shell__body {
-    padding: 0;
-  }
+.financial-content-shell--flush .financial-content-shell__body {
+  padding-inline: 0;
 }
 
 /* ==========================================================================
-   Data and Reports Variants
+   Data Shell
    ========================================================================== */
 
-/*
- * Financial data and report panels contain their own internal navigation.
- * Their content uses the full body width.
+/**
+ * Financial data layouts own their own internal spacing.
  */
 
-.financial-content-shell--data,
-.financial-content-shell--reports {
-  .financial-content-shell__body {
-    padding: 0;
-  }
-
-  .financial-content-shell__footer {
-    justify-content: flex-start;
-  }
+.financial-content-shell--data .financial-content-shell__body {
+  padding: 0;
 }
 
 /* ==========================================================================
-   Subtle Variant
+   Reports Shell
    ========================================================================== */
+
+/**
+ * Report layouts also own their own spacing.
+ *
+ * The report header remains aligned with normal financial content while the
+ * report navigation/content region can extend naturally beneath it.
+ */
+
+.financial-content-shell--reports .financial-content-shell__body {
+  padding: var(--space-2) 0 0;
+}
+
+/* ==========================================================================
+   Subtle Shell
+   ========================================================================== */
+
+/**
+ * Compatibility modifier.
+ *
+ * The master Financial Information surface already provides visual context,
+ * therefore subtle shells stay transparent by default.
+ */
 
 .financial-content-shell--subtle {
-  --financial-shell-bg: color-mix(
-    in oklab,
-    var(--color-surface),
-    var(--color-bg) 18%
-  );
-
-  --financial-shell-shadow: none;
+  background: transparent;
 }
 
 /* ==========================================================================
@@ -475,14 +502,22 @@
    ========================================================================== */
 
 html[dir="rtl"] {
-  .financial-content-header__meta {
-    justify-items: start;
-
-    text-align: start;
+  .financial-information__eyebrow {
+    letter-spacing: 0;
   }
 
-  .financial-content-shell__action:hover .has-icon {
-    transform: translateX(-0.125rem);
+  .financial-content-header__meta {
+    text-align: start;
+  }
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .financial-information {
+    --financial-information-intro-space: var(--space-8);
   }
 }
 
@@ -490,14 +525,21 @@ html[dir="rtl"] {
    Tablet
    ========================================================================== */
 
-@include respond-down(md) {
+@include ds.respond-down("md") {
+  .financial-information {
+    --financial-information-surface-space: var(--space-4);
+  }
+
+  .financial-content-shell {
+    --financial-shell-space-inline: var(--space-4);
+  }
 
   .financial-content-header {
-    gap: 1rem;
+    gap: var(--space-4);
   }
 
   .financial-content-header__description {
-    max-inline-size: 40rem;
+    max-inline-size: 42rem;
   }
 }
 
@@ -505,15 +547,15 @@ html[dir="rtl"] {
    Mobile
    ========================================================================== */
 
-@include respond-down(sm) {
+@include ds.respond-down("sm") {
   .financial-information {
-    --financial-information-intro-space: 1.5rem;
+    --financial-information-surface-space: var(--space-3);
 
-    --financial-information-surface-space: 0.75rem;
+    --financial-information-intro-space: var(--space-6);
   }
 
   .financial-information__intro {
-    gap: 0.625rem;
+    gap: var(--space-2);
   }
 
   .financial-information__title {
@@ -525,19 +567,21 @@ html[dir="rtl"] {
   }
 
   .financial-primary-tabs__content {
-    margin-block-start: 1.25rem;
+    margin-block-start: var(--space-5);
   }
 
   .financial-content-shell {
-    --financial-shell-header-space: 1rem;
-    --financial-shell-body-space: 0.875rem;
-    --financial-shell-footer-space-block: 0.875rem;
-    --financial-shell-footer-space-inline: 0.875rem;
+    --financial-shell-header-space-block: var(--space-3);
+    --financial-shell-body-space-block: var(--space-4);
+    --financial-shell-footer-space-block: var(--space-3);
+
+    --financial-shell-space-inline: 0;
   }
 
   .financial-content-header {
     flex-direction: column;
-    gap: 0.875rem;
+
+    gap: var(--space-3);
   }
 
   .financial-content-header__title {
@@ -549,62 +593,27 @@ html[dir="rtl"] {
   }
 
   .financial-content-header__meta {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
-
     inline-size: 100%;
-    min-inline-size: 0;
+
+    justify-content: flex-start;
+
+    margin-block-start: 0;
 
     text-align: start;
   }
 
   .financial-content-shell__footer {
     flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
-    gap: 0.75rem;
+    align-items: flex-start;
+
+    gap: var(--space-2);
+
+    margin-inline: 0;
   }
 
-  .financial-content-shell__note {
-    inline-size: 100%;
-  }
-
+  .financial-content-shell__note,
   .financial-content-shell__action {
     inline-size: 100%;
-  }
-}
-
-/* ==========================================================================
-   Dark Theme
-   ========================================================================== */
-
-html[data-theme="dark"] {
-  .financial-content-shell {
-    --financial-shell-shadow: none;
-  }
-
-  .financial-content-shell__header {
-    background:
-      linear-gradient(
-        135deg,
-        color-mix(in oklab, var(--color-primary), transparent 95%),
-        transparent 52%
-      ),
-      var(--financial-shell-bg);
-  }
-
-  .financial-content-shell__footer {
-    background: color-mix(
-      in oklab,
-      var(--financial-shell-bg),
-      var(--color-bg) 12%
-    );
-  }
-
-  .financial-content-shell--subtle {
-    --financial-shell-bg: var(--color-surface-alt);
   }
 }
 
@@ -618,17 +627,9 @@ html[data-contrast="high"] {
     border-color: currentColor;
   }
 
-  .financial-content-shell {
-    border-width: 2px;
-
-    box-shadow: none;
-  }
-
-  .financial-content-shell__header,
   .financial-content-shell__footer {
-    border-width: 2px;
-
-    background: var(--financial-shell-bg);
+    border-block-start-width: 2px;
+    border-block-start-color: currentColor;
   }
 
   .financial-content-header__description,
@@ -639,26 +640,43 @@ html[data-contrast="high"] {
 }
 
 /* ==========================================================================
-   Reduced Motion
+   Forced Colors
    ========================================================================== */
 
-html[data-motion="reduce"] {
-  .financial-content-shell__action .has-icon {
-    transition: none;
+@media (forced-colors: active) {
+  .financial-information {
+    background: Canvas;
+    color: CanvasText;
   }
 
-  .financial-content-shell__action:hover .has-icon {
-    transform: none;
-  }
-}
+  .financial-information__surface {
+    border-color: CanvasText;
 
-@media (prefers-reduced-motion: reduce) {
-  .financial-content-shell__action .has-icon {
-    transition: none;
+    background: Canvas;
+    color: CanvasText;
   }
 
-  .financial-content-shell__action:hover .has-icon {
-    transform: none;
+  .financial-content-shell,
+  .financial-content-shell__header,
+  .financial-content-shell__body,
+  .financial-content-shell__footer {
+    background: transparent;
+    color: CanvasText;
+  }
+
+  .financial-content-shell__footer {
+    border-color: CanvasText;
+  }
+
+  .financial-information__eyebrow,
+  .financial-information__title,
+  .financial-information__description,
+  .financial-content-header__title,
+  .financial-content-header__description,
+  .financial-content-header__meta-label,
+  .financial-content-header__meta-value,
+  .financial-content-shell__note {
+    color: CanvasText;
   }
 }
 
@@ -668,34 +686,26 @@ html[data-motion="reduce"] {
 
 @media print {
   .financial-information {
-    padding-block: 0;
-
     background: transparent;
     color: #000000;
   }
 
   .financial-information__surface {
+    padding: 0;
+
     border-color: #000000;
 
     background: transparent;
   }
 
-  .financial-content-shell {
-    border-color: #000000;
-
-    background: transparent;
-    color: #000000;
-
-    box-shadow: none;
-  }
-
+  .financial-content-shell,
   .financial-content-shell__header,
   .financial-content-shell__body,
   .financial-content-shell__footer {
     background: transparent;
+    color: #000000;
   }
 
-  .financial-content-shell__header,
   .financial-content-shell__footer {
     border-color: #000000;
   }

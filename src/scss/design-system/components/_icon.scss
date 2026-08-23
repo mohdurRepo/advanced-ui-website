@@ -43,7 +43,7 @@ $icons: (
   "telephone-support": "telephone-support",
   "scanner-fax": "scanner-fax",
   "inbox-email": "inbox-email",
-    "bell": "bell",
+  "bell": "bell",
   "alert-bell": "alert-bell",
   "eye": "eye",
   "eye-off": "eye-off",
@@ -62,7 +62,7 @@ $icons: (
   "trash-delete": "trash-delete",
   "folder-import": "folder-import",
   "play-circle": "play-circle",
-   "play": "play",
+  "play": "play",
   "edaa": "edaa-icon",
   "muqassa": "muqassa-icon",
   "chevron-down-bold": "chevron-down-bold",
@@ -88,7 +88,7 @@ $icons: (
 
 .has-icon {
   --icon-size: 1em;
-  --icon-gap: 0.5rem;
+  --icon-gap: var(--space-2);
   --icon-animation: none;
   --icon-scale-x: 1;
 
@@ -114,6 +114,7 @@ $icons: (
   -webkit-mask: var(--icon-svg) center / contain no-repeat;
 
   transform: scaleX(var(--icon-scale-x));
+
   animation: var(--icon-animation);
 
   transition:
@@ -204,9 +205,26 @@ html[dir="rtl"] .icon-flip-rtl {
    Icon List
    ========================================================================== */
 
+/**
+ * Applies one shared icon to every direct list item.
+ *
+ * Example:
+ *
+ * <ul class="icon-list icon-list-check">
+ *   <li>First item</li>
+ *   <li>Second item</li>
+ * </ul>
+ */
+
 .icon-list {
+  --icon-list-size: 1em;
+  --icon-list-gap: var(--space-3);
+  --icon-list-item-gap: var(--space-2);
+  --icon-list-color: var(--color-primary);
+  --icon-list-scale-x: 1;
+
   display: grid;
-  gap: 0.75rem;
+  gap: var(--icon-list-gap);
 
   margin: 0;
   padding: 0;
@@ -214,15 +232,100 @@ html[dir="rtl"] .icon-flip-rtl {
   list-style: none;
 }
 
-.icon-list li {
+.icon-list > li {
   display: flex;
   align-items: flex-start;
-  gap: 0.625rem;
+  gap: var(--icon-list-item-gap);
+
+  min-width: 0;
 }
 
-.icon-list li.has-icon::before {
+.icon-list > li::before {
+  content: "";
+
+  flex: 0 0 auto;
+
+  inline-size: var(--icon-list-size);
+  block-size: var(--icon-list-size);
+
   margin-block-start: 0.2em;
-  color: var(--color-primary);
+
+  background-color: var(--icon-list-color);
+
+  mask: var(--icon-svg) center / contain no-repeat;
+  -webkit-mask: var(--icon-svg) center / contain no-repeat;
+
+  transform: scaleX(var(--icon-list-scale-x));
+}
+
+/* ==========================================================================
+   Registered Icon Lists
+   ========================================================================== */
+
+@each $name, $file in $icons {
+  .icon-list-#{$name} {
+    --icon-svg: url("/assets/icons/#{$file}.svg");
+  }
+}
+
+/* ==========================================================================
+   Icon List Sizes
+   ========================================================================== */
+
+.icon-list-xs {
+  --icon-list-size: 0.75rem;
+}
+
+.icon-list-sm {
+  --icon-list-size: 1rem;
+}
+
+.icon-list-md {
+  --icon-list-size: 1.25rem;
+}
+
+.icon-list-lg {
+  --icon-list-size: 1.5rem;
+}
+
+/* ==========================================================================
+   Icon List Colors
+   ========================================================================== */
+
+.icon-list-primary {
+  --icon-list-color: var(--color-primary);
+}
+
+.icon-list-muted {
+  --icon-list-color: var(--color-text-muted);
+}
+
+.icon-list-heading {
+  --icon-list-color: var(--color-heading);
+}
+
+.icon-list-success {
+  --icon-list-color: var(--color-success);
+}
+
+.icon-list-info {
+  --icon-list-color: var(--color-info);
+}
+
+.icon-list-warning {
+  --icon-list-color: var(--color-warning);
+}
+
+.icon-list-danger {
+  --icon-list-color: var(--color-danger);
+}
+
+/* ==========================================================================
+   Icon List Direction
+   ========================================================================== */
+
+html[dir="rtl"] .icon-list-flip-rtl {
+  --icon-list-scale-x: -1;
 }
 
 /* ==========================================================================
@@ -237,6 +340,7 @@ html[dir="rtl"] .icon-flip-rtl {
   block-size: var(--icon-size, 1em);
 
   color: currentColor;
+
   fill: currentColor;
   stroke: currentColor;
 

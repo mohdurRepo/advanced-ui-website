@@ -1,264 +1,358 @@
-@use "../../../../design-system/abstracts" as *;
+@use "../../../../design-system/abstracts" as ds;
 
 /* ==========================================================================
-   Financial Leadership Directory
+   Financial Leadership
    ========================================================================== */
 
-.financial-information {
-  .leadership-directory {
-    display: grid;
-    gap: clamp(1.5rem, 3vw, 2rem);
-
-    min-inline-size: 0;
-  }
-
-  /* ==========================================================================
-     Leadership Group
-     ========================================================================== */
-
-  .leadership-directory__section {
-    display: grid;
-    gap: 1rem;
-
-    min-inline-size: 0;
-
-    padding-block-end: clamp(1.5rem, 3vw, 2rem);
-
-    border-block-end: 1px solid var(--color-border);
-
-    &:last-child {
-      padding-block-end: 0;
-
-      border-block-end: 0;
-    }
-  }
-
-  /* ==========================================================================
-     Group Header
-     ========================================================================== */
-
-  .leadership-directory__header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-
-    min-inline-size: 0;
-  }
-
-  .leadership-directory__heading-group {
-    display: grid;
-    gap: 0.375rem;
-
-    min-inline-size: 0;
-  }
-
-  .leadership-directory__heading {
-    margin: 0;
-
-    color: var(--color-heading);
-
-    font-size: clamp(var(--text-lg), 1rem + 0.35vw, var(--text-xl));
-    font-weight: font-weight("bold");
-    line-height: var(--line-height-tight);
-  }
-
-  .leadership-directory__description {
-    max-inline-size: 42rem;
-
-    margin: 0;
-
-    color: var(--color-text-muted);
-
-    font-size: var(--text-sm);
-    line-height: var(--line-height-relaxed);
-
-    text-wrap: pretty;
-  }
-
-  .leadership-directory__count {
-    flex: 0 0 auto;
-
-    padding: 0.375rem 0.625rem;
-
-    border: 1px solid
-      color-mix(in oklab, var(--color-primary), var(--color-border) 72%);
-
-    border-radius: var(--radius-pill);
-
-    background: color-mix(
-      in oklab,
-      var(--color-primary),
-      var(--color-surface) 94%
-    );
-
-    color: var(--color-primary);
-
-    font-size: var(--text-xs);
-    font-weight: font-weight("bold");
-    line-height: var(--line-height-tight);
-
-    white-space: nowrap;
-  }
-
-  /* ==========================================================================
-     Leadership Grid
-     ========================================================================== */
-
-  .leadership-directory__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
-
-    gap: 0.875rem;
-
-    min-inline-size: 0;
-  }
-
-  /* ==========================================================================
-     Leadership Card
-     ========================================================================== */
-
-  .leadership-person {
-    position: relative;
-    isolation: isolate;
-
-    display: grid;
-    align-content: center;
-    gap: 0.5rem;
-
-    inline-size: 100%;
-    min-inline-size: 0;
-    min-block-size: 6.25rem;
-
-    padding: 1rem 1.125rem;
-
-    overflow: hidden;
-
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-
-    background: var(--color-surface-alt);
-    color: var(--color-text);
-
-    font: inherit;
-    text-align: start;
-
-    cursor: pointer;
-
-    box-shadow: none;
-
-    @include transition((border-color, box-shadow, transform), fast);
-
-    &::before {
-      content: "";
-
-      position: absolute;
-
-      inset-block: 0.875rem;
-      inset-inline-start: 0;
-
-      inline-size: 0.1875rem;
-
-      border-radius: var(--radius-pill);
-
-      background: var(--color-primary);
-
-      pointer-events: none;
-    }
-
-    &:hover {
-      border-color: color-mix(
-        in oklab,
-        var(--color-primary),
-        var(--color-border) 48%
-      );
-
-      box-shadow: var(--shadow-sm);
-
-      transform: translateY(-0.125rem);
-    }
-
-    &:focus {
-      outline: none;
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
-  }
-
-  /* ==========================================================================
-     Person Information
-     ========================================================================== */
-
-  .leadership-person__name {
-    display: block;
-
-    min-inline-size: 0;
-
-    color: var(--color-heading);
-
-    font-size: var(--text-base);
-    font-weight: font-weight("bold");
-    line-height: var(--line-height-tight);
-
-    overflow-wrap: anywhere;
-  }
-
-  .leadership-person__role {
-    display: block;
-
-    min-inline-size: 0;
-
-    color: var(--color-text-muted);
-
-    font-size: var(--text-xs);
-    font-weight: font-weight("medium");
-    line-height: var(--line-height-normal);
-
-    overflow-wrap: anywhere;
-  }
+/**
+ * Leadership-specific presentation.
+ *
+ * Shared design-system components own:
+ *
+ * - generic grids and stacks
+ * - buttons
+ * - modal shell
+ * - spacing utilities
+ * - typography foundations
+ *
+ * This partial owns:
+ *
+ * - leadership directory grouping
+ * - leadership person cards
+ * - leadership counts
+ * - leadership profile details shown inside the modal
+ */
+
+/* ==========================================================================
+   Leadership Directory
+   ========================================================================== */
+
+.leadership-directory {
+  display: flex;
+  flex-direction: column;
+
+  gap: var(--space-8);
+
+  min-inline-size: 0;
 }
 
 /* ==========================================================================
-   Leadership Visual Modal
+   Leadership Group
    ========================================================================== */
+
+.leadership-directory__section {
+  display: flex;
+  flex-direction: column;
+
+  gap: var(--space-4);
+
+  min-inline-size: 0;
+
+  padding-block-end: var(--space-8);
+
+  border-block-end: 1px solid var(--color-border);
+}
+
+.leadership-directory__section:last-child {
+  padding-block-end: 0;
+
+  border-block-end: 0;
+}
+
+/* ==========================================================================
+   Group Header
+   ========================================================================== */
+
+.leadership-directory__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: var(--space-4);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Heading Group
+   ========================================================================== */
+
+.leadership-directory__heading-group {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  gap: var(--space-1);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
+.leadership-directory__heading {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-xl);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.leadership-directory__description {
+  max-inline-size: 42rem;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Count
+   ========================================================================== */
+
+.leadership-directory__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+
+  min-block-size: 1.75rem;
+
+  padding-inline: var(--space-2);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-tight);
+
+  font-variant-numeric: tabular-nums;
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Leadership Grid
+   ========================================================================== */
+
+.leadership-directory__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+
+  gap: var(--space-3);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Leadership Person
+   ========================================================================== */
+
+/**
+ * Interactive leadership card.
+ *
+ * Use this as a button when it opens the leadership profile modal.
+ */
+
+.leadership-person {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  gap: var(--space-2);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 6.25rem;
+
+  padding: var(--space-4) var(--space-5);
+
+  overflow: hidden;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+
+  font: inherit;
+  text-align: start;
+
+  cursor: pointer;
+
+  @include ds.transition(
+    (background-color, border-color, box-shadow, transform),
+    "fast"
+  );
+}
+
+/* ==========================================================================
+   Person Accent
+   ========================================================================== */
+
+.leadership-person::before {
+  content: "";
+
+  position: absolute;
+
+  inset-block: var(--space-3);
+  inset-inline-start: 0;
+
+  inline-size: 0.1875rem;
+
+  border-radius: var(--radius-pill);
+
+  background: var(--color-primary);
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Person Interaction
+   ========================================================================== */
+
+.leadership-person:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+
+  background: var(--color-surface-hover);
+
+  box-shadow: var(--shadow-sm);
+
+  transform: translateY(-0.125rem);
+}
+
+.leadership-person:focus {
+  outline: none;
+}
+
+.leadership-person:focus-visible {
+  @include ds.focus-ring;
+}
+
+.leadership-person:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.leadership-person:disabled,
+.leadership-person[aria-disabled="true"] {
+  color: var(--color-on-disabled);
+
+  cursor: not-allowed;
+
+  opacity: 0.7;
+}
+
+/* ==========================================================================
+   Person Name
+   ========================================================================== */
+
+.leadership-person__name {
+  display: block;
+
+  min-inline-size: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-base);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-tight);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Person Role
+   ========================================================================== */
+
+.leadership-person__role {
+  display: block;
+
+  min-inline-size: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Leadership Modal
+   ========================================================================== */
+
+/**
+ * Extends the reusable visual modal only with leadership-specific sizing.
+ */
 
 .leadership-modal {
   --modal-width: 46rem;
   --modal-visual-image-size: min(24rem, 48vw);
 }
 
+/* ==========================================================================
+   Leadership Profile
+   ========================================================================== */
+
 .leadership-profile {
-  display: grid;
-  gap: 1.25rem;
+  display: flex;
+  flex-direction: column;
+
+  gap: var(--space-5);
 
   min-inline-size: 0;
 }
+
+/* ==========================================================================
+   Profile Details
+   ========================================================================== */
 
 .leadership-profile__details {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 
-  gap: 0.75rem;
+  gap: var(--space-3);
 
   min-inline-size: 0;
 
   margin: 0;
 }
 
+/* ==========================================================================
+   Profile Detail
+   ========================================================================== */
+
 .leadership-profile__detail {
-  display: grid;
-  align-content: start;
-  gap: 0.375rem;
+  display: flex;
+  flex-direction: column;
+
+  gap: var(--space-1);
 
   min-inline-size: 0;
 
-  padding: 1rem;
+  padding: var(--space-4);
 
   border: 1px solid var(--modal-visual-border-color);
   border-radius: var(--radius-md);
@@ -266,15 +360,23 @@
   background: rgb(255 255 255 / 0.07);
 }
 
+/* ==========================================================================
+   Profile Detail Label
+   ========================================================================== */
+
 .leadership-profile__detail dt {
   margin: 0;
 
   color: var(--modal-visual-muted-color);
 
   font-size: var(--text-xs);
-  font-weight: font-weight("semibold");
+  font-weight: ds.font-weight("medium");
   line-height: var(--line-height-tight);
 }
+
+/* ==========================================================================
+   Profile Detail Value
+   ========================================================================== */
 
 .leadership-profile__detail dd {
   min-inline-size: 0;
@@ -284,55 +386,77 @@
   color: var(--modal-visual-color);
 
   font-size: var(--text-base);
-  font-weight: font-weight("bold");
+  font-weight: ds.font-weight("medium");
   line-height: var(--line-height-normal);
 
   overflow-wrap: anywhere;
 }
 
 /* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .leadership-directory {
+    gap: var(--space-6);
+  }
+
+  .leadership-directory__section {
+    padding-block-end: var(--space-6);
+  }
+
+  .leadership-directory__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
    Mobile
    ========================================================================== */
 
-@include respond-down(sm) {
-  .financial-information {
-    .leadership-directory {
-      gap: 1.25rem;
-    }
+@include ds.respond-down("sm") {
+  .leadership-directory {
+    gap: var(--space-5);
+  }
 
-    .leadership-directory__section {
-      gap: 0.875rem;
-      padding-block-end: 1.25rem;
-    }
+  .leadership-directory__section {
+    gap: var(--space-3);
 
-    .leadership-directory__header {
-      display: grid;
-      gap: 0.75rem;
-    }
+    padding-block-end: var(--space-5);
+  }
 
-    .leadership-directory__description {
-      font-size: var(--text-xs);
-    }
+  .leadership-directory__header {
+    flex-direction: column;
 
-    .leadership-directory__count {
-      inline-size: fit-content;
-    }
+    gap: var(--space-3);
+  }
 
-    .leadership-directory__grid {
-      grid-template-columns: minmax(0, 1fr);
-    }
+  .leadership-directory__description {
+    font-size: var(--text-xs);
+  }
 
-    .leadership-person {
-      min-block-size: 5.5rem;
+  .leadership-directory__count {
+    align-self: flex-start;
+  }
 
-      padding: 0.875rem 1rem;
+  .leadership-directory__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 
-      border-radius: var(--radius-md);
-    }
+  .leadership-person {
+    min-block-size: 5.5rem;
 
-    .leadership-person__name {
-      font-size: var(--text-sm);
-    }
+    padding: var(--space-3) var(--space-4);
+
+    border-radius: var(--radius-md);
+  }
+
+  .leadership-person__name {
+    font-size: var(--text-sm);
+  }
+
+  .leadership-profile {
+    gap: var(--space-4);
   }
 
   .leadership-profile__details {
@@ -340,8 +464,16 @@
   }
 
   .leadership-profile__detail {
-    padding: 0.875rem;
+    padding: var(--space-3);
   }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .leadership-person {
+  text-align: start;
 }
 
 /* ==========================================================================
@@ -349,24 +481,58 @@
    ========================================================================== */
 
 html[data-contrast="high"] {
-  .financial-information {
-    .leadership-directory__section,
-    .leadership-person,
-    .leadership-directory__count {
-      border-width: 2px;
-    }
+  .leadership-directory__section,
+  .leadership-person,
+  .leadership-directory__count,
+  .leadership-profile__detail {
+    border-width: 2px;
+  }
 
-    .leadership-person::before {
-      inline-size: 0.25rem;
+  .leadership-person::before {
+    inline-size: 0.25rem;
 
-      background: currentColor;
-    }
+    background: currentColor;
+  }
+
+  .leadership-directory__count,
+  .leadership-person__role {
+    color: currentColor;
   }
 
   .leadership-profile__detail {
-    border-width: 2px;
-
     background: transparent;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .leadership-directory__section,
+  .leadership-person,
+  .leadership-directory__count,
+  .leadership-profile__detail {
+    border-color: CanvasText;
+  }
+
+  .leadership-person {
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .leadership-person::before {
+    background: Highlight;
+  }
+
+  .leadership-person__name,
+  .leadership-person__role,
+  .leadership-directory__count {
+    color: CanvasText;
+  }
+
+  .leadership-profile__detail {
+    background: Canvas;
   }
 }
 
@@ -374,28 +540,24 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
-  .financial-information {
-    .leadership-person {
-      transition: none;
-    }
+@media (prefers-reduced-motion: reduce) {
+  .leadership-person {
+    transition: none;
+  }
 
-    .leadership-person:hover,
-    .leadership-person:active {
-      transform: none;
-    }
+  .leadership-person:hover,
+  .leadership-person:active {
+    transform: none;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .financial-information {
-    .leadership-person {
-      transition: none;
-    }
+html[data-motion="reduce"] {
+  .leadership-person {
+    transition: none;
+  }
 
-    .leadership-person:hover,
-    .leadership-person:active {
-      transform: none;
-    }
+  .leadership-person:hover,
+  .leadership-person:active {
+    transform: none;
   }
 }

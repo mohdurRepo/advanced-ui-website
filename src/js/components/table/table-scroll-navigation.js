@@ -7,17 +7,16 @@ import {
   SELECTORS,
 } from "./constants";
 
-/* ==========================================================================
-   Instance Registry
-   ========================================================================== */
-
 const instances = new WeakMap();
 
-/* ==========================================================================
-   RTL Scroll Type
-   ========================================================================== */
-
 let rtlScrollType = null;
+
+function getScroller(element) {
+  return (
+    element.querySelector(".dt-scroll-body") ||
+    element.querySelector(SELECTORS.scroller)
+  );
+}
 
 function detectRtlScrollType() {
   if (rtlScrollType) {
@@ -28,7 +27,6 @@ function detectRtlScrollType() {
   const inner = document.createElement("div");
 
   outer.dir = "rtl";
-
   outer.style.position = "absolute";
   outer.style.inset = "-9999px auto auto -9999px";
   outer.style.inlineSize = "4px";
@@ -54,22 +52,16 @@ function detectRtlScrollType() {
   return rtlScrollType;
 }
 
-/* ==========================================================================
-   Table Scroll Navigation
-   ========================================================================== */
-
 export class TableScrollNavigation {
   constructor(element) {
     if (!(element instanceof Element)) {
       throw new TypeError(
-        "TableScrollNavigation requires a valid root element.",
+        "TableScrollNavigation requires a valid shell element.",
       );
     }
 
     this.element = element;
-
-    this.scroller = element.querySelector(SELECTORS.scroller);
-
+    this.scroller = getScroller(element);
     this.jump = element.querySelector(SELECTORS.jump);
 
     if (!this.scroller || !this.jump) {
@@ -78,16 +70,17 @@ export class TableScrollNavigation {
       );
     }
 
-    this.handleScroll = this.handleScroll.bind(this);
+    this.resizeObserver = null;
+    this.mutationObserver = null;
+    this.refreshFrame = null;
 
+    this.handleScroll = this.handleScroll.bind(this);
     this.handleJump = this.handleJump.bind(this);
+    this.handleResize = this.handleResize.bind(this);
+    this.handleMutations = this.handleMutations.bind(this);
 
     this.init();
   }
-
-  /* ==========================================================================
-     Static API
-     ========================================================================== */
 
   static getInstance(element) {
     return instances.get(element) || null;
@@ -102,18 +95,16 @@ export class TableScrollNavigation {
       return existing;
     }
 
-    try {
-      return new TableScrollNavigation(element);
-    } catch (error) {
-      console.error("TableScrollNavigation:", error);
-
+    /*
+     * DataTables creates `.dt-scroll-body` after initialization.
+     * No available scroller is an expected temporary state.
+     */
+    if (!getScroller(element) || !element.querySelector(SELECTORS.jump)) {
       return null;
     }
-  }
 
-  /* ==========================================================================
-     Initialization
-     ========================================================================== */
+    return new TableScrollNavigation(element);
+  }
 
   init() {
     instances.set(this.element, this);
@@ -124,20 +115,71 @@ export class TableScrollNavigation {
 
     this.jump.addEventListener("click", this.handleJump);
 
+    this.observeLayout();
     this.refresh();
   }
 
-  /* ==========================================================================
-     Direction
-     ========================================================================== */
+  observeLayout() {
+    if (typeof ResizeObserver === "function") {
+      this.resizeObserver = new ResizeObserver(this.handleResize);
+
+      this.resizeObserver.observe(this.element);
+    }
+
+    this.observeScroller();
+  }
+
+  observeScroller() {
+    this.resizeObserver?.observe(this.scroller);
+
+    if (typeof MutationObserver === "function") {
+      this.mutationObserver = new MutationObserver(this.handleMutations);
+
+      this.mutationObserver.observe(this.scroller, {
+        childList: true,
+        subtree: true,
+      });
+    }
+  }
+
+  /*
+   * Native tables use [data-table-scroll]. DataTables uses .dt-scroll-body.
+   * Prefer the DataTables scroller whenever it exists.
+   */
+  syncScroller() {
+    const nextScroller = getScroller(this.element);
+
+    if (!nextScroller || nextScroller === this.scroller) {
+      return;
+    }
+
+    this.scroller.removeEventListener("scroll", this.handleScroll);
+    this.resizeObserver?.unobserve(this.scroller);
+    this.mutationObserver?.disconnect();
+
+    this.scroller = nextScroller;
+
+    this.scroller.addEventListener("scroll", this.handleScroll, {
+      passive: true,
+    });
+
+    this.observeScroller();
+  }
+
+  scheduleRefresh() {
+    if (this.refreshFrame !== null) {
+      return;
+    }
+
+    this.refreshFrame = window.requestAnimationFrame(() => {
+      this.refreshFrame = null;
+      this.refresh();
+    });
+  }
 
   isRtl() {
     return getComputedStyle(this.scroller).direction === "rtl";
   }
-
-  /* ==========================================================================
-     Motion
-     ========================================================================== */
 
   prefersReducedMotion() {
     if (document.documentElement.dataset.motion === "reduce") {
@@ -147,26 +189,19 @@ export class TableScrollNavigation {
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
 
-  /* ==========================================================================
-     Metrics
-     ========================================================================== */
-
   getMaxScroll() {
     return Math.max(0, this.scroller.scrollWidth - this.scroller.clientWidth);
   }
 
   getLogicalPosition() {
     const maxScroll = this.getMaxScroll();
-
     const physical = this.scroller.scrollLeft;
 
     if (!this.isRtl()) {
       return Math.min(maxScroll, Math.max(0, physical));
     }
 
-    const type = detectRtlScrollType();
-
-    switch (type) {
+    switch (detectRtlScrollType()) {
       case "negative":
         return Math.min(maxScroll, Math.abs(physical));
 
@@ -181,30 +216,20 @@ export class TableScrollNavigation {
 
   getState() {
     const maxScroll = this.getMaxScroll();
-
     const position = this.getLogicalPosition();
-
     const threshold = DEFAULTS.threshold;
 
     return {
       maxScroll,
       position,
-
       hasOverflow: maxScroll > threshold,
-
       atStart: position <= threshold,
-
       atEnd: maxScroll - position <= threshold,
     };
   }
 
-  /* ==========================================================================
-     Labels
-     ========================================================================== */
-
   getLabel(direction) {
     const lang = document.documentElement.lang || "en";
-
     const isArabic = lang.startsWith("ar");
 
     if (direction === DIRECTIONS.start) {
@@ -214,9 +239,12 @@ export class TableScrollNavigation {
     return isArabic ? "الانتقال إلى الأعمدة الأخيرة" : "Jump to last columns";
   }
 
-  /* ==========================================================================
-     Jump State
-     ========================================================================== */
+  getIconClass(direction) {
+    const pointsToStart = direction === DIRECTIONS.start;
+    const useLeftChevron = this.isRtl() ? !pointsToStart : pointsToStart;
+
+    return useLeftChevron ? CLASSES.iconStart : CLASSES.iconEnd;
+  }
 
   setJumpDirection(direction) {
     this.jump.setAttribute(ATTRIBUTES.direction, direction);
@@ -224,19 +252,11 @@ export class TableScrollNavigation {
     const label = this.getLabel(direction);
 
     this.jump.setAttribute("aria-label", label);
-
     this.jump.setAttribute("title", label);
 
-    const goToStart = direction === DIRECTIONS.start;
-
-    this.jump.classList.toggle(CLASSES.iconStart, goToStart);
-
-    this.jump.classList.toggle(CLASSES.iconEnd, !goToStart);
+    this.jump.classList.remove(CLASSES.iconStart, CLASSES.iconEnd);
+    this.jump.classList.add(this.getIconClass(direction));
   }
-
-  /* ==========================================================================
-     Overflow State
-     ========================================================================== */
 
   setOverflow(value) {
     if (!value) {
@@ -248,16 +268,13 @@ export class TableScrollNavigation {
     this.element.setAttribute(ATTRIBUTES.overflow, value);
   }
 
-  /* ==========================================================================
-     Rendering
-     ========================================================================== */
-
   refresh() {
+    this.syncScroller();
+
     const state = this.getState();
 
     if (!state.hasOverflow) {
       this.jump.hidden = true;
-
       this.setOverflow(null);
 
       return;
@@ -267,7 +284,6 @@ export class TableScrollNavigation {
 
     if (state.atStart && !state.atEnd) {
       this.setOverflow(OVERFLOW.end);
-
       this.setJumpDirection(DIRECTIONS.end);
 
       return;
@@ -275,18 +291,18 @@ export class TableScrollNavigation {
 
     if (state.atEnd && !state.atStart) {
       this.setOverflow(OVERFLOW.start);
-
       this.setJumpDirection(DIRECTIONS.start);
 
       return;
     }
 
     this.setOverflow(OVERFLOW.both);
-  }
 
-  /* ==========================================================================
-     Physical Scroll Target
-     ========================================================================== */
+    const direction =
+      state.position < state.maxScroll / 2 ? DIRECTIONS.end : DIRECTIONS.start;
+
+    this.setJumpDirection(direction);
+  }
 
   getPhysicalTarget(direction) {
     const maxScroll = this.getMaxScroll();
@@ -295,48 +311,25 @@ export class TableScrollNavigation {
       return direction === DIRECTIONS.end ? maxScroll : 0;
     }
 
-    const type = detectRtlScrollType();
-
-    if (direction === DIRECTIONS.start) {
-      switch (type) {
-        case "negative":
-        case "positive-descending":
-          return 0;
-
-        case "positive-ascending":
-        default:
-          return 0;
-      }
-    }
-
-    switch (type) {
+    switch (detectRtlScrollType()) {
       case "negative":
-        return -maxScroll;
+        return direction === DIRECTIONS.end ? -maxScroll : 0;
 
       case "positive-descending":
-        return 0;
+        return direction === DIRECTIONS.end ? 0 : maxScroll;
 
       case "positive-ascending":
       default:
-        return maxScroll;
+        return direction === DIRECTIONS.end ? maxScroll : 0;
     }
   }
-
-  /* ==========================================================================
-     Scrolling
-     ========================================================================== */
 
   scrollTo(direction) {
     this.scroller.scrollTo({
       left: this.getPhysicalTarget(direction),
-
       behavior: this.prefersReducedMotion() ? "auto" : "smooth",
     });
   }
-
-  /* ==========================================================================
-     Events
-     ========================================================================== */
 
   handleScroll() {
     this.refresh();
@@ -349,19 +342,28 @@ export class TableScrollNavigation {
     this.scrollTo(direction);
   }
 
-  /* ==========================================================================
-     Destruction
-     ========================================================================== */
+  handleResize() {
+    this.scheduleRefresh();
+  }
+
+  handleMutations() {
+    this.scheduleRefresh();
+  }
 
   destroy() {
     this.scroller.removeEventListener("scroll", this.handleScroll);
-
     this.jump.removeEventListener("click", this.handleJump);
+
+    this.resizeObserver?.disconnect();
+    this.mutationObserver?.disconnect();
+
+    if (this.refreshFrame !== null) {
+      window.cancelAnimationFrame(this.refreshFrame);
+    }
 
     this.element.removeAttribute(ATTRIBUTES.overflow);
 
     this.jump.removeAttribute(ATTRIBUTES.direction);
-
     this.jump.hidden = true;
 
     instances.delete(this.element);

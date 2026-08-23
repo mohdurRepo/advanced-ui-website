@@ -5505,7 +5505,7 @@
      ========================================================================== -->
 
       <section
-        class="hero-section surface-hero"
+        class="hero-section"
         aria-labelledby="market-reports-title"
         aria-describedby="market-reports-description"
       >
@@ -5515,39 +5515,39 @@
           <div
             class="split-layout split-layout--compact-secondary split-layout--center"
           >
-            <!-- ====================================================================
+            <!-- ==================================================================
            Page Identity
-           ================================================================= -->
+           ================================================================== -->
 
             <div class="split-layout__primary">
-              <header class="hero-intro hero-intro--full">
-                <div class="hero-intro__header">
-                  <div class="hero-intro__brand">
+              <div class="market-summary market-summary--hero">
+                <header class="market-summary__header">
+                  <div class="market-summary__brand">
                     <span
-                      class="hero-intro__icon has-icon icon-tadawul"
+                      class="market-summary__brand-icon has-icon icon-tadawul"
                       aria-hidden="true"
                     ></span>
 
-                    <h1 id="market-reports-title" class="hero-intro__title">
+                    <h1 id="market-reports-title" class="market-summary__title">
                       Market Reports
                     </h1>
                   </div>
 
                   <p
                     id="market-reports-description"
-                    class="hero-intro__description"
+                    class="market-summary__description"
                   >
                     Access daily, weekly, monthly, quarterly and annual reports
                     covering market activity, trading performance and financial
                     indicators across Saudi Exchange markets.
                   </p>
-                </div>
-              </header>
+                </header>
+              </div>
             </div>
 
-            <!-- ====================================================================
-           Supporting Media
-           ================================================================= -->
+            <!-- ==================================================================
+           Supporting Image
+           ================================================================== -->
 
             <div class="split-layout__secondary" aria-hidden="true">
               <div class="hero-media">
@@ -5557,9 +5557,6 @@
                   alt=""
                   width="640"
                   height="360"
-                  loading="eager"
-                  fetchpriority="high"
-                  decoding="async"
                 />
               </div>
             </div>
@@ -5591,21 +5588,20 @@
                     aria-label="Market report categories"
                   >
                     <button
-                      class="tab-link active"
                       id="main-market-reports-tab"
+                      class="tab-link active"
                       type="button"
                       role="tab"
                       aria-selected="true"
                       aria-controls="main-market-reports-panel"
-                      tabindex="0"
                       data-tab-target="main-market-reports-panel"
                     >
                       Main Market
                     </button>
 
                     <button
-                      class="tab-link"
                       id="nomu-reports-tab"
+                      class="tab-link"
                       type="button"
                       role="tab"
                       aria-selected="false"
@@ -5617,8 +5613,8 @@
                     </button>
 
                     <button
-                      class="tab-link"
                       id="derivatives-reports-tab"
+                      class="tab-link"
                       type="button"
                       role="tab"
                       aria-selected="false"
@@ -5630,8 +5626,8 @@
                     </button>
 
                     <button
-                      class="tab-link"
                       id="funds-reports-tab"
+                      class="tab-link"
                       type="button"
                       role="tab"
                       aria-selected="false"
@@ -5643,8 +5639,8 @@
                     </button>
 
                     <button
-                      class="tab-link"
                       id="sukuk-reports-tab"
+                      class="tab-link"
                       type="button"
                       role="tab"
                       aria-selected="false"
@@ -5662,8 +5658,8 @@
                    ============================================================ -->
 
                     <section
-                      class="tab-pane report-library__panel active"
                       id="main-market-reports-panel"
+                      class="tab-pane report-library__panel active"
                       role="tabpanel"
                       aria-labelledby="main-market-reports-tab"
                       data-active="true"
@@ -5683,7 +5679,7 @@
 
                           <div
                             class="report-library__count"
-                            aria-label="10 reports available"
+                            aria-label="10 Main Market reports available"
                           >
                             <span class="report-library__count-value">10</span>
                             <span class="report-library__count-label"
@@ -5693,8 +5689,6 @@
                         </header>
 
                         <div class="grid report-library__grid">
-                          <!-- Detailed Daily Report -->
-
                           <article class="card resource-card">
                             <header class="resource-card__header">
                               <div class="resource-card__heading">
@@ -5729,13 +5723,13 @@
                                   class="resource-card__meta-item has-icon icon-history-clock"
                                 >
                                   <dt class="resource-card__meta-label">
-                                    Last updated:
+                                    Last updated
                                   </dt>
 
                                   <dd class="resource-card__meta-value">
-                                    <time datetime="2026-08-14">
-                                      14 August 2026
-                                    </time>
+                                    <time datetime="2026-08-14"
+                                      >14 August 2026</time
+                                    >
                                   </dd>
                                 </div>
                               </dl>
@@ -5774,8 +5768,6 @@
                             </footer>
                           </article>
 
-                          <!-- Weekly Report -->
-
                           <article class="card resource-card">
                             <header class="resource-card__header">
                               <div class="resource-card__heading">
@@ -5810,13 +5802,13 @@
                                   class="resource-card__meta-item has-icon icon-history-clock"
                                 >
                                   <dt class="resource-card__meta-label">
-                                    Last updated:
+                                    Last updated
                                   </dt>
 
                                   <dd class="resource-card__meta-value">
-                                    <time datetime="2026-08-13">
-                                      13 August 2026
-                                    </time>
+                                    <time datetime="2026-08-13"
+                                      >13 August 2026</time
+                                    >
                                   </dd>
                                 </div>
                               </dl>
@@ -5855,8 +5847,6 @@
                             </footer>
                           </article>
 
-                          <!-- Monthly Report -->
-
                           <article class="card resource-card">
                             <header class="resource-card__header">
                               <div class="resource-card__heading">
@@ -5891,13 +5881,13 @@
                                   class="resource-card__meta-item has-icon icon-history-clock"
                                 >
                                   <dt class="resource-card__meta-label">
-                                    Last updated:
+                                    Last updated
                                   </dt>
 
                                   <dd class="resource-card__meta-value">
-                                    <time datetime="2026-08-01">
-                                      1 August 2026
-                                    </time>
+                                    <time datetime="2026-08-01"
+                                      >1 August 2026</time
+                                    >
                                   </dd>
                                 </div>
                               </dl>
@@ -5935,582 +5925,17 @@
                               </div>
                             </footer>
                           </article>
-
-                          <!-- Quarterly Report -->
-
-                          <article class="card resource-card">
-                            <header class="resource-card__header">
-                              <div class="resource-card__heading">
-                                <span class="resource-card__eyebrow"
-                                  >Quarterly</span
-                                >
-
-                                <h4 class="resource-card__title">
-                                  <a
-                                    class="resource-card__title-link"
-                                    href="/reports/main-market/quarterly/"
-                                  >
-                                    Quarterly Report
-                                  </a>
-                                </h4>
-                              </div>
-
-                              <span
-                                class="resource-card__icon has-icon icon-pdf-file"
-                                aria-hidden="true"
-                              ></span>
-                            </header>
-
-                            <div class="resource-card__body">
-                              <p class="resource-card__description">
-                                Quarterly analysis of trading performance and
-                                major market indicators.
-                              </p>
-
-                              <dl class="resource-card__meta">
-                                <div
-                                  class="resource-card__meta-item has-icon icon-history-clock"
-                                >
-                                  <dt class="resource-card__meta-label">
-                                    Last updated:
-                                  </dt>
-
-                                  <dd class="resource-card__meta-value">
-                                    <time datetime="2026-07-01">
-                                      1 July 2026
-                                    </time>
-                                  </dd>
-                                </div>
-                              </dl>
-                            </div>
-
-                            <footer class="resource-card__footer">
-                              <div
-                                class="resource-card__file"
-                                aria-label="PDF document, 4.6 megabytes"
-                              >
-                                <span class="resource-card__file-type"
-                                  >PDF</span
-                                >
-                                <span aria-hidden="true">·</span>
-                                <span class="resource-card__file-size"
-                                  >4.6 MB</span
-                                >
-                              </div>
-
-                              <div class="resource-card__actions">
-                                <a
-                                  class="btn btn-link resource-card__primary-action has-icon icon-arrow-up-right icon-end"
-                                  href="/reports/main-market/quarterly/"
-                                >
-                                  View report
-                                </a>
-
-                                <a
-                                  class="btn btn-link resource-card__download has-icon icon-file-download"
-                                  href="/assets/reports/quarterly-report.pdf"
-                                  download
-                                >
-                                  Download
-                                </a>
-                              </div>
-                            </footer>
-                          </article>
-
-                          <!-- Annual Report -->
-
-                          <article class="card resource-card">
-                            <header class="resource-card__header">
-                              <div class="resource-card__heading">
-                                <span class="resource-card__eyebrow"
-                                  >Annual</span
-                                >
-
-                                <h4 class="resource-card__title">
-                                  <a
-                                    class="resource-card__title-link"
-                                    href="/reports/main-market/annual/"
-                                  >
-                                    Annual Report
-                                  </a>
-                                </h4>
-                              </div>
-
-                              <span
-                                class="resource-card__icon has-icon icon-pdf-file"
-                                aria-hidden="true"
-                              ></span>
-                            </header>
-
-                            <div class="resource-card__body">
-                              <p class="resource-card__description">
-                                A comprehensive annual review of market
-                                performance and trading activity.
-                              </p>
-
-                              <dl class="resource-card__meta">
-                                <div
-                                  class="resource-card__meta-item has-icon icon-history-clock"
-                                >
-                                  <dt class="resource-card__meta-label">
-                                    Last updated:
-                                  </dt>
-
-                                  <dd class="resource-card__meta-value">
-                                    <time datetime="2026-01-15">
-                                      15 January 2026
-                                    </time>
-                                  </dd>
-                                </div>
-                              </dl>
-                            </div>
-
-                            <footer class="resource-card__footer">
-                              <div
-                                class="resource-card__file"
-                                aria-label="PDF document, 8.7 megabytes"
-                              >
-                                <span class="resource-card__file-type"
-                                  >PDF</span
-                                >
-                                <span aria-hidden="true">·</span>
-                                <span class="resource-card__file-size"
-                                  >8.7 MB</span
-                                >
-                              </div>
-
-                              <div class="resource-card__actions">
-                                <a
-                                  class="btn btn-link resource-card__primary-action has-icon icon-arrow-up-right icon-end"
-                                  href="/reports/main-market/annual/"
-                                >
-                                  View report
-                                </a>
-
-                                <a
-                                  class="btn btn-link resource-card__download has-icon icon-file-download"
-                                  href="/assets/reports/annual-report.pdf"
-                                  download
-                                >
-                                  Download
-                                </a>
-                              </div>
-                            </footer>
-                          </article>
-
-                          <!-- Daily Financial Indicators -->
-
-                          <article class="card resource-card">
-                            <header class="resource-card__header">
-                              <div class="resource-card__heading">
-                                <span class="resource-card__eyebrow">
-                                  Indicators
-                                </span>
-
-                                <h4 class="resource-card__title">
-                                  <a
-                                    class="resource-card__title-link"
-                                    href="/reports/main-market/financial-indicators/"
-                                  >
-                                    Daily Financial Indicators
-                                  </a>
-                                </h4>
-                              </div>
-
-                              <span
-                                class="resource-card__icon has-icon icon-chart-bar"
-                                aria-hidden="true"
-                              ></span>
-                            </header>
-
-                            <div class="resource-card__body">
-                              <p class="resource-card__description">
-                                Daily financial and market indicators covering
-                                listed securities and trading activity.
-                              </p>
-
-                              <dl class="resource-card__meta">
-                                <div
-                                  class="resource-card__meta-item has-icon icon-history-clock"
-                                >
-                                  <dt class="resource-card__meta-label">
-                                    Last updated:
-                                  </dt>
-
-                                  <dd class="resource-card__meta-value">
-                                    <time datetime="2026-08-14">
-                                      14 August 2026
-                                    </time>
-                                  </dd>
-                                </div>
-                              </dl>
-                            </div>
-
-                            <footer class="resource-card__footer">
-                              <div
-                                class="resource-card__file"
-                                aria-label="Excel spreadsheet, 860 kilobytes"
-                              >
-                                <span class="resource-card__file-type"
-                                  >XLSX</span
-                                >
-                                <span aria-hidden="true">·</span>
-                                <span class="resource-card__file-size"
-                                  >860 KB</span
-                                >
-                              </div>
-
-                              <div class="resource-card__actions">
-                                <a
-                                  class="btn btn-link resource-card__primary-action has-icon icon-arrow-up-right icon-end"
-                                  href="/reports/main-market/financial-indicators/"
-                                >
-                                  View report
-                                </a>
-
-                                <a
-                                  class="btn btn-link resource-card__download has-icon icon-file-download"
-                                  href="/assets/reports/daily-financial-indicators.xlsx"
-                                  download
-                                >
-                                  Download
-                                </a>
-                              </div>
-                            </footer>
-                          </article>
-
-                          <!-- Substantial Shareholders -->
-
-                          <article class="card resource-card">
-                            <header class="resource-card__header">
-                              <div class="resource-card__heading">
-                                <span class="resource-card__eyebrow">
-                                  Ownership
-                                </span>
-
-                                <h4 class="resource-card__title">
-                                  <a
-                                    class="resource-card__title-link"
-                                    href="/reports/main-market/substantial-shareholders/"
-                                  >
-                                    Substantial Shareholders
-                                  </a>
-                                </h4>
-                              </div>
-
-                              <span
-                                class="resource-card__icon has-icon icon-pdf-file"
-                                aria-hidden="true"
-                              ></span>
-                            </header>
-
-                            <div class="resource-card__body">
-                              <p class="resource-card__description">
-                                Current substantial-shareholder ownership
-                                information for Main Market issuers.
-                              </p>
-
-                              <dl class="resource-card__meta">
-                                <div
-                                  class="resource-card__meta-item has-icon icon-history-clock"
-                                >
-                                  <dt class="resource-card__meta-label">
-                                    Last updated:
-                                  </dt>
-
-                                  <dd class="resource-card__meta-value">
-                                    <time datetime="2026-08-10">
-                                      10 August 2026
-                                    </time>
-                                  </dd>
-                                </div>
-                              </dl>
-                            </div>
-
-                            <footer class="resource-card__footer">
-                              <div
-                                class="resource-card__file"
-                                aria-label="PDF document, 1.2 megabytes"
-                              >
-                                <span class="resource-card__file-type"
-                                  >PDF</span
-                                >
-                                <span aria-hidden="true">·</span>
-                                <span class="resource-card__file-size"
-                                  >1.2 MB</span
-                                >
-                              </div>
-
-                              <div class="resource-card__actions">
-                                <a
-                                  class="btn btn-link resource-card__primary-action has-icon icon-arrow-up-right icon-end"
-                                  href="/reports/main-market/substantial-shareholders/"
-                                >
-                                  View report
-                                </a>
-
-                                <a
-                                  class="btn btn-link resource-card__download has-icon icon-file-download"
-                                  href="/assets/reports/substantial-shareholders.pdf"
-                                  download
-                                >
-                                  Download
-                                </a>
-                              </div>
-                            </footer>
-                          </article>
-
-                          <!-- Securities Borrowing and Lending -->
-
-                          <article class="card resource-card">
-                            <header class="resource-card__header">
-                              <div class="resource-card__heading">
-                                <span class="resource-card__eyebrow">SBL</span>
-
-                                <h4 class="resource-card__title">
-                                  <a
-                                    class="resource-card__title-link"
-                                    href="/reports/main-market/securities-borrowing-lending/"
-                                  >
-                                    Securities Borrowing and Lending Report
-                                  </a>
-                                </h4>
-                              </div>
-
-                              <span
-                                class="resource-card__icon has-icon icon-pdf-file"
-                                aria-hidden="true"
-                              ></span>
-                            </header>
-
-                            <div class="resource-card__body">
-                              <p class="resource-card__description">
-                                Securities borrowing and lending activity,
-                                balances, and market statistics.
-                              </p>
-
-                              <dl class="resource-card__meta">
-                                <div
-                                  class="resource-card__meta-item has-icon icon-history-clock"
-                                >
-                                  <dt class="resource-card__meta-label">
-                                    Last updated:
-                                  </dt>
-
-                                  <dd class="resource-card__meta-value">
-                                    <time datetime="2026-08-13">
-                                      13 August 2026
-                                    </time>
-                                  </dd>
-                                </div>
-                              </dl>
-                            </div>
-
-                            <footer class="resource-card__footer">
-                              <div
-                                class="resource-card__file"
-                                aria-label="PDF document, 980 kilobytes"
-                              >
-                                <span class="resource-card__file-type"
-                                  >PDF</span
-                                >
-                                <span aria-hidden="true">·</span>
-                                <span class="resource-card__file-size"
-                                  >980 KB</span
-                                >
-                              </div>
-
-                              <div class="resource-card__actions">
-                                <a
-                                  class="btn btn-link resource-card__primary-action has-icon icon-arrow-up-right icon-end"
-                                  href="/reports/main-market/securities-borrowing-lending/"
-                                >
-                                  View report
-                                </a>
-
-                                <a
-                                  class="btn btn-link resource-card__download has-icon icon-file-download"
-                                  href="/assets/reports/securities-borrowing-lending.pdf"
-                                  download
-                                >
-                                  Download
-                                </a>
-                              </div>
-                            </footer>
-                          </article>
-
-                          <!-- Net Short Positions -->
-
-                          <article class="card resource-card">
-                            <header class="resource-card__header">
-                              <div class="resource-card__heading">
-                                <span class="resource-card__eyebrow">
-                                  Short Selling
-                                </span>
-
-                                <h4 class="resource-card__title">
-                                  <a
-                                    class="resource-card__title-link"
-                                    href="/reports/main-market/net-short-positions/"
-                                  >
-                                    Aggregate Net Short Positions
-                                  </a>
-                                </h4>
-                              </div>
-
-                              <span
-                                class="resource-card__icon has-icon icon-pdf-file"
-                                aria-hidden="true"
-                              ></span>
-                            </header>
-
-                            <div class="resource-card__body">
-                              <p class="resource-card__description">
-                                Aggregated net short-position information for
-                                securities listed on the Main Market.
-                              </p>
-
-                              <dl class="resource-card__meta">
-                                <div
-                                  class="resource-card__meta-item has-icon icon-history-clock"
-                                >
-                                  <dt class="resource-card__meta-label">
-                                    Last updated:
-                                  </dt>
-
-                                  <dd class="resource-card__meta-value">
-                                    <time datetime="2026-08-13">
-                                      13 August 2026
-                                    </time>
-                                  </dd>
-                                </div>
-                              </dl>
-                            </div>
-
-                            <footer class="resource-card__footer">
-                              <div
-                                class="resource-card__file"
-                                aria-label="PDF document, 740 kilobytes"
-                              >
-                                <span class="resource-card__file-type"
-                                  >PDF</span
-                                >
-                                <span aria-hidden="true">·</span>
-                                <span class="resource-card__file-size"
-                                  >740 KB</span
-                                >
-                              </div>
-
-                              <div class="resource-card__actions">
-                                <a
-                                  class="btn btn-link resource-card__primary-action has-icon icon-arrow-up-right icon-end"
-                                  href="/reports/main-market/net-short-positions/"
-                                >
-                                  View report
-                                </a>
-
-                                <a
-                                  class="btn btn-link resource-card__download has-icon icon-file-download"
-                                  href="/assets/reports/net-short-positions.pdf"
-                                  download
-                                >
-                                  Download
-                                </a>
-                              </div>
-                            </footer>
-                          </article>
-
-                          <!-- Share Buy-back Ownership -->
-
-                          <article class="card resource-card">
-                            <header class="resource-card__header">
-                              <div class="resource-card__heading">
-                                <span class="resource-card__eyebrow">
-                                  Ownership
-                                </span>
-
-                                <h4 class="resource-card__title">
-                                  <a
-                                    class="resource-card__title-link"
-                                    href="/reports/main-market/share-buyback-ownership/"
-                                  >
-                                    Listed Companies Share Buy-back Ownership
-                                  </a>
-                                </h4>
-                              </div>
-
-                              <span
-                                class="resource-card__icon has-icon icon-pdf-file"
-                                aria-hidden="true"
-                              ></span>
-                            </header>
-
-                            <div class="resource-card__body">
-                              <p class="resource-card__description">
-                                Treasury-share and share buy-back ownership
-                                information reported by listed companies.
-                              </p>
-
-                              <dl class="resource-card__meta">
-                                <div
-                                  class="resource-card__meta-item has-icon icon-history-clock"
-                                >
-                                  <dt class="resource-card__meta-label">
-                                    Last updated:
-                                  </dt>
-
-                                  <dd class="resource-card__meta-value">
-                                    <time datetime="2026-08-01">
-                                      1 August 2026
-                                    </time>
-                                  </dd>
-                                </div>
-                              </dl>
-                            </div>
-
-                            <footer class="resource-card__footer">
-                              <div
-                                class="resource-card__file"
-                                aria-label="Excel spreadsheet, 620 kilobytes"
-                              >
-                                <span class="resource-card__file-type"
-                                  >XLSX</span
-                                >
-                                <span aria-hidden="true">·</span>
-                                <span class="resource-card__file-size"
-                                  >620 KB</span
-                                >
-                              </div>
-
-                              <div class="resource-card__actions">
-                                <a
-                                  class="btn btn-link resource-card__primary-action has-icon icon-arrow-up-right icon-end"
-                                  href="/reports/main-market/share-buyback-ownership/"
-                                >
-                                  View report
-                                </a>
-
-                                <a
-                                  class="btn btn-link resource-card__download has-icon icon-file-download"
-                                  href="/assets/reports/share-buyback-ownership.xlsx"
-                                  download
-                                >
-                                  Download
-                                </a>
-                              </div>
-                            </footer>
-                          </article>
                         </div>
                       </div>
                     </section>
 
                     <!-- ============================================================
-                   Nomu – Parallel Market
+                   Nomu
                    ============================================================ -->
 
                     <section
-                      class="tab-pane report-library__panel"
                       id="nomu-reports-panel"
+                      class="tab-pane report-library__panel"
                       role="tabpanel"
                       aria-labelledby="nomu-reports-tab"
                       hidden
@@ -6523,16 +5948,16 @@
                             </h3>
 
                             <p class="report-library__description">
-                              Review performance and trading activity across the
-                              Nomu – Parallel Market.
+                              Reports and statistics for the Nomu – Parallel
+                              Market.
                             </p>
                           </div>
 
                           <div
                             class="report-library__count"
-                            aria-label="3 reports available"
+                            aria-label="4 Nomu reports available"
                           >
-                            <span class="report-library__count-value">3</span>
+                            <span class="report-library__count-value">4</span>
                             <span class="report-library__count-label"
                               >reports</span
                             >
@@ -6565,35 +5990,18 @@
 
                             <div class="resource-card__body">
                               <p class="resource-card__description">
-                                Daily trading statistics for companies listed on
+                                Daily trading activity and performance data for
                                 the Nomu – Parallel Market.
                               </p>
-
-                              <dl class="resource-card__meta">
-                                <div
-                                  class="resource-card__meta-item has-icon icon-history-clock"
-                                >
-                                  <dt class="resource-card__meta-label">
-                                    Last updated:
-                                  </dt>
-
-                                  <dd class="resource-card__meta-value">
-                                    <time datetime="2026-08-14">
-                                      14 August 2026
-                                    </time>
-                                  </dd>
-                                </div>
-                              </dl>
                             </div>
 
                             <footer class="resource-card__footer">
-                              <div class="resource-card__file">
+                              <div
+                                class="resource-card__file"
+                                aria-label="PDF document"
+                              >
                                 <span class="resource-card__file-type"
                                   >PDF</span
-                                >
-                                <span aria-hidden="true">·</span>
-                                <span class="resource-card__file-size"
-                                  >1.4 MB</span
                                 >
                               </div>
 
@@ -6603,166 +6011,6 @@
                                   href="/reports/nomu/daily/"
                                 >
                                   View report
-                                </a>
-
-                                <a
-                                  class="btn btn-link resource-card__download has-icon icon-file-download"
-                                  href="/assets/reports/nomu-daily-report.pdf"
-                                  download
-                                >
-                                  Download
-                                </a>
-                              </div>
-                            </footer>
-                          </article>
-
-                          <article class="card resource-card">
-                            <header class="resource-card__header">
-                              <div class="resource-card__heading">
-                                <span class="resource-card__eyebrow"
-                                  >Weekly</span
-                                >
-
-                                <h4 class="resource-card__title">
-                                  <a
-                                    class="resource-card__title-link"
-                                    href="/reports/nomu/weekly/"
-                                  >
-                                    Nomu Weekly Report
-                                  </a>
-                                </h4>
-                              </div>
-
-                              <span
-                                class="resource-card__icon has-icon icon-pdf-file"
-                                aria-hidden="true"
-                              ></span>
-                            </header>
-
-                            <div class="resource-card__body">
-                              <p class="resource-card__description">
-                                Weekly Nomu market performance and trading
-                                activity summary.
-                              </p>
-
-                              <dl class="resource-card__meta">
-                                <div
-                                  class="resource-card__meta-item has-icon icon-history-clock"
-                                >
-                                  <dt class="resource-card__meta-label">
-                                    Last updated:
-                                  </dt>
-
-                                  <dd class="resource-card__meta-value">
-                                    <time datetime="2026-08-13">
-                                      13 August 2026
-                                    </time>
-                                  </dd>
-                                </div>
-                              </dl>
-                            </div>
-
-                            <footer class="resource-card__footer">
-                              <div class="resource-card__file">
-                                <span class="resource-card__file-type"
-                                  >PDF</span
-                                >
-                                <span aria-hidden="true">·</span>
-                                <span class="resource-card__file-size"
-                                  >1.1 MB</span
-                                >
-                              </div>
-
-                              <div class="resource-card__actions">
-                                <a
-                                  class="btn btn-link resource-card__primary-action has-icon icon-arrow-up-right icon-end"
-                                  href="/reports/nomu/weekly/"
-                                >
-                                  View report
-                                </a>
-
-                                <a
-                                  class="btn btn-link resource-card__download has-icon icon-file-download"
-                                  href="/assets/reports/nomu-weekly-report.pdf"
-                                  download
-                                >
-                                  Download
-                                </a>
-                              </div>
-                            </footer>
-                          </article>
-
-                          <article class="card resource-card">
-                            <header class="resource-card__header">
-                              <div class="resource-card__heading">
-                                <span class="resource-card__eyebrow"
-                                  >Monthly</span
-                                >
-
-                                <h4 class="resource-card__title">
-                                  <a
-                                    class="resource-card__title-link"
-                                    href="/reports/nomu/monthly/"
-                                  >
-                                    Nomu Monthly Report
-                                  </a>
-                                </h4>
-                              </div>
-
-                              <span
-                                class="resource-card__icon has-icon icon-pdf-file"
-                                aria-hidden="true"
-                              ></span>
-                            </header>
-
-                            <div class="resource-card__body">
-                              <p class="resource-card__description">
-                                Monthly Nomu statistics, market activity, and
-                                performance indicators.
-                              </p>
-
-                              <dl class="resource-card__meta">
-                                <div
-                                  class="resource-card__meta-item has-icon icon-history-clock"
-                                >
-                                  <dt class="resource-card__meta-label">
-                                    Last updated:
-                                  </dt>
-
-                                  <dd class="resource-card__meta-value">
-                                    <time datetime="2026-08-01">
-                                      1 August 2026
-                                    </time>
-                                  </dd>
-                                </div>
-                              </dl>
-                            </div>
-
-                            <footer class="resource-card__footer">
-                              <div class="resource-card__file">
-                                <span class="resource-card__file-type"
-                                  >PDF</span
-                                >
-                                <span aria-hidden="true">·</span>
-                                <span class="resource-card__file-size"
-                                  >2.2 MB</span
-                                >
-                              </div>
-
-                              <div class="resource-card__actions">
-                                <a
-                                  class="btn btn-link resource-card__primary-action has-icon icon-arrow-up-right icon-end"
-                                  href="/reports/nomu/monthly/"
-                                >
-                                  View report
-                                </a>
-
-                                <a
-                                  class="btn btn-link resource-card__download has-icon icon-file-download"
-                                  href="/assets/reports/nomu-monthly-report.pdf"
-                                  download
-                                >
-                                  Download
                                 </a>
                               </div>
                             </footer>
@@ -6776,8 +6024,8 @@
                    ============================================================ -->
 
                     <section
-                      class="tab-pane report-library__panel"
                       id="derivatives-reports-panel"
+                      class="tab-pane report-library__panel"
                       role="tabpanel"
                       aria-labelledby="derivatives-reports-tab"
                       hidden
@@ -6790,174 +6038,36 @@
                             </h3>
 
                             <p class="report-library__description">
-                              Access trading and open-interest reports for the
-                              derivatives market.
+                              Reports covering derivatives market activity and
+                              contracts.
                             </p>
                           </div>
 
                           <div
                             class="report-library__count"
-                            aria-label="2 reports available"
+                            aria-label="No derivatives reports available"
                           >
-                            <span class="report-library__count-value">2</span>
+                            <span class="report-library__count-value">0</span>
                             <span class="report-library__count-label"
                               >reports</span
                             >
                           </div>
                         </header>
 
-                        <div class="grid report-library__grid">
-                          <article class="card resource-card">
-                            <header class="resource-card__header">
-                              <div class="resource-card__heading">
-                                <span class="resource-card__eyebrow"
-                                  >Daily</span
-                                >
+                        <div class="report-library__empty">
+                          <span
+                            class="report-library__empty-icon has-icon icon-file"
+                            aria-hidden="true"
+                          ></span>
 
-                                <h4 class="resource-card__title">
-                                  <a
-                                    class="resource-card__title-link"
-                                    href="/reports/derivatives/daily/"
-                                  >
-                                    Derivatives Daily Report
-                                  </a>
-                                </h4>
-                              </div>
+                          <h4 class="report-library__empty-title">
+                            No reports are currently available
+                          </h4>
 
-                              <span
-                                class="resource-card__icon has-icon icon-pdf-file"
-                                aria-hidden="true"
-                              ></span>
-                            </header>
-
-                            <div class="resource-card__body">
-                              <p class="resource-card__description">
-                                Daily derivatives trading activity, volume,
-                                value, and open-interest statistics.
-                              </p>
-
-                              <dl class="resource-card__meta">
-                                <div
-                                  class="resource-card__meta-item has-icon icon-history-clock"
-                                >
-                                  <dt class="resource-card__meta-label">
-                                    Last updated:
-                                  </dt>
-
-                                  <dd class="resource-card__meta-value">
-                                    <time datetime="2026-08-14">
-                                      14 August 2026
-                                    </time>
-                                  </dd>
-                                </div>
-                              </dl>
-                            </div>
-
-                            <footer class="resource-card__footer">
-                              <div class="resource-card__file">
-                                <span class="resource-card__file-type"
-                                  >PDF</span
-                                >
-                                <span aria-hidden="true">·</span>
-                                <span class="resource-card__file-size"
-                                  >1.6 MB</span
-                                >
-                              </div>
-
-                              <div class="resource-card__actions">
-                                <a
-                                  class="btn btn-link resource-card__primary-action has-icon icon-arrow-up-right icon-end"
-                                  href="/reports/derivatives/daily/"
-                                >
-                                  View report
-                                </a>
-
-                                <a
-                                  class="btn btn-link resource-card__download has-icon icon-file-download"
-                                  href="/assets/reports/derivatives-daily-report.pdf"
-                                  download
-                                >
-                                  Download
-                                </a>
-                              </div>
-                            </footer>
-                          </article>
-
-                          <article class="card resource-card">
-                            <header class="resource-card__header">
-                              <div class="resource-card__heading">
-                                <span class="resource-card__eyebrow"
-                                  >Monthly</span
-                                >
-
-                                <h4 class="resource-card__title">
-                                  <a
-                                    class="resource-card__title-link"
-                                    href="/reports/derivatives/monthly/"
-                                  >
-                                    Derivatives Monthly Report
-                                  </a>
-                                </h4>
-                              </div>
-
-                              <span
-                                class="resource-card__icon has-icon icon-pdf-file"
-                                aria-hidden="true"
-                              ></span>
-                            </header>
-
-                            <div class="resource-card__body">
-                              <p class="resource-card__description">
-                                Monthly derivatives performance, contract
-                                activity, and market participation.
-                              </p>
-
-                              <dl class="resource-card__meta">
-                                <div
-                                  class="resource-card__meta-item has-icon icon-history-clock"
-                                >
-                                  <dt class="resource-card__meta-label">
-                                    Last updated:
-                                  </dt>
-
-                                  <dd class="resource-card__meta-value">
-                                    <time datetime="2026-08-01">
-                                      1 August 2026
-                                    </time>
-                                  </dd>
-                                </div>
-                              </dl>
-                            </div>
-
-                            <footer class="resource-card__footer">
-                              <div class="resource-card__file">
-                                <span class="resource-card__file-type"
-                                  >PDF</span
-                                >
-                                <span aria-hidden="true">·</span>
-                                <span class="resource-card__file-size"
-                                  >2.8 MB</span
-                                >
-                              </div>
-
-                              <div class="resource-card__actions">
-                                <a
-                                  class="btn btn-link resource-card__primary-action has-icon icon-arrow-up-right icon-end"
-                                  href="/reports/derivatives/monthly/"
-                                >
-                                  View report
-                                </a>
-
-                                <a
-                                  class="btn btn-link resource-card__download has-icon icon-file-download"
-                                  href="/assets/reports/derivatives-monthly-report.pdf"
-                                  download
-                                >
-                                  Download
-                                </a>
-                              </div>
-                            </footer>
-                          </article>
+                          <p class="report-library__empty-description">
+                            Check back later for derivatives market reports and
+                            publications.
+                          </p>
                         </div>
                       </div>
                     </section>
@@ -6967,8 +6077,8 @@
                    ============================================================ -->
 
                     <section
-                      class="tab-pane report-library__panel"
                       id="funds-reports-panel"
+                      class="tab-pane report-library__panel"
                       role="tabpanel"
                       aria-labelledby="funds-reports-tab"
                       hidden
@@ -6979,14 +6089,14 @@
                             <h3 class="report-library__title">Funds Reports</h3>
 
                             <p class="report-library__description">
-                              Explore reports for exchange-traded funds, REITs,
-                              and closed-ended funds.
+                              Reports and market information relating to listed
+                              funds.
                             </p>
                           </div>
 
                           <div
                             class="report-library__count"
-                            aria-label="2 reports available"
+                            aria-label="2 funds reports available"
                           >
                             <span class="report-library__count-value">2</span>
                             <span class="report-library__count-label"
@@ -7006,9 +6116,9 @@
                                 <h4 class="resource-card__title">
                                   <a
                                     class="resource-card__title-link"
-                                    href="/reports/funds/etf/"
+                                    href="/reports/funds/monthly/"
                                   >
-                                    Exchange-Traded Funds Report
+                                    Listed Funds Monthly Report
                                   </a>
                                 </h4>
                               </div>
@@ -7021,25 +6131,9 @@
 
                             <div class="resource-card__body">
                               <p class="resource-card__description">
-                                Trading activity, assets, and market information
-                                for exchange-traded funds.
+                                Monthly data and market activity for listed
+                                funds.
                               </p>
-
-                              <dl class="resource-card__meta">
-                                <div
-                                  class="resource-card__meta-item has-icon icon-history-clock"
-                                >
-                                  <dt class="resource-card__meta-label">
-                                    Last updated:
-                                  </dt>
-
-                                  <dd class="resource-card__meta-value">
-                                    <time datetime="2026-08-01">
-                                      1 August 2026
-                                    </time>
-                                  </dd>
-                                </div>
-                              </dl>
                             </div>
 
                             <footer class="resource-card__footer">
@@ -7047,102 +6141,14 @@
                                 <span class="resource-card__file-type"
                                   >PDF</span
                                 >
-                                <span aria-hidden="true">·</span>
-                                <span class="resource-card__file-size"
-                                  >2.1 MB</span
-                                >
                               </div>
 
                               <div class="resource-card__actions">
                                 <a
                                   class="btn btn-link resource-card__primary-action has-icon icon-arrow-up-right icon-end"
-                                  href="/reports/funds/etf/"
+                                  href="/reports/funds/monthly/"
                                 >
                                   View report
-                                </a>
-
-                                <a
-                                  class="btn btn-link resource-card__download has-icon icon-file-download"
-                                  href="/assets/reports/etf-report.pdf"
-                                  download
-                                >
-                                  Download
-                                </a>
-                              </div>
-                            </footer>
-                          </article>
-
-                          <article class="card resource-card">
-                            <header class="resource-card__header">
-                              <div class="resource-card__heading">
-                                <span class="resource-card__eyebrow"
-                                  >Monthly</span
-                                >
-
-                                <h4 class="resource-card__title">
-                                  <a
-                                    class="resource-card__title-link"
-                                    href="/reports/funds/reits/"
-                                  >
-                                    REITs Market Report
-                                  </a>
-                                </h4>
-                              </div>
-
-                              <span
-                                class="resource-card__icon has-icon icon-pdf-file"
-                                aria-hidden="true"
-                              ></span>
-                            </header>
-
-                            <div class="resource-card__body">
-                              <p class="resource-card__description">
-                                Monthly listed real-estate investment trust
-                                activity and performance.
-                              </p>
-
-                              <dl class="resource-card__meta">
-                                <div
-                                  class="resource-card__meta-item has-icon icon-history-clock"
-                                >
-                                  <dt class="resource-card__meta-label">
-                                    Last updated:
-                                  </dt>
-
-                                  <dd class="resource-card__meta-value">
-                                    <time datetime="2026-08-01">
-                                      1 August 2026
-                                    </time>
-                                  </dd>
-                                </div>
-                              </dl>
-                            </div>
-
-                            <footer class="resource-card__footer">
-                              <div class="resource-card__file">
-                                <span class="resource-card__file-type"
-                                  >PDF</span
-                                >
-                                <span aria-hidden="true">·</span>
-                                <span class="resource-card__file-size"
-                                  >1.9 MB</span
-                                >
-                              </div>
-
-                              <div class="resource-card__actions">
-                                <a
-                                  class="btn btn-link resource-card__primary-action has-icon icon-arrow-up-right icon-end"
-                                  href="/reports/funds/reits/"
-                                >
-                                  View report
-                                </a>
-
-                                <a
-                                  class="btn btn-link resource-card__download has-icon icon-file-download"
-                                  href="/assets/reports/reits-market-report.pdf"
-                                  download
-                                >
-                                  Download
                                 </a>
                               </div>
                             </footer>
@@ -7156,8 +6162,8 @@
                    ============================================================ -->
 
                     <section
-                      class="tab-pane report-library__panel"
                       id="sukuk-reports-panel"
+                      class="tab-pane report-library__panel"
                       role="tabpanel"
                       aria-labelledby="sukuk-reports-tab"
                       hidden
@@ -7170,16 +6176,16 @@
                             </h3>
 
                             <p class="report-library__description">
-                              Review trading and market reports for listed sukuk
-                              and debt instruments.
+                              Reports on Sukuk and Bonds trading activity and
+                              market performance.
                             </p>
                           </div>
 
                           <div
                             class="report-library__count"
-                            aria-label="2 reports available"
+                            aria-label="3 Sukuk and Bonds reports available"
                           >
-                            <span class="report-library__count-value">2</span>
+                            <span class="report-library__count-value">3</span>
                             <span class="report-library__count-label"
                               >reports</span
                             >
@@ -7197,9 +6203,9 @@
                                 <h4 class="resource-card__title">
                                   <a
                                     class="resource-card__title-link"
-                                    href="/reports/sukuk-bonds/daily/"
+                                    href="/reports/sukuk-and-bonds/daily/"
                                   >
-                                    Sukuk &amp; Bonds Daily Report
+                                    Sukuk and Bonds Daily Report
                                   </a>
                                 </h4>
                               </div>
@@ -7212,25 +6218,9 @@
 
                             <div class="resource-card__body">
                               <p class="resource-card__description">
-                                Daily trading activity and pricing information
-                                for listed sukuk and bonds.
+                                Daily trading values, volumes, and market
+                                activity for Sukuk and Bonds.
                               </p>
-
-                              <dl class="resource-card__meta">
-                                <div
-                                  class="resource-card__meta-item has-icon icon-history-clock"
-                                >
-                                  <dt class="resource-card__meta-label">
-                                    Last updated:
-                                  </dt>
-
-                                  <dd class="resource-card__meta-value">
-                                    <time datetime="2026-08-14">
-                                      14 August 2026
-                                    </time>
-                                  </dd>
-                                </div>
-                              </dl>
                             </div>
 
                             <footer class="resource-card__footer">
@@ -7238,102 +6228,14 @@
                                 <span class="resource-card__file-type"
                                   >PDF</span
                                 >
-                                <span aria-hidden="true">·</span>
-                                <span class="resource-card__file-size"
-                                  >1.3 MB</span
-                                >
                               </div>
 
                               <div class="resource-card__actions">
                                 <a
                                   class="btn btn-link resource-card__primary-action has-icon icon-arrow-up-right icon-end"
-                                  href="/reports/sukuk-bonds/daily/"
+                                  href="/reports/sukuk-and-bonds/daily/"
                                 >
                                   View report
-                                </a>
-
-                                <a
-                                  class="btn btn-link resource-card__download has-icon icon-file-download"
-                                  href="/assets/reports/sukuk-bonds-daily-report.pdf"
-                                  download
-                                >
-                                  Download
-                                </a>
-                              </div>
-                            </footer>
-                          </article>
-
-                          <article class="card resource-card">
-                            <header class="resource-card__header">
-                              <div class="resource-card__heading">
-                                <span class="resource-card__eyebrow"
-                                  >Monthly</span
-                                >
-
-                                <h4 class="resource-card__title">
-                                  <a
-                                    class="resource-card__title-link"
-                                    href="/reports/sukuk-bonds/monthly/"
-                                  >
-                                    Sukuk &amp; Bonds Monthly Report
-                                  </a>
-                                </h4>
-                              </div>
-
-                              <span
-                                class="resource-card__icon has-icon icon-pdf-file"
-                                aria-hidden="true"
-                              ></span>
-                            </header>
-
-                            <div class="resource-card__body">
-                              <p class="resource-card__description">
-                                Monthly debt-market performance, issuance, and
-                                trading statistics.
-                              </p>
-
-                              <dl class="resource-card__meta">
-                                <div
-                                  class="resource-card__meta-item has-icon icon-history-clock"
-                                >
-                                  <dt class="resource-card__meta-label">
-                                    Last updated:
-                                  </dt>
-
-                                  <dd class="resource-card__meta-value">
-                                    <time datetime="2026-08-01">
-                                      1 August 2026
-                                    </time>
-                                  </dd>
-                                </div>
-                              </dl>
-                            </div>
-
-                            <footer class="resource-card__footer">
-                              <div class="resource-card__file">
-                                <span class="resource-card__file-type"
-                                  >PDF</span
-                                >
-                                <span aria-hidden="true">·</span>
-                                <span class="resource-card__file-size"
-                                  >2.6 MB</span
-                                >
-                              </div>
-
-                              <div class="resource-card__actions">
-                                <a
-                                  class="btn btn-link resource-card__primary-action has-icon icon-arrow-up-right icon-end"
-                                  href="/reports/sukuk-bonds/monthly/"
-                                >
-                                  View report
-                                </a>
-
-                                <a
-                                  class="btn btn-link resource-card__download has-icon icon-file-download"
-                                  href="/assets/reports/sukuk-bonds-monthly-report.pdf"
-                                  download
-                                >
-                                  Download
                                 </a>
                               </div>
                             </footer>

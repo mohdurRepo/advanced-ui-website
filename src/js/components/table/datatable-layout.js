@@ -1,22 +1,20 @@
+import { TableScrollNavigation } from "./table-scroll-navigation";
+
 /* ==========================================================================
    DataTables Layout
    ========================================================================== */
 
-/**
- * Global layout synchronization for initialized DataTables.
- *
- * Responsibilities:
- *
- * - Recalculate visible DataTables after viewport or layout changes
- * - Keep scroll headers aligned with their body columns
- * - Recalculate FixedHeader positioning when available
- *
- * Page-specific DataTables configuration does not belong here.
- */
-
 const RESIZE_DELAY = 120;
 
+const SELECTORS = {
+  siteHeader: "[data-site-header]",
+  tableShell: "[data-table-shell]",
+  tableScroll: ".dt-scroll-body",
+  tableJump: "[data-table-scroll-jump]",
+};
+
 let resizeTimer = null;
+let headerResizeObserver = null;
 let initialized = false;
 
 /* ==========================================================================
@@ -34,16 +32,106 @@ function isAvailable() {
 }
 
 /* ==========================================================================
+   Sticky Header Offset
+   ========================================================================== */
+
+export function getSiteHeaderOffset() {
+  const header = document.querySelector(SELECTORS.siteHeader);
+
+  if (!header) {
+    return 0;
+  }
+
+  return Math.ceil(header.getBoundingClientRect().height);
+}
+
+export function syncSiteHeaderOffset() {
+  const offset = getSiteHeaderOffset();
+
+  document.documentElement.style.setProperty(
+    "--site-header-block-size",
+    `${offset}px`,
+  );
+
+  return offset;
+}
+
+/* ==========================================================================
+   DataTables Scroll Navigation
+   ========================================================================== */
+
+/*
+ * DataTables creates `.dt-scroll-body` after initialization. This function
+ * connects that generated scroller to the same reusable TableScrollNavigation
+ * used by native responsive tables.
+ *
+ * Required page markup:
+ *
+ * <div class="table-shell" data-table-shell>
+ *   <table id="..." class="table">...</table>
+ *   <button data-table-scroll-jump hidden></button>
+ * </div>
+ */
+
+function syncDataTableScrollNavigation(tableApi) {
+  const table = tableApi?.table?.().node?.();
+
+  if (!(table instanceof Element)) {
+    return;
+  }
+
+  const shell = table.closest(SELECTORS.tableShell);
+
+  if (!shell || !shell.querySelector(SELECTORS.tableJump)) {
+    return;
+  }
+
+  const scroller = shell.querySelector(SELECTORS.tableScroll);
+
+  if (!scroller) {
+    return;
+  }
+
+  scroller.setAttribute("data-table-scroll", "");
+
+  TableScrollNavigation.getOrCreateInstance(shell);
+}
+
+/* ==========================================================================
+   FixedHeader and FixedColumns
+   ========================================================================== */
+
+function syncFixedHeaderOffset(tableApi, offset) {
+  const fixedHeader = tableApi?.fixedHeader;
+
+  if (fixedHeader?.headerOffset) {
+    fixedHeader.headerOffset(offset);
+  }
+
+  if (fixedHeader?.adjust) {
+    fixedHeader.adjust();
+  }
+}
+
+function syncFixedColumns(tableApi) {
+  if (typeof tableApi?.fixedColumns !== "function") {
+    return;
+  }
+
+  const fixedColumns = tableApi.fixedColumns();
+
+  if (fixedColumns?.relayout) {
+    fixedColumns.relayout();
+  }
+}
+
+/* ==========================================================================
    Adjustment
    ========================================================================== */
 
-/**
- * Recalculates all currently visible DataTables.
- *
- * DataTable.tables({ visible: true, api: true }) is the official API for
- * obtaining initialized visible tables when their sizing needs adjustment.
- */
 export function refreshDataTableLayout() {
+  const headerOffset = syncSiteHeaderOffset();
+
   if (!isAvailable()) {
     return;
   }
@@ -55,34 +143,24 @@ export function refreshDataTableLayout() {
     api: true,
   });
 
-  if (!tables || !tables.context?.length) {
+  if (!tables?.context?.length) {
     return;
   }
 
-  /*
-   * Recalculate column widths.
-   *
-   * This also keeps DataTables' generated scroll header synchronized with
-   * the scrolling body after viewport/container width changes.
-   */
   tables.columns.adjust();
 
-  /*
-   * FixedHeader caches positional information and exposes its own adjustment
-   * API. Run it once per DataTable where the extension is active.
-   */
-  tables.tables().every(function () {
-    if (this.fixedHeader && typeof this.fixedHeader.adjust === "function") {
-      this.fixedHeader.adjust();
-    }
+  tables.tables().every(function adjustTable() {
+    syncFixedHeaderOffset(this, headerOffset);
+    syncFixedColumns(this);
+    syncDataTableScrollNavigation(this);
   });
 }
 
 /* ==========================================================================
-   Resize
+   Resize and Header Observation
    ========================================================================== */
 
-function handleResize() {
+function scheduleRefresh() {
   window.clearTimeout(resizeTimer);
 
   resizeTimer = window.setTimeout(() => {
@@ -90,15 +168,40 @@ function handleResize() {
   }, RESIZE_DELAY);
 }
 
+function handleResize() {
+  scheduleRefresh();
+}
+
+function observeSiteHeader() {
+  if (typeof ResizeObserver !== "function") {
+    return;
+  }
+
+  const header = document.querySelector(SELECTORS.siteHeader);
+
+  if (!header) {
+    return;
+  }
+
+  headerResizeObserver?.disconnect();
+
+  headerResizeObserver = new ResizeObserver(() => {
+    scheduleRefresh();
+  });
+
+  headerResizeObserver.observe(header);
+}
+
+function stopObservingSiteHeader() {
+  headerResizeObserver?.disconnect();
+
+  headerResizeObserver = null;
+}
+
 /* ==========================================================================
    Initialization
    ========================================================================== */
 
-/**
- * Initializes global DataTables layout synchronization.
- *
- * Idempotent: repeated calls do not register duplicate listeners.
- */
 export function initDataTableLayout() {
   if (initialized) {
     refreshDataTableLayout();
@@ -108,20 +211,17 @@ export function initDataTableLayout() {
 
   initialized = true;
 
+  syncSiteHeaderOffset();
+  observeSiteHeader();
+
   window.addEventListener("resize", handleResize, {
     passive: true,
   });
 
-  /*
-   * Adjust once after the current layout pass.
-   */
   window.requestAnimationFrame(() => {
     refreshDataTableLayout();
   });
 
-  /*
-   * Fonts, images, and other deferred assets can alter final dimensions.
-   */
   if (document.readyState === "complete") {
     refreshDataTableLayout();
   } else {
@@ -135,12 +235,6 @@ export function initDataTableLayout() {
    Destruction
    ========================================================================== */
 
-/**
- * Removes the global resize listener.
- *
- * Primarily useful for tests, hot module replacement, or isolated
- * application environments.
- */
 export function destroyDataTableLayout() {
   if (!initialized) {
     return;
@@ -149,6 +243,7 @@ export function destroyDataTableLayout() {
   window.removeEventListener("resize", handleResize);
 
   window.clearTimeout(resizeTimer);
+  stopObservingSiteHeader();
 
   resizeTimer = null;
   initialized = false;

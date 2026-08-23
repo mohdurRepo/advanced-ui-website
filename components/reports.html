@@ -1,47 +1,57 @@
 <!doctype html>
-<html>
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>Buttons | Abu Faisal Design System</title>
+
     <link rel="stylesheet" href="/src/scss/main.scss" />
+
     <script>
       (function () {
+        "use strict";
+
         var root = document.documentElement;
+        var RESTORE_TIMEOUT = 4000;
 
-        var supportedLanguages = ["en", "ar"];
+        function getStoredValue(key, fallback) {
+          try {
+            var value = window.localStorage.getItem(key);
 
-        function normalizeLanguage(language) {
-          return String(language || "")
-            .trim()
-            .toLowerCase()
-            .split(/[-_]/)[0];
+            return value !== null ? value : fallback;
+          } catch (error) {
+            return fallback;
+          }
         }
 
-        var storedLanguage = normalizeLanguage(localStorage.getItem("se-lang"));
+        function getUrlLanguage() {
+          try {
+            var language = new URLSearchParams(window.location.search).get(
+              "locale",
+            );
 
-        var portalLanguage = normalizeLanguage(root.getAttribute("lang"));
+            return language === "ar" || language === "en" ? language : null;
+          } catch (error) {
+            return null;
+          }
+        }
 
-        var lang = supportedLanguages.includes(storedLanguage)
-          ? storedLanguage
-          : supportedLanguages.includes(portalLanguage)
-            ? portalLanguage
-            : "en";
+        var pageLanguage = root.getAttribute("lang") === "ar" ? "ar" : "en";
 
-        /*
-         * Create se-lang if it is not already available.
-         */
-        localStorage.setItem("se-lang", lang);
+        var storedLanguage = getStoredValue("se-lang", null);
 
-        var themeChoice = localStorage.getItem("se-theme") || "system";
+        var urlLanguage = getUrlLanguage();
 
-        var accent = localStorage.getItem("se-accent") || "blue";
+        var themeChoice = getStoredValue("se-theme", "system");
 
-        var fontSize = localStorage.getItem("se-font-size") || "0";
+        var accent = getStoredValue("se-accent", "blue");
 
-        var contrast = localStorage.getItem("se-contrast") || "normal";
+        var fontSize = getStoredValue("se-font-size", "0");
 
-        var motion = localStorage.getItem("se-motion") || "normal";
+        var contrast = getStoredValue("se-contrast", "normal");
+
+        var motion = getStoredValue("se-motion", "normal");
 
         var systemTheme =
           window.matchMedia &&
@@ -52,9 +62,33 @@
         var resolvedTheme =
           themeChoice === "system" ? systemTheme : themeChoice;
 
-        root.setAttribute("lang", lang);
-        root.setAttribute("dir", lang === "ar" ? "rtl" : "ltr");
+        /*
+         * Portal rendered the document using pageLanguage.
+         *
+         * If the saved language differs and the URL has no explicit locale,
+         * temporarily hide the document while language.js restores the saved
+         * language through Portal.
+         */
+        if (
+          !urlLanguage &&
+          (storedLanguage === "ar" || storedLanguage === "en") &&
+          storedLanguage !== pageLanguage
+        ) {
+          root.style.visibility = "hidden";
+          root.setAttribute("data-language-restoring", "true");
 
+          /*
+           * Safety fallback: never leave the document permanently hidden.
+           */
+          window.setTimeout(function () {
+            root.style.removeProperty("visibility");
+            root.removeAttribute("data-language-restoring");
+          }, RESTORE_TIMEOUT);
+        }
+
+        /*
+         * Portal owns lang and dir. Do not overwrite them here.
+         */
         root.setAttribute("data-theme", resolvedTheme);
         root.setAttribute("data-theme-choice", themeChoice);
         root.setAttribute("data-accent", accent);
@@ -63,29 +97,6 @@
         root.setAttribute("data-motion", motion);
       })();
     </script>
-
-    <!-- DataTables Core -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.datatables.net/2.3.8/css/dataTables.dataTables.min.css"
-    />
-    <!-- DataTables: FixedHeader -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.datatables.net/fixedheader/4.0.6/css/fixedHeader.dataTables.min.css"
-    />
-
-    <!-- DataTables: FixedColumns -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.datatables.net/fixedcolumns/5.0.5/css/fixedColumns.dataTables.min.css"
-    />
-
-    <!-- DataTables: RowGroup -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.datatables.net/rowgroup/1.6.0/css/rowGroup.dataTables.min.css"
-    />
 
     <script type="module" src="/src/js/main.js"></script>
   </head>
@@ -5437,9 +5448,9 @@
         </details>
       </section>
 
-      <!-- =========================================================================
-     Page Breadcrumb
-============================================================================ -->
+      <!-- ==========================================================================
+     Breadcrumb
+     ========================================================================== -->
 
       <div class="page-breadcrumb">
         <div class="container">
@@ -5455,7 +5466,9 @@
                   aria-hidden="true"
                 ></span>
 
-                <a class="breadcrumb__link" href="#"> Our Market </a>
+                <a class="breadcrumb__link" href="/market-news-and-reports/">
+                  Market News &amp; Reports
+                </a>
               </li>
 
               <li class="breadcrumb__item">
@@ -5464,7 +5477,12 @@
                   aria-hidden="true"
                 ></span>
 
-                <a class="breadcrumb__link" href="#"> Main Market </a>
+                <a
+                  class="breadcrumb__link"
+                  href="/market-news-and-reports/reports-and-publications/"
+                >
+                  Reports &amp; Publications
+                </a>
               </li>
 
               <li class="breadcrumb__item">
@@ -5474,7 +5492,7 @@
                 ></span>
 
                 <span class="breadcrumb__current" aria-current="page">
-                  Market Watch
+                  Market Reports
                 </span>
               </li>
             </ol>
@@ -5482,1898 +5500,349 @@
         </div>
       </div>
 
-      <!-- =========================================================================
-     Market Watch Hero
-============================================================================ -->
+      <!-- ==========================================================================
+  Brand Guidelines Hero
+  ========================================================================== -->
 
-      <section
-        class="hero-section market-summary-section"
-        aria-labelledby="market-watch-title"
-        aria-describedby="market-watch-description"
-      >
+      <section class="hero-section" aria-labelledby="brand-guidelines-title">
         <div class="hero-section__background" aria-hidden="true"></div>
 
         <div class="container hero-section__content">
-          <div class="market-summary market-summary--hero">
-            <!-- Market Watch Identity -->
+          <div
+            class="split-layout split-layout--compact-secondary split-layout--center"
+          >
+            <div class="split-layout__primary">
+              <div class="hero-identity">
+                <h1 class="hero-identity__title" id="brand-guidelines-title">
+                  <span
+                    class="hero-identity__icon has-icon icon-tadawul"
+                    aria-hidden="true"
+                  ></span>
 
-            <header class="market-summary__header">
-              <div class="market-summary__brand">
-                <span
-                  class="market-summary__brand-icon has-icon icon-tadawul"
-                  aria-hidden="true"
-                ></span>
-
-                <h1 id="market-watch-title" class="market-summary__title">
-                  Market Watch
+                  <span class="hero-identity__title-text">
+                    Saudi Exchange Brand Guidelines
+                  </span>
                 </h1>
               </div>
+            </div>
 
-              <p
-                id="market-watch-description"
-                class="market-summary__description"
-              >
-                Follow listed securities, market prices, trading activity, and
-                performance across the Main Market.
-              </p>
-            </header>
+            <aside
+              class="split-layout__secondary"
+              aria-labelledby="brand-guidelines-contact-title"
+            >
+              <div class="hero-callout">
+                <div class="hero-callout__content">
+                  <h2
+                    class="hero-callout__title"
+                    id="brand-guidelines-contact-title"
+                  >
+                    Saudi Exchange Executive Guide
+                  </h2>
+
+                  <p class="hero-callout__description">
+                    For media inquiries please contact
+                  </p>
+
+                  <a
+                    class="hero-callout__link"
+                    href="mailto:corporate.communications@saudiexchange.sa"
+                  >
+                    Corporate Communications
+                  </a>
+                </div>
+
+                <span
+                  class="hero-callout__icon has-icon icon-at-sign"
+                  aria-hidden="true"
+                ></span>
+              </div>
+            </aside>
           </div>
         </div>
       </section>
 
       <!-- ==========================================================================
-   Market Watch Filters
-   ========================================================================== -->
+  Brand Guidelines Resources
+  ========================================================================== -->
 
       <section
-        class="section market-watch-filters"
-        aria-labelledby="market-watch-filters-title"
+        class="section"
+        aria-labelledby="brand-guidelines-resources-title"
       >
         <div class="container">
-          <form
-            class="filter-bar"
-            aria-labelledby="market-watch-filters-title"
-            data-market-watch-filters
-          >
-            <h2 class="visually-hidden" id="market-watch-filters-title">
-              Filter Market Watch data
-            </h2>
-
-            <!-- ====================================================================
-         Primary Controls
-         ==================================================================== -->
-
-            <div class="filter-bar__inner">
-              <div class="filter-bar__fields grid-3">
-                <!-- Industry Group -->
-
-                <div class="filter-bar__field">
-                  <label class="form-label" for="market-watch-industry">
-                    Industry Group
-                  </label>
-
-                  <div class="custom-select" data-custom-select>
-                    <div class="form-select-wrap custom-select__fallback">
-                      <select
-                        class="form-select custom-select__native"
-                        id="market-watch-industry"
-                        name="industry"
-                      >
-                        <option value="" selected>View All</option>
-                        <option value="energy">Energy</option>
-                        <option value="materials">Materials</option>
-                        <option value="banks">Banks</option>
-                        <option value="capital-goods">Capital Goods</option>
-                        <option value="healthcare">Health Care</option>
-                        <option value="telecom">
-                          Telecommunication Services
-                        </option>
-                        <option value="transportation">Transportation</option>
-                        <option value="real-estate">
-                          Real Estate Management
-                        </option>
-                        <option value="software">
-                          Software &amp; Services
-                        </option>
-                      </select>
-
-                      <span
-                        class="form-select-icon has-icon icon-chevron-down"
-                        aria-hidden="true"
-                      ></span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Table View -->
-
-                <div class="filter-bar__field">
-                  <label class="form-label" for="market-watch-table-view">
-                    Table View
-                  </label>
-
-                  <div
-                    class="custom-select filter-bar__view"
-                    data-custom-select
-                  >
-                    <div class="form-select-wrap custom-select__fallback">
-                      <select
-                        class="form-select custom-select__native"
-                        id="market-watch-table-view"
-                        name="tableView"
-                      >
-                        <option value="overview" selected>Overview</option>
-                        <option value="trading">Trading</option>
-                        <option value="performance">Performance</option>
-                      </select>
-
-                      <span
-                        class="form-select-icon has-icon icon-chevron-down"
-                        aria-hidden="true"
-                      ></span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Visible Columns -->
-
-                <div class="filter-bar__field">
-                  <span
-                    class="form-label-static"
-                    id="market-watch-columns-label"
-                  >
-                    Show or hide columns
-                  </span>
-
-                  <button
-                    class="btn btn-outline-primary filter-bar__columns"
-                    type="button"
-                    aria-labelledby="market-watch-columns-label"
-                    aria-haspopup="menu"
-                    aria-expanded="false"
-                    aria-controls="market-watch-columns-menu"
-                    data-market-watch-columns
-                  >
-                    <span class="filter-bar__columns-label">Show All</span>
-
-                    <span
-                      class="filter-bar__columns-icon has-icon icon-chevron-down"
-                      aria-hidden="true"
-                    ></span>
-                  </button>
-
-                  <div
-                    class="filter-bar__columns-menu"
-                    id="market-watch-columns-menu"
-                    role="menu"
-                    aria-label="Visible table columns"
-                    hidden
-                  >
-                    <button
-                      type="button"
-                      role="menuitemcheckbox"
-                      aria-checked="true"
-                      data-market-watch-column="range"
-                    >
-                      52 Week Range
-                    </button>
-
-                    <button
-                      type="button"
-                      role="menuitemcheckbox"
-                      aria-checked="true"
-                      data-market-watch-column="last-trade"
-                    >
-                      Last Trade
-                    </button>
-
-                    <button
-                      type="button"
-                      role="menuitemcheckbox"
-                      aria-checked="true"
-                      data-market-watch-column="cumulative"
-                    >
-                      Cumulative
-                    </button>
-
-                    <button
-                      type="button"
-                      role="menuitemcheckbox"
-                      aria-checked="true"
-                      data-market-watch-column="trading"
-                    >
-                      Today’s Trading
-                    </button>
-
-                    <button
-                      type="button"
-                      role="menuitemcheckbox"
-                      aria-checked="true"
-                      data-market-watch-column="bid-offer"
-                    >
-                      Best Bid and Offer
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Watchlist -->
-
-              <div class="filter-bar__actions">
-                <div class="filter-bar__selection">
-                  <label class="form-switch">
-                    <input
-                      class="form-switch-input"
-                      type="checkbox"
-                      name="watchlistOnly"
-                      role="switch"
-                      value="true"
-                    />
-
-                    <span class="form-switch-label">Show watchlist only</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <!-- ====================================================================
-         Market Legend
-         ==================================================================== -->
-
-            <div class="filter-bar__secondary">
+          <div class="report-library">
+            <div class="tabs tabs--compact" data-tabs>
               <div
-                class="filter-bar__secondary-content"
-                aria-label="Accumulated loss indicators"
-                role="list"
+                class="tabs-nav"
+                role="tablist"
+                aria-label="Saudi Exchange brand guideline resources"
               >
-                <div class="filter-bar__legend">
-                  <span class="filter-bar__legend-item" role="listitem">
-                    <span
-                      class="filter-bar__legend-indicator filter-bar__legend-indicator--danger"
-                      aria-hidden="true"
-                    ></span>
-
-                    <span>Accumulated losses: 50% or more of capital</span>
-                  </span>
-
-                  <span class="filter-bar__legend-item" role="listitem">
-                    <span
-                      class="filter-bar__legend-indicator filter-bar__legend-indicator--warning"
-                      aria-hidden="true"
-                    ></span>
-
-                    <span>Accumulated losses: 35% to less than 50%</span>
-                  </span>
-
-                  <span class="filter-bar__legend-item" role="listitem">
-                    <span
-                      class="filter-bar__legend-indicator filter-bar__legend-indicator--primary"
-                      aria-hidden="true"
-                    ></span>
-
-                    <span>Accumulated losses: 20% to less than 35%</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
-      </section>
-
-      <!-- =========================================================================
-     Market Watch Data
-============================================================================ -->
-
-      <section class="section-none market-watch" aria-label="Market Watch data">
-        <div class="container">
-          <div class="data-view">
-            <div class="data-view__workspace">
-              <!-- =================================================================
-             Desktop / Tablet Table
-        ================================================================== -->
-
-              <div class="data-view__table">
-                <div class="table-shell" data-table-shell>
-                  <section
-                    class="table-responsive custom-scrollbar"
-                    tabindex="0"
-                    role="region"
-                    aria-label="Market prices by sector"
-                  >
-                    <table
-                      id="market-watch-table"
-                      class="table table-market table-market--watch table-hover table-nowrap"
-                      data-market-watch-table
-                    >
-                      <caption class="visually-hidden">
-                        Market prices grouped by sector
-                      </caption>
-                      <!-- =========================================================
-                     Header
-                ========================================================== -->
-
-                      <thead>
-                        <!-- -------------------------------------------------------
-                       Group Headings
-                  -------------------------------------------------------- -->
-
-                        <tr>
-                          <th
-                            rowspan="2"
-                            class="table-market__security"
-                            scope="col"
-                          >
-                            Company
-                          </th>
-
-                          <th
-                            rowspan="2"
-                            class="table-market__range"
-                            scope="col"
-                          >
-                            52 Week Range
-                          </th>
-
-                          <th
-                            colspan="4"
-                            class="table-market__group-heading"
-                            scope="colgroup"
-                          >
-                            Last Trade
-                          </th>
-
-                          <th
-                            colspan="2"
-                            class="table-market__group-heading"
-                            scope="colgroup"
-                          >
-                            Cumulative
-                          </th>
-
-                          <th
-                            colspan="3"
-                            class="table-market__group-heading"
-                            scope="colgroup"
-                          >
-                            Today&apos;s Trading
-                          </th>
-
-                          <th
-                            colspan="2"
-                            class="table-market__group-heading"
-                            scope="colgroup"
-                          >
-                            Best Bid
-                          </th>
-
-                          <th
-                            colspan="2"
-                            class="table-market__group-heading"
-                            scope="colgroup"
-                          >
-                            Best Offer
-                          </th>
-                        </tr>
-
-                        <!-- -------------------------------------------------------
-                       Column Headings
-                  -------------------------------------------------------- -->
-
-                        <tr>
-                          <th class="table-market__number" scope="col">
-                            Price
-                          </th>
-
-                          <th class="table-market__number" scope="col">
-                            Volume
-                          </th>
-
-                          <th class="table-market__number" scope="col">
-                            <span class="table-market__column-label">
-                              <span>Change</span>
-                              <span>Value</span>
-                            </span>
-                          </th>
-
-                          <th class="table-market__number" scope="col">
-                            <span class="table-market__column-label">
-                              Change%
-                            </span>
-                          </th>
-
-                          <th class="table-market__number" scope="col">
-                            <span class="table-market__column-label">
-                              <span>No. of</span>
-                              <span>Trades</span>
-                            </span>
-                          </th>
-
-                          <th class="table-market__number" scope="col">
-                            <span class="table-market__column-label">
-                              <span>Volume</span>
-                              <span>Traded</span>
-                            </span>
-                          </th>
-
-                          <th class="table-market__number" scope="col">Open</th>
-
-                          <th class="table-market__number" scope="col">High</th>
-
-                          <th class="table-market__number" scope="col">Low</th>
-
-                          <th class="table-market__number" scope="col">
-                            Price
-                          </th>
-
-                          <th class="table-market__number" scope="col">
-                            Volume
-                          </th>
-
-                          <th class="table-market__number" scope="col">
-                            Price
-                          </th>
-
-                          <th class="table-market__number" scope="col">
-                            Volume
-                          </th>
-                        </tr>
-                      </thead>
-
-                      <!-- =========================================================
-                     Body
-                ========================================================== -->
-
-                      <tbody>
-                        <!-- =======================================================
-                       Energy
-                  ======================================================== -->
-
-                        <tr class="table-market__group-row table-group-row">
-                          <th
-                            class="table-market__group-label table-group-label"
-                            scope="rowgroup"
-                          >
-                            Energy
-                          </th>
-
-                          <td
-                            class="table-market__group-fill table-group-fill"
-                            colspan="15"
-                            aria-hidden="true"
-                          ></td>
-                        </tr>
-
-                        <!-- Saudi Aramco -->
-
-                        <tr data-sector="Energy">
-                          <td class="table-market__security">
-                            <div class="table-market__security-cell">
-                              <button
-                                type="button"
-                                class="table-market__favorite"
-                                aria-label="Add Saudi Aramco to watchlist"
-                                aria-pressed="false"
-                              >
-                                <span
-                                  class="has-icon icon-star-outline"
-                                  aria-hidden="true"
-                                ></span>
-                              </button>
-
-                              <span class="table-market__logo">
-                                <img
-                                  src="/assets/images/aramco.png"
-                                  alt=""
-                                  width="40"
-                                  height="40"
-                                  loading="lazy"
-                                />
-                              </span>
-
-                              <a class="table-market__security-link" href="#">
-                                <span class="table-market__name">
-                                  Saudi Aramco
-                                </span>
-
-                                <span class="table-market__symbol"> 2222 </span>
-                              </a>
-                            </div>
-                          </td>
-
-                          <td class="table-market__range">
-                            <div
-                              class="table-market__range-track"
-                              style="--range-position: 58%"
-                              data-range-value="31.20"
-                            >
-                              <span
-                                class="table-market__range-marker"
-                                aria-hidden="true"
-                              ></span>
-                            </div>
-
-                            <div class="table-market__range-values">
-                              <span>26.80</span>
-                              <span>35.15</span>
-                            </div>
-                          </td>
-
-                          <td class="table-market__price">31.20</td>
-
-                          <td class="table-market__volume">7.84M</td>
-
-                          <td class="table-market__change price-up">+0.37</td>
-
-                          <td class="table-market__change price-up">+1.20%</td>
-
-                          <td class="table-market__number">18,462</td>
-
-                          <td class="table-market__number">7,840,215</td>
-
-                          <td class="table-market__number">30.90</td>
-
-                          <td class="table-market__number">31.50</td>
-
-                          <td class="table-market__number">30.82</td>
-
-                          <td class="table-market__number">31.18</td>
-
-                          <td class="table-market__number">182,340</td>
-
-                          <td class="table-market__number">31.22</td>
-
-                          <td class="table-market__number">204,115</td>
-                        </tr>
-
-                        <!-- ACWA Power -->
-
-                        <tr data-sector="Energy">
-                          <td class="table-market__security">
-                            <div class="table-market__security-cell">
-                              <button
-                                type="button"
-                                class="table-market__favorite"
-                                aria-label="Add ACWA Power to watchlist"
-                                aria-pressed="false"
-                              >
-                                <span
-                                  class="has-icon icon-star-outline"
-                                  aria-hidden="true"
-                                ></span>
-                              </button>
-
-                              <span class="table-market__logo">
-                                <img
-                                  src="/assets/images/acwa-power.png"
-                                  alt=""
-                                  width="40"
-                                  height="40"
-                                  loading="lazy"
-                                />
-                              </span>
-
-                              <a class="table-market__security-link" href="#">
-                                <span class="table-market__name">
-                                  ACWA Power
-                                </span>
-
-                                <span class="table-market__symbol"> 2082 </span>
-                              </a>
-                            </div>
-                          </td>
-
-                          <td class="table-market__range">
-                            <div
-                              class="table-market__range-track"
-                              style="--range-position: 72%"
-                              data-range-value="258.60"
-                            >
-                              <span
-                                class="table-market__range-marker"
-                                aria-hidden="true"
-                              ></span>
-                            </div>
-
-                            <div class="table-market__range-values">
-                              <span>198.00</span>
-                              <span>310.00</span>
-                            </div>
-                          </td>
-
-                          <td class="table-market__price">258.60</td>
-
-                          <td class="table-market__volume">1.18M</td>
-
-                          <td class="table-market__change price-up">+4.20</td>
-
-                          <td class="table-market__change price-up">+1.65%</td>
-
-                          <td class="table-market__number">6,284</td>
-
-                          <td class="table-market__number">1,180,442</td>
-
-                          <td class="table-market__number">255.00</td>
-
-                          <td class="table-market__number">260.40</td>
-
-                          <td class="table-market__number">254.20</td>
-
-                          <td class="table-market__number">258.40</td>
-
-                          <td class="table-market__number">12,845</td>
-
-                          <td class="table-market__number">258.80</td>
-
-                          <td class="table-market__number">15,264</td>
-                        </tr>
-
-                        <!-- =======================================================
-                       Banks
-                  ======================================================== -->
-
-                        <tr class="table-market__group-row table-group-row">
-                          <th
-                            class="table-market__group-label table-group-label"
-                            scope="rowgroup"
-                          >
-                            Banks
-                          </th>
-
-                          <td
-                            class="table-market__group-fill table-group-fill"
-                            colspan="15"
-                            aria-hidden="true"
-                          ></td>
-                        </tr>
-
-                        <!-- Al Rajhi Bank -->
-
-                        <tr data-sector="Banks">
-                          <td class="table-market__security">
-                            <div class="table-market__security-cell">
-                              <button
-                                type="button"
-                                class="table-market__favorite"
-                                aria-label="Remove Al Rajhi Bank from watchlist"
-                                aria-pressed="true"
-                              >
-                                <span
-                                  class="has-icon icon-star-filled"
-                                  aria-hidden="true"
-                                ></span>
-                              </button>
-
-                              <span class="table-market__logo">
-                                <img
-                                  src="/assets/images/al-rajhi-logo.png"
-                                  alt=""
-                                  width="40"
-                                  height="40"
-                                  loading="lazy"
-                                />
-                              </span>
-
-                              <a class="table-market__security-link" href="#">
-                                <span class="table-market__name">
-                                  Al Rajhi Bank
-                                </span>
-
-                                <span class="table-market__symbol"> 1120 </span>
-                              </a>
-                            </div>
-                          </td>
-
-                          <td class="table-market__range">
-                            <div
-                              class="table-market__range-track"
-                              style="--range-position: 63%"
-                              data-range-value="94.80"
-                            >
-                              <span
-                                class="table-market__range-marker"
-                                aria-hidden="true"
-                              ></span>
-                            </div>
-
-                            <div class="table-market__range-values">
-                              <span>68.10</span>
-                              <span>96.80</span>
-                            </div>
-                          </td>
-
-                          <td class="table-market__price">94.80</td>
-
-                          <td class="table-market__volume">3.12M</td>
-
-                          <td class="table-market__change price-down">-0.55</td>
-
-                          <td class="table-market__change price-down">
-                            -0.58%
-                          </td>
-
-                          <td class="table-market__number">11,230</td>
-
-                          <td class="table-market__number">3,120,468</td>
-
-                          <td class="table-market__number">95.40</td>
-
-                          <td class="table-market__number">95.70</td>
-
-                          <td class="table-market__number">94.50</td>
-
-                          <td class="table-market__number">94.70</td>
-
-                          <td class="table-market__number">34,265</td>
-
-                          <td class="table-market__number">94.90</td>
-
-                          <td class="table-market__number">28,442</td>
-                        </tr>
-
-                        <!-- Saudi National Bank -->
-
-                        <tr data-sector="Banks">
-                          <td class="table-market__security">
-                            <div class="table-market__security-cell">
-                              <button
-                                type="button"
-                                class="table-market__favorite"
-                                aria-label="Add Saudi National Bank to watchlist"
-                                aria-pressed="false"
-                              >
-                                <span
-                                  class="has-icon icon-star-outline"
-                                  aria-hidden="true"
-                                ></span>
-                              </button>
-
-                              <span class="table-market__logo">
-                                <img
-                                  src="/assets/images/snb.png"
-                                  alt=""
-                                  width="40"
-                                  height="40"
-                                  loading="lazy"
-                                />
-                              </span>
-
-                              <a class="table-market__security-link" href="#">
-                                <span class="table-market__name">
-                                  Saudi National Bank
-                                </span>
-
-                                <span class="table-market__symbol"> 1180 </span>
-                              </a>
-                            </div>
-                          </td>
-
-                          <td class="table-market__range">
-                            <div
-                              class="table-market__range-track"
-                              style="--range-position: 48%"
-                              data-range-value="36.25"
-                            >
-                              <span
-                                class="table-market__range-marker"
-                                aria-hidden="true"
-                              ></span>
-                            </div>
-
-                            <div class="table-market__range-values">
-                              <span>31.10</span>
-                              <span>44.95</span>
-                            </div>
-                          </td>
-
-                          <td class="table-market__price">36.25</td>
-
-                          <td class="table-market__volume">3.11M</td>
-
-                          <td class="table-market__change price-down">-0.15</td>
-
-                          <td class="table-market__change price-down">
-                            -0.41%
-                          </td>
-
-                          <td class="table-market__number">9,142</td>
-
-                          <td class="table-market__number">3,110,286</td>
-
-                          <td class="table-market__number">36.50</td>
-
-                          <td class="table-market__number">36.70</td>
-
-                          <td class="table-market__number">36.20</td>
-
-                          <td class="table-market__number">36.20</td>
-
-                          <td class="table-market__number">19,842</td>
-
-                          <td class="table-market__number">36.30</td>
-
-                          <td class="table-market__number">21,117</td>
-                        </tr>
-
-                        <!-- Riyad Bank -->
-
-                        <tr data-sector="Banks">
-                          <td class="table-market__security">
-                            <div class="table-market__security-cell">
-                              <button
-                                type="button"
-                                class="table-market__favorite"
-                                aria-label="Add Riyad Bank to watchlist"
-                                aria-pressed="false"
-                              >
-                                <span
-                                  class="has-icon icon-star-outline"
-                                  aria-hidden="true"
-                                ></span>
-                              </button>
-
-                              <span class="table-market__logo">
-                                <img
-                                  src="/assets/images/rbl.png"
-                                  alt=""
-                                  width="40"
-                                  height="40"
-                                  loading="lazy"
-                                />
-                              </span>
-
-                              <a class="table-market__security-link" href="#">
-                                <span class="table-market__name">
-                                  Riyad Bank
-                                </span>
-
-                                <span class="table-market__symbol"> 1010 </span>
-                              </a>
-                            </div>
-                          </td>
-
-                          <td class="table-market__range">
-                            <div
-                              class="table-market__range-track"
-                              style="--range-position: 51%"
-                              data-range-value="28.75"
-                            >
-                              <span
-                                class="table-market__range-marker"
-                                aria-hidden="true"
-                              ></span>
-                            </div>
-
-                            <div class="table-market__range-values">
-                              <span>23.40</span>
-                              <span>33.70</span>
-                            </div>
-                          </td>
-
-                          <td class="table-market__price">28.75</td>
-
-                          <td class="table-market__volume">2.54M</td>
-
-                          <td class="table-market__change price-up">+0.25</td>
-
-                          <td class="table-market__change price-up">+0.88%</td>
-
-                          <td class="table-market__number">7,624</td>
-
-                          <td class="table-market__number">2,540,318</td>
-
-                          <td class="table-market__number">28.55</td>
-
-                          <td class="table-market__number">28.90</td>
-
-                          <td class="table-market__number">28.40</td>
-
-                          <td class="table-market__number">28.70</td>
-
-                          <td class="table-market__number">18,840</td>
-
-                          <td class="table-market__number">28.80</td>
-
-                          <td class="table-market__number">14,221</td>
-                        </tr>
-
-                        <!-- =======================================================
-                       Materials
-                  ======================================================== -->
-
-                        <tr class="table-market__group-row table-group-row">
-                          <th
-                            class="table-market__group-label table-group-label"
-                            scope="rowgroup"
-                          >
-                            Materials
-                          </th>
-
-                          <td
-                            class="table-market__group-fill table-group-fill"
-                            colspan="15"
-                            aria-hidden="true"
-                          ></td>
-                        </tr>
-
-                        <!-- SABIC -->
-
-                        <tr data-sector="Materials">
-                          <td class="table-market__security">
-                            <div class="table-market__security-cell">
-                              <button
-                                type="button"
-                                class="table-market__favorite"
-                                aria-label="Add SABIC to watchlist"
-                                aria-pressed="false"
-                              >
-                                <span
-                                  class="has-icon icon-star-outline"
-                                  aria-hidden="true"
-                                ></span>
-                              </button>
-
-                              <span class="table-market__logo">
-                                <img
-                                  src="/assets/images/sabic.png"
-                                  alt=""
-                                  width="40"
-                                  height="40"
-                                  loading="lazy"
-                                />
-                              </span>
-
-                              <a class="table-market__security-link" href="#">
-                                <span class="table-market__name"> SABIC </span>
-
-                                <span class="table-market__symbol"> 2010 </span>
-                              </a>
-                            </div>
-                          </td>
-
-                          <td class="table-market__range">
-                            <div
-                              class="table-market__range-track"
-                              style="--range-position: 42%"
-                              data-range-value="68.40"
-                            >
-                              <span
-                                class="table-market__range-marker"
-                                aria-hidden="true"
-                              ></span>
-                            </div>
-
-                            <div class="table-market__range-values">
-                              <span>52.40</span>
-                              <span>78.40</span>
-                            </div>
-                          </td>
-
-                          <td class="table-market__price">68.40</td>
-
-                          <td class="table-market__volume">2.41M</td>
-
-                          <td class="table-market__change price-up">+0.80</td>
-
-                          <td class="table-market__change price-up">+1.18%</td>
-
-                          <td class="table-market__number">8,417</td>
-
-                          <td class="table-market__number">2,410,195</td>
-
-                          <td class="table-market__number">67.70</td>
-
-                          <td class="table-market__number">68.80</td>
-
-                          <td class="table-market__number">67.40</td>
-
-                          <td class="table-market__number">68.30</td>
-
-                          <td class="table-market__number">23,445</td>
-
-                          <td class="table-market__number">68.50</td>
-
-                          <td class="table-market__number">18,772</td>
-                        </tr>
-
-                        <!-- Maaden -->
-
-                        <tr data-sector="Materials">
-                          <td class="table-market__security">
-                            <div class="table-market__security-cell">
-                              <button
-                                type="button"
-                                class="table-market__favorite"
-                                aria-label="Add Maaden to watchlist"
-                                aria-pressed="false"
-                              >
-                                <span
-                                  class="has-icon icon-star-outline"
-                                  aria-hidden="true"
-                                ></span>
-                              </button>
-
-                              <span class="table-market__logo">
-                                <img
-                                  src="/assets/images/maaden.png"
-                                  alt=""
-                                  width="40"
-                                  height="40"
-                                  loading="lazy"
-                                />
-                              </span>
-
-                              <a class="table-market__security-link" href="#">
-                                <span class="table-market__name"> Maaden </span>
-
-                                <span class="table-market__symbol"> 1211 </span>
-                              </a>
-                            </div>
-                          </td>
-
-                          <td class="table-market__range">
-                            <div
-                              class="table-market__range-track"
-                              style="--range-position: 69%"
-                              data-range-value="49.60"
-                            >
-                              <span
-                                class="table-market__range-marker"
-                                aria-hidden="true"
-                              ></span>
-                            </div>
-
-                            <div class="table-market__range-values">
-                              <span>35.60</span>
-                              <span>54.80</span>
-                            </div>
-                          </td>
-
-                          <td class="table-market__price">49.60</td>
-
-                          <td class="table-market__volume">1.95M</td>
-
-                          <td class="table-market__change price-up">+0.45</td>
-
-                          <td class="table-market__change price-up">+0.92%</td>
-
-                          <td class="table-market__number">5,902</td>
-
-                          <td class="table-market__number">1,950,227</td>
-
-                          <td class="table-market__number">49.20</td>
-
-                          <td class="table-market__number">49.85</td>
-
-                          <td class="table-market__number">49.10</td>
-
-                          <td class="table-market__number">49.55</td>
-
-                          <td class="table-market__number">11,248</td>
-
-                          <td class="table-market__number">49.65</td>
-
-                          <td class="table-market__number">13,406</td>
-                        </tr>
-
-                        <!-- =======================================================
-                       Telecommunication Services
-                  ======================================================== -->
-
-                        <tr class="table-market__group-row table-group-row">
-                          <th
-                            class="table-market__group-label table-group-label"
-                            scope="rowgroup"
-                          >
-                            Telecommunication Services
-                          </th>
-
-                          <td
-                            class="table-market__group-fill table-group-fill"
-                            colspan="15"
-                            aria-hidden="true"
-                          ></td>
-                        </tr>
-
-                        <!-- stc -->
-
-                        <tr data-sector="Telecommunication Services">
-                          <td class="table-market__security">
-                            <div class="table-market__security-cell">
-                              <button
-                                type="button"
-                                class="table-market__favorite"
-                                aria-label="Add stc to watchlist"
-                                aria-pressed="false"
-                              >
-                                <span
-                                  class="has-icon icon-star-outline"
-                                  aria-hidden="true"
-                                ></span>
-                              </button>
-
-                              <span class="table-market__logo">
-                                <img
-                                  src="/assets/images/stc.png"
-                                  alt=""
-                                  width="40"
-                                  height="40"
-                                  loading="lazy"
-                                />
-                              </span>
-
-                              <a class="table-market__security-link" href="#">
-                                <span class="table-market__name"> stc </span>
-
-                                <span class="table-market__symbol"> 7010 </span>
-                              </a>
-                            </div>
-                          </td>
-
-                          <td class="table-market__range">
-                            <div
-                              class="table-market__range-track"
-                              style="--range-position: 54%"
-                              data-range-value="42.10"
-                            >
-                              <span
-                                class="table-market__range-marker"
-                                aria-hidden="true"
-                              ></span>
-                            </div>
-
-                            <div class="table-market__range-values">
-                              <span>34.90</span>
-                              <span>46.20</span>
-                            </div>
-                          </td>
-
-                          <td class="table-market__price">42.10</td>
-
-                          <td class="table-market__volume">4.76M</td>
-
-                          <td class="table-market__change price-down">-0.14</td>
-
-                          <td class="table-market__change price-down">
-                            -0.33%
-                          </td>
-
-                          <td class="table-market__number">10,734</td>
-
-                          <td class="table-market__number">4,760,391</td>
-
-                          <td class="table-market__number">42.30</td>
-
-                          <td class="table-market__number">42.44</td>
-
-                          <td class="table-market__number">42.02</td>
-
-                          <td class="table-market__number">42.08</td>
-
-                          <td class="table-market__number">42,006</td>
-
-                          <td class="table-market__number">42.12</td>
-
-                          <td class="table-market__number">37,984</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </section>
-
-                  <!-- =============================================================
-                 Horizontal Jump Navigation
-            ============================================================== -->
-
-                  <button
-                    type="button"
-                    class="table-scroll-jump has-icon icon-chevron-right-bold icon-md icon-flip-rtl"
-                    data-table-scroll-jump
-                    data-table-scroll-direction="end"
-                    aria-label="Jump to last columns"
-                    title="Jump to last columns"
-                    hidden
-                  >
-                    <span class="visually-hidden"> Jump to last columns </span>
-                  </button>
-                </div>
+                <button
+                  class="tab-link active"
+                  id="brand-guidelines-documents-tab"
+                  type="button"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="brand-guidelines-documents-panel"
+                  tabindex="0"
+                  data-tab-target="brand-guidelines-documents-panel"
+                >
+                  Guidelines
+                </button>
+
+                <button
+                  class="tab-link"
+                  id="brand-guidelines-assets-tab"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="brand-guidelines-assets-panel"
+                  tabindex="-1"
+                  data-tab-target="brand-guidelines-assets-panel"
+                >
+                  Templates and Assets
+                </button>
               </div>
 
-              <!-- =================================================================
-             Mobile Cards
-        ================================================================== -->
+              <div class="tabs-content">
+                <!-- ================================================================
+            Available Guidelines
+            ================================================================ -->
 
-              <div
-                class="data-view__cards"
-                aria-label="Market Watch securities"
-              >
-                <div class="data-view__cards-inner">
-                  <!-- =======================================================================
-       Energy
-  ======================================================================== -->
+                <section
+                  class="tab-pane active"
+                  id="brand-guidelines-documents-panel"
+                  role="tabpanel"
+                  aria-labelledby="brand-guidelines-documents-tab"
+                  tabindex="0"
+                >
+                  <div class="stack stack--lg">
+                    <header class="report-library__header">
+                      <div class="report-library__heading">
+                        <h2
+                          class="report-library__title"
+                          id="brand-guidelines-resources-title"
+                        >
+                          Brand Guidelines
+                        </h2>
 
-                  <section
-                    class="data-card-group"
-                    aria-labelledby="mobile-market-energy"
+                        <p class="report-library__description">
+                          Download the latest Saudi Exchange brand and
+                          communication guidance.
+                        </p>
+                      </div>
+                    </header>
+
+                    <div class="grid report-library__grid">
+                      <article class="card resource-card resource-card--brief">
+                        <header class="resource-card__header">
+                          <div class="resource-card__heading">
+                            <h3 class="resource-card__title">
+                              <a
+                                class="resource-card__title-link"
+                                href="/assets/documents/saudi-exchange-brand-guidelines.pdf"
+                              >
+                                Saudi Exchange Brand Guidelines
+                              </a>
+                            </h3>
+                          </div>
+
+                          <span
+                            class="resource-card__icon has-icon icon-pdf-file"
+                            aria-hidden="true"
+                          ></span>
+                        </header>
+
+                        <div class="resource-card__body">
+                          <dl class="resource-card__meta">
+                            <div
+                              class="resource-card__meta-item has-icon icon-history-clock"
+                            >
+                              <dt class="resource-card__meta-label">
+                                Last updated:
+                              </dt>
+
+                              <dd class="resource-card__meta-value">
+                                <time datetime="2026-08-21"
+                                  >21 August 2026</time
+                                >
+                              </dd>
+                            </div>
+                          </dl>
+                        </div>
+
+                        <footer class="resource-card__footer">
+                          <div
+                            class="resource-card__file"
+                            aria-label="PDF document"
+                          >
+                            <span class="resource-card__file-type">PDF</span>
+                          </div>
+
+                          <div class="resource-card__actions">
+                            <a
+                              class="btn btn-primary resource-card__download has-icon icon-file-download"
+                              href="/assets/documents/saudi-exchange-brand-guidelines.pdf"
+                              download
+                            >
+                              Download
+                            </a>
+                          </div>
+                        </footer>
+                      </article>
+
+                      <article class="card resource-card resource-card--brief">
+                        <header class="resource-card__header">
+                          <div class="resource-card__heading">
+                            <h3 class="resource-card__title">
+                              <a
+                                class="resource-card__title-link"
+                                href="/assets/documents/logo-usage-guidelines.pdf"
+                              >
+                                Saudi Exchange Logo Usage Guidelines
+                              </a>
+                            </h3>
+                          </div>
+
+                          <span
+                            class="resource-card__icon has-icon icon-pdf-file"
+                            aria-hidden="true"
+                          ></span>
+                        </header>
+
+                        <div class="resource-card__body">
+                          <dl class="resource-card__meta">
+                            <div
+                              class="resource-card__meta-item has-icon icon-history-clock"
+                            >
+                              <dt class="resource-card__meta-label">
+                                Last updated:
+                              </dt>
+
+                              <dd class="resource-card__meta-value">
+                                <time datetime="2026-08-21"
+                                  >21 August 2026</time
+                                >
+                              </dd>
+                            </div>
+                          </dl>
+                        </div>
+
+                        <footer class="resource-card__footer">
+                          <div
+                            class="resource-card__file"
+                            aria-label="PDF document"
+                          >
+                            <span class="resource-card__file-type">PDF</span>
+                          </div>
+
+                          <div class="resource-card__actions">
+                            <a
+                              class="btn btn-primary resource-card__download has-icon icon-file-download"
+                              href="/assets/documents/logo-usage-guidelines.pdf"
+                              download
+                            >
+                              Download
+                            </a>
+                          </div>
+                        </footer>
+                      </article>
+
+                      <article class="card resource-card resource-card--brief">
+                        <header class="resource-card__header">
+                          <div class="resource-card__heading">
+                            <h3 class="resource-card__title">
+                              <a
+                                class="resource-card__title-link"
+                                href="/assets/documents/social-media-guidelines.pdf"
+                              >
+                                Saudi Exchange Social Media Guidelines
+                              </a>
+                            </h3>
+                          </div>
+
+                          <span
+                            class="resource-card__icon has-icon icon-pdf-file"
+                            aria-hidden="true"
+                          ></span>
+                        </header>
+
+                        <div class="resource-card__body">
+                          <dl class="resource-card__meta">
+                            <div
+                              class="resource-card__meta-item has-icon icon-history-clock"
+                            >
+                              <dt class="resource-card__meta-label">
+                                Last updated:
+                              </dt>
+
+                              <dd class="resource-card__meta-value">
+                                <time datetime="2026-08-21"
+                                  >21 August 2026</time
+                                >
+                              </dd>
+                            </div>
+                          </dl>
+                        </div>
+
+                        <footer class="resource-card__footer">
+                          <div
+                            class="resource-card__file"
+                            aria-label="PDF document"
+                          >
+                            <span class="resource-card__file-type">PDF</span>
+                          </div>
+
+                          <div class="resource-card__actions">
+                            <a
+                              class="btn btn-primary resource-card__download has-icon icon-file-download"
+                              href="/assets/documents/social-media-guidelines.pdf"
+                              download
+                            >
+                              Download
+                            </a>
+                          </div>
+                        </footer>
+                      </article>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- ================================================================
+            Empty Templates and Assets
+            ================================================================ -->
+
+                <section
+                  class="tab-pane"
+                  id="brand-guidelines-assets-panel"
+                  role="tabpanel"
+                  aria-labelledby="brand-guidelines-assets-tab"
+                  tabindex="0"
+                  hidden
+                >
+                  <div
+                    class="report-library__empty"
+                    role="status"
+                    aria-labelledby="brand-guidelines-assets-empty-title"
                   >
-                    <h3
-                      class="data-card-group__title"
-                      id="mobile-market-energy"
+                    <span
+                      class="report-library__empty-icon has-icon icon-pdf-file"
+                      aria-hidden="true"
+                    ></span>
+
+                    <h2
+                      class="report-library__empty-title"
+                      id="brand-guidelines-assets-empty-title"
                     >
-                      Energy
-                    </h3>
-
-                    <div class="data-card-group__items">
-                      <!-- ===================================================================
-           Saudi Aramco
-      ==================================================================== -->
-
-                      <article class="data-card" data-data-card>
-                        <!-- Main Summary -->
-
-                        <div class="data-card__main">
-                          <!-- Identity -->
-
-                          <div class="data-card__identity">
-                            <button
-                              type="button"
-                              class="data-card__favorite"
-                              aria-label="Add Saudi Aramco to watchlist"
-                              aria-pressed="false"
-                            >
-                              <span
-                                class="has-icon icon-star-outline"
-                                aria-hidden="true"
-                              ></span>
-                            </button>
-
-                            <span class="data-card__logo">
-                              <img
-                                src="/assets/images/companies/aramco.svg"
-                                alt=""
-                                width="44"
-                                height="44"
-                                loading="lazy"
-                              />
-                            </span>
-
-                            <div class="data-card__identity-content">
-                              <span class="data-card__symbol"> 2222 </span>
-
-                              <h4 class="data-card__title">Saudi Aramco</h4>
-                            </div>
-                          </div>
-
-                          <!-- Quote -->
-
-                          <div class="data-card__quote">
-                            <span class="data-card__price"> 31.20 </span>
-
-                            <span class="data-card__change price-up">
-                              +0.37 (+1.20%)
-                            </span>
-                          </div>
-                        </div>
-
-                        <!-- Expanded Details -->
-
-                        <div
-                          class="data-card__details"
-                          data-data-card-details
-                          hidden
-                        >
-                          <dl class="data-card__fields">
-                            <!-- 52 Week Range -->
-
-                            <div
-                              class="data-card__field data-card__field--full"
-                            >
-                              <dt class="data-card__label">52 Week Range</dt>
-
-                              <dd class="data-card__value">
-                                <div
-                                  class="table-market__range-track"
-                                  style="--range-position: 58%"
-                                  data-range-value="31.20"
-                                >
-                                  <span
-                                    class="table-market__range-marker"
-                                    aria-hidden="true"
-                                  ></span>
-                                </div>
-
-                                <div class="table-market__range-values">
-                                  <span>26.80</span>
-                                  <span>35.15</span>
-                                </div>
-                              </dd>
-                            </div>
-
-                            <!-- Last Trade -->
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Volume</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                7.84M
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Change Value</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric price-up"
-                              >
-                                +0.37
-                              </dd>
-                            </div>
-
-                            <!-- Cumulative -->
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">No. of Trades</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                18,462
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Volume Traded</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                7,840,215
-                              </dd>
-                            </div>
-
-                            <!-- Today's Trading -->
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Open</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                30.90
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">High</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                31.50
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Low</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                30.82
-                              </dd>
-                            </div>
-
-                            <!-- Best Bid -->
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Best Bid Price</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                31.18
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Best Bid Volume</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                182,340
-                              </dd>
-                            </div>
-
-                            <!-- Best Offer -->
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Best Offer Price</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                31.22
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">
-                                Best Offer Volume
-                              </dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                204,115
-                              </dd>
-                            </div>
-                          </dl>
-                        </div>
-
-                        <!-- Expand Rail -->
-
-                        <button
-                          type="button"
-                          class="data-card__toggle"
-                          aria-expanded="false"
-                          data-data-card-toggle
-                        >
-                          <span
-                            class="data-card__toggle-label"
-                            data-data-card-toggle-label
-                            data-more-label="Show details for Saudi Aramco"
-                            data-less-label="Hide details for Saudi Aramco"
-                          >
-                            Show details for Saudi Aramco
-                          </span>
-
-                          <span
-                            class="has-icon icon-chevron-down"
-                            aria-hidden="true"
-                          ></span>
-                        </button>
-                      </article>
-
-                      <!-- ===================================================================
-           ACWA Power
-      ==================================================================== -->
-
-                      <article class="data-card" data-data-card>
-                        <div class="data-card__main">
-                          <div class="data-card__identity">
-                            <button
-                              type="button"
-                              class="data-card__favorite"
-                              aria-label="Add ACWA Power to watchlist"
-                              aria-pressed="false"
-                            >
-                              <span
-                                class="has-icon icon-star-outline"
-                                aria-hidden="true"
-                              ></span>
-                            </button>
-
-                            <span class="data-card__logo">
-                              <img
-                                src="/assets/images/companies/acwa-power.svg"
-                                alt=""
-                                width="44"
-                                height="44"
-                                loading="lazy"
-                              />
-                            </span>
-
-                            <div class="data-card__identity-content">
-                              <span class="data-card__symbol"> 2082 </span>
-
-                              <h4 class="data-card__title">ACWA Power</h4>
-                            </div>
-                          </div>
-
-                          <div class="data-card__quote">
-                            <span class="data-card__price"> 258.60 </span>
-
-                            <span class="data-card__change price-up">
-                              +4.20 (+1.65%)
-                            </span>
-                          </div>
-                        </div>
-
-                        <div
-                          class="data-card__details"
-                          data-data-card-details
-                          hidden
-                        >
-                          <dl class="data-card__fields">
-                            <div
-                              class="data-card__field data-card__field--full"
-                            >
-                              <dt class="data-card__label">52 Week Range</dt>
-
-                              <dd class="data-card__value">
-                                <div
-                                  class="table-market__range-track"
-                                  style="--range-position: 72%"
-                                  data-range-value="258.60"
-                                >
-                                  <span
-                                    class="table-market__range-marker"
-                                    aria-hidden="true"
-                                  ></span>
-                                </div>
-
-                                <div class="table-market__range-values">
-                                  <span>198.00</span>
-                                  <span>310.00</span>
-                                </div>
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Volume</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                1.18M
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Change Value</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric price-up"
-                              >
-                                +4.20
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">No. of Trades</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                6,284
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Volume Traded</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                1,180,442
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Open</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                255.00
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">High</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                260.40
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Low</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                254.20
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Best Bid Price</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                258.40
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Best Bid Volume</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                12,845
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Best Offer Price</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                258.80
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">
-                                Best Offer Volume
-                              </dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                15,264
-                              </dd>
-                            </div>
-                          </dl>
-                        </div>
-
-                        <button
-                          type="button"
-                          class="data-card__toggle"
-                          aria-expanded="false"
-                          data-data-card-toggle
-                        >
-                          <span
-                            class="data-card__toggle-label"
-                            data-data-card-toggle-label
-                            data-more-label="Show details for ACWA Power"
-                            data-less-label="Hide details for ACWA Power"
-                          >
-                            Show details for ACWA Power
-                          </span>
-
-                          <span
-                            class="has-icon icon-chevron-down"
-                            aria-hidden="true"
-                          ></span>
-                        </button>
-                      </article>
-                    </div>
-                  </section>
-
-                  <!-- =======================================================================
-       Banks
-  ======================================================================== -->
-
-                  <section
-                    class="data-card-group"
-                    aria-labelledby="mobile-market-banks"
-                  >
-                    <h3 class="data-card-group__title" id="mobile-market-banks">
-                      Banks
-                    </h3>
-
-                    <div class="data-card-group__items">
-                      <!-- ===================================================================
-           Al Rajhi Bank
-      ==================================================================== -->
-
-                      <article class="data-card" data-data-card>
-                        <div class="data-card__main">
-                          <div class="data-card__identity">
-                            <button
-                              type="button"
-                              class="data-card__favorite"
-                              aria-label="Remove Al Rajhi Bank from watchlist"
-                              aria-pressed="true"
-                            >
-                              <span
-                                class="has-icon icon-star-filled"
-                                aria-hidden="true"
-                              ></span>
-                            </button>
-
-                            <span class="data-card__logo">
-                              <img
-                                src="/assets/images/companies/al-rajhi.svg"
-                                alt=""
-                                width="44"
-                                height="44"
-                                loading="lazy"
-                              />
-                            </span>
-
-                            <div class="data-card__identity-content">
-                              <span class="data-card__symbol"> 1120 </span>
-
-                              <h4 class="data-card__title">Al Rajhi Bank</h4>
-                            </div>
-                          </div>
-
-                          <div class="data-card__quote">
-                            <span class="data-card__price"> 94.80 </span>
-
-                            <span class="data-card__change price-down">
-                              -0.55 (-0.58%)
-                            </span>
-                          </div>
-                        </div>
-
-                        <div
-                          class="data-card__details"
-                          data-data-card-details
-                          hidden
-                        >
-                          <dl class="data-card__fields">
-                            <div
-                              class="data-card__field data-card__field--full"
-                            >
-                              <dt class="data-card__label">52 Week Range</dt>
-
-                              <dd class="data-card__value">
-                                <div
-                                  class="table-market__range-track"
-                                  style="--range-position: 63%"
-                                  data-range-value="94.80"
-                                >
-                                  <span
-                                    class="table-market__range-marker"
-                                    aria-hidden="true"
-                                  ></span>
-                                </div>
-
-                                <div class="table-market__range-values">
-                                  <span>68.10</span>
-                                  <span>96.80</span>
-                                </div>
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Volume</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                3.12M
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Change Value</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric price-down"
-                              >
-                                -0.55
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">No. of Trades</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                11,230
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Volume Traded</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                3,120,468
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Open</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                95.40
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">High</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                95.70
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Low</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                94.50
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Best Bid Price</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                94.70
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Best Bid Volume</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                34,265
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">Best Offer Price</dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                94.90
-                              </dd>
-                            </div>
-
-                            <div class="data-card__field">
-                              <dt class="data-card__label">
-                                Best Offer Volume
-                              </dt>
-
-                              <dd
-                                class="data-card__value data-card__value--numeric"
-                              >
-                                28,442
-                              </dd>
-                            </div>
-                          </dl>
-                        </div>
-
-                        <button
-                          type="button"
-                          class="data-card__toggle"
-                          aria-expanded="false"
-                          data-data-card-toggle
-                        >
-                          <span
-                            class="data-card__toggle-label"
-                            data-data-card-toggle-label
-                            data-more-label="Show details for Al Rajhi Bank"
-                            data-less-label="Hide details for Al Rajhi Bank"
-                          >
-                            Show details for Al Rajhi Bank
-                          </span>
-
-                          <span
-                            class="has-icon icon-chevron-down"
-                            aria-hidden="true"
-                          ></span>
-                        </button>
-                      </article>
-                    </div>
-                  </section>
-                </div>
+                      Templates and assets are coming soon
+                    </h2>
+
+                    <p class="report-library__empty-description">
+                      Approved templates, artwork, and supporting brand assets
+                      will appear here when they are available.
+                    </p>
+                  </div>
+                </section>
               </div>
             </div>
           </div>
@@ -7404,7 +5873,7 @@
                 >
                   <img
                     class="site-footer-brand__logo"
-                    src="/assets/images/saudi-exchange-logo.png"
+                    src="../src/assets/images/saudi-exchange-logo.png"
                     alt="Saudi Exchange"
                     loading="lazy"
                     decoding="async"
@@ -8793,169 +7262,4 @@
       title="Back to top"
     ></button>
   </body>
-  <!-- jQuery -->
-  <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
-
-  <!-- DataTables Core -->
-  <script src="https://cdn.datatables.net/2.3.8/js/dataTables.min.js"></script>
-
-  <!-- FixedHeader -->
-  <script src="https://cdn.datatables.net/fixedheader/4.0.6/js/dataTables.fixedHeader.min.js"></script>
-
-  <!-- FixedColumns -->
-  <script src="https://cdn.datatables.net/fixedcolumns/5.0.5/js/dataTables.fixedColumns.min.js"></script>
-
-  <!-- RowGroup -->
-  <script src="https://cdn.datatables.net/rowgroup/1.6.0/js/dataTables.rowGroup.min.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const tableElement = document.querySelector("#market-watch-table");
-
-      if (!tableElement || !window.DataTable) {
-        return;
-      }
-
-      /*
-       * Convert the current static HTML into clean DataTables row objects.
-       *
-       * Keep each original cell class. This preserves `.price-up`,
-       * `.price-down`, and `.price-neutral` after DataTables redraws rows.
-       */
-
-      const tbody = tableElement.tBodies[0];
-      const headerColumnCount = tableElement.tHead.rows[1].cells.length + 2;
-
-      const rows = Array.from(
-        tbody.querySelectorAll("tr[data-sector]"),
-        (row) => ({
-          sector: row.dataset.sector,
-
-          cells: Array.from(row.cells, (cell) => ({
-            html: cell.innerHTML,
-            className: cell.className,
-          })),
-        }),
-      );
-
-      /*
-       * Remove static rows and manually authored group rows.
-       * DataTables and RowGroup own rendering from this point onward.
-       */
-
-      tbody.replaceChildren();
-
-      /*
-       * Reusable RowGroup renderer.
-       *
-       * The first cell is sticky and matches the fixed Company column.
-       * The second cell fills every remaining table column.
-       */
-
-      function renderTableGroup(rows, group) {
-        const row = document.createElement("tr");
-
-        row.className = "table-group-row";
-
-        const label = document.createElement("th");
-
-        label.scope = "rowgroup";
-        label.className = "table-group-label table-group-label-sticky";
-        label.textContent = group;
-
-        const fill = document.createElement("td");
-
-        fill.className = "table-group-fill";
-        fill.colSpan = headerColumnCount - 1;
-        fill.setAttribute("aria-hidden", "true");
-
-        row.append(label, fill);
-
-        return row;
-      }
-
-      /*
-       * Destroy an existing test instance before creating another one.
-       */
-
-      if (DataTable.isDataTable(tableElement)) {
-        DataTable(tableElement).destroy();
-      }
-
-      const marketWatchTable = new DataTable(tableElement, {
-        data: rows,
-
-        columns: Array.from({ length: headerColumnCount }, (_, index) => ({
-          data: `cells.${index}.html`,
-        })),
-
-        autoWidth: false,
-        scrollX: true,
-        scrollCollapse: true,
-
-        /*
-         * Static preview only.
-         *
-         * Enable server-side paging, searching, and ordering after the API is
-         * connected and backend sorting/filtering rules are finalized.
-         */
-
-        paging: false,
-        searching: false,
-        ordering: false,
-        info: false,
-        lengthChange: false,
-
-        fixedHeader: {
-          header: true,
-          footer: false,
-        },
-
-        fixedColumns: {
-          start: 1,
-        },
-
-        rowGroup: {
-          dataSrc: "sector",
-          startRender: renderTableGroup,
-        },
-
-        layout: {
-          topStart: null,
-          topEnd: null,
-          bottomStart: null,
-          bottomEnd: null,
-        },
-
-        createdRow(row, data) {
-          row.dataset.sector = data.sector;
-
-          Array.from(row.cells).forEach((cell, index) => {
-            cell.className = data.cells[index]?.className || "";
-          });
-        },
-
-        drawCallback() {
-          /*
-           * Your global table layout observer responds to resize and refreshes
-           * FixedHeader, FixedColumns, and the sticky scroll arrow.
-           */
-
-          requestAnimationFrame(() => {
-            window.dispatchEvent(new Event("resize"));
-          });
-        },
-      });
-
-      /*
-       * Optional debugging handle during the static preview.
-       * Remove it when the real API page is finalized.
-       */
-
-      window.marketWatchTable = marketWatchTable;
-
-      requestAnimationFrame(() => {
-        window.dispatchEvent(new Event("resize"));
-      });
-    });
-  </script>
 </html>

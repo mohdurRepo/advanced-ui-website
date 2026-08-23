@@ -5,33 +5,16 @@
    ========================================================================== */
 
 /*
- * DataTables core and extension CSS are loaded externally.
+ * The design-system table component owns visual table language:
  *
- * This file adapts DataTables-generated markup to the design system.
- *
- * Responsibilities:
- *
- * - generated layout
- * - length / search controls
- * - information
- * - pagination
- * - processing state
- * - horizontal scrolling
- * - FixedHeader
- * - FixedColumns
- * - RowGroup
- * - RTL / LTR
- * - responsive control layout
- * - accessibility preferences
- *
- * The design-system `.table` component remains responsible for:
- *
- * - table surfaces
- * - typography
+ * - semantic surfaces
  * - cell spacing
  * - borders
- * - row states
- * - rich cell content
+ * - typography
+ * - states
+ * - rich-cell content
+ *
+ * This adapter owns only DataTables-generated markup and extensions.
  */
 
 /* ==========================================================================
@@ -81,56 +64,29 @@
   min-inline-size: 0;
 }
 
-/* ==========================================================================
-   Logical Start / End
-   ========================================================================== */
-
 /*
- * DataTables' distribution CSS contains physical left/right margins.
- *
- * Reset those physical values and use logical margins so controls
- * automatically mirror between LTR and RTL.
+ * Override physical DataTables layout margins with logical spacing.
  */
 
 div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-start {
-  margin-left: 0;
   margin-right: 0;
+  margin-left: 0;
 
   margin-inline-end: auto;
 }
 
 div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
-  margin-left: 0;
   margin-right: 0;
+  margin-left: 0;
 
   margin-inline-start: auto;
 }
 
 /* ==========================================================================
-   Length Control
+   Length and Search Controls
    ========================================================================== */
 
-.dt-container .dt-length {
-  display: inline-flex;
-  align-items: center;
-
-  gap: ds.space(2);
-
-  min-inline-size: 0;
-}
-
-.dt-container .dt-length label {
-  color: var(--color-text-muted);
-
-  font-size: var(--text-sm);
-
-  white-space: nowrap;
-}
-
-/* ==========================================================================
-   Search
-   ========================================================================== */
-
+.dt-container .dt-length,
 .dt-container .dt-search {
   display: inline-flex;
   align-items: center;
@@ -140,6 +96,7 @@ div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
   min-inline-size: 0;
 }
 
+.dt-container .dt-length label,
 .dt-container .dt-search label {
   color: var(--color-text-muted);
 
@@ -189,9 +146,9 @@ div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
 
 .dt-container input.dt-input:focus,
 .dt-container select.dt-input:focus {
-  outline: none;
-
   border-color: var(--color-primary);
+
+  outline: none;
 }
 
 .dt-container input.dt-input:focus-visible,
@@ -214,14 +171,8 @@ div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
 }
 
 /* ==========================================================================
-   Table Integration
+   Base Table Integration
    ========================================================================== */
-
-/*
- * `.table` continues to define the table's actual visual language.
- *
- * These rules only normalize values introduced by DataTables itself.
- */
 
 .dt-container table.dataTable {
   margin: 0;
@@ -230,17 +181,11 @@ div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
   color: var(--table-color, var(--color-text));
 }
 
-/*
- * DataTables and its extensions generate or clone table header markup.
- * Always preserve the design-system table contract instead of allowing the
- * vendor stylesheet to introduce a second header theme.
- */
-
 .dt-container table.dataTable > thead,
 .dt-container table.dataTable > thead > tr,
 .dt-container table.dataTable > thead > tr > th,
 .dt-container table.dataTable > thead > tr > td {
-  background: var(--table-head-bg);
+  background-color: var(--table-head-bg);
   color: var(--table-head-color);
 }
 
@@ -261,12 +206,6 @@ div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
 /* ==========================================================================
    Numeric Content
    ========================================================================== */
-
-/*
- * Financial values remain visually LTR even inside an Arabic interface.
- *
- * Text alignment itself stays logical.
- */
 
 .dt-container table.dataTable .numeric,
 .dt-container table.dataTable [data-numeric] {
@@ -292,114 +231,6 @@ div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
 .dt-container table.dataTable thead > tr > th.dt-ordering-asc,
 .dt-container table.dataTable thead > tr > th.dt-ordering-desc {
   color: var(--color-primary);
-}
-
-/* ==========================================================================
-   Pagination
-   ========================================================================== */
-
-.dt-container .dt-paging {
-  display: flex;
-  align-items: center;
-
-  gap: ds.space(1);
-
-  min-inline-size: 0;
-}
-
-.dt-container .dt-paging nav {
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-
-  gap: ds.space(1);
-
-  min-inline-size: 0;
-}
-
-.dt-container .dt-paging .dt-paging-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  min-inline-size: 2.375rem;
-  min-block-size: 2.375rem;
-
-  padding-block: ds.space(1);
-  padding-inline: ds.space(2);
-
-  margin: 0;
-
-  border: 1px solid var(--color-border) !important;
-  border-radius: var(--radius-md) !important;
-
-  background: var(--color-surface) !important;
-  color: var(--color-text) !important;
-
-  box-shadow: none !important;
-
-  font: inherit;
-  font-size: var(--text-sm);
-  font-weight: ds.font-weight("regular");
-  line-height: 1;
-
-  cursor: pointer;
-
-  @include ds.transition(
-    (background-color, border-color, color, box-shadow),
-    "fast"
-  );
-}
-
-/* Hover */
-
-.dt-container .dt-paging .dt-paging-button:hover:not(.disabled):not(.current) {
-  border-color: var(--color-border-strong) !important;
-
-  background: var(--color-surface-alt) !important;
-  color: var(--color-heading) !important;
-
-  box-shadow: none !important;
-}
-
-/* Focus */
-
-.dt-container .dt-paging .dt-paging-button:focus {
-  outline: none;
-}
-
-.dt-container .dt-paging .dt-paging-button:focus-visible {
-  @include ds.focus-ring;
-}
-
-/* Current */
-
-.dt-container .dt-paging .dt-paging-button.current,
-.dt-container .dt-paging .dt-paging-button.current:hover {
-  border-color: var(--color-primary) !important;
-
-  background: var(--color-primary) !important;
-  color: var(--color-on-primary) !important;
-
-  box-shadow: none !important;
-
-  font-weight: ds.font-weight("bold");
-}
-
-/* Disabled */
-
-.dt-container .dt-paging .dt-paging-button.disabled,
-.dt-container .dt-paging .dt-paging-button.disabled:hover {
-  border-color: var(--color-disabled) !important;
-
-  background: var(--color-surface) !important;
-  color: var(--color-on-disabled) !important;
-
-  box-shadow: none !important;
-
-  cursor: not-allowed;
-
-  opacity: 1;
 }
 
 /* ==========================================================================
@@ -432,42 +263,19 @@ div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
    Scroll Layout
    ========================================================================== */
 
-/*
- * When `scrollX: true` is enabled:
- *
- * .dt-container
- *   ├── top controls
- *   ├── .dt-layout-table
- *   │    └── .dt-scroll
- *   │         ├── .dt-scroll-head
- *   │         └── .dt-scroll-body  <-- horizontal overflow owner
- *   └── bottom controls
- *
- * The document must never own this horizontal overflow.
- */
-
-.dt-container .dt-layout-table {
-  inline-size: 100%;
-  max-inline-size: 100%;
-  min-inline-size: 0;
-
-  overflow: hidden;
-}
-
-.dt-container .dt-scroll {
-  inline-size: 100%;
-  max-inline-size: 100%;
-  min-inline-size: 0;
-
-  overflow: hidden;
-}
-
+.dt-container .dt-layout-table,
+.dt-container .dt-scroll,
 .dt-container .dt-scroll-head,
 .dt-container .dt-scroll-body,
 .dt-container .dt-scroll-foot {
   inline-size: 100%;
   max-inline-size: 100%;
   min-inline-size: 0;
+}
+
+.dt-container .dt-layout-table,
+.dt-container .dt-scroll {
+  overflow: hidden;
 }
 
 .dt-container .dt-scroll-head,
@@ -481,21 +289,10 @@ div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
   overscroll-behavior-inline: contain;
 
   scrollbar-color: var(--color-border-strong) transparent;
-
   scrollbar-width: thin;
 
   -webkit-overflow-scrolling: touch;
 }
-
-/* ==========================================================================
-   DataTables Scrollbar
-   ========================================================================== */
-
-/*
- * Intentionally neutral.
- *
- * Table scrolling is navigation, not a primary brand action.
- */
 
 .dt-container .dt-scroll-body::-webkit-scrollbar {
   width: 0.5rem;
@@ -516,21 +313,14 @@ div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
   background: var(--color-text-muted);
 }
 
-/* ==========================================================================
-   Scroll Header
-   ========================================================================== */
-
 /*
- * DataTables duplicates the header when scrolling is enabled.
- *
- * Hide the original header inside the scrolling body while preserving
- * its layout contribution.
+ * DataTables duplicates the header for scrollX. Keep its width contribution
+ * but hide it in the scrolling-body copy.
  */
 
 .dt-container .dt-scroll-body > table.dataTable > thead {
   visibility: collapse;
 }
-
 /* ==========================================================================
    FixedHeader
    ========================================================================== */
@@ -561,7 +351,29 @@ table.fixedHeader-locked thead th,
 table.fixedHeader-locked thead td {
   border-color: var(--table-head-border);
 
-  background: var(--table-head-bg);
+  background-color: var(--table-head-bg);
+  color: var(--table-head-color);
+}
+
+/*
+ * FixedHeader may clone the first complex-header cell without preserving the
+ * FixedColumns class. The first cell remains the Company column.
+ */
+
+.dt-container table.dataTable thead > tr:first-child > :first-child,
+table.fixedHeader-floating thead > tr:first-child > :first-child,
+table.fixedHeader-locked thead > tr:first-child > :first-child {
+  background-color: var(--table-head-bg) !important;
+  color: var(--table-head-color) !important;
+}
+
+table.fixedHeader-floating thead .dtfc-fixed-start,
+table.fixedHeader-floating thead .dtfc-fixed-end,
+table.fixedHeader-locked thead .dtfc-fixed-start,
+table.fixedHeader-locked thead .dtfc-fixed-end {
+  z-index: var(--table-sticky-intersection-z, 6);
+
+  background-color: var(--table-head-bg);
   color: var(--table-head-color);
 }
 
@@ -570,37 +382,51 @@ table.fixedHeader-locked thead td {
    ========================================================================== */
 
 /*
- * DataTables FixedColumns owns sticky positioning.
+ * FixedColumns owns positioning for DataTables-managed tables.
  *
- * Do not combine the extension with:
- *
- * .table-fixed-column
- * .table-fixed-columns
+ * Do not use `.table-fixed-column` or `.table-fixed-columns` on these tables.
  */
 
 .dt-container table.dataTable .dtfc-fixed-start,
 .dt-container table.dataTable .dtfc-fixed-end {
-  z-index: 2;
+  z-index: var(--table-sticky-body-z, 2);
 
-  background: var(--table-bg, var(--color-surface));
+  background-color: var(--table-bg, var(--color-surface));
+  background-clip: padding-box;
 }
 
 .dt-container table.dataTable thead .dtfc-fixed-start,
 .dt-container table.dataTable thead .dtfc-fixed-end {
-  z-index: 3;
+  z-index: var(--table-sticky-intersection-z, 6);
 
-  background: var(--table-head-bg, var(--color-surface-alt));
+  background-color: var(--table-head-bg, var(--color-surface-alt));
+  background-clip: padding-box;
 }
 
 .dt-container table.dataTable tfoot .dtfc-fixed-start,
 .dt-container table.dataTable tfoot .dtfc-fixed-end {
-  z-index: 3;
+  z-index: var(--table-sticky-intersection-z, 6);
 
-  background: var(--table-head-bg, var(--color-surface-alt));
+  background-color: var(--table-foot-bg, var(--color-surface-alt));
+  background-clip: padding-box;
 }
 
 /* ==========================================================================
-   FixedColumns — Striped
+   FixedColumns RTL
+   ========================================================================== */
+
+/*
+ * Market Watch fixes one source-start column: Company.
+ * Its visual position is the right edge in an RTL document.
+ */
+
+html[dir="rtl"] .dt-container table.dataTable .dtfc-fixed-start {
+  right: 0 !important;
+  left: auto !important;
+}
+
+/* ==========================================================================
+   Fixed Column States
    ========================================================================== */
 
 .dt-container
@@ -613,21 +439,13 @@ table.fixedHeader-locked thead td {
   tbody
   > tr:nth-child(even)
   > .dtfc-fixed-end {
-  background: var(--table-striped-bg, var(--color-surface-alt));
+  background-color: var(--table-striped-bg, var(--color-surface-alt));
 }
-
-/* ==========================================================================
-   FixedColumns — Hover
-   ========================================================================== */
 
 .dt-container table.dataTable.table-hover tbody > tr:hover > .dtfc-fixed-start,
 .dt-container table.dataTable.table-hover tbody > tr:hover > .dtfc-fixed-end {
-  background: var(--table-row-hover-bg);
+  background-color: var(--table-row-hover-bg);
 }
-
-/* ==========================================================================
-   FixedColumns — Selected
-   ========================================================================== */
 
 .dt-container table.dataTable tbody > tr.is-selected > .dtfc-fixed-start,
 .dt-container table.dataTable tbody > tr.is-selected > .dtfc-fixed-end,
@@ -641,12 +459,8 @@ table.fixedHeader-locked thead td {
   tbody
   > tr[aria-selected="true"]
   > .dtfc-fixed-end {
-  background: var(--table-row-selected-bg);
+  background-color: var(--table-row-selected-bg);
 }
-
-/* ==========================================================================
-   FixedColumns — Disabled
-   ========================================================================== */
 
 .dt-container table.dataTable tbody > tr.is-disabled > .dtfc-fixed-start,
 .dt-container table.dataTable tbody > tr.is-disabled > .dtfc-fixed-end,
@@ -660,31 +474,18 @@ table.fixedHeader-locked thead td {
   tbody
   > tr[aria-disabled="true"]
   > .dtfc-fixed-end {
-  background: var(--table-bg, var(--color-surface));
+  background-color: var(--table-bg, var(--color-surface));
 }
 
 /* ==========================================================================
-   FixedColumns — Start Boundary
+   Fixed Start Boundary
    ========================================================================== */
-
-/*
- * This addresses the desktop issue found during testing:
- *
- * the first scrolling column visually touched the final fixed identity
- * column.
- *
- * Apply a clear logical-end boundary only to the final fixed-start cell.
- */
 
 .dt-container table.dataTable .dtfc-fixed-start:not(:has(+ .dtfc-fixed-start)) {
   border-inline-end: 1px solid var(--color-border-strong);
 
   box-shadow: 0.375rem 0 0.75rem rgb(0 0 0 / 0.04);
 }
-
-/*
- * Shadow direction must mirror in RTL.
- */
 
 html[dir="rtl"]
   .dt-container
@@ -693,73 +494,195 @@ html[dir="rtl"]
   box-shadow: -0.375rem 0 0.75rem rgb(0 0 0 / 0.04);
 }
 
-/* ==========================================================================
-   FixedColumns — End Boundary
-   ========================================================================== */
-
 .dt-container table.dataTable .dtfc-fixed-end {
   border-inline-start-color: var(--color-border-strong);
 }
-
 /* ==========================================================================
-   RowGroup
+   DataTables Group Rows
    ========================================================================== */
 
-.dt-container table.dataTable tr.dtrg-group th,
-.dt-container table.dataTable tr.dtrg-group td {
-  padding-block: var(--table-cell-padding-block);
+/*
+ * Supports:
+ *
+ * - default DataTables RowGroup output: .dtrg-group / .dtrg-start
+ * - the reusable custom renderer: .table-group-row
+ */
 
+.dt-container table.dataTable > tbody > tr.table-group-row > :is(th, td),
+.dt-container table.dataTable > tbody > tr.dtrg-group > :is(th, td),
+.dt-container table.dataTable > tbody > tr.dtrg-start > :is(th, td) {
+  padding-block: var(--table-cell-padding-block);
   padding-inline: var(--table-cell-padding-inline);
 
-  border-block-start: 1px solid var(--table-group-border);
+  border-block: 1px solid var(--table-group-border);
 
-  border-block-end: 1px solid var(--table-group-border);
-
-  background: var(--table-group-bg);
+  background-color: var(--table-group-bg);
   color: var(--table-group-color);
 
-  font-weight: ds.font-weight("bold");
+  font-weight: var(--table-header-font-weight);
 
   text-align: start;
+  vertical-align: middle;
 }
 
-/* Nested group */
+.dt-container
+  table.dataTable
+  > tbody
+  > tr.table-group-row
+  > .table-group-label-sticky {
+  z-index: var(--table-sticky-body-z, 2);
 
-.dt-container table.dataTable tr.dtrg-group.dtrg-level-1 th,
-.dt-container table.dataTable tr.dtrg-group.dtrg-level-1 td {
-  padding-inline-start: ds.space(6);
+  background-color: var(--table-group-bg);
+  color: var(--table-group-color);
+}
+
+.dt-container
+  table.dataTable.table-hover
+  > tbody
+  > tr.table-group-row:hover
+  > :is(th, td),
+.dt-container
+  table.dataTable.table-hover
+  > tbody
+  > tr.dtrg-group:hover
+  > :is(th, td),
+.dt-container
+  table.dataTable.table-hover
+  > tbody
+  > tr.dtrg-start:hover
+  > :is(th, td) {
+  background-color: var(--table-group-bg);
+  color: var(--table-group-color);
 }
 
 /* ==========================================================================
-   Empty Table
+   Market Watch Alignment
    ========================================================================== */
 
-.dt-container table.dataTable td.dt-empty {
-  padding-block: ds.space(8);
-  padding-inline: ds.space(4);
-
-  color: var(--color-text-muted);
-
-  text-align: center;
+.dt-container
+  .table-market--watch
+  thead
+  tr:nth-child(2)
+  > .table-market__number {
+  text-align: end;
 }
 
-/* ==========================================================================
-   Direction
-   ========================================================================== */
+.dt-container
+  .table-market--watch
+  thead
+  tr:nth-child(2)
+  > .table-market__number
+  .table-market__column-label {
+  align-items: flex-end;
 
-html[dir="ltr"] .dt-container {
+  text-align: end;
+}
+
+.dt-container .table-market--watch tbody .table-market__number,
+.dt-container .table-market--watch tbody .table-market__price,
+.dt-container .table-market--watch tbody .table-market__change,
+.dt-container .table-market--watch tbody .table-market__volume {
   direction: ltr;
+  unicode-bidi: isolate;
+
+  font-variant-numeric: tabular-nums;
+
+  text-align: end;
 }
 
-html[dir="rtl"] .dt-container {
-  direction: rtl;
+/* ==========================================================================
+   Pagination
+   ========================================================================== */
+
+.dt-container .dt-paging,
+.dt-container .dt-paging nav {
+  display: flex;
+  align-items: center;
+
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+}
+
+.dt-container .dt-paging nav {
+  flex-wrap: wrap;
+}
+
+.dt-container .dt-paging .dt-paging-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-inline-size: 2.375rem;
+  min-block-size: 2.375rem;
+
+  padding-block: ds.space(1);
+  padding-inline: ds.space(2);
+
+  margin: 0;
+
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+
+  background: var(--color-surface) !important;
+  color: var(--color-text) !important;
+
+  box-shadow: none !important;
+
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: 1;
+
+  cursor: pointer;
+
+  @include ds.transition(
+    (background-color, border-color, color, box-shadow),
+    "fast"
+  );
+}
+
+.dt-container .dt-paging .dt-paging-button:hover:not(.disabled):not(.current) {
+  border-color: var(--color-border-strong) !important;
+
+  background: var(--color-surface-alt) !important;
+  color: var(--color-heading) !important;
+}
+
+.dt-container .dt-paging .dt-paging-button:focus {
+  outline: none;
+}
+
+.dt-container .dt-paging .dt-paging-button:focus-visible {
+  @include ds.focus-ring;
+}
+
+.dt-container .dt-paging .dt-paging-button.current,
+.dt-container .dt-paging .dt-paging-button.current:hover {
+  border-color: var(--color-primary) !important;
+
+  background: var(--color-primary) !important;
+  color: var(--color-on-primary) !important;
+
+  font-weight: ds.font-weight("bold");
+}
+
+.dt-container .dt-paging .dt-paging-button.disabled,
+.dt-container .dt-paging .dt-paging-button.disabled:hover {
+  border-color: var(--color-disabled) !important;
+
+  background: var(--color-surface) !important;
+  color: var(--color-on-disabled) !important;
+
+  cursor: not-allowed;
+
+  opacity: 1;
 }
 
 /* ==========================================================================
    Responsive Controls
    ========================================================================== */
 
-@include ds.respond-down(md) {
+@include ds.respond-down("md") {
   .dt-container .dt-layout-row {
     flex-direction: column;
     align-items: stretch;
@@ -774,20 +697,13 @@ html[dir="rtl"] .dt-container {
     margin-inline: 0;
   }
 
-  /* Length */
-
   .dt-container .dt-length {
     inline-size: 100%;
   }
 
-  /* Search */
-
   .dt-container .dt-search {
     display: grid;
-
-    grid-template-columns:
-      auto
-      minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr);
 
     inline-size: 100%;
   }
@@ -797,40 +713,23 @@ html[dir="rtl"] .dt-container {
     min-inline-size: 0;
   }
 
-  /* Info */
-
-  .dt-container .dt-info {
-    text-align: center;
-  }
-
-  /* Pagination */
-
-  .dt-container .dt-paging {
-    justify-content: center;
-
-    inline-size: 100%;
-  }
-
+  .dt-container .dt-info,
+  .dt-container .dt-paging,
   .dt-container .dt-paging nav {
     justify-content: center;
 
     inline-size: 100%;
+
+    text-align: center;
   }
 }
 
-/* ==========================================================================
-   Extra-Small Controls
-   ========================================================================== */
-
-@include ds.respond-down(sm) {
+@include ds.respond-down("sm") {
   .dt-container .dt-layout-row {
     gap: ds.space(2);
   }
 
-  .dt-container .dt-paging {
-    gap: 0.25rem;
-  }
-
+  .dt-container .dt-paging,
   .dt-container .dt-paging nav {
     gap: 0.25rem;
   }
@@ -842,63 +741,58 @@ html[dir="rtl"] .dt-container {
   }
 }
 
-/* ==========================================================================
-   Coarse Pointer
-   ========================================================================== */
-
 @media (pointer: coarse) {
-  .dt-container .dt-paging .dt-paging-button {
-    min-inline-size: 2.75rem;
-    min-block-size: 2.75rem;
-  }
-
+  .dt-container .dt-paging .dt-paging-button,
   .dt-container input.dt-input,
   .dt-container select.dt-input {
     min-block-size: 2.75rem;
   }
-}
 
-/* ==========================================================================
-   High Contrast
-   ========================================================================== */
-
-html[data-contrast="high"] {
-  .dt-container input.dt-input,
-  .dt-container select.dt-input,
   .dt-container .dt-paging .dt-paging-button {
-    border-width: 2px;
-    border-color: var(--color-border-strong);
-  }
-
-  .dt-container .dt-paging .dt-paging-button.current {
-    border-color: currentColor !important;
-  }
-
-  .dt-container .dt-scroll-body {
-    scrollbar-color: currentColor transparent;
-  }
-
-  .dt-container .dt-scroll-body::-webkit-scrollbar-thumb {
-    background: currentColor;
-  }
-
-  .dt-container
-    table.dataTable
-    .dtfc-fixed-start:not(:has(+ .dtfc-fixed-start)) {
-    border-inline-end-width: 2px;
-
-    box-shadow: none;
-  }
-
-  .dt-container table.dataTable tr.dtrg-group th,
-  .dt-container table.dataTable tr.dtrg-group td {
-    border-color: var(--color-border-strong);
+    min-inline-size: 2.75rem;
   }
 }
 
 /* ==========================================================================
-   Reduced Motion
+   High Contrast and Reduced Motion
    ========================================================================== */
+
+html[data-contrast="high"] .dt-container input.dt-input,
+html[data-contrast="high"] .dt-container select.dt-input,
+html[data-contrast="high"] .dt-container .dt-paging .dt-paging-button {
+  border-width: 2px;
+  border-color: var(--color-border-strong);
+}
+
+html[data-contrast="high"]
+  .dt-container
+  table.dataTable
+  .dtfc-fixed-start:not(:has(+ .dtfc-fixed-start)) {
+  border-inline-end-width: 2px;
+
+  box-shadow: none;
+}
+
+html[data-contrast="high"]
+  .dt-container
+  table.dataTable
+  > tbody
+  > tr.table-group-row
+  > :is(th, td),
+html[data-contrast="high"]
+  .dt-container
+  table.dataTable
+  > tbody
+  > tr.dtrg-group
+  > :is(th, td),
+html[data-contrast="high"]
+  .dt-container
+  table.dataTable
+  > tbody
+  > tr.dtrg-start
+  > :is(th, td) {
+  border-color: var(--color-border-strong);
+}
 
 @media (prefers-reduced-motion: reduce) {
   .dt-container input.dt-input,
@@ -912,14 +806,12 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
-  .dt-container input.dt-input,
-  .dt-container select.dt-input,
-  .dt-container .dt-paging .dt-paging-button {
-    transition: none;
-  }
+html[data-motion="reduce"] .dt-container input.dt-input,
+html[data-motion="reduce"] .dt-container select.dt-input,
+html[data-motion="reduce"] .dt-container .dt-paging .dt-paging-button {
+  transition: none;
+}
 
-  .dt-container .dt-scroll-body {
-    scroll-behavior: auto;
-  }
+html[data-motion="reduce"] .dt-container .dt-scroll-body {
+  scroll-behavior: auto;
 }

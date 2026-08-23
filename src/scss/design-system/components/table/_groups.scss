@@ -1,19 +1,22 @@
-/* ========================================================================== 
+/* ==========================================================================
    Group Rows
    ========================================================================== */
 
 /*
- * Reusable category rows for visually grouping related records.
+ * Reusable category rows for native tables and custom DataTables RowGroup
+ * renderers.
  *
  * Recommended markup:
  *
  * <tr class="table-group-row">
- *   <th class="table-group-label" scope="rowgroup">Group name</th>
- *   <td class="table-group-fill" colspan="..." aria-hidden="true"></td>
+ *   <th
+ *     class="table-group-label table-group-label-sticky"
+ *     scope="rowgroup"
+ *   >
+ *     Group name
+ *   </th>
+ *   <td class="table-group-fill" colspan="..."></td>
  * </tr>
- *
- * The table base owns the --table-group-* token defaults. This partial owns
- * group-row structure, optional visual variants, nesting, and sticky labels.
  */
 
 .table-group-row {
@@ -22,19 +25,19 @@
 }
 
 /*
- * Cells paint an opaque surface of their own. This is required when the label
- * becomes sticky and scrolling content moves underneath it.
+ * Paint cells directly. A table-cell background sits above a row background,
+ * so styling only <tr> would leave a group row invisible behind transparent
+ * base table cells.
  */
 
-.table-group-row > th,
-.table-group-row > td {
+.table .table-group-row > th,
+.table .table-group-row > td {
   padding-block: var(--table-cell-padding-block);
   padding-inline: var(--table-cell-padding-inline);
 
-  border-block-start: 1px solid var(--table-group-border);
-  border-block-end: 1px solid var(--table-group-border);
+  border-block: 1px solid var(--table-group-border);
 
-  background: var(--table-group-bg);
+  background-color: var(--table-group-bg);
   color: var(--table-group-color);
 
   font-weight: var(--table-header-font-weight);
@@ -43,22 +46,7 @@
   vertical-align: middle;
 }
 
-/* Preserve the group treatment in hover-enabled tables. */
-
-.table-hover tbody .table-group-row:hover,
-.table-striped.table-hover tbody .table-group-row:hover {
-  background: var(--table-group-bg);
-}
-
-.table-hover tbody .table-group-row:hover > th,
-.table-hover tbody .table-group-row:hover > td,
-.table-striped.table-hover tbody .table-group-row:hover > th,
-.table-striped.table-hover tbody .table-group-row:hover > td {
-  background: var(--table-group-bg);
-  color: var(--table-group-color);
-}
-
-/* ========================================================================== 
+/* ==========================================================================
    Group Label
    ========================================================================== */
 
@@ -70,22 +58,17 @@
   white-space: nowrap;
 }
 
-/* ========================================================================== 
-   Group Continuation
+/* ==========================================================================
+   Group Fill
    ========================================================================== */
 
 .table-group-fill {
-  padding: 0;
+  padding: 0 !important;
 }
 
-/* ========================================================================== 
-   Primary Group Variant
+/* ==========================================================================
+   Primary Variant
    ========================================================================== */
-
-/*
- * Apply this modifier to the table when category rows need stronger branded
- * emphasis. The structural group classes remain unchanged.
- */
 
 .table-groups-primary {
   --table-group-bg: var(--color-primary);
@@ -103,15 +86,21 @@
   }
 }
 
-/* ========================================================================== 
-   Nested Groups
+/* ==========================================================================
+   Hover Preservation
    ========================================================================== */
 
-/*
- * The grouping level is content metadata rather than a presentation-specific
- * class. Override --table-group-indent when a different indentation step is
- * required.
- */
+.table.table-hover tbody > .table-group-row:hover > th,
+.table.table-hover tbody > .table-group-row:hover > td,
+.table.table-striped.table-hover tbody > .table-group-row:hover > th,
+.table.table-striped.table-hover tbody > .table-group-row:hover > td {
+  background-color: var(--table-group-bg);
+  color: var(--table-group-color);
+}
+
+/* ==========================================================================
+   Nested Groups
+   ========================================================================== */
 
 .table-group-row[data-table-group-level="1"] .table-group-label {
   padding-inline-start: calc(
@@ -133,14 +122,18 @@
   );
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Sticky Group Label
    ========================================================================== */
 
 /*
- * Sticky behavior is explicit so ordinary group rows do not unexpectedly
- * create positioned cells. Set --table-group-label-width when a stable sticky
- * column width is required.
+ * Use this only when the group label occupies a fixed first column.
+ *
+ * --table-group-sticky-offset:
+ *   Offset from the logical start edge.
+ *
+ * --table-group-label-width:
+ *   Stable width matching the fixed table column.
  */
 
 .table-group-label-sticky {
@@ -149,8 +142,9 @@
 
   z-index: var(--table-sticky-body-z, 2);
 
-  background: var(--table-group-bg);
-  background-clip: border-box;
+  background-color: var(--table-group-bg);
+  background-clip: padding-box;
+  color: var(--table-group-color);
 
   isolation: isolate;
 }
@@ -169,7 +163,21 @@
   pointer-events: none;
 }
 
-/* ========================================================================== 
+/* ==========================================================================
+   Summary Compatibility
+   ========================================================================== */
+
+/*
+ * Summary rows are intentionally independent from group styling. This rule
+ * prevents a sticky group label from leaking its surface into a summary row.
+ */
+
+.table-total-row .table-group-label-sticky {
+  background-color: var(--table-summary-bg);
+  color: var(--table-summary-color);
+}
+
+/* ==========================================================================
    High Contrast
    ========================================================================== */
 
@@ -187,7 +195,7 @@ html[data-contrast="high"] .table-group-label-sticky::after {
   inline-size: 2px;
 }
 
-/* ========================================================================== 
+/* ==========================================================================
    Forced Colors
    ========================================================================== */
 
@@ -197,6 +205,13 @@ html[data-contrast="high"] .table-group-label-sticky::after {
     --table-group-bg: Canvas;
     --table-group-color: CanvasText;
     --table-group-border: CanvasText;
+  }
+
+  .table .table-group-row > th,
+  .table .table-group-row > td,
+  .table-group-label-sticky {
+    background-color: Canvas;
+    color: CanvasText;
   }
 
   .table-group-label-sticky::after {
