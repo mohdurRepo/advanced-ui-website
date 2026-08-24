@@ -5,14 +5,11 @@
    ========================================================================== */
 
 /*
- * Field layout and control alignment for `.filter-bar`.
+ * This partial provides reusable form-field alignment plus the website-level
+ * column-picker pattern used by Market Watch and other data-heavy pages.
  *
- * This partial owns:
- *
- * - field sizing and label alignment
- * - select and date-control integration
- * - Market Watch column-picker popover
- * - legend presentation
+ * The column picker is an anchored overlay. It is never part of normal layout,
+ * so opening it cannot increase the filter bar height.
  */
 
 /* ==========================================================================
@@ -68,10 +65,9 @@
   padding: 0;
 }
 
-/*
- * A consistent label row ensures selects, the column picker, date controls,
- * and other form controls align cleanly within a toolbar.
- */
+/* ==========================================================================
+   Labels
+   ========================================================================== */
 
 .filter-bar__field .form-label,
 .filter-bar__field .form-label-static {
@@ -130,11 +126,14 @@
 }
 
 /* ==========================================================================
-   Custom Select
+   Custom Select Integration
    ========================================================================== */
 
-.filter-bar__field .custom-select {
+.filter-bar__field .custom-select,
+.filter-bar__field .custom-date {
   position: relative;
+
+  min-inline-size: 0;
 }
 
 .filter-bar__field .custom-select__fallback,
@@ -142,56 +141,14 @@
   min-inline-size: 0;
 }
 
-.filter-bar__field .custom-select__trigger {
-  align-items: center;
-  justify-content: space-between;
-}
-
-.filter-bar__field .custom-select__value {
-  min-inline-size: 0;
-
-  overflow: hidden;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.filter-bar__field .custom-select__indicator {
-  flex: 0 0 auto;
-
-  margin-inline-start: auto;
-}
-
-/* ==========================================================================
-   Custom Date
-   ========================================================================== */
-
-.filter-bar__field .custom-date {
-  position: relative;
-
-  min-inline-size: 0;
-}
-
-.filter-bar__field .custom-date--range,
-.filter-bar__field .custom-date__fallback,
-.filter-bar__field .custom-date__native-range {
-  inline-size: 100%;
-  max-inline-size: 100%;
-  min-inline-size: 0;
-}
-
-.filter-bar__field .custom-date__native-range {
-  gap: ds.space(2);
-}
-
+.filter-bar__field .custom-select__trigger,
 .filter-bar__field .custom-date__initial-trigger,
 .filter-bar__field .custom-date__trigger {
   align-items: center;
   justify-content: space-between;
-
-  min-inline-size: 0;
 }
 
+.filter-bar__field .custom-select__value,
 .filter-bar__field .custom-date__initial-value,
 .filter-bar__field .custom-date__value {
   min-inline-size: 0;
@@ -202,6 +159,7 @@
   white-space: nowrap;
 }
 
+.filter-bar__field .custom-select__indicator,
 .filter-bar__field .custom-date__initial-indicator,
 .filter-bar__field .custom-date__indicator {
   flex: 0 0 auto;
@@ -209,20 +167,9 @@
   margin-inline-start: auto;
 }
 
-.filter-bar__field .custom-date__native-range .form-control {
-  inline-size: 100%;
-  min-inline-size: 0;
-}
-
 /* ==========================================================================
-   Column Picker
+   Column Picker Trigger
    ========================================================================== */
-
-/*
- * The trigger is a normal button, while the panel contains native checkbox
- * labels. This gives mouse, touch, keyboard, and screen-reader users the same
- * reliable interaction model.
- */
 
 .filter-bar__columns {
   display: inline-flex;
@@ -255,24 +202,25 @@
   transform: rotate(180deg);
 }
 
-/*
- * The panel is deliberately anchored to the field instead of the viewport.
- * That keeps it correctly positioned in LTR, RTL, a constrained container,
- * and inside any page layout.
- */
+/* ==========================================================================
+   Column Picker Popover
+   ========================================================================== */
 
 .filter-bar__columns-menu {
   position: absolute;
   z-index: var(--z-popover);
 
   inset-block-start: calc(100% + #{ds.space(2)});
-  inset-inline: 0;
+  inset-inline-start: 0;
 
   display: grid;
   gap: ds.space(3);
 
-  min-inline-size: min(100%, 19rem);
+  inline-size: min(22rem, 100%);
+  max-block-size: min(28rem, 65vh);
   padding: ds.space(3);
+
+  overflow-y: auto;
 
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -281,6 +229,11 @@
   color: var(--color-text);
 
   box-shadow: var(--shadow-lg);
+}
+
+html[dir="rtl"] .filter-bar__columns-menu {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
 }
 
 .filter-bar__columns-menu[hidden] {
@@ -292,18 +245,26 @@
    ========================================================================== */
 
 .filter-bar__columns-actions {
+  position: sticky;
+  z-index: 1;
+  inset-block-start: calc(#{ds.space(3)} * -1);
+
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: ds.space(2);
 
+  margin-block-start: calc(#{ds.space(3)} * -1);
+  margin-inline: calc(#{ds.space(3)} * -1);
+  padding: ds.space(3);
   padding-block-end: ds.space(2);
 
   border-block-end: 1px solid var(--color-border);
+
+  background: var(--color-surface);
 }
 
-.filter-bar__columns-action,
-.filter-bar__columns-menu [data-market-watch-columns-action] {
+.filter-bar__columns-action {
   padding: 0;
 
   border: 0;
@@ -324,13 +285,11 @@
   @include ds.transition(color, "fast");
 }
 
-.filter-bar__columns-action:hover,
-.filter-bar__columns-menu [data-market-watch-columns-action]:hover {
+.filter-bar__columns-action:hover {
   color: var(--color-link-hover);
 }
 
-.filter-bar__columns-action:focus-visible,
-.filter-bar__columns-menu [data-market-watch-columns-action]:focus-visible {
+.filter-bar__columns-action:focus-visible {
   @include ds.focus-ring;
 }
 
@@ -341,19 +300,9 @@
 .filter-bar__columns-options {
   display: grid;
   gap: ds.space(2);
-}
 
-/*
- * Preferred markup:
- *
- * <label class="filter-bar__columns-option">
- *   <input type="checkbox" data-market-watch-column="range">
- *   <span>52 Week Range</span>
- * </label>
- *
- * The compatibility selector below also supports the previous button-based
- * `role="menuitemcheckbox"` markup during migration.
- */
+  min-inline-size: 0;
+}
 
 .filter-bar__columns-option {
   display: flex;
@@ -384,70 +333,6 @@
   min-inline-size: 0;
 
   overflow-wrap: anywhere;
-}
-
-/*
- * Legacy markup support. It can be removed once all pages use native
- * checkbox labels.
- */
-
-.filter-bar__columns-menu [role="menuitemcheckbox"] {
-  display: flex;
-  align-items: center;
-  gap: ds.space(2);
-
-  inline-size: 100%;
-  padding: 0;
-
-  border: 0;
-
-  background: transparent;
-  color: var(--color-text);
-
-  font: inherit;
-  font-size: var(--text-sm);
-  line-height: var(--line-height-normal);
-  text-align: start;
-
-  cursor: pointer;
-}
-
-.filter-bar__columns-menu [role="menuitemcheckbox"]::before {
-  content: "";
-
-  flex: 0 0 auto;
-
-  inline-size: 0.875rem;
-  block-size: 0.875rem;
-
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
-
-  background: var(--color-surface);
-}
-
-.filter-bar__columns-menu
-  [role="menuitemcheckbox"][aria-checked="true"]::before {
-  border-color: var(--color-primary);
-
-  background:
-    linear-gradient(
-      135deg,
-      transparent 42%,
-      var(--color-on-primary) 42% 54%,
-      transparent 54%
-    ),
-    linear-gradient(
-      45deg,
-      transparent 46%,
-      var(--color-on-primary) 46% 58%,
-      transparent 58%
-    ),
-    var(--color-primary);
-}
-
-.filter-bar__columns-menu [role="menuitemcheckbox"]:focus-visible {
-  @include ds.focus-ring;
 }
 
 /* ==========================================================================
@@ -551,20 +436,18 @@
     font-size: var(--text-xs);
   }
 
-  .filter-bar__field .custom-date__native-range {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
+  /*
+   * Keep the popover absolute on mobile as well. Changing it to `position:
+   * static` is what makes the filter bar grow when the panel opens.
+   */
   .filter-bar__columns-menu {
-    position: static;
-
-    min-inline-size: 0;
-    margin-block-start: 0;
+    inline-size: 100%;
+    max-block-size: min(24rem, 60vh);
   }
 }
 
 /* ==========================================================================
-   High Contrast and Forced Colors
+   High Contrast
    ========================================================================== */
 
 html[data-contrast="high"] .filter-bar__legend-indicator {
@@ -583,6 +466,10 @@ html[data-contrast="high"] .filter-bar__columns-option input {
   outline-offset: 1px;
 }
 
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
 @media (forced-colors: active) {
   .filter-bar__legend-indicator {
     border: 1px solid CanvasText;
@@ -590,26 +477,14 @@ html[data-contrast="high"] .filter-bar__columns-option input {
     background: CanvasText;
   }
 
-  .filter-bar__columns-menu {
+  .filter-bar__columns-menu,
+  .filter-bar__columns-actions {
     border-color: CanvasText;
 
     background: Canvas;
     color: CanvasText;
 
     box-shadow: none;
-  }
-
-  .filter-bar__columns-menu [role="menuitemcheckbox"]::before {
-    border-color: CanvasText;
-
-    background: Canvas;
-  }
-
-  .filter-bar__columns-menu
-    [role="menuitemcheckbox"][aria-checked="true"]::before {
-    border-color: Highlight;
-
-    background: Highlight;
   }
 }
 

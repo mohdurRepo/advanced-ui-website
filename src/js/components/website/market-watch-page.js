@@ -2,464 +2,287 @@
    Market Watch Page
    ========================================================================== */
 
-import { createMarketWatchSchema } from "./market-watch-schema.js";
-import { createMarketWatchFormatters } from "./market-watch-formatters.js";
-import { createMarketWatchService } from "./market-watch-service.js";
 import { createMarketWatchFilters } from "./market-watch-filters.js";
-import { createMarketWatchTable } from "./market-watch-table.js";
 import { createMarketWatchMobile } from "./market-watch-mobile.js";
-
-/*
- * The only Market Watch entry module.
- *
- * It coordinates:
- * - filter state
- * - one API request flow
- * - desktop DataTable
- * - mobile cards
- * - responsive presentation switching
- *
- * It has no polling, live refresh, or resize reinitialization.
- */
-
-function getElement(root, selector, required = true) {
-  const element = root.querySelector(selector);
-
-  if (required && !element) {
-    throw new Error(`Market Watch element not found: ${selector}`);
-  }
-
-  return element;
-}
-
-function getJQuery() {
-  const $ = window.jQuery;
-
-  if (!$) {
-    throw new Error("Market Watch requires jQuery.");
-  }
-
-  return $;
-}
-
-function formatResultSummary(count) {
-  return `${count} ${count === 1 ? "security" : "securities"}`;
-}
-
-function formatUpdatedAt(value, locale) {
-  if (!value) {
-    return "";
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return String(value);
-  }
-
-  return new Intl.DateTimeFormat(locale || "en", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-}
+import { getColumnGroups } from "./market-watch-schema.js";
+import { createMarketWatchService } from "./market-watch-service.js";
+import { createMarketWatchTable } from "./market-watch-table.js";
 
 /* ==========================================================================
-   Public Initializer
+   Constants
    ========================================================================== */
 
-export function initMarketWatchPage(
-  root = document,
-  pageConfig = window.MarketWatchConfig,
-) {
-  if (!pageConfig) {
+const SELECTORS = {
+  desktopView: ".data-view__table",
+  mobileView: "[data-market-watch-mobile]",
+};
+
+const instances = new WeakMap();
+
+/* ==========================================================================
+   Helpers
+   ========================================================================== */
+
+function getConfig() {
+  if (!window.MarketWatchConfig) {
     throw new Error("MarketWatchConfig is required.");
   }
 
-  const $ = getJQuery();
+  return window.MarketWatchConfig;
+}
 
-  const elements = {
-    desktopView: getElement(root, "[data-market-watch-desktop-view]"),
-    mobileView: getElement(root, "[data-market-watch-mobile-view]"),
-    table: getElement(root, "[data-market-watch-table]"),
+function isAbortError(error) {
+  return error?.name === "AbortError";
+}
 
-    summary: getElement(root, "[data-market-watch-summary]", false),
-    updated: getElement(root, "[data-market-watch-updated]", false),
-    status: getElement(root, "[data-market-watch-status]", false),
-  };
+function getAvailableGroups(config, tableView) {
+  return getColumnGroups(config, tableView).map((group) => group.id);
+}
 
-  const labels = {
-    loading: "Loading market data…",
-    loadError: "Market data could not be loaded. Please try again.",
-    noData: "No data available.",
-
-    showAll: "Show All",
-    noColumns: "No columns selected",
-    selectedSuffix: "selected",
-
-    details: "View details",
-    hideDetails: "Hide details",
-    price: "Price",
-    change: "Change",
-    uncategorized: "Other",
-
-    ...pageConfig.labels,
-  };
-
-  const schema = createMarketWatchSchema(pageConfig);
-  const formatters = createMarketWatchFormatters(pageConfig);
-  const service = createMarketWatchService(pageConfig);
-
-  const initialState = {
-    industry: pageConfig.initialState?.industry || "all",
-
-    tableView: String(
-      pageConfig.initialState?.tableView || schema.defaultViewId,
-    ),
-
-    watchlistOnly: Boolean(pageConfig.initialState?.watchlistOnly),
-
-    visibleGroups: pageConfig.initialState?.visibleGroups || [],
-  };
-
-  let activeState = {
-    ...initialState,
-  };
-
-  let filters;
-  let mediaQuery;
-  let requestVersion = 0;
-
-  /*
-   * Each Table View owns a separate visible-column selection.
-   * Switching from Overview to Trading must not lose the user’s Overview
-   * choices, and switching back restores them.
-   */
-
-  const visibleGroupsByView = new Map();
-
-  const table = createMarketWatchTable(root, {
-    schema,
-    formatters,
-    config: {
-      labels,
-    },
-    initialViewId: activeState.tableView,
-  });
-
-  const mobile = createMarketWatchMobile(root, {
-    schema,
-    formatters,
-    initialViewId: activeState.tableView,
-    labels: {
-      noData: labels.noData,
-      details: labels.details,
-      hideDetails: labels.hideDetails,
-      price: labels.price,
-      change: labels.change,
-      uncategorized: labels.uncategorized,
-    },
-  });
-
-  function setStatus(message = "", state = "") {
-    if (!elements.status) {
-      return;
-    }
-
-    elements.status.textContent = message;
-    elements.status.hidden = !message;
-
-    if (state) {
-      elements.status.dataset.state = state;
-    } else {
-      delete elements.status.dataset.state;
-    }
+function getErrorMessage(config, error) {
+  if (error?.response?.message) {
+    return error.response.message;
   }
 
-  function setLoading(isLoading) {
-    elements.table.setAttribute("aria-busy", String(isLoading));
-
-    if (isLoading) {
-      table.showLoading();
-      mobile.showLoading();
-
-      if (elements.summary) {
-        elements.summary.textContent = labels.loading;
-      }
-
-      setStatus(labels.loading, "loading");
-
-      return;
-    }
-
-    if (elements.status?.dataset.state === "loading") {
-      setStatus();
-    }
-  }
-
-  function setResultsSummary(result) {
-    if (elements.summary) {
-      elements.summary.textContent = formatResultSummary(result.rows.length);
-    }
-
-    if (!elements.updated) {
-      return;
-    }
-
-    const updatedAt = formatUpdatedAt(result.meta.updatedAt, pageConfig.locale);
-
-    elements.updated.textContent = updatedAt
-      ? `Last updated: ${updatedAt}`
-      : "";
-
-    elements.updated.hidden = !updatedAt;
-  }
-
-  function getDefaultVisibleGroups(viewId) {
-    return schema.getPickerGroups(viewId).map((group) => group.id);
-  }
-
-  function getVisibleGroupsForView(viewId) {
-    return visibleGroupsByView.get(viewId) || getDefaultVisibleGroups(viewId);
-  }
-
-  function syncColumnGroups(viewId) {
-    const pickerGroups = schema.getPickerGroups(viewId);
-    const selectedGroups = getVisibleGroupsForView(viewId);
-
-    filters.setAvailableGroups(pickerGroups);
-    filters.setVisibleGroups(selectedGroups);
-
-    table.setVisibleGroups(selectedGroups);
-    mobile.setVisibleGroups(selectedGroups);
-
-    activeState.visibleGroups = [...selectedGroups];
-  }
-
-  function setView(viewId) {
-    const view = schema.getView(viewId);
-
-    activeState.tableView = view.id;
-
-    table.setView(view.id);
-    mobile.setView(view.id);
-
-    syncColumnGroups(view.id);
-  }
-
-  async function loadData() {
-    const version = ++requestVersion;
-
-    setLoading(true);
-
-    try {
-      const result = await service.load(activeState);
-
-      /*
-       * A response from an older/cancelled request must never overwrite data
-       * selected by a newer filter change.
-       */
-
-      if (version !== requestVersion) {
-        return;
-      }
-
-      if (result.rows.length) {
-        table.setRows(result.rows);
-        mobile.setRows(result.rows);
-      } else {
-        table.showEmpty(labels.noData);
-        mobile.showEmpty(labels.noData);
-      }
-
-      setResultsSummary(result);
-      setStatus();
-    } catch (error) {
-      if (error.name === "AbortError" || version !== requestVersion) {
-        return;
-      }
-
-      table.showEmpty(labels.loadError);
-      mobile.showEmpty(labels.loadError);
-
-      if (elements.summary) {
-        elements.summary.textContent = labels.loadError;
-      }
-
-      setStatus(labels.loadError, "error");
-
-      console.error("[Market Watch] Data request failed.", error);
-    } finally {
-      if (version === requestVersion) {
-        setLoading(false);
-      }
-    }
-  }
-
-  function setPresentationMode(isMobile) {
-    elements.desktopView.hidden = isMobile;
-    elements.mobileView.hidden = !isMobile;
-
-    if (isMobile) {
-      return;
-    }
-
-    /*
-     * The existing generic DataTables layout module refreshes FixedHeader,
-     * FixedColumns, and table navigation after this resize event.
-     */
-
-    window.requestAnimationFrame(() => {
-      table.getApi()?.columns.adjust();
-      window.dispatchEvent(new Event("resize"));
-    });
-  }
-
-  function handleBreakpointChange(event) {
-    setPresentationMode(event.matches);
-  }
-
-  function handleFilterChange(nextState, event) {
-    activeState = {
-      ...activeState,
-      ...nextState,
-    };
-
-    if (event.type === "columns") {
-      const groups = [...activeState.visibleGroups];
-
-      visibleGroupsByView.set(activeState.tableView, groups);
-
-      table.setVisibleGroups(groups);
-      mobile.setVisibleGroups(groups);
-
-      return;
-    }
-
-    if (event.type === "table-view") {
-      setView(activeState.tableView);
-    }
-
-    loadData();
-  }
-
-  function handleWatchlistIntent(requested) {
-    /*
-     * The login popup is intentionally not implemented in this refactor step.
-     * A later site-level listener can handle this event and open the popup.
-     */
-
-    if (requested && pageConfig.authentication?.isAuthenticated === false) {
-      root.dispatchEvent(
-        new CustomEvent("market-watch:authentication-required", {
-          bubbles: true,
-          detail: {
-            source: "watchlist-filter",
-          },
-        }),
-      );
-
-      return false;
-    }
-
-    return true;
-  }
-
-  function handleFavoriteClick(event) {
-    const button = event.target.closest("[data-market-watch-favorite]");
-
-    if (!button) {
-      return;
-    }
-
-    root.dispatchEvent(
-      new CustomEvent("market-watch:favorite-request", {
-        bubbles: true,
-        detail: {
-          security: button.dataset.marketWatchSecurity || "",
-          button,
-        },
-      }),
-    );
-  }
-
-  filters = createMarketWatchFilters(root, {
-    initialState,
-    labels: {
-      showAll: labels.showAll,
-      noColumns: labels.noColumns,
-      selectedSuffix: labels.selectedSuffix,
-    },
-    onChange: handleFilterChange,
-    onWatchlistIntent: handleWatchlistIntent,
-  });
-
-  visibleGroupsByView.set(
-    activeState.tableView,
-    initialState.visibleGroups.length
-      ? initialState.visibleGroups
-      : getDefaultVisibleGroups(activeState.tableView),
+  return (
+    config.labels?.loadError ||
+    config.labels?.noData ||
+    "Unable to load market data."
   );
-
-  setView(activeState.tableView);
-
-  mediaQuery = window.matchMedia(
-    `(max-width: ${pageConfig.breakpoints?.mobileMaxWidth || 767.98}px)`,
-  );
-
-  mediaQuery.addEventListener("change", handleBreakpointChange);
-  setPresentationMode(mediaQuery.matches);
-
-  $(root).on(
-    "click.marketWatchPage",
-    "[data-market-watch-favorite]",
-    handleFavoriteClick,
-  );
-
-  loadData();
-
-  return Object.freeze({
-    reload: loadData,
-
-    getState() {
-      return {
-        ...activeState,
-        visibleGroups: [...activeState.visibleGroups],
-      };
-    },
-
-    destroy() {
-      requestVersion += 1;
-
-      service.cancel();
-
-      filters.destroy();
-      table.destroy();
-      mobile.destroy();
-
-      mediaQuery?.removeEventListener("change", handleBreakpointChange);
-
-      $(root).off(".marketWatchPage");
-    },
-  });
 }
 
 /* ==========================================================================
-   Automatic Startup
+   Public API
    ========================================================================== */
 
-function startMarketWatchPage() {
-  if (!document.querySelector("[data-market-watch-filters]")) {
-    return;
+export function initMarketWatchPage(root = document) {
+  if (instances.has(root)) {
+    return instances.get(root);
   }
 
-  window.marketWatchPage?.destroy();
-  window.marketWatchPage = initMarketWatchPage();
+  const config = getConfig();
+
+  const desktopView = root.querySelector(SELECTORS.desktopView);
+  const mobileView = root.querySelector(SELECTORS.mobileView);
+
+  const filters = createMarketWatchFilters(config, root);
+  const service = createMarketWatchService(config);
+  const table = createMarketWatchTable(config, root);
+  const mobile = createMarketWatchMobile(config, root);
+
+  const mediaQuery = window.matchMedia(
+    `(max-width: ${config.breakpoints?.mobileMaxWidth || 767.98}px)`,
+  );
+
+  let destroyed = false;
+  let requestId = 0;
+  let unsubscribeFilters = null;
+
+  function setFilterBusy(isBusy) {
+    const form = root.querySelector("[data-market-watch-filters]");
+
+    if (form) {
+      form.setAttribute("aria-busy", String(isBusy));
+    }
+  }
+
+  function syncResponsiveView() {
+    const isMobile = mediaQuery.matches;
+
+    if (desktopView) {
+      desktopView.hidden = isMobile;
+    }
+
+    mobile.setActive(isMobile);
+
+    /*
+     * A table shown after being hidden needs one controlled recalculation.
+     * Re-applying the current visible groups performs that without rebuilding.
+     */
+
+    if (!isMobile) {
+      table.setVisibleGroups(filters.getState().visibleGroups);
+    }
+  }
+
+  function syncViewSchema() {
+    const filterState = filters.getState();
+    const availableGroups = getAvailableGroups(config, filterState.tableView);
+
+    filters.setAvailableGroups(availableGroups);
+
+    const normalizedState = filters.getState();
+
+    table.setView(normalizedState.tableView);
+    table.setVisibleGroups(normalizedState.visibleGroups);
+
+    mobile.setView(normalizedState.tableView);
+    mobile.setVisibleGroups(normalizedState.visibleGroups);
+  }
+
+  function showLoading() {
+    table.showLoading();
+    mobile.showLoading();
+    setFilterBusy(true);
+  }
+
+  function showRows(rows) {
+    table.setRows(rows);
+    mobile.setRows(rows);
+  }
+
+  function showEmpty(message) {
+    table.showEmpty(message);
+    mobile.showEmpty(message);
+  }
+
+  function showError(message) {
+    table.showError(message);
+    mobile.showError(message);
+  }
+
+  async function loadData() {
+    const currentRequestId = ++requestId;
+    const filterState = filters.getState();
+
+    showLoading();
+
+    try {
+      const response = await service.load(filterState);
+
+      if (destroyed || currentRequestId !== requestId) {
+        return;
+      }
+
+      if (!response.rows.length) {
+        showEmpty(config.labels?.noData || "No data available");
+
+        return;
+      }
+
+      showRows(response.rows);
+    } catch (error) {
+      if (destroyed || currentRequestId !== requestId || isAbortError(error)) {
+        return;
+      }
+
+      showError(getErrorMessage(config, error));
+    } finally {
+      if (!destroyed && currentRequestId === requestId) {
+        setFilterBusy(false);
+      }
+    }
+  }
+
+  function handleFilterChange({ type }) {
+    if (destroyed) {
+      return;
+    }
+
+    if (type === "columns") {
+      const { visibleGroups } = filters.getState();
+
+      table.setVisibleGroups(visibleGroups);
+      mobile.setVisibleGroups(visibleGroups);
+
+      return;
+    }
+
+    if (type === "table-view") {
+      syncViewSchema();
+      loadData();
+
+      return;
+    }
+
+    if (type === "industry" || type === "watchlist") {
+      loadData();
+    }
+  }
+
+  function handleMediaChange() {
+    if (destroyed) {
+      return;
+    }
+
+    syncResponsiveView();
+  }
+
+  function handleWatchlistUpdated() {
+    /*
+     * Optional integration point:
+     * existing watchlist code can dispatch `marketwatch:watchlist-updated`
+     * after a user adds/removes a company in its dialog.
+     */
+
+    if (!destroyed) {
+      loadData();
+    }
+  }
+
+  function destroy() {
+    if (destroyed) {
+      return;
+    }
+
+    destroyed = true;
+
+    requestId += 1;
+
+    service.cancel();
+    unsubscribeFilters?.();
+
+    mediaQuery.removeEventListener("change", handleMediaChange);
+
+    root.removeEventListener(
+      "marketwatch:watchlist-updated",
+      handleWatchlistUpdated,
+    );
+
+    filters.destroy();
+    table.destroy();
+    mobile.destroy();
+
+    instances.delete(root);
+  }
+
+  unsubscribeFilters = filters.subscribe(handleFilterChange);
+
+  mediaQuery.addEventListener("change", handleMediaChange);
+
+  root.addEventListener(
+    "marketwatch:watchlist-updated",
+    handleWatchlistUpdated,
+  );
+
+  syncViewSchema();
+  syncResponsiveView();
+  loadData();
+
+  const instance = Object.freeze({
+    destroy,
+    reload: loadData,
+
+    getFilters() {
+      return filters.getState();
+    },
+  });
+
+  instances.set(root, instance);
+
+  return instance;
+}
+
+/* ==========================================================================
+   Page Startup
+   ========================================================================== */
+
+function start() {
+  initMarketWatchPage(document);
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", startMarketWatchPage, {
-    once: true,
-  });
+  document.addEventListener("DOMContentLoaded", start, { once: true });
 } else {
-  startMarketWatchPage();
+  start();
 }

@@ -4,7 +4,7 @@
 
 /*
  * One responsibility:
- * request Market Watch data and return a predictable result.
+ * Request Market Watch data and return a predictable result.
  *
  * This module has no:
  * - DataTables code
@@ -44,24 +44,25 @@ function getRows(response) {
   return [];
 }
 
+/*
+ * Keep the original response fields intact. These aliases make consumers
+ * tolerant of equivalent field names without turning the service into a
+ * formatter or renderer.
+ */
+
 function normalizeRow(row) {
   if (!row || typeof row !== "object") {
     return null;
   }
 
-  /*
-   * Preserve the API contract. These aliases only make the renderer tolerant
-   * of equivalent field names returned by related market endpoints.
-   */
-
   return {
     ...row,
 
-    companyRef: row.companyRef || row.companySymbol || row.symbol || "",
+    companyRef: row.companyRef ?? row.companySymbol ?? row.symbol ?? "",
 
-    companySymbol: row.companySymbol || row.symbol || "",
+    companySymbol: row.companySymbol ?? row.symbol ?? row.companyRef ?? "",
 
-    sectorName: row.sectorName || row.sector || "",
+    sectorName: row.sectorName ?? row.sector ?? "",
   };
 }
 
@@ -73,12 +74,17 @@ function normalizeResponse(response) {
 
     meta: {
       total:
-        Number(response?.total ?? response?.recordsTotal ?? rows.length) || 0,
+        Number(
+          response?.total ??
+            response?.recordsTotal ??
+            response?.recordsFiltered ??
+            rows.length,
+        ) || 0,
 
       updatedAt:
-        response?.updatedAt ||
-        response?.lastUpdated ||
-        response?.timestamp ||
+        response?.updatedAt ??
+        response?.lastUpdated ??
+        response?.timestamp ??
         null,
     },
   };
@@ -107,12 +113,12 @@ export function createMarketWatchService(config = {}) {
   let activeRequest = null;
 
   function buildRequestData(state = {}) {
-    return {
-      /*
-       * These parameter names intentionally match the existing backend
-       * resource endpoint.
-       */
+    /*
+     * These parameter names intentionally match the existing backend
+     * resource endpoint.
+     */
 
+    return {
       sectorParameter: state.industry || "all",
 
       tableViewParameter: String(state.tableView || "1"),
@@ -166,10 +172,10 @@ export function createMarketWatchService(config = {}) {
 
         const error = new Error(
           errorThrown ||
-            `Market Watch request failed with status ${jqXHR.status}.`,
+            `Market Watch request failed with status ${jqXHR.status || 0}.`,
         );
 
-        error.status = jqXHR.status;
+        error.status = jqXHR.status || 0;
         error.response = jqXHR.responseJSON || null;
 
         reject(error);
@@ -179,7 +185,7 @@ export function createMarketWatchService(config = {}) {
 
   return Object.freeze({
     buildRequestData,
-    load,
     cancel,
+    load,
   });
 }
