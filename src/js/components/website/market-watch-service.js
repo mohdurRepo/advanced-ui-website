@@ -4,15 +4,22 @@
 
 /*
  * One responsibility:
- * Request Market Watch data and return a predictable result.
+ *
+ * Request Market Watch data and return a predictable normalized result.
  *
  * This module has no:
+ *
  * - DataTables code
  * - DOM code
  * - rendering
- * - live refresh
+ * - responsive logic
  * - polling timer
+ * - filter UI state
  */
+
+/* ==========================================================================
+   jQuery
+   ========================================================================== */
 
 function getJQuery() {
   const $ = window.jQuery;
@@ -23,6 +30,10 @@ function getJQuery() {
 
   return $;
 }
+
+/* ==========================================================================
+   Response Helpers
+   ========================================================================== */
 
 function getRows(response) {
   if (Array.isArray(response)) {
@@ -45,9 +56,10 @@ function getRows(response) {
 }
 
 /*
- * Keep the original response fields intact. These aliases make consumers
- * tolerant of equivalent field names without turning the service into a
- * formatter or renderer.
+ * Keep the backend payload intact.
+ *
+ * Aliases exist only so renderers can consume equivalent legacy field names
+ * consistently without turning the service into a presentation formatter.
  */
 
 function normalizeRow(row) {
@@ -66,6 +78,18 @@ function normalizeRow(row) {
   };
 }
 
+function normalizeTotal(response, rowCount) {
+  const value =
+    response?.total ??
+    response?.recordsTotal ??
+    response?.recordsFiltered ??
+    rowCount;
+
+  const total = Number(value);
+
+  return Number.isFinite(total) ? total : rowCount;
+}
+
 function normalizeResponse(response) {
   const rows = getRows(response).map(normalizeRow).filter(Boolean);
 
@@ -73,13 +97,7 @@ function normalizeResponse(response) {
     rows,
 
     meta: {
-      total:
-        Number(
-          response?.total ??
-            response?.recordsTotal ??
-            response?.recordsFiltered ??
-            rows.length,
-        ) || 0,
+      total: normalizeTotal(response, rows.length),
 
       updatedAt:
         response?.updatedAt ??
@@ -90,10 +108,32 @@ function normalizeResponse(response) {
   };
 }
 
+/* ==========================================================================
+   Errors
+   ========================================================================== */
+
 function createAbortError() {
   const error = new Error("Market Watch request was cancelled.");
 
   error.name = "AbortError";
+
+  return error;
+}
+
+function createRequestError(jqXHR, errorThrown) {
+  const status = Number(jqXHR?.status) || 0;
+
+  const response = jqXHR?.responseJSON || null;
+
+  const message =
+    response?.message ||
+    errorThrown ||
+    `Market Watch request failed with status ${status}.`;
+
+  const error = new Error(message);
+
+  error.status = status;
+  error.response = response;
 
   return error;
 }
@@ -104,6 +144,7 @@ function createAbortError() {
 
 export function createMarketWatchService(config = {}) {
   const $ = getJQuery();
+
   const endpoint = config.endpoint;
 
   if (!endpoint) {
@@ -111,11 +152,16 @@ export function createMarketWatchService(config = {}) {
   }
 
   let activeRequest = null;
+  let destroyed = false;
+
+  /* ========================================================================
+     Request Data
+     ======================================================================== */
 
   function buildRequestData(state = {}) {
     /*
-     * These parameter names intentionally match the existing backend
-     * resource endpoint.
+     * Parameter names intentionally match the existing backend resource
+     * endpoint.
      */
 
     return {
@@ -129,22 +175,53 @@ export function createMarketWatchService(config = {}) {
     };
   }
 
+  /* ========================================================================
+     Cancellation
+     ======================================================================== */
+
   function cancel() {
-    if (!activeRequest) {
+    const request = activeRequest;
+
+    if (!request) {
       return;
     }
 
-    activeRequest.abort();
+    /*
+     * Clear ownership before aborting.
+     *
+     * jQuery may invoke the fail callback synchronously while abort() runs.
+     * Clearing first prevents the cancelled request from remaining registered
+     * as the active request.
+     */
+
     activeRequest = null;
+
+    request.abort();
   }
 
+  /* ========================================================================
+     Load
+     ======================================================================== */
+
   function load(state = {}) {
+    if (destroyed) {
+      return Promise.reject(createAbortError());
+    }
+
+    /*
+     * Only one Market Watch request is relevant at a time.
+     *
+     * Changing Industry / Table View / Watchlist cancels the previous request
+     * before starting the next one.
+     */
+
     cancel();
 
     const request = $.ajax({
       url: endpoint,
       type: "GET",
       dataType: "json",
+
       data: buildRequestData(state),
     });
 
@@ -156,6 +233,17 @@ export function createMarketWatchService(config = {}) {
           activeRequest = null;
         }
 
+        /*
+         * If this service was destroyed while the request was resolving,
+         * treat the result as cancelled rather than exposing stale data.
+         */
+
+        if (destroyed) {
+          reject(createAbortError());
+
+          return;
+        }
+
         resolve(normalizeResponse(response));
       });
 
@@ -164,28 +252,39 @@ export function createMarketWatchService(config = {}) {
           activeRequest = null;
         }
 
-        if (textStatus === "abort") {
+        if (textStatus === "abort" || destroyed) {
           reject(createAbortError());
 
           return;
         }
 
-        const error = new Error(
-          errorThrown ||
-            `Market Watch request failed with status ${jqXHR.status || 0}.`,
-        );
-
-        error.status = jqXHR.status || 0;
-        error.response = jqXHR.responseJSON || null;
-
-        reject(error);
+        reject(createRequestError(jqXHR, errorThrown));
       });
     });
   }
 
+  /* ========================================================================
+     Lifecycle
+     ======================================================================== */
+
+  function destroy() {
+    if (destroyed) {
+      return;
+    }
+
+    destroyed = true;
+
+    cancel();
+  }
+
+  /* ========================================================================
+     Public Instance
+     ======================================================================== */
+
   return Object.freeze({
     buildRequestData,
     cancel,
+    destroy,
     load,
   });
 }

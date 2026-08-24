@@ -55,18 +55,22 @@ function getErrorMessage(config, error) {
    ========================================================================== */
 
 export function initMarketWatchPage(root = document) {
-  if (instances.has(root)) {
-    return instances.get(root);
+  const existing = instances.get(root);
+
+  if (existing) {
+    return existing;
   }
 
   const config = getConfig();
-  const abortController = new AbortController();
+
   const filterForm = root.querySelector(SELECTORS.filterForm);
 
   const filters = createMarketWatchFilters(config, root);
   const service = createMarketWatchService(config);
   const table = createMarketWatchTable(config, root);
   const mobile = createMarketWatchMobile(config, root);
+
+  const abortController = new AbortController();
 
   let destroyed = false;
   let requestId = 0;
@@ -83,6 +87,7 @@ export function initMarketWatchPage(root = document) {
   function showLoading() {
     table.showLoading();
     mobile.showLoading();
+
     setFilterBusy(true);
   }
 
@@ -107,16 +112,31 @@ export function initMarketWatchPage(root = document) {
 
   function syncViewSchema() {
     const filterState = filters.getState();
+
     const availableGroups = getAvailableGroups(config, filterState.tableView);
 
     /*
-     * A new table view selects every group it supports. A previously visited
-     * table view restores its own saved column selection.
+     * Each table view can expose a different set of column groups.
+     *
+     * The filter module owns the user's selection for each view and restores
+     * it when that view becomes active again.
      */
 
     filters.setAvailableGroups(availableGroups);
 
+    /*
+     * Read the state again because setAvailableGroups() may normalize the
+     * visible group selection for the newly selected table view.
+     */
+
     const normalizedState = filters.getState();
+
+    /*
+     * Desktop and mobile share the same schema state but render it through
+     * different presentation components.
+     *
+     * Responsive visibility itself belongs entirely to the design-system CSS.
+     */
 
     table.setView(normalizedState.tableView);
     table.setVisibleGroups(normalizedState.visibleGroups);
@@ -137,6 +157,13 @@ export function initMarketWatchPage(root = document) {
 
     try {
       const response = await service.load(filterState);
+
+      /*
+       * Ignore results belonging to:
+       *
+       * - a destroyed page
+       * - an older request superseded by a newer request
+       */
 
       if (destroyed || currentRequestId !== requestId) {
         return;
@@ -163,7 +190,7 @@ export function initMarketWatchPage(root = document) {
   }
 
   /* ========================================================================
-     Events
+     Filter Events
      ======================================================================== */
 
   function handleFilterChange({ type }) {
@@ -171,19 +198,31 @@ export function initMarketWatchPage(root = document) {
       return;
     }
 
+    /*
+     * Column visibility is presentation-only.
+     *
+     * It must not:
+     *
+     * - request new data
+     * - reset the current rows
+     * - change the selected table view
+     */
+
     if (type === "columns") {
       const { visibleGroups } = filters.getState();
-
-      /*
-       * Column visibility is presentation-only. Do not request data or reset
-       * the current result set.
-       */
 
       table.setVisibleGroups(visibleGroups);
       mobile.setVisibleGroups(visibleGroups);
 
       return;
     }
+
+    /*
+     * A table-view change can change both the desktop column model and the
+     * mobile detail schema.
+     *
+     * Synchronize the schema before requesting data for the selected view.
+     */
 
     if (type === "table-view") {
       syncViewSchema();
@@ -192,20 +231,36 @@ export function initMarketWatchPage(root = document) {
       return;
     }
 
+    /*
+     * Industry and Watchlist filters affect the result set but not the
+     * presentation schema.
+     */
+
     if (type === "industry" || type === "watchlist") {
       loadData();
     }
   }
 
+  /* ========================================================================
+     Watchlist Events
+     ======================================================================== */
+
   /*
-   * Existing watchlist code can dispatch this event after its login/dialog
-   * flow completes. Reloading updates favourite states and Watchlist-only data.
+   * Existing watchlist behavior may dispatch this event after an add/remove
+   * operation completes.
+   *
+   * Reloading refreshes:
+   *
+   * - favorite state
+   * - Watchlist-only results
    */
 
   function handleWatchlistUpdated() {
-    if (!destroyed) {
-      loadData();
+    if (destroyed) {
+      return;
     }
+
+    loadData();
   }
 
   /* ========================================================================
@@ -218,10 +273,19 @@ export function initMarketWatchPage(root = document) {
     }
 
     destroyed = true;
+
+    /*
+     * Invalidate any currently resolving request before cancelling the
+     * underlying transport.
+     */
+
     requestId += 1;
 
     service.cancel();
+
     unsubscribeFilters?.();
+    unsubscribeFilters = null;
+
     abortController.abort();
 
     filters.destroy();
@@ -230,6 +294,10 @@ export function initMarketWatchPage(root = document) {
 
     instances.delete(root);
   }
+
+  /* ========================================================================
+     Event Registration
+     ======================================================================== */
 
   unsubscribeFilters = filters.subscribe(handleFilterChange);
 
@@ -241,8 +309,26 @@ export function initMarketWatchPage(root = document) {
     },
   );
 
+  /* ========================================================================
+     Initial State
+     ======================================================================== */
+
+  /*
+   * Initial order:
+   *
+   * 1. configure the selected table-view schema
+   * 2. request the current result set once
+   *
+   * Desktop/mobile presentation is controlled exclusively by the
+   * design-system responsive CSS.
+   */
+
   syncViewSchema();
   loadData();
+
+  /* ========================================================================
+     Public Instance
+     ======================================================================== */
 
   const instance = Object.freeze({
     destroy,

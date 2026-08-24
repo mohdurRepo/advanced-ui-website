@@ -3,14 +3,29 @@
    ========================================================================== */
 
 /*
- * One source of truth for:
+ * Single source of truth for:
  *
- * - table-view column models
- * - DataTables widths
+ * - Market Watch table views
+ * - column order
+ * - column widths
  * - grouped headers
- * - Show/Hide Column groups
+ * - Show / Hide column groups
  * - desktop and mobile field visibility
+ * - data field mapping
+ * - rendering type metadata
+ *
+ * This module intentionally has no:
+ *
+ * - DOM code
+ * - DataTables initialization
+ * - AJAX code
+ * - markup rendering
+ * - responsive breakpoint logic
  */
+
+/* ==========================================================================
+   Column Groups
+   ========================================================================== */
 
 const GROUP_ORDER = [
   "range",
@@ -20,6 +35,22 @@ const GROUP_ORDER = [
   "best-bid",
   "best-offer",
 ];
+
+/* ==========================================================================
+   Column Widths
+   ========================================================================== */
+
+/*
+ * Widths are schema values only.
+ *
+ * The table renderer applies them to:
+ *
+ * - the source <th>
+ * - DataTables column width
+ *
+ * The source header also receives matching min/max width constraints so
+ * FixedColumns and horizontal scrolling begin from stable measurements.
+ */
 
 const WIDTHS = Object.freeze({
   company: "15.5rem",
@@ -53,14 +84,6 @@ function cleanLabel(value, fallback = "") {
     .replace(/<[^>]*>/g, "")
     .replace(/\s+/g, " ")
     .trim();
-}
-
-function joinClasses(...values) {
-  return values
-    .flatMap((value) => String(value || "").split(/\s+/))
-    .filter(Boolean)
-    .filter((value, index, classes) => classes.indexOf(value) === index)
-    .join(" ");
 }
 
 function getTableLabels(config = {}) {
@@ -103,32 +126,28 @@ function createGroups(config = {}) {
   };
 }
 
-function column(definition) {
+/* ==========================================================================
+   Column Factory
+   ========================================================================== */
+
+/*
+ * Columns are mobile-visible by default.
+ *
+ * Desktop rendering consumes every column.
+ * Mobile rendering later filters columns using the `mobile` flag.
+ */
+
+function column(definition = {}) {
   return {
-    orderable: false,
-    searchable: false,
     mobile: true,
     ...definition,
   };
 }
 
-function fixedWidth(width, definition) {
+function sizedColumn(width, definition = {}) {
   return column({
     width,
-    minWidth: width,
-    maxWidth: width,
     ...definition,
-  });
-}
-
-function numericColumn(width, definition) {
-  return fixedWidth(width, {
-    ...definition,
-    className: joinClasses(
-      definition.className,
-      "table-market__number",
-      "text-end",
-    ),
   });
 }
 
@@ -137,94 +156,146 @@ function numericColumn(width, definition) {
    ========================================================================== */
 
 function createCompanyColumn(labels) {
-  return fixedWidth(WIDTHS.company, {
+  return sizedColumn(WIDTHS.company, {
     key: "company",
+
     label: cleanLabel(labels.company, "Company"),
+
     type: "company",
+
     className: "table-market__security",
+
+    /*
+     * Company identity already forms the mobile card summary.
+     * Do not repeat it in the expandable field list.
+     */
+
     mobile: false,
-    fixed: true,
   });
 }
 
 function createRangeColumn(labels) {
-  return fixedWidth(WIDTHS.range, {
+  return sizedColumn(WIDTHS.range, {
     key: "range",
+
     visibilityGroup: "range",
+
     label: cleanLabel(labels.range, "52 Week Range"),
+
     type: "range",
+
     className: "table-market__range",
-    mobileFullWidth: true,
   });
 }
 
-function createLastTradePriceColumn(labels, options = {}) {
-  return numericColumn(WIDTHS.price, {
+function createLastTradePriceColumn(labels, { grouped = false } = {}) {
+  return sizedColumn(WIDTHS.price, {
     key: "last-trade-price",
+
     visibilityGroup: "last-trade",
-    headerGroup: options.headerGroup ? "last-trade" : undefined,
+
+    headerGroup: grouped ? "last-trade" : undefined,
+
     label: cleanLabel(labels.price, "Price"),
+
     data: "lastTradePriceModified",
+
     type: "auction-value",
-    className: "table-market__price",
+
+    className: "table-market__price table-market__number",
   });
 }
 
-function createChangeValueColumn(labels, options = {}) {
-  return numericColumn(WIDTHS.change, {
+function createChangeValueColumn(labels, { grouped = false } = {}) {
+  return sizedColumn(WIDTHS.change, {
     key: "change-value",
+
     visibilityGroup: "last-trade",
-    headerGroup: options.headerGroup ? "last-trade" : undefined,
+
+    headerGroup: grouped ? "last-trade" : undefined,
+
     label: cleanLabel(labels.changeValue, "Change Value"),
+
     data: "netChangeModified",
+
     numericData: "netChange",
+
     type: "change",
-    className: "table-market__change",
+
+    className: "table-market__change table-market__number",
   });
 }
 
-function createChangePercentColumn(labels, options = {}) {
-  return numericColumn(WIDTHS.change, {
+function createChangePercentColumn(labels, { grouped = false } = {}) {
+  return sizedColumn(WIDTHS.change, {
     key: "change-percent",
+
     visibilityGroup: "last-trade",
-    headerGroup: options.headerGroup ? "last-trade" : undefined,
+
+    headerGroup: grouped ? "last-trade" : undefined,
+
     label: cleanLabel(labels.changePercent, "Change %"),
+
     data: "precentChangeModified",
+
     numericData: "precentChange",
+
     type: "percent-change",
-    className: "table-market__change",
+
+    className: "table-market__change table-market__number",
   });
 }
 
-function createTradingColumns(labels, options = {}) {
-  const headerGroup = options.headerGroup ? "trading" : undefined;
+function createTradingColumns(labels, { grouped = false } = {}) {
+  const headerGroup = grouped ? "trading" : undefined;
 
   return [
-    numericColumn(WIDTHS.tradingPrice, {
+    sizedColumn(WIDTHS.tradingPrice, {
       key: "open",
+
       visibilityGroup: "trading",
+
       headerGroup,
+
       label: cleanLabel(labels.open, "Open"),
+
       data: "todayOpenModified",
+
       type: "auction-value",
+
+      className: "table-market__number",
     }),
 
-    numericColumn(WIDTHS.tradingPrice, {
+    sizedColumn(WIDTHS.tradingPrice, {
       key: "high",
+
       visibilityGroup: "trading",
+
       headerGroup,
+
       label: cleanLabel(labels.high, "High"),
+
       data: "highPriceModified",
+
       type: "auction-value",
+
+      className: "table-market__number",
     }),
 
-    numericColumn(WIDTHS.tradingPrice, {
+    sizedColumn(WIDTHS.tradingPrice, {
       key: "low",
+
       visibilityGroup: "trading",
+
       headerGroup,
+
       label: cleanLabel(labels.low, "Low"),
+
       data: "lowPriceModified",
+
       type: "auction-value",
+
+      className: "table-market__number",
     }),
   ];
 }
@@ -238,90 +309,139 @@ function createOverviewColumns(config = {}) {
 
   return [
     createCompanyColumn(labels),
+
     createRangeColumn(labels),
 
     createLastTradePriceColumn(labels, {
-      headerGroup: true,
+      grouped: true,
     }),
 
-    numericColumn(WIDTHS.quantity, {
+    sizedColumn(WIDTHS.quantity, {
       key: "last-trade-volume",
+
       visibilityGroup: "last-trade",
+
       headerGroup: "last-trade",
+
       label: cleanLabel(labels.volume, "Volume"),
+
       data: "lastTradeQuantity",
+
       type: "auction-quantity",
-      className: "table-market__volume",
+
+      className: "table-market__volume table-market__number",
     }),
 
     createChangeValueColumn(labels, {
-      headerGroup: true,
+      grouped: true,
     }),
 
     createChangePercentColumn(labels, {
-      headerGroup: true,
+      grouped: true,
     }),
 
-    numericColumn(WIDTHS.trades, {
+    sizedColumn(WIDTHS.trades, {
       key: "number-of-trades",
+
       visibilityGroup: "cumulative",
+
       headerGroup: "cumulative",
+
       label: cleanLabel(labels.numberOfTrades, "No. of Trades"),
+
       data: "nuOfTrades",
+
       type: "auction-full-number",
-      className: "table-market__trades",
+
+      className: "table-market__trades table-market__number",
     }),
 
-    numericColumn(WIDTHS.volumeTraded, {
+    sizedColumn(WIDTHS.volumeTraded, {
       key: "volume-traded",
+
       visibilityGroup: "cumulative",
+
       headerGroup: "cumulative",
+
       label: cleanLabel(labels.volumeTraded, "Volume Traded"),
+
       data: "volumeTraded",
+
       type: "auction-full-number",
-      className: "table-market__volume-traded",
+
+      className: "table-market__volume-traded table-market__number",
     }),
 
     ...createTradingColumns(labels, {
-      headerGroup: true,
+      grouped: true,
     }),
 
-    numericColumn(WIDTHS.bidOfferPrice, {
+    sizedColumn(WIDTHS.bidOfferPrice, {
       key: "best-bid-price",
+
       visibilityGroup: "best-bid",
+
       headerGroup: "best-bid",
+
       label: cleanLabel(labels.price, "Price"),
+
       data: "bidPriceModified",
+
       type: "market-order",
+
+      className: "table-market__number",
     }),
 
-    numericColumn(WIDTHS.bidOfferVolume, {
+    sizedColumn(WIDTHS.bidOfferVolume, {
       key: "best-bid-volume",
+
       visibilityGroup: "best-bid",
+
       headerGroup: "best-bid",
+
       label: cleanLabel(labels.volume, "Volume"),
+
+      mobileLabel: cleanLabel(labels.volume, "Volume"),
+
       data: "bidQuantity",
+
       type: "auction-full-number",
-      mobileLabel: cleanLabel(labels.volume, "Volume"),
+
+      className: "table-market__number",
     }),
 
-    numericColumn(WIDTHS.bidOfferPrice, {
+    sizedColumn(WIDTHS.bidOfferPrice, {
       key: "best-offer-price",
+
       visibilityGroup: "best-offer",
+
       headerGroup: "best-offer",
+
       label: cleanLabel(labels.price, "Price"),
+
       data: "askPriceModified",
+
       type: "market-order",
+
+      className: "table-market__number",
     }),
 
-    numericColumn(WIDTHS.bidOfferVolume, {
+    sizedColumn(WIDTHS.bidOfferVolume, {
       key: "best-offer-volume",
+
       visibilityGroup: "best-offer",
+
       headerGroup: "best-offer",
+
       label: cleanLabel(labels.volume, "Volume"),
-      data: "askQuantityModified",
-      type: "auction-full-number",
+
       mobileLabel: cleanLabel(labels.volume, "Volume"),
+
+      data: "askQuantityModified",
+
+      type: "auction-full-number",
+
+      className: "table-market__number",
     }),
   ];
 }
@@ -330,27 +450,37 @@ function createOverviewColumns(config = {}) {
    Price Data
    ========================================================================== */
 
+/*
+ * Price Data uses the same grouped-header structure as Overview:
+ *
+ * Company
+ * 52 Week Range
+ * Last Trade
+ * Today's Trading
+ */
+
 function createPriceDataColumns(config = {}) {
   const labels = getTableLabels(config);
 
   return [
     createCompanyColumn(labels),
+
     createRangeColumn(labels),
 
     createLastTradePriceColumn(labels, {
-      headerGroup: true,
+      grouped: true,
     }),
 
     createChangeValueColumn(labels, {
-      headerGroup: true,
+      grouped: true,
     }),
 
     createChangePercentColumn(labels, {
-      headerGroup: true,
+      grouped: true,
     }),
 
     ...createTradingColumns(labels, {
-      headerGroup: true,
+      grouped: true,
     }),
   ];
 }
@@ -359,57 +489,101 @@ function createPriceDataColumns(config = {}) {
    Performance
    ========================================================================== */
 
+/*
+ * Performance intentionally has a different first column:
+ *
+ * 0 Sector
+ * 1 Symbol
+ * 2 Company
+ *
+ * Therefore, with FixedColumns configured as `start: 1`, Sector is the fixed
+ * column for this view.
+ *
+ * If the requirement later becomes "Company must always be fixed", that
+ * should be implemented explicitly in the table configuration rather than
+ * hidden inside schema metadata.
+ */
+
 function createPerformanceColumns(config = {}) {
   const labels = getTableLabels(config);
 
   return [
-    fixedWidth(WIDTHS.sector, {
+    sizedColumn(WIDTHS.sector, {
       key: "sector",
+
       label: cleanLabel(labels.sector, "Sector"),
+
       data: "sectorName",
+
       type: "text",
+
       className: "table-market__text",
-      fixed: true,
     }),
 
-    fixedWidth(WIDTHS.symbol, {
+    sizedColumn(WIDTHS.symbol, {
       key: "symbol",
+
       label: cleanLabel(labels.symbol, "Symbol"),
+
       data: "companySymbol",
+
       type: "text",
-      className: "table-market__symbol",
+
+      className: "table-market__number",
     }),
 
     createCompanyColumn(labels),
+
     createRangeColumn(labels),
 
-    numericColumn(WIDTHS.marketCap, {
+    sizedColumn(WIDTHS.marketCap, {
       key: "market-cap",
+
       label: cleanLabel(labels.marketCap, "Market Cap"),
+
       data: "marketCap",
+
       type: "full-number",
+
+      className: "table-market__number",
     }),
 
-    numericColumn(WIDTHS.performanceValue, {
+    sizedColumn(WIDTHS.performanceValue, {
       key: "per",
+
       label: cleanLabel(labels.per, "P/E"),
+
       data: "PER",
+
       type: "text",
+
+      className: "table-market__number",
     }),
 
-    numericColumn(WIDTHS.quantity, {
+    sizedColumn(WIDTHS.quantity, {
       key: "volume",
+
       visibilityGroup: "cumulative",
+
       label: cleanLabel(labels.volume, "Volume"),
+
       data: "lastTradeQuantity",
+
       type: "auction-full-number",
+
+      className: "table-market__number",
     }),
 
-    numericColumn(WIDTHS.performanceValue, {
+    sizedColumn(WIDTHS.performanceValue, {
       key: "yield",
+
       label: cleanLabel(labels.yield, "Yield"),
+
       data: "yield",
+
       type: "text",
+
+      className: "table-market__number",
     }),
   ];
 }
@@ -432,18 +606,27 @@ export function getColumns(config = {}, view = "1") {
   }
 }
 
+/* ==========================================================================
+   Available Column Groups
+   ========================================================================== */
+
 export function getColumnGroups(config = {}, view = "1") {
   const groups = createGroups(config);
+
   const columns = getColumns(config, view);
 
   const availableGroupIds = new Set(
-    columns.map((column) => column.visibilityGroup).filter(Boolean),
+    columns.map((item) => item.visibilityGroup).filter(Boolean),
   );
 
-  return GROUP_ORDER.filter((groupId) => {
-    return availableGroupIds.has(groupId);
-  }).map((groupId) => groups[groupId]);
+  return GROUP_ORDER.filter((groupId) => availableGroupIds.has(groupId)).map(
+    (groupId) => groups[groupId],
+  );
 }
+
+/* ==========================================================================
+   Visible Columns
+   ========================================================================== */
 
 export function getVisibleColumns(
   config = {},
@@ -452,28 +635,40 @@ export function getVisibleColumns(
 ) {
   const selectedGroups = new Set(visibleGroups);
 
-  return getColumns(config, view).filter((column) => {
-    return (
-      !column.visibilityGroup || selectedGroups.has(column.visibilityGroup)
-    );
+  return getColumns(config, view).filter((item) => {
+    if (!item.visibilityGroup) {
+      return true;
+    }
+
+    return selectedGroups.has(item.visibilityGroup);
   });
 }
 
+/* ==========================================================================
+   Column Indexes by Group
+   ========================================================================== */
+
 export function getColumnIndexesByGroup(config = {}, view = "1") {
-  return getColumns(config, view).reduce((groups, column, index) => {
-    if (!column.visibilityGroup) {
+  return getColumns(config, view).reduce((groups, item, index) => {
+    const groupId = item.visibilityGroup;
+
+    if (!groupId) {
       return groups;
     }
 
-    if (!groups[column.visibilityGroup]) {
-      groups[column.visibilityGroup] = [];
+    if (!groups[groupId]) {
+      groups[groupId] = [];
     }
 
-    groups[column.visibilityGroup].push(index);
+    groups[groupId].push(index);
 
     return groups;
   }, {});
 }
+
+/* ==========================================================================
+   Visible Header Groups
+   ========================================================================== */
 
 export function getHeaderGroups(
   config = {},
@@ -481,36 +676,47 @@ export function getHeaderGroups(
   visibleGroups = GROUP_ORDER,
 ) {
   const groups = createGroups(config);
+
+  const columns = getColumns(config, view);
+
   const selectedGroups = new Set(visibleGroups);
 
   return GROUP_ORDER.filter((groupId) => selectedGroups.has(groupId))
     .map((groupId) => {
-      const columns = getColumns(config, view).filter((column) => {
-        return column.headerGroup === groupId;
-      });
+      const groupColumns = columns.filter(
+        (item) => item.headerGroup === groupId,
+      );
 
-      if (!columns.length) {
+      if (!groupColumns.length) {
         return null;
       }
 
       return {
         ...groups[groupId],
-        columnCount: columns.length,
+        columnCount: groupColumns.length,
       };
     })
     .filter(Boolean);
 }
+
+/* ==========================================================================
+   Mobile Columns
+   ========================================================================== */
 
 export function getMobileColumns(
   config = {},
   view = "1",
   visibleGroups = GROUP_ORDER,
 ) {
-  return getVisibleColumns(config, view, visibleGroups).filter((column) => {
-    return column.mobile;
-  });
+  return getVisibleColumns(config, view, visibleGroups).filter(
+    (item) => item.mobile !== false,
+  );
 }
 
+/* ==========================================================================
+   Column Lookup
+   ========================================================================== */
+
 export function getColumnByKey(config = {}, view = "1", key) {
-  return getColumns(config, view).find((column) => column.key === key) || null;
+  return getColumns(config, view).find((item) => item.key === key) || null;
 }

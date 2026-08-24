@@ -28,6 +28,8 @@ import {
 const SELECTORS = {
   table: "[data-market-watch-table]",
   shell: "[data-market-watch-table-shell], [data-table-shell]",
+  favorite: "[data-market-watch-favorite]",
+  logo: "[data-market-watch-logo]",
 };
 
 const STATES = {
@@ -50,10 +52,21 @@ function getDataTableConstructor() {
 
 function getTableConfig(config = {}) {
   return {
-    fixedColumns: Math.max(0, Number(config.table?.fixedColumns ?? 1)),
+    fixedColumns: Number(config.table?.fixedColumns ?? 1),
     fixedHeader: config.table?.fixedHeader !== false,
     scrollX: config.table?.scrollX !== false,
   };
+}
+
+function unique(values = []) {
+  return [...new Set(values)];
+}
+
+function arraysEqual(first = [], second = []) {
+  return (
+    first.length === second.length &&
+    first.every((value, index) => value === second[index])
+  );
 }
 
 function getCellValue(row, column) {
@@ -70,13 +83,22 @@ function isAuction(config = {}) {
   return Boolean(config.market?.isAuction ?? config.openCloseAuction);
 }
 
+/* ==========================================================================
+   Cell Rendering
+   ========================================================================== */
+
 function createSkeletonCell(column) {
   const size =
     column.key === "company" || column.type === "range"
       ? "table-skeleton-lg"
       : "table-skeleton-md";
 
-  return `<span class="table-skeleton ${size}" aria-hidden="true"></span>`;
+  return `
+    <span
+      class="table-skeleton ${size}"
+      aria-hidden="true"
+    ></span>
+  `.trim();
 }
 
 function renderAuctionFullNumber(value, config) {
@@ -131,7 +153,7 @@ function renderColumnCell(column, row, config) {
 }
 
 /* ==========================================================================
-   Header Construction
+   Header
    ========================================================================== */
 
 function createHeaderCell({
@@ -165,12 +187,20 @@ function createHeaderCell({
     }
   }
 
+  /*
+   * Keep a stable source width before DataTables measures
+   * scrollX / FixedColumns geometry.
+   */
+
   if (width) {
     cell.style.width = width;
+    cell.style.minWidth = width;
+    cell.style.maxWidth = width;
   }
 
   if (isGroupHeading) {
     cell.classList.add("table-market__group-heading");
+
     cell.textContent = label;
 
     return cell;
@@ -179,6 +209,7 @@ function createHeaderCell({
   const labelElement = document.createElement("span");
 
   labelElement.className = "table-market__column-label";
+
   labelElement.textContent = label;
 
   cell.append(labelElement);
@@ -201,9 +232,18 @@ function replaceTableStructure(table, thead) {
 
 function buildHeader(table, config, view) {
   const columns = getColumns(config, view);
+
   const groups = getColumnGroups(config, view);
-  const hasGroupedHeader = columns.some((column) => column.headerGroup);
+
+  const hasGroupedHeader = columns.some((column) =>
+    Boolean(column.headerGroup),
+  );
+
   const thead = document.createElement("thead");
+
+  /* ------------------------------------------------------------------------
+     Single-row Header
+     ------------------------------------------------------------------------ */
 
   if (!hasGroupedHeader) {
     const row = document.createElement("tr");
@@ -220,13 +260,23 @@ function buildHeader(table, config, view) {
     });
 
     thead.append(row);
+
     replaceTableStructure(table, thead);
 
     return;
   }
 
+  /* ------------------------------------------------------------------------
+     Grouped Header
+     ------------------------------------------------------------------------ */
+
   const groupRow = document.createElement("tr");
+
   const columnRow = document.createElement("tr");
+
+  /*
+   * Columns without headerGroup span both header rows.
+   */
 
   columns
     .filter((column) => !column.headerGroup)
@@ -234,9 +284,13 @@ function buildHeader(table, config, view) {
       groupRow.append(
         createHeaderCell({
           label: column.label,
+
           className: column.className,
+
           groupId: column.visibilityGroup,
+
           rowSpan: 2,
+
           width: column.width,
         }),
       );
@@ -254,9 +308,15 @@ function buildHeader(table, config, view) {
     groupRow.append(
       createHeaderCell({
         label: group.label,
+
+        className: "table-market__group-heading",
+
         scope: "colgroup",
+
         colSpan: groupColumns.length,
+
         groupId: group.id,
+
         isGroupHeading: true,
       }),
     );
@@ -265,8 +325,11 @@ function buildHeader(table, config, view) {
       columnRow.append(
         createHeaderCell({
           label: column.label,
+
           className: column.className,
+
           groupId: column.visibilityGroup,
+
           width: column.width,
         }),
       );
@@ -274,11 +337,12 @@ function buildHeader(table, config, view) {
   });
 
   thead.append(groupRow, columnRow);
+
   replaceTableStructure(table, thead);
 }
 
 /* ==========================================================================
-   DataTables Definitions
+   DataTables Columns
    ========================================================================== */
 
 function createColumns(columns, config, visibleGroups) {
@@ -286,8 +350,11 @@ function createColumns(columns, config, visibleGroups) {
 
   return columns.map((column) => ({
     data: null,
+
     name: column.key,
+
     width: column.width,
+
     className: column.className || "",
 
     orderable: false,
@@ -306,9 +373,15 @@ function createColumns(columns, config, visibleGroups) {
   }));
 }
 
+/* ==========================================================================
+   Row Group
+   ========================================================================== */
+
 function createGroupRow(groupName, visibleColumnCount) {
   const row = document.createElement("tr");
+
   const label = document.createElement("th");
+
   const fill = document.createElement("td");
 
   row.className = "table-market__group-row table-group-row";
@@ -317,10 +390,13 @@ function createGroupRow(groupName, visibleColumnCount) {
     "table-market__group-label table-group-label table-group-label-sticky";
 
   label.scope = "rowgroup";
+
   label.textContent = groupName || "";
 
   fill.className = "table-market__group-fill table-group-fill";
+
   fill.colSpan = Math.max(1, visibleColumnCount - 1);
+
   fill.setAttribute("aria-hidden", "true");
 
   row.append(label, fill);
@@ -328,11 +404,21 @@ function createGroupRow(groupName, visibleColumnCount) {
   return row;
 }
 
+/* ==========================================================================
+   Loading Rows
+   ========================================================================== */
+
 function createLoadingRows(count = 6) {
-  return Array.from({ length: count }, (_, index) => ({
-    __marketWatchState: STATES.loading,
-    __marketWatchRow: index,
-  }));
+  return Array.from(
+    {
+      length: count,
+    },
+    (_, index) => ({
+      __marketWatchState: STATES.loading,
+
+      __marketWatchRow: index,
+    }),
+  );
 }
 
 /* ==========================================================================
@@ -353,15 +439,35 @@ export function createMarketWatchTable(config = {}, root = document) {
   }
 
   const DataTable = getDataTableConstructor();
+
   const tableConfig = getTableConfig(config);
 
   let api = null;
+
   let currentView = String(config.initialState?.tableView || "1");
-  let visibleGroups = [...(config.initialState?.visibleGroups || [])];
+
+  let visibleGroups = unique(config.initialState?.visibleGroups || []);
+
+  /*
+   * Real API rows only.
+   *
+   * Skeleton rows are temporary display rows and are never
+   * stored in this array.
+   */
+
   let rows = [];
-  let emptyState = null;
+
+  let renderState = {
+    type: STATES.loading,
+    message: "",
+  };
+
   let layoutFrame = null;
   let destroyed = false;
+
+  /* ========================================================================
+     Current Schema
+     ======================================================================== */
 
   function getCurrentColumns() {
     return getColumns(config, currentView);
@@ -372,9 +478,9 @@ export function createMarketWatchTable(config = {}, root = document) {
   }
 
   function getCurrentVisibleGroups() {
-    const availableGroups = new Set(getCurrentAvailableGroups());
+    const available = new Set(getCurrentAvailableGroups());
 
-    return visibleGroups.filter((groupId) => availableGroups.has(groupId));
+    return visibleGroups.filter((groupId) => available.has(groupId));
   }
 
   function getVisibleColumnCount() {
@@ -386,43 +492,50 @@ export function createMarketWatchTable(config = {}, root = document) {
     return api.columns(":visible").count();
   }
 
+  /* ========================================================================
+     Layout
+     ======================================================================== */
+
   /*
-   * DataTables owns the `dtfc-fixed-start` class and sticky positioning.
-   * This only asks its extensions to recalculate after a draw or rebuild.
+   * Do not directly manage FixedHeader or FixedColumns here.
+   *
+   * Your existing global table layout system already responds to resize and
+   * owns:
+   *
+   * - DataTables width recalculation
+   * - FixedHeader refresh
+   * - FixedColumns refresh
+   * - horizontal scroll navigation
+   *
+   * This module only signals that table geometry changed.
    */
 
-  function refreshLayout() {
-    if (!api) {
-      return;
-    }
-
-    api.columns.adjust();
-
-    const fixedColumns =
-      typeof api.fixedColumns === "function" ? api.fixedColumns() : null;
-
-    fixedColumns?.relayout?.();
-    api.fixedHeader?.adjust?.();
-  }
-
   function scheduleLayoutRefresh() {
-    if (layoutFrame !== null) {
+    if (destroyed || layoutFrame !== null) {
       return;
     }
 
     layoutFrame = window.requestAnimationFrame(() => {
       layoutFrame = null;
-      refreshLayout();
+
+      if (destroyed || !api) {
+        return;
+      }
+
+      window.dispatchEvent(new Event("resize"));
     });
   }
 
+  /* ========================================================================
+     Company-only Mode
+     ======================================================================== */
+
   function updateCompanyOnlyMode() {
-    const hasVisibleOptionalColumn = getCurrentColumns().some((column) => {
-      return (
-        column.visibilityGroup &&
-        getCurrentVisibleGroups().includes(column.visibilityGroup)
-      );
-    });
+    const selectedGroups = new Set(getCurrentVisibleGroups());
+
+    const hasVisibleOptionalColumn = getCurrentColumns()
+      .filter((column) => column.visibilityGroup)
+      .some((column) => selectedGroups.has(column.visibilityGroup));
 
     table.classList.toggle(
       "table-market--company-only",
@@ -430,56 +543,57 @@ export function createMarketWatchTable(config = {}, root = document) {
     );
   }
 
-  function getHeaderTables() {
-    if (!api) {
-      return [table];
-    }
-
-    const container = api.table().container();
-
-    return [table, ...container.querySelectorAll("table.dataTable")];
-  }
+  /* ========================================================================
+     Group Headers
+     ======================================================================== */
 
   function updateHeaderGroups() {
-    if (!api) {
+    if (!api || !table.tHead) {
       return;
     }
 
     const columns = getCurrentColumns();
-    const visibleGroups = new Set(getCurrentVisibleGroups());
 
-    [...new Set(getHeaderTables())].forEach((headerTable) => {
-      headerTable
-        .querySelectorAll("[data-market-watch-group-heading]")
-        .forEach((headerCell) => {
-          const groupId = headerCell.dataset.marketWatchGroupHeading;
+    /*
+     * Modify only the source THEAD.
+     *
+     * Do not directly manipulate scrollX / FixedHeader generated table
+     * copies. DataTables owns those structures.
+     */
 
-          const visibleCount = columns.filter((column, index) => {
-            return (
-              column.headerGroup === groupId && api.column(index).visible()
-            );
-          }).length;
+    table.tHead
+      .querySelectorAll("[data-market-watch-group-heading]")
+      .forEach((headerCell) => {
+        const groupId = headerCell.dataset.marketWatchGroupHeading;
 
-          headerCell.hidden = visibleCount === 0;
+        const visibleCount = columns.filter(
+          (column, index) =>
+            column.headerGroup === groupId && api.column(index).visible(),
+        ).length;
 
-          if (visibleCount) {
-            headerCell.colSpan = visibleCount;
-          }
-        });
+        headerCell.hidden = visibleCount === 0;
 
-      headerTable
-        .querySelectorAll("[data-market-watch-column-group]")
-        .forEach((headerCell) => {
-          const groupId = headerCell.dataset.marketWatchColumnGroup;
+        if (visibleCount > 0) {
+          headerCell.colSpan = visibleCount;
+        }
+      });
 
-          if (!groupId) {
-            return;
-          }
+    table.tHead
+      .querySelectorAll("[data-market-watch-column-group]")
+      .forEach((headerCell) => {
+        const groupId = headerCell.dataset.marketWatchColumnGroup;
 
-          headerCell.hidden = !visibleGroups.has(groupId);
-        });
-    });
+        if (!groupId) {
+          return;
+        }
+
+        headerCell.hidden = !getCurrentVisibleGroups().includes(groupId);
+      });
   }
+
+  /* ========================================================================
+     Empty State
+     ======================================================================== */
 
   function updateEmptyState() {
     const emptyCell = table.tBodies[0]?.querySelector("td.dt-empty");
@@ -489,48 +603,111 @@ export function createMarketWatchTable(config = {}, root = document) {
     }
 
     emptyCell.classList.add("table-empty");
+
     emptyCell.textContent =
-      emptyState?.message || config.labels?.noData || "No data available";
+      renderState?.message || config.labels?.noData || "No data available";
   }
+
+  /* ========================================================================
+     Visible Columns
+     ======================================================================== */
 
   function syncVisibleColumns() {
     if (!api) {
       return;
     }
 
-    const selectedGroups = new Set(getCurrentVisibleGroups());
+    const selected = new Set(getCurrentVisibleGroups());
+
+    let changed = false;
 
     getCurrentColumns().forEach((column, index) => {
       if (!column.visibilityGroup) {
         return;
       }
 
-      api
-        .column(index)
-        .visible(selectedGroups.has(column.visibilityGroup), false);
+      const shouldBeVisible = selected.has(column.visibilityGroup);
+
+      const dtColumn = api.column(index);
+
+      if (dtColumn.visible() === shouldBeVisible) {
+        return;
+      }
+
+      dtColumn.visible(shouldBeVisible, false);
+
+      changed = true;
     });
 
     updateCompanyOnlyMode();
     updateHeaderGroups();
 
-    api.columns.adjust().draw(false);
+    if (changed) {
+      /*
+       * Apply all visibility changes in one final adjustment/draw.
+       */
+
+      api.columns.adjust();
+      api.draw(false);
+    }
+
     scheduleLayoutRefresh();
   }
 
+  /* ========================================================================
+     Display Rows
+     ======================================================================== */
+
+  function getDisplayRows() {
+    if (renderState?.type === STATES.loading) {
+      return createLoadingRows();
+    }
+
+    if (
+      renderState?.type === STATES.empty ||
+      renderState?.type === STATES.error
+    ) {
+      return [];
+    }
+
+    return rows;
+  }
+
+  /* ========================================================================
+     DataTable Creation
+     ======================================================================== */
+
   function createInstance() {
+    if (destroyed) {
+      return;
+    }
+
     table.dataset.marketWatchView = currentView;
+
+    /*
+     * Each table view has a different column/header model.
+     * Build the source header before DataTables initializes.
+     */
 
     buildHeader(table, config, currentView);
 
     const columns = getCurrentColumns();
+
     const usesRowGroup = currentView === "1" || currentView === "2";
 
     api = new DataTable(table, {
-      data: rows,
+      /*
+       * Initialize once with the current display state.
+       */
+
+      data: getDisplayRows(),
+
       columns: createColumns(columns, config, getCurrentVisibleGroups()),
 
       autoWidth: false,
+
       scrollX: tableConfig.scrollX,
+
       scrollCollapse: true,
 
       paging: false,
@@ -539,6 +716,10 @@ export function createMarketWatchTable(config = {}, root = document) {
       info: false,
       lengthChange: false,
 
+      /* ------------------------------------------------------------------
+           FixedHeader
+           ------------------------------------------------------------------ */
+
       fixedHeader: tableConfig.fixedHeader
         ? {
             header: true,
@@ -546,12 +727,20 @@ export function createMarketWatchTable(config = {}, root = document) {
           }
         : false,
 
+      /* ------------------------------------------------------------------
+           FixedColumns
+           ------------------------------------------------------------------ */
+
       fixedColumns:
         tableConfig.fixedColumns > 0
           ? {
               start: tableConfig.fixedColumns,
             }
           : false,
+
+      /* ------------------------------------------------------------------
+           RowGroup
+           ------------------------------------------------------------------ */
 
       rowGroup: usesRowGroup
         ? {
@@ -563,16 +752,26 @@ export function createMarketWatchTable(config = {}, root = document) {
                 .toArray()
                 .some((row) => row?.__marketWatchState === STATES.loading);
 
-              return isLoading
-                ? null
-                : createGroupRow(groupName, getVisibleColumnCount());
+              if (isLoading) {
+                return null;
+              }
+
+              return createGroupRow(groupName, getVisibleColumnCount());
             },
           }
         : false,
 
+      /* ------------------------------------------------------------------
+           Language
+           ------------------------------------------------------------------ */
+
       language: {
         emptyTable: config.labels?.noData || "No data available",
       },
+
+      /* ------------------------------------------------------------------
+           Layout
+           ------------------------------------------------------------------ */
 
       layout: {
         topStart: null,
@@ -581,20 +780,39 @@ export function createMarketWatchTable(config = {}, root = document) {
         bottomEnd: null,
       },
 
+      /* ------------------------------------------------------------------
+           Draw
+           ------------------------------------------------------------------ */
+
       drawCallback() {
         updateEmptyState();
         updateHeaderGroups();
+
+        scheduleLayoutRefresh();
       },
+
+      /* ------------------------------------------------------------------
+           Initialization
+           ------------------------------------------------------------------ */
 
       initComplete() {
         updateCompanyOnlyMode();
         updateHeaderGroups();
+
         scheduleLayoutRefresh();
       },
     });
 
-    syncVisibleColumns();
+    /*
+     * Do NOT call syncVisibleColumns() here.
+     *
+     * Initial visibility has already been supplied through createColumns().
+     */
   }
+
+  /* ========================================================================
+     DataTable Destruction
+     ======================================================================== */
 
   function destroyInstance() {
     if (!api) {
@@ -602,68 +820,149 @@ export function createMarketWatchTable(config = {}, root = document) {
     }
 
     api.destroy();
+
     api = null;
   }
 
+  function recreateInstance() {
+    destroyInstance();
+    createInstance();
+  }
+
+  /* ========================================================================
+     Rows
+     ======================================================================== */
+
   function setRows(nextRows = []) {
+    if (destroyed || !api) {
+      return;
+    }
+
     rows = Array.isArray(nextRows) ? nextRows : [];
-    emptyState = null;
+
+    renderState = null;
 
     table.setAttribute("aria-busy", "false");
 
     api.clear();
-    api.rows.add(rows);
+
+    if (rows.length) {
+      api.rows.add(rows);
+    }
+
     api.draw(false);
 
     scheduleLayoutRefresh();
   }
 
+  /* ========================================================================
+     Loading State
+     ======================================================================== */
+
   function showLoading() {
-    emptyState = null;
+    if (destroyed || !api) {
+      return;
+    }
+
+    renderState = {
+      type: STATES.loading,
+      message: "",
+    };
 
     table.setAttribute("aria-busy", "true");
 
     api.clear();
+
     api.rows.add(createLoadingRows());
+
     api.draw(false);
 
     scheduleLayoutRefresh();
   }
 
+  /* ========================================================================
+     Empty State
+     ======================================================================== */
+
   function showEmpty(message) {
+    if (destroyed || !api) {
+      return;
+    }
+
     rows = [];
 
-    emptyState = {
+    renderState = {
       type: STATES.empty,
+
       message: message || config.labels?.noData || "No data available",
     };
 
     table.setAttribute("aria-busy", "false");
 
-    api.clear().draw(false);
+    api.clear();
+    api.draw(false);
+
     scheduleLayoutRefresh();
   }
+
+  /* ========================================================================
+     Error State
+     ======================================================================== */
 
   function showError(message) {
+    if (destroyed || !api) {
+      return;
+    }
+
     rows = [];
 
-    emptyState = {
+    renderState = {
       type: STATES.error,
-      message: message || config.labels?.noData || "No data available",
+
+      message:
+        message ||
+        config.labels?.loadError ||
+        config.labels?.noData ||
+        "Unable to load market data.",
     };
 
     table.setAttribute("aria-busy", "false");
 
-    api.clear().draw(false);
+    api.clear();
+    api.draw(false);
+
     scheduleLayoutRefresh();
   }
 
+  /* ========================================================================
+     Visible Groups
+     ======================================================================== */
+
   function setVisibleGroups(nextGroups = []) {
-    visibleGroups = [...new Set(nextGroups)];
+    if (destroyed) {
+      return;
+    }
+
+    const groups = unique(nextGroups);
+
+    if (arraysEqual(groups, visibleGroups)) {
+      return;
+    }
+
+    visibleGroups = groups;
+
     syncVisibleColumns();
   }
 
+  /* ========================================================================
+     Table View
+     ======================================================================== */
+
   function setView(nextView) {
+    if (destroyed) {
+      return;
+    }
+
     const view = String(nextView || "1");
 
     if (view === currentView) {
@@ -673,26 +972,29 @@ export function createMarketWatchTable(config = {}, root = document) {
     currentView = view;
 
     /*
-     * Views can have a different header structure and column model.
-     * Rebuilding once is the supported DataTables lifecycle.
+     * A different table view means a different DataTables column model.
+     *
+     * Recreate exactly once.
+     *
+     * createInstance() already receives:
+     *
+     * - current real rows
+     * - current loading state
+     * - current empty state
+     * - current error state
+     *
+     * Do not immediately call setRows()/showLoading() again.
      */
 
-    destroyInstance();
-    createInstance();
-
-    if (rows.length) {
-      setRows(rows);
-    } else if (emptyState?.type === STATES.error) {
-      showError(emptyState.message);
-    } else if (emptyState) {
-      showEmpty(emptyState.message);
-    } else {
-      showLoading();
-    }
+    recreateInstance();
   }
 
+  /* ========================================================================
+     Favorite
+     ======================================================================== */
+
   function handleFavoriteClick(event) {
-    const button = event.target.closest("[data-market-watch-favorite]");
+    const button = event.target.closest(SELECTORS.favorite);
 
     if (!button || !shell.contains(button)) {
       return;
@@ -709,6 +1011,7 @@ export function createMarketWatchTable(config = {}, root = document) {
     shell.dispatchEvent(
       new CustomEvent("marketwatch:favorite-request", {
         bubbles: true,
+
         detail: {
           companyRef,
           button,
@@ -717,12 +1020,16 @@ export function createMarketWatchTable(config = {}, root = document) {
     );
   }
 
+  /* ========================================================================
+     Logo Fallback
+     ======================================================================== */
+
   function handleLogoError(event) {
     const image = event.target;
 
     if (
       !(image instanceof HTMLImageElement) ||
-      !image.matches("[data-market-watch-logo]")
+      !image.matches(SELECTORS.logo)
     ) {
       return;
     }
@@ -731,14 +1038,20 @@ export function createMarketWatchTable(config = {}, root = document) {
 
     if (fallbackUrl && !image.dataset.marketWatchLogoFallbackApplied) {
       image.dataset.marketWatchLogoFallbackApplied = "true";
+
       image.src = fallbackUrl;
 
       return;
     }
 
     image.closest(".table-market__logo")?.classList.add("is-image-missing");
+
     image.remove();
   }
+
+  /* ========================================================================
+     Lifecycle
+     ======================================================================== */
 
   function destroy() {
     if (destroyed) {
@@ -748,19 +1061,35 @@ export function createMarketWatchTable(config = {}, root = document) {
     destroyed = true;
 
     shell.removeEventListener("click", handleFavoriteClick);
+
     shell.removeEventListener("error", handleLogoError, true);
 
     if (layoutFrame !== null) {
       window.cancelAnimationFrame(layoutFrame);
+
+      layoutFrame = null;
     }
 
     destroyInstance();
   }
 
+  /* ========================================================================
+     Event Registration
+     ======================================================================== */
+
   shell.addEventListener("click", handleFavoriteClick);
+
   shell.addEventListener("error", handleLogoError, true);
 
+  /* ========================================================================
+     Initialization
+     ======================================================================== */
+
   createInstance();
+
+  /* ========================================================================
+     Public API
+     ======================================================================== */
 
   return Object.freeze({
     destroy,

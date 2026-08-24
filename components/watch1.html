@@ -665,7 +665,6 @@
           class="data-view__cards"
           aria-label="Market Watch securities"
           data-market-watch-mobile
-          hidden
         >
           <div
             class="data-view__cards-inner"
@@ -735,11 +734,7 @@
         "best-bid",
         "best-offer",
       ],
-    },
-
-    breakpoints: {
-      mobileMaxWidth: 767.98,
-    },
+    }
 
     table: {
       fixedColumns: 1,
@@ -843,3 +838,19 @@
 
 <script type="module"
 	src="${pageContext.request.contextPath}/js/pages/market-watch/market-watch-page.js"></script>
+
+
+    <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+
+  <!-- DataTables Core -->
+  <script src="https://cdn.datatables.net/2.3.8/js/dataTables.min.js"></script>
+
+  <!-- FixedHeader -->
+  <script src="https://cdn.datatables.net/fixedheader/4.0.6/js/dataTables.fixedHeader.min.js"></script>
+
+  <!-- FixedColumns -->
+  <script src="https://cdn.datatables.net/fixedcolumns/5.0.5/js/dataTables.fixedColumns.min.js"></script>
+
+  <!-- RowGroup -->
+  <script src="https://cdn.datatables.net/rowgroup/1.6.0/js/dataTables.rowGroup.min.js"></script>
