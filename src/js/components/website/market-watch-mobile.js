@@ -25,7 +25,6 @@ import {
    ========================================================================== */
 
 const SELECTORS = {
-  view: "[data-market-watch-mobile]",
   cards: "[data-market-watch-mobile-cards]",
   toggle: "[data-data-card-toggle]",
   favorite: "[data-market-watch-favorite]",
@@ -128,8 +127,8 @@ function getMobileFieldLabel(column, config) {
 
 function getDetailColumns(config, view, visibleGroups) {
   /*
-   * Price and percentage change are already part of every card’s summary.
-   * Details intentionally avoid repeating those values.
+   * Last price and change percentage are already shown in the card summary.
+   * Do not repeat them in the expandable details.
    */
 
   const summaryColumns = new Set(["last-trade-price", "change-percent"]);
@@ -174,7 +173,6 @@ function createLoadingCards() {
 
 function getToggleLabels(config, companyName) {
   const labels = config.labels?.mobile || {};
-
   const show = cleanLabel(labels.showDetails, "Show details");
   const hide = cleanLabel(labels.hideDetails, "Hide details");
 
@@ -189,12 +187,11 @@ function getToggleLabels(config, companyName) {
    ========================================================================== */
 
 export function createMarketWatchMobile(config = {}, root = document) {
-  const view = root.querySelector(SELECTORS.view);
   const cards = root.querySelector(SELECTORS.cards);
 
-  if (!view || !cards) {
+  if (!cards) {
     throw new Error(
-      "Market Watch mobile view requires [data-market-watch-mobile] and [data-market-watch-mobile-cards].",
+      "Market Watch mobile view requires [data-market-watch-mobile-cards].",
     );
   }
 
@@ -438,10 +435,6 @@ export function createMarketWatchMobile(config = {}, root = document) {
 
     const companyRef = button.dataset.companyRef || "";
 
-    /*
-     * Preserve the existing website watchlist and login decision flow.
-     */
-
     if (typeof window.showAddToWatchListPopup === "function") {
       window.showAddToWatchListPopup(companyRef);
     }
@@ -527,10 +520,6 @@ export function createMarketWatchMobile(config = {}, root = document) {
     renderRows();
   }
 
-  function setActive(isActive) {
-    view.hidden = !isActive;
-  }
-
   function destroy() {
     if (destroyed) {
       return;
@@ -550,7 +539,6 @@ export function createMarketWatchMobile(config = {}, root = document) {
   return Object.freeze({
     destroy,
 
-    setActive,
     setRows,
     setView,
     setVisibleGroups,

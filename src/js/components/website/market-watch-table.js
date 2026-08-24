@@ -21,6 +21,10 @@ import {
   renderRange,
 } from "./market-watch-formatters.js";
 
+/* ==========================================================================
+   Constants
+   ========================================================================== */
+
 const SELECTORS = {
   table: "[data-market-watch-table]",
   shell: "[data-market-watch-table-shell], [data-table-shell]",
@@ -32,6 +36,10 @@ const STATES = {
   error: "error",
 };
 
+/* ==========================================================================
+   Helpers
+   ========================================================================== */
+
 function getDataTableConstructor() {
   if (typeof window.DataTable !== "function") {
     throw new Error("Market Watch requires DataTables.");
@@ -42,7 +50,7 @@ function getDataTableConstructor() {
 
 function getTableConfig(config = {}) {
   return {
-    fixedColumns: Number(config.table?.fixedColumns ?? 1),
+    fixedColumns: Math.max(0, Number(config.table?.fixedColumns ?? 1)),
     fixedHeader: config.table?.fixedHeader !== false,
     scrollX: config.table?.scrollX !== false,
   };
@@ -123,7 +131,7 @@ function renderColumnCell(column, row, config) {
 }
 
 /* ==========================================================================
-   Header
+   Header Construction
    ========================================================================== */
 
 function createHeaderCell({
@@ -184,16 +192,17 @@ function replaceTableStructure(table, thead) {
 
   if (caption) {
     table.replaceChildren(caption, thead, tbody);
-  } else {
-    table.replaceChildren(thead, tbody);
+
+    return;
   }
+
+  table.replaceChildren(thead, tbody);
 }
 
 function buildHeader(table, config, view) {
   const columns = getColumns(config, view);
   const groups = getColumnGroups(config, view);
   const hasGroupedHeader = columns.some((column) => column.headerGroup);
-
   const thead = document.createElement("thead");
 
   if (!hasGroupedHeader) {
@@ -245,7 +254,6 @@ function buildHeader(table, config, view) {
     groupRow.append(
       createHeaderCell({
         label: group.label,
-        className: "table-market__group-heading",
         scope: "colgroup",
         colSpan: groupColumns.length,
         groupId: group.id,
@@ -280,7 +288,6 @@ function createColumns(columns, config, visibleGroups) {
     data: null,
     name: column.key,
     width: column.width,
-
     className: column.className || "",
 
     orderable: false,
@@ -365,9 +372,9 @@ export function createMarketWatchTable(config = {}, root = document) {
   }
 
   function getCurrentVisibleGroups() {
-    const available = new Set(getCurrentAvailableGroups());
+    const availableGroups = new Set(getCurrentAvailableGroups());
 
-    return visibleGroups.filter((groupId) => available.has(groupId));
+    return visibleGroups.filter((groupId) => availableGroups.has(groupId));
   }
 
   function getVisibleColumnCount() {
@@ -378,6 +385,11 @@ export function createMarketWatchTable(config = {}, root = document) {
 
     return api.columns(":visible").count();
   }
+
+  /*
+   * DataTables owns the `dtfc-fixed-start` class and sticky positioning.
+   * This only asks its extensions to recalculate after a draw or rebuild.
+   */
 
   function refreshLayout() {
     if (!api) {
@@ -405,12 +417,11 @@ export function createMarketWatchTable(config = {}, root = document) {
   }
 
   function updateCompanyOnlyMode() {
-    const optionalColumns = getCurrentColumns().filter(
-      (column) => column.visibilityGroup,
-    );
-
-    const hasVisibleOptionalColumn = optionalColumns.some((column) => {
-      return getCurrentVisibleGroups().includes(column.visibilityGroup);
+    const hasVisibleOptionalColumn = getCurrentColumns().some((column) => {
+      return (
+        column.visibilityGroup &&
+        getCurrentVisibleGroups().includes(column.visibilityGroup)
+      );
     });
 
     table.classList.toggle(
@@ -419,20 +430,25 @@ export function createMarketWatchTable(config = {}, root = document) {
     );
   }
 
+  function getHeaderTables() {
+    if (!api) {
+      return [table];
+    }
+
+    const container = api.table().container();
+
+    return [table, ...container.querySelectorAll("table.dataTable")];
+  }
+
   function updateHeaderGroups() {
     if (!api) {
       return;
     }
 
     const columns = getCurrentColumns();
-    const container = api.table().container();
+    const visibleGroups = new Set(getCurrentVisibleGroups());
 
-    const headerTables = [
-      table,
-      ...container.querySelectorAll("table.dataTable"),
-    ];
-
-    [...new Set(headerTables)].forEach((headerTable) => {
+    [...new Set(getHeaderTables())].forEach((headerTable) => {
       headerTable
         .querySelectorAll("[data-market-watch-group-heading]")
         .forEach((headerCell) => {
@@ -446,7 +462,7 @@ export function createMarketWatchTable(config = {}, root = document) {
 
           headerCell.hidden = visibleCount === 0;
 
-          if (visibleCount > 0) {
+          if (visibleCount) {
             headerCell.colSpan = visibleCount;
           }
         });
@@ -456,7 +472,11 @@ export function createMarketWatchTable(config = {}, root = document) {
         .forEach((headerCell) => {
           const groupId = headerCell.dataset.marketWatchColumnGroup;
 
-          headerCell.hidden = !getCurrentVisibleGroups().includes(groupId);
+          if (!groupId) {
+            return;
+          }
+
+          headerCell.hidden = !visibleGroups.has(groupId);
         });
     });
   }
@@ -478,14 +498,16 @@ export function createMarketWatchTable(config = {}, root = document) {
       return;
     }
 
-    const selected = new Set(getCurrentVisibleGroups());
+    const selectedGroups = new Set(getCurrentVisibleGroups());
 
     getCurrentColumns().forEach((column, index) => {
       if (!column.visibilityGroup) {
         return;
       }
 
-      api.column(index).visible(selected.has(column.visibilityGroup), false);
+      api
+        .column(index)
+        .visible(selectedGroups.has(column.visibilityGroup), false);
     });
 
     updateCompanyOnlyMode();
@@ -649,6 +671,11 @@ export function createMarketWatchTable(config = {}, root = document) {
     }
 
     currentView = view;
+
+    /*
+     * Views can have a different header structure and column model.
+     * Rebuilding once is the supported DataTables lifecycle.
+     */
 
     destroyInstance();
     createInstance();

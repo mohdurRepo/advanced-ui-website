@@ -14,8 +14,6 @@ import { createMarketWatchTable } from "./market-watch-table.js";
 
 const SELECTORS = {
   filterForm: "[data-market-watch-filters]",
-  desktopView: ".data-view__table",
-  mobileView: "[data-market-watch-mobile]",
 };
 
 const instances = new WeakMap();
@@ -63,19 +61,12 @@ export function initMarketWatchPage(root = document) {
 
   const config = getConfig();
   const abortController = new AbortController();
-
-  const desktopView = root.querySelector(SELECTORS.desktopView);
-  const mobileView = root.querySelector(SELECTORS.mobileView);
   const filterForm = root.querySelector(SELECTORS.filterForm);
 
   const filters = createMarketWatchFilters(config, root);
   const service = createMarketWatchService(config);
   const table = createMarketWatchTable(config, root);
   const mobile = createMarketWatchMobile(config, root);
-
-  const mediaQuery = window.matchMedia(
-    `(max-width: ${config.breakpoints?.mobileMaxWidth || 767.98}px)`,
-  );
 
   let destroyed = false;
   let requestId = 0;
@@ -111,34 +102,6 @@ export function initMarketWatchPage(root = document) {
   }
 
   /* ========================================================================
-     Responsive Presentation
-     ======================================================================== */
-
-  function syncResponsiveView() {
-    const isMobile = mediaQuery.matches;
-
-    if (desktopView) {
-      desktopView.hidden = isMobile;
-    }
-
-    if (mobileView) {
-      mobileView.hidden = !isMobile;
-    }
-
-    mobile.setActive(isMobile);
-
-    /*
-     * A DataTable that becomes visible after a mobile layout needs one
-     * controlled recalculation. This does not rebuild the table or request
-     * data again.
-     */
-
-    if (!isMobile) {
-      table.setVisibleGroups(filters.getState().visibleGroups);
-    }
-  }
-
-  /* ========================================================================
      View Schema
      ======================================================================== */
 
@@ -147,18 +110,13 @@ export function initMarketWatchPage(root = document) {
     const availableGroups = getAvailableGroups(config, filterState.tableView);
 
     /*
-     * Filters restore the stored choice for a previously visited view.
-     * A newly visited view receives all groups available to that view.
+     * A new table view selects every group it supports. A previously visited
+     * table view restores its own saved column selection.
      */
 
     filters.setAvailableGroups(availableGroups);
 
     const normalizedState = filters.getState();
-
-    /*
-     * Table view changes have different column models, so desktop recreates
-     * its DataTable once. Mobile changes its schema without DataTables.
-     */
 
     table.setView(normalizedState.tableView);
     table.setVisibleGroups(normalizedState.visibleGroups);
@@ -217,8 +175,8 @@ export function initMarketWatchPage(root = document) {
       const { visibleGroups } = filters.getState();
 
       /*
-       * Show/Hide Columns is presentation-only. It must not issue a new API
-       * request or reset the current result set.
+       * Column visibility is presentation-only. Do not request data or reset
+       * the current result set.
        */
 
       table.setVisibleGroups(visibleGroups);
@@ -239,15 +197,9 @@ export function initMarketWatchPage(root = document) {
     }
   }
 
-  function handleMediaChange() {
-    if (!destroyed) {
-      syncResponsiveView();
-    }
-  }
-
   /*
-   * Existing watchlist code may dispatch this after add/remove actions finish.
-   * Reloading then updates star states and an active Watchlist-only result.
+   * Existing watchlist code can dispatch this event after its login/dialog
+   * flow completes. Reloading updates favourite states and Watchlist-only data.
    */
 
   function handleWatchlistUpdated() {
@@ -270,7 +222,6 @@ export function initMarketWatchPage(root = document) {
 
     service.cancel();
     unsubscribeFilters?.();
-
     abortController.abort();
 
     filters.destroy();
@@ -282,10 +233,6 @@ export function initMarketWatchPage(root = document) {
 
   unsubscribeFilters = filters.subscribe(handleFilterChange);
 
-  mediaQuery.addEventListener("change", handleMediaChange, {
-    signal: abortController.signal,
-  });
-
   root.addEventListener(
     "marketwatch:watchlist-updated",
     handleWatchlistUpdated,
@@ -294,16 +241,7 @@ export function initMarketWatchPage(root = document) {
     },
   );
 
-  /*
-   * Initial order:
-   *
-   * 1. configure the selected table-view schema
-   * 2. reveal only the active desktop or mobile presentation
-   * 3. request data once
-   */
-
   syncViewSchema();
-  syncResponsiveView();
   loadData();
 
   const instance = Object.freeze({
