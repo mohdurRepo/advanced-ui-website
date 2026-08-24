@@ -1,0 +1,2717 @@
+<c:set var="openCloseAuction" value="false" />
+<c:if
+	test="${requestScope.marketStatusID == 6 or requestScope.marketStatusID ==1  or requestScope.marketStatusID ==4 }">
+	<c:set var="openCloseAuction" value="true" />
+</c:if>
+
+<section class="app-container hero-banner-section sukuk-bonds-page">
+
+	<%-- =====================================================
+         HERO BANNER
+         ===================================================== --%>
+
+	<div class="profile-banner animate__animated animate__fadeIn">
+		<div class="profile-banner--pattern">
+			<div class="row">
+
+				<div class="col-12">
+					<h2 class="d-flex align-items-center">
+						<svg class="pc-icon link-icon me-3" width="40" height="40"
+							aria-hidden="true">
+                            <use xlink:href="#tadawul-arrow-icon"></use>
+                        </svg>
+
+						<span> <fmt:message key="sukukAndBonds.marketwatch.title" />
+						</span>
+					</h2>
+				</div>
+
+				<div class="col-12">
+					<div class="banner-filters sukuk-bonds-filters">
+						<div class="row g-3 mt-2">
+
+							<input type="hidden" id="requestLocale" name="requestLocale"
+								value="<c:out value='${pageContext.request.locale.language}' />" />
+
+							<%-- =========================================
+                                 BOND TYPE FILTER
+                                 ========================================= --%>
+
+							<div class="col-12 col-sm-6 col-md-4 col-lg-3">
+								<div class="form-field">
+									<label class="form-label" for="sectorParameter">
+										<fmt:message key="bonds.market.watch.label.types" />
+									</label>
+
+									<div class="form-control-shell is-select" tabindex="0"
+										data-select data-field="sectorParameter">
+										<div class="form-select-value is-placeholder">
+											<fmt:message key="bonds.market.watch.label.all.bonds" />
+										</div>
+
+										<input type="hidden" id="sectorParameter"
+											name="sectorParameter" data-filter="sectorParameter"
+											value="<c:out value='${empty requestScope.selectedSector ? "all" : requestScope.selectedSector}' />" />
+
+										<span class="form-suffix form-select-arrow" aria-hidden="true"></span>
+
+										<div class="form-popover">
+											<div class="form-select-panel">
+												<div class="form-select-list">
+
+													<div class="form-select-option" data-value="all"
+														<c:if test="${empty requestScope.selectedSector or requestScope.selectedSector eq 'all'}">
+                                                            data-selected="true"
+                                                        </c:if>>
+														<fmt:message key="bonds.market.watch.label.all.bonds" />
+													</div>
+
+													<c:forEach items="${requestScope.sectorList}"
+														var="sectorItem">
+														<div class="form-select-option"
+															data-value="<c:out value='${sectorItem.name}' />"
+															<c:if test="${requestScope.selectedSector eq sectorItem.name}">
+                                                                data-selected="true"
+                                                            </c:if>>
+															<c:out value="${sectorItem.symbol}" />
+														</div>
+													</c:forEach>
+
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<%-- =========================================
+                                 COLUMN VISIBILITY
+                                 ========================================= --%>
+
+							<div class="col-12 col-sm-6 col-md-4 col-lg-3">
+								<div class="form-field">
+									<label class="form-label" for="columnVisibility">
+										<fmt:message key="show.hide.column" />
+									</label>
+
+									<div class="form-control-shell is-select is-multi is-search"
+										tabindex="0" data-select data-field="columnVisibility">
+										<div class="form-select-value is-placeholder"
+											data-placeholder="<fmt:message key='show.hide.all' />">
+											<fmt:message key="show.hide.all" />
+										</div>
+
+										<input type="hidden" id="columnVisibility"
+											name="columnVisibility" data-label="Show / Hide Columns" />
+
+										<span class="form-suffix form-select-arrow" aria-hidden="true"></span>
+
+										<div class="form-popover">
+											<div class="form-select-panel">
+
+												<div class="form-select-actions">
+													<button type="button" class="form-select-action"
+														data-column-action="select-all">
+														<fmt:message key="select.all" />
+													</button>
+
+													<button type="button" class="form-select-action"
+														data-column-action="clear-all">
+														<fmt:message key="clear.all" />
+													</button>
+												</div>
+
+												<div class="form-select-list">
+
+													<div class="form-select-option" data-value="isin"
+														data-selected="true">
+														<input type="checkbox" class="form-select-checkbox"
+															checked />
+
+														<span> <fmt:message
+																key="sukukAndBonds.all.market.watch.table.column.header.isin" />
+														</span>
+													</div>
+
+													<div class="form-select-option" data-value="couponDetails"
+														data-selected="true">
+														<input type="checkbox" class="form-select-checkbox"
+															checked />
+
+														<span> <fmt:message
+																key="sukukAndBonds.all.market.watch.table.column.header.couponDetails" />
+														</span>
+													</div>
+
+													<div class="form-select-option" data-value="maturity"
+														data-selected="true">
+														<input type="checkbox" class="form-select-checkbox"
+															checked />
+
+														<span> <fmt:message
+																key="sukukAndBonds.all.market.watch.table.column.header.maturitydate" />
+														</span>
+													</div>
+
+													<div class="form-select-option" data-value="yieldDetails"
+														data-selected="true">
+														<input type="checkbox" class="form-select-checkbox"
+															checked />
+
+														<span> <fmt:message
+																key="marketwatch.todaywatch.v2.table.column.header.div.yield" />
+														</span>
+													</div>
+
+													<div class="form-select-option" data-value="priceDetails"
+														data-selected="true">
+														<input type="checkbox" class="form-select-checkbox"
+															checked />
+
+														<span> <fmt:message
+																key="marketwatch.todaywatch.v2.table.column.header.price" />
+														</span>
+													</div>
+
+													<div class="form-select-option" data-value="issueDetails"
+														data-selected="true">
+														<input type="checkbox" class="form-select-checkbox"
+															checked />
+
+														<span> <fmt:message
+																key="marketwatch.todaywatch.v2.table.column.issue_details" />
+														</span>
+													</div>
+
+													<div class="form-select-option" data-value="couponMeta"
+														data-selected="true">
+														<input type="checkbox" class="form-select-checkbox"
+															checked />
+
+														<span> <fmt:message
+																key="marketwatch.todaywatch.v2.table.column.couponMeta" />
+														</span>
+													</div>
+
+													<div class="form-select-option" data-value="watchlist"
+														data-selected="true">
+														<input type="checkbox" class="form-select-checkbox"
+															checked />
+
+														<span> <fmt:message
+																key="marketwatch.todaywatch.v2.table.column.header.watchlist" />
+														</span>
+													</div>
+
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<%-- Reserved area for future actions. --%>
+
+							<div class="col-12 col-md-4 col-lg-6">
+								<div class="d-flex h-100 align-items-end justify-content-lg-end"></div>
+							</div>
+
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</div>
+
+	<%-- =====================================================
+         CONTENT
+         ===================================================== --%>
+
+	<div class="intro-section">
+		<section class="app-container mt-5">
+			<section class="feature-content sukuk-bonds-content">
+
+				<%-- =========================================
+                     DESKTOP TABLE VIEW
+                     ========================================= --%>
+
+				<div id="sukukBondsDesktopView"
+					class="desktop-table-view page-view-container">
+					<div class="table-wrapper">
+						<table id="sukukAndBondsMarketWatchTable"
+							class="table sukuk-bonds-market-table" width="100%">
+							<thead>
+								<tr>
+
+									<th data-column-group="instrument"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.name" />
+									</th>
+
+									<th data-column-group="isin"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.isin" />
+									</th>
+
+									<th data-column-group="couponDetails"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.couponType" />
+									</th>
+
+									<th data-column-group="couponDetails"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.couponrate" />
+									</th>
+
+									<th data-column-group="maturity"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.maturitydate" />
+									</th>
+
+									<th data-column-group="yieldDetails"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.instrumentYield" />
+									</th>
+
+									<th data-column-group="yieldDetails"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.bidYield" />
+									</th>
+
+									<th data-column-group="yieldDetails"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.askYield" />
+									</th>
+
+									<th data-column-group="issueDetails"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.parValue" />
+									</th>
+
+									<th data-column-group="priceDetails"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.lastTradePrice" />
+									</th>
+
+									<th data-column-group="priceDetails"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.bidPrice" />
+									</th>
+
+									<th data-column-group="priceDetails"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.askPrice" />
+									</th>
+
+									<th data-column-group="issueDetails"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.issuanceAmount" />
+									</th>
+
+									<th data-column-group="issueDetails"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.issuanceCurrency" />
+									</th>
+
+									<th data-column-group="couponMeta"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.couponFrequency" />
+									</th>
+
+									<th data-column-group="couponMeta"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.dayCountConvention" />
+									</th>
+
+									<th data-column-group="watchlist"><fmt:message
+											key="marketwatch.todaywatch.v2.table.column.header.watchlist" />
+									</th>
+
+								</tr>
+							</thead>
+
+							<tbody></tbody>
+						</table>
+					</div>
+				</div>
+
+				<%-- =========================================
+                     MOBILE CARD VIEW
+                     ========================================= --%>
+
+				<div id="sukukBondsMobileView"
+					class="mobile-card-view page-view-container" hidden>
+					<div id="sukukBondsCards" class="market-watch-cards"></div>
+				</div>
+
+				<%-- =========================================
+                     FOOTNOTES
+                     ========================================= --%>
+
+				<div class="notes">
+					<ul>
+						<li><fmt:message
+								key="equity.market.watch.sukukbonds.footnote1" />
+						</li>
+
+						<li><fmt:message
+								key="equity.market.watch.sukukbonds.footnote2" />
+						</li>
+
+						<li><fmt:message
+								key="equity.market.watch.sukukbonds.footnote3" />
+						</li>
+					</ul>
+				</div>
+
+			</section>
+		</section>
+	</div>
+
+</section>
+
+<%-- =========================================================
+     PAGE CONFIGURATION
+     ========================================================= --%>
+
+<script>
+    window.SukukBondsMarketWatchConfig = {
+        moduleName: "sukukBondsMarketWatch",
+ 
+        locale:
+            "<c:out value='${pageContext.request.locale.language}' />",
+ 
+        endpoints: {
+            marketWatch:
+                "<portlet:resourceURL id='getSukukMarketDetails' />"
+        },
+ 
+        filters: {
+            sectorParameter:
+                "<c:out value='${empty requestScope.selectedSector ? "all" : requestScope.selectedSector}' />"
+        },
+ 
+        selectors: {
+            sectorInput:
+                "#sectorParameter",
+ 
+            columnVisibilityInput:
+                "#columnVisibility",
+ 
+            desktopView:
+                "#sukukBondsDesktopView",
+ 
+            mobileView:
+                "#sukukBondsMobileView",
+ 
+            cardsContainer:
+                "#sukukBondsCards",
+ 
+            columnField:
+                '[data-field="columnVisibility"]',
+ 
+            table:
+                "#sukukAndBondsMarketWatchTable"
+        },
+ 
+        breakpoints: {
+            mobileMaxWidth: 767.98
+        },
+ 
+        columnGroups: {
+            instrument: true,
+            isin: true,
+            couponDetails: true,
+            maturity: true,
+            yieldDetails: true,
+            priceDetails: true,
+            issueDetails: true,
+            couponMeta: true,
+            watchlist: true
+        },
+ 
+        labels: {
+            showAll:
+                "<fmt:message key='show.hide.all' />",
+ 
+            noColumns:
+                "<fmt:message key='show.hide.no.columns' />",
+ 
+            selectedSuffix:
+                "<fmt:message key='selected' />",
+ 
+            noData:
+                "<fmt:message key='no.data.available' />",
+ 
+            selectAll:
+                "<fmt:message key='select.all' />",
+ 
+            clearAll:
+                "<fmt:message key='clear.all' />",
+                
+            government: "<fmt:message key='sukukAndBonds.sukuk.governmentSukuk' />",
+            
+            corporate: "<fmt:message key='sukukAndBonds.sukuk.corporateSukuk' />",
+ 
+            mobile: {
+                symbolName:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.name' />",
+ 
+                price:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.lastTradePrice' />"
+            },
+ 
+            card: {
+                instrument:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.name' />",
+ 
+                tadawulCode:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.tadawulcode' />",
+ 
+                name:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.name' />",
+ 
+                isin:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.isin' />",
+ 
+                couponType:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.couponType' />",
+ 
+                couponRate:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.couponrate' />",
+ 
+                maturityDate:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.maturitydate' />",
+ 
+                instrumentYield:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.instrumentYield' />",
+ 
+                bidYield:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.bidYield' />",
+ 
+                askYield:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.askYield' />",
+ 
+                parValue:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.parValue' />",
+ 
+                lastTradePrice:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.lastTradePrice' />",
+ 
+                bidPrice:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.bidPrice' />",
+ 
+                askPrice:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.askPrice' />",
+ 
+                issuanceAmount:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.issuanceAmount' />",
+ 
+                issuanceCurrency:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.issuanceCurrency' />",
+ 
+                couponFrequency:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.couponFrequency' />",
+ 
+                dayCountConvention:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.dayCountConvention' />",
+ 
+                watchlist:
+                    "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.watchlist' />",
+ 
+                perpetualBond:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.column.perpetualBond' />",
+ 
+                floating:
+                    "<fmt:message key='bonds.market.watch.label.Floating' />",
+ 
+                fixed:
+                    "<fmt:message key='bonds.market.watch.label.Fixed' />",
+ 
+                couponFrequency1:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.1' />",
+ 
+                couponFrequency2:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.2' />",
+ 
+                couponFrequency4:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.4' />",
+ 
+                couponFrequency12:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.12' />",
+ 
+                couponFrequency0:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.0' />",
+ 
+                dayCount7:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.dayCountConvention.7' />",
+ 
+                dayCount2:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.dayCountConvention.2' />",
+ 
+                dayCount3:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.dayCountConvention.3' />",
+ 
+                dayCount0:
+                    "<fmt:message key='sukukAndBonds.all.market.watch.dayCountConvention.0' />"
+            }
+        },
+ 
+        columnVisibilityDelay: 40,
+        resizeDelay: 200
+    };
+</script>
+
+<%-- =========================================================
+     MODULE SCRIPTS
+     ========================================================= --%>
+
+<script
+	src="${pageContext.request.contextPath}/js/utility/format-util.js"></script>
+
+<script
+	src="${pageContext.request.contextPath}/js/utility/custom-select.js"></script>
+
+<script
+	src="${pageContext.request.contextPath}/js/utility/page-view-manager.js"></script>
+
+<script
+	src="${pageContext.request.contextPath}/js/sukuk-bonds.schema.js"></script>
+
+<script
+	src="${pageContext.request.contextPath}/js/sukuk-bonds.page.renderers.js"></script>
+
+<script src="${pageContext.request.contextPath}/js/sukuk-bonds.page.js"></script>
+
+(function (window, document) {
+    "use strict";
+ 
+    var MODULE_NAME = "SukukBonds";
+ 
+    var DEFAULT_SELECTORS = {
+        sectorInput:
+            "#sectorParameter",
+ 
+        columnVisibilityInput:
+            "#columnVisibility",
+ 
+        desktopView:
+            "#sukukBondsDesktopView",
+ 
+        mobileView:
+            "#sukukBondsMobileView",
+ 
+        cardsContainer:
+            "#sukukBondsCards",
+ 
+        columnField:
+            '[data-field="columnVisibility"]',
+ 
+        table:
+            "#sukukAndBondsMarketWatchTable"
+    };
+ 
+    var DEFAULT_BREAKPOINT =
+        767.98;
+ 
+    /* =========================================================
+       INITIALIZATION
+       ========================================================= */
+ 
+    document.addEventListener(
+        "DOMContentLoaded",
+        initialize
+    );
+ 
+    function initialize() {
+        var baseConfig;
+        var selectors;
+        var managerConfig;
+        var manager;
+ 
+        validateDependencies();
+ 
+        baseConfig =
+            getBaseConfig();
+ 
+        selectors =
+            resolveSelectors(
+                baseConfig.selectors
+            );
+ 
+        managerConfig =
+            buildManagerConfig(
+                baseConfig,
+                selectors
+            );
+ 
+        if (!managerConfig.endpoint) {
+            console.error(
+                "[" + MODULE_NAME + "] Missing market-watch endpoint.",
+                baseConfig.endpoints || {}
+            );
+ 
+            return;
+        }
+ 
+        destroyExistingBindings();
+        destroyExistingManager();
+ 
+        manager =
+            window.PageViewManager
+                .create({
+                    config:
+                        managerConfig,
+ 
+                    renderers:
+                        window.SukukBondsRenderers
+                })
+                .init();
+ 
+        window.SukukBondsMarketWatchManager =
+            manager;
+ 
+        window.SukukBondsSelectBinding =
+            bindCustomSelects(
+                manager,
+                selectors
+            );
+    }
+ 
+    /* =========================================================
+       DEPENDENCY VALIDATION
+       ========================================================= */
+ 
+    function validateDependencies() {
+        if (!window.PageViewManager) {
+            throw new Error(
+                "SukukBonds requires PageViewManager."
+            );
+        }
+ 
+        if (!window.SukukBondsRenderers) {
+            throw new Error(
+                "SukukBonds requires SukukBondsRenderers."
+            );
+        }
+ 
+        if (!window.SukukBondsSchema) {
+            throw new Error(
+                "SukukBonds requires SukukBondsSchema."
+            );
+        }
+    }
+ 
+    /* =========================================================
+       CONFIGURATION
+       ========================================================= */
+ 
+    function getBaseConfig() {
+        return (
+            window.SukukBondsMarketWatchConfig ||
+            window.SukukBondsConfig ||
+            {}
+        );
+    }
+ 
+    function resolveSelectors(
+        configuredSelectors
+    ) {
+        return Object.assign(
+            {},
+            DEFAULT_SELECTORS,
+            configuredSelectors || {}
+        );
+    }
+ 
+    function resolveEndpoint(
+        baseConfig
+    ) {
+        if (baseConfig.endpoint) {
+            return baseConfig.endpoint;
+        }
+ 
+        if (
+            baseConfig.endpoints &&
+            baseConfig.endpoints.marketWatch
+        ) {
+            return (
+                baseConfig.endpoints.marketWatch
+            );
+        }
+ 
+        return "";
+    }
+ 
+    function resolveMobileBreakpoint(
+        baseConfig
+    ) {
+        if (
+            baseConfig.breakpoints &&
+            typeof baseConfig.breakpoints
+                .mobileMaxWidth ===
+                "number"
+        ) {
+            return (
+                baseConfig.breakpoints
+                    .mobileMaxWidth
+            );
+        }
+ 
+        if (
+            typeof baseConfig.mobileMaxWidth ===
+                "number"
+        ) {
+            return baseConfig.mobileMaxWidth;
+        }
+ 
+        return DEFAULT_BREAKPOINT;
+    }
+ 
+    function buildManagerConfig(
+        baseConfig,
+        selectors
+    ) {
+        var schema =
+            window.SukukBondsSchema;
+ 
+        var schemaColumnGroups =
+            schema.getColumnGroups(
+                baseConfig
+            );
+ 
+        var schemaColumnGroupsByView =
+            schema.getColumnGroupsByView(
+                baseConfig
+            );
+ 
+        var configuredVisibility =
+            Object.assign(
+                {},
+                schemaColumnGroups,
+                baseConfig.columnGroups || {}
+            );
+ 
+        return Object.assign(
+            {},
+            baseConfig,
+            {
+                moduleName:
+                    baseConfig.moduleName ||
+                    "sukukBondsMarketWatch",
+ 
+                endpoint:
+                    resolveEndpoint(
+                        baseConfig
+                    ),
+ 
+                initialView:
+                    String(
+                        baseConfig.initialView ||
+                        "1"
+                    ),
+ 
+                mobileMaxWidth:
+                    resolveMobileBreakpoint(
+                        baseConfig
+                    ),
+ 
+                selectors:
+                    selectors,
+ 
+                viewTargets: {
+                    "1":
+                        selectors.table
+                },
+ 
+                columnVisibility:
+                    Object.assign(
+                        {},
+                        configuredVisibility
+                    ),
+ 
+                defaultColumnVisibility:
+                    Object.assign(
+                        {},
+                        configuredVisibility
+                    ),
+ 
+                columnGroupsByView:
+                    schemaColumnGroupsByView,
+ 
+                getRequestData:
+                    function () {
+                        return buildRequestData(
+                            baseConfig,
+                            selectors
+                        );
+                    }
+            }
+        );
+    }
+ 
+    /* =========================================================
+       REQUEST DATA
+       ========================================================= */
+ 
+    function buildRequestData(
+        baseConfig,
+        selectors
+    ) {
+        return {
+            sectorParameter:
+                getSectorValue(
+                    selectors,
+                    baseConfig
+                ),
+ 
+            requestLocale:
+                getLocale(
+                    baseConfig
+                )
+        };
+    }
+ 
+    function getLocale(baseConfig) {
+        var localeInput =
+            document.querySelector(
+                "#requestLocale"
+            );
+ 
+        if (
+            localeInput &&
+            localeInput.value
+        ) {
+            return localeInput.value;
+        }
+ 
+        return (
+            baseConfig.locale ||
+            document.documentElement.lang ||
+            "en"
+        );
+    }
+ 
+    function getSectorValue(
+        selectors,
+        baseConfig
+    ) {
+        var input =
+            document.querySelector(
+                selectors.sectorInput
+            );
+ 
+        if (
+            input &&
+            input.value
+        ) {
+            return input.value;
+        }
+ 
+        if (
+            baseConfig &&
+            baseConfig.filters &&
+            baseConfig.filters
+                .sectorParameter
+        ) {
+            return (
+                baseConfig.filters
+                    .sectorParameter
+            );
+        }
+ 
+        return "all";
+    }
+ 
+    /* =========================================================
+       CUSTOM SELECT BINDING
+       ========================================================= */
+ 
+    function bindCustomSelects(
+        manager,
+        selectors
+    ) {
+        var sectorInput;
+        var lastSector;
+        var refreshTimer = null;
+        var destroyed = false;
+ 
+        if (!manager) {
+            return createEmptyBinding();
+        }
+ 
+        sectorInput =
+            document.querySelector(
+                selectors.sectorInput
+            );
+ 
+        lastSector =
+            getCurrentSectorValue(
+                sectorInput
+            );
+ 
+        function scheduleSectorSync() {
+            if (destroyed) {
+                return;
+            }
+ 
+            if (refreshTimer) {
+                window.clearTimeout(
+                    refreshTimer
+                );
+            }
+ 
+            /*
+             * CustomSelect may update its hidden input after
+             * the option click has completed. Running on the
+             * next event loop ensures the new value is available.
+             */
+            refreshTimer =
+                window.setTimeout(
+                    syncSector,
+                    0
+                );
+        }
+ 
+        function syncSector() {
+            var currentSector;
+ 
+            refreshTimer = null;
+ 
+            if (destroyed) {
+                return;
+            }
+ 
+            currentSector =
+                getCurrentSectorValue(
+                    sectorInput
+                );
+ 
+            if (
+                currentSector ===
+                lastSector
+            ) {
+                return;
+            }
+ 
+            lastSector =
+                currentSector;
+ 
+            if (
+                typeof manager.refresh ===
+                    "function"
+            ) {
+                manager.refresh();
+            }
+        }
+ 
+        function handleDocumentClick(
+            event
+        ) {
+            var option;
+            var fieldShell;
+            var fieldName;
+ 
+            option =
+                event.target.closest(
+                    ".form-select-option"
+                );
+ 
+            if (!option) {
+                return;
+            }
+ 
+            fieldShell =
+                option.closest(
+                    "[data-field]"
+                );
+ 
+            if (!fieldShell) {
+                return;
+            }
+ 
+            fieldName =
+                fieldShell.getAttribute(
+                    "data-field"
+                );
+ 
+            /*
+             * Column visibility is already owned by
+             * PageViewManager. Only the sector filter should
+             * trigger a remote data refresh here.
+             */
+            if (
+                fieldName !==
+                "sectorParameter"
+            ) {
+                return;
+            }
+ 
+            scheduleSectorSync();
+        }
+ 
+        function handleSectorChange() {
+            scheduleSectorSync();
+        }
+ 
+        document.addEventListener(
+            "click",
+            handleDocumentClick
+        );
+ 
+        if (sectorInput) {
+            sectorInput.addEventListener(
+                "change",
+                handleSectorChange
+            );
+        }
+ 
+        return {
+            destroy:
+                function () {
+                    if (destroyed) {
+                        return;
+                    }
+ 
+                    destroyed = true;
+ 
+                    document.removeEventListener(
+                        "click",
+                        handleDocumentClick
+                    );
+ 
+                    if (sectorInput) {
+                        sectorInput.removeEventListener(
+                            "change",
+                            handleSectorChange
+                        );
+                    }
+ 
+                    if (refreshTimer) {
+                        window.clearTimeout(
+                            refreshTimer
+                        );
+ 
+                        refreshTimer =
+                            null;
+                    }
+                }
+        };
+    }
+ 
+    function getCurrentSectorValue(
+        input
+    ) {
+        if (
+            input &&
+            input.value
+        ) {
+            return input.value;
+        }
+ 
+        return "all";
+    }
+ 
+    function createEmptyBinding() {
+        return {
+            destroy:
+                function () {}
+        };
+    }
+ 
+    /* =========================================================
+       CLEANUP
+       ========================================================= */
+ 
+    function destroyExistingManager() {
+        var manager =
+            window
+                .SukukBondsMarketWatchManager;
+ 
+        if (
+            manager &&
+            typeof manager.destroy ===
+                "function"
+        ) {
+            manager.destroy();
+        }
+ 
+        window.SukukBondsMarketWatchManager =
+            null;
+    }
+ 
+    function destroyExistingBindings() {
+        var binding =
+            window.SukukBondsSelectBinding;
+ 
+        if (
+            binding &&
+            typeof binding.destroy ===
+                "function"
+        ) {
+            binding.destroy();
+        }
+ 
+        window.SukukBondsSelectBinding =
+            null;
+    }
+ 
+})(window, document);
+    (function (window) {
+    "use strict";
+ 
+    var Format = window.FormatUtils;
+    var Schema = window.SukukBondsSchema;
+ 
+    if (!Format) {
+        throw new Error(
+            "SukukBondsRenderers requires FormatUtils."
+        );
+    }
+ 
+    if (!Schema) {
+        throw new Error(
+            "SukukBondsRenderers requires SukukBondsSchema."
+        );
+    }
+ 
+    /* =========================================================
+       CONFIGURATION HELPERS
+       ========================================================= */
+ 
+    function getLabels(config) {
+        return (
+            config &&
+            config.labels
+        ) || {};
+    }
+ 
+    function getMobileLabels(config) {
+        return (
+            getLabels(config).mobile ||
+            {}
+        );
+    }
+ 
+    function getCardLabels(config) {
+        return (
+            getLabels(config).card ||
+            {}
+        );
+    }
+ 
+    /* =========================================================
+       GENERIC VALUE HELPERS
+       ========================================================= */
+ 
+    function hasValue(value) {
+        return (
+            value !== null &&
+            value !== undefined &&
+            value !== ""
+        );
+    }
+ 
+    function getFirstValue(
+        row,
+        keys,
+        fallback
+    ) {
+        var i;
+        var key;
+ 
+        row = row || {};
+ 
+        for (
+            i = 0;
+            i < keys.length;
+            i += 1
+        ) {
+            key = keys[i];
+ 
+            if (hasValue(row[key])) {
+                return row[key];
+            }
+        }
+ 
+        return fallback == null
+            ? ""
+            : fallback;
+    }
+ 
+    function normalizeRows(data) {
+        if (Array.isArray(data)) {
+            return data;
+        }
+ 
+        if (
+            data &&
+            Array.isArray(data.data)
+        ) {
+            return data.data;
+        }
+ 
+        if (
+            data &&
+            Array.isArray(data.rows)
+        ) {
+            return data.rows;
+        }
+ 
+        return [];
+    }
+ 
+    /* =========================================================
+       INSTRUMENT HELPERS
+       ========================================================= */
+ 
+    function getInstrumentCode(row) {
+        return getFirstValue(
+            row,
+            [
+                "symbol",
+                "tadawulCode",
+                "tadawulCodeModified",
+                "tadawulcode",
+                "code",
+                "companyRef",
+                "securityCode"
+            ],
+            "-"
+        );
+    }
+ 
+    function getInstrumentName(row) {
+        return getFirstValue(
+            row,
+            [
+                "issuerName",
+                "issuerNameModified",
+                "name",
+                "instrumentName",
+                "securityName"
+            ],
+            "-"
+        );
+    }
+ 
+    function getLastPrice(row) {
+        return getFirstValue(
+            row,
+            [
+                "lastTradePrice",
+                "lastTradePriceModified",
+                "bidPrice",
+                "bidPriceModified",
+                "askPrice",
+                "askPriceModified"
+            ],
+            "-"
+        );
+    }
+ 
+    /* =========================================================
+       WATCHLIST
+       ========================================================= */
+ 
+    function isWatchlistActive(row) {
+        var status =
+            row.watchlist ||
+            row.watchList ||
+            row.watchListId;
+ 
+        return (
+            status === true ||
+            status === "true" ||
+            status === "YES" ||
+            status === "Y" ||
+            status === 1 ||
+            status === "1"
+        );
+    }
+ 
+    function renderWatchlist(row) {
+        var instrumentRef =
+            getInstrumentCode(row);
+ 
+        var active =
+            isWatchlistActive(row);
+ 
+        var symbol =
+            Format.escapeHtml(
+                instrumentRef
+            );
+ 
+        return (
+            '<div class="market-watch-watchlist">' +
+ 
+                '<button type="button" ' +
+                    'id="WL_Btn_add-' + symbol + '" ' +
+                    'class="market-watch-watchlist__button ' +
+                        (active ? "d-none" : "") +
+                    '" ' +
+                    'onclick="showAddToWatchListPopup(\'' +
+                        symbol +
+                    '\')" ' +
+                    'aria-label="Add to Watchlist">' +
+ 
+                    '<svg class="pc-icon" ' +
+                        'width="24" ' +
+                        'height="24" ' +
+                        'aria-hidden="true">' +
+                        '<use xlink:href="#custom-star"></use>' +
+                    "</svg>" +
+ 
+                "</button>" +
+ 
+                '<button type="button" ' +
+                    'id="WL_Btn_del-' + symbol + '" ' +
+                    'class="market-watch-watchlist__button ' +
+                        (active ? "" : "d-none") +
+                    '" ' +
+                    'onclick="showAddToWatchListPopup(\'' +
+                        symbol +
+                    '\')" ' +
+                    'aria-label="In Your Watchlist">' +
+ 
+                    '<svg class="pc-icon" ' +
+                        'width="24" ' +
+                        'height="24" ' +
+                        'aria-hidden="true">' +
+                        '<use xlink:href="#custom-star-filled"></use>' +
+                    "</svg>" +
+ 
+                "</button>" +
+ 
+            "</div>"
+        );
+    }
+ 
+    var helpers = {
+        renderWatchlist:
+            renderWatchlist
+    };
+ 
+    /* =========================================================
+       COLUMN VISIBILITY
+       ========================================================= */
+ 
+    function shouldShowColumn(
+        column,
+        state
+    ) {
+        if (!column.group) {
+            return true;
+        }
+ 
+        if (
+            !state ||
+            !state.columnVisibility
+        ) {
+            return true;
+        }
+ 
+        return (
+            state.columnVisibility[
+                column.group
+            ] !== false
+        );
+    }
+ 
+    /* =========================================================
+       DATATABLE COLUMN BUILDER
+       ========================================================= */
+ 
+    function buildDataTableColumn(column) {
+        var output = {
+            data:
+                column.data,
+ 
+            className:
+                column.className,
+ 
+            orderable:
+                column.orderable !== false,
+ 
+            render:
+                function (
+                    data,
+                    type,
+                    row
+                ) {
+                    var value;
+ 
+                    if (
+                        typeof column.render ===
+                        "function"
+                    ) {
+                        value =
+                            column.render(
+                                row,
+                                helpers,
+                                type
+                            );
+                    } else {
+                        value = data;
+                    }
+ 
+                    if (
+                        value === null ||
+                        value === undefined ||
+                        value === ""
+                    ) {
+                        return "-";
+                    }
+ 
+                    return value;
+                }
+        };
+ 
+        if (column.width) {
+            output.width =
+                column.width;
+        }
+ 
+        return output;
+    }
+ 
+    /* =========================================================
+       MOBILE CARD FIELD BUILDER
+       ========================================================= */
+ 
+    function buildCardField(
+        column,
+        row,
+        state
+    ) {
+        var value;
+        var fieldKey;
+ 
+        if (!column.mobile) {
+            return "";
+        }
+ 
+        if (
+            !shouldShowColumn(
+                column,
+                state
+            )
+        ) {
+            return "";
+        }
+ 
+        if (
+            typeof column.render ===
+            "function"
+        ) {
+            value =
+                column.render(
+                    row,
+                    helpers,
+                    "display"
+                );
+        } else {
+            value =
+                row[column.data];
+        }
+ 
+        if (
+            value === null ||
+            value === undefined ||
+            value === ""
+        ) {
+            value = "-";
+        }
+ 
+        fieldKey =
+            column.group ||
+            column.key ||
+            "";
+ 
+        return (
+            '<div class="mobile-field-cell" ' +
+                'data-field="' +
+                    Format.escapeHtml(
+                        fieldKey
+                    ) +
+                '">' +
+ 
+                "<label>" +
+                    Format.escapeHtml(
+                        Format.sanitizeLabel(
+                            column.label ||
+                            column.key ||
+                            ""
+                        )
+                    ) +
+                "</label>" +
+ 
+                '<div class="mobile-field-cell__value">' +
+                    (
+                        column.isHtml
+                            ? value
+                            : Format.escapeHtml(
+                                value
+                            )
+                    ) +
+                "</div>" +
+ 
+            "</div>"
+        );
+    }
+ 
+    function buildMobileFields(
+        columns,
+        row,
+        state
+    ) {
+        return columns
+            .map(function (column) {
+                return buildCardField(
+                    column,
+                    row,
+                    state
+                );
+            })
+            .join("");
+    }
+ /* =========================================================
+       MOBILE CARD
+       ========================================================= */
+ 
+    function buildCard(
+        row,
+        state,
+        config
+    ) {
+        var columns =
+            Schema.getViewColumns(
+                config,
+                "1"
+            );
+ 
+        var code =
+            getInstrumentCode(row);
+ 
+        var name =
+            getInstrumentName(row);
+ 
+        var lastPrice =
+            getLastPrice(row);
+ 
+        return (
+            '<div class="company-wrapper">' +
+ 
+                '<div class="company-card-box" ' +
+                    'data-company-card>' +
+ 
+                    '<div class="company-main" ' +
+                        'data-card-toggle>' +
+ 
+                        '<div class="company-name-value">' +
+ 
+                            '<label class="stock-number">' +
+                                Format.escapeHtml(
+                                    code || "-"
+                                ) +
+                            "</label>" +
+ 
+                            '<label class="stock-name">' +
+                                Format.escapeHtml(
+                                    name || "-"
+                                ) +
+                            "</label>" +
+ 
+                        "</div>" +
+ 
+                        '<div class="company-market-value">' +
+ 
+                            '<label class="current-market-value">' +
+                                Format.escapeHtml(
+                                    Format.formatPlainSafe(
+                                        lastPrice
+                                    )
+                                ) +
+                            "</label>" +
+ 
+                        "</div>" +
+ 
+                    "</div>" +
+ 
+                    '<div class="company-extra ' +
+                        'company-market-value">' +
+ 
+                        '<div class="mobile-field-grid">' +
+                            buildMobileFields(
+                                columns,
+                                row,
+                                state
+                            ) +
+                        "</div>" +
+ 
+                    "</div>" +
+ 
+                "</div>" +
+ 
+            "</div>"
+        );
+    }
+ 
+    /* =========================================================
+       TABLE NORMALIZATION
+       ========================================================= */
+ 
+    function normalizeTableLayout(instance) {
+        var table;
+        var wrapper;
+     
+        if (
+            !instance ||
+            typeof instance.table !== "function"
+        ) {
+            return;
+        }
+     
+        table = instance.table().node();
+     
+        if (!table) {
+            return;
+        }
+     
+        /*
+         * Do not force a fixed table layout.
+         * DataTables must calculate widths from the content.
+         */
+        table.style.removeProperty(
+            "table-layout"
+        );
+     
+        table.style.removeProperty(
+            "width"
+        );
+     
+        wrapper = table.closest(
+            ".dt-container, .dataTables_wrapper"
+        );
+     
+        if (wrapper) {
+            wrapper.classList.add(
+                "datatable-core-table-wrapper"
+            );
+        }
+    }
+ 
+    function adjustTable(instance) {
+        if (
+            !instance ||
+            !instance.columns ||
+            typeof instance.columns.adjust !==
+                "function"
+        ) {
+            return;
+        }
+ 
+        window.requestAnimationFrame(
+            function () {
+                instance
+                    .columns
+                    .adjust();
+            }
+        );
+    }
+ 
+    /* =========================================================
+       PUBLIC RENDERER API
+       ========================================================= */
+ 
+    window.SukukBondsRenderers = {
+ 
+        getTableColumns:
+            function (
+                view,
+                state,
+                config
+            ) {
+                return Schema
+                    .getViewColumns(
+                        config,
+                        view || "1"
+                    )
+                    .map(
+                        buildDataTableColumn
+                    );
+            },
+ 
+            getTableOptions: function (
+            	    view,
+            	    state,
+            	    config
+            	) {
+            	    var labels = getLabels(config);
+            	 
+            	    return {
+            	        autoWidth: true,
+            	        scrollX: true,
+            	        scrollCollapse: true,
+            	        responsive: false,
+            	        ordering: false,
+            	        searching: false,
+            	        lengthChange: false,
+            	        info: false,
+            	        paging: false,
+            	        deferRender: true,
+            	        stripeClasses: [],
+            	 
+            	        rowGroup: {
+            	            dataSrc: function (row) {
+            	                var type = String(
+            	                    row && row.bondType
+            	                        ? row.bondType
+            	                        : ""
+            	                )
+            	                    .trim()
+            	                    .toUpperCase();
+            	 
+            	                if (type === "G") {
+            	                    return (
+            	                        labels.government ||
+            	                        "Government Sukuk"
+            	                    );
+            	                }
+            	 
+            	                return (
+            	                    labels.corporate ||
+            	                    "Corporate Sukuk"
+            	                );
+            	            }
+            	        }
+            	    };
+            	},
+ 
+        normalizeResponse:
+            function (response) {
+                return normalizeRows(
+                    response
+                );
+            },
+ 
+        afterTableInit:
+            function (
+                instance
+            ) {
+                normalizeTableLayout(
+                    instance
+                );
+ 
+                adjustTable(
+                    instance
+                );
+            },
+ 
+        afterTableRefresh:
+            function (
+                instance
+            ) {
+                normalizeTableLayout(
+                    instance
+                );
+ 
+                adjustTable(
+                    instance
+                );
+            },
+ 
+        afterAdjust:
+            function (
+                instance
+            ) {
+                normalizeTableLayout(
+                    instance
+                );
+            },
+ 
+        afterMobileRender:
+            function () {},
+ 
+        renderMobile:
+            function (
+                rows,
+                state,
+                config
+            ) {
+                var labels =
+                    getLabels(config);
+ 
+                var mobileLabels =
+                    getMobileLabels(
+                        config
+                    );
+ 
+                rows =
+                    normalizeRows(rows);
+ 
+                if (!rows.length) {
+                    return (
+                        '<div class="datatable-for-mobile ' +
+                            'd-block d-md-none p-0">' +
+ 
+                            '<div class="empty-state">' +
+                                Format.escapeHtml(
+                                    labels.noData ||
+                                    "No data available"
+                                ) +
+                            "</div>" +
+ 
+                        "</div>"
+                    );
+                }
+ 
+                return (
+                    '<div class="datatable-for-mobile ' +
+                        'd-block d-md-none p-0">' +
+ 
+                        '<div class="list-view-section">' +
+ 
+                            '<div class="list-view-top-section">' +
+ 
+                                "<h5>" +
+                                    Format.escapeHtml(
+                                        mobileLabels.symbolName ||
+                                        "Code & Name"
+                                    ) +
+                                "</h5>" +
+ 
+                                "<h5>" +
+                                    Format.escapeHtml(
+                                        mobileLabels.price ||
+                                        "Price"
+                                    ) +
+                                "</h5>" +
+ 
+                            "</div>" +
+ 
+                        "</div>" +
+ 
+                        '<div class="mw-stock-list">' +
+ 
+                            rows
+                                .map(function (row) {
+                                    return buildCard(
+                                        row,
+                                        state,
+                                        config
+                                    );
+                                })
+                                .join("") +
+ 
+                        "</div>" +
+ 
+                    "</div>"
+                );
+            },
+ 
+        onMobileClick:
+            function (
+                event,
+                elements
+            ) {
+                var toggle;
+                var card;
+ 
+                if (
+                    event.target.closest(
+                        ".form-control-shell"
+                    )
+                ) {
+                    return;
+                }
+ 
+                if (
+                    event.target.closest(
+                        ".form-popover"
+                    )
+                ) {
+                    return;
+                }
+ 
+                if (
+                    event.target.closest(
+                        "button"
+                    )
+                ) {
+                    return;
+                }
+ 
+                if (
+                    event.target.closest(
+                        "a"
+                    )
+                ) {
+                    return;
+                }
+ 
+                toggle =
+                    event.target.closest(
+                        "[data-card-toggle]"
+                    );
+ 
+                if (!toggle) {
+                    return;
+                }
+ 
+                card =
+                    toggle.closest(
+                        "[data-company-card]"
+                    );
+ 
+                if (
+                    !card ||
+                    !elements ||
+                    !elements.mobileContainer
+                ) {
+                    return;
+                }
+ 
+                elements.mobileContainer
+                    .querySelectorAll(
+                        ".company-card-box.active"
+                    )
+                    .forEach(
+                        function (item) {
+                            if (
+                                item !== card
+                            ) {
+                                item.classList.remove(
+                                    "active"
+                                );
+                            }
+                        }
+                    );
+ 
+                card.classList.toggle(
+                    "active"
+                );
+            }
+    };
+})(window);
+ (function (window) {
+    "use strict";
+ 
+    if (!window.FormatUtils) {
+        throw new Error(
+            "SukukBondsSchema requires FormatUtils."
+        );
+    }
+ 
+    var Format = window.FormatUtils;
+ 
+    /* =========================================================
+       LABEL HELPERS
+       ========================================================= */
+ 
+    function getLabels(config) {
+        if (!config || !config.labels) {
+            return {};
+        }
+ 
+        return (
+            config.labels.table ||
+            config.labels.card ||
+            {}
+        );
+    }
+ 
+    /* =========================================================
+       GENERIC VALUE HELPERS
+       ========================================================= */
+ 
+    function hasValue(value) {
+        return (
+            value !== null &&
+            value !== undefined &&
+            value !== ""
+        );
+    }
+ 
+    function valueOrDash(value) {
+        return hasValue(value)
+            ? String(value)
+            : "-";
+    }
+ 
+    function getFirstValue(row, keys, fallback) {
+        var i;
+        var key;
+ 
+        row = row || {};
+ 
+        for (i = 0; i < keys.length; i += 1) {
+            key = keys[i];
+ 
+            if (hasValue(row[key])) {
+                return row[key];
+            }
+        }
+ 
+        return fallback == null
+            ? "-"
+            : fallback;
+    }
+ 
+    /* =========================================================
+       INSTRUMENT HELPERS
+       ========================================================= */
+ 
+    function getInstrumentCode(row) {
+        return getFirstValue(
+            row,
+            [
+                "symbol",
+                "tadawulCode",
+                "tadawulCodeModified",
+                "tadawulcode",
+                "code",
+                "companyRef",
+                "securityCode"
+            ],
+            "-"
+        );
+    }
+ 
+    function getInstrumentName(row) {
+        return getFirstValue(
+            row,
+            [
+                "issuerName",
+                "issuerNameModified",
+                "name",
+                "instrumentName",
+                "securityName"
+            ],
+            "-"
+        );
+    }
+ 
+    function getInstrumentUrl(row) {
+        return getFirstValue(
+            row,
+            [
+                "cUrl",
+                "companyUrl",
+                "detailsUrl",
+                "url"
+            ],
+            ""
+        );
+    }
+ 
+    function renderInstrument(row) {
+        var code = getInstrumentCode(row);
+        var name = getInstrumentName(row);
+        var url = getInstrumentUrl(row);
+     
+        var content =
+            '<span class="market-watch-instrument__name">' +
+                Format.escapeHtml(name) +
+            "</span>" +
+            "<br>" +
+            '<span class="market-watch-instrument__code">' +
+                Format.escapeHtml(code) +
+            "</span>";
+     
+        if (!url || url === "#") {
+            return content;
+        }
+     
+        return (
+            '<a class="market-watch-instrument-link" href="' +
+                Format.escapeHtml(url) +
+            '">' +
+                content +
+            "</a>"
+        );
+    }
+     
+  
+     
+ 
+    /* =========================================================
+       DATE FORMATTERS
+       ========================================================= */
+ 
+    function formatDateIso(value) {
+        var text;
+        var date;
+        var year;
+        var month;
+        var day;
+ 
+        if (!hasValue(value)) {
+            return "-";
+        }
+ 
+        text = String(value).trim();
+ 
+        if (/^\d{4}-\d{2}-\d{2}/.test(text)) {
+            return text.substring(0, 10);
+        }
+ 
+        date = new Date(text);
+ 
+        if (Number.isNaN(date.getTime())) {
+            return text;
+        }
+ 
+        year = date.getFullYear();
+        month = String(
+            date.getMonth() + 1
+        ).padStart(2, "0");
+        day = String(
+            date.getDate()
+        ).padStart(2, "0");
+ 
+        return (
+            year +
+            "-" +
+            month +
+            "-" +
+            day
+        );
+    }
+ 
+    /* =========================================================
+       NUMBER FORMATTERS
+       ========================================================= */
+ 
+    function formatDecimal(value, decimals) {
+        var number = Format.toNumber(value);
+ 
+        if (number === null) {
+            return "-";
+        }
+ 
+        return number.toFixed(decimals);
+    }
+ 
+    function formatYield4(value) {
+        return formatDecimal(value, 4);
+    }
+ 
+    function formatPrice2(value) {
+        return formatDecimal(value, 2);
+    }
+ 
+    function formatQuantity(value) {
+        if (!hasValue(value)) {
+            return "-";
+        }
+ 
+        return Format.formatQuantitySafe(value);
+    }
+ 
+    /* =========================================================
+       BUSINESS VALUE RESOLVERS
+       ========================================================= */
+ 
+    function resolveCouponType(value, labels) {
+        value = String(
+            value == null
+                ? ""
+                : value
+        );
+ 
+        if (value === "4") {
+            return labels.floating || "Floating";
+        }
+ 
+        if (value === "1") {
+            return labels.fixed || "Fixed";
+        }
+ 
+        return "-";
+    }
+ 
+    function resolveMaturity(row, labels) {
+        var perpetual =
+            row.isPerpetualBond === true ||
+            row.isPerpetualBond === "true" ||
+            row.isPerpetualBond === 1 ||
+            row.isPerpetualBond === "1";
+ 
+        if (perpetual) {
+            return (
+                labels.perpetualBond ||
+                "Perpetual Bond"
+            );
+        }
+ 
+        return formatDateIso(
+            getFirstValue(
+                row,
+                [
+                    "maturityDate",
+                    "maturityDateStr"
+                ],
+                ""
+            )
+        );
+    }
+ 
+    function resolveCouponFrequency(value, labels) {
+        var map = {
+            "1":
+                labels.couponFrequency1 ||
+                "Annual",
+ 
+            "2":
+                labels.couponFrequency2 ||
+                "Semi-Annual",
+ 
+            "4":
+                labels.couponFrequency4 ||
+                "Quarterly",
+ 
+            "12":
+                labels.couponFrequency12 ||
+                "Monthly",
+ 
+            "0":
+                labels.couponFrequency0 ||
+                "-"
+        };
+ 
+        return (
+            map[String(value)] ||
+            map["0"]
+        );
+    }
+ 
+    function resolveDayCountConvention(value, labels) {
+        var map = {
+            "7":
+                labels.dayCount7 ||
+                "Convention 7",
+ 
+            "2":
+                labels.dayCount2 ||
+                "Convention 2",
+ 
+            "3":
+                labels.dayCount3 ||
+                "Convention 3",
+ 
+            "0":
+                labels.dayCount0 ||
+                "-"
+        };
+ 
+        return (
+            map[String(value)] ||
+            map["0"]
+        );
+    }
+ 
+    /* =========================================================
+       COLUMN FACTORY
+       ========================================================= */
+ 
+    function createColumn(options) {
+        return {
+            key: options.key,
+            group: options.group,
+            label: options.label || "",
+            data:
+                options.data === undefined
+                    ? null
+                    : options.data,
+            className:
+                options.className ||
+                "align text-center",
+            width:
+                options.width ||
+                null,
+            orderable:
+                options.orderable !== false,
+            mobile:
+                options.mobile !== false,
+            isHtml:
+                options.isHtml === true,
+            render:
+                options.render
+        };
+    }
+ 
+    /* =========================================================
+       SCHEMA
+       ========================================================= */
+ 
+    function getSchema(config) {
+        var labels = getLabels(config);
+ 
+        return {
+            groups: {
+                isin: true,
+                couponDetails: true,
+                maturity: true,
+                yieldDetails: true,
+                priceDetails: true,
+                issueDetails: true,
+                couponMeta: true,
+                watchlist: true
+            },
+ 
+            views: {
+                "1": [
+
+                    createColumn({
+                        key: "instrument",
+                        group: null,
+                        label: labels.name || "Name",
+                        data: null,
+                        className:
+                            "align sukuk-bonds-instrument-column",
+                        width: "15%",
+                        mobile: false,
+                        isHtml: true,
+                        render: function (row) {
+                            return renderInstrument(row);
+                        }
+                    }),
+ 
+                    createColumn({
+                        key: "isin",
+                        group: "isin",
+                        label: labels.isin,
+                        data: "isin",
+                        width: "7%",
+                        render: function (row) {
+                            return valueOrDash(
+                                row.isin
+                            );
+                        }
+                    }),
+ 
+                    createColumn({
+                        key: "couponType",
+                        group: "couponDetails",
+                        label: labels.couponType,
+                        data: "rateCalcType",
+                        width: "6%",
+                        render: function (row) {
+                            return resolveCouponType(
+                                row.rateCalcType,
+                                labels
+                            );
+                        }
+                    }),
+ 
+                    createColumn({
+                        key: "couponRate",
+                        group: "couponDetails",
+                        label: labels.couponRate,
+                        data: "couponRateModified",
+                        width: "6%",
+                        render: function (row) {
+                            return valueOrDash(
+                                getFirstValue(
+                                    row,
+                                    [
+                                        "couponRateModified",
+                                        "couponRate"
+                                    ],
+                                    "-"
+                                )
+                            );
+                        }
+                    }),
+                    createColumn({
+                        key: "maturityDate",
+                        group: "maturity",
+                        label: labels.maturityDate,
+                        data: "maturityDate",
+                        width: "7%",
+                        render: function (row) {
+                            return resolveMaturity(
+                                row,
+                                labels
+                            );
+                        }
+                    }),
+ 
+                    createColumn({
+                        key: "instrumentYield",
+                        group: "yieldDetails",
+                        label:
+                            labels.instrumentYield,
+                        data: "lastTadeYield",
+                        width: "5.5%",
+                        render: function (row) {
+                            return formatYield4(
+                                getFirstValue(
+                                    row,
+                                    [
+                                        "lastTadeYield",
+                                        "lastTradeYield"
+                                    ],
+                                    null
+                                )
+                            );
+                        }
+                    }),
+ 
+                    createColumn({
+                        key: "bidYield",
+                        group: "yieldDetails",
+                        label: labels.bidYield,
+                        data: "bidYield",
+                        width: "5.5%",
+                        render: function (row) {
+                            return formatYield4(
+                                row.bidYield
+                            );
+                        }
+                    }),
+ 
+                    createColumn({
+                        key: "askYield",
+                        group: "yieldDetails",
+                        label: labels.askYield,
+                        data: "askYield",
+                        width: "5.5%",
+                        render: function (row) {
+                            return formatYield4(
+                                row.askYield
+                            );
+                        }
+                    }),
+ 
+                    createColumn({
+                        key: "parValue",
+                        group: "issueDetails",
+                        label: labels.parValue,
+                        data: "parValue",
+                        width: "6%",
+                        render: function (row) {
+                            return formatQuantity(
+                                row.parValue
+                            );
+                        }
+                    }),
+ 
+                    createColumn({
+                        key: "lastTradePrice",
+                        group: "priceDetails",
+                        label:
+                            labels.lastTradePrice,
+                        data: "lastTradePrice",
+                        width: "5.5%",
+                        render: function (row) {
+                            return formatPrice2(
+                                row.lastTradePrice
+                            );
+                        }
+                    }),
+ 
+                    createColumn({
+                        key: "bidPrice",
+                        group: "priceDetails",
+                        label: labels.bidPrice,
+                        data: "bidPrice",
+                        width: "5%",
+                        render: function (row) {
+                            return formatPrice2(
+                                row.bidPrice
+                            );
+                        }
+                    }),
+ 
+                    createColumn({
+                        key: "askPrice",
+                        group: "priceDetails",
+                        label: labels.askPrice,
+                        data: "askPrice",
+                        width: "5%",
+                        render: function (row) {
+                            return formatPrice2(
+                                row.askPrice
+                            );
+                        }
+                    }),
+ 
+                    createColumn({
+                        key: "issuanceAmount",
+                        group: "issueDetails",
+                        label:
+                            labels.issuanceAmount,
+                        data:
+                            "outstandingAmountModified",
+                        width: "7%",
+                        render: function (row) {
+                            return valueOrDash(
+                                getFirstValue(
+                                    row,
+                                    [
+                                        "outstandingAmountModified",
+                                        "issuanceAmount",
+                                        "outstandingAmount"
+                                    ],
+                                    "-"
+                                )
+                            );
+                        }
+                    }),
+ 
+                    createColumn({
+                        key: "issuanceCurrency",
+                        group: "issueDetails",
+                        label:
+                            labels.issuanceCurrency,
+                        data: "issueCurrency",
+                        width: "5%",
+                        render: function (row) {
+                            return valueOrDash(
+                                row.issueCurrency
+                            );
+                        }
+                    }),
+ 
+                    createColumn({
+                        key: "couponFrequency",
+                        group: "couponMeta",
+                        label:
+                            labels.couponFrequency,
+                        data: "couponFrequency",
+                        width: "6%",
+                        render: function (row) {
+                            return resolveCouponFrequency(
+                                row.couponFrequency,
+                                labels
+                            );
+                        }
+                    }),
+ 
+                    createColumn({
+                        key: "dayCountConvention",
+                        group: "couponMeta",
+                        label:
+                            labels.dayCountConvention,
+                        data: "dayCountMethod",
+                        width: "7%",
+                        render: function (row) {
+                            return resolveDayCountConvention(
+                                row.dayCountMethod,
+                                labels
+                            );
+                        }
+                    }),
+ 
+                    createColumn({
+                        key: "watchlist",
+                        group: "watchlist",
+                        label: labels.watchlist,
+                        data: null,
+                        className:
+                            "align text-center sukuk-bonds-watchlist-column",
+                        width: "4%",
+                        orderable: false,
+                        mobile: true,
+                        isHtml: true,
+                        render: function (
+                            row,
+                            helpers
+                        ) {
+                            if (
+                                !helpers ||
+                                typeof helpers.renderWatchlist !==
+                                    "function"
+                            ) {
+                                return "";
+                            }
+ 
+                            return helpers.renderWatchlist(
+                                row
+                            );
+                        }
+                    })
+                ]
+            }
+        };
+    }
+ 
+/* =========================================================
+       PUBLIC SCHEMA HELPERS
+       ========================================================= */
+ 
+    function getViewColumns(config, view) {
+        var schema = getSchema(config);
+        var requestedView =
+            String(view || "1");
+ 
+        return (
+            schema.views[requestedView] ||
+            schema.views["1"] ||
+            []
+        );
+    }
+ 
+    function getColumnGroups(config) {
+        return getSchema(config).groups;
+    }
+ 
+    function getColumnGroupsByView(config) {
+        var schema = getSchema(config);
+        var result = {};
+ 
+        Object.keys(
+            schema.views
+        ).forEach(function (view) {
+            result[view] = {};
+ 
+            schema.views[view].forEach(
+                function (column, index) {
+                    if (!column.group) {
+                        return;
+                    }
+ 
+                    if (
+                        !result[view][column.group]
+                    ) {
+                        result[view][
+                            column.group
+                        ] = [];
+                    }
+ 
+                    result[view][
+                        column.group
+                    ].push(index);
+                }
+            );
+        });
+ 
+        return result;
+    }
+ 
+    function getColumnIndexes(
+        config,
+        view,
+        group
+    ) {
+        var groupsByView =
+            getColumnGroupsByView(config);
+ 
+        return (
+            groupsByView[String(view || "1")] &&
+            groupsByView[String(view || "1")][
+                group
+            ]
+        ) || [];
+    }
+ 
+    /* =========================================================
+       PUBLIC API
+       ========================================================= */
+ 
+    window.SukukBondsSchema = {
+        getSchema:
+            getSchema,
+ 
+        getViewColumns:
+            getViewColumns,
+ 
+        getColumnGroups:
+            getColumnGroups,
+ 
+        getColumnGroupsByView:
+            getColumnGroupsByView,
+ 
+        getColumnIndexes:
+            getColumnIndexes
+    };
+})(window);
+ 
+            
