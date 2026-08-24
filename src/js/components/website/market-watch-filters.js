@@ -3,17 +3,28 @@
    ========================================================================== */
 
 /*
- * One responsibility:
- * Manage Market Watch filter controls and emit state changes.
+ * Owns Market Watch filter state and interaction only.
  *
  * This module has no:
+ *
  * - AJAX requests
- * - DataTables code
- * - mobile-card rendering
+ * - DataTables setup
+ * - card rendering
  * - login implementation
  *
- * Watchlist login/dialog behavior is delegated through MarketWatchConfig.
+ * Authentication is read from the watchlist control itself, rather than from
+ * MarketWatchConfig. The existing site-level showAddToWatchListPopup() flow
+ * remains the authority for login and watchlist dialogs.
  */
+
+const DEFAULT_GROUPS = [
+  "range",
+  "last-trade",
+  "cumulative",
+  "trading",
+  "best-bid",
+  "best-offer",
+];
 
 const SELECTORS = {
   form: "[data-market-watch-filters]",
@@ -28,16 +39,20 @@ const SELECTORS = {
   columnAction: "[data-market-watch-columns-action]",
 };
 
-function isElement(value) {
-  return value instanceof Element;
-}
-
 function toArray(value) {
   return Array.from(value || []);
 }
 
 function unique(values) {
-  return [...new Set(values)];
+  return [...new Set(values.filter(Boolean))];
+}
+
+function isElement(value) {
+  return value instanceof Element;
+}
+
+function parseBoolean(value) {
+  return value === true || value === "true" || value === "1";
 }
 
 function createInitialState(config = {}) {
@@ -47,17 +62,7 @@ function createInitialState(config = {}) {
     industry: initialState.industry || "all",
     tableView: String(initialState.tableView || "1"),
     watchlistOnly: Boolean(initialState.watchlistOnly),
-
-    visibleGroups: unique(
-      initialState.visibleGroups || [
-        "range",
-        "last-trade",
-        "cumulative",
-        "trading",
-        "best-bid",
-        "best-offer",
-      ],
-    ),
+    visibleGroups: unique(initialState.visibleGroups || DEFAULT_GROUPS),
   };
 }
 
@@ -74,6 +79,10 @@ export function createMarketWatchFilters(config = {}, root = document) {
     );
   }
 
+  const documentRef = form.ownerDocument;
+  const abortController = new AbortController();
+  const listeners = new Set();
+
   const elements = {
     form,
     industry: form.querySelector(SELECTORS.industry),
@@ -86,11 +95,25 @@ export function createMarketWatchFilters(config = {}, root = document) {
   };
 
   const state = createInitialState(config);
-  const availableGroups = new Set(state.visibleGroups);
-  const listeners = new Set();
 
-  let isOpen = false;
+  /*
+   * Each view owns its own selection. This prevents a user’s Overview choice
+   * from being destroyed simply because Price Data has fewer groups.
+   *
+   * A view that has never been opened defaults to all of its available groups.
+   */
+
+  const selectionsByView = new Map([
+    [state.tableView, [...state.visibleGroups]],
+  ]);
+
+  let availableGroups = new Set(state.visibleGroups);
+  let isColumnsMenuOpen = false;
   let isDestroyed = false;
+
+  /* ========================================================================
+     Column Helpers
+     ======================================================================== */
 
   function getColumnInputs() {
     if (!elements.columnsMenu) {
@@ -102,48 +125,33 @@ export function createMarketWatchFilters(config = {}, root = document) {
     );
   }
 
+  function getColumnId(input) {
+    return input?.dataset.marketWatchColumn || input?.value || "";
+  }
+
   function getAvailableColumnInputs() {
     return getColumnInputs().filter((input) => !input.disabled);
   }
 
-  function getVisibleGroups() {
-    const available = new Set(
-      getAvailableColumnInputs().map(
-        (input) => input.value || input.dataset.marketWatchColumn,
-      ),
-    );
-
-    return state.visibleGroups.filter((groupId) => available.has(groupId));
+  function getAvailableGroupIds() {
+    return getAvailableColumnInputs().map(getColumnId).filter(Boolean);
   }
 
-  function getSnapshot() {
-    return Object.freeze({
-      industry: state.industry,
-      tableView: state.tableView,
-      watchlistOnly: state.watchlistOnly,
-      visibleGroups: [...state.visibleGroups],
-    });
+  function getStoredSelection(view = state.tableView) {
+    return selectionsByView.get(String(view)) || null;
   }
 
-  function emit(type, sourceEvent) {
-    const detail = Object.freeze({
-      type,
-      state: getSnapshot(),
-      sourceEvent: sourceEvent || null,
+  function setStoredSelection(groups, view = state.tableView) {
+    const allowed = new Set(availableGroups);
+    const selection = unique(groups).filter((groupId) => {
+      return allowed.has(groupId);
     });
 
-    listeners.forEach((listener) => listener(detail));
+    selectionsByView.set(String(view), selection);
 
-    form.dispatchEvent(
-      new CustomEvent("marketwatch:filters-change", {
-        bubbles: true,
-        detail,
-      }),
-    );
-  }
-
-  function getColumnId(input) {
-    return input.dataset.marketWatchColumn || input.value || "";
+    if (String(view) === state.tableView) {
+      state.visibleGroups = selection;
+    }
   }
 
   function getSelectedGroupCount() {
@@ -171,16 +179,16 @@ export function createMarketWatchFilters(config = {}, root = document) {
       return;
     }
 
-    elements.columnsLabel.textContent = `${selected} ${labels.selectedSuffix || "Selected"}`;
+    elements.columnsLabel.textContent = `${selected} ${
+      labels.selectedSuffix || "Selected"
+    }`;
   }
 
   function syncColumnInputs() {
     const selectedGroups = new Set(state.visibleGroups);
 
     getColumnInputs().forEach((input) => {
-      const groupId = getColumnId(input);
-
-      input.checked = selectedGroups.has(groupId);
+      input.checked = selectedGroups.has(getColumnId(input));
     });
 
     updateColumnLabel();
@@ -205,49 +213,38 @@ export function createMarketWatchFilters(config = {}, root = document) {
     syncColumnInputs();
   }
 
-  function openColumns() {
-    if (!elements.columnsTrigger || !elements.columnsMenu || isOpen) {
-      return;
-    }
+  /* ========================================================================
+     State and Events
+     ======================================================================== */
 
-    isOpen = true;
-
-    elements.columnsMenu.hidden = false;
-    elements.columnsTrigger.setAttribute("aria-expanded", "true");
+  function getSnapshot() {
+    return Object.freeze({
+      industry: state.industry,
+      tableView: state.tableView,
+      watchlistOnly: state.watchlistOnly,
+      visibleGroups: [...state.visibleGroups],
+    });
   }
 
-  function closeColumns({ restoreFocus = false } = {}) {
-    if (!elements.columnsTrigger || !elements.columnsMenu || !isOpen) {
-      return;
-    }
+  function emit(type, sourceEvent = null) {
+    const detail = Object.freeze({
+      type,
+      state: getSnapshot(),
+      sourceEvent,
+    });
 
-    isOpen = false;
+    listeners.forEach((listener) => listener(detail));
 
-    elements.columnsMenu.hidden = true;
-    elements.columnsTrigger.setAttribute("aria-expanded", "false");
-
-    if (restoreFocus) {
-      elements.columnsTrigger.focus();
-    }
-  }
-
-  function toggleColumns() {
-    if (isOpen) {
-      closeColumns();
-
-      return;
-    }
-
-    openColumns();
+    form.dispatchEvent(
+      new CustomEvent("marketwatch:filters-change", {
+        bubbles: true,
+        detail,
+      }),
+    );
   }
 
   function setVisibleGroups(groups, { emitChange = false } = {}) {
-    const allowedGroups = new Set(getAvailableColumnInputs().map(getColumnId));
-
-    state.visibleGroups = unique(groups).filter((groupId) => {
-      return allowedGroups.has(groupId);
-    });
-
+    setStoredSelection(groups);
     syncColumnInputs();
 
     if (emitChange) {
@@ -255,14 +252,15 @@ export function createMarketWatchFilters(config = {}, root = document) {
     }
   }
 
+  /*
+   * The page coordinator calls this after it resolves the selected table view.
+   *
+   * Existing selections are restored for a previously visited view. A newly
+   * visited view receives all groups that exist in that view.
+   */
+
   function setAvailableGroups(groups) {
-    const nextAvailableGroups = new Set(groups);
-
-    availableGroups.clear();
-
-    nextAvailableGroups.forEach((groupId) => {
-      availableGroups.add(groupId);
-    });
+    availableGroups = new Set(unique(groups));
 
     getColumnInputs().forEach((input) => {
       const groupId = getColumnId(input);
@@ -276,15 +274,13 @@ export function createMarketWatchFilters(config = {}, root = document) {
       }
     });
 
-    /*
-     * A view can have fewer groups than Overview. Remove unavailable groups
-     * from the active state, but retain the user choice only for groups that
-     * exist in the current view.
-     */
+    const storedSelection = getStoredSelection();
 
-    state.visibleGroups = state.visibleGroups.filter((groupId) => {
-      return availableGroups.has(groupId);
-    });
+    if (storedSelection === null) {
+      setStoredSelection(getAvailableGroupIds());
+    } else {
+      setStoredSelection(storedSelection);
+    }
 
     syncColumnInputs();
   }
@@ -303,7 +299,7 @@ export function createMarketWatchFilters(config = {}, root = document) {
     }
 
     if (Array.isArray(nextState.visibleGroups)) {
-      setVisibleGroups(nextState.visibleGroups);
+      setStoredSelection(nextState.visibleGroups);
     }
 
     sync();
@@ -313,50 +309,58 @@ export function createMarketWatchFilters(config = {}, root = document) {
     }
   }
 
-  function requestWatchlistDialog() {
-    const openDialog = config.watchlist?.openDialog;
+  /* ========================================================================
+     Column Picker
+     ======================================================================== */
 
-    if (typeof openDialog === "function") {
-      openDialog("");
+  function openColumns() {
+    if (
+      !elements.columnsTrigger ||
+      !elements.columnsMenu ||
+      isColumnsMenuOpen
+    ) {
+      return;
+    }
+
+    isColumnsMenuOpen = true;
+
+    elements.columnsMenu.hidden = false;
+    elements.columnsTrigger.setAttribute("aria-expanded", "true");
+
+    window.requestAnimationFrame(() => {
+      const firstInput = getAvailableColumnInputs()[0];
+
+      firstInput?.focus();
+    });
+  }
+
+  function closeColumns({ restoreFocus = false } = {}) {
+    if (
+      !elements.columnsTrigger ||
+      !elements.columnsMenu ||
+      !isColumnsMenuOpen
+    ) {
+      return;
+    }
+
+    isColumnsMenuOpen = false;
+
+    elements.columnsMenu.hidden = true;
+    elements.columnsTrigger.setAttribute("aria-expanded", "false");
+
+    if (restoreFocus) {
+      elements.columnsTrigger.focus();
+    }
+  }
+
+  function toggleColumns() {
+    if (isColumnsMenuOpen) {
+      closeColumns();
 
       return;
     }
 
-    form.dispatchEvent(
-      new CustomEvent("marketwatch:watchlist-login-request", {
-        bubbles: true,
-      }),
-    );
-  }
-
-  function handleIndustryChange(event) {
-    state.industry = event.target.value || "all";
-
-    emit("industry", event);
-  }
-
-  function handleTableViewChange(event) {
-    state.tableView = String(event.target.value || "1");
-
-    emit("table-view", event);
-  }
-
-  function handleWatchlistChange(event) {
-    const requestedValue = event.target.checked;
-
-    if (requestedValue && !config.watchlist?.isAuthenticated) {
-      event.target.checked = false;
-      state.watchlistOnly = false;
-
-      requestWatchlistDialog();
-      sync();
-
-      return;
-    }
-
-    state.watchlistOnly = requestedValue;
-
-    emit("watchlist", event);
+    openColumns();
   }
 
   function handleColumnsMenuChange(event) {
@@ -372,16 +376,11 @@ export function createMarketWatchFilters(config = {}, root = document) {
       return;
     }
 
-    if (input.checked) {
-      state.visibleGroups = unique([...state.visibleGroups, groupId]);
-    } else {
-      state.visibleGroups = state.visibleGroups.filter(
-        (value) => value !== groupId,
-      );
-    }
+    const nextSelection = input.checked
+      ? unique([...state.visibleGroups, groupId])
+      : state.visibleGroups.filter((value) => value !== groupId);
 
-    updateColumnLabel();
-
+    setVisibleGroups(nextSelection);
     emit("columns", event);
   }
 
@@ -395,38 +394,116 @@ export function createMarketWatchFilters(config = {}, root = document) {
     event.preventDefault();
 
     const actionType = action.dataset.marketWatchColumnsAction;
-    const inputs = getAvailableColumnInputs();
 
     if (actionType === "select-all") {
-      state.visibleGroups = inputs.map(getColumnId);
-    }
+      setVisibleGroups(getAvailableGroupIds());
+      emit("columns", event);
 
-    if (actionType === "clear-all") {
-      state.visibleGroups = [];
-    }
-
-    syncColumnInputs();
-
-    emit("columns", event);
-  }
-
-  function handleDocumentPointerDown(event) {
-    if (!isOpen || !isElement(event.target)) {
       return;
     }
 
-    const clickedInsideTrigger = elements.columnsTrigger?.contains(
-      event.target,
-    );
-    const clickedInsideMenu = elements.columnsMenu?.contains(event.target);
+    if (actionType === "clear-all") {
+      /*
+       * An empty list is intentional: table rendering keeps the Company
+       * column visible and applies its dedicated company-only layout.
+       */
+      setVisibleGroups([]);
+      emit("columns", event);
+    }
+  }
 
-    if (!clickedInsideTrigger && !clickedInsideMenu) {
+  /* ========================================================================
+     Watchlist Access
+     ======================================================================== */
+
+  /*
+   * Add this server-rendered attribute to the watchlist input:
+   *
+   * data-market-watch-authenticated="<%= themeDisplay.isSignedIn() %>"
+   *
+   * It avoids duplicating login state in MarketWatchConfig.
+   */
+
+  function isWatchlistAuthenticated() {
+    return parseBoolean(elements.watchlist?.dataset.marketWatchAuthenticated);
+  }
+
+  function requestLegacyWatchlistDialog() {
+    if (typeof window.showAddToWatchListPopup === "function") {
+      window.showAddToWatchListPopup("");
+
+      return;
+    }
+
+    /*
+     * Safe fallback for pages where the legacy helper is loaded later.
+     * The site shell can listen for this event and open its login dialog.
+     */
+
+    form.dispatchEvent(
+      new CustomEvent("marketwatch:authentication-required", {
+        bubbles: true,
+        detail: {
+          source: "watchlist-filter",
+        },
+      }),
+    );
+  }
+
+  function handleWatchlistChange(event) {
+    const requested = event.target.checked;
+
+    if (requested && !isWatchlistAuthenticated()) {
+      state.watchlistOnly = false;
+      syncNativeControls();
+
+      requestLegacyWatchlistDialog();
+
+      return;
+    }
+
+    state.watchlistOnly = requested;
+    emit("watchlist", event);
+  }
+
+  /* ========================================================================
+     Native Filter Controls
+     ======================================================================== */
+
+  function handleIndustryChange(event) {
+    state.industry = event.target.value || "all";
+
+    emit("industry", event);
+  }
+
+  function handleTableViewChange(event) {
+    /*
+     * Save the old view selection before the page coordinator changes the
+     * available groups for the newly selected view.
+     */
+
+    selectionsByView.set(state.tableView, [...state.visibleGroups]);
+
+    state.tableView = String(event.target.value || "1");
+
+    emit("table-view", event);
+  }
+
+  function handleDocumentPointerDown(event) {
+    if (!isColumnsMenuOpen || !isElement(event.target)) {
+      return;
+    }
+
+    const clickedTrigger = elements.columnsTrigger?.contains(event.target);
+    const clickedMenu = elements.columnsMenu?.contains(event.target);
+
+    if (!clickedTrigger && !clickedMenu) {
       closeColumns();
     }
   }
 
   function handleDocumentKeyDown(event) {
-    if (event.key !== "Escape" || !isOpen) {
+    if (event.key !== "Escape" || !isColumnsMenuOpen) {
       return;
     }
 
@@ -438,6 +515,10 @@ export function createMarketWatchFilters(config = {}, root = document) {
     event.preventDefault();
   }
 
+  /* ========================================================================
+     Lifecycle
+     ======================================================================== */
+
   function subscribe(listener) {
     if (typeof listener !== "function") {
       throw new TypeError("Market Watch filter listener must be a function.");
@@ -445,32 +526,55 @@ export function createMarketWatchFilters(config = {}, root = document) {
 
     listeners.add(listener);
 
-    return () => {
-      listeners.delete(listener);
-    };
+    return () => listeners.delete(listener);
   }
 
   function init() {
-    if (elements.industry) {
-      elements.industry.addEventListener("change", handleIndustryChange);
-    }
+    const options = {
+      signal: abortController.signal,
+    };
 
-    if (elements.tableView) {
-      elements.tableView.addEventListener("change", handleTableViewChange);
-    }
+    elements.industry?.addEventListener(
+      "change",
+      handleIndustryChange,
+      options,
+    );
 
-    if (elements.watchlist) {
-      elements.watchlist.addEventListener("change", handleWatchlistChange);
-    }
+    elements.tableView?.addEventListener(
+      "change",
+      handleTableViewChange,
+      options,
+    );
 
-    elements.columnsTrigger?.addEventListener("click", toggleColumns);
-    elements.columnsMenu?.addEventListener("change", handleColumnsMenuChange);
-    elements.columnsMenu?.addEventListener("click", handleColumnsMenuClick);
+    elements.watchlist?.addEventListener(
+      "change",
+      handleWatchlistChange,
+      options,
+    );
 
-    form.addEventListener("submit", handleSubmit);
+    elements.columnsTrigger?.addEventListener("click", toggleColumns, options);
 
-    document.addEventListener("pointerdown", handleDocumentPointerDown);
-    document.addEventListener("keydown", handleDocumentKeyDown);
+    elements.columnsMenu?.addEventListener(
+      "change",
+      handleColumnsMenuChange,
+      options,
+    );
+
+    elements.columnsMenu?.addEventListener(
+      "click",
+      handleColumnsMenuClick,
+      options,
+    );
+
+    form.addEventListener("submit", handleSubmit, options);
+
+    documentRef.addEventListener(
+      "pointerdown",
+      handleDocumentPointerDown,
+      options,
+    );
+
+    documentRef.addEventListener("keydown", handleDocumentKeyDown, options);
 
     sync();
   }
@@ -482,22 +586,7 @@ export function createMarketWatchFilters(config = {}, root = document) {
 
     isDestroyed = true;
 
-    elements.industry?.removeEventListener("change", handleIndustryChange);
-    elements.tableView?.removeEventListener("change", handleTableViewChange);
-    elements.watchlist?.removeEventListener("change", handleWatchlistChange);
-
-    elements.columnsTrigger?.removeEventListener("click", toggleColumns);
-    elements.columnsMenu?.removeEventListener(
-      "change",
-      handleColumnsMenuChange,
-    );
-    elements.columnsMenu?.removeEventListener("click", handleColumnsMenuClick);
-
-    form.removeEventListener("submit", handleSubmit);
-
-    document.removeEventListener("pointerdown", handleDocumentPointerDown);
-    document.removeEventListener("keydown", handleDocumentKeyDown);
-
+    abortController.abort();
     listeners.clear();
   }
 

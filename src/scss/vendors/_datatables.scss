@@ -5,20 +5,18 @@
    ========================================================================== */
 
 /*
- * The design-system table component owns visual table language:
+ * The design system owns table visuals and semantic states.
+ * This file owns only DataTables-generated structure:
  *
- * - semantic surfaces
- * - cell spacing
- * - borders
- * - typography
- * - states
- * - rich-cell content
- *
- * This adapter owns only DataTables-generated markup and extensions.
+ * - scrollX wrappers
+ * - FixedHeader clones
+ * - FixedColumns sticky cells
+ * - RowGroup output
+ * - optional DataTables controls
  */
 
 /* ==========================================================================
-   Container
+   Container and Layout
    ========================================================================== */
 
 .dt-container {
@@ -32,10 +30,6 @@
   font-size: var(--text-sm);
   line-height: var(--line-height-normal);
 }
-
-/* ==========================================================================
-   Layout
-   ========================================================================== */
 
 .dt-container .dt-layout-row {
   display: flex;
@@ -64,10 +58,6 @@
   min-inline-size: 0;
 }
 
-/*
- * Override physical DataTables layout margins with logical spacing.
- */
-
 div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-start {
   margin-right: 0;
   margin-left: 0;
@@ -83,7 +73,7 @@ div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
 }
 
 /* ==========================================================================
-   Length and Search Controls
+   Optional DataTables Controls
    ========================================================================== */
 
 .dt-container .dt-length,
@@ -108,10 +98,6 @@ div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
 .dt-container .dt-search input {
   min-inline-size: 13.75rem;
 }
-
-/* ==========================================================================
-   Form Controls
-   ========================================================================== */
 
 .dt-container input.dt-input,
 .dt-container select.dt-input {
@@ -156,10 +142,6 @@ div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
   @include ds.focus-ring;
 }
 
-/* ==========================================================================
-   Information
-   ========================================================================== */
-
 .dt-container .dt-info {
   min-inline-size: 0;
 
@@ -193,19 +175,6 @@ div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
 .dt-container table.dataTable > thead > tr > td {
   border-block-end-color: var(--table-head-border);
 }
-
-.dt-container table.dataTable > thead > tr > th,
-.dt-container table.dataTable > thead > tr > td,
-.dt-container table.dataTable > tbody > tr > th,
-.dt-container table.dataTable > tbody > tr > td,
-.dt-container table.dataTable > tfoot > tr > th,
-.dt-container table.dataTable > tfoot > tr > td {
-  text-align: start;
-}
-
-/* ==========================================================================
-   Numeric Content
-   ========================================================================== */
 
 .dt-container table.dataTable .numeric,
 .dt-container table.dataTable [data-numeric] {
@@ -260,8 +229,14 @@ div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
 }
 
 /* ==========================================================================
-   Scroll Layout
+   scrollX Structure
    ========================================================================== */
+
+/*
+ * The scroll body is the sole overflow owner. Keeping parent wrappers clipped
+ * prevents page-level horizontal overflow while allowing the table shell’s
+ * navigation control to remain outside the scrolling layer.
+ */
 
 .dt-container .dt-layout-table,
 .dt-container .dt-scroll,
@@ -285,6 +260,7 @@ div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
 
 .dt-container .dt-scroll-body {
   overflow-x: auto !important;
+  overflow-y: hidden;
 
   overscroll-behavior-inline: contain;
 
@@ -295,8 +271,8 @@ div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
 }
 
 .dt-container .dt-scroll-body::-webkit-scrollbar {
-  width: 0.5rem;
-  height: 0.5rem;
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
 }
 
 .dt-container .dt-scroll-body::-webkit-scrollbar-track {
@@ -314,13 +290,15 @@ div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
 }
 
 /*
- * DataTables duplicates the header for scrollX. Keep its width contribution
- * but hide it in the scrolling-body copy.
+ * DataTables keeps a structural header inside the scrolling body to calculate
+ * column widths. It must occupy width but must not appear below the visible
+ * scroll-head header.
  */
 
 .dt-container .dt-scroll-body > table.dataTable > thead {
   visibility: collapse;
 }
+
 /* ==========================================================================
    FixedHeader
    ========================================================================== */
@@ -356,8 +334,9 @@ table.fixedHeader-locked thead td {
 }
 
 /*
- * FixedHeader may clone the first complex-header cell without preserving the
- * FixedColumns class. The first cell remains the Company column.
+ * FixedHeader can recreate a complex header without carrying every original
+ * FixedColumns marker. Company is always the first header cell, so ensure its
+ * surface remains identical to the rest of the header.
  */
 
 .dt-container table.dataTable thead > tr:first-child > :first-child,
@@ -367,24 +346,13 @@ table.fixedHeader-locked thead > tr:first-child > :first-child {
   color: var(--table-head-color) !important;
 }
 
-table.fixedHeader-floating thead .dtfc-fixed-start,
-table.fixedHeader-floating thead .dtfc-fixed-end,
-table.fixedHeader-locked thead .dtfc-fixed-start,
-table.fixedHeader-locked thead .dtfc-fixed-end {
-  z-index: var(--table-sticky-intersection-z, 6);
-
-  background-color: var(--table-head-bg);
-  color: var(--table-head-color);
-}
-
 /* ==========================================================================
    FixedColumns
    ========================================================================== */
 
 /*
- * FixedColumns owns positioning for DataTables-managed tables.
- *
- * Do not use `.table-fixed-column` or `.table-fixed-columns` on these tables.
+ * FixedColumns owns physical sticky positioning. Do not apply generic native
+ * sticky-column classes to a DataTables-managed table.
  */
 
 .dt-container table.dataTable .dtfc-fixed-start,
@@ -396,7 +364,11 @@ table.fixedHeader-locked thead .dtfc-fixed-end {
 }
 
 .dt-container table.dataTable thead .dtfc-fixed-start,
-.dt-container table.dataTable thead .dtfc-fixed-end {
+.dt-container table.dataTable thead .dtfc-fixed-end,
+table.fixedHeader-floating thead .dtfc-fixed-start,
+table.fixedHeader-floating thead .dtfc-fixed-end,
+table.fixedHeader-locked thead .dtfc-fixed-start,
+table.fixedHeader-locked thead .dtfc-fixed-end {
   z-index: var(--table-sticky-intersection-z, 6);
 
   background-color: var(--table-head-bg, var(--color-surface-alt));
@@ -411,20 +383,15 @@ table.fixedHeader-locked thead .dtfc-fixed-end {
   background-clip: padding-box;
 }
 
-/* ==========================================================================
-   FixedColumns RTL
-   ========================================================================== */
-
 /*
- * Market Watch fixes one source-start column: Company.
- * Its visual position is the right edge in an RTL document.
+ * Market Watch fixes the logical source-start Company column. FixedColumns
+ * handles LTR automatically; this completes the RTL physical positioning.
  */
 
 html[dir="rtl"] .dt-container table.dataTable .dtfc-fixed-start {
   right: 0 !important;
   left: auto !important;
 }
-
 /* ==========================================================================
    Fixed Column States
    ========================================================================== */
@@ -481,31 +448,34 @@ html[dir="rtl"] .dt-container table.dataTable .dtfc-fixed-start {
    Fixed Start Boundary
    ========================================================================== */
 
+/*
+ * A subtle logical-end boundary makes the fixed Company column clear without
+ * looking like a detached panel. It mirrors automatically in RTL.
+ */
+
 .dt-container table.dataTable .dtfc-fixed-start:not(:has(+ .dtfc-fixed-start)) {
   border-inline-end: 1px solid var(--color-border-strong);
 
-  box-shadow: 0.375rem 0 0.75rem rgb(0 0 0 / 0.04);
+  box-shadow: 0.375rem 0 0.75rem rgb(0 0 0 / 0.05);
 }
 
 html[dir="rtl"]
   .dt-container
   table.dataTable
   .dtfc-fixed-start:not(:has(+ .dtfc-fixed-start)) {
-  box-shadow: -0.375rem 0 0.75rem rgb(0 0 0 / 0.04);
+  box-shadow: -0.375rem 0 0.75rem rgb(0 0 0 / 0.05);
 }
 
 .dt-container table.dataTable .dtfc-fixed-end {
   border-inline-start-color: var(--color-border-strong);
 }
+
 /* ==========================================================================
    DataTables Group Rows
    ========================================================================== */
 
 /*
- * Supports:
- *
- * - default DataTables RowGroup output: .dtrg-group / .dtrg-start
- * - the reusable custom renderer: .table-group-row
+ * Supports both default RowGroup output and Market Watch's explicit renderer.
  */
 
 .dt-container table.dataTable > tbody > tr.table-group-row > :is(th, td),
@@ -525,11 +495,22 @@ html[dir="rtl"]
   vertical-align: middle;
 }
 
+/*
+ * FixedColumns applies .dtfc-fixed-start to the first group-label cell after
+ * RowGroup draws it. Its opaque branded surface prevents horizontal content
+ * from appearing beneath that label.
+ */
+
 .dt-container
   table.dataTable
   > tbody
   > tr.table-group-row
-  > .table-group-label-sticky {
+  > .table-group-label-sticky,
+.dt-container
+  table.dataTable
+  > tbody
+  > tr.table-group-row
+  > .table-market__group-label {
   z-index: var(--table-sticky-body-z, 2);
 
   background-color: var(--table-group-bg);
@@ -554,45 +535,67 @@ html[dir="rtl"]
   background-color: var(--table-group-bg);
   color: var(--table-group-color);
 }
-
 /* ==========================================================================
    Market Watch Alignment
    ========================================================================== */
 
-.dt-container
-  .table-market--watch
-  thead
-  tr:nth-child(2)
-  > .table-market__number {
-  text-align: end;
-}
+/* Grouped and leaf header labels remain centred. */
 
+.dt-container .table-market--watch thead .table-market__group-heading,
+.dt-container .table-market--watch thead .table-market__number,
 .dt-container
   .table-market--watch
   thead
-  tr:nth-child(2)
-  > .table-market__number
+  .table-market__number
   .table-market__column-label {
-  align-items: flex-end;
-
-  text-align: end;
+  text-align: center;
 }
 
-.dt-container .table-market--watch tbody .table-market__number,
-.dt-container .table-market--watch tbody .table-market__price,
-.dt-container .table-market--watch tbody .table-market__change,
-.dt-container .table-market--watch tbody .table-market__volume {
+.dt-container
+  .table-market--watch
+  thead
+  .table-market__number
+  .table-market__column-label {
+  align-items: center;
+}
+
+/* Numeric data always aligns to the logical end, including FixedColumns. */
+
+.dt-container
+  table.dataTable.table-market--watch
+  tbody
+  > tr
+  > :is(td, th).table-market__number,
+.dt-container
+  table.dataTable.table-market--watch
+  tbody
+  > tr
+  > :is(td, th).table-market__price,
+.dt-container
+  table.dataTable.table-market--watch
+  tbody
+  > tr
+  > :is(td, th).table-market__change,
+.dt-container
+  table.dataTable.table-market--watch
+  tbody
+  > tr
+  > :is(td, th).table-market__volume {
   direction: ltr;
   unicode-bidi: isolate;
 
   font-variant-numeric: tabular-nums;
 
-  text-align: end;
+  text-align: end !important;
 }
-
 /* ==========================================================================
    Pagination
    ========================================================================== */
+
+/*
+ * Market Watch disables paging, but these controls remain reusable for other
+ * DataTables on the website.
+ */
 
 .dt-container .dt-paging,
 .dt-container .dt-paging nav {
@@ -684,8 +687,8 @@ html[dir="rtl"]
 
 @include ds.respond-down("md") {
   .dt-container .dt-layout-row {
-    flex-direction: column;
     align-items: stretch;
+    flex-direction: column;
 
     gap: ds.space(3);
   }

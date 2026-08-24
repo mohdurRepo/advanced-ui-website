@@ -4,19 +4,58 @@
 
 /*
  * Shared pure formatting and markup helpers for:
- * - desktop DataTables cells
- * - mobile data cards
  *
- * This module has no:
+ * - desktop DataTables cells
+ * - mobile Market Watch cards
+ *
+ * This module intentionally has no:
+ *
  * - AJAX requests
- * - DataTables initialization
- * - event listeners
+ * - DataTables setup
  * - DOM queries
+ * - event listeners
  */
 
 function firstDefined(...values) {
   return values.find((value) => value !== undefined && value !== null);
 }
+
+function getLocale(config = {}) {
+  return config.locale || document.documentElement.lang || "en";
+}
+
+function getMarketConfig(config = {}) {
+  return config.market || {};
+}
+
+function isAuction(config = {}) {
+  return Boolean(getMarketConfig(config).isAuction ?? config.openCloseAuction);
+}
+
+function getInitials(value) {
+  return String(value || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0))
+    .join("")
+    .toUpperCase();
+}
+
+function isSafeHref(value) {
+  const href = String(value || "").trim();
+
+  if (!href) {
+    return false;
+  }
+
+  return !/^(?:javascript|data|vbscript):/i.test(href);
+}
+
+/* ==========================================================================
+   Primitive Formatting
+   ========================================================================== */
 
 export function escapeHtml(value) {
   if (value == null) {
@@ -45,9 +84,9 @@ export function toNumber(value) {
     return null;
   }
 
-  const result = Number(normalized);
+  const number = Number(normalized);
 
-  return Number.isFinite(result) ? result : null;
+  return Number.isFinite(number) ? number : null;
 }
 
 export function isZeroLike(value) {
@@ -56,24 +95,12 @@ export function isZeroLike(value) {
   return number !== null && number === 0;
 }
 
-function getLocale(config = {}) {
-  return config.locale || document.documentElement.lang || "en";
-}
-
-function getMarketConfig(config = {}) {
-  return config.market || {};
-}
-
-function isAuction(config = {}) {
-  return Boolean(getMarketConfig(config).isAuction ?? config.openCloseAuction);
-}
-
 export function getDisplayValue(value, fallback = "-") {
-  if (value == null || value === "") {
+  if (value == null || String(value).trim() === "") {
     return fallback;
   }
 
-  return String(value);
+  return String(value).trim();
 }
 
 export function formatNumber(value, config = {}, options = {}) {
@@ -87,8 +114,11 @@ export function formatNumber(value, config = {}, options = {}) {
 }
 
 /*
- * Use for cumulative values that must never be shortened:
- * 12123209 -> 12,123,209
+ * Cumulative quantities must remain complete:
+ *
+ * 12123209 → 12,123,209
+ *
+ * Do not use compact notation for this value.
  */
 
 export function formatFullNumber(value, config = {}) {
@@ -98,19 +128,19 @@ export function formatFullNumber(value, config = {}) {
 }
 
 /*
- * Preserve backend-supplied compact values such as 7.84M.
- * A raw numeric value is formatted normally.
+ * Preserve API-provided abbreviated values such as 7.84M.
+ * Raw numeric values are formatted normally.
  */
 
 export function formatQuantity(value, config = {}) {
-  if (value == null || value === "") {
-    return "-";
+  const displayValue = getDisplayValue(value);
+
+  if (displayValue === "-") {
+    return displayValue;
   }
 
-  const text = String(value).trim();
-
-  if (/[a-z]/i.test(text)) {
-    return text;
+  if (/[a-z]/i.test(displayValue)) {
+    return displayValue;
   }
 
   return formatNumber(value, config, {
@@ -123,14 +153,12 @@ export function formatPrice(value) {
 }
 
 export function formatPercent(value) {
-  const displayValue = getDisplayValue(value);
-
-  if (displayValue === "-" || displayValue.endsWith("%")) {
-    return displayValue;
-  }
-
-  return `${displayValue}%`;
+  return getDisplayValue(value).replace(/\s*%\s*$/, "");
 }
+
+/* ==========================================================================
+   Market State
+   ========================================================================== */
 
 export function getChangeClass(value) {
   const number = toNumber(value);
@@ -174,6 +202,15 @@ export function formatMarketOrder(value, config = {}) {
    Company Status
    ========================================================================== */
 
+/*
+ * These classes deliberately retain the legacy names because the existing
+ * market-status styles and business meaning already depend on them:
+ *
+ * 1 → ylwSymbol
+ * 2 → orgSymbol
+ * 3 → redSymbol
+ */
+
 export function getCompanyStatus(row = {}, config = {}) {
   const labels = config.labels?.status || {};
   const status = Number(row.companyStatus);
@@ -206,7 +243,7 @@ export function getCompanyStatus(row = {}, config = {}) {
 }
 
 /* ==========================================================================
-   Watchlist
+   Company Identity
    ========================================================================== */
 
 export function isWatchlisted(value) {
@@ -229,6 +266,18 @@ export function getCompanyReference(row = {}) {
   );
 }
 
+export function getCompanyCode(row = {}) {
+  return String(
+    firstDefined(
+      row.companyCode,
+      row.companyRef,
+      row.companySymbol,
+      row.symbol,
+      "",
+    ),
+  );
+}
+
 export function getCompanyName(row = {}) {
   return String(
     firstDefined(row.acrynomName, row.companyName, row.company, row.name, "-"),
@@ -242,8 +291,90 @@ export function getCompanySymbol(row = {}) {
 }
 
 export function getCompanyUrl(row = {}) {
-  return String(firstDefined(row.companyUrl, row.companyURL, "#"));
+  const url = firstDefined(row.companyUrl, row.companyURL, "");
+
+  return isSafeHref(url) ? String(url).trim() : "";
 }
+
+/* ==========================================================================
+   Company Logo
+   ========================================================================== */
+
+export function getCompanyLogoFallbackUrl(config = {}) {
+  return String(config.assets?.companyLogoFallbackUrl || "").trim();
+}
+
+export function getCompanyLogoUrl(row = {}, config = {}) {
+  const directUrl = firstDefined(
+    row.companyLogoUrl,
+    row.logoUrl,
+    row.imageUrl,
+    row.companyImageUrl,
+  );
+
+  if (directUrl) {
+    return String(directUrl).trim();
+  }
+
+  const template = String(config.assets?.companyLogoUrlTemplate || "").trim();
+  const companyCode = getCompanyCode(row);
+
+  if (!template || !companyCode) {
+    return getCompanyLogoFallbackUrl(config);
+  }
+
+  return template.replace("{companyCode}", encodeURIComponent(companyCode));
+}
+
+/*
+ * `data-market-watch-logo-fallback` allows the table and mobile renderers to
+ * replace a failed company image without inline JavaScript or CSP exceptions.
+ */
+
+export function renderCompanyLogo(
+  row = {},
+  config = {},
+  className = "table-market__logo",
+  options = {},
+) {
+  const logoUrl = getCompanyLogoUrl(row, config);
+  const fallbackUrl = getCompanyLogoFallbackUrl(config);
+  const companyName = getCompanyName(row);
+  const size = Number(options.size) || 40;
+  const initials = getInitials(companyName);
+
+  if (!logoUrl) {
+    return `
+      <span class="${escapeHtml(className)}" aria-hidden="true">
+        <span class="${escapeHtml(`${className}-fallback`)}">
+          ${escapeHtml(initials)}
+        </span>
+      </span>
+    `.trim();
+  }
+
+  return `
+    <span class="${escapeHtml(className)}">
+      <img
+        src="${escapeHtml(logoUrl)}"
+        alt=""
+        width="${size}"
+        height="${size}"
+        loading="lazy"
+        data-market-watch-logo
+        ${
+          fallbackUrl && fallbackUrl !== logoUrl
+            ? `data-market-watch-logo-fallback="${escapeHtml(fallbackUrl)}"`
+            : ""
+        }
+      />
+    </span>
+  `.trim();
+}
+
+/* ==========================================================================
+   Favorite Control
+   ========================================================================== */
 
 export function renderFavoriteButton(row = {}, options = {}) {
   const active = isWatchlisted(row.watchlist);
@@ -272,105 +403,55 @@ export function renderFavoriteButton(row = {}, options = {}) {
 }
 
 /* ==========================================================================
-   Company Identity
+   Desktop Company Cell
    ========================================================================== */
 
-export function getCompanyLogoUrl(row = {}, config = {}) {
-  const directUrl = firstDefined(
-    row.companyLogoUrl,
-    row.logoUrl,
-    row.imageUrl,
-    row.companyImageUrl,
-  );
-
-  if (directUrl) {
-    return String(directUrl);
-  }
-
-  const template = config.assets?.companyLogoUrlTemplate;
-
-  if (!template) {
-    return "";
-  }
-
-  const companyCode = String(
-    firstDefined(
-      row.companyCode,
-      row.companyRef,
-      row.companySymbol,
-      row.symbol,
-      "",
-    ),
-  );
-
-  if (!companyCode) {
-    return "";
-  }
-
-  return template.replace("{companyCode}", encodeURIComponent(companyCode));
-}
-
-export function renderCompanyLogo(row = {}, config = {}, className) {
-  const logoUrl = getCompanyLogoUrl(row, config);
-  const companyName = getCompanyName(row);
-  const logoClass = className || "table-market__logo";
-
-  if (!logoUrl) {
-    return `
-      <span class="${escapeHtml(logoClass)}" aria-hidden="true">
-        <span class="${escapeHtml(`${logoClass}-fallback`)}">
-          ${escapeHtml(companyName.slice(0, 2))}
-        </span>
-      </span>
-    `.trim();
-  }
-
-  return `
-    <span class="${escapeHtml(logoClass)}">
-      <img
-        src="${escapeHtml(logoUrl)}"
-        alt=""
-        width="40"
-        height="40"
-        loading="lazy"
-        data-market-watch-logo
-      />
-    </span>
-  `.trim();
-}
-
-export function renderCompanyCell(row = {}, config = {}) {
+function renderCompanyText(row = {}, config = {}) {
   const status = getCompanyStatus(row, config);
   const companyName = getCompanyName(row);
   const companySymbol = getCompanySymbol(row);
   const companyUrl = getCompanyUrl(row);
 
+  const content = `
+    <span class="table-market__name">
+      ${escapeHtml(companyName)}
+      ${
+        status.className
+          ? `<span class="${escapeHtml(status.className)}" aria-hidden="true"></span>`
+          : ""
+      }
+    </span>
+
+    ${
+      companySymbol
+        ? `<span class="table-market__symbol">${escapeHtml(companySymbol)}</span>`
+        : ""
+    }
+  `.trim();
+
+  if (!companyUrl) {
+    return `<span class="table-market__security-link">${content}</span>`;
+  }
+
+  return `
+    <a
+      class="table-market__security-link"
+      href="${escapeHtml(companyUrl)}"
+      ${status.title ? `title="${escapeHtml(status.title)}"` : ""}
+    >
+      ${content}
+    </a>
+  `.trim();
+}
+
+export function renderCompanyCell(row = {}, config = {}) {
   return `
     <div class="table-market__security-cell">
       ${renderFavoriteButton(row)}
 
       ${renderCompanyLogo(row, config)}
 
-      <a
-        class="table-market__security-link"
-        href="${escapeHtml(companyUrl)}"
-        ${status.title ? `title="${escapeHtml(status.title)}"` : ""}
-      >
-        <span class="table-market__name">
-          ${escapeHtml(companyName)}
-          ${
-            status.className
-              ? `<span class="${escapeHtml(status.className)}" aria-hidden="true"></span>`
-              : ""
-          }
-        </span>
-
-        ${
-          companySymbol
-            ? `<span class="table-market__symbol">${escapeHtml(companySymbol)}</span>`
-            : ""
-        }
-      </a>
+      ${renderCompanyText(row, config)}
     </div>
   `.trim();
 }
@@ -399,9 +480,14 @@ export function getRangePosition(low, high, value) {
 }
 
 export function renderRange(row = {}, config = {}) {
-  const low = firstDefined(row.low52WeekPrice, "");
-  const high = firstDefined(row.high52WeekPrice, "");
-  const value = firstDefined(row.lastTradePriceModified, "");
+  const low = firstDefined(row.low52WeekPrice, row.week52Low, "");
+  const high = firstDefined(row.high52WeekPrice, row.week52High, "");
+  const value = firstDefined(
+    row.lastTradePriceModified,
+    row.lastTradePrice,
+    row.price,
+    "",
+  );
 
   const position =
     isAuction(config) && isZeroLike(value)
@@ -441,7 +527,6 @@ export function renderRange(row = {}, config = {}) {
 
 export function renderChange(value, numericValue, options = {}) {
   const className = getChangeClass(firstDefined(numericValue, value));
-
   const displayValue = options.percent
     ? formatPercent(value)
     : getDisplayValue(value);
@@ -461,35 +546,53 @@ export function renderMobileIdentity(row = {}, config = {}) {
   const status = getCompanyStatus(row, config);
   const companyName = getCompanyName(row);
   const companySymbol = getCompanySymbol(row);
+  const companyUrl = getCompanyUrl(row);
+
+  const identityContent = `
+    <div class="data-card__identity-content">
+      ${
+        companySymbol
+          ? `<span class="data-card__symbol">${escapeHtml(companySymbol)}</span>`
+          : ""
+      }
+
+      <h3 class="data-card__title">
+        ${escapeHtml(companyName)}
+        ${
+          status.className
+            ? `<span class="${escapeHtml(status.className)}" aria-hidden="true"></span>`
+            : ""
+        }
+      </h3>
+    </div>
+  `.trim();
+
+  const linkedIdentity = companyUrl
+    ? `
+      <a
+        class="data-card__security-link"
+        href="${escapeHtml(companyUrl)}"
+        ${status.title ? `title="${escapeHtml(status.title)}"` : ""}
+      >
+        ${identityContent}
+      </a>
+    `.trim()
+    : identityContent;
 
   return `
     <div class="data-card__identity">
       ${renderFavoriteButton(row, { className: "data-card__favorite" })}
 
-      ${renderCompanyLogo(row, config, "data-card__logo")}
+      ${renderCompanyLogo(row, config, "data-card__logo", { size: 44 })}
 
-      <div class="data-card__identity-content">
-        ${
-          companySymbol
-            ? `<span class="data-card__symbol">${escapeHtml(companySymbol)}</span>`
-            : ""
-        }
-
-        <h3 class="data-card__title">
-          ${escapeHtml(companyName)}
-          ${
-            status.className
-              ? `<span class="${escapeHtml(status.className)}" aria-hidden="true"></span>`
-              : ""
-          }
-        </h3>
-      </div>
+      ${linkedIdentity}
     </div>
   `.trim();
 }
 
 export function renderMobileQuote(row = {}, config = {}) {
   const price = formatAuctionValue(row.lastTradePriceModified, config);
+
   const change = renderChange(
     row.netChangeModified,
     firstDefined(row.netChange, row.changeValue, row.netChangeModified),
@@ -509,10 +612,9 @@ export function renderMobileQuote(row = {}, config = {}) {
     <div class="data-card__quote">
       <span class="data-card__price">${escapeHtml(price)}</span>
 
-      <span class="data-card__change ${getChangeClass(
-        firstDefined(row.precentChange, row.percentChange),
-      )}">
-        ${change} ${percent}
+      <span class="data-card__change">
+        ${change}
+        ${percent}
       </span>
     </div>
   `.trim();

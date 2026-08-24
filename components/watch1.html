@@ -372,9 +372,9 @@
   </div>
 </section>
 
-<!-- =========================================================================
+<!-- ==========================================================================
      Market Watch Data
-     ====================================================================== -->
+     ========================================================================== -->
 
 <section class="section-none market-watch" aria-label="Market Watch data">
   <div class="container">
@@ -404,14 +404,14 @@
                 </caption>
 
                 <!-- =========================================================
-                     Header
+                     Overview Header
+
+                     This is the accessible no-JavaScript fallback. The table
+                     module recreates this same two-row header when switching
+                     between Overview, Price Data, and Performance views.
                      ========================================================= -->
 
                 <thead>
-                  <!-- -------------------------------------------------------
-                       Group Headings
-                       -------------------------------------------------------- -->
-
                   <tr>
                     <th
                       rowspan="2"
@@ -490,10 +490,6 @@
                       />
                     </th>
                   </tr>
-
-                  <!-- -------------------------------------------------------
-                       Column Headings
-                       -------------------------------------------------------- -->
 
                   <tr>
                     <th
@@ -636,22 +632,15 @@
                   </tr>
                 </thead>
 
-                <!-- =========================================================
-                     Body
-                     ========================================================= -->
-
                 <tbody>
-                  <!-- market-watch-table.js renders:
-                       - skeleton rows
-                       - grouped sector rows
-                       - company rows
-                       - empty and error states -->
+                  <!-- market-watch-table.js renders skeleton, sector, company,
+                       empty, and error rows. -->
                 </tbody>
               </table>
             </section>
 
             <!-- =============================================================
-                 Horizontal Jump Navigation
+                 Horizontal Scroll Navigation
                  ============================================================== -->
 
             <button
@@ -683,17 +672,15 @@
             data-market-watch-mobile-cards
             aria-busy="true"
           >
-            <!-- market-watch-mobile.js renders:
-                 - skeleton cards
-                 - sector groups
-                 - company cards
-                 - empty and error states -->
+            <!-- market-watch-mobile.js renders skeleton, sector, company,
+                 empty, and error cards. -->
           </div>
         </div>
       </div>
     </div>
   </div>
 </section>
+
 <!-- ==========================================================================
      Market Watch Page Configuration
      ========================================================================== -->
@@ -717,25 +704,18 @@
 
     assets: {
       /*
-       * Replace the host only when the production image service URL is final.
-       * `{companyCode}` is replaced by market-watch-formatters.js.
+       * Replace the host when the production image service URL is final.
+       * The formatter replaces `{companyCode}` with the API company code.
        */
       companyLogoUrlTemplate:
         "https://example.example.com/companies/{companyCode}.png",
-    },
 
-    watchlist: {
       /*
-       * Uses the existing website flow. That flow already decides whether to
-       * open the logged-in watchlist dialog or the login dialog.
+       * Used whenever the API has no company code or the company image fails
+       * to load. This replaces a broken-image icon with a stable default.
        */
-      isAuthenticated: <%= themeDisplay.isSignedIn() %>,
-
-      openDialog(companyRef) {
-        if (typeof window.showAddToWatchListPopup === "function") {
-          window.showAddToWatchListPopup(companyRef);
-        }
-      },
+      companyLogoFallbackUrl:
+        "https://example.example.com/companies/default.png",
     },
 
     initialState: {
@@ -857,7 +837,6 @@
     },
   };
 </script>
-
 <%-- =========================================================================
      Market Watch Entry Module
      ========================================================================= --%>

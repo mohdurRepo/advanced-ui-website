@@ -7,21 +7,30 @@
 /*
  * Website-specific market-data presentation.
  *
- * Shared table structure, scrolling, FixedColumns, FixedHeader, RowGroup,
- * navigation, and generic row states remain owned by the design system and
- * DataTables adapter.
+ * Shared table structure, scrolling, row states, and navigation remain owned
+ * by the design system. This file owns Market Watch’s visual data contract:
+ *
+ * - compact, predictable columns
+ * - complex grouped headers
+ * - company identity and range cells
+ * - market status and value colours
+ * - sector group rows
  */
 
 .table-market {
-  --table-market-company-width: 14rem;
+  /* Column contract */
+
+  --table-market-company-width: 15.5rem;
   --table-market-range-width: 8.5rem;
+
+  /* Surfaces */
 
   --table-market-group-bg: var(--color-primary);
   --table-market-group-color: var(--color-on-primary);
 
   --table-group-bg: var(--table-market-group-bg);
   --table-group-color: var(--table-market-group-color);
-  --table-group-border: var(--color-border);
+  --table-group-border: var(--table-market-group-bg);
 
   --table-market-header-border: var(--color-border);
   --table-market-header-border-strong: var(--color-border-strong);
@@ -40,8 +49,8 @@
   .table-market {
     --table-row-selected-bg: color-mix(
       in oklab,
-      var(--color-primary),
-      var(--color-surface) 92%
+      var(--color-primary) 8%,
+      var(--color-surface)
     );
   }
 }
@@ -52,12 +61,18 @@
 }
 
 /* ==========================================================================
-   Market Watch Layout
+   Market Watch Table Layout
    ========================================================================== */
+
+/*
+ * The schema supplies logical widths to DataTables. These constraints keep
+ * the rendered and FixedColumns-cloned Company and Range columns aligned with
+ * the polished static-table layout.
+ */
 
 .table-market--watch {
   inline-size: 100%;
-  min-inline-size: 72rem;
+  min-inline-size: 100%;
 
   table-layout: auto;
 }
@@ -65,6 +80,18 @@
 .table-market--watch th,
 .table-market--watch td {
   padding-inline: ds.space(2);
+}
+
+/*
+ * Clear All intentionally leaves only Company visible. Do not retain a wide
+ * table width in that state: Company should fill the available region.
+ */
+
+.table-market--watch.table-market--company-only {
+  inline-size: 100%;
+  min-inline-size: 100%;
+
+  table-layout: fixed;
 }
 
 /* ==========================================================================
@@ -79,7 +106,7 @@
   padding-inline: ds.space(2);
 
   border-block-end: 1px solid var(--table-market-header-border-strong);
-  border-inline-end: 1px solid var(--table-market-header-border-strong);
+  border-inline-end: 1px solid var(--table-market-header-border);
 
   background: var(--table-head-bg);
   color: var(--table-head-color);
@@ -97,7 +124,10 @@
   border-inline-end: 0;
 }
 
-/* Top-level groups remain centered. */
+/*
+ * Overview’s first row holds Company, Range, and the semantic column groups.
+ * Group headings always remain centred, including the fixed-header clone.
+ */
 
 .table-market--watch thead tr:first-child th {
   padding-block: ds.space(3);
@@ -106,6 +136,8 @@
 
   font-size: var(--text-sm);
   font-weight: ds.font-weight("bold");
+
+  text-align: center;
 }
 
 .table-market--watch thead tr:first-child .table-market__security {
@@ -117,25 +149,20 @@
 
   font-size: var(--text-xs);
   font-weight: ds.font-weight("semibold");
+
+  text-align: center;
 }
 
 /*
- * Numeric leaf headers align with their values.
- * This matches price, volume, percentage, and trade-number columns.
+ * Header labels remain centred. Numeric body cells still align to the logical
+ * end, allowing prices and volumes to scan vertically without misaligning
+ * grouped header labels.
  */
 
-.table-market--watch thead tr:nth-child(2) .table-market__number {
-  text-align: end;
-}
+.table-market--watch thead .table-market__number .table-market__column-label {
+  align-items: center;
 
-.table-market--watch
-  thead
-  tr:nth-child(2)
-  .table-market__number
-  .table-market__column-label {
-  align-items: flex-end;
-
-  text-align: end;
+  text-align: center;
 }
 
 .table-market__group-heading {
@@ -172,11 +199,18 @@
    Company Identity
    ========================================================================== */
 
-.table-market__security {
-  inline-size: var(--table-market-company-width);
-  min-inline-size: var(--table-market-company-width);
+.table-market--watch .table-market__security {
+  inline-size: var(--table-market-company-width) !important;
+  min-inline-size: var(--table-market-company-width) !important;
+  max-inline-size: var(--table-market-company-width) !important;
 
   text-align: start;
+}
+
+.table-market--watch.table-market--company-only .table-market__security {
+  inline-size: auto !important;
+  min-inline-size: 0 !important;
+  max-inline-size: none !important;
 }
 
 .table-market__security-cell {
@@ -255,8 +289,28 @@
   object-fit: contain;
 }
 
+.table-market__logo-fallback,
+.table-market__logo.is-image-missing::before {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("bold");
+}
+
+.table-market__logo.is-image-missing::before {
+  content: "—";
+}
+
 .table-market__security-link {
   display: inline-flex;
+  flex: 1 1 auto;
   flex-direction: column;
 
   gap: 0.1875rem;
@@ -278,7 +332,7 @@
 .table-market__name {
   display: block;
 
-  max-inline-size: 9.5rem;
+  max-inline-size: 100%;
 
   color: inherit;
 
@@ -303,15 +357,20 @@
    52-Week Range
    ========================================================================== */
 
-.table-market__range {
+.table-market--watch .table-market__range {
   position: relative;
 
   isolation: isolate;
 
-  inline-size: var(--table-market-range-width);
-  min-inline-size: var(--table-market-range-width);
+  inline-size: var(--table-market-range-width) !important;
+  min-inline-size: var(--table-market-range-width) !important;
+  max-inline-size: var(--table-market-range-width) !important;
 
   padding-inline: ds.space(2);
+}
+
+.table-market__range-content {
+  min-inline-size: 0;
 }
 
 .table-market__range-track {
@@ -334,7 +393,7 @@
   inset-block: 0;
   inset-inline-start: 0;
 
-  inline-size: var(--range-position, 50%);
+  inline-size: var(--range-position, 0%);
 
   border-radius: inherit;
 
@@ -344,7 +403,7 @@
 .table-market__range-marker {
   position: absolute;
   inset-block-start: 50%;
-  inset-inline-start: var(--range-position, 50%);
+  inset-inline-start: var(--range-position, 0%);
 
   z-index: 1;
 
@@ -381,6 +440,7 @@ html[dir="rtl"] .table-market__range-marker {
 
   white-space: nowrap;
 }
+
 /* ==========================================================================
    52-Week Range Interaction
    ========================================================================== */
@@ -390,7 +450,7 @@ html[dir="rtl"] .table-market__range-marker {
 
   position: absolute;
   inset-block-end: calc(100% + 0.5rem);
-  inset-inline-start: var(--range-position, 50%);
+  inset-inline-start: var(--range-position, 0%);
 
   z-index: 2;
 
@@ -436,7 +496,7 @@ html[dir="rtl"] .table-market__range-track:focus-within::after {
 .table-market__range-track:hover .table-market__range-marker {
   transform: translate(-50%, -50%) scale(1.15);
 
-  box-shadow: 0 0 0 0.2rem rgb(from var(--color-primary) r g b / 0.14);
+  box-shadow: 0 0 0 0.2rem rgb(0 69 227 / 0.14);
 }
 
 html[dir="rtl"] .table-market__range-track:hover .table-market__range-marker {
@@ -463,31 +523,20 @@ html[dir="rtl"] .table-market__range-track:hover .table-market__range-marker {
 }
 
 .table-market__price {
-  min-inline-size: 4rem;
-
   color: var(--color-heading);
 
   font-weight: ds.font-weight("bold");
 }
 
 .table-market__volume {
-  min-inline-size: 4.5rem;
-
   color: var(--color-text);
 }
 
 .table-market__change {
-  min-inline-size: 4.75rem;
-
   color: var(--price-state-color, var(--color-text));
 
   font-weight: ds.font-weight("semibold");
 }
-
-/*
- * Apply these classes to the same cell as `.table-market__change`, or to an
- * inner element returned by a DataTables render function.
- */
 
 .table-market .price-up,
 .table-market .market-positive {
@@ -514,15 +563,17 @@ html[dir="rtl"] .table-market__range-track:hover .table-market__range-marker {
    Market Group Rows
    ========================================================================== */
 
-/*
- * This remains compatible with static HTML while the generic
- * `.table-group-row` styles own the actual surface and sticky behavior.
- */
-
 .table-market tbody .table-market__group-row {
   --table-group-bg: var(--table-market-group-bg);
   --table-group-color: var(--table-market-group-color);
+  --table-group-border: var(--table-market-group-bg);
 
+  background: var(--table-group-bg);
+  color: var(--table-group-color);
+}
+
+.table-market tbody .table-market__group-row > th,
+.table-market tbody .table-market__group-row > td {
   background: var(--table-group-bg);
   color: var(--table-group-color);
 }
@@ -531,13 +582,14 @@ html[dir="rtl"] .table-market__range-track:hover .table-market__range-marker {
   inline-size: var(--table-market-company-width);
   min-inline-size: var(--table-market-company-width);
 
-  border-inline-end: 1px solid var(--color-border-strong);
+  border-inline-end: 1px solid rgb(255 255 255 / 0.22);
+
+  font-weight: ds.font-weight("bold");
 }
 
 .table-market--watch tbody td {
   border-inline: 0;
 }
-
 /* ==========================================================================
    Results Variant
    ========================================================================== */
@@ -673,28 +725,32 @@ html[dir="rtl"] .table-market__range-track:hover .table-market__range-marker {
 
 @include ds.respond-down("lg") {
   .table-market {
-    --table-market-company-width: 13rem;
+    --table-market-company-width: 14.5rem;
     --table-market-range-width: 8rem;
   }
+}
 
-  .table-market--watch {
-    min-inline-size: 70rem;
+@include ds.respond-down("md") {
+  .table-market {
+    --table-market-company-width: 14rem;
+    --table-market-range-width: 7.75rem;
+  }
+
+  .table-market--watch th,
+  .table-market--watch td {
+    padding-inline: ds.space(1);
   }
 }
 
 @include ds.respond-down("sm") {
   .table-market {
     --table-market-company-width: 12rem;
-    --table-market-range-width: 7.5rem;
+    --table-market-range-width: 7.25rem;
   }
 
   .table-market__logo {
     inline-size: 2.25rem;
     block-size: 2.25rem;
-  }
-
-  .table-market__name {
-    max-inline-size: 7rem;
   }
 
   .table-market--results thead th,
@@ -736,6 +792,14 @@ html[data-contrast="high"] .table-market__range-track::after {
 
   background: var(--color-surface);
   color: currentColor;
+}
+
+html[data-contrast="high"]
+  .table-market
+  tbody
+  .table-market__group-row
+  > .table-market__group-label {
+  border-inline-end-color: currentColor;
 }
 
 /* ==========================================================================
