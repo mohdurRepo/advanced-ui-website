@@ -691,31 +691,54 @@
 
 <script>
   window.MarketWatchConfig = {
+    /* ======================================================================
+       Endpoint
+       ====================================================================== */
+
     endpoint:
       "<portlet:resourceURL id='getMainNomucMarketDetails'></portlet:resourceURL>",
 
-    locale: "<c:out value='${pageContext.request.locale.language}' />",
+    locale:
+      "<c:out value='${pageContext.request.locale.language}' />",
+
+    /* ======================================================================
+       Market
+       ====================================================================== */
 
     market: {
-      statusId: "<c:out value='${requestScope.marketStatusID}' />",
-      isAuction: ${marketWatchIsAuction},
+      statusId:
+        "<c:out value='${requestScope.marketStatusID}' />",
+
+      isAuction:
+        ${marketWatchIsAuction},
     },
+
+    /* ======================================================================
+       Assets
+       ====================================================================== */
 
     assets: {
       /*
-       * Replace the host when the production image service URL is final.
-       * The formatter replaces `{companyCode}` with the API company code.
+       * Replace this host when the production company-image endpoint is final.
+       *
+       * `{companyCode}` is replaced by market-watch-formatters.js.
        */
       companyLogoUrlTemplate:
         "https://example.example.com/companies/{companyCode}.png",
 
       /*
-       * Used whenever the API has no company code or the company image fails
-       * to load. This replaces a broken-image icon with a stable default.
+       * Stable fallback used when:
+       *
+       * - company code is unavailable
+       * - company image fails
        */
       companyLogoFallbackUrl:
         "https://example.example.com/companies/default.png",
     },
+
+    /* ======================================================================
+       Initial State
+       ====================================================================== */
 
     initialState: {
       industry:
@@ -734,23 +757,61 @@
         "best-bid",
         "best-offer",
       ],
-    }
-
-    table: {
-      fixedColumns: 1,
-      fixedHeader: true,
-      scrollX: true,
     },
 
+    /* ======================================================================
+       Table
+       ====================================================================== */
+
+    table: {
+      autoWidth: false,
+
+      paging: false,
+      searching: false,
+      ordering: false,
+      info: false,
+      lengthChange: false,
+
+      serverSide: false,
+      processing: false,
+
+      scrollX: true,
+      scrollCollapse: true,
+
+      fixedHeader: true,
+      fixedColumns: 1,
+    },
+
+    /* ======================================================================
+       Labels
+       ====================================================================== */
+
     labels: {
-      loading: "<fmt:message key='loading' />",
-      noData: "<fmt:message key='no.data.available' />",
+      loading:
+        "<fmt:message key='loading' />",
+
+      noData:
+        "<fmt:message key='no.data.available' />",
+
       marketOrder:
         "<fmt:message key='marketwatch.todaywatch.v2.marketOrder' />",
 
-      showAll: "<fmt:message key='show.hide.all' />",
-      noColumns: "<fmt:message key='show.hide.no.columns' />",
-      selectedSuffix: "<fmt:message key='selected' />",
+      /* --------------------------------------------------------------------
+         Column Picker
+         -------------------------------------------------------------------- */
+
+      showAll:
+        "<fmt:message key='show.hide.all' />",
+
+      noColumns:
+        "<fmt:message key='show.hide.no.columns' />",
+
+      selectedSuffix:
+        "<fmt:message key='selected' />",
+
+      /* --------------------------------------------------------------------
+         Mobile
+         -------------------------------------------------------------------- */
 
       mobile: {
         showDetails:
@@ -759,6 +820,10 @@
         hideDetails:
           "<fmt:message key='marketwatch.todaywatch.v2.mobile.hide.details' />",
       },
+
+      /* --------------------------------------------------------------------
+         Table
+         -------------------------------------------------------------------- */
 
       table: {
         company:
@@ -817,7 +882,17 @@
 
         yield:
           "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.yield' />",
+
+        sector:
+          "Sector",
+
+        symbol:
+          "Symbol",
       },
+
+      /* --------------------------------------------------------------------
+         Company Status
+         -------------------------------------------------------------------- */
 
       status: {
         losses20To35:
@@ -832,25 +907,12 @@
     },
   };
 </script>
+
 <%-- =========================================================================
      Market Watch Entry Module
      ========================================================================= --%>
 
-<script type="module"
-	src="${pageContext.request.contextPath}/js/pages/market-watch/market-watch-page.js"></script>
-
-
-    <!-- jQuery -->
-  <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
-
-  <!-- DataTables Core -->
-  <script src="https://cdn.datatables.net/2.3.8/js/dataTables.min.js"></script>
-
-  <!-- FixedHeader -->
-  <script src="https://cdn.datatables.net/fixedheader/4.0.6/js/dataTables.fixedHeader.min.js"></script>
-
-  <!-- FixedColumns -->
-  <script src="https://cdn.datatables.net/fixedcolumns/5.0.5/js/dataTables.fixedColumns.min.js"></script>
-
-  <!-- RowGroup -->
-  <script src="https://cdn.datatables.net/rowgroup/1.6.0/js/dataTables.rowGroup.min.js"></script>
+<script
+  type="module"
+  src="${pageContext.request.contextPath}/js/pages/market-watch/market-watch.js"
+></script>
