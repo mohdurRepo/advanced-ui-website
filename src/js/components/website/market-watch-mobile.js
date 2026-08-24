@@ -42,6 +42,14 @@ const STATES = {
    Helpers
    ========================================================================== */
 
+function cleanLabel(value, fallback = "") {
+  return String(value ?? fallback)
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<[^>]*>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function isAuction(config = {}) {
   return Boolean(config.market?.isAuction ?? config.openCloseAuction);
 }
@@ -101,23 +109,27 @@ function renderMobileFieldValue(column, row, config) {
 }
 
 function getMobileFieldLabel(column, config) {
-  const tableLabels = config.labels?.table || {};
+  const labels = config.labels?.table || {};
+  const fieldLabel = cleanLabel(
+    column.mobileLabel || column.label,
+    column.label,
+  );
 
   if (column.headerGroup === "best-bid") {
-    return `${tableLabels.bestBid || "Best Bid"} ${column.label}`;
+    return `${cleanLabel(labels.bestBid, "Best Bid")} ${fieldLabel}`;
   }
 
   if (column.headerGroup === "best-offer") {
-    return `${tableLabels.bestOffer || "Best Offer"} ${column.label}`;
+    return `${cleanLabel(labels.bestOffer, "Best Offer")} ${fieldLabel}`;
   }
 
-  return column.label;
+  return fieldLabel;
 }
 
 function getDetailColumns(config, view, visibleGroups) {
   /*
-   * Price and Change% already appear in every card summary.
-   * The details section intentionally avoids repeating them.
+   * Price and percentage change are already part of every card’s summary.
+   * Details intentionally avoid repeating those values.
    */
 
   const summaryColumns = new Set(["last-trade-price", "change-percent"]);
@@ -142,22 +154,34 @@ function groupRowsBySector(rows) {
 }
 
 function createLoadingCards() {
-  return Array.from({ length: 4 }, (_, index) =>
+  return Array.from({ length: 4 }, () =>
     `
-    <article class="data-card data-card--loading" aria-hidden="true">
-      <div class="data-card__main">
-        <div class="data-card__identity">
-          <span class="table-skeleton table-skeleton-sm"></span>
-          <span class="table-skeleton table-skeleton-md"></span>
-        </div>
+      <article class="data-card data-card--loading" aria-hidden="true">
+        <div class="data-card__main">
+          <div class="data-card__identity">
+            <span class="table-skeleton table-skeleton-sm"></span>
+            <span class="table-skeleton table-skeleton-md"></span>
+          </div>
 
-        <div class="data-card__quote">
-          <span class="table-skeleton table-skeleton-sm"></span>
+          <div class="data-card__quote">
+            <span class="table-skeleton table-skeleton-sm"></span>
+          </div>
         </div>
-      </div>
-    </article>
-  `.trim(),
+      </article>
+    `.trim(),
   ).join("");
+}
+
+function getToggleLabels(config, companyName) {
+  const labels = config.labels?.mobile || {};
+
+  const show = cleanLabel(labels.showDetails, "Show details");
+  const hide = cleanLabel(labels.hideDetails, "Hide details");
+
+  return {
+    show: `${show} ${companyName}`,
+    hide: `${hide} ${companyName}`,
+  };
 }
 
 /* ==========================================================================
@@ -182,11 +206,9 @@ export function createMarketWatchMobile(config = {}, root = document) {
 
   function getDetailsId(row, index) {
     const reference = getCompanyReference(row) || `company-${index}`;
+    const safeReference = reference.replace(/[^a-z0-9_-]/gi, "-");
 
-    return `market-watch-card-details-${reference.replace(
-      /[^a-z0-9_-]/gi,
-      "-",
-    )}-${index}`;
+    return `market-watch-card-details-${safeReference}-${index}`;
   }
 
   function renderField(column, row) {
@@ -210,6 +232,7 @@ export function createMarketWatchMobile(config = {}, root = document) {
   function renderCard(row, index) {
     const detailId = getDetailsId(row, index);
     const companyName = getCompanyName(row);
+    const toggleLabels = getToggleLabels(config, companyName);
 
     const price = formatAuctionValue(row.lastTradePriceModified, config);
 
@@ -225,7 +248,9 @@ export function createMarketWatchMobile(config = {}, root = document) {
     const percentValue = renderChange(
       row.precentChangeModified,
       row.precentChange ?? row.percentChange ?? row.precentChangeModified,
-      { percent: true },
+      {
+        percent: true,
+      },
     );
 
     const fields = getDetailColumns(config, currentView, visibleGroups);
@@ -236,7 +261,9 @@ export function createMarketWatchMobile(config = {}, root = document) {
           ${renderMobileIdentity(row, config)}
 
           <div class="data-card__quote">
-            <span class="data-card__price">${escapeHtml(price)}</span>
+            <span class="data-card__price">
+              ${escapeHtml(price)}
+            </span>
 
             <span class="data-card__change ${changeClass}">
               ${changeValue}
@@ -266,10 +293,10 @@ export function createMarketWatchMobile(config = {}, root = document) {
           <span
             class="data-card__toggle-label"
             data-data-card-toggle-label
-            data-more-label="Show details for ${escapeHtml(companyName)}"
-            data-less-label="Hide details for ${escapeHtml(companyName)}"
+            data-more-label="${escapeHtml(toggleLabels.show)}"
+            data-less-label="${escapeHtml(toggleLabels.hide)}"
           >
-            Show details for ${escapeHtml(companyName)}
+            ${escapeHtml(toggleLabels.show)}
           </span>
 
           <span
@@ -282,9 +309,11 @@ export function createMarketWatchMobile(config = {}, root = document) {
   }
 
   function renderRows() {
-    cards.setAttribute("aria-busy", "false");
+    const isLoading = renderState?.type === STATES.loading;
 
-    if (renderState?.type === STATES.loading) {
+    cards.setAttribute("aria-busy", String(isLoading));
+
+    if (isLoading) {
       cards.innerHTML = createLoadingCards();
 
       return;
@@ -386,8 +415,7 @@ export function createMarketWatchMobile(config = {}, root = document) {
       return;
     }
 
-    const isExpanded = button.getAttribute("aria-expanded") === "true";
-    const nextExpanded = !isExpanded;
+    const nextExpanded = button.getAttribute("aria-expanded") !== "true";
 
     collapseOtherCards(card);
 
@@ -410,8 +438,12 @@ export function createMarketWatchMobile(config = {}, root = document) {
 
     const companyRef = button.dataset.companyRef || "";
 
-    if (typeof config.watchlist?.openDialog === "function") {
-      config.watchlist.openDialog(companyRef);
+    /*
+     * Preserve the existing website watchlist and login decision flow.
+     */
+
+    if (typeof window.showAddToWatchListPopup === "function") {
+      window.showAddToWatchListPopup(companyRef);
     }
 
     cards.dispatchEvent(
@@ -435,6 +467,15 @@ export function createMarketWatchMobile(config = {}, root = document) {
       return;
     }
 
+    const fallbackUrl = image.dataset.marketWatchLogoFallback;
+
+    if (fallbackUrl && !image.dataset.marketWatchLogoFallbackApplied) {
+      image.dataset.marketWatchLogoFallbackApplied = "true";
+      image.src = fallbackUrl;
+
+      return;
+    }
+
     image.closest(".data-card__logo")?.classList.add("is-image-missing");
     image.remove();
   }
@@ -451,7 +492,6 @@ export function createMarketWatchMobile(config = {}, root = document) {
       type: STATES.loading,
     };
 
-    cards.setAttribute("aria-busy", "true");
     renderRows();
   }
 

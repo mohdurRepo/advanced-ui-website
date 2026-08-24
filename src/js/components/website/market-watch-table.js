@@ -21,10 +21,6 @@ import {
   renderRange,
 } from "./market-watch-formatters.js";
 
-/* ==========================================================================
-   Constants
-   ========================================================================== */
-
 const SELECTORS = {
   table: "[data-market-watch-table]",
   shell: "[data-market-watch-table-shell], [data-table-shell]",
@@ -36,10 +32,6 @@ const STATES = {
   error: "error",
 };
 
-/* ==========================================================================
-   Helpers
-   ========================================================================== */
-
 function getDataTableConstructor() {
   if (typeof window.DataTable !== "function") {
     throw new Error("Market Watch requires DataTables.");
@@ -48,24 +40,12 @@ function getDataTableConstructor() {
   return window.DataTable;
 }
 
-function getTableShell(table) {
-  return table.closest(SELECTORS.shell);
-}
-
 function getTableConfig(config = {}) {
   return {
-    fixedColumns: Math.max(0, Number(config.table?.fixedColumns ?? 1)),
+    fixedColumns: Number(config.table?.fixedColumns ?? 1),
     fixedHeader: config.table?.fixedHeader !== false,
     scrollX: config.table?.scrollX !== false,
   };
-}
-
-function getAvailableGroupIds(config, view) {
-  return getColumnGroups(config, view).map((group) => group.id);
-}
-
-function isAuction(config = {}) {
-  return Boolean(config.market?.isAuction ?? config.openCloseAuction);
 }
 
 function getCellValue(row, column) {
@@ -78,22 +58,17 @@ function getNumericValue(row, column) {
     : getCellValue(row, column);
 }
 
+function isAuction(config = {}) {
+  return Boolean(config.market?.isAuction ?? config.openCloseAuction);
+}
+
 function createSkeletonCell(column) {
-  const sizeClass =
+  const size =
     column.key === "company" || column.type === "range"
       ? "table-skeleton-lg"
       : "table-skeleton-md";
 
-  return `
-    <span
-      class="table-skeleton ${sizeClass}"
-      aria-hidden="true"
-    ></span>
-  `.trim();
-}
-
-function renderTextCell(value) {
-  return escapeHtml(getDisplayValue(value));
+  return `<span class="table-skeleton ${size}" aria-hidden="true"></span>`;
 }
 
 function renderAuctionFullNumber(value, config) {
@@ -109,6 +84,8 @@ function renderColumnCell(column, row, config) {
     return createSkeletonCell(column);
   }
 
+  const value = getCellValue(row, column);
+
   switch (column.type) {
     case "company":
       return renderCompanyCell(row, config);
@@ -117,45 +94,36 @@ function renderColumnCell(column, row, config) {
       return renderRange(row, config);
 
     case "auction-value":
-      return escapeHtml(formatAuctionValue(getCellValue(row, column), config));
+      return escapeHtml(formatAuctionValue(value, config));
 
     case "auction-quantity":
-      return escapeHtml(
-        formatAuctionQuantity(getCellValue(row, column), config),
-      );
+      return escapeHtml(formatAuctionQuantity(value, config));
 
     case "auction-full-number":
-      return escapeHtml(
-        renderAuctionFullNumber(getCellValue(row, column), config),
-      );
+      return escapeHtml(renderAuctionFullNumber(value, config));
 
     case "full-number":
-      return escapeHtml(formatFullNumber(getCellValue(row, column), config));
+      return escapeHtml(formatFullNumber(value, config));
 
     case "market-order":
-      return escapeHtml(formatMarketOrder(getCellValue(row, column), config));
+      return escapeHtml(formatMarketOrder(value, config));
 
     case "change":
-      return renderChange(
-        getCellValue(row, column),
-        getNumericValue(row, column),
-      );
+      return renderChange(value, getNumericValue(row, column));
 
     case "percent-change":
-      return renderChange(
-        getCellValue(row, column),
-        getNumericValue(row, column),
-        { percent: true },
-      );
+      return renderChange(value, getNumericValue(row, column), {
+        percent: true,
+      });
 
     case "text":
     default:
-      return renderTextCell(getCellValue(row, column));
+      return escapeHtml(getDisplayValue(value));
   }
 }
 
 /* ==========================================================================
-   Header Construction
+   Header
    ========================================================================== */
 
 function createHeaderCell({
@@ -167,19 +135,17 @@ function createHeaderCell({
   groupId = "",
   isGroupHeading = false,
   width = "",
-  minWidth = "",
-  maxWidth = "",
 }) {
   const cell = document.createElement("th");
 
   cell.className = className;
   cell.scope = scope;
 
-  if (rowSpan > 0) {
+  if (rowSpan) {
     cell.rowSpan = rowSpan;
   }
 
-  if (colSpan > 0) {
+  if (colSpan) {
     cell.colSpan = colSpan;
   }
 
@@ -193,14 +159,6 @@ function createHeaderCell({
 
   if (width) {
     cell.style.width = width;
-  }
-
-  if (minWidth) {
-    cell.style.minWidth = minWidth;
-  }
-
-  if (maxWidth) {
-    cell.style.maxWidth = maxWidth;
   }
 
   if (isGroupHeading) {
@@ -220,26 +178,18 @@ function createHeaderCell({
   return cell;
 }
 
-/*
- * Preserve the accessible caption while rebuilding headers for another view.
- * The previous implementation used replaceChildren(thead, tbody), which
- * silently removed the caption after the first DataTables initialization.
- */
-
 function replaceTableStructure(table, thead) {
   const caption = table.caption;
   const tbody = document.createElement("tbody");
 
   if (caption) {
     table.replaceChildren(caption, thead, tbody);
-
-    return;
+  } else {
+    table.replaceChildren(thead, tbody);
   }
-
-  table.replaceChildren(thead, tbody);
 }
 
-function buildTableHeader(table, config, view) {
+function buildHeader(table, config, view) {
   const columns = getColumns(config, view);
   const groups = getColumnGroups(config, view);
   const hasGroupedHeader = columns.some((column) => column.headerGroup);
@@ -254,11 +204,8 @@ function buildTableHeader(table, config, view) {
         createHeaderCell({
           label: column.label,
           className: column.className,
-          scope: "col",
           groupId: column.visibilityGroup,
           width: column.width,
-          minWidth: column.minWidth,
-          maxWidth: column.maxWidth,
         }),
       );
     });
@@ -272,11 +219,6 @@ function buildTableHeader(table, config, view) {
   const groupRow = document.createElement("tr");
   const columnRow = document.createElement("tr");
 
-  /*
-   * Company and 52-week range belong in the first header row and span both
-   * header rows. Their visibility is then managed through DataTables.
-   */
-
   columns
     .filter((column) => !column.headerGroup)
     .forEach((column) => {
@@ -284,22 +226,19 @@ function buildTableHeader(table, config, view) {
         createHeaderCell({
           label: column.label,
           className: column.className,
-          scope: "col",
-          rowSpan: 2,
           groupId: column.visibilityGroup,
+          rowSpan: 2,
           width: column.width,
-          minWidth: column.minWidth,
-          maxWidth: column.maxWidth,
         }),
       );
     });
 
   groups.forEach((group) => {
-    const groupedColumns = columns.filter(
+    const groupColumns = columns.filter(
       (column) => column.headerGroup === group.id,
     );
 
-    if (!groupedColumns.length) {
+    if (!groupColumns.length) {
       return;
     }
 
@@ -308,22 +247,19 @@ function buildTableHeader(table, config, view) {
         label: group.label,
         className: "table-market__group-heading",
         scope: "colgroup",
-        colSpan: groupedColumns.length,
+        colSpan: groupColumns.length,
         groupId: group.id,
         isGroupHeading: true,
       }),
     );
 
-    groupedColumns.forEach((column) => {
+    groupColumns.forEach((column) => {
       columnRow.append(
         createHeaderCell({
           label: column.label,
           className: column.className,
-          scope: "col",
           groupId: column.visibilityGroup,
           width: column.width,
-          minWidth: column.minWidth,
-          maxWidth: column.maxWidth,
         }),
       );
     });
@@ -334,16 +270,17 @@ function buildTableHeader(table, config, view) {
 }
 
 /* ==========================================================================
-   DataTables Construction
+   DataTables Definitions
    ========================================================================== */
 
-function createDataTablesColumns(columns, config, visibleGroups) {
+function createColumns(columns, config, visibleGroups) {
   const selectedGroups = new Set(visibleGroups);
 
   return columns.map((column) => ({
     data: null,
     name: column.key,
-    width: column.width || null,
+    width: column.width,
+
     className: column.className || "",
 
     orderable: false,
@@ -353,11 +290,6 @@ function createDataTablesColumns(columns, config, visibleGroups) {
       !column.visibilityGroup || selectedGroups.has(column.visibilityGroup),
 
     render(_data, type, row) {
-      /*
-       * Although ordering and searching are intentionally disabled, returning
-       * a text value keeps the table safe if either feature is enabled later.
-       */
-
       if (type === "sort" || type === "type" || type === "filter") {
         return getDisplayValue(getCellValue(row, column), "");
       }
@@ -407,7 +339,7 @@ export function createMarketWatchTable(config = {}, root = document) {
     throw new Error("Market Watch requires [data-market-watch-table].");
   }
 
-  const shell = getTableShell(table);
+  const shell = table.closest(SELECTORS.shell);
 
   if (!shell) {
     throw new Error("Market Watch table requires [data-table-shell].");
@@ -418,8 +350,8 @@ export function createMarketWatchTable(config = {}, root = document) {
 
   let api = null;
   let currentView = String(config.initialState?.tableView || "1");
-  let rows = [];
   let visibleGroups = [...(config.initialState?.visibleGroups || [])];
+  let rows = [];
   let emptyState = null;
   let layoutFrame = null;
   let destroyed = false;
@@ -429,7 +361,7 @@ export function createMarketWatchTable(config = {}, root = document) {
   }
 
   function getCurrentAvailableGroups() {
-    return getAvailableGroupIds(config, currentView);
+    return getColumnGroups(config, currentView).map((group) => group.id);
   }
 
   function getCurrentVisibleGroups() {
@@ -447,6 +379,31 @@ export function createMarketWatchTable(config = {}, root = document) {
     return api.columns(":visible").count();
   }
 
+  function refreshLayout() {
+    if (!api) {
+      return;
+    }
+
+    api.columns.adjust();
+
+    const fixedColumns =
+      typeof api.fixedColumns === "function" ? api.fixedColumns() : null;
+
+    fixedColumns?.relayout?.();
+    api.fixedHeader?.adjust?.();
+  }
+
+  function scheduleLayoutRefresh() {
+    if (layoutFrame !== null) {
+      return;
+    }
+
+    layoutFrame = window.requestAnimationFrame(() => {
+      layoutFrame = null;
+      refreshLayout();
+    });
+  }
+
   function updateCompanyOnlyMode() {
     const optionalColumns = getCurrentColumns().filter(
       (column) => column.visibilityGroup,
@@ -462,50 +419,50 @@ export function createMarketWatchTable(config = {}, root = document) {
     );
   }
 
-  /*
-   * DataTables understands leaf-column visibility. This synchronizes the
-   * grouped header spans and labels to that leaf-column state.
-   */
-
   function updateHeaderGroups() {
     if (!api) {
       return;
     }
 
     const columns = getCurrentColumns();
+    const container = api.table().container();
 
-    table
-      .querySelectorAll("[data-market-watch-group-heading]")
-      .forEach((headerCell) => {
-        const groupId = headerCell.dataset.marketWatchGroupHeading;
+    const headerTables = [
+      table,
+      ...container.querySelectorAll("table.dataTable"),
+    ];
 
-        const visibleCount = columns.filter((column, index) => {
-          return column.headerGroup === groupId && api.column(index).visible();
-        }).length;
+    [...new Set(headerTables)].forEach((headerTable) => {
+      headerTable
+        .querySelectorAll("[data-market-watch-group-heading]")
+        .forEach((headerCell) => {
+          const groupId = headerCell.dataset.marketWatchGroupHeading;
 
-        headerCell.hidden = visibleCount === 0;
+          const visibleCount = columns.filter((column, index) => {
+            return (
+              column.headerGroup === groupId && api.column(index).visible()
+            );
+          }).length;
 
-        if (visibleCount > 0) {
-          headerCell.colSpan = visibleCount;
-        }
-      });
+          headerCell.hidden = visibleCount === 0;
 
-    table
-      .querySelectorAll("[data-market-watch-column-group]")
-      .forEach((headerCell) => {
-        const groupId = headerCell.dataset.marketWatchColumnGroup;
+          if (visibleCount > 0) {
+            headerCell.colSpan = visibleCount;
+          }
+        });
 
-        if (!groupId) {
-          return;
-        }
+      headerTable
+        .querySelectorAll("[data-market-watch-column-group]")
+        .forEach((headerCell) => {
+          const groupId = headerCell.dataset.marketWatchColumnGroup;
 
-        headerCell.hidden = !getCurrentVisibleGroups().includes(groupId);
-      });
+          headerCell.hidden = !getCurrentVisibleGroups().includes(groupId);
+        });
+    });
   }
 
-  function updateEmptyRow() {
-    const body = table.tBodies[0];
-    const emptyCell = body?.querySelector("td.dt-empty");
+  function updateEmptyState() {
+    const emptyCell = table.tBodies[0]?.querySelector("td.dt-empty");
 
     if (!emptyCell) {
       return;
@@ -516,98 +473,39 @@ export function createMarketWatchTable(config = {}, root = document) {
       emptyState?.message || config.labels?.noData || "No data available";
   }
 
-  /*
-   * FixedHeader and FixedColumns must be adjusted after:
-   *
-   * - data replacement
-   * - column visibility changes
-   * - view rebuilding
-   * - browser layout changes
-   *
-   * Two animation frames allow DataTables to finish creating its cloned panes
-   * before their measurements are taken.
-   */
-
-  function refreshExtensions() {
+  function syncVisibleColumns() {
     if (!api) {
       return;
     }
 
-    api.columns.adjust();
-
-    const fixedColumns =
-      typeof api.fixedColumns === "function" ? api.fixedColumns() : null;
-
-    fixedColumns?.relayout?.();
-
-    api.fixedHeader?.enable?.(true);
-    api.fixedHeader?.adjust?.();
-  }
-
-  function scheduleLayoutRefresh() {
-    if (layoutFrame !== null) {
-      return;
-    }
-
-    layoutFrame = window.requestAnimationFrame(() => {
-      layoutFrame = null;
-
-      refreshExtensions();
-
-      window.requestAnimationFrame(() => {
-        refreshExtensions();
-
-        /*
-         * Reconnects the shared DataTables layout synchronizer and the
-         * reusable horizontal jump navigation after a rebuild.
-         */
-
-        window.dispatchEvent(new Event("resize"));
-      });
-    });
-  }
-
-  function syncColumnVisibility() {
-    if (!api) {
-      return;
-    }
-
-    const selectedGroups = new Set(getCurrentVisibleGroups());
+    const selected = new Set(getCurrentVisibleGroups());
 
     getCurrentColumns().forEach((column, index) => {
       if (!column.visibilityGroup) {
         return;
       }
 
-      const shouldBeVisible = selectedGroups.has(column.visibilityGroup);
-
-      if (api.column(index).visible() !== shouldBeVisible) {
-        api.column(index).visible(shouldBeVisible, false);
-      }
+      api.column(index).visible(selected.has(column.visibilityGroup), false);
     });
 
     updateCompanyOnlyMode();
     updateHeaderGroups();
 
     api.columns.adjust().draw(false);
-
     scheduleLayoutRefresh();
   }
 
   function createInstance() {
-    buildTableHeader(table, config, currentView);
+    table.dataset.marketWatchView = currentView;
+
+    buildHeader(table, config, currentView);
 
     const columns = getCurrentColumns();
-    const usesRowGroups = currentView === "1" || currentView === "2";
+    const usesRowGroup = currentView === "1" || currentView === "2";
 
     api = new DataTable(table, {
       data: rows,
-
-      columns: createDataTablesColumns(
-        columns,
-        config,
-        getCurrentVisibleGroups(),
-      ),
+      columns: createColumns(columns, config, getCurrentVisibleGroups()),
 
       autoWidth: false,
       scrollX: tableConfig.scrollX,
@@ -616,7 +514,6 @@ export function createMarketWatchTable(config = {}, root = document) {
       paging: false,
       searching: false,
       ordering: false,
-      order: [],
       info: false,
       lengthChange: false,
 
@@ -634,21 +531,19 @@ export function createMarketWatchTable(config = {}, root = document) {
             }
           : false,
 
-      rowGroup: usesRowGroups
+      rowGroup: usesRowGroup
         ? {
             dataSrc: "sectorName",
 
             startRender(groupRows, groupName) {
-              const containsSkeleton = groupRows
+              const isLoading = groupRows
                 .data()
                 .toArray()
                 .some((row) => row?.__marketWatchState === STATES.loading);
 
-              if (containsSkeleton) {
-                return null;
-              }
-
-              return createGroupRow(groupName, getVisibleColumnCount());
+              return isLoading
+                ? null
+                : createGroupRow(groupName, getVisibleColumnCount());
             },
           }
         : false,
@@ -665,7 +560,7 @@ export function createMarketWatchTable(config = {}, root = document) {
       },
 
       drawCallback() {
-        updateEmptyRow();
+        updateEmptyState();
         updateHeaderGroups();
       },
 
@@ -676,7 +571,7 @@ export function createMarketWatchTable(config = {}, root = document) {
       },
     });
 
-    syncColumnVisibility();
+    syncVisibleColumns();
   }
 
   function destroyInstance() {
@@ -687,10 +582,6 @@ export function createMarketWatchTable(config = {}, root = document) {
     api.destroy();
     api = null;
   }
-
-  /* ========================================================================
-     Rendering States
-     ======================================================================== */
 
   function setRows(nextRows = []) {
     rows = Array.isArray(nextRows) ? nextRows : [];
@@ -745,55 +636,33 @@ export function createMarketWatchTable(config = {}, root = document) {
     scheduleLayoutRefresh();
   }
 
-  /* ========================================================================
-     View and Column Changes
-     ======================================================================== */
-
   function setVisibleGroups(nextGroups = []) {
     visibleGroups = [...new Set(nextGroups)];
-
-    syncColumnVisibility();
+    syncVisibleColumns();
   }
 
   function setView(nextView) {
-    const normalizedView = String(nextView || "1");
+    const view = String(nextView || "1");
 
-    if (normalizedView === currentView) {
+    if (view === currentView) {
       return;
     }
 
-    currentView = normalizedView;
-
-    /*
-     * A table view has a different column schema, therefore DataTables must
-     * be recreated. Normal Show/Hide Columns changes never recreate it.
-     */
+    currentView = view;
 
     destroyInstance();
     createInstance();
 
-    if (rows.length > 0) {
+    if (rows.length) {
       setRows(rows);
-
-      return;
+    } else if (emptyState?.type === STATES.error) {
+      showError(emptyState.message);
+    } else if (emptyState) {
+      showEmpty(emptyState.message);
+    } else {
+      showLoading();
     }
-
-    if (emptyState) {
-      if (emptyState.type === STATES.error) {
-        showError(emptyState.message);
-      } else {
-        showEmpty(emptyState.message);
-      }
-
-      return;
-    }
-
-    showLoading();
   }
-
-  /* ========================================================================
-     Legacy Watchlist and Logo Fallback
-     ======================================================================== */
 
   function handleFavoriteClick(event) {
     const button = event.target.closest("[data-market-watch-favorite]");
@@ -805,12 +674,6 @@ export function createMarketWatchTable(config = {}, root = document) {
     event.preventDefault();
 
     const companyRef = button.dataset.companyRef || "";
-
-    /*
-     * Retains the website’s existing watchlist/login implementation.
-     * It determines whether this user sees a login dialog or a watchlist
-     * dialog; Market Watch does not duplicate that business logic.
-     */
 
     if (typeof window.showAddToWatchListPopup === "function") {
       window.showAddToWatchListPopup(companyRef);
@@ -838,25 +701,17 @@ export function createMarketWatchTable(config = {}, root = document) {
     }
 
     const fallbackUrl = image.dataset.marketWatchLogoFallback;
-    const hasTriedFallback = image.dataset.marketWatchLogoFallbackApplied;
 
-    if (fallbackUrl && !hasTriedFallback && image.src !== fallbackUrl) {
+    if (fallbackUrl && !image.dataset.marketWatchLogoFallbackApplied) {
       image.dataset.marketWatchLogoFallbackApplied = "true";
       image.src = fallbackUrl;
 
       return;
     }
 
-    image
-      .closest(".table-market__logo, .data-card__logo")
-      ?.classList.add("is-image-missing");
-
+    image.closest(".table-market__logo")?.classList.add("is-image-missing");
     image.remove();
   }
-
-  /* ========================================================================
-     Lifecycle
-     ======================================================================== */
 
   function destroy() {
     if (destroyed) {
