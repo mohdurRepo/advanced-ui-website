@@ -7,6 +7,7 @@ import { createMarketWatchMobile } from "./market-watch-mobile.js";
 import { getColumnGroups } from "./market-watch-schema.js";
 import { createMarketWatchService } from "./market-watch-service.js";
 import { createMarketWatchTable } from "./market-watch-table.js";
+import { isWatchlisted } from "./market-watch-formatters.js";
 
 /* ==========================================================================
    Constants
@@ -76,6 +77,14 @@ export function initMarketWatchPage(root = document) {
   let requestId = 0;
   let unsubscribeFilters = null;
 
+  /*
+   * Always keep the complete result set returned by the API.
+   *
+   * Watchlist Only filters this array for presentation.
+   * It must never replace or destroy the original result set.
+   */
+  let sourceRows = [];
+
   /* ========================================================================
      Busy State
      ======================================================================== */
@@ -107,6 +116,66 @@ export function initMarketWatchPage(root = document) {
   }
 
   /* ========================================================================
+     Result Filtering
+     ======================================================================== */
+
+  function getVisibleRows() {
+    const { watchlistOnly } = filters.getState();
+
+    /*
+     * Normal mode:
+     * show every row returned by the current API request.
+     */
+
+    if (!watchlistOnly) {
+      return sourceRows;
+    }
+
+    /*
+     * Watchlist Only:
+     *
+     * Accept every value recognized by the shared formatter:
+     *
+     * - true
+     * - 1
+     * - "1"
+     * - "true"
+     * - "YES"
+     * - "yes"
+     * - "Y"
+     */
+    return sourceRows.filter((row) => {
+      return isWatchlisted(row.watchlist);
+    });
+  }
+
+  function renderCurrentRows() {
+    const rows = getVisibleRows();
+
+    if (!rows.length) {
+      const { watchlistOnly } = filters.getState();
+
+      /*
+       * If Watchlist Only is enabled and the user has no watched rows,
+       * show an empty state but keep sourceRows untouched.
+       *
+       * Turning the switch off immediately restores the complete result set.
+       */
+      const message = watchlistOnly
+        ? config.labels?.noWatchlistItems ||
+          config.labels?.noData ||
+          "No data available"
+        : config.labels?.noData || "No data available";
+
+      showEmpty(message);
+
+      return;
+    }
+
+    showRows(rows);
+  }
+
+  /* ========================================================================
      View Schema
      ======================================================================== */
 
@@ -116,27 +185,17 @@ export function initMarketWatchPage(root = document) {
     const availableGroups = getAvailableGroups(config, filterState.tableView);
 
     /*
-     * Each table view can expose a different set of column groups.
-     *
-     * The filter module owns the user's selection for each view and restores
-     * it when that view becomes active again.
+     * Each view can expose a different set of column groups.
      */
 
     filters.setAvailableGroups(availableGroups);
 
     /*
      * Read the state again because setAvailableGroups() may normalize the
-     * visible group selection for the newly selected table view.
+     * visible group selection for the selected view.
      */
 
     const normalizedState = filters.getState();
-
-    /*
-     * Desktop and mobile share the same schema state but render it through
-     * different presentation components.
-     *
-     * Responsive visibility itself belongs entirely to the design-system CSS.
-     */
 
     table.setView(normalizedState.tableView);
     table.setVisibleGroups(normalizedState.visibleGroups);
@@ -151,6 +210,7 @@ export function initMarketWatchPage(root = document) {
 
   async function loadData() {
     const currentRequestId = ++requestId;
+
     const filterState = filters.getState();
 
     showLoading();
@@ -158,28 +218,41 @@ export function initMarketWatchPage(root = document) {
     try {
       const response = await service.load(filterState);
 
-      /*
-       * Ignore results belonging to:
-       *
-       * - a destroyed page
-       * - an older request superseded by a newer request
-       */
-
       if (destroyed || currentRequestId !== requestId) {
         return;
       }
 
-      if (!response.rows.length) {
+      /*
+       * Store the complete server result.
+       *
+       * Do not apply Watchlist Only here by replacing response.rows.
+       */
+
+      sourceRows = response.rows;
+
+      if (!sourceRows.length) {
         showEmpty(config.labels?.noData || "No data available");
 
         return;
       }
 
-      showRows(response.rows);
+      /*
+       * Apply the current presentation filter.
+       *
+       * If Watchlist Only is already enabled, only watched rows are rendered.
+       */
+
+      renderCurrentRows();
     } catch (error) {
       if (destroyed || currentRequestId !== requestId || isAbortError(error)) {
         return;
       }
+
+      /*
+       * A failed request invalidates the current server result.
+       */
+
+      sourceRows = [];
 
       showError(getErrorMessage(config, error));
     } finally {
@@ -198,18 +271,18 @@ export function initMarketWatchPage(root = document) {
       return;
     }
 
-    /*
-     * Column visibility is presentation-only.
-     *
-     * It must not:
-     *
-     * - request new data
-     * - reset the current rows
-     * - change the selected table view
-     */
+    /* ----------------------------------------------------------------------
+       Show / Hide Columns
+       ---------------------------------------------------------------------- */
 
     if (type === "columns") {
       const { visibleGroups } = filters.getState();
+
+      /*
+       * Presentation-only.
+       *
+       * Do not reload API data.
+       */
 
       table.setVisibleGroups(visibleGroups);
       mobile.setVisibleGroups(visibleGroups);
@@ -217,42 +290,72 @@ export function initMarketWatchPage(root = document) {
       return;
     }
 
-    /*
-     * A table-view change can change both the desktop column model and the
-     * mobile detail schema.
-     *
-     * Synchronize the schema before requesting data for the selected view.
-     */
+    /* ----------------------------------------------------------------------
+       Watchlist Only
+       ---------------------------------------------------------------------- */
+
+    if (type === "watchlist") {
+      /*
+       * Authentication is already handled by market-watch-filters.js.
+       *
+       * If the user is not authenticated:
+       *
+       * - the filter resets the switch to OFF
+       * - the existing login/watchlist popup opens
+       * - this event is not emitted
+       *
+       * If this event reaches the page coordinator, the user is allowed to
+       * change Watchlist Only.
+       *
+       * No API request is required. Filter the currently loaded result set.
+       */
+
+      renderCurrentRows();
+
+      return;
+    }
+
+    /* ----------------------------------------------------------------------
+       Table View
+       ---------------------------------------------------------------------- */
 
     if (type === "table-view") {
       syncViewSchema();
+
+      /*
+       * Different table views request a different server dataset.
+       */
+
       loadData();
 
       return;
     }
 
-    /*
-     * Industry and Watchlist filters affect the result set but not the
-     * presentation schema.
-     */
+    /* ----------------------------------------------------------------------
+       Industry
+       ---------------------------------------------------------------------- */
 
-    if (type === "industry" || type === "watchlist") {
+    if (type === "industry") {
+      /*
+       * Industry changes the server result set.
+       */
+
       loadData();
     }
   }
 
   /* ========================================================================
-     Watchlist Events
+     Watchlist Updates
      ======================================================================== */
 
   /*
-   * Existing watchlist behavior may dispatch this event after an add/remove
-   * operation completes.
+   * Existing favorite actions may dispatch this after an add/remove completes.
    *
-   * Reloading refreshes:
+   * We reload because the server is the authoritative source for the updated
+   * watchlist state of each security.
    *
-   * - favorite state
-   * - Watchlist-only results
+   * If Watchlist Only is currently enabled, renderCurrentRows() inside
+   * loadData() automatically applies the filter to the refreshed response.
    */
 
   function handleWatchlistUpdated() {
@@ -275,13 +378,15 @@ export function initMarketWatchPage(root = document) {
     destroyed = true;
 
     /*
-     * Invalidate any currently resolving request before cancelling the
-     * underlying transport.
+     * Invalidate any result that might still resolve.
      */
 
     requestId += 1;
 
-    service.cancel();
+    sourceRows = [];
+
+    service.destroy?.();
+    service.cancel?.();
 
     unsubscribeFilters?.();
     unsubscribeFilters = null;
@@ -314,13 +419,9 @@ export function initMarketWatchPage(root = document) {
      ======================================================================== */
 
   /*
-   * Initial order:
-   *
-   * 1. configure the selected table-view schema
-   * 2. request the current result set once
-   *
-   * Desktop/mobile presentation is controlled exclusively by the
-   * design-system responsive CSS.
+   * 1. configure selected view schema
+   * 2. request complete result set
+   * 3. render all rows or watchlist-only rows according to current filter
    */
 
   syncViewSchema();
@@ -339,6 +440,10 @@ export function initMarketWatchPage(root = document) {
 
     getFilters() {
       return filters.getState();
+    },
+
+    getRows() {
+      return [...sourceRows];
     },
   });
 
