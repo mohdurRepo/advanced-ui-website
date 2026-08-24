@@ -11,7 +11,7 @@
  * - support loading / empty / error states
  * - support optional grouping
  * - delegate card markup to page configuration
- * - enhance newly rendered markup through an optional callback
+ * - enhance newly rendered markup
  * - support delegated events
  * - expose lifecycle methods
  *
@@ -21,7 +21,7 @@
  * - DataTables code
  * - AJAX code
  * - page-specific business logic
- * - design-system implementation details
+ * - design-system component implementation details
  */
 
 /* ==========================================================================
@@ -76,7 +76,9 @@ function defaultRenderLoading() {
       class="data-view__cards-loading"
       aria-hidden="true"
     >
-      <article class="data-card data-card--loading">
+      <article
+        class="data-card data-card--loading"
+      >
         <div class="data-card__main">
           <span
             class="table-skeleton table-skeleton-lg"
@@ -84,7 +86,9 @@ function defaultRenderLoading() {
         </div>
       </article>
 
-      <article class="data-card data-card--loading">
+      <article
+        class="data-card data-card--loading"
+      >
         <div class="data-card__main">
           <span
             class="table-skeleton table-skeleton-lg"
@@ -92,7 +96,9 @@ function defaultRenderLoading() {
         </div>
       </article>
 
-      <article class="data-card data-card--loading">
+      <article
+        class="data-card data-card--loading"
+      >
         <div class="data-card__main">
           <span
             class="table-skeleton table-skeleton-lg"
@@ -208,22 +214,49 @@ export function createDataCards(options = {}) {
   }
 
   /* ========================================================================
-     Enhancement
+     Design-system Enhancement
      ======================================================================== */
 
-  function enhanceRenderedCards() {
-    if (destroyed || !enhance) {
+  function refreshDesignSystem() {
+    const refresh = window.Theme?.dataView?.refresh;
+
+    if (typeof refresh !== "function") {
       return;
     }
 
     /*
-     * Enhancement receives the card container rather than the entire page.
+     * Refresh only the card container that was just rendered.
      *
-     * Existing design-system initializers can therefore initialize only the
-     * newly rendered cards.
+     * refreshDataViews() will:
+     *
+     * - reuse existing DataViewCard instances
+     * - initialize newly inserted cards
+     * - synchronize their current state
      */
+    refresh(container);
+  }
 
-    enhance(container, getContext());
+  /* ========================================================================
+     Enhancement
+     ======================================================================== */
+
+  function enhanceRenderedCards() {
+    if (destroyed) {
+      return;
+    }
+
+    /*
+     * Optional page/module-specific enhancement.
+     */
+    enhance?.(container, getContext());
+
+    /*
+     * Standard design-system enhancement.
+     *
+     * Dynamic cards are created after the theme's initial initDataViews()
+     * pass, so initialize/refresh them after every render.
+     */
+    refreshDesignSystem();
   }
 
   function completeRender() {
@@ -250,7 +283,9 @@ export function createDataCards(options = {}) {
     sourceRows.forEach((row, index) => {
       const key = getGroupKey(row, {
         index,
+
         view: currentView,
+
         container,
       });
 

@@ -22,7 +22,9 @@ import { initCustomSelects } from "./components/custom-select";
 import { initCustomDates } from "./components/custom-date";
 import { initForms } from "./components/form";
 import { initTextAnimation } from "./components/text-animation";
-import { initDataViews } from "./components/data-view";
+
+import { initDataViews, refreshDataViews } from "./components/data-view";
+
 import { initDirectories } from "./components/directory";
 
 /* ==========================================================================
@@ -45,11 +47,38 @@ import { initIndicesHeatmap } from "./components/market-summary";
 /* ==========================================================================
    Watchlist Components
    ========================================================================== */
+
 import { initWatchlists } from "./components/watchlist";
+
+/* ==========================================================================
+   Public Design-system API
+   ========================================================================== */
+
+/*
+ * Public enhancement bridge for application modules that render
+ * design-system components dynamically after the initial page load.
+ *
+ * Example:
+ *
+ * - Market Watch loads data asynchronously
+ * - common/data-view/data-cards.js injects new [data-data-card] elements
+ * - Theme.dataView.refresh(container) initializes those new cards
+ *
+ * Keep this API intentionally small.
+ */
+
+window.Theme = window.Theme || {};
+
+window.Theme.dataView = {
+  ...(window.Theme.dataView || {}),
+
+  refresh: refreshDataViews,
+};
 
 /* ==========================================================================
    Application State
    ========================================================================== */
+
 let applicationInitialized = false;
 
 /* ==========================================================================
@@ -94,8 +123,13 @@ function initApp() {
 
   /*
    * Shared content components.
+   *
+   * Initialize all Data View markup already present at page load.
+   * Dynamically rendered Data View content is refreshed through the
+   * Theme.dataView.refresh() bridge above.
    */
   initDataViews();
+
   initDirectories();
   initTextAnimation();
 
@@ -120,6 +154,9 @@ function initApp() {
   initHomeSpotlight();
   initExchangePerformance();
 
+  /*
+   * Watchlist behavior.
+   */
   initWatchlists();
 }
 

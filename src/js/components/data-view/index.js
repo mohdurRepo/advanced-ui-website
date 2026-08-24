@@ -11,12 +11,6 @@ const VIEW_SELECTORS = {
 };
 
 /* ==========================================================================
-   Instance State
-   ========================================================================== */
-
-let observer = null;
-
-/* ==========================================================================
    Element Collection
    ========================================================================== */
 
@@ -91,75 +85,17 @@ export function initDataViewSwitchers(root = document) {
 
 /**
  * Initialize all reusable data-view behavior.
+ *
+ * This preserves the existing public initializer used by main.js.
  */
 export function initDataViews(root = document) {
   const cards = initDataViewCards(root);
-
   const views = initDataViewSwitchers(root);
 
   return {
     cards,
     views,
   };
-}
-
-/* ==========================================================================
-   Dynamic Enhancement
-   ========================================================================== */
-
-/**
- * Enhance newly inserted Data View content.
- *
- * This allows dynamically rendered cards/views to use the same design-system
- * behavior as markup that existed during initial page load.
- */
-function enhanceAddedNode(node) {
-  if (!(node instanceof Element)) {
-    return;
-  }
-
-  initDataViewCards(node);
-  initDataViewSwitchers(node);
-}
-
-/**
- * Start observing dynamically inserted Data View content.
- *
- * Safe to call multiple times.
- */
-export function observeDataViews(root = document.body) {
-  if (observer || !root || typeof MutationObserver === "undefined") {
-    return observer;
-  }
-
-  observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      mutation.addedNodes.forEach((node) => {
-        enhanceAddedNode(node);
-      });
-    });
-  });
-
-  observer.observe(root, {
-    childList: true,
-    subtree: true,
-  });
-
-  return observer;
-}
-
-/* ==========================================================================
-   Observer Destruction
-   ========================================================================== */
-
-export function disconnectDataViewObserver() {
-  if (!observer) {
-    return;
-  }
-
-  observer.disconnect();
-
-  observer = null;
 }
 
 /* ==========================================================================
@@ -217,7 +153,6 @@ export function destroyDataViews(root = document) {
     }
 
     instance.destroy();
-
     destroyedCards += 1;
   });
 
@@ -229,15 +164,12 @@ export function destroyDataViews(root = document) {
     }
 
     instance.destroy();
-
     destroyedViews += 1;
   });
 
   return {
     cards: destroyedCards,
-
     views: destroyedViews,
-
     total: destroyedCards + destroyedViews,
   };
 }
