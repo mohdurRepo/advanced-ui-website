@@ -13,7 +13,7 @@ import {
   createDataTable,
   createDataViewController,
   renderStandardDataCard,
-} from "../../common/data-view/index.js";
+} from "../common/data-view/index.js";
 
 import {
   getColumnGroups,
@@ -38,7 +38,6 @@ import {
   renderInstrument,
   renderMobileIdentity,
   renderMobilePrice,
-  renderWatchlist,
 } from "./sukuk-formatters.js";
 
 /* ==========================================================================
@@ -133,10 +132,6 @@ function normalizeRow(row) {
   return {
     ...row,
 
-    /*
-     * Stable aliases useful to integrations without mutating/removing
-     * any original API fields.
-     */
     instrumentRef: getInstrumentReference(row),
 
     instrumentName: getInstrumentName(row),
@@ -177,7 +172,7 @@ function normalizeResponse(response) {
 function buildRequestData(config, state) {
   return {
     /*
-     * Preserve the existing backend parameter name.
+     * Preserve the existing backend contract.
      */
     sectorParameter: state.bondType || "all",
 
@@ -191,11 +186,8 @@ function buildRequestData(config, state) {
 
 function renderTableCell({ row, column, type, config }) {
   /*
-   * Return plain values for DataTables' non-display operations.
-   *
-   * Sukuk ordering/searching are currently disabled, but keeping this
-   * distinction makes the renderer safe if those capabilities are enabled
-   * later.
+   * Keep raw values available for future searching / ordering even though
+   * those DataTables features are currently disabled.
    */
 
   if (type === "sort" || type === "type" || type === "filter") {
@@ -253,9 +245,6 @@ function renderTableCell({ row, column, type, config }) {
     case "day-count-convention":
       return escapeHtml(formatDayCountConvention(value, config));
 
-    case "watchlist":
-      return renderWatchlist(row);
-
     case "display-value":
     case "text":
     default:
@@ -284,10 +273,6 @@ function getSukukGroup(row, config) {
    ========================================================================== */
 
 function renderSukukGroup({ groupName, groupRows, visibleColumnCount }) {
-  /*
-   * Do not render a group heading for table skeleton rows.
-   */
-
   const loading = groupRows
     .data()
     .toArray()
@@ -352,9 +337,6 @@ function renderMobileFieldValue(column, row, config) {
     case "day-count-convention":
       return escapeHtml(formatDayCountConvention(value, config));
 
-    case "watchlist":
-      return renderWatchlist(row);
-
     case "display-value":
     case "text":
     default:
@@ -368,9 +350,8 @@ function renderMobileFieldValue(column, row, config) {
 
 function getMobileDetailColumns(config, visibleGroups) {
   /*
-   * Last Trade Price is already displayed in the compact summary.
+   * Last Trade Price is already presented in the card summary.
    */
-
   const summaryColumns = new Set(["last-trade-price"]);
 
   return getMobileColumns(config, VIEW, visibleGroups).filter(
@@ -397,6 +378,12 @@ function renderSukukCard(row, context, config, visibleGroups) {
     }),
   );
 
+  /*
+   * Same composition pattern as Market Watch:
+   *
+   * identity
+   * quote
+   */
   const summary = `
     ${renderMobileIdentity(row)}
 
@@ -448,17 +435,15 @@ function handleFavorite(event, scope) {
   const instrumentRef = button.dataset.instrumentRef || "";
 
   /*
-   * Preserve the existing site-level watchlist integration.
+   * Preserve the existing website-level watchlist integration.
    */
-
   if (typeof window.showAddToWatchListPopup === "function") {
     window.showAddToWatchListPopup(instrumentRef);
   }
 
   /*
-   * Also provide a module event for future integrations.
+   * Also expose a page-level event for integrations that prefer events.
    */
-
   button.dispatchEvent(
     new CustomEvent("sukuk:favorite-request", {
       bubbles: true,
@@ -563,11 +548,6 @@ export function initSukuk(root = document) {
     actionSelector: SELECTORS.columnAction,
 
     optionSelector: ".filter-bar__columns-option",
-
-    /*
-     * Keep the common column picker completely unaware of Sukuk-specific
-     * data attributes.
-     */
 
     getGroupId(input) {
       return input.dataset.sukukColumn || "";
@@ -686,11 +666,6 @@ export function initSukuk(root = document) {
 
     initialView: VIEW,
 
-    /*
-     * Mobile cards use the same Government / Corporate grouping as the
-     * desktop table.
-     */
-
     getGroupKey(row) {
       return getSukukGroup(row, config);
     },
@@ -703,13 +678,6 @@ export function initSukuk(root = document) {
         columnVisibility.getVisibleGroups(),
       );
     },
-
-    /*
-     * No page-specific design-system enhancement is necessary.
-     *
-     * common/data-cards.js already calls Theme.dataView.refresh(container)
-     * after dynamic rendering.
-     */
 
     emptyMessage: config.labels?.noData || "No data available",
 
@@ -751,10 +719,6 @@ export function initSukuk(root = document) {
     cards,
     results,
 
-    /*
-     * Sukuk currently has one schema/view.
-     */
-
     getView() {
       return VIEW;
     },
@@ -764,10 +728,7 @@ export function initSukuk(root = document) {
     },
 
     /*
-     * Column visibility is synchronized silently by the controller.
-     * Refresh the picker once final state is ready.
-     *
-     * This uses the same fix validated on Market Watch.
+     * Keep the DOM picker synchronized with the common visibility state.
      */
     onViewSync() {
       columnPicker.refresh();
@@ -800,9 +761,11 @@ export function initSukuk(root = document) {
   };
 
   /*
-   * Watchlist/favorite controls may appear in desktop cells and mobile cards.
+   * Favorite controls are rendered inside both:
+   *
+   * - the first desktop Instrument column
+   * - the mobile card identity
    */
-
   scope.addEventListener(
     "click",
     (event) => {
@@ -812,12 +775,9 @@ export function initSukuk(root = document) {
   );
 
   /*
-   * Existing application watchlist integration can dispatch this event after
-   * an add/remove action succeeds.
-   *
-   * Reloading refreshes the star state returned by the backend.
+   * Reload after an external watchlist update so the server-returned star
+   * state remains authoritative.
    */
-
   scope.addEventListener(
     "sukuk:watchlist-updated",
     () => {
