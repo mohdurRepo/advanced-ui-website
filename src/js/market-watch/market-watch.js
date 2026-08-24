@@ -14,7 +14,7 @@ import {
   createDataTable,
   createDataViewController,
   renderStandardDataCard,
-} from "../common/data-view/index.js";
+} from "../../common/data-view/index.js";
 
 import {
   getColumnGroups,
@@ -114,36 +114,6 @@ function renderAuctionFullNumber(value, config) {
 }
 
 /* ==========================================================================
-   Design-system Enhancement
-   ========================================================================== */
-
-/*
- * Optional bridge to the already-loaded compiled theme.
- *
- * Market Watch does not import design-system source files directly.
- *
- * If the theme exposes the existing DataViewCard initializer globally,
- * dynamically rendered cards are progressively enhanced.
- *
- * If no initializer is exposed, card rendering still works. Only the
- * expandable-card behavior will remain inactive until the theme bridge
- * is wired.
- */
-
-function enhanceDataViewCards(container) {
-  const initializer =
-    window.initDataViewCards ??
-    window.DataView?.initDataViewCards ??
-    window.Theme?.dataView?.initDataViewCards;
-
-  if (typeof initializer !== "function") {
-    return;
-  }
-
-  initializer(container);
-}
-
-/* ==========================================================================
    Response Normalization
    ========================================================================== */
 
@@ -221,10 +191,10 @@ function buildRequestData(config, state) {
     tableViewParameter: String(state.tableView || "1"),
 
     /*
-     * Watchlist Only is client-side.
+     * Watchlist Only is presentation-only for this page.
      *
-     * Always request the complete result set so switching Watchlist Only OFF
-     * can immediately restore all source rows.
+     * Always request the complete data set so disabling Watchlist Only can
+     * restore every source row immediately without another request.
      */
     iswatchListSelected: "NO",
 
@@ -246,8 +216,8 @@ function getAvailableGroups(config, view) {
 
 function renderTableCell({ row, column, type, config }) {
   /*
-   * DataTables non-display operations should receive underlying values,
-   * not presentation markup.
+   * Non-display DataTables operations should receive the underlying value
+   * rather than presentation markup.
    */
 
   if (type === "sort" || type === "type" || type === "filter") {
@@ -273,7 +243,7 @@ function renderTableCell({ row, column, type, config }) {
   }
 
   /* ------------------------------------------------------------------------
-     Values
+     Value
      ------------------------------------------------------------------------ */
 
   const value = getCellValue(row, column);
@@ -320,7 +290,7 @@ function renderTableCell({ row, column, type, config }) {
 
 function renderSectorGroup({ groupName, groupRows, visibleColumnCount }) {
   /*
-   * Skeleton rows must not create sector headings.
+   * Loading rows must not produce sector headings.
    */
 
   const loading = groupRows
@@ -427,7 +397,7 @@ function renderMobileFieldValue(column, row, config) {
 
 function getMobileDetailColumns(config, view, visibleGroups) {
   /*
-   * These values are already displayed in the compact summary.
+   * These values are already rendered in the compact card summary.
    */
 
   const summaryColumns = new Set(["last-trade-price", "change-percent"]);
@@ -486,7 +456,7 @@ function renderMarketWatchCard(row, context, config, visibleGroups) {
 }
 
 /* ==========================================================================
-   Favorite
+   Favorite Action
    ========================================================================== */
 
 function handleFavorite(event, scope) {
@@ -511,13 +481,15 @@ function handleFavorite(event, scope) {
   /*
    * Preserve the existing website-level watchlist action.
    */
+
   if (typeof window.showAddToWatchListPopup === "function") {
     window.showAddToWatchListPopup(companyRef);
   }
 
   /*
-   * Expose a reusable page event for integrations that prefer events.
+   * Also expose a page-level event for integrations that prefer events.
    */
+
   button.dispatchEvent(
     new CustomEvent("marketwatch:favorite-request", {
       bubbles: true,
@@ -548,7 +520,7 @@ function handleLogoError(event, scope) {
   const fallbackUrl = image.dataset.marketWatchLogoFallback;
 
   /*
-   * Try the configured fallback once.
+   * Attempt the configured fallback only once.
    */
 
   if (fallbackUrl && !image.dataset.marketWatchLogoFallbackApplied) {
@@ -560,7 +532,7 @@ function handleLogoError(event, scope) {
   }
 
   /*
-   * Fallback also failed.
+   * The fallback image also failed.
    */
 
   image
@@ -629,10 +601,10 @@ export function initMarketWatch(root = document) {
       },
 
       /*
-       * Authentication is intentionally not handled here yet.
+       * Authentication is intentionally outside this implementation for
+       * now.
        *
-       * For this test, Watchlist Only simply filters the already-loaded
-       * rows using the shared watchlist value normalizer.
+       * Watchlist Only filters the already-loaded source rows.
        */
       watchlistOnly: {
         selector: SELECTORS.watchlist,
@@ -686,9 +658,9 @@ export function initMarketWatch(root = document) {
     optionSelector: ".filter-bar__columns-option",
 
     /*
-     * Market Watch owns its own DOM hook names.
+     * Market Watch owns the page-specific DOM attributes.
      *
-     * The common column picker stays page-agnostic.
+     * The common picker remains page-agnostic.
      */
 
     getGroupId(input) {
@@ -746,6 +718,7 @@ export function initMarketWatch(root = document) {
     renderCell(args) {
       return renderTableCell({
         ...args,
+
         config,
       });
     },
@@ -821,12 +794,11 @@ export function initMarketWatch(root = document) {
     },
 
     /*
-     * Optional progressive enhancement from the compiled theme.
+     * No `enhance()` callback is required here.
+     *
+     * The design-system Data View observer now automatically detects and
+     * initializes dynamically inserted [data-data-card] elements.
      */
-
-    enhance(container) {
-      enhanceDataViewCards(container);
-    },
 
     emptyMessage: config.labels?.noData || "No data available",
 
@@ -874,6 +846,20 @@ export function initMarketWatch(root = document) {
 
     getAvailableGroups(view) {
       return getAvailableGroups(config, view);
+    },
+
+    /*
+     * View-specific column visibility is synchronized silently by the
+     * controller so the DataTable can change schema without intermediate
+     * redraws.
+     *
+     * Refresh the DOM adapter once the final view state has been applied.
+     *
+     * This fixes the picker showing groups from the previously selected
+     * table view.
+     */
+    onViewSync() {
+      columnPicker.refresh();
     },
 
     /* --------------------------------------------------------------------
@@ -928,7 +914,7 @@ export function initMarketWatch(root = document) {
   };
 
   /*
-   * Favorite controls exist in both desktop rows and mobile cards.
+   * Favorite controls exist in both desktop table rows and mobile cards.
    */
 
   scope.addEventListener(
@@ -940,7 +926,7 @@ export function initMarketWatch(root = document) {
   );
 
   /*
-   * Image errors do not bubble.
+   * Image error events do not bubble, so use capture.
    */
 
   scope.addEventListener(
@@ -956,8 +942,8 @@ export function initMarketWatch(root = document) {
   );
 
   /*
-   * Existing watchlist integration may dispatch this event after an
-   * add/remove action completes.
+   * Existing watchlist integration may dispatch this after a successful
+   * add/remove operation.
    */
 
   scope.addEventListener(
