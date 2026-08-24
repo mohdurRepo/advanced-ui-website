@@ -38,15 +38,8 @@ const GROUP_ORDER = Object.freeze([
   "priceDetails",
   "issueDetails",
   "couponMeta",
-  "watchlist",
 ]);
 
-/*
- * Explicit widths keep the schema predictable while still allowing
- * DataTables to calculate the final scrollable table width.
- *
- * These are presentation hints rather than layout ownership.
- */
 const WIDTHS = Object.freeze({
   instrument: "15rem",
 
@@ -68,8 +61,6 @@ const WIDTHS = Object.freeze({
 
   couponFrequency: "8rem",
   dayCountConvention: "9rem",
-
-  watchlist: "5rem",
 });
 
 /* ==========================================================================
@@ -153,12 +144,6 @@ function createGroups(config = {}) {
 
       label: cleanLabel(config.labels?.couponMeta, "Coupon"),
     },
-
-    watchlist: {
-      id: "watchlist",
-
-      label: cleanLabel(labels.watchlist, "Watchlist"),
-    },
   };
 }
 
@@ -180,15 +165,19 @@ function createColumns(config = {}) {
       label: cleanLabel(labels.instrument, "Name"),
 
       /*
-       * Instrument identity is resolved by the Sukuk formatter because
-       * the legacy response supports several equivalent code/name fields.
+       * Always-visible first column.
+       *
+       * Instrument rendering follows the Market Watch hierarchy:
+       *
+       * code
+       * name
        */
       type: "instrument",
 
       className: "table-market__security",
 
       /*
-       * Instrument identity is already shown in the mobile card summary.
+       * Identity is already shown in the mobile summary.
        */
       mobile: false,
     }),
@@ -277,9 +266,8 @@ function createColumns(config = {}) {
       label: cleanLabel(labels.instrumentYield, "Instrument Yield"),
 
       /*
-       * `lastTadeYield` is intentionally preserved.
-       *
-       * That spelling comes from the existing backend response.
+       * Preserve the existing backend spelling while supporting the
+       * correctly spelled alias as a fallback.
        */
       data: "lastTadeYield",
 
@@ -453,30 +441,6 @@ function createColumns(config = {}) {
 
       className: "table-market__text",
     }),
-
-    /* ----------------------------------------------------------------------
-       Watchlist
-       ---------------------------------------------------------------------- */
-
-    sizedColumn(WIDTHS.watchlist, {
-      key: "watchlist",
-
-      visibilityGroup: "watchlist",
-
-      label: cleanLabel(labels.watchlist, "Watchlist"),
-
-      type: "watchlist",
-
-      className: "table-market__watchlist",
-
-      orderable: false,
-
-      /*
-       * Keep this available in mobile details because that behavior existed
-       * in the legacy Sukuk schema.
-       */
-      mobile: true,
-    }),
   ];
 }
 
@@ -488,9 +452,8 @@ export function getColumns(config = {}, view = DEFAULT_VIEW) {
   /*
    * Sukuk currently has one presentation schema.
    *
-   * Keeping the view argument makes this module compatible with the common
-   * Data View contract and allows additional Sukuk views later without
-   * changing consumers.
+   * Keep the view argument for compatibility with the common Data View
+   * contract and possible future schemas.
    */
 
   void view;
@@ -528,6 +491,9 @@ export function getVisibleColumns(
   const selected = new Set(visibleGroups);
 
   return getColumns(config, view).filter((item) => {
+    /*
+     * Ungrouped columns, such as Instrument/Name, are always visible.
+     */
     if (!item.visibilityGroup) {
       return true;
     }

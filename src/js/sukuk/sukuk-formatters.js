@@ -17,7 +17,6 @@
  * - maturity / perpetual-bond labels
  * - coupon-frequency labels
  * - day-count-convention labels
- * - watchlist presentation
  * - mobile summary rendering
  *
  * This module intentionally has no:
@@ -173,22 +172,29 @@ export function getInstrumentReference(row) {
 }
 
 /* ==========================================================================
-   Instrument Rendering
+   Desktop Instrument Rendering
    ========================================================================== */
 
 function renderInstrumentContent(row) {
-  const name = escapeHtml(getInstrumentName(row));
-
   const code = escapeHtml(getInstrumentCode(row));
 
-  return `
-    <span class="table-market__security-name">
-      ${name}
-    </span>
+  const name = escapeHtml(getInstrumentName(row));
 
+  /*
+   * Match Market Watch hierarchy:
+   *
+   * Code first
+   * Name second and visually stronger
+   */
+
+  return `
     <span class="table-market__security-code">
       ${code}
     </span>
+
+    <strong class="table-market__security-name">
+      ${name}
+    </strong>
   `.trim();
 }
 
@@ -361,12 +367,6 @@ export function formatDayCountConvention(value, config = {}) {
    Schema Value Resolution
    ========================================================================== */
 
-/*
- * Resolve the configured primary field and any declared fallback fields.
- *
- * This keeps backend alias handling declarative inside sukuk-schema.js.
- */
-
 export function getColumnValue(row, column, fallback = "") {
   if (!column || typeof column !== "object") {
     return fallback;
@@ -386,56 +386,7 @@ export function getColumnValue(row, column, fallback = "") {
 }
 
 /* ==========================================================================
-   Watchlist
-   ========================================================================== */
-
-export function getWatchlistValue(row) {
-  return getFirstValue(
-    row,
-    ["watchlist", "watchList", "watchListId", "isWatchlisted", "watchlisted"],
-    null,
-  );
-}
-
-export function isWatchlisted(row) {
-  return isTrueLike(getWatchlistValue(row));
-}
-
-export function renderWatchlist(row) {
-  const instrumentRef = getInstrumentReference(row);
-
-  const active = isWatchlisted(row);
-
-  const label = active ? "In Your Watchlist" : "Add to Watchlist";
-
-  const icon = active ? "icon-star-filled" : "icon-star";
-
-  /*
-   * No inline onclick.
-   *
-   * sukuk.js will delegate this action and call the site's existing
-   * showAddToWatchListPopup() integration.
-   */
-
-  return `
-    <button
-      type="button"
-      class="btn-icon table-market__favorite"
-      aria-label="${escapeHtml(label)}"
-      aria-pressed="${String(active)}"
-      data-sukuk-favorite
-      data-instrument-ref="${escapeHtml(instrumentRef)}"
-    >
-      <span
-        class="has-icon ${icon}"
-        aria-hidden="true"
-      ></span>
-    </button>
-  `.trim();
-}
-
-/* ==========================================================================
-   Mobile Summary Values
+   Last Price
    ========================================================================== */
 
 export function getLastPrice(row) {
@@ -464,15 +415,24 @@ export function renderMobileIdentity(row) {
 
   const url = getInstrumentUrl(row);
 
+  /*
+   * Same identity hierarchy as Market Watch:
+   *
+   * Code
+   * Name (bold)
+   */
+
   const content = `
     <div class="data-card__identity-text">
-      <strong class="data-card__symbol">
+
+      <span class="data-card__symbol">
         ${escapeHtml(code)}
+      </span>
+
+      <strong class="data-card__name">
+        ${escapeHtml(name)}
       </strong>
 
-      <span class="data-card__name">
-        ${escapeHtml(name)}
-      </span>
     </div>
   `.trim();
 
@@ -486,12 +446,14 @@ export function renderMobileIdentity(row) {
 
   return `
     <div class="data-card__identity">
+
       <a
         class="data-card__identity-link"
         href="${escapeHtml(url)}"
       >
         ${content}
       </a>
+
     </div>
   `.trim();
 }
@@ -505,9 +467,11 @@ export function renderMobilePrice(row) {
 
   return `
     <div class="data-card__quote">
+
       <span class="data-card__price">
         ${escapeHtml(price)}
       </span>
+
     </div>
   `.trim();
 }
