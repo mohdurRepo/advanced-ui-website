@@ -1,763 +1,452 @@
-  <!-- =========================================================================
+<script>
+	var marketStatus = '${requestScope.marketStatusID}';
+</script>
+
+<c:set var="openCloseAuction" value="false" />
+
+<c:if
+	test="${requestScope.marketStatusID == 6 or requestScope.marketStatusID ==1   }">
+	<c:set var="openCloseAuction" value="true" />
+</c:if>
+
+<!-- =========================================================================
        Market Watch Hero
        ========================================================================= -->
 
-  <section
-    class="hero-section market-summary-section"
-    aria-labelledby="market-watch-title"
-    aria-describedby="market-watch-description"
-  >
-    <div class="hero-section__background" aria-hidden="true"></div>
 
-    <div class="container hero-section__content">
-      <div class="market-summary market-summary--hero">
-        <header class="market-summary__header">
-          <div class="market-summary__brand">
-            <span
-              class="market-summary__brand-icon has-icon icon-tadawul"
-              aria-hidden="true"
-            ></span>
+<section class="hero-section surface-hero"
+	aria-labelledby="nomu-page-title"
+	aria-describedby="nomu-page-description">
+	<div class="hero-section__background" aria-hidden="true"></div>
 
-            <h1 id="market-watch-title" class="market-summary__title">
-              <fmt:message key="marketwatch.todaywatch.v2.title" />
-            </h1>
-          </div>
+	<div class="container hero-section__content">
+		<header class="hero-intro">
+			<div class="hero-intro__header">
+				<div class="hero-intro__brand">
+					<span class="hero-intro__icon has-icon icon-tadawul"
+						aria-hidden="true"></span>
 
-          <p
-            id="market-watch-description"
-            class="market-summary__description"
-          >
-            Follow listed securities, market prices, trading activity, and
-            performance across the Main Market.
-          </p>
-        </header>
-      </div>
-    </div>
-  </section>
+					<h2 id="nomu-page-title" class="hero-intro__title"><fmt:message key="marketwatch.todaywatch.v2.title" /></h2>
+				</div>
 
-  <!-- =========================================================================
-       Market Watch Filters
-       ========================================================================= -->
+				<p id="nomu-page-description" class="hero-intro__description"><fmt:message key="marketwatch.todaywatch.v2.desc" /></p></p>
+			</div>
+		</header>
+	</div>
+</section>
+
+
 <!-- =========================================================================
      Market Watch Filters
      ========================================================================= -->
 
-<section
-  class="section market-watch-filters"
-  aria-labelledby="market-watch-filters-title"
->
-  <div class="container">
-    <form
-      class="filter-bar"
-      aria-labelledby="market-watch-filters-title"
-      data-market-watch-filters
-    >
-      <h2 class="visually-hidden" id="market-watch-filters-title">
-        <fmt:message key="marketwatch.todaywatch.v2.filter.heading" />
-      </h2>
+<section class="section market-watch-filters"
+	aria-labelledby="market-watch-filters-title">
+	<div class="container">
+		<form class="filter-bar" aria-labelledby="market-watch-filters-title"
+			data-market-watch-filters>
+			<h2 class="visually-hidden" id="market-watch-filters-title">
+				<fmt:message key="marketwatch.todaywatch.v2.filter.heading" />
+			</h2>
 
-      <input
-        type="hidden"
-        name="requestLocale"
-        value="<c:out value='${pageContext.request.locale.language}' />"
-        data-market-watch-locale
-      />
+			<input type="hidden" name="requestLocale"
+				value="<c:out value='${pageContext.request.locale.language}' />"
+				data-market-watch-locale />
 
-      <!-- ===============================================================
+			<!-- ===============================================================
            Primary Controls
            =============================================================== -->
 
-      <div class="filter-bar__inner">
-        <div class="filter-bar__fields grid-3">
-          <!-- Industry Group -->
+			<div class="filter-bar__inner">
+				<div class="filter-bar__fields grid-3">
+					<!-- Industry Group -->
 
-          <div class="filter-bar__field">
-            <label class="form-label" for="market-watch-industry">
-              <fmt:message key="marketwatch.todaywatch.v2.label.sector" />
-            </label>
+					<div class="filter-bar__field">
+						<label class="form-label" for="market-watch-industry"> <fmt:message
+								key="marketwatch.todaywatch.v2.label.sector" />
+						</label>
 
-            <div
-              class="custom-select"
-              data-custom-select
-              data-custom-select-search="true"
-            >
-              <div class="form-select-wrap custom-select__fallback">
-                <select
-                  class="form-select custom-select__native"
-                  id="market-watch-industry"
-                  name="sectorParameter"
-                  data-market-watch-filter="industry"
-                >
-                  <option
-                    value="all"
-                    <c:if test="${empty requestScope.selectedSector or requestScope.selectedSector eq 'all'}">selected</c:if>
-                  >
-                    <fmt:message
-                      key="marketwatch.todaywatch.v2.label.all.sectors"
-                    />
-                  </option>
+						<div class="custom-select" data-custom-select
+							data-custom-select-search="true">
+							<div class="form-select-wrap custom-select__fallback">
+								<select class="form-select custom-select__native"
+									id="market-watch-industry" name="sectorParameter"
+									data-market-watch-filter="industry">
+									<option value="all"
+										<c:if test="${empty requestScope.selectedSector or requestScope.selectedSector eq 'all'}">selected</c:if>>
+										<fmt:message key="marketwatch.todaywatch.v2.label.all.sectors" />
+									</option>
 
-                  <c:forEach
-                    items="${requestScope.sectorList}"
-                    var="sectorItem"
-                  >
-                    <option
-                      value="<c:out value='${sectorItem.modifiedId}' />"
-                      <c:if test="${requestScope.selectedSector eq sectorItem.modifiedId}">selected</c:if>
-                    >
-                      <c:out value="${sectorItem.modifiedName}" />
-                    </option>
-                  </c:forEach>
-                </select>
+									<c:forEach items="${requestScope.sectorList}" var="sectorItem">
+										<option value="<c:out value='${sectorItem.modifiedId}' />"
+											<c:if test="${requestScope.selectedSector eq sectorItem.modifiedId}">selected</c:if>>
+											<c:out value="${sectorItem.modifiedName}" />
+										</option>
+									</c:forEach>
+								</select> <span class="form-select-icon has-icon icon-chevron-down"
+									aria-hidden="true"></span>
+							</div>
+						</div>
+					</div>
 
-                <span
-                  class="form-select-icon has-icon icon-chevron-down"
-                  aria-hidden="true"
-                ></span>
-              </div>
-            </div>
-          </div>
+					<!-- Table View -->
 
-          <!-- Table View -->
+					<div class="filter-bar__field">
+						<label class="form-label" for="market-watch-table-view"> <fmt:message
+								key="marketwatch.todaywatch.v2.label.tableview" />
+						</label>
 
-          <div class="filter-bar__field">
-            <label class="form-label" for="market-watch-table-view">
-              <fmt:message
-                key="marketwatch.todaywatch.v2.label.tableview"
-              />
-            </label>
+						<div class="custom-select filter-bar__view" data-custom-select>
+							<div class="form-select-wrap custom-select__fallback">
+								<select class="form-select custom-select__native"
+									id="market-watch-table-view"
+									name="<%=MarketConstants.TABLE_VIEW_PARAMETER_ID%>"
+									data-market-watch-filter="table-view">
+									<option value="1"
+										<c:if test="${empty requestScope.selectedTableView or requestScope.selectedTableView eq '1'}">selected</c:if>>
+										<fmt:message
+											key="marketwatch.todaywatch.v2.label.tableview.default" />
+									</option>
 
-            <div class="custom-select filter-bar__view" data-custom-select>
-              <div class="form-select-wrap custom-select__fallback">
-                <select
-                  class="form-select custom-select__native"
-                  id="market-watch-table-view"
-                  name="<%= MarketConstants.TABLE_VIEW_PARAMETER_ID %>"
-                  data-market-watch-filter="table-view"
-                >
-                  <option
-                    value="1"
-                    <c:if test="${empty requestScope.selectedTableView or requestScope.selectedTableView eq '1'}">selected</c:if>
-                  >
-                    <fmt:message
-                      key="marketwatch.todaywatch.v2.label.tableview.default"
-                    />
-                  </option>
+									<c:forEach items="${requestScope.tableViewList}"
+										var="tableViewItem">
+										<option value="<c:out value='${tableViewItem.modifiedId}' />"
+											<c:if test="${requestScope.selectedTableView eq tableViewItem.modifiedId}">selected</c:if>>
+											<c:out value="${tableViewItem.modifiedName}" />
+										</option>
+									</c:forEach>
+								</select> <span class="form-select-icon has-icon icon-chevron-down"
+									aria-hidden="true"></span>
+							</div>
+						</div>
+					</div>
 
-                  <c:forEach
-                    items="${requestScope.tableViewList}"
-                    var="tableViewItem"
-                  >
-                    <option
-                      value="<c:out value='${tableViewItem.modifiedId}' />"
-                      <c:if test="${requestScope.selectedTableView eq tableViewItem.modifiedId}">selected</c:if>
-                    >
-                      <c:out value="${tableViewItem.modifiedName}" />
-                    </option>
-                  </c:forEach>
-                </select>
+					<!-- Visible Columns -->
 
-                <span
-                  class="form-select-icon has-icon icon-chevron-down"
-                  aria-hidden="true"
-                ></span>
-              </div>
-            </div>
-          </div>
+					<div class="filter-bar__field">
 
-          <!-- Visible Columns -->
+						<span class="form-label-static" id="market-watch-columns-label">
+							<fmt:message key="show.hide.column" />
+						</span>
 
-          <fieldset class="filter-bar__field filter-bar__field--columns">
-            <legend class="form-label" id="market-watch-columns-label">
-              <fmt:message key="show.hide.column" />
-            </legend>
+						<button class="btn btn-outline-primary filter-bar__columns"
+							type="button" aria-controls="market-watch-columns-panel"
+							aria-expanded="false" data-market-watch-columns-trigger>
+							<span class="filter-bar__columns-label"
+								data-market-watch-columns-summary> <fmt:message
+									key="show.hide.all" />
+							</span> <span
+								class="filter-bar__columns-icon has-icon icon-chevron-down"
+								aria-hidden="true"></span>
+						</button>
 
-            <button
-              class="btn btn-outline-primary filter-bar__columns"
-              type="button"
-              aria-controls="market-watch-columns-panel"
-              aria-expanded="false"
-              data-market-watch-columns-trigger
-            >
-              <span
-                class="filter-bar__columns-label"
-                data-market-watch-columns-summary
-              >
-                <fmt:message key="show.hide.all" />
-              </span>
+						<div class="filter-bar__columns-panel"
+							id="market-watch-columns-panel"
+							aria-labelledby="market-watch-columns-label"
+							data-market-watch-columns-panel hidden>
+							<div class="filter-bar__columns-actions">
+								<button class="btn btn-link filter-bar__columns-action"
+									type="button" data-market-watch-columns-action="select-all">
+									<fmt:message key="select.all" />
+								</button>
 
-              <span
-                class="filter-bar__columns-icon has-icon icon-chevron-down"
-                aria-hidden="true"
-              ></span>
-            </button>
+								<button class="btn btn-link filter-bar__columns-action"
+									type="button" data-market-watch-columns-action="clear-all">
+									<fmt:message key="clear.all" />
+								</button>
+							</div>
 
-            <div
-              class="filter-bar__columns-panel"
-              id="market-watch-columns-panel"
-              aria-labelledby="market-watch-columns-label"
-              data-market-watch-columns-panel
-              hidden
-            >
-              <div class="filter-bar__columns-actions">
-                <button
-                  class="btn btn-link filter-bar__columns-action"
-                  type="button"
-                  data-market-watch-columns-action="select-all"
-                >
-                  <fmt:message key="select.all" />
-                </button>
+							<div class="filter-bar__columns-options">
+								<label class="filter-bar__column-option"> <input
+									type="checkbox" name="columns" value="range" checked
+									data-market-watch-column="range" /> <span> <fmt:message
+											key="marketwatch.todaywatch.v2.table.column.header.D52WeekRange" />
+								</span>
+								</label> <label class="filter-bar__column-option"> <input
+									type="checkbox" name="columns" value="last-trade" checked
+									data-market-watch-column="last-trade" /> <span> <fmt:message
+											key="marketwatch.todaywatch.v2.table.column.header.last.trade" />
+								</span>
+								</label> <label class="filter-bar__column-option"> <input
+									type="checkbox" name="columns" value="cumulative" checked
+									data-market-watch-column="cumulative" /> <span> <fmt:message
+											key="derivatives.market.watch.table.column.header.cumulative" />
+								</span>
+								</label> <label class="filter-bar__column-option"> <input
+									type="checkbox" name="columns" value="trading" checked
+									data-market-watch-column="trading" /> <span> <fmt:message
+											key="marketwatch.todaywatch.v2.table.column.header.today" />
+								</span>
+								</label> <label class="filter-bar__column-option"> <input
+									type="checkbox" name="columns" value="best-bid" checked
+									data-market-watch-column="best-bid" /> <span> <fmt:message
+											key="marketwatch.market.watch.table.column.header.best.bid" />
+								</span>
+								</label> <label class="filter-bar__column-option"> <input
+									type="checkbox" name="columns" value="best-offer" checked
+									data-market-watch-column="best-offer" /> <span> <fmt:message
+											key="marketwatch.market.watch.table.column.header.best.offer" />
+								</span>
+								</label>
+							</div>
+						</div>
+					</div>
+				</div>
 
-                <button
-                  class="btn btn-link filter-bar__columns-action"
-                  type="button"
-                  data-market-watch-columns-action="clear-all"
-                >
-                  <fmt:message key="clear.all" />
-                </button>
-              </div>
+				<!-- Watchlist -->
 
-              <div class="filter-bar__columns-options">
-                <label class="filter-bar__column-option">
-                  <input
-                    type="checkbox"
-                    name="columns"
-                    value="range"
-                    checked
-                    data-market-watch-column="range"
-                  />
+				<div class="filter-bar__actions">
+					<label class="form-switch"> <input
+						class="form-switch-input" type="checkbox" name="watchlistOnly"
+						value="true" data-market-watch-filter="watchlist-only"
+						data-login-required /> <span class="form-switch-label"> <fmt:message
+								key="marketwatch.todaywatch.v2.label.watchlist.only" />
+					</span>
+					</label>
+				</div>
+			</div>
 
-                  <span>
-                    <fmt:message
-                      key="marketwatch.todaywatch.v2.table.column.header.D52WeekRange"
-                    />
-                  </span>
-                </label>
-
-                <label class="filter-bar__column-option">
-                  <input
-                    type="checkbox"
-                    name="columns"
-                    value="last-trade"
-                    checked
-                    data-market-watch-column="last-trade"
-                  />
-
-                  <span>
-                    <fmt:message
-                      key="marketwatch.todaywatch.v2.table.column.header.last.trade"
-                    />
-                  </span>
-                </label>
-
-                <label class="filter-bar__column-option">
-                  <input
-                    type="checkbox"
-                    name="columns"
-                    value="cumulative"
-                    checked
-                    data-market-watch-column="cumulative"
-                  />
-
-                  <span>
-                    <fmt:message
-                      key="derivatives.market.watch.table.column.header.cumulative"
-                    />
-                  </span>
-                </label>
-
-                <label class="filter-bar__column-option">
-                  <input
-                    type="checkbox"
-                    name="columns"
-                    value="trading"
-                    checked
-                    data-market-watch-column="trading"
-                  />
-
-                  <span>
-                    <fmt:message
-                      key="marketwatch.todaywatch.v2.table.column.header.today"
-                    />
-                  </span>
-                </label>
-
-                <label class="filter-bar__column-option">
-                  <input
-                    type="checkbox"
-                    name="columns"
-                    value="best-bid"
-                    checked
-                    data-market-watch-column="best-bid"
-                  />
-
-                  <span>
-                    <fmt:message
-                      key="marketwatch.market.watch.table.column.header.best.bid"
-                    />
-                  </span>
-                </label>
-
-                <label class="filter-bar__column-option">
-                  <input
-                    type="checkbox"
-                    name="columns"
-                    value="best-offer"
-                    checked
-                    data-market-watch-column="best-offer"
-                  />
-
-                  <span>
-                    <fmt:message
-                      key="marketwatch.market.watch.table.column.header.best.offer"
-                    />
-                  </span>
-                </label>
-              </div>
-            </div>
-          </fieldset>
-        </div>
-
-        <!-- Watchlist -->
-
-        <div class="filter-bar__actions">
-          <label class="form-switch">
-            <input
-              class="form-switch-input"
-              type="checkbox"
-              name="watchlistOnly"
-              value="true"
-              data-market-watch-filter="watchlist-only"
-              data-login-required
-            />
-
-            <span class="form-switch-label">
-              <fmt:message
-                key="marketwatch.todaywatch.v2.label.watchlist.only"
-              />
-            </span>
-          </label>
-        </div>
-      </div>
-
-      <!-- ===============================================================
+			<!-- ===============================================================
            Market Legend
            =============================================================== -->
 
-      <div class="filter-bar__secondary">
-        <div
-          class="filter-bar__secondary-content"
-          aria-label="Accumulated loss indicators"
-          role="list"
-        >
-          <div class="filter-bar__legend">
-            <span class="filter-bar__legend-item" role="listitem">
-              <span
-                class="filter-bar__legend-indicator filter-bar__legend-indicator--danger"
-                aria-hidden="true"
-              ></span>
-
-              <span>
-                <fmt:message
-                  key="marketwatch.todaywatch.accumulated.losses.50.more"
-                />
-              </span>
-            </span>
-
-            <span class="filter-bar__legend-item" role="listitem">
-              <span
-                class="filter-bar__legend-indicator filter-bar__legend-indicator--warning"
-                aria-hidden="true"
-              ></span>
-
-              <span>
-                <fmt:message
-                  key="marketwatch.todaywatch.accumulated.losses.35.to.50"
-                />
-              </span>
-            </span>
-
-            <span class="filter-bar__legend-item" role="listitem">
-              <span
-                class="filter-bar__legend-indicator filter-bar__legend-indicator--primary"
-                aria-hidden="true"
-              ></span>
-
-              <span>
-                <fmt:message
-                  key="marketwatch.todaywatch.accumulated.losses.20.to.35"
-                />
-              </span>
-            </span>
-          </div>
-        </div>
-      </div>
-    </form>
-  </div>
+			<div class="filter-bar__secondary">
+				<div class="filter-bar__secondary-content"
+					aria-label="Accumulated loss indicators" role="list">
+					<div class="filter-bar__legend">
+						<span class="filter-bar__legend-item" role="listitem"> <span
+							class="filter-bar__legend-indicator filter-bar__legend-indicator--danger"
+							aria-hidden="true"></span> <span> <fmt:message
+									key="marketwatch.todaywatch.accumulated.losses.50.more" />
+						</span>
+						</span> <span class="filter-bar__legend-item" role="listitem"> <span
+							class="filter-bar__legend-indicator filter-bar__legend-indicator--warning"
+							aria-hidden="true"></span> <span> <fmt:message
+									key="marketwatch.todaywatch.accumulated.losses.35.to.50" />
+						</span>
+						</span> <span class="filter-bar__legend-item" role="listitem"> <span
+							class="filter-bar__legend-indicator filter-bar__legend-indicator--primary"
+							aria-hidden="true"></span> <span> <fmt:message
+									key="marketwatch.todaywatch.accumulated.losses.20.to.35" />
+						</span>
+						</span>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
 </section>
-  <!-- =========================================================================
-     Market Watch Results
-     ========================================================================= -->
 <!-- =========================================================================
      Market Watch Results
      ========================================================================= -->
 
-<section
-  class="section market-watch-results"
-  aria-labelledby="market-watch-results-title"
->
-  <div class="container">
-    <header class="market-watch-results__header">
-      <div>
-        <h2 id="market-watch-results-title">
-          <fmt:message key="marketwatch.todaywatch.v2.results.title" />
-        </h2>
+<section class="section market-watch-results"
+	aria-labelledby="market-watch-results-title">
+	<div class="container">
+		<%--<header class="market-watch-results__header">
+			<div>
+				<h2 id="market-watch-results-title">
+					<fmt:message key="marketwatch.todaywatch.v2.results.title" />
+				</h2>
 
-        <p
-          class="text-muted"
-          data-market-watch-summary
-          aria-live="polite"
-        >
-          <fmt:message key="marketwatch.todaywatch.v2.results.loading" />
-        </p>
-      </div>
+				<p class="text-muted" data-market-watch-summary aria-live="polite">
+					<fmt:message key="marketwatch.todaywatch.v2.results.loading" />
+				</p>
+			</div>
 
-      <p
-        class="market-watch-results__updated text-muted"
-        data-market-watch-updated
-        hidden
-      ></p>
-    </header>
+			<p class="market-watch-results__updated text-muted"
+				data-market-watch-updated hidden></p>
+		</header>
+		--%>
 
-    <!-- ===============================================================
+		<!-- ===============================================================
          Desktop / Tablet DataTable
          =============================================================== -->
 
-    <div
-      class="market-watch-results__desktop"
-      data-market-watch-desktop-view
-    >
-      <div class="table-shell" data-table-shell>
-        <table
-          class="table table-market table-market--watch table-hover table-nowrap"
-          id="market-watch-table"
-          data-market-watch-table
-          aria-describedby="market-watch-table-caption"
-        >
-          <caption
-            class="visually-hidden"
-            id="market-watch-table-caption"
-          >
-            <fmt:message key="marketwatch.todaywatch.v2.results.caption" />
-          </caption>
+		<div class="market-watch-results__desktop"
+			data-market-watch-desktop-view>
+			<div class="table-shell" data-table-shell>
+				<table
+					class="table table-market table-market--watch table-hover table-nowrap"
+					id="market-watch-table" data-market-watch-table
+					aria-describedby="market-watch-table-caption">
+					<caption class="visually-hidden" id="market-watch-table-caption">
+						<fmt:message key="marketwatch.todaywatch.v2.results.caption" />
+					</caption>
 
-          <!--
+					<!--
             The table module rebuilds this header for each selected Table View.
             This initial overview header keeps the JSP semantic without
             rendering legacy static data.
           -->
 
-          <thead>
-            <tr>
-              <th
-                class="table-market__security"
-                scope="col"
-                rowspan="2"
-                data-market-watch-column="security"
-                data-market-watch-fixed
-              >
-                <fmt:message
-                  key="marketwatch.todaywatch.v2.table.column.header.company.name"
-                />
-              </th>
+					<thead>
+						<tr>
+							<th class="table-market__security" scope="col" rowspan="2"
+								data-market-watch-column="security" data-market-watch-fixed>
+								<fmt:message
+									key="marketwatch.todaywatch.v2.table.column.header.company.name" />
+							</th>
 
-              <th
-                class="table-market__number"
-                scope="col"
-                rowspan="2"
-                data-market-watch-column="range"
-                data-market-watch-column-group="range"
-              >
-                <fmt:message
-                  key="marketwatch.todaywatch.v2.table.column.header.D52WeekRange"
-                />
-              </th>
+							<th class="table-market__number" scope="col" rowspan="2"
+								data-market-watch-column="range"
+								data-market-watch-column-group="range"><fmt:message
+									key="marketwatch.todaywatch.v2.table.column.header.D52WeekRange" />
+							</th>
 
-              <th
-                class="table-market__group-heading"
-                scope="colgroup"
-                colspan="4"
-                data-market-watch-header-group="last-trade"
-              >
-                <fmt:message
-                  key="marketwatch.todaywatch.v2.table.column.header.last.trade"
-                />
-              </th>
+							<th class="table-market__group-heading" scope="colgroup"
+								colspan="4" data-market-watch-header-group="last-trade"><fmt:message
+									key="marketwatch.todaywatch.v2.table.column.header.last.trade" />
+							</th>
 
-              <th
-                class="table-market__group-heading"
-                scope="colgroup"
-                colspan="2"
-                data-market-watch-header-group="cumulative"
-              >
-                <fmt:message
-                  key="derivatives.market.watch.table.column.header.cumulative"
-                />
-              </th>
+							<th class="table-market__group-heading" scope="colgroup"
+								colspan="2" data-market-watch-header-group="cumulative"><fmt:message
+									key="derivatives.market.watch.table.column.header.cumulative" />
+							</th>
 
-              <th
-                class="table-market__group-heading"
-                scope="colgroup"
-                colspan="3"
-                data-market-watch-header-group="trading"
-              >
-                <fmt:message
-                  key="marketwatch.todaywatch.v2.table.column.header.today"
-                />
-              </th>
+							<th class="table-market__group-heading" scope="colgroup"
+								colspan="3" data-market-watch-header-group="trading"><fmt:message
+									key="marketwatch.todaywatch.v2.table.column.header.today" /></th>
 
-              <th
-                class="table-market__group-heading"
-                scope="colgroup"
-                colspan="2"
-                data-market-watch-header-group="best-bid"
-              >
-                <fmt:message
-                  key="marketwatch.market.watch.table.column.header.best.bid"
-                />
-              </th>
+							<th class="table-market__group-heading" scope="colgroup"
+								colspan="2" data-market-watch-header-group="best-bid"><fmt:message
+									key="marketwatch.market.watch.table.column.header.best.bid" />
+							</th>
 
-              <th
-                class="table-market__group-heading"
-                scope="colgroup"
-                colspan="2"
-                data-market-watch-header-group="best-offer"
-              >
-                <fmt:message
-                  key="marketwatch.market.watch.table.column.header.best.offer"
-                />
-              </th>
-            </tr>
+							<th class="table-market__group-heading" scope="colgroup"
+								colspan="2" data-market-watch-header-group="best-offer"><fmt:message
+									key="marketwatch.market.watch.table.column.header.best.offer" />
+							</th>
+						</tr>
 
-            <tr>
-              <!-- Last Trade -->
+						<tr>
+							<!-- Last Trade -->
 
-              <th
-                class="table-market__number"
-                scope="col"
-                data-market-watch-column="last-price"
-                data-market-watch-column-group="last-trade"
-              >
-                <fmt:message
-                  key="marketwatch.todaywatch.v2.table.column.header.price"
-                />
-              </th>
+							<th class="table-market__number" scope="col"
+								data-market-watch-column="last-price"
+								data-market-watch-column-group="last-trade"><fmt:message
+									key="marketwatch.todaywatch.v2.table.column.header.price" /></th>
 
-              <th
-                class="table-market__number"
-                scope="col"
-                data-market-watch-column="last-volume"
-                data-market-watch-column-group="last-trade"
-              >
-                <fmt:message
-                  key="marketwatch.todaywatch.v2.table.column.header.volume"
-                />
-              </th>
+							<th class="table-market__number" scope="col"
+								data-market-watch-column="last-volume"
+								data-market-watch-column-group="last-trade"><fmt:message
+									key="marketwatch.todaywatch.v2.table.column.header.volume" />
+							</th>
 
-              <th
-                class="table-market__number"
-                scope="col"
-                data-market-watch-column="change-value"
-                data-market-watch-column-group="last-trade"
-              >
-                <span class="table-market__column-label">
-                  <fmt:message
-                    key="marketwatch.todaywatch.v2.table.column.header.change.value"
-                  />
-                </span>
-              </th>
+							<th class="table-market__number" scope="col"
+								data-market-watch-column="change-value"
+								data-market-watch-column-group="last-trade"><span
+								class="table-market__column-label"> <fmt:message
+										key="marketwatch.todaywatch.v2.table.column.header.change.value" />
+							</span></th>
 
-              <th
-                class="table-market__number"
-                scope="col"
-                data-market-watch-column="change-percent"
-                data-market-watch-column-group="last-trade"
-              >
-                <fmt:message
-                  key="marketwatch.todaywatch.v2.table.column.header.change.percent"
-                />
-              </th>
+							<th class="table-market__number" scope="col"
+								data-market-watch-column="change-percent"
+								data-market-watch-column-group="last-trade"><fmt:message
+									key="marketwatch.todaywatch.v2.table.column.header.change.percent" />
+							</th>
 
-              <!-- Cumulative -->
+							<!-- Cumulative -->
 
-              <th
-                class="table-market__number"
-                scope="col"
-                data-market-watch-column="trade-count"
-                data-market-watch-column-group="cumulative"
-              >
-                <span class="table-market__column-label">
-                  <fmt:message
-                    key="marketwatch.todaywatch.v2.table.column.header.number.of.trades"
-                  />
-                </span>
-              </th>
+							<th class="table-market__number" scope="col"
+								data-market-watch-column="trade-count"
+								data-market-watch-column-group="cumulative"><span
+								class="table-market__column-label"> <fmt:message
+										key="marketwatch.todaywatch.v2.table.column.header.number.of.trades" />
+							</span></th>
 
-              <th
-                class="table-market__number"
-                scope="col"
-                data-market-watch-column="traded-volume"
-                data-market-watch-column-group="cumulative"
-              >
-                <span class="table-market__column-label">
-                  <fmt:message
-                    key="marketwatch.todaywatch.v2.table.column.header.volume.traded"
-                  />
-                </span>
-              </th>
+							<th class="table-market__number" scope="col"
+								data-market-watch-column="traded-volume"
+								data-market-watch-column-group="cumulative"><span
+								class="table-market__column-label"> <fmt:message
+										key="marketwatch.todaywatch.v2.table.column.header.volume.traded" />
+							</span></th>
 
-              <!-- Today's Trading -->
+							<!-- Today's Trading -->
 
-              <th
-                class="table-market__number"
-                scope="col"
-                data-market-watch-column="open"
-                data-market-watch-column-group="trading"
-              >
-                <fmt:message
-                  key="derivatives.market.watch.table.column.header.open"
-                />
-              </th>
+							<th class="table-market__number" scope="col"
+								data-market-watch-column="open"
+								data-market-watch-column-group="trading"><fmt:message
+									key="derivatives.market.watch.table.column.header.open" /></th>
 
-              <th
-                class="table-market__number"
-                scope="col"
-                data-market-watch-column="high"
-                data-market-watch-column-group="trading"
-              >
-                <fmt:message
-                  key="derivatives.market.watch.table.column.header.high"
-                />
-              </th>
+							<th class="table-market__number" scope="col"
+								data-market-watch-column="high"
+								data-market-watch-column-group="trading"><fmt:message
+									key="derivatives.market.watch.table.column.header.high" /></th>
 
-              <th
-                class="table-market__number"
-                scope="col"
-                data-market-watch-column="low"
-                data-market-watch-column-group="trading"
-              >
-                <fmt:message
-                  key="derivatives.market.watch.table.column.header.low"
-                />
-              </th>
+							<th class="table-market__number" scope="col"
+								data-market-watch-column="low"
+								data-market-watch-column-group="trading"><fmt:message
+									key="derivatives.market.watch.table.column.header.low" /></th>
 
-              <!-- Best Bid -->
+							<!-- Best Bid -->
 
-              <th
-                class="table-market__number"
-                scope="col"
-                data-market-watch-column="best-bid-price"
-                data-market-watch-column-group="best-bid"
-              >
-                <fmt:message
-                  key="marketwatch.todaywatch.v2.table.column.header.price"
-                />
-              </th>
+							<th class="table-market__number" scope="col"
+								data-market-watch-column="best-bid-price"
+								data-market-watch-column-group="best-bid"><fmt:message
+									key="marketwatch.todaywatch.v2.table.column.header.price" /></th>
 
-              <th
-                class="table-market__number"
-                scope="col"
-                data-market-watch-column="best-bid-volume"
-                data-market-watch-column-group="best-bid"
-              >
-                <fmt:message
-                  key="marketwatch.todaywatch.v2.table.column.header.volume"
-                />
-              </th>
+							<th class="table-market__number" scope="col"
+								data-market-watch-column="best-bid-volume"
+								data-market-watch-column-group="best-bid"><fmt:message
+									key="marketwatch.todaywatch.v2.table.column.header.volume" />
+							</th>
 
-              <!-- Best Offer -->
+							<!-- Best Offer -->
 
-              <th
-                class="table-market__number"
-                scope="col"
-                data-market-watch-column="best-offer-price"
-                data-market-watch-column-group="best-offer"
-              >
-                <fmt:message
-                  key="marketwatch.todaywatch.v2.table.column.header.price"
-                />
-              </th>
+							<th class="table-market__number" scope="col"
+								data-market-watch-column="best-offer-price"
+								data-market-watch-column-group="best-offer"><fmt:message
+									key="marketwatch.todaywatch.v2.table.column.header.price" /></th>
 
-              <th
-                class="table-market__number"
-                scope="col"
-                data-market-watch-column="best-offer-volume"
-                data-market-watch-column-group="best-offer"
-              >
-                <fmt:message
-                  key="marketwatch.todaywatch.v2.table.column.header.volume"
-                />
-              </th>
-            </tr>
-          </thead>
+							<th class="table-market__number" scope="col"
+								data-market-watch-column="best-offer-volume"
+								data-market-watch-column-group="best-offer"><fmt:message
+									key="marketwatch.todaywatch.v2.table.column.header.volume" />
+							</th>
+						</tr>
+					</thead>
 
-          <!-- API rows are inserted by DataTables. -->
+					<!-- API rows are inserted by DataTables. -->
 
-          <tbody data-market-watch-table-body></tbody>
-        </table>
+					<tbody data-market-watch-table-body></tbody>
+				</table>
 
-        <button
-          class="table-scroll-jump has-icon"
-          type="button"
-          data-table-scroll-jump
-          hidden
-        ></button>
-      </div>
-    </div>
+				<button class="table-scroll-jump has-icon" type="button"
+					data-table-scroll-jump hidden></button>
+			</div>
+		</div>
 
-    <!-- ===============================================================
+		<!-- ===============================================================
          Mobile Cards
          =============================================================== -->
 
-    <section
-      class="market-watch-results__mobile"
-      aria-labelledby="market-watch-mobile-title"
-      data-market-watch-mobile-view
-      hidden
-    >
-      <h3 class="visually-hidden" id="market-watch-mobile-title">
-        <fmt:message key="marketwatch.todaywatch.v2.results.mobile.title" />
-      </h3>
+		<section class="market-watch-results__mobile"
+			aria-labelledby="market-watch-mobile-title"
+			data-market-watch-mobile-view hidden>
+			<h3 class="visually-hidden" id="market-watch-mobile-title">
+				<fmt:message key="marketwatch.todaywatch.v2.results.mobile.title" />
+			</h3>
 
-      <div
-        class="market-watch-cards"
-        data-market-watch-cards
-        aria-live="polite"
-      ></div>
-    </section>
+			<div class="market-watch-cards" data-market-watch-cards
+				aria-live="polite"></div>
+		</section>
 
-    <div
-      class="market-watch-results__status"
-      data-market-watch-status
-      aria-live="polite"
-      aria-atomic="true"
-      hidden
-    ></div>
-  </div>
+		<div class="market-watch-results__status" data-market-watch-status
+			aria-live="polite" aria-atomic="true" hidden></div>
+	</div>
 </section>
 <%-- =========================================================================
      Market Watch Page Configuration
      ========================================================================= --%>
 
-<c:set
-  var="marketWatchAuction"
-  value="${requestScope.marketStatusID == 1 or requestScope.marketStatusID == 6}"
-/>
+<c:set var="marketWatchAuction"
+	value="${requestScope.marketStatusID == 1 or requestScope.marketStatusID == 6}" />
 
 <script>
   window.MarketWatchConfig = {
     endpoint:
-      "<portlet:resourceURL id='getMainNomucMarketDetails'></portlet:resourceURL>",
+      "<portlet:resourceURL id='getMainNomucMarketDetails'></portlet:resourceURL>", 
 
     locale: "<c:out value='${pageContext.request.locale.language}' />",
 
@@ -780,7 +469,8 @@
         "last-trade",
         "cumulative",
         "trading",
-        "bid-offer"
+        "best-bid",
+        "best-offer"
       ]
     },
 
@@ -892,7 +582,5 @@
      Market Watch Entry Module
      ========================================================================= --%>
 
-<script
-  type="module"
-  src="${pageContext.request.contextPath}/js/pages/market-watch/market-watch-page.js"
-></script>
+<script type="module"
+	src="${pageContext.request.contextPath}/js/pages/market-watch/market-watch-page.js"></script>

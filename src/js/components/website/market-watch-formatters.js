@@ -109,8 +109,10 @@ export function createMarketWatchFormatters(config = {}) {
    * }
    */
 
-  const companyLogoBaseUrl = config.assets?.companyLogoBaseUrl || "";
+  //const companyLogoBaseUrl = config.assets?.companyLogoBaseUrl || "";
 
+  const companyLogoBaseUrl = "https://example/example.com";
+  
   const fullNumberFormatter = new Intl.NumberFormat(locale, {
     maximumFractionDigits: 0,
   });
@@ -252,7 +254,7 @@ export function createMarketWatchFormatters(config = {}) {
 
     return `
       <button
-        class="table-market__favorite has-icon icon-star"
+        class="table-market__favorite has-icon icon-star-outline"
         type="button"
         aria-pressed="${active}"
         aria-label="${escapeHtml(label)}"
@@ -294,7 +296,7 @@ export function createMarketWatchFormatters(config = {}) {
       : `
           <span class="table-market__logo" aria-hidden="true">
             ${escapeHtml(symbol.slice(0, 2))}
-          </span>
+          </span> 
         `;
 
     return `

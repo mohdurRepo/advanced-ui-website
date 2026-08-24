@@ -160,9 +160,9 @@ function createSecurityColumn(labels) {
 
     pinned: true,
 
-    width: "15.5rem",
-    minWidth: "15.5rem",
-    maxWidth: "15.5rem",
+    width: "7.5rem",
+    minWidth: "7.5rem",
+    maxWidth: "7.5rem",
 
     mobilePrimary: true,
     mobile: false,
@@ -201,21 +201,21 @@ function createOverviewColumns(labels) {
       headerGroup: "last-trade",
       visibilityGroup: "last-trade",
 
-      width: "6.25rem",
-      minWidth: "6.25rem",
+      width: "3.25rem",
+      minWidth: "3.25rem",
     }),
 
     defineColumn({
       key: "last-volume",
       label: labelFor(labels, "volume"),
       data: "lastTradeQuantity",
-      format: "quantity",
+      format: "full-number",
 
       headerGroup: "last-trade",
       visibilityGroup: "last-trade",
 
-      width: "6.5rem",
-      minWidth: "6.5rem",
+      width: "3.5rem",
+      minWidth: "3.5rem",
     }),
 
     defineColumn({
@@ -228,8 +228,8 @@ function createOverviewColumns(labels) {
       headerGroup: "last-trade",
       visibilityGroup: "last-trade",
 
-      width: "6.75rem",
-      minWidth: "6.75rem",
+      width: "3.75rem",
+      minWidth: "3.75rem",
     }),
 
     defineColumn({
@@ -238,13 +238,12 @@ function createOverviewColumns(labels) {
       data: "precentChangeModified",
       format: "change",
       changeField: "precentChange",
-      suffix: "%",
 
       headerGroup: "last-trade",
       visibilityGroup: "last-trade",
 
-      width: "6.5rem",
-      minWidth: "6.5rem",
+      width: "3.5rem",
+      minWidth: "3.5rem",
     }),
 
     defineColumn({
@@ -256,8 +255,8 @@ function createOverviewColumns(labels) {
       headerGroup: "cumulative",
       visibilityGroup: "cumulative",
 
-      width: "7rem",
-      minWidth: "7rem",
+      width: "4rem",
+      minWidth: "4rem",
     }),
 
     defineColumn({
@@ -269,8 +268,8 @@ function createOverviewColumns(labels) {
       headerGroup: "cumulative",
       visibilityGroup: "cumulative",
 
-      width: "8.5rem",
-      minWidth: "8.5rem",
+      width: "4.5rem",
+      minWidth: "4.5rem",
     }),
 
     defineColumn({
@@ -282,8 +281,8 @@ function createOverviewColumns(labels) {
       headerGroup: "trading",
       visibilityGroup: "trading",
 
-      width: "6rem",
-      minWidth: "6rem",
+      width: "3rem",
+      minWidth: "3rem",
     }),
 
     defineColumn({
@@ -295,8 +294,8 @@ function createOverviewColumns(labels) {
       headerGroup: "trading",
       visibilityGroup: "trading",
 
-      width: "6rem",
-      minWidth: "6rem",
+      width: "3rem",
+      minWidth: "3rem",
     }),
 
     defineColumn({
@@ -308,8 +307,8 @@ function createOverviewColumns(labels) {
       headerGroup: "trading",
       visibilityGroup: "trading",
 
-      width: "6rem",
-      minWidth: "6rem",
+      width: "3rem",
+      minWidth: "3rem",
     }),
 
     defineColumn({
@@ -321,8 +320,8 @@ function createOverviewColumns(labels) {
       headerGroup: "best-bid",
       visibilityGroup: "best-bid",
 
-      width: "6.25rem",
-      minWidth: "6.25rem",
+      width: "3.25rem",
+      minWidth: "3.25rem",
     }),
 
     defineColumn({
@@ -334,8 +333,8 @@ function createOverviewColumns(labels) {
       headerGroup: "best-bid",
       visibilityGroup: "best-bid",
 
-      width: "7.5rem",
-      minWidth: "7.5rem",
+      width: "4.5rem",
+      minWidth: "4.5rem",
     }),
 
     defineColumn({
@@ -347,8 +346,8 @@ function createOverviewColumns(labels) {
       headerGroup: "best-offer",
       visibilityGroup: "best-offer",
 
-      width: "6.25rem",
-      minWidth: "6.25rem",
+      width: "3.25rem",
+      minWidth: "3.25rem",
     }),
 
     defineColumn({
@@ -360,8 +359,8 @@ function createOverviewColumns(labels) {
       headerGroup: "best-offer",
       visibilityGroup: "best-offer",
 
-      width: "7.5rem",
-      minWidth: "7.5rem",
+      width: "4.5rem",
+      minWidth: "4.5rem",
     }),
   ]);
 }
