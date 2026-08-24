@@ -1,0 +1,2486 @@
+<portlet:renderURL var="negotiatedDealsRenderURL">
+	<portlet:param
+		name="<%=IssuerTradingInformationConstants.ACTION_TARGET%>"
+		value="<%=IssuerTradingInformationConstants.NEGOTIATED_DEALS_SEARCH_ACTION%>" />
+</portlet:renderURL>
+
+
+<input type="hidden" id="requestLocale" name="requestLocale"
+	value="${pageContext.request.locale.language}" />
+<section class="app-container hero-banner-section">
+	<div class="profile-banner animate__animated animate__fadeIn">
+		<div class="profile-banner--pattern">
+			<div class="row">
+				<div class="col-12">
+					<h2>
+						<svg class="pc-icon pr-3 link-icon me-3" width="40" height="40"
+							style="color: rgb(255, 255, 255); fill: rgb(255, 255, 255)">
+                    <use xlink:href="#tadawul-arrow-icon"></use>
+                  </svg>
+						<label style="color: #FFFFFF"><fmt:message
+								key="issuer.trading.info.v2.title" /></label>
+					</h2>
+				</div>
+
+
+				<section class="tabs-container" data-tabs data-tabs-id="trading"
+					data-content-target="#main-content">
+
+					<!-- Tabs Navigation -->
+					<div class="tabs" role="tablist" aria-label="Trading Tabs">
+						<button class="tabs__item is-active" type="button" role="tab"
+							id="trading-tab-negotiatedDeals" aria-selected="true"
+							aria-controls="trading-panel-negotiatedDeals"
+							data-tab="negotiatedDeals">
+							<fmt:message key="issuer.trading.info.v2.title.negotiated" />
+						</button>
+
+						<button class="tabs__item" type="button" role="tab"
+							id="trading-tab-accumulated" aria-selected="false"
+							aria-controls="trading-panel-accumulated" data-tab="accumulated"
+							tabindex="-1">
+							<fmt:message key="issuer.trading.info.v2.title.accumulated" />
+						</button>
+
+						<button class="tabs__item" type="button" role="tab"
+							id="trading-tab-listedTradable" aria-selected="false"
+							aria-controls="trading-panel-listedTradable"
+							data-tab="listedTradable" tabindex="-1">
+							<fmt:message key="issuer.trading.info.v2.title.listedtradable" />
+						</button>
+
+						<button class="tabs__item" type="button" role="tab"
+							id="trading-tab-deListedCompanies" aria-selected="false"
+							aria-controls="trading-panel-deListedCompanies"
+							data-tab="deListedCompanies" tabindex="-1">
+							<fmt:message key="issuer.trading.info.v2.title.delistedcompanies" />
+						</button>
+
+						<button class="tabs__item" type="button" role="tab"
+							id="trading-tab-otcTrading" aria-selected="false"
+							aria-controls="trading-panel-otcTrading" data-tab="otcTrading"
+							tabindex="-1">
+							<fmt:message key="issuer.trading.info.v2.title.otcctrading" />
+						</button>
+
+						<span class="tabs__underline" aria-hidden="true"></span>
+					</div>
+
+					<!-- Filters -->
+					<div class="banner-filters" data-filters>
+
+						<!-- negotiatedDeals filters -->
+						<div class="banner-filters__group is-active"
+							data-filters-for="negotiatedDeals">
+							<div class="row mt-2">
+
+								<!-- Type -->
+								<div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+									<div class="form-field">
+										<label class="form-label"><fmt:message key="suspended.company.type" /></label>
+										<div class="form-control-shell is-select" tabindex="0"
+											data-select data-field="type">
+											<div class="form-select-value is-placeholder">
+												<fmt:message key="adtv.main.tab.1" />
+											</div>
+											<input type="hidden" name="type" data-filter="type"
+												value="Negotiated-Deals" data-default="Negotiated-Deals" />
+											<span class="form-suffix form-select-arrow"
+												aria-hidden="true"></span>
+											<div class="form-popover">
+												<div class="form-select-panel">
+													<div class="form-select-list">
+														<div class="form-select-option"
+															data-value="Negotiated-Deals" data-selected="true">
+															<fmt:message key="adtv.main.tab.1" />
+														</div>
+														<div class="form-select-option" data-value="Minimum-Size">
+															<fmt:message key="adtv.main.tab.2" />
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Sector -->
+								<div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+									<div class="form-field">
+										<label class="form-label"> <fmt:message
+												key="issuer.trading.info.v2.section.heading.sector" />
+										</label>
+										<div class="form-control-shell is-select" tabindex="0"
+											data-select data-field="sector">
+											<div class="form-select-value is-placeholder">
+												<fmt:message key="issuer.trading.info.v2.section.allsectors" />
+											</div>
+											<input type="hidden" name="sector" data-filter="sector"
+												value="All" data-default="All" /> <span
+												class="form-suffix form-select-arrow" aria-hidden="true"></span>
+											<div class="form-popover">
+												<div class="form-select-panel">
+												
+												<div class="form-select-search-wrap">
+<input type="text" class="form-select-search"
+														placeholder="<fmt:message key='suspended.history.search' />"
+														autocomplete="off" />
+</div>
+ 
+													<div class="form-select-list">
+														<div class="form-select-option" data-value="All"
+															data-selected="true">
+															<fmt:message
+																key="issuer.trading.info.v2.section.allsectors" />
+														</div>
+														<c:forEach
+															items="${requestScope.compresultlBean.allSectors}"
+															var="sectors">
+															<div class="form-select-option"
+																data-value="${sectors.pk_rf_sector}"
+																<c:if test="${requestScope.sector eq sectors.pk_rf_sector}">data-selected="true"</c:if>>
+																${sectors.name}</div>
+														</c:forEach>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Company -->
+								<div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+									<div class="form-field">
+										<label class="form-label"> <fmt:message
+												key="issuer.trading.info.v2.section.heading.company" />
+										</label>
+										<div class="form-control-shell is-select" tabindex="0"
+											data-select data-field="company">
+											<div class="form-select-value is-placeholder">
+												<fmt:message key="issuer.trading.info.v2.allcompanies" />
+											</div>
+											<input type="hidden" name="company" data-filter="company"
+												value="All" data-default="All" /> <span
+												class="form-suffix form-select-arrow" aria-hidden="true"></span>
+											<div class="form-popover">
+												<div class="form-select-panel">
+												<div class="form-select-search-wrap">
+<input type="text" class="form-select-search"
+														placeholder="<fmt:message key='suspended.history.search' />"
+														autocomplete="off" />
+</div>
+													<div class="form-select-list">
+														<div class="form-select-option" data-value="All"
+															data-selected="true">
+															<fmt:message key="issuer.trading.info.v2.accumulated.drop.all" />
+															
+															
+														</div>
+														<c:forEach
+															items="${requestScope.compresultlBean.companyList}"
+															var="companies">
+															<div class="form-select-option"
+																data-value="${companies.symbol}"
+																<c:if test="${requestScope.company eq companies.symbol}">data-selected="true"</c:if>>
+																${companies.longName}</div>
+														</c:forEach>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Date Range -->
+								<div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+									<div class="form-field">
+										<label class="form-label"> <fmt:message
+												key="issuer.trading.info.v2.section.heading.timeperiod" />
+										</label>
+
+										<div class="form-control-shell form-date-range is-date"
+											data-date-range>
+											<input type="text" name="fromDate" data-filter="fromDate"
+												class="form-date-input" placeholder="Start date" readonly
+												data-date-start /> <span class="form-date-range-separator"
+												aria-hidden="true">-</span> <input type="text" name="toDate"
+												data-filter="toDate" class="form-date-input"
+												placeholder="End date" readonly data-date-end /> <span
+												class="form-suffix form-date-icon"></span>
+										</div>
+									</div>
+								</div>
+
+							</div>
+							<div class="row">
+								<div class="col-12 col-lg-12 col-md-12 col-sm-12 mt-3">
+									<div class="d-flex justify-content-lg-end align-items-end">
+										<button type="button" class="se-btn se-btn--banner"
+											data-reset-filters>
+											<span>                      <fmt:message key="issuer.trading.info.v2.search.reset" />
+</span>
+											 <span
+												class="se-btn__icon se-btn__icon--refresh se-icon icon-custom-refresh-cycle icon-md"></span>
+										</button>
+									</div>
+								</div>
+							</div>
+
+						</div>
+
+						<!-- accumulated -->
+						<div class="banner-filters__group" data-filters-for="accumulated">
+							<div class="row">
+
+								<div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+									<div class="form-field">
+										<label class="form-label"> <fmt:message
+												key="issuer.trading.info.v2.accumulated.drop.selectloss" />
+										</label>
+
+										<div class="form-control-shell is-select" tabindex="0"
+											data-select data-field="report">
+
+											<div class="form-select-value is-placeholder">
+												<fmt:message
+													key="issuer.trading.info.v2.accumulated.drop.all" />
+											</div>
+
+											<input type="hidden" name="report" data-filter="report"
+												value="All" data-default="All" /> <span
+												class="form-suffix form-select-arrow" aria-hidden="true"></span>
+
+											<div class="form-popover">
+												<div class="form-select-panel">
+													<div class="form-select-list">
+
+														<div class="form-select-option" data-value="All"
+															data-selected="true">
+															<fmt:message
+																key="issuer.trading.info.v2.accumulated.drop.all" />
+														</div>
+
+														<div class="form-select-option" data-value="50-MORE">
+															<fmt:message
+																key="issuer.trading.info.v2.accumulated.drop.50.more" />
+														</div>
+
+														<div class="form-select-option" data-value="35-50">
+															<fmt:message
+																key="issuer.trading.info.v2.accumulated.drop.35.to.50" />
+														</div>
+
+														<div class="form-select-option" data-value="20-35">
+															<fmt:message
+																key="issuer.trading.info.v2.accumulated.drop.20.to.35" />
+														</div>
+
+													</div>
+												</div>
+											</div>
+
+										</div>
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-12 col-lg-12 col-md-12 col-sm-12 mt-3">
+										<div class="d-flex justify-content-lg-end align-items-end">
+											<button type="button" class="se-btn se-btn--banner"
+												data-reset-filters>
+												<span><fmt:message key="issuer.trading.info.v2.search.reset" /></span> <span
+													class="se-btn__icon se-btn__icon--refresh se-icon icon-custom-refresh-cycle icon-md"></span>
+											</button>
+										</div>
+									</div>
+								</div>
+								<div
+									class="col-12 col-lg-12 col-md-12 col-sm-12 col-xm-12 legend">
+									<ul class="listIdentation">
+										<li class="liIdentation"><span class="legendGrn"></span>
+											<fmt:message
+												key="issuer.trading.info.v2.accumulated.losses.50.more" /></li>
+										<li class="mx-0 liIdentation"><span class="legendOrg"></span>
+											<fmt:message
+												key="issuer.trading.info.v2.accumulated.losses.35.to.50" /></li>
+										<li class="mx-0 liIdentation"><span class="legendYlw"></span>
+											<fmt:message
+												key="issuer.trading.info.v2.accumulated.losses.20.to.35" /></li>
+									</ul>
+								</div>
+							</div>
+
+						</div>
+
+						<div class="banner-filters__group"
+							data-filters-for="deListedCompanies">
+							<div class="row">
+
+								<!-- Type -->
+								<div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+									<div class="form-field">
+										<label class="form-label"> <fmt:message
+												key="suspended.company.type" />
+										</label>
+
+										<div class="form-control-shell is-select" tabindex="0"
+											data-select data-field="type">
+
+											<div class="form-select-value is-placeholder">
+												<fmt:message key="suspended.company.suspension.dp" />
+											</div>
+
+											<input type="hidden" name="type" data-filter="type"
+												value="Suspension" data-default="Suspension" /> <span
+												class="form-suffix form-select-arrow" aria-hidden="true"></span>
+
+											<div class="form-popover">
+												<div class="form-select-panel">
+													<div class="form-select-list">
+
+														<div class="form-select-option" data-value="Suspension"
+															data-selected="true">
+															<fmt:message key="suspended.company.suspension.dp" />
+														</div>
+
+														<div class="form-select-option" data-value="Delisting">
+															<fmt:message key="suspended.company.delisting.dp" />
+														</div>
+														
+														<div class="form-select-option" data-value="Suspension_Funds">
+															<fmt:message key="suspended.company.suspension.funds.dp" />
+														</div>
+														
+														<div class="form-select-option" data-value="Delisted_Funds">
+															<fmt:message key="suspended.company.delisting.funds.dp" />
+														</div>
+
+													</div>
+												</div>
+											</div>
+
+										</div>
+									</div>
+								</div>
+
+								<!-- Date Range -->
+								<div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+									<div class="form-field">
+										<label class="form-label"> <fmt:message
+												key="issuer.trading.info.v2.section.heading.timeperiod" />
+										</label>
+
+
+										<div class="form-control-shell form-date-range is-date"
+											data-date-range>
+											<input type="text" name="fromDate" data-filter="fromDate"
+												class="form-date-input" placeholder="Start date" readonly
+												data-date-start /> <span class="form-date-range-separator"
+												aria-hidden="true">-</span> <input type="text" name="toDate"
+												data-filter="toDate" class="form-date-input"
+												placeholder="End date" readonly data-date-end /> <span
+												class="form-suffix form-date-icon"></span>
+										</div>
+
+
+
+
+									</div>
+								</div>
+
+							</div>
+							<div class="row">
+								<div class="col-12 col-lg-12 col-md-12 col-sm-12 mt-3">
+									<div class="d-flex justify-content-lg-end align-items-end">
+										<button type="button" class="se-btn se-btn--banner"
+											data-reset-filters>
+											<span> <fmt:message key="issuer.trading.info.v2.search.reset" /> </span> <span
+												class="se-btn__icon se-btn__icon--refresh se-icon icon-custom-refresh-cycle icon-md"></span>
+										</button>
+									</div>
+								</div>
+							</div>
+							
+								<div
+									class="col-12 col-lg-12 col-md-12 col-sm-12 col-xm-12 legend">
+									<ul class="listIdentation">
+										<li class="liIdentation"><span class="legendGrn"></span>
+											<fmt:message
+												key="issuer.trading.info.v2.accumulated.losses.50.more" /></li>
+										<li class="mx-0 liIdentation"><span class="legendOrg"></span>
+											<fmt:message
+												key="issuer.trading.info.v2.accumulated.losses.35.to.50" /></li>
+										<li class="mx-0 liIdentation"><span class="legendYlw"></span>
+											<fmt:message
+												key="issuer.trading.info.v2.accumulated.losses.20.to.35" /></li>
+									</ul>
+								</div>
+						</div>
+
+						<!-- otcTrading -->
+						<div class="banner-filters__group" data-filters-for="otcTrading">
+							<!-- (if any filters exist, same pattern: data-filter only) -->
+						</div>
+
+					</div>
+				</section>
+			</div>
+		</div>
+	</div>
+	<div class="intro-section">
+
+		<section class="app-container mt-5">
+
+			<!-- Tab Content (can live anywhere on the page) -->
+			<section id="main-content" class="tab-content">
+				<!-- negotiatedDeals panel -->
+				<section class="tab-content__panel is-active"
+					id="trading-panel-negotiatedDeals" role="tabpanel"
+					aria-labelledby="trading-tab-negotiatedDeals"
+					data-tab="negotiatedDeals">
+					<!-- Variant A: Negotiated Deals -->
+					<div data-variant="Negotiated-Deals">
+						<div class="resultBox">
+							<div class="resultFst">
+								<div class="resultShow">
+									<fmt:message key="issuer.trading.info.results.msg" />
+									: <span id="tradingTableResultsId">0</span>
+								</div>
+							</div>
+						</div>
+						<table id="negotiatedDealsTable" class="table">
+							<thead>
+								<tr>
+									<th><fmt:message
+											key="issuer.trading.info.v2.table.heading.date" /></th>
+									<th><fmt:message
+											key="issuer.trading.info.v2.table.heading.symbol" /></th>
+									<th><fmt:message
+											key="issuer.trading.info.v2.table.heading.companyname" /></th>
+									<th><fmt:message
+											key="issuer.trading.info.v2.table.heading.price" /></th>
+									<th><fmt:message
+											key="issuer.trading.info.v2.table.heading.volumetraded" /></th>
+									<th><fmt:message
+											key="issuer.trading.info.v2.table.heading.valuetraded" /></th>
+									<th><fmt:message
+											key="issuer.trading.info.v2.table.heading.time" /></th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+
+					<!-- Variant B: Minimum Size (hidden by default) -->
+					<div data-variant="Minimum-Size" hidden>
+						<div class="resultBox">
+							<div class="resultFst">
+								<div class="resultShow">
+									<fmt:message key="issuer.trading.info.results.msg" />
+									: <span id="minimumSizeTableResultsId">0</span>
+								</div>
+							</div>
+						</div>
+						<table id="minimumSizeTable" class="table">
+							<thead>
+								<tr>
+									<th><fmt:message key="adtv.sub.row.1" /></th>
+									<th><fmt:message key="adtv.sub.row.0.col.1" /></th>
+									<th><fmt:message key="adtv.sub.row.0.col.2" /></th>
+									<th><fmt:message key="adtv.sub.row.0.col.3" /></th>
+									<th><fmt:message key="adtv.sub.row.0.col.4" /></th>
+								</tr>
+								<tr>
+									<th><fmt:message key="adtv.sub.row.2" /></th>
+									<th><fmt:message key="adtv.sub.row.1.col.1" /></th>
+									<th><fmt:message key="adtv.sub.row.1.col.2" /></th>
+									<th><fmt:message key="adtv.sub.row.1.col.3" /></th>
+									<th><fmt:message key="adtv.sub.row.1.col.4" /></th>
+								</tr>
+								<tr>
+									<th><fmt:message key="adtv.sub.row.3" /></th>
+									<th><fmt:message key="adtv.sub.row.2.col.1" /></th>
+									<th><fmt:message key="adtv.sub.row.2.col.2" /></th>
+									<th><fmt:message key="adtv.sub.row.2.col.3" /></th>
+									<th><fmt:message key="adtv.sub.row.2.col.4" /></th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</section>
+
+				<!-- accumulated panel -->
+				<section class="tab-content__panel" id="trading-panel-accumulated"
+					role="tabpanel" aria-labelledby="trading-tab-accumulated"
+					data-tab="accumulated" hidden>
+					<div class="resultBox">
+						<div class="resultFst">
+							<div class="resultShow">
+								<fmt:message key="issuer.trading.info.results.msg" />
+								: <span id="accumulatedLossesTableResultsId">0</span>
+							</div>
+						</div>
+					</div>
+					<table id="accumulatedLossesTable" class="table" data-dt>
+						<thead>
+							<tr>
+								<th><fmt:message
+										key="issuer.trading.info.v2.table.heading.acc.symbol" /></th>
+								<th><fmt:message
+										key="issuer.trading.info.v2.table.heading.acc.companyname" /></th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</section>
+
+				<!-- listedTradable panel -->
+				<section class="tab-content__panel"
+					id="trading-panel-listedTradable" role="tabpanel"
+					aria-labelledby="trading-tab-listedTradable"
+					data-tab="listedTradable" hidden>
+					<div class="resultBox">
+						<div class="resultFst">
+							<div class="resultShow">
+								<fmt:message key="issuer.trading.info.results.msg" />
+								: <span id="listedTradableRightsTableResultsId">0</span>
+							</div>
+						</div>
+					</div>
+					<table id="listedTradableRightsTable" class="table">
+						<thead>
+							<tr>
+								<th rowspan="2" class="align numeric"
+									style="text-align: center;"><fmt:message
+										key="equityright.table.column.header.tradable.rights" /></th>
+								<th colspan="4" class="align numeric"
+									style="text-align: center;"><fmt:message
+										key="equityright.table.column.header.last.trade" /></th>
+								<th colspan="3" class="align numeric"
+									style="text-align: center;"><fmt:message
+										key="equityright.table.column.header.todays" /></th>
+								<th colspan="2" class="align numeric"
+									style="text-align: center;"><fmt:message
+										key="equityright.table.column.header.cumulative" /></th>
+								<th colspan="2" class="align numeric"
+									style="text-align: center;"><fmt:message
+										key="equityright.table.column.header.best.bid" /></th>
+								<th colspan="2" class="align numeric"
+									style="text-align: center;"><fmt:message
+										key="equityright.table.column.header.best.offer" /></th>
+							</tr>
+							<tr>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.price" /></th>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.volume" /></th>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.change.value" /></th>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.change.percent" /></th>
+
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.open" /></th>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.high" /></th>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.low" /></th>
+
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.number.of.trades" /></th>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.volume.traded" /></th>
+
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.price" /></th>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.volume" /></th>
+
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.price" /></th>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.volume" /></th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</section>
+
+				<!-- deListedCompanies panel -->
+				<section class="tab-content__panel"
+					id="trading-panel-deListedCompanies" role="tabpanel"
+					aria-labelledby="trading-tab-deListedCompanies"
+					data-tab="deListedCompanies" hidden>
+
+					<!-- Variant A: Suspension -->
+					<div data-variant="Suspension">
+						<div class="resultBox">
+							<div class="resultFst">
+								<div class="resultShow">
+									<fmt:message key="issuer.trading.info.results.msg" />
+									: <span id="suspendedTableResultsId">0</span>
+								</div>
+							</div>
+						</div>
+						<table id="suspendedCompTable" class="table">
+							<thead>
+								<tr>
+									<th rowspan="2"><fmt:message
+											key="suspended.company.symbol" /></th>
+									<th rowspan="2" class="align"><fmt:message
+											key="suspended.company.name" /></th>
+									<th colspan="2" class="text-center"><fmt:message
+											key="suspended.company.period" /></th>
+									<th rowspan="2"><fmt:message
+											key="suspended.company.reason" /></th>
+								</tr>
+								<tr>
+									<th><fmt:message key="suspended.company.period.from" /></th>
+									<th><fmt:message key="suspended.company.period.to" /></th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+
+					<!-- Variant B: Delisting (hidden by default) -->
+					<div data-variant="Delisting" hidden>
+						<div class="resultBox">
+							<div class="resultFst">
+								<div class="resultShow">
+									<fmt:message key="issuer.trading.info.results.msg" />
+									: <span id="suspendedDelistedResultsId">0</span>
+								</div>
+							</div>
+						</div>
+						<table id="delistedCompTable"
+							class="table table-striped table-bordered" cellspacing="0"
+							width="100%" data-dt>
+							<thead>
+								<tr>
+									<th><fmt:message key="delisted.company.symbol" /></th>
+									<th class="align"><fmt:message key="delisted.company.name" /></th>
+									<th><fmt:message key="delisted.company.date" /></th>
+								<!-- 	<th><fmt:message key="delisted.company.transformeddate" /></th>  -->
+									<th><fmt:message key="delisted.company.reason" /></th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</section>
+
+				<!-- otcTrading panel -->
+				<section class="tab-content__panel" id="trading-panel-otcTrading"
+					role="tabpanel" aria-labelledby="trading-tab-otcTrading"
+					data-tab="otcTrading" hidden="hidden">
+					<div class="resultBox">
+						<div class="resultFst">
+							<div class="resultShow">
+								<fmt:message key="issuer.trading.info.results.msg" />
+								: <span id="otcTradingTableResultsId">0</span>
+							</div>
+						</div>
+					</div>
+					<table id="otcTradingTable" class="table" data-dt>
+						<thead>
+							<tr>
+								<th><fmt:message key="OTC.Symbol" /></th>
+								<th><fmt:message key="OTC.Company" /></th>
+								<th><fmt:message key="OTC.TradedVolume" /></th>
+								<th class="text-center"><fmt:message key="OTC.LastUpdatePrice" /></th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</section>
+			</section>
+		</section>
+	</div>
+</section>
+
+
+
+<script>
+window.DROPDOWN_CONFIG = {
+  sector: {
+    targets: [
+      {
+        field: 'company',
+        url: '<portlet:resourceURL id="getCompaniesBySector" />',
+        method: 'GET',
+        params: function (sectorValue) {
+          return {
+            format: 'json',
+            sector: sectorValue
+          };
+        },
+        map: function (item) {
+          return {
+            value: item.symbol,
+            label: item.longName
+          };
+        }
+      }
+    ]
+  }
+};
+</script>
+
+<script>
+window.TRADING_DATATABLE_CONFIG = {
+  locale: document.querySelector("#requestLocale")?.value || "en",
+
+  ui: {
+    loader: {
+      enabled: true,
+      text: '<fmt:message key="datatable.loading" />'
+    },
+ 
+    empty: {
+      text: '<fmt:message key="datatable.no.data" />',
+      imageUrl: "${pageContext.request.contextPath}/images/no-data.png"
+    },
+ 
+    pagination: {
+      enabled: true,
+      className: "feed__pagination",
+      pageText: '<fmt:message key="pagination.page" />',
+      ofText: '<fmt:message key="pagination.of" />',
+      prevAriaLabel: '<fmt:message key="pagination.previous" />',
+      nextAriaLabel: '<fmt:message key="pagination.next" />'
+    }
+  },
+ 
+  defaults: {
+    dateRange: {
+      enabled: true,
+      mode: "lastMonthToToday",
+      format: "dd-MM-yyyy"
+    },
+ 
+    dataTable: {
+      paging: true,
+      pageLength: 25,
+      lengthMenu: [25, 50, 100],
+      searching: false,
+      ordering: false,
+      info: false,
+      dom: "rt",
+      deferRender: true,
+      autoWidth: false,
+      fixedHeader: true
+    }
+  },
+ 
+  urls: {
+    negotiatedDeals: '<portlet:resourceURL id="getNegotiatedDetails" />',
+    minimumSize: '<portlet:resourceURL id="getMainMarketMinimumSizeRequirements" />',
+    accumulatedLosses: '<portlet:resourceURL id="getAccumulatedLossesDetails" />',
+    listedTradableRights: '<portlet:resourceURL id="getListedTradableRightsDetails" />',
+    otcTrading: '<portlet:resourceURL id="getOtcTradingData" />',
+    suspendedDelisted: '<portlet:resourceURL id="getSuspendedDelistedComp" />'
+  },
+ 
+  labels: {
+    suspendedLink: '<fmt:message key="suspended.company.link" />',
+    delistedLink: '<fmt:message key="delisted.company.link" />',
+    	  total: '<fmt:message key="issuer.trading.info.v2.total" />'
+    
+  },
+  
+  
+ resultCounters: {
+  negotiatedDeals: "#tradingTableResultsId",
+  minimumSize: "#minimumSizeTableResultsId",
+  accumulatedLosses: "#accumulatedLossesTableResultsId",
+  listedTradableRights: "#listedTradableRightsTableResultsId",
+  suspended: "#suspendedTableResultsId",
+  suspendedDelisted: "#suspendedDelistedResultsId",
+  otcTrading: "#otcTradingTableResultsId"
+},
+
+  tables: {
+    negotiatedDeals: {
+      selector: "#negotiatedDealsTable",
+      paging: true,
+      pageLength: 25,
+      lengthMenu: [25, 50, 100],
+      ordering: false,
+      fixedHeader: true
+    },
+ 
+    minimumSize: {
+      selector: "#minimumSizeTable",
+      pageLength: 25,
+      lengthMenu: [25, 50, 100],
+      ordering: false,
+      fixedHeader: true
+    },
+ 
+    accumulatedLosses: {
+      selector: "#accumulatedLossesTable",
+      pageLength: 25,
+      lengthMenu: [25, 50, 100],
+      ordering: false,
+      fixedHeader: true
+    },
+ 
+    listedTradableRights: {
+      selector: "#listedTradableRightsTable",
+      paging: false,
+      ordering: true,
+      fixedHeader: true
+    },
+ 
+    suspendedCompanies: {
+      selector: "#suspendedCompTable",
+      paging: false,
+      ordering: true,
+      order: [[2, 'desc']],
+      fixedHeader: true
+    },
+ 
+    delistedCompanies: {
+      selector: "#delistedCompTable",
+      paging: false,
+     ordering: true,
+      order: [[2, 'desc']],
+      fixedHeader: true
+    },
+ 
+    otcTrading: {
+      selector: "#otcTradingTable",
+      paging: false,
+      ordering: true,
+      fixedHeader: true
+    }
+  }
+};
+</script>
+
+<script src="${pageContext.request.contextPath}/js/tabs.controller.js"></script>
+<script
+	src="${pageContext.request.contextPath}/js/tabbed-feature.manager.js"></script>
+<script src="${pageContext.request.contextPath}/js/dropdown-update.js"></script>
+<script
+	src="${pageContext.request.contextPath}/js/custom-trading/datatable-page-utils.js"></script>
+<script
+	src="${pageContext.request.contextPath}/js/custom-trading/trading-datatables.js"></script>
+/* tabs.controller.js
+* ==================
+* Generic Tabs Controller (UI-only)
+*
+* Responsibilities:
+* - Handle tab click + keyboard interactions
+* - Manage active tab state (CSS classes, ARIA, tabindex)
+* - Show/hide matching tab panels (via `hidden`)
+* - Show/hide matching filter groups (via `data-filters-for`)
+* - Emit `tab:change` event with { tabKey }
+*
+* No AJAX. No DataTables. No business logic.
+*/
+ 
+(function (window, document) {
+  "use strict";
+ 
+  function emit(el, name, detail) {
+    el.dispatchEvent(new CustomEvent(name, { detail, bubbles: true }));
+  }
+ 
+  function getContentRoot(container) {
+    var contentSelector = container.getAttribute("data-content-target");
+    if (!contentSelector) return container; // panels could be inside container
+    var root = document.querySelector(contentSelector);
+    return root || container;
+  }
+ 
+  function getTabs(container) {
+    return Array.prototype.slice.call(container.querySelectorAll('[role="tab"][data-tab]'));
+  }
+ 
+  function getPanels(container, contentRoot) {
+    // panels can be in external root (#main-content) or inside container
+    return Array.prototype.slice.call(
+      contentRoot.querySelectorAll('.tab-content__panel[data-tab]')
+    ).filter(function (p) {
+      // If panels are global on page, we still accept them; best practice is unique IDs per instance.
+      // We rely on `aria-controls`/id match when possible.
+      return true;
+    });
+  }
+ 
+  function getFilterGroups(container) {
+    var filtersRoot = container.querySelector("[data-filters]");
+    if (!filtersRoot) return [];
+    return Array.prototype.slice.call(filtersRoot.querySelectorAll("[data-filters-for]"));
+  }
+ 
+  function activateTab(container, tabKey) {
+    var tabs = getTabs(container);
+    if (!tabs.length) return;
+ 
+    var contentRoot = getContentRoot(container);
+    var panels = getPanels(container, contentRoot);
+    var filterGroups = getFilterGroups(container);
+ 
+    // Activate tabs
+    tabs.forEach(function (tab) {
+      var isActive = tab.dataset.tab === tabKey;
+      tab.classList.toggle("is-active", isActive);
+      tab.setAttribute("aria-selected", String(isActive));
+      tab.setAttribute("tabindex", isActive ? "0" : "-1");
+    });
+ 
+    // Show/hide panels
+    panels.forEach(function (panel) {
+      var isMatch = panel.dataset.tab === tabKey;
+      panel.classList.toggle("is-active", isMatch);
+      panel.hidden = !isMatch;
+      panel.setAttribute("aria-hidden", String(!isMatch));
+    });
+ 
+    // Show/hide filters (if present)
+    if (filterGroups.length) {
+      filterGroups.forEach(function (group) {
+        var isMatch = group.getAttribute("data-filters-for") === tabKey;
+        group.classList.toggle("is-active", isMatch);
+        group.hidden = !isMatch;
+      });
+    }
+ 
+    emit(container, "tab:change", { tabKey: tabKey });
+  }
+ 
+  function onKeydown(container, e) {
+    var key = e.key;
+    if (key !== "ArrowLeft" && key !== "ArrowRight" && key !== "Home" && key !== "End") return;
+ 
+    var tabs = getTabs(container);
+    if (!tabs.length) return;
+ 
+    var currentIndex = tabs.findIndex(function (t) {
+      return t.classList.contains("is-active") || t.getAttribute("aria-selected") === "true";
+    });
+    if (currentIndex < 0) currentIndex = 0;
+ 
+    var nextIndex = currentIndex;
+ 
+    if (key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    if (key === "ArrowRight") nextIndex = (currentIndex + 1) % tabs.length;
+    if (key === "Home") nextIndex = 0;
+    if (key === "End") nextIndex = tabs.length - 1;
+ 
+    e.preventDefault();
+    tabs[nextIndex].focus();
+    // Activate on focus move (Bootstrap-like behavior). If you prefer "manual" activation, remove next line.
+    activateTab(container, tabs[nextIndex].dataset.tab);
+  }
+ 
+  function initTabs(container) {
+    if (!container || container.__tabsInitialized) return;
+    container.__tabsInitialized = true;
+ 
+    var tabs = getTabs(container);
+    if (!tabs.length) return;
+ 
+    // Click binding
+    tabs.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        var tabKey = tab.dataset.tab;
+        if (!tabKey || tab.classList.contains("is-active")) return;
+        activateTab(container, tabKey);
+      });
+    });
+ 
+    // Keyboard support
+    container.addEventListener("keydown", function (e) {
+      // only when focus is within a tab
+      if (!e.target || e.target.getAttribute("role") !== "tab") return;
+      onKeydown(container, e);
+    });
+ 
+    // Initial activation: keep existing .is-active or default to first
+    var initiallyActive = tabs.find(function (t) {
+      return t.classList.contains("is-active") || t.getAttribute("aria-selected") === "true";
+    });
+    var initialKey = initiallyActive ? initiallyActive.dataset.tab : tabs[0].dataset.tab;
+    activateTab(container, initialKey);
+  }
+ 
+  // Auto-init
+  document.addEventListener("DOMContentLoaded", function () {
+    Array.prototype.slice
+      .call(document.querySelectorAll("[data-tabs].tabs-container, .tabs-container[data-tabs]"))
+      .forEach(initTabs);
+  });
+ 
+  // Optional public API
+  window.TabsController = {
+    init: initTabs,
+    activate: function (container, tabKey) {
+      if (!container || !tabKey) return;
+      activateTab(container, tabKey);
+    },
+  };
+})(window, document);
+
+/* tabs-feature-engine.js
+ * ======================
+ * Lightweight Tab Data Engine
+ * - Handles tab data loading
+ * - Handles filter changes
+ * - Uses native fetch (no http-client)
+ */
+
+(function (window, document) {
+  "use strict";
+
+  /* =========================================================
+Helpers
+========================================================= */
+
+  function buildUrl(url, params) {
+    if (!params || !Object.keys(params).length) return url;
+
+    const qs = new URLSearchParams(params).toString();
+
+    return url + (url.includes("?") ? "&" : "?") + qs;
+  }
+
+  function normalizeResponse(response) {
+    if (!response) return [];
+
+    if (Array.isArray(response)) return response;
+
+    if (Array.isArray(response.data)) return response.data;
+
+    return [];
+  }
+
+  function getActiveTab(container) {
+    return (
+      container.querySelector('[role="tab"].is-active[data-tab]') ||
+      container.querySelector('[role="tab"][aria-selected="true"][data-tab]')
+    );
+  }
+
+  function getPanel(container, tabKey) {
+    const tab = container.querySelector(
+      '[role="tab"][data-tab="' + tabKey + '"]',
+    );
+
+    const panelId = tab?.getAttribute("aria-controls");
+
+    if (panelId) {
+      const panel = document.getElementById(panelId);
+
+      if (panel) return panel;
+    }
+
+    return container.querySelector(
+      '.tab-content__panel[data-tab="' + tabKey + '"]',
+    );
+  }
+
+  function getFilters(container, tabKey) {
+    const filtersRoot = container.querySelector("[data-filters]");
+    if (!filtersRoot) return {};
+
+    const group = filtersRoot.querySelector(
+      '[data-filters-for="' + tabKey + '"]',
+    );
+    if (!group) return {};
+
+    const inputs = group.querySelectorAll("[data-filter]");
+    const out = {};
+
+    inputs.forEach(function (el) {
+      const key = el.dataset.filter;
+      if (!key) return;
+
+      if (el.type === "checkbox") {
+        out[key] = el.checked ? el.value : "";
+      } else if (el.type === "radio") {
+        if (el.checked) out[key] = el.value;
+      } else {
+        out[key] = el.value;
+      }
+    });
+
+    return out;
+  }
+
+  function showLoader(panel) {
+    if (panel) panel.classList.add("is-loading");
+  }
+
+  function hideLoader(panel) {
+    if (panel) panel.classList.remove("is-loading");
+  }
+
+  /* =========================================================
+Engine
+========================================================= */
+
+  function mount(container, config) {
+    if (!container || container.__tabsFeatureMounted) return;
+
+    container.__tabsFeatureMounted = true;
+
+    const state = {
+      config: config || {},
+      loading: false,
+      debounceTimer: null,
+    };
+
+    /* =========================================================
+Fetch Data
+========================================================= */
+
+    function requestData(tabKey) {
+      if (state.loading) return;
+
+      const tabCfg = state.config.tabs?.[tabKey];
+      if (!tabCfg) return;
+
+      const panel = getPanel(container, tabKey);
+      const filters = getFilters(container, tabKey);
+
+      const ctx = {
+        container: container,
+        tabKey: tabKey,
+        panel: panel,
+        filters: filters,
+      };
+
+      const params =
+        typeof tabCfg.getParams === "function"
+          ? tabCfg.getParams(ctx)
+          : tabCfg.params || {};
+
+      const url =
+        typeof tabCfg.getUrl === "function" ? tabCfg.getUrl(ctx) : tabCfg.url;
+
+      state.loading = true;
+
+      showLoader(panel);
+
+      fetch(buildUrl(url, params), {
+        method: tabCfg.method || "GET",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+        },
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+
+          return res.json();
+        })
+        .then(function (response) {
+          const active = getActiveTab(container);
+
+          if (!active || active.dataset.tab !== tabKey) {
+            return;
+          }
+
+          ctx.rows = (tabCfg.normalize || normalizeResponse)(response, ctx);
+
+          (tabCfg.render || function () {})(ctx);
+        })
+        .catch(function (err) {
+          console.error("[TabsFeatureEngine]", err);
+        })
+        .finally(function () {
+          state.loading = false;
+
+          hideLoader(panel);
+        });
+    }
+
+    /* =========================================================
+Refresh Helpers
+========================================================= */
+
+    function refreshActive() {
+      const active = getActiveTab(container);
+
+      if (!active) return;
+
+      requestData(active.dataset.tab);
+    }
+
+    function scheduleRefresh() {
+      clearTimeout(state.debounceTimer);
+
+      state.debounceTimer = setTimeout(
+        refreshActive,
+        state.config.debounceMs || 250,
+      );
+    }
+
+    /* =========================================================
+Events
+========================================================= */
+
+    container.addEventListener("tab:change", function (e) {
+      const tabKey = e.detail?.tabKey;
+      if (!tabKey) return;
+
+      /* prepare dropdown dependencies */
+
+      document.dispatchEvent(new Event("tab:prepare"));
+
+      /* slight delay to allow dropdowns */
+
+      setTimeout(function () {
+        requestData(tabKey);
+      }, 50);
+    });
+
+    /* dropdown change */
+
+    container.addEventListener("form:select-change", scheduleRefresh);
+
+    /* filter inputs */
+
+    container.addEventListener("change", function (e) {
+      if (e.target && e.target.matches("[data-filter]")) {
+        scheduleRefresh();
+      }
+    });
+
+    /* optional load on mount */
+
+    if (state.config.loadOnMount) {
+      refreshActive();
+    }
+  }
+
+  window.TabsFeatureEngine = {
+    mount: mount,
+  };
+})(window, document);
+/* datatable-page-utils.js
+ * ======================================================
+ * Reusable page utilities for DataTableCore modules
+ * Works with DataTableCore.render + DataTableCore.plugins
+ * ======================================================
+ */
+ 
+(function (window, document) {
+  "use strict";
+ 
+  function create(config) {
+    var CONFIG = config || {};
+ 
+    function getTableConfig(key) {
+      return (CONFIG.tables && CONFIG.tables[key]) || {};
+    }
+ 
+    function getLabel(value, fallback) {
+      return value || fallback || "";
+    }
+ 
+    function mergeOptions(base, extra) {
+      return Object.assign({}, base || {}, extra || {});
+    }
+ 
+    function getNoDataImageUrl() {
+      return (CONFIG.ui && CONFIG.ui.empty && CONFIG.ui.empty.imageUrl) || "";
+    }
+ 
+    function formatDateDDMMYYYY(dateObj) {
+      var dd = String(dateObj.getDate()).padStart(2, "0");
+      var mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+      var yyyy = dateObj.getFullYear();
+ 
+      return dd + "-" + mm + "-" + yyyy;
+    }
+ 
+    function getDefaultDateRange() {
+      var today = new Date();
+      var from = new Date(today);
+ 
+      from.setMonth(from.getMonth() - 1);
+ 
+      return {
+        fromDate: formatDateDDMMYYYY(from),
+        toDate: formatDateDDMMYYYY(today)
+      };
+    }
+ 
+    function setDefaultDatesInGroup(group) {
+      if (!group) return;
+ 
+      var enabled =
+        CONFIG.defaults &&
+        CONFIG.defaults.dateRange &&
+        CONFIG.defaults.dateRange.enabled !== false;
+ 
+      if (!enabled) return;
+ 
+      var range = getDefaultDateRange();
+ 
+      var fromInput = group.querySelector('[data-filter="fromDate"]');
+      var toInput = group.querySelector('[data-filter="toDate"]');
+ 
+      if (fromInput && !fromInput.value) fromInput.value = range.fromDate;
+      if (toInput && !toInput.value) toInput.value = range.toDate;
+    }
+ 
+    function setDefaultDatesForAllGroups(scope) {
+      (scope || document)
+        .querySelectorAll(".banner-filters__group")
+        .forEach(setDefaultDatesInGroup);
+    }
+ 
+    function ensureTableUi(selector) {
+      var table = document.querySelector(selector);
+      if (!table || !table.id) return null;
+ 
+      var existing = document.querySelector(
+        '[data-table-ui-for="' + table.id + '"]'
+      );
+ 
+      if (existing) {
+        return {
+          wrapper: existing,
+          loader: existing.querySelector("[data-feed-loader]"),
+          empty: existing.querySelector("[data-feed-empty]"),
+          pagination: existing.querySelector("[data-feed-pagination]")
+        };
+      }
+ 
+      var ui = CONFIG.ui || {};
+      var pagination = ui.pagination || {};
+      var paginationClass = getLabel(pagination.className, "feed__pagination");
+ 
+      var wrapper = document.createElement("div");
+      wrapper.setAttribute("data-table-ui-for", table.id);
+ 
+      wrapper.innerHTML =
+        '<div class="feed__loader is-hidden" data-feed-loader>' +
+        '<div class="datatable-loader">' +
+        '<div class="datatable-spinner"></div>' +
+        "<span>" +
+        getLabel(ui.loader && ui.loader.text, "Loading data...") +
+        "</span>" +
+        "</div>" +
+        "</div>" +
+ 
+        '<div class="feed__empty is-hidden" data-feed-empty></div>' +
+ 
+        '<div class="' +
+        paginationClass +
+        ' is-hidden" data-feed-pagination>' +
+        '<div class="feed__page-range" data-feed-range>0–0 of 0</div>' +
+        '<div class="feed__page-controls">' +
+        '<span class="feed__page-label">' +
+        getLabel(pagination.pageText, "Page") +
+        "</span> " +
+        '<select class="feed__select" data-feed-page></select> ' +
+        "<span>" +
+        getLabel(pagination.ofText, "of") +
+        ' <strong data-feed-total-pages>1</strong>' +
+        "</span>" +
+        '<button class="feed__page-btn" data-feed-prev disabled aria-label="' +
+        getLabel(pagination.prevAriaLabel, "Previous page") +
+        '">' +
+        '<span class="se-icon icon-md icon-arrow" aria-hidden="true"></span>' +
+        "</button>" +
+        '<button class="feed__page-btn" data-feed-next disabled aria-label="' +
+        getLabel(pagination.nextAriaLabel, "Next page") +
+        '">' +
+        '<span class="se-icon icon-md icon-arrow" aria-hidden="true"></span>' +
+        "</button>" +
+        "</div>" +
+        "</div>";
+ 
+      table.insertAdjacentElement("afterend", wrapper);
+ 
+      return {
+        wrapper: wrapper,
+        loader: wrapper.querySelector("[data-feed-loader]"),
+        empty: wrapper.querySelector("[data-feed-empty]"),
+        pagination: wrapper.querySelector("[data-feed-pagination]")
+      };
+    }
+ 
+    function getDataTableWrapper(tableEl) {
+      if (!tableEl || !tableEl.id) return null;
+ 
+      return (
+        document.getElementById(tableEl.id + "_wrapper") ||
+        tableEl.closest(".dt-container, .dataTables_wrapper")
+      );
+    }
+ 
+function setTableVisible(tableEl, visible) {
+      if (!tableEl) return;
+ 
+      tableEl.hidden = !visible;
+ 
+      var wrapper = getDataTableWrapper(tableEl);
+ 
+      if (wrapper) {
+        wrapper.hidden = !visible;
+        wrapper.style.display = visible ? "" : "none";
+      }
+    }
+ 
+    function resetPaginationUi(ui) {
+      if (!ui || !ui.wrapper) return;
+ 
+      var range = ui.wrapper.querySelector("[data-feed-range]");
+      var page = ui.wrapper.querySelector("[data-feed-page]");
+      var total = ui.wrapper.querySelector("[data-feed-total-pages]");
+      var prev = ui.wrapper.querySelector("[data-feed-prev]");
+      var next = ui.wrapper.querySelector("[data-feed-next]");
+ 
+      if (range) range.textContent = "0–0 of 0";
+      if (page) page.innerHTML = "";
+      if (total) total.textContent = "1";
+      if (prev) prev.disabled = true;
+      if (next) next.disabled = true;
+    }
+ 
+    function setTableLoading(key, loading) {
+      var table = getTableConfig(key);
+      if (!table.selector) return;
+ 
+      var tableEl = document.querySelector(table.selector);
+      var ui = ensureTableUi(table.selector);
+ 
+      if (!tableEl || !ui) return;
+ 
+      if (ui.loader) ui.loader.classList.toggle("is-hidden", !loading);
+ 
+      if (loading) {
+        if (ui.empty) ui.empty.classList.add("is-hidden");
+        if (ui.pagination) ui.pagination.classList.add("is-hidden");
+        setTableVisible(tableEl, false);
+      }
+    }
+ 
+    function syncEmptyState(selector, rows) {
+        var tableEl = document.querySelector(selector);
+        var ui = ensureTableUi(selector);
+     
+        if (!tableEl || !ui) return;
+     
+        var hasData = Array.isArray(rows) && rows.length > 0;
+     
+        setTableVisible(tableEl, true);
+     
+        if (ui.empty) ui.empty.classList.add("is-hidden");
+        if (ui.pagination) ui.pagination.classList.toggle("is-hidden", !hasData);
+        if (ui.loader) ui.loader.classList.add("is-hidden");
+     
+        if (!hasData) resetPaginationUi(ui);
+    }
+ 
+    function getFixedHeaderFeature(key) {
+      var table = getTableConfig(key);
+      var defaults = CONFIG.defaults && CONFIG.defaults.dataTable;
+ 
+      if (table.fixedHeader !== undefined) return table.fixedHeader;
+      if (defaults && defaults.fixedHeader !== undefined) return defaults.fixedHeader;
+ 
+      return true;
+    }
+ 
+    function tableFeatures(key, selector) {
+      var ui = CONFIG.ui || {};
+      var tableUi = ensureTableUi(selector);
+      var features = {};
+      var fixedHeader = getFixedHeaderFeature(key);
+ 
+      if (fixedHeader !== false) {
+        features.fixedHeader = fixedHeader;
+      }
+ 
+      if (ui.loader && ui.loader.enabled !== false) {
+        features.loader = true;
+      }
+ 
+      if (
+        ui.pagination &&
+        ui.pagination.enabled !== false &&
+        tableUi &&
+        tableUi.pagination
+      ) {
+        features.feedPagination = {
+          container: tableUi.pagination
+        };
+      }
+ 
+      return features;
+    }
+ 
+function tableOptions(key, extra) {
+      var defaults =
+        CONFIG.defaults && CONFIG.defaults.dataTable
+          ? CONFIG.defaults.dataTable
+          : {};
+ 
+      var table = getTableConfig(key);
+ 
+      var options = mergeOptions(
+        mergeOptions(defaults, {
+          pageLength: table.pageLength,
+          lengthMenu: table.lengthMenu,
+          paging: table.paging,
+          ordering: table.ordering
+        }),
+        extra
+      );
+ 
+      /*
+       * FixedHeader is intentionally removed from raw dtOptions.
+       * It is passed through features.fixedHeader so your DataTableCore
+       * fixedHeader plugin owns offset + lifecycle.
+       */
+      delete options.fixedHeader;
+ 
+      return options;
+    }
+ 
+    function adjustTable(key) {
+      var table = getTableConfig(key);
+      if (!table.selector) return;
+ 
+      var instance = window.DataTableCore.getInstance(table.selector);
+      if (!instance) return;
+ 
+      setTimeout(function () {
+        instance.columns.adjust();
+ 
+        if (instance.fixedHeader && instance.fixedHeader.adjust) {
+          instance.fixedHeader.adjust();
+        }
+      }, 0);
+    }
+ 
+    function safeDestroyTable(tableEl) {
+      if (!tableEl) return;
+ 
+      var instance = window.DataTableCore.getInstance(tableEl);
+      if (!instance) return;
+ 
+      try {
+        instance.destroy(false);
+        window.DataTableCore.registry.remove(tableEl);
+      } catch (e) {
+        console.warn("DataTable safe destroy failed:", tableEl, e);
+      }
+    }
+ 
+    function destroyHiddenTables(scope) {
+      (scope || document)
+        .querySelectorAll(
+          ".tab-content__panel[hidden] table, [data-variant][hidden] table"
+        )
+        .forEach(safeDestroyTable);
+    }
+ 
+    function renderTable(key, options) {
+      options = options || {};
+ 
+      var table = getTableConfig(key);
+      var selector = table.selector;
+ 
+      if (!selector) {
+        console.warn("Missing table selector for:", key);
+        return null;
+      }
+ 
+      var rows = Array.isArray(options.data) ? options.data : [];
+      var tableEl = document.querySelector(selector);
+ 
+      setTableLoading(key, false);
+      syncEmptyState(selector, rows);
+ 
+      if (!rows.length) {
+    	    var existing = window.DataTableCore.getInstance(selector);
+    	 
+    	    if (existing) {
+    	        existing.clear();
+    	        existing.page(0).draw(false);
+    	        return existing;
+    	    }
+    	}
+ 
+      if (tableEl) setTableVisible(tableEl, true);
+ 
+      var instance = window.DataTableCore.render({
+        target: selector,
+        columns: options.columns,
+        data: rows,
+        features: tableFeatures(key, selector),
+        dtOptions: tableOptions(key, options.dtOptions),
+        locale: CONFIG.locale || "en"
+      });
+ 
+      adjustTable(key);
+ 
+      return instance;
+    }
+ 
+    function onShow(key) {
+      adjustTable(key);
+    }
+ 
+    function showVariant(panel, key) {
+      if (!panel) return;
+ 
+      panel.querySelectorAll("[data-variant]").forEach(function (variant) {
+        variant.hidden = variant.getAttribute("data-variant") !== key;
+      });
+ 
+      destroyHiddenTables(panel);
+    }
+ 
+    function safeCell(value) {
+      return value == null ? "" : value;
+    }
+ 
+    function safeUrl(url) {
+      return url && url !== "0" ? url : "";
+    }
+ 
+    function linkRenderer(label, url, className) {
+      if (!label) return "";
+ 
+      var href = safeUrl(url);
+ 
+      if (!href) return safeCell(label);
+ 
+      return (
+        '<a class="' +
+        (className || "") +
+        '" href="' +
+        href +
+        '">' +
+        safeCell(label) +
+        "</a>"
+      );
+    }
+ 
+    function formatQuantitySafe(value) {
+      if (value == null || value === "") return "";
+ 
+      var num = parseFloat(String(value).replace(/,/g, ""));
+ 
+      if (isNaN(num)) return value;
+ 
+      return typeof num.formatQuantity === "function"
+        ? num.formatQuantity()
+        : num.toLocaleString();
+    }
+ 
+    function formatMoneySafe(value) {
+      if (value == null || value === "" || Number(value) === 0) return "-";
+      if (Number(value) === -1) return "";
+ 
+      var num = parseFloat(String(value).replace(/,/g, ""));
+ 
+      if (isNaN(num)) return value;
+ 
+      return typeof num.formatMoney === "function"
+        ? num.formatMoney()
+        : num.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          });
+    }
+ 
+    function resetSelectUi(select) {
+      if (!select) return;
+ 
+      var hidden = select.querySelector("[data-filter]");
+      var valueBox = select.querySelector(".form-select-value");
+ 
+      if (!hidden) return;
+ 
+      var defaultValue = hidden.getAttribute("data-default") || hidden.value;
+      var option = select.querySelector(
+        '.form-select-option[data-value="' + defaultValue + '"]'
+      );
+ 
+      hidden.value = defaultValue;
+ 
+      select.querySelectorAll(".form-select-option").forEach(function (opt) {
+    	  opt.removeAttribute("data-selected");
+    	  opt.classList.remove("is-selected", "is-focused");
+    	});
+    	 
+    	if (option) {
+    	  option.setAttribute("data-selected", "true");
+    	  option.classList.add("is-selected");
+    	 
+    	  if (valueBox) {
+    	    valueBox.innerHTML = option.innerHTML;
+    	    valueBox.classList.remove("is-placeholder");
+    	  }
+    	}
+    }
+ 
+    function resetFilterGroup(group) {
+      if (!group) return;
+ 
+      var range = getDefaultDateRange();
+ 
+      var from = group.querySelector('[data-filter="fromDate"]');
+      var to = group.querySelector('[data-filter="toDate"]');
+ 
+      if (from) from.value = range.fromDate;
+      if (to) to.value = range.toDate;
+ 
+      group.querySelectorAll("[data-select]").forEach(resetSelectUi);
+ 
+      group.querySelectorAll("[data-filter]").forEach(function (el) {
+        el.dispatchEvent(
+          new Event("change", {
+            bubbles: true
+          })
+        );
+      });
+ 
+      group.dispatchEvent(
+        new CustomEvent("filters:reset", {
+          bubbles: true,
+          detail: {
+            group: group
+          }
+        })
+      );
+    }
+ 
+    function bindResetFilters(scope) {
+      (scope || document).addEventListener("click", function (e) {
+        var btn = e.target.closest("[data-reset-filters]");
+        if (!btn) return;
+ 
+        var group = btn.closest(".banner-filters__group");
+        resetFilterGroup(group);
+      });
+    }
+ 
+    function bindDateStartBlock(scope) {
+      (scope || document).addEventListener(
+        "change",
+        function (e) {
+          if (!e.target.matches('[data-date-start][data-filter="fromDate"]')) {
+            return;
+          }
+ 
+          e.stopImmediatePropagation();
+        },
+        true
+      );
+    }
+ 
+    return {
+      getTableConfig: getTableConfig,
+      getDefaultDateRange: getDefaultDateRange,
+      setDefaultDatesForAllGroups: setDefaultDatesForAllGroups,
+ 
+      ensureTableUi: ensureTableUi,
+      setTableLoading: setTableLoading,
+      renderTable: renderTable,
+      onShow: onShow,
+      showVariant: showVariant,
+      destroyHiddenTables: destroyHiddenTables,
+ 
+      safeCell: safeCell,
+      safeUrl: safeUrl,
+      linkRenderer: linkRenderer,
+      formatQuantitySafe: formatQuantitySafe,
+      formatMoneySafe: formatMoneySafe,
+ 
+      resetFilterGroup: resetFilterGroup,
+      bindResetFilters: bindResetFilters,
+      bindDateStartBlock: bindDateStartBlock
+    };
+  }
+ 
+  window.DataTablePageUtils = {
+    create: create
+  };
+})(window, document);
+ /* trading-datatables.js
+ * ======================================================
+ * Trading page DataTables module
+ * ======================================================
+ */
+ 
+(function (window, document) {
+  "use strict";
+ 
+  var CONFIG = window.TRADING_DATATABLE_CONFIG || {};
+  var U = window.DataTablePageUtils.create(CONFIG);
+  var zebraIndex = 0;
+ 
+  var TAB_TABLE_MAP = {
+    negotiatedDeals: ["negotiatedDeals", "minimumSize"],
+    accumulated: ["accumulatedLosses"],
+    listedTradable: ["listedTradableRights"],
+    deListedCompanies: ["suspendedCompanies", "delistedCompanies"],
+    otcTrading: ["otcTrading"]
+  };
+ 
+  function getTotalLabel() {
+    return CONFIG.labels && CONFIG.labels.total
+      ? CONFIG.labels.total
+      : "Total";
+  }
+ 
+  function setTabLoading(tabKey, isLoading) {
+    (TAB_TABLE_MAP[tabKey] || []).forEach(function (tableKey) {
+      U.setTableLoading(tableKey, isLoading);
+    });
+  }
+ 
+  function normalizeResponse(response) {
+    if (!response) return [];
+ 
+    if (typeof response === "string") {
+      try {
+        return normalizeResponse(JSON.parse(response));
+      } catch (e) {
+        console.error("[TradingTables] Invalid JSON response:", response);
+        return [];
+      }
+    }
+ 
+    if (Array.isArray(response)) return response;
+    if (Array.isArray(response.data)) return response.data;
+    if (Array.isArray(response.rows)) return response.rows;
+ 
+    return [];
+  }
+ 
+  function updateResultCount(key, rows) {
+    var selector =
+      CONFIG.resultCounters && CONFIG.resultCounters[key]
+        ? CONFIG.resultCounters[key]
+        : null;
+ 
+    if (!selector) return;
+ 
+    var el = document.querySelector(selector);
+    if (!el) return;
+ 
+    if (Array.isArray(rows) && rows.length && rows[0].count != null) {
+      el.textContent = rows[0].count;
+      return;
+    }
+ 
+    el.textContent = Array.isArray(rows) ? rows.length : 0;
+  }
+ 
+  function statusClass(status) {
+    if (status === 1) return "ylwSymbol";
+    if (status === 2) return "orgSymbol";
+    if (status === 3) return "redSymbol";
+    
+    if (status === "1") return "ylwSymbol";
+    if (status === "2") return "orgSymbol";
+    if (status === "3") return "redSymbol";
+    return "";
+  }
+ 
+  function renderSymbolWithStatus(symbol, status) {
+    var cls = statusClass(status);
+    return U.safeCell(symbol) + (cls ? ' <span class="' + cls + '"></span>' : "");
+  }
+ 
+  function renderCompanyWithStatus(label, url, status) {
+    var cls = statusClass(status);
+ 
+    return (
+      U.linkRenderer(label, url, "ellipsis") +
+      (cls ? '<span class="' + cls + '"></span>' : "")
+    );
+  }
+ 
+  function priceChangeRenderer(valueText, valueNumeric) {
+    var cls = "priceEqual";
+ 
+    if (valueNumeric > 0) cls = "priceUp";
+    else if (valueNumeric < 0) cls = "priceDown";
+ 
+    return (
+      '<div class="priceTdBox">' +
+      '<div class="' + cls + '">' +
+      U.safeCell(valueText) +
+      "<i></i>" +
+      "</div>" +
+      "</div>"
+    );
+  }
+ 
+  function renderNewsLink(url, label) {
+    return url && url !== "0" ? '<a href="' + url + '">' + label + "</a>" : "-";
+  }
+ 
+  function linkCellRenderer(data) {
+    if (!data || !data.symbol) return "";
+    return U.linkRenderer(data.symbol, data.companyURL);
+  }
+ 
+  function commonOptions(extra) {
+    return Object.assign(
+      {
+        searching: false,
+        info: false,
+        dom: "rt",
+        scrollX: true,
+        scrollCollapse: true
+      },
+      extra || {}
+    );
+  }
+ 
+function totalAwareCreatedRow(row, data) {
+    if (data && data.rowType === "total") {
+      row.classList.add("table-total-row");
+      return;
+    }
+ 
+    if (zebraIndex % 2 === 0) {
+        row.classList.add("is-odd");
+      } else {
+        row.classList.add("is-even");
+      }
+ 
+    zebraIndex++;
+  }
+ 
+  function afterRender(tableKey) {
+    U.onShow(tableKey);
+  }
+ 
+  function initTradingTables() {
+    var container = document.querySelector('[data-tabs-id="trading"]');
+ 
+    if (!container || !window.TabsFeatureEngine || !window.DataTableCore) {
+      return;
+    }
+ 
+    U.setDefaultDatesForAllGroups();
+    U.bindResetFilters(document);
+    U.bindDateStartBlock(document);
+ 
+    container.addEventListener("tab:change", function () {
+      setTimeout(function () {
+        U.destroyHiddenTables(document);
+      }, 0);
+    });
+ 
+    window.TabsFeatureEngine.mount(container, {
+      debounceMs: 200,
+      loadOnMount: true,
+ 
+      tabs: {
+        negotiatedDeals: {
+          getUrl: function (ctx) {
+            var type = ctx.filters.type || "Negotiated-Deals";
+ 
+            return type === "Minimum-Size"
+              ? CONFIG.urls.minimumSize
+              : CONFIG.urls.negotiatedDeals;
+          },
+ 
+          getParams: function (ctx) {
+            setTabLoading("negotiatedDeals", true);
+ 
+            var range = U.getDefaultDateRange();
+            var type = ctx.filters.type || "Negotiated-Deals";
+ 
+            if (type === "Minimum-Size") {
+              return {
+                requestLocale: CONFIG.locale || "en"
+              };
+            }
+ 
+            return {
+              type: type,
+              sector: ctx.filters.sector || "All",
+              company: ctx.filters.company || "All",
+              fromDate: ctx.filters.fromDate || range.fromDate,
+              toDate: ctx.filters.toDate || range.toDate,
+              requestLocale: CONFIG.locale || "en"
+            };
+          },
+ 
+          normalize: normalizeResponse,
+ 
+          render: function (ctx) {
+            var type = ctx.filters.type || "Negotiated-Deals";
+ 
+            if (type === "Minimum-Size") {
+              U.showVariant(ctx.panel, "Minimum-Size");
+ 
+              U.renderTable("minimumSize", {
+                data: ctx.rows,
+                columns: [
+                  { data: null, defaultContent: "" },
+                  { data: "col1", render: linkCellRenderer },
+                  { data: "col2", render: linkCellRenderer },
+                  { data: "col3", render: linkCellRenderer },
+                  { data: "col4", render: linkCellRenderer }
+                ],
+                dtOptions: commonOptions({
+                  paging: false,
+                  pageLength: 25,
+                  lengthMenu: [25, 50, 100],
+                  ordering: false,
+                  searching: true
+                })
+              });
+ 
+              updateResultCount("minimumSize", ctx.rows);
+              afterRender("minimumSize");
+              return;
+            }
+ 
+            U.showVariant(ctx.panel, "Negotiated-Deals");
+ 
+            zebraIndex = 0;
+ 
+            U.renderTable("negotiatedDeals", {
+              data: ctx.rows,
+              columns: [
+                {
+                  data: "strDate",
+                  className: "dt-nowrap text-center",
+                  render: function (d, t, r) {
+                    return r && r.rowType === "total" ? "" : U.safeCell(d);
+                  }
+                },
+                {
+                  data: "symbol",
+                  render: function (d, t, r) {
+                    return r && r.rowType === "total" ? "" : U.safeCell(d);
+                  }
+                },
+                {
+                  data: "company",
+                  className: "align",
+                  render: function (d, t, r) {
+                    if (r && r.rowType === "total") {
+                      return '<strong class="table-total-label">' + getTotalLabel() + "</strong>";
+                    }
+ 
+                    return U.linkRenderer(d, r.companyURL, "ellipsis");
+                  }
+                },
+                {
+                  data: "tradePrice",
+                  className: "numeric",
+                  render: function (d, t, r) {
+                    return r && r.rowType === "total" ? "" : U.formatMoneySafe(d);
+                  }
+                },
+                {
+                  data: "tradeVolume",
+                  className: "numeric",
+                  render: U.formatQuantitySafe
+                },
+                {
+                  data: "turnOver",
+                  className: "numeric",
+                  render: U.formatMoneySafe
+                },
+                {
+                  data: "strTime",
+                  className: "text-center",
+                  render: function (d, t, r) {
+                    return r && r.rowType === "total" ? "" : U.safeCell(d);
+                  }
+                }
+              ],
+              dtOptions: commonOptions({
+                paging: false,
+                pageLength: 25,
+                lengthMenu: [25, 50, 100],
+                ordering: false,
+                createdRow: totalAwareCreatedRow,
+                initComplete: function () {
+                  updateResultCount("negotiatedDeals", ctx.rows);
+                }
+              })
+            });
+ 
+            updateResultCount("negotiatedDeals", ctx.rows);
+            afterRender("negotiatedDeals");
+          }
+        },
+ 
+accumulated: {
+          getUrl: function () {
+            return CONFIG.urls.accumulatedLosses;
+          },
+ 
+          getParams: function (ctx) {
+            setTabLoading("accumulated", true);
+ 
+            return {
+              percentage: ctx.filters.report || "All",
+              requestLocale: CONFIG.locale || "en"
+            };
+          },
+ 
+          normalize: normalizeResponse,
+ 
+          render: function (ctx) {
+            U.renderTable("accumulatedLosses", {
+              data: ctx.rows,
+              columns: [
+                {
+                  data: "symbol",
+                  className: "symbolColm dt-center",
+                  render: function (d, t, r) {
+                    return renderSymbolWithStatus(d, r.companyStatus);
+                  }
+                },
+                {
+                  data: "company",
+                  className: "align",
+                  render: function (d, t, r) {
+                    return U.linkRenderer(d, r.companyURL, "ellipsis");
+                  }
+                }
+              ],
+              dtOptions: commonOptions({
+                paging: true,
+                pageLength: 25,
+                lengthMenu: [25, 50, 100],
+                ordering: false,
+                initComplete: function () {
+                  updateResultCount("accumulatedLosses", ctx.rows);
+                }
+              })
+            });
+ 
+            updateResultCount("accumulatedLosses", ctx.rows);
+            afterRender("accumulatedLosses");
+          }
+        },
+ 
+        listedTradable: {
+          getUrl: function () {
+            return CONFIG.urls.listedTradableRights;
+          },
+ 
+          getParams: function () {
+            setTabLoading("listedTradable", true);
+ 
+            return {
+              requestLocale: CONFIG.locale || "en"
+            };
+          },
+ 
+          normalize: normalizeResponse,
+ 
+          render: function (ctx) {
+            U.renderTable("listedTradableRights", {
+              data: ctx.rows,
+              columns: [
+                {
+                  data: "acrynomName",
+                  render: function (d, t, r) {
+                    return U.linkRenderer(d, r.pageUrl);
+                  }
+                },
+                { data: "lastTradePriceModified" },
+                {
+                  data: "lastTradeQuantity",
+                  className: "numeric",
+                  render: U.formatQuantitySafe
+                },
+                {
+                  data: "netChangeModified",
+                  className: "priceTd",
+                  render: function (d, t, r) {
+                    return priceChangeRenderer(d, r.netChangeDoubleModified);
+                  }
+                },
+                {
+                  data: "percentChangeModified",
+                  className: "priceTd",
+                  render: function (d, t, r) {
+                    return priceChangeRenderer(d, r.percentChangeDoubleModified);
+                  }
+                },
+                { data: "todayOpenModified" },
+                { data: "highPriceModified" },
+                { data: "lowPriceModified" },
+                {
+                  data: "nuOfTrades",
+                  className: "numeric",
+                  render: U.formatQuantitySafe
+                },
+                {
+                  data: "volumeTraded",
+                  className: "numeric",
+                  render: U.formatQuantitySafe
+                },
+                { data: "bidPriceModified" },
+                {
+                  data: "bidQuantity",
+                  className: "numeric",
+                  render: U.formatQuantitySafe
+                },
+                { data: "askPriceModified" },
+                {
+                  data: "askQuantity",
+                  className: "numeric",
+                  render: U.formatQuantitySafe
+                }
+              ],
+              dtOptions: commonOptions({
+                paging: false,
+                ordering: true,
+                initComplete: function () {
+                  updateResultCount("listedTradableRights", ctx.rows);
+                }
+              })
+            });
+ 
+            updateResultCount("listedTradableRights", ctx.rows);
+            afterRender("listedTradableRights");
+          }
+        },
+ 
+deListedCompanies: {
+          getUrl: function () {
+            return CONFIG.urls.suspendedDelisted;
+          },
+ 
+          getParams: function (ctx) {
+            setTabLoading("deListedCompanies", true);
+ 
+            var range = U.getDefaultDateRange();
+ 
+            
+            
+            return {
+              renderType: "Search", 
+              fromDate: ctx.filters.fromDate || range.fromDate,
+              toDate: ctx.filters.toDate || range.toDate,
+              formType: ctx.filters.type || "Suspension",
+              requestLocale: CONFIG.locale || "en"
+            };
+          },
+ 
+          normalize: normalizeResponse,
+ 
+          render: function (ctx) {
+            var type = ctx.filters.type || "Suspension";
+ 
+            if (type === "Suspension" || type === "Suspension_Funds") {
+              U.showVariant(ctx.panel, "Suspension");
+ 
+              U.renderTable("suspendedCompanies", {
+                data: ctx.rows,
+                columns: [
+                  { data: "symbol" },
+                  {
+                    data: "name",
+                    className: "align",
+                    render: function (d, t, r) {
+                      return renderCompanyWithStatus(d, r.companyURL, r.companyStatus);
+                    }
+                  },
+                  { data: "fromDate" ,
+                	  className: "text-center", 
+                  
+                	  render: function (data, type, row) {
+                          if (!data || data === "-") return data;
+                          let parts = data.split('-'); 
+                          let isISO = parts[0].length === 4; 
+
+                          if (type === 'sort') {
+                              return isISO ? parts.join('') : parts.slice().reverse().join('');
+                          }
+                          if (isISO) {
+                              return parts[2] + '-' + parts[1] + '-' + parts[0];
+                          }
+                          return data;
+                      }
+                  
+                  
+                  
+                  
+                  
+                  },
+                  
+                  { data: "toDate",
+                	  className: "text-center", 
+                	  render: function (data, type, row) {
+                		  console.log("typee"+ type);
+                		  if (!data) return '';
+
+                		    var parts = data.split('-');
+                		    if (parts.length === 3) {
+                		        // If it starts with a 4-digit year (YYYY-MM-DD), flip it to DD-MM-YYYY
+                		        if (parts[0].length === 4) {
+                		            return parts[2] + '-' + parts[1] + '-' + parts[0];
+                		        }
+                		        // If it already starts with a 2-digit day (DD-MM-YYYY), return it as-is
+                		        return data;
+                		    }
+                		    
+                		    return data;
+                      }
+                  
+                  
+                  
+                  },
+                  {
+                    data: null,
+                    className: "text-center", 
+                    render: function (d, t, r) {
+                      return renderNewsLink(
+                        r.annUrl && r.annUrl !== "0" ? r.annUrl : r.newsUrl,
+                        CONFIG.labels && CONFIG.labels.suspendedLink
+                          ? CONFIG.labels.suspendedLink
+                          : "View"
+                      );
+                    }
+                  }
+                ],
+                dtOptions: commonOptions({
+                  paging: false,
+                  ordering: true,
+  		        order: [[2, 'desc']],
+                  initComplete: function () {
+                    updateResultCount("suspended", ctx.rows);
+                  }
+                })
+              });
+ 
+              updateResultCount("suspended", ctx.rows);
+              afterRender("suspendedCompanies");
+              return;
+            }
+ 
+            U.showVariant(ctx.panel, "Delisting");
+ 
+            U.renderTable("delistedCompanies", {
+              data: ctx.rows,
+              columns: [
+                { data: "symbol" },
+                {
+                  data: "name",
+                  className: "align",
+                  render: function (d, t, r) {
+                    return renderCompanyWithStatus(d, r.companyURL, r.companyStatus);
+                  }
+                },
+                { data: "fromDate",
+                	 className: "text-center", 
+                	 render: function (data, type, row) {
+                         if (!data || data === "-") return data;
+                         let parts = data.split('-'); 
+                         let isISO = parts[0].length === 4; 
+
+                         if (type === 'sort') {
+                             return isISO ? parts.join('') : parts.slice().reverse().join('');
+                         }
+                         if (isISO) {
+                             return parts[2] + '-' + parts[1] + '-' + parts[0];
+                         }
+                         return data;
+                
+                
+                	 }
+                },
+              /*  { data: "toDate" },*/
+                {
+                  data: null,
+                  className: "text-center", 
+                  render: function (d, t, r) {
+                    return renderNewsLink(
+                      r.newsUrl,
+                      CONFIG.labels && CONFIG.labels.delistedLink
+                        ? CONFIG.labels.delistedLink
+                        : "View"
+                    );
+                  }
+                }
+              ],
+              dtOptions: commonOptions({
+                paging: false,
+                ordering: true,
+		        order: [[2, 'desc']],
+                initComplete: function () {
+                  updateResultCount("suspendedDelisted", ctx.rows);
+                }
+              })
+            });
+ 
+            updateResultCount("suspendedDelisted", ctx.rows);
+            afterRender("delistedCompanies");
+          }
+        },
+ 
+        otcTrading: {
+          getUrl: function () {
+            return CONFIG.urls.otcTrading;
+          },
+ 
+          getParams: function () {
+            setTabLoading("otcTrading", true);
+ 
+            return {
+              requestLocale: CONFIG.locale || "en"
+            };
+          },
+ 
+          normalize: normalizeResponse,
+ 
+          render: function (ctx) {
+            U.renderTable("otcTrading", {
+              data: ctx.rows,
+              columns: [
+                { data: "symbol" },
+                {
+                  data: "companyName",
+                  className: "align",
+                  render: function (d, t, r) {
+                    return U.linkRenderer(d, r.companyURL, "ellipsis");
+                  }
+                },
+                {
+                  data: "lastTradeVolume",
+                  className: "numeric",
+                  render: U.formatQuantitySafe
+                },
+                { data: "lastTradeDate",
+                	className: "text-center", 
+                }
+              ],
+              dtOptions: commonOptions({
+                paging: false,
+                ordering: true,
+                initComplete: function () {
+                  updateResultCount("otcTrading", ctx.rows);
+                }
+              })
+            });
+ 
+            updateResultCount("otcTrading", ctx.rows);
+            afterRender("otcTrading");
+          }
+        }
+      }
+    });
+  }
+ 
+  document.addEventListener("DOMContentLoaded", initTradingTables);
+})(window, document);
+ 
