@@ -296,30 +296,22 @@ export function renderFavoriteButton(row = {}, options = {}) {
 
 function renderInstrumentText(row = {}) {
   const code = getInstrumentCode(row);
-
   const name = getInstrumentName(row);
-
   const url = getInstrumentUrl(row);
 
   const content = `
-    <span
-      class="table-market__symbol"
-    >
-      ${escapeHtml(code)}
+    <span class="table-market__name">
+      ${escapeHtml(name)}
     </span>
 
-    <span
-      class="table-market__name"
-    >
-      ${escapeHtml(name)}
+    <span class="table-market__symbol">
+      ${escapeHtml(code)}
     </span>
   `.trim();
 
   if (!url) {
     return `
-      <span
-        class="table-market__security-link"
-      >
+      <span class="table-market__security-link">
         ${content}
       </span>
     `.trim();
@@ -334,7 +326,6 @@ function renderInstrumentText(row = {}) {
     </a>
   `.trim();
 }
-
 /* ==========================================================================
    Desktop Instrument Cell
    ========================================================================== */
