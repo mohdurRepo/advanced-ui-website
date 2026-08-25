@@ -3,93 +3,136 @@
    ========================================================================== */
 
 /*
- * Main Trading page composition module.
+ * Trading page controller.
  *
  * Responsibilities:
  *
- * - coordinate Trading tabs
- * - coordinate tab-specific filters
- * - coordinate Negotiated / Minimum Size variants
- * - coordinate Suspension / Delisting variants
- * - load Sector -> Company options
- * - build backend requests
- * - initialize reusable Data View tables/results
- * - render standard mobile cards
- * - render Negotiated date-grouped mobile cards
- * - render Negotiated daily totals
+ * - initialize Trading tabs/views
+ * - own filter state
+ * - load endpoint data
+ * - coordinate loading states
+ * - initialize DataTables only when required
+ * - preserve JSP-owned table headers
+ * - render dedicated Minimum Size matrix
+ * - render mobile cards
+ * - synchronize result counts
+ * - reset filters to business defaults
+ * - synchronize Sector -> Company dependency
+ * - refresh visible tables after tab/variant changes
  *
- * This module intentionally leaves:
+ * Presentation rules live in:
  *
- * - reusable table behavior to common/data-view
- * - reusable standard card markup to common/data-view
- * - business-value formatting to trading-formatters.js
- * - schema definitions to trading-schema.js
- * - tab visual behavior to the design-system Tabs component
+ * - trading-schema.js
+ * - trading-formatters.js
+ *
+ * Shared card behavior remains owned by the design-system DataViewCard.
  */
 
 /* ==========================================================================
-   Common Data View
-   ========================================================================== */
-
-import {
-  createDataCards,
-  createDataResults,
-  createDataSource,
-  createDataState,
-  createDataTable,
-  createDataViewController,
-  renderStandardDataCard,
-} from "../../common/data-view/index.js";
-
-/* ==========================================================================
-   Trading Schema
+   Imports
    ========================================================================== */
 
 import {
   TRADING_TABS,
   TRADING_VIEWS,
   getColumns,
-  getMobileColumns,
+  getColumnByKey,
+  getIdentityConfig,
+  getMatrixConfig,
+  getMobileConfig,
   getNegotiatedView,
+  getSearchConfig,
   getSuspendedDelistedView,
   getTableConfig,
-  isTradingTab,
-} from "./trading-schema.js";
-
-/* ==========================================================================
-   Trading Formatters
-   ========================================================================== */
+  getTableMode,
+  getTotalsConfig,
+  getViewSchema,
+  getViewsForTab,
+  isComplexHeaderTable,
+  isMatrixTable,
+  shouldPreserveHeader,
+} from "./trading-schema";
 
 import {
+  createMobileField,
   escapeHtml,
+  filterMinimumSizeRows,
+  formatTradingDate,
   getDefaultTradingDateRange,
   getNegotiatedDateGroup,
-  getTradingIdentity,
+  getTradingCardContainerClass,
+  hasValue,
   isTotalRow,
+  renderMinimumSizeDesktopRow,
+  renderMinimumSizeMobileCards,
   renderMobileIdentity,
   renderMobileSummaryValue,
   renderNegotiatedDailyTotalCard,
-  renderNegotiatedDesktopTotalRow,
   renderTradingCell,
+  safeUrl,
   toRequestDate,
-} from "./trading-formatters.js";
+} from "./trading-formatters";
+
+import { renderStandardDataCard } from "../../components/data-view/data-card";
+
+import {
+  initDataViewCards,
+  refreshDataViews,
+} from "../../components/data-view";
+
+/* ==========================================================================
+   Configuration
+   ========================================================================== */
+
+const config = window.TradingConfig || {};
+
+/* ==========================================================================
+   Root
+   ========================================================================== */
+
+const root = document.querySelector("[data-trading]");
+
+/*
+ * Trading is page-specific.
+ *
+ * Importing this module on another page must remain harmless.
+ */
+if (!root) {
+  // Intentionally no initialization.
+}
 
 /* ==========================================================================
    Selectors
    ========================================================================== */
 
-const SELECTORS = {
+const SELECTORS = Object.freeze({
   /* ------------------------------------------------------------------------
      Tabs
      ------------------------------------------------------------------------ */
 
-  tabs: "[data-trading-tabs]",
-
   tab: "[data-trading-tab]",
 
+  panel: "[data-trading-panel]",
+
   /* ------------------------------------------------------------------------
-     Negotiated Deals
+     Views
      ------------------------------------------------------------------------ */
+
+  view: "[data-trading-view]",
+
+  table: "[data-trading-table]",
+
+  cards: "[data-trading-cards]",
+
+  resultCount: "[data-trading-result-count]",
+
+  loading: "[data-trading-loading]",
+
+  /* ------------------------------------------------------------------------
+     Negotiated Filters
+     ------------------------------------------------------------------------ */
+
+  negotiatedForm: "[data-trading-negotiated-filters]",
 
   negotiatedType: "[data-trading-negotiated-type]",
 
@@ -97,258 +140,1278 @@ const SELECTORS = {
 
   negotiatedCompany: "[data-trading-negotiated-company]",
 
-  negotiatedFromDate: "[data-trading-negotiated-from-date]",
+  negotiatedFrom: "[data-trading-negotiated-from-date]",
 
-  negotiatedToDate: "[data-trading-negotiated-to-date]",
+  negotiatedTo: "[data-trading-negotiated-to-date]",
+
+  negotiatedSearch: '[data-trading-table-search="minimumSize"]',
+
+  companyStatusType: "[data-trading-delisted-type]",
+
+  companyStatusFrom: "[data-trading-delisted-from-date]",
+
+  companyStatusTo: "[data-trading-delisted-to-date]",
 
   /* ------------------------------------------------------------------------
-     Accumulated Losses
+     Accumulated
      ------------------------------------------------------------------------ */
+
+  accumulatedForm: "[data-trading-accumulated-filters]",
 
   accumulatedReport: "[data-trading-accumulated-report]",
 
   /* ------------------------------------------------------------------------
-     Company Status
+     Suspended / Delisted
      ------------------------------------------------------------------------ */
 
-  companyStatusType: "[data-trading-delisted-type]",
+  companyStatusForm: "[data-trading-company-status-filters]",
 
-  companyStatusFromDate: "[data-trading-delisted-from-date]",
+  companyStatusType: "[data-trading-company-status-type]",
 
-  companyStatusToDate: "[data-trading-delisted-to-date]",
+  companyStatusFrom: "[data-trading-company-status-from]",
+
+  companyStatusTo: "[data-trading-company-status-to]",
 
   /* ------------------------------------------------------------------------
-     Actions
+     Reset
      ------------------------------------------------------------------------ */
 
   reset: "[data-trading-reset]",
+});
+
+/* ==========================================================================
+   State
+   ========================================================================== */
+
+const state = {
+  initialized: false,
+
+  activeTab: config.initialState?.activeTab || TRADING_TABS.negotiatedDeals,
+
+  /*
+   * Data loaded from endpoints.
+   */
+  rows: new Map(),
+
+  /*
+   * DataTables API instances.
+   */
+  tables: new Map(),
+
+  /*
+   * AbortControllers for in-flight requests.
+   */
+  requests: new Map(),
+
+  /*
+   * Whether a view has successfully loaded at least once.
+   */
+  loaded: new Set(),
+
+  /*
+   * Whether a view is currently loading.
+   */
+  loading: new Set(),
+
+  /*
+   * Current negotiated variant.
+   */
+  negotiatedType:
+    config.initialState?.negotiatedDeals?.type || "Negotiated-Deals",
+
+  /*
+   * Current suspended/delisted variant.
+   */
+  companyStatusType:
+    config.initialState?.deListedCompanies?.type || "Suspension",
+
+  /*
+   * Minimum Size client-side search.
+   */
+  minimumSizeSearch: "",
 };
-
-/* ==========================================================================
-   Instance Registry
-   ========================================================================== */
-
-const instances = new WeakMap();
-
-/* ==========================================================================
-   Configuration
-   ========================================================================== */
-
-function getConfig() {
-  const config = window.TradingConfig;
-
-  if (!config) {
-    throw new Error("TradingConfig is required.");
-  }
-
-  return config;
-}
 
 /* ==========================================================================
    DOM Helpers
    ========================================================================== */
 
-function getElement(root, selector) {
-  return root.querySelector(selector);
+function query(selector, context = root) {
+  return context?.querySelector?.(selector) || null;
 }
 
-function getTradingViewRoot(root, view) {
-  return root.querySelector(`[data-trading-view="${view}"]`);
-}
-
-function getTradingTableSelector(view) {
-  return `[data-trading-table="${view}"]`;
-}
-
-function getTradingCardsSelector(view) {
-  return `[data-trading-cards="${view}"]`;
-}
-
-function getTradingResultSelector(view) {
-  return `[data-trading-result-count="${view}"]`;
+function queryAll(selector, context = root) {
+  return [...(context?.querySelectorAll?.(selector) || [])];
 }
 
 /* ==========================================================================
-   Design-system Card Enhancement
+   View DOM
    ========================================================================== */
 
-/*
- * Negotiated Deals renders grouped cards dynamically rather than using
- * createDataCards() for the outer collection.
- *
- * If the compiled design system exposes its card initializer, enhance the
- * newly inserted cards after their markup exists in the DOM.
- *
- * If no public initializer exists, this safely becomes a no-op.
- */
+function getViewElement(view) {
+  return query(`[data-trading-view="${view}"]`);
+}
 
-function enhanceDataViewCards(container) {
-  if (!container) {
+function getTableElement(view) {
+  return query(`[data-trading-table="${view}"]`);
+}
+
+function getCardsElement(view) {
+  return query(`[data-trading-cards="${view}"]`);
+}
+
+function getResultCountElement(view) {
+  return query(`[data-trading-result-count="${view}"]`);
+}
+
+function getLoadingElement(view) {
+  return query(`[data-trading-loading="${view}"]`);
+}
+
+/* ==========================================================================
+   Visibility
+   ========================================================================== */
+
+function isElementVisible(element) {
+  if (!element) {
+    return false;
+  }
+
+  if (element.hidden || element.closest("[hidden]")) {
+    return false;
+  }
+
+  return true;
+}
+
+function isViewVisible(view) {
+  return isElementVisible(getViewElement(view));
+}
+
+/* ==========================================================================
+   Result Count
+   ========================================================================== */
+
+function setResultCount(view, count) {
+  const element = getResultCountElement(view);
+
+  if (!element) {
     return;
   }
 
-  const initializer =
-    window.initDataViewCards ??
-    window.DataView?.initDataViewCards ??
-    window.Theme?.dataView?.initDataViewCards;
+  element.textContent = String(
+    Number.isFinite(Number(count)) ? Number(count) : 0,
+  );
+}
 
-  if (typeof initializer !== "function") {
+/* ==========================================================================
+   Loading
+   ========================================================================== */
+
+function setLoading(view, loading) {
+  const element = getLoadingElement(view);
+
+  if (loading) {
+    state.loading.add(view);
+  } else {
+    state.loading.delete(view);
+  }
+
+  if (!element) {
     return;
   }
 
-  initializer(container);
-}
+  element.hidden = !loading;
 
-/* ==========================================================================
-   Response Parsing
-   ========================================================================== */
+  element.setAttribute("aria-hidden", String(!loading));
 
-function parseResponse(response) {
-  if (typeof response !== "string") {
-    return response;
-  }
+  const viewElement = getViewElement(view);
 
-  try {
-    return JSON.parse(response);
-  } catch {
-    return response;
+  if (viewElement) {
+    viewElement.classList.toggle("is-loading", loading);
   }
 }
 
 /* ==========================================================================
-   Response Rows
+   Empty State
    ========================================================================== */
 
-function getResponseRows(response) {
-  const value = parseResponse(response);
+function getNoDataLabel() {
+  return config.labels?.noData || "No data available";
+}
 
-  if (Array.isArray(value)) {
-    return value;
+function renderEmptyTable(view) {
+  const table = getTableElement(view);
+
+  if (!table) {
+    return;
   }
 
-  if (Array.isArray(value?.data)) {
-    return value.data;
+  const body = table.tBodies?.[0];
+
+  if (!body) {
+    return;
   }
 
-  if (Array.isArray(value?.rows)) {
-    return value.rows;
+  const visualColumns = getVisualColumnCount(view);
+
+  body.innerHTML = `
+    <tr
+      class="table-market__empty-row"
+    >
+      <td
+        colspan="${visualColumns}"
+        class="table-market__empty"
+      >
+        ${escapeHtml(getNoDataLabel())}
+      </td>
+    </tr>
+  `.trim();
+}
+
+function renderEmptyCards(view) {
+  const cards = getCardsElement(view);
+
+  if (!cards) {
+    return;
   }
 
-  if (Array.isArray(value?.results)) {
-    return value.results;
-  }
-
-  return [];
+  cards.innerHTML = `
+    <div
+      class="data-view__empty"
+    >
+      ${escapeHtml(getNoDataLabel())}
+    </div>
+  `.trim();
 }
 
 /* ==========================================================================
-   Response Total
+   Visual Column Count
    ========================================================================== */
 
-function getResponseTotal(response, rows) {
-  const value = parseResponse(response);
-
-  const candidates = [
-    value?.total,
-    value?.recordsTotal,
-    value?.recordsFiltered,
-    rows?.[0]?.count,
-    rows.length,
-  ];
-
-  for (const candidate of candidates) {
-    const number = Number(candidate);
-
-    if (Number.isFinite(number)) {
-      return number;
-    }
+function getVisualColumnCount(view) {
+  if (isMatrixTable(view, config)) {
+    return getMatrixConfig(view, config)?.visualColumnCount || 1;
   }
 
-  return rows.length;
+  return Math.max(getColumns(view, config).length, 1);
+}
+
+/* ==========================================================================
+   Error Handling
+   ========================================================================== */
+
+function reportError(context, error) {
+  console.error(`Trading: ${context}`, error);
+}
+
+/* ==========================================================================
+   Request Helpers
+   ========================================================================== */
+
+function abortRequest(key) {
+  const controller = state.requests.get(key);
+
+  if (!controller) {
+    return;
+  }
+
+  controller.abort();
+
+  state.requests.delete(key);
+}
+
+function createRequestController(key) {
+  abortRequest(key);
+
+  const controller = new AbortController();
+
+  state.requests.set(key, controller);
+
+  return controller;
+}
+
+/* ==========================================================================
+   URL Parameters
+   ========================================================================== */
+
+function appendParameter(params, key, value) {
+  if (!key || value === undefined || value === null || value === "") {
+    return;
+  }
+
+  params.set(key, String(value));
+}
+
+function buildRequestUrl(endpoint, parameters = {}) {
+  const url = new URL(endpoint, window.location.href);
+
+  Object.entries(parameters).forEach(([key, value]) => {
+    appendParameter(url.searchParams, key, value);
+  });
+
+  return url.toString();
+}
+
+/* ==========================================================================
+   Fetch JSON
+   ========================================================================== */
+
+async function fetchJson(key, endpoint, parameters = {}) {
+  if (!endpoint) {
+    throw new Error(`Missing endpoint for ${key}.`);
+  }
+
+  const controller = createRequestController(key);
+
+  const response = await fetch(buildRequestUrl(endpoint, parameters), {
+    method: "GET",
+
+    credentials: "same-origin",
+
+    headers: {
+      Accept: "application/json",
+    },
+
+    signal: controller.signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(`${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
 }
 
 /* ==========================================================================
    Response Normalization
    ========================================================================== */
 
-function normalizeResponse(response) {
-  const rows = getResponseRows(response);
+function normalizeRows(payload) {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
 
-  return {
-    rows,
+  if (Array.isArray(payload?.data)) {
+    return payload.data;
+  }
 
-    meta: {
-      total: getResponseTotal(response, rows),
-    },
+  if (Array.isArray(payload?.rows)) {
+    return payload.rows;
+  }
 
-    raw: parseResponse(response),
-  };
+  if (Array.isArray(payload?.aaData)) {
+    return payload.aaData;
+  }
+
+  if (Array.isArray(payload?.results)) {
+    return payload.results;
+  }
+
+  return [];
 }
 
 /* ==========================================================================
-   Initial Date Range
+   DataTables Detection
    ========================================================================== */
 
-function applyDefaultDateRange(root, fromSelector, toSelector) {
-  const from = getElement(root, fromSelector);
+function getDataTablesFactory() {
+  if (
+    window.jQuery &&
+    window.jQuery.fn &&
+    typeof window.jQuery.fn.DataTable === "function"
+  ) {
+    return window.jQuery;
+  }
 
-  const to = getElement(root, toSelector);
+  return null;
+}
 
-  if (!from || !to) {
+function hasDataTable(table) {
+  const $ = getDataTablesFactory();
+
+  if (!$ || !table) {
+    return false;
+  }
+
+  return $.fn.DataTable.isDataTable(table);
+}
+
+/* ==========================================================================
+   Destroy DataTable
+   ========================================================================== */
+
+function destroyTable(view) {
+  const api = state.tables.get(view);
+
+  if (api) {
+    try {
+      api.destroy(false);
+    } catch (error) {
+      reportError(`could not destroy ${view} table`, error);
+    }
+  }
+
+  state.tables.delete(view);
+
+  const table = getTableElement(view);
+
+  if (table && hasDataTable(table)) {
+    try {
+      getDataTablesFactory()(table).DataTable().destroy(false);
+    } catch (error) {
+      reportError(`could not destroy orphan ${view} DataTable`, error);
+    }
+  }
+}
+
+/* ==========================================================================
+   Header Validation
+   ========================================================================== */
+
+/*
+ * JSP is authoritative for all Trading headers.
+ *
+ * JS may validate the leaf-column count but must not replace <thead>.
+ */
+
+function getLeafHeaderCells(table) {
+  if (!table?.tHead) {
+    return [];
+  }
+
+  const rows = [...table.tHead.rows];
+
+  if (rows.length === 0) {
+    return [];
+  }
+
+  /*
+   * The final header row contains the leaf headings for grouped tables.
+   *
+   * Cells with rowspan from previous rows are intentionally not duplicated
+   * here; DataTables itself reads the complete DOM header structure.
+   */
+  return [...rows[rows.length - 1].cells];
+}
+
+function validateHeader(view) {
+  const table = getTableElement(view);
+
+  if (!table) {
     return;
   }
 
-  const range = getDefaultTradingDateRange();
-
-  if (!from.value) {
-    from.value = range.fromDate;
+  if (!shouldPreserveHeader(view, config)) {
+    return;
   }
 
-  if (!to.value) {
-    to.value = range.toDate;
+  /*
+   * Do not attempt to "fix" complex/matrix headers here.
+   *
+   * That was one of the causes of the broken Group 1 / Group 2 result.
+   */
+  if (isComplexHeaderTable(view, config) || isMatrixTable(view, config)) {
+    return;
+  }
+
+  const expected = getColumns(view, config).length;
+
+  const actual = table.tHead?.rows?.[0]?.cells?.length || 0;
+
+  if (expected && actual !== expected) {
+    console.warn(
+      `Trading: ${view} header has ${actual} columns; schema expects ${expected}.`,
+    );
   }
 }
 
 /* ==========================================================================
-   Negotiated Filter State
+   DataTables Columns
    ========================================================================== */
 
-function getNegotiatedFilters(root) {
+function createDataTableColumns(view) {
+  return getColumns(view, config).map((column) => ({
+    data: column.data,
+
+    name: column.key,
+
+    className: column.className || "",
+
+    width: column.width || undefined,
+
+    orderable: Boolean(column.orderable),
+
+    searchable: Boolean(column.searchable),
+
+    defaultContent: "",
+
+    render(value, type, row) {
+      return renderTradingCell({
+        row,
+        column,
+        type,
+        config,
+      });
+    },
+  }));
+}
+
+/* ==========================================================================
+   Table Initialization
+   ========================================================================== */
+
+function createDataTable(view, rows) {
+  const table = getTableElement(view);
+
+  const $ = getDataTablesFactory();
+
+  if (!table || !$) {
+    return null;
+  }
+
+  /*
+   * Matrix tables intentionally do not use the generic DataTable path.
+   */
+  if (isMatrixTable(view, config)) {
+    return null;
+  }
+
+  validateHeader(view);
+
+  destroyTable(view);
+
+  const options = getTableConfig(view, config);
+
+  /*
+   * Presentation metadata belongs to Trading, not DataTables.
+   */
+  const { tradingMode, preserveHeader, complexHeader, ...dataTableOptions } =
+    options;
+
+  const api = $(table).DataTable({
+    ...dataTableOptions,
+
+    data: rows,
+
+    columns: createDataTableColumns(view),
+
+    /*
+     * Do not let a hidden-tab initialization determine final widths.
+     */
+    autoWidth: false,
+
+    /*
+     * Keep JSP header structure.
+     */
+    destroy: true,
+
+    retrieve: false,
+
+    createdRow(row, rowData) {
+      if (isTotalRow(rowData)) {
+        row.classList.add("table-market__summary-row");
+      }
+    },
+
+    initComplete() {
+      /*
+       * Only adjust immediately if this table is actually visible.
+       */
+      if (isViewVisible(view)) {
+        requestAnimationFrame(() => {
+          adjustTable(view);
+        });
+      }
+    },
+  });
+
+  state.tables.set(view, api);
+
+  return api;
+}
+
+/* ==========================================================================
+   Table Adjustment
+   ========================================================================== */
+
+function adjustTable(view) {
+  if (!isViewVisible(view)) {
+    return;
+  }
+
+  const api = state.tables.get(view);
+
+  if (!api) {
+    return;
+  }
+
+  try {
+    api.columns.adjust();
+
+    /*
+     * Responsive is optional.
+     */
+    if (api.responsive && typeof api.responsive.recalc === "function") {
+      api.responsive.recalc();
+    }
+
+    /*
+     * FixedHeader is intentionally disabled in TradingConfig, but keep this
+     * defensive in case a future view enables it explicitly.
+     */
+    if (api.fixedHeader && typeof api.fixedHeader.adjust === "function") {
+      api.fixedHeader.adjust();
+    }
+  } catch (error) {
+    reportError(`could not adjust ${view}`, error);
+  }
+}
+
+/* ==========================================================================
+   Adjust Visible Tables
+   ========================================================================== */
+
+function adjustVisibleTables() {
+  state.tables.forEach((api, view) => {
+    if (isViewVisible(view)) {
+      adjustTable(view);
+    }
+  });
+}
+
+/* ==========================================================================
+   Plain Table Rendering
+   ========================================================================== */
+
+/*
+ * Fallback renderer when DataTables is unavailable.
+ *
+ * Also useful for views that deliberately avoid DataTables.
+ */
+
+function renderPlainTable(view, rows) {
+  const table = getTableElement(view);
+
+  if (!table) {
+    return;
+  }
+
+  const body = table.tBodies?.[0];
+
+  if (!body) {
+    return;
+  }
+
+  if (!rows.length) {
+    renderEmptyTable(view);
+
+    return;
+  }
+
+  const columns = getColumns(view, config);
+
+  body.innerHTML = rows
+    .map((row) => {
+      const rowClass = isTotalRow(row) ? "table-market__summary-row" : "";
+
+      return `
+            <tr
+              class="${rowClass}"
+            >
+              ${columns
+                .map((column) =>
+                  `
+                    <td
+                      class="${escapeHtml(column.className || "")}"
+                      data-column-key="${escapeHtml(column.key)}"
+                    >
+                      ${renderTradingCell({
+                        row,
+                        column,
+                        type: "display",
+                        config,
+                      })}
+                    </td>
+                  `.trim(),
+                )
+                .join("")}
+            </tr>
+          `.trim();
+    })
+    .join("");
+}
+
+/* ==========================================================================
+   Minimum Size
+   ========================================================================== */
+
+function getMinimumSizeRows() {
+  return state.rows.get(TRADING_VIEWS.minimumSize) || [];
+}
+
+/* ==========================================================================
+   Filtered Minimum Size
+   ========================================================================== */
+
+function getFilteredMinimumSizeRows() {
+  return filterMinimumSizeRows(getMinimumSizeRows(), state.minimumSizeSearch);
+}
+
+/* ==========================================================================
+   Minimum Size Desktop
+   ========================================================================== */
+
+function renderMinimumSizeTable() {
+  const view = TRADING_VIEWS.minimumSize;
+
+  const table = getTableElement(view);
+
+  if (!table) {
+    return;
+  }
+
+  /*
+   * Minimum Size must never inherit a stale DataTable wrapper.
+   */
+  destroyTable(view);
+
+  const body = table.tBodies?.[0];
+
+  if (!body) {
+    return;
+  }
+
+  const rows = getFilteredMinimumSizeRows();
+
+  setResultCount(view, rows.length);
+
+  if (rows.length === 0) {
+    renderEmptyTable(view);
+
+    return;
+  }
+
+  /*
+   * Critical:
+   *
+   * Do not touch table.tHead.
+   *
+   * JSP owns the complete 3-row Minimum Size matrix header.
+   */
+  body.innerHTML = rows.map((row) => renderMinimumSizeDesktopRow(row)).join("");
+}
+
+/* ==========================================================================
+   Minimum Size Mobile
+   ========================================================================== */
+
+function renderMinimumSizeCards() {
+  const view = TRADING_VIEWS.minimumSize;
+
+  const cards = getCardsElement(view);
+
+  if (!cards) {
+    return;
+  }
+
+  const rows = getFilteredMinimumSizeRows();
+
+  cards.classList.add(getTradingCardContainerClass());
+
+  if (rows.length === 0) {
+    renderEmptyCards(view);
+
+    return;
+  }
+
+  cards.innerHTML = renderMinimumSizeMobileCards(rows, config);
+}
+
+/* ==========================================================================
+   Render Minimum Size
+   ========================================================================== */
+
+function renderMinimumSize() {
+  renderMinimumSizeTable();
+  renderMinimumSizeCards();
+}
+
+/* ==========================================================================
+   Standard / Complex Desktop Render
+   ========================================================================== */
+
+function renderDesktopView(view, rows) {
+  if (isMatrixTable(view, config)) {
+    renderMinimumSizeTable();
+
+    return;
+  }
+
+  const $ = getDataTablesFactory();
+
+  if ($) {
+    createDataTable(view, rows);
+
+    return;
+  }
+
+  renderPlainTable(view, rows);
+}
+
+/* ==========================================================================
+   Data Storage
+   ========================================================================== */
+
+function storeRows(view, rows) {
+  const normalized = Array.isArray(rows) ? rows : [];
+
+  state.rows.set(view, normalized);
+
+  state.loaded.add(view);
+
+  setResultCount(view, normalized.length);
+
+  return normalized;
+}
+
+/* ==========================================================================
+   Current View Resolution
+   ========================================================================== */
+
+function getCurrentNegotiatedView() {
+  return getNegotiatedView(state.negotiatedType);
+}
+
+function getCurrentCompanyStatusView() {
+  return getSuspendedDelistedView(state.companyStatusType);
+}
+
+/* ==========================================================================
+   Current View for Tab
+   ========================================================================== */
+
+function getCurrentViewForTab(tab) {
+  switch (tab) {
+    case TRADING_TABS.negotiatedDeals:
+      return getCurrentNegotiatedView();
+
+    case TRADING_TABS.accumulated:
+      return TRADING_VIEWS.accumulatedLosses;
+
+    case TRADING_TABS.listedTradable:
+      return TRADING_VIEWS.listedTradableRights;
+
+    case TRADING_TABS.deListedCompanies:
+      return getCurrentCompanyStatusView();
+
+    case TRADING_TABS.otcTrading:
+      return TRADING_VIEWS.otcTrading;
+
+    default:
+      return null;
+  }
+}
+/* ==========================================================================
+   Standard Mobile Fields
+   ========================================================================== */
+
+function getMobileDetailFields(view, row) {
+  const mobile = getMobileConfig(view, config);
+
+  return (mobile.details || [])
+    .map((key) => getColumnByKey(view, key, config))
+    .filter(Boolean)
+    .map((column) => createMobileField(row, column, config));
+}
+
+/* ==========================================================================
+   Standard Mobile Card
+   ========================================================================== */
+
+function renderStandardMobileCard(view, row, index) {
+  const mobile = getMobileConfig(view, config);
+
+  const identity = renderMobileIdentity(row, view);
+
+  const summary = renderMobileSummaryValue(row, view, config);
+
+  const fields = getMobileDetailFields(view, row);
+
+  const identityConfig = getIdentityConfig(view, config);
+
+  const code = identityConfig?.codeData ? row?.[identityConfig.codeData] : "";
+
+  const name = identityConfig?.nameData ? row?.[identityConfig.nameData] : "";
+
+  const rowId = code || name || index;
+
+  return renderStandardDataCard({
+    idPrefix: `trading-${view}-details`,
+
+    rowId: `${rowId}-${index}`,
+
+    className: "trading-data-card",
+
+    summary: `
+        ${identity}
+        ${summary}
+      `,
+
+    fields,
+
+    expandable: mobile.expandable === false ? false : fields.length > 0,
+
+    moreLabel: config.labels?.mobile?.showDetails || "Show details",
+
+    lessLabel: config.labels?.mobile?.hideDetails || "Hide details",
+  });
+}
+
+/* ==========================================================================
+   Standard Mobile Collection
+   ========================================================================== */
+
+function renderStandardCards(view, rows) {
+  const cards = getCardsElement(view);
+
+  if (!cards) {
+    return;
+  }
+
+  cards.classList.add(getTradingCardContainerClass());
+
+  if (!rows.length) {
+    renderEmptyCards(view);
+
+    return;
+  }
+
+  cards.innerHTML = rows
+    .map((row, index) => renderStandardMobileCard(view, row, index))
+    .join("");
+
+  /*
+   * Enhance newly inserted standard Data Cards.
+   *
+   * This call happens only after markup exists in the DOM.
+   */
+  initDataViewCards?.(cards);
+}
+
+/* ==========================================================================
+   Negotiated Grouping
+   ========================================================================== */
+
+function groupNegotiatedRows(rows) {
+  const groups = new Map();
+
+  let currentGroup = null;
+
+  rows.forEach((row) => {
+    const date = getNegotiatedDateGroup(row);
+
+    /* --------------------------------------------------------------------
+         Daily Total
+         -------------------------------------------------------------------- */
+
+    if (isTotalRow(row)) {
+      /*
+       * Some responses repeat the date on the total row.
+       */
+      if (hasValue(date) && groups.has(date)) {
+        groups.get(date).total = row;
+
+        return;
+      }
+
+      /*
+       * Other responses omit the date from the total row.
+       *
+       * Attach it to the most recently processed date group.
+       */
+      if (currentGroup) {
+        currentGroup.total = row;
+      }
+
+      return;
+    }
+
+    /* --------------------------------------------------------------------
+         Normal Row
+         -------------------------------------------------------------------- */
+
+    const groupKey = hasValue(date) ? date : "";
+
+    if (!groups.has(groupKey)) {
+      groups.set(groupKey, {
+        date: groupKey,
+
+        rows: [],
+
+        total: null,
+      });
+    }
+
+    currentGroup = groups.get(groupKey);
+
+    currentGroup.rows.push(row);
+  });
+
+  return [...groups.values()];
+}
+
+/* ==========================================================================
+   Negotiated Group ID
+   ========================================================================== */
+
+function createNegotiatedGroupId(date, index) {
+  const value = String(date || `group-${index}`)
+    .trim()
+    .replace(/[^a-z0-9_-]/gi, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return `trading-negotiated-group-${value || index}`;
+}
+
+/* ==========================================================================
+   Negotiated Mobile Cards
+   ========================================================================== */
+
+function renderNegotiatedCards(rows) {
+  const view = TRADING_VIEWS.negotiatedDeals;
+
+  const cards = getCardsElement(view);
+
+  if (!cards) {
+    return;
+  }
+
+  cards.classList.add(
+    getTradingCardContainerClass(),
+    "trading-negotiated-card-list",
+  );
+
+  const groups = groupNegotiatedRows(rows);
+
+  if (groups.length === 0) {
+    renderEmptyCards(view);
+
+    return;
+  }
+
+  let cardIndex = 0;
+
+  cards.innerHTML = groups
+    .map((group, groupIndex) => {
+      const titleId = createNegotiatedGroupId(group.date, groupIndex);
+
+      const normalCards = group.rows
+        .map((row) => {
+          const markup = renderStandardMobileCard(view, row, cardIndex);
+
+          cardIndex += 1;
+
+          return markup;
+        })
+        .join("");
+
+      const total = group.total
+        ? renderNegotiatedDailyTotalCard(group.total, config)
+        : "";
+
+      return `
+            <section
+              class="data-card-group trading-negotiated-group"
+              aria-labelledby="${escapeHtml(titleId)}"
+            >
+              ${
+                group.date
+                  ? `
+                    <h3
+                      class="data-card-group__title"
+                      id="${escapeHtml(titleId)}"
+                    >
+                      ${escapeHtml(group.date)}
+                    </h3>
+                  `
+                  : ""
+              }
+
+              <div
+                class="data-card-group__items trading-card-list"
+              >
+                ${normalCards}
+                ${total}
+              </div>
+            </section>
+          `.trim();
+    })
+    .join("");
+
+  /*
+   * Dynamic cards now exist.
+   */
+  initDataViewCards?.(cards);
+}
+
+/* ==========================================================================
+   Mobile View Renderer
+   ========================================================================== */
+
+function renderMobileView(view, rows) {
+  switch (view) {
+    case TRADING_VIEWS.minimumSize:
+      renderMinimumSizeCards();
+
+      return;
+
+    case TRADING_VIEWS.negotiatedDeals:
+      renderNegotiatedCards(rows);
+
+      return;
+
+    default:
+      renderStandardCards(view, rows);
+  }
+}
+
+/* ==========================================================================
+   Render Complete View
+   ========================================================================== */
+
+function renderView(view) {
+  const rows = state.rows.get(view) || [];
+
+  /* ------------------------------------------------------------------------
+     Desktop
+     ------------------------------------------------------------------------ */
+
+  renderDesktopView(view, rows);
+
+  /* ------------------------------------------------------------------------
+     Mobile
+     ------------------------------------------------------------------------ */
+
+  renderMobileView(view, rows);
+
+  /* ------------------------------------------------------------------------
+     Count
+     ------------------------------------------------------------------------ */
+
+  if (view !== TRADING_VIEWS.minimumSize) {
+    setResultCount(view, rows.length);
+  }
+
+  /* ------------------------------------------------------------------------
+     Visible Table Width
+     ------------------------------------------------------------------------ */
+
+  if (isViewVisible(view)) {
+    requestAnimationFrame(() => {
+      adjustTable(view);
+    });
+  }
+}
+
+/* ==========================================================================
+   Filter Values
+   ========================================================================== */
+
+function getSelectValue(selector, fallback = "") {
+  const element = query(selector);
+
+  return element?.value || fallback;
+}
+
+function getInputValue(selector, fallback = "") {
+  const element = query(selector);
+
+  return element?.value || fallback;
+}
+
+/* ==========================================================================
+   Negotiated Request
+   ========================================================================== */
+
+function getNegotiatedRequest() {
   return {
-    type:
-      getElement(root, SELECTORS.negotiatedType)?.value || "Negotiated-Deals",
+    type: getSelectValue(
+      SELECTORS.negotiatedType,
+      config.filters?.negotiatedDeals?.defaults?.type || "Negotiated-Deals",
+    ),
 
-    sector: getElement(root, SELECTORS.negotiatedSector)?.value || "All",
+    sector: getSelectValue(
+      SELECTORS.negotiatedSector,
+      config.filters?.negotiatedDeals?.defaults?.sector || "All",
+    ),
 
-    company: getElement(root, SELECTORS.negotiatedCompany)?.value || "All",
+    company: getSelectValue(
+      SELECTORS.negotiatedCompany,
+      config.filters?.negotiatedDeals?.defaults?.company || "All",
+    ),
 
-    fromDate: getElement(root, SELECTORS.negotiatedFromDate)?.value || "",
+    fromDate: toRequestDate(getInputValue(SELECTORS.negotiatedFrom)),
 
-    toDate: getElement(root, SELECTORS.negotiatedToDate)?.value || "",
+    toDate: toRequestDate(getInputValue(SELECTORS.negotiatedTo)),
+
+    requestLocale: config.locale || "en",
   };
 }
 
 /* ==========================================================================
-   Accumulated Filter State
+   Minimum Size Request
    ========================================================================== */
 
-function getAccumulatedFilters(root) {
+function getMinimumSizeRequest() {
   return {
-    report: getElement(root, SELECTORS.accumulatedReport)?.value || "All",
+    requestLocale: config.locale || "en",
   };
 }
 
 /* ==========================================================================
-   Company Status Filter State
+   Accumulated Request
    ========================================================================== */
 
-function getCompanyStatusFilters(root) {
+function getAccumulatedRequest() {
   return {
-    type: getElement(root, SELECTORS.companyStatusType)?.value || "Suspension",
+    percentage: getSelectValue(
+      SELECTORS.accumulatedReport,
+      config.filters?.accumulated?.defaults?.report || "All",
+    ),
 
-    fromDate: getElement(root, SELECTORS.companyStatusFromDate)?.value || "",
+    requestLocale: config.locale || "en",
+  };
+}
 
-    toDate: getElement(root, SELECTORS.companyStatusToDate)?.value || "",
+/* ==========================================================================
+   Company Status Request
+   ========================================================================== */
+
+function getCompanyStatusRequest() {
+  return {
+    renderType: "Search",
+
+    formType: getSelectValue(
+      SELECTORS.companyStatusType,
+      config.filters?.deListedCompanies?.defaults?.type || "Suspension",
+    ),
+
+    fromDate: toRequestDate(getInputValue(SELECTORS.companyStatusFrom)),
+
+    toDate: toRequestDate(getInputValue(SELECTORS.companyStatusTo)),
+
+    requestLocale: config.locale || "en",
+  };
+}
+
+/* ==========================================================================
+   OTC Request
+   ========================================================================== */
+
+function getOtcRequest() {
+  return {
+    requestLocale: config.locale || "en",
   };
 }
 
@@ -356,7 +1419,7 @@ function getCompanyStatusFilters(root) {
    Endpoint Resolution
    ========================================================================== */
 
-function getEndpoint(view, config) {
+function getEndpoint(view) {
   switch (view) {
     case TRADING_VIEWS.negotiatedDeals:
       return config.endpoints?.negotiatedDeals;
@@ -383,859 +1446,497 @@ function getEndpoint(view, config) {
 }
 
 /* ==========================================================================
-   Request Data
+   Request Resolution
    ========================================================================== */
 
-function buildRequestData(view, config, filters = {}) {
-  const locale = config.locale || "en";
-
+function getViewRequest(view) {
   switch (view) {
-    /* ----------------------------------------------------------------------
-       Negotiated Deals
-       ---------------------------------------------------------------------- */
-
     case TRADING_VIEWS.negotiatedDeals:
-      return {
-        type: filters.type || "Negotiated-Deals",
-
-        sector: filters.sector || "All",
-
-        company: filters.company || "All",
-
-        fromDate: toRequestDate(filters.fromDate),
-
-        toDate: toRequestDate(filters.toDate),
-
-        requestLocale: locale,
-      };
-
-    /* ----------------------------------------------------------------------
-       Minimum Size
-       ---------------------------------------------------------------------- */
+      return getNegotiatedRequest();
 
     case TRADING_VIEWS.minimumSize:
-      return {
-        requestLocale: locale,
-      };
-
-    /* ----------------------------------------------------------------------
-       Accumulated Losses
-       ---------------------------------------------------------------------- */
+      return getMinimumSizeRequest();
 
     case TRADING_VIEWS.accumulatedLosses:
-      return {
-        percentage: filters.report || "All",
-
-        requestLocale: locale,
-      };
-
-    /* ----------------------------------------------------------------------
-       Listed Tradable Rights
-       ---------------------------------------------------------------------- */
+      return getAccumulatedRequest();
 
     case TRADING_VIEWS.listedTradableRights:
       return {
-        requestLocale: locale,
+        requestLocale: config.locale || "en",
       };
-
-    /* ----------------------------------------------------------------------
-       Suspended / Delisted
-       ---------------------------------------------------------------------- */
 
     case TRADING_VIEWS.suspendedCompanies:
     case TRADING_VIEWS.delistedCompanies:
-      return {
-        renderType: "Search",
-
-        fromDate: toRequestDate(filters.fromDate),
-
-        toDate: toRequestDate(filters.toDate),
-
-        formType: filters.type || "Suspension",
-
-        requestLocale: locale,
-      };
-
-    /* ----------------------------------------------------------------------
-       OTC Trading
-       ---------------------------------------------------------------------- */
+      return getCompanyStatusRequest();
 
     case TRADING_VIEWS.otcTrading:
-      return {
-        requestLocale: locale,
-      };
+      return getOtcRequest();
 
     default:
       return {
-        requestLocale: locale,
+        requestLocale: config.locale || "en",
       };
   }
 }
 
 /* ==========================================================================
-   Negotiated Desktop Total Row
+   Generic View Loader
    ========================================================================== */
 
-function decorateNegotiatedRow(rowElement, row, config) {
-  if (!isTotalRow(row)) {
-    return;
-  }
-
-  rowElement.classList.add("table-market__summary-row");
-
-  const totalMarkup = renderNegotiatedDesktopTotalRow(row, config);
+async function loadView(view, options = {}) {
+  const { force = false } = options;
 
   /*
-   * The formatter returns a complete <tr>.
-   *
-   * DataTables already owns the actual row element, so only copy the
-   * rendered cells into that existing row.
+   * Avoid unnecessary duplicate requests.
    */
+  if (state.loaded.has(view) && !force) {
+    renderView(view);
 
-  const template = document.createElement("template");
-
-  template.innerHTML = totalMarkup.trim();
-
-  const renderedRow = template.content.querySelector("tr");
-
-  if (!renderedRow) {
-    return;
+    return state.rows.get(view) || [];
   }
 
-  rowElement.replaceChildren(...Array.from(renderedRow.children));
-}
+  const endpoint = getEndpoint(view);
 
-/* ==========================================================================
-   Generic Mobile Fields
-   ========================================================================== */
+  if (!endpoint) {
+    reportError(
+      `missing endpoint for ${view}`,
+      new Error("Endpoint not configured."),
+    );
 
-function getMobileFields(row, view, config) {
-  return getMobileColumns(view, config).map((column) => ({
-    label: column.label || column.key,
+    storeRows(view, []);
 
-    value: renderTradingCell({
-      row,
-      column,
+    renderView(view);
 
-      type: "display",
+    return [];
+  }
 
-      config,
-    }),
+  setLoading(view, true);
 
-    numeric: Boolean(column.numeric),
-  }));
-}
+  try {
+    const payload = await fetchJson(view, endpoint, getViewRequest(view));
 
-/* ==========================================================================
-   Standard Mobile Card
-   ========================================================================== */
+    const rows = normalizeRows(payload);
 
-function renderStandardTradingCard(row, context, view, config) {
-  const identity = getTradingIdentity(row, view);
+    storeRows(view, rows);
 
-  const fields = getMobileFields(row, view, config);
+    renderView(view);
 
-  const summary = `
-    ${renderMobileIdentity(row, view)}
-
-    ${renderMobileSummaryValue(row, view, config)}
-  `;
-
-  const rowId = identity.code || identity.name || context.index;
-
-  /*
-   * When no remaining detail fields exist, render a compact card without
-   * an unnecessary expand/collapse control.
-   */
-
-  return renderStandardDataCard({
-    idPrefix: `trading-${view}-details`,
-
-    rowId: `${rowId}-${context.index}`,
-
-    summary,
-
-    fields,
-
-    expandable: fields.length > 0,
-
-    moreLabel: config.labels?.mobile?.showDetails || "Show details",
-
-    lessLabel: config.labels?.mobile?.hideDetails || "Hide details",
-  });
-}
-
-/* ==========================================================================
-   Minimum Size Mobile Card
-   ========================================================================== */
-
-function renderMinimumSizeCard(row, context, config) {
-  const fields = getMobileColumns(TRADING_VIEWS.minimumSize, config).map(
-    (column) => ({
-      label: column.label || column.key,
-
-      value: renderTradingCell({
-        row,
-        column,
-        config,
-      }),
-    }),
-  );
-
-  return renderStandardDataCard({
-    idPrefix: "trading-minimum-size",
-
-    rowId: context.index,
-
-    summary: "",
-
-    fields,
-
-    expandable: false,
-  });
-}
-
-/* ==========================================================================
-   Negotiated Regular Mobile Card
-   ========================================================================== */
-
-function renderNegotiatedCard(row, index, config) {
-  const fields = getMobileColumns(TRADING_VIEWS.negotiatedDeals, config).map(
-    (column) => ({
-      label: column.label || column.key,
-
-      value: renderTradingCell({
-        row,
-        column,
-        config,
-      }),
-
-      numeric: Boolean(column.numeric),
-    }),
-  );
-
-  const identity = getTradingIdentity(row, TRADING_VIEWS.negotiatedDeals);
-
-  const summary = `
-    ${renderMobileIdentity(row, TRADING_VIEWS.negotiatedDeals)}
-
-    ${renderMobileSummaryValue(row, TRADING_VIEWS.negotiatedDeals, config)}
-  `;
-
-  return renderStandardDataCard({
-    idPrefix: "trading-negotiated-details",
-
-    rowId: `${identity.code || index}-${index}`,
-
-    summary,
-
-    fields,
-
-    expandable: fields.length > 0,
-
-    moreLabel: config.labels?.mobile?.showDetails || "Show details",
-
-    lessLabel: config.labels?.mobile?.hideDetails || "Hide details",
-  });
-}
-/* ==========================================================================
-   Negotiated Groups
-   ========================================================================== */
-
-function groupNegotiatedRows(rows) {
-  const groups = new Map();
-
-  let currentGroup = null;
-
-  rows.forEach((row) => {
-    const date = getNegotiatedDateGroup(row);
-
+    return rows;
+  } catch (error) {
     /*
-     * Daily totals may not repeat the trading date.
-     *
-     * If a total row has no date, attach it to the most recently
-     * created date group.
+     * A newer request may intentionally abort the previous one.
      */
-    if (isTotalRow(row)) {
-      if (date && groups.has(date)) {
-        groups.get(date).total = row;
-
-        return;
-      }
-
-      if (currentGroup) {
-        currentGroup.total = row;
-      }
-
-      return;
+    if (error?.name === "AbortError") {
+      return [];
     }
 
-    const groupKey = date || "";
+    reportError(`could not load ${view}`, error);
 
-    if (!groups.has(groupKey)) {
-      groups.set(groupKey, {
-        date: groupKey,
+    storeRows(view, []);
 
-        rows: [],
+    renderView(view);
 
-        total: null,
-      });
-    }
+    return [];
+  } finally {
+    setLoading(view, false);
 
-    currentGroup = groups.get(groupKey);
+    state.requests.delete(view);
+  }
+}
 
-    currentGroup.rows.push(row);
+/* ==========================================================================
+   Force Reload
+   ========================================================================== */
+
+function reloadView(view) {
+  state.loaded.delete(view);
+
+  return loadView(view, {
+    force: true,
   });
-
-  return Array.from(groups.values());
 }
 
 /* ==========================================================================
-   Negotiated Group ID
+   Load Current Tab
    ========================================================================== */
 
-function createNegotiatedGroupId(date, index) {
-  const safe = String(date || `group-${index}`)
-    .trim()
-    .replace(/[^a-z0-9_-]/gi, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-+|-+$/g, "");
+function loadCurrentTab(options = {}) {
+  const view = getCurrentViewForTab(state.activeTab);
 
-  return `negotiated-mobile-date-${safe || index}`;
+  if (!view) {
+    return Promise.resolve([]);
+  }
+
+  return loadView(view, options);
 }
 
 /* ==========================================================================
-   Negotiated Mobile Renderer
+   Variant Visibility
    ========================================================================== */
 
-function renderNegotiatedCards(container, rows, config) {
-  if (!container) {
+function setVariantVisibility(panelName, visibleVariant) {
+  const panel = query(`[data-trading-panel="${panelName}"]`);
+
+  if (!panel) {
     return;
   }
 
-  const groups = groupNegotiatedRows(rows);
+  queryAll("[data-trading-variant]", panel).forEach((element) => {
+    element.hidden = element.dataset.tradingVariant !== visibleVariant;
+  });
+}
 
-  if (groups.length === 0) {
-    container.innerHTML = "";
+/* ==========================================================================
+   Negotiated Variant Visibility
+   ========================================================================== */
 
-    return;
-  }
+function syncNegotiatedVariant() {
+  const type = getSelectValue(SELECTORS.negotiatedType, "Negotiated-Deals");
 
-  let cardIndex = 0;
+  state.negotiatedType = type;
 
-  container.innerHTML = groups
-    .map((group, groupIndex) => {
-      const titleId = createNegotiatedGroupId(group.date, groupIndex);
-
-      const cards = group.rows
-        .map((row) => {
-          const markup = renderNegotiatedCard(row, cardIndex, config);
-
-          cardIndex += 1;
-
-          return markup;
-        })
-        .join("");
-
-      const total = group.total
-        ? renderNegotiatedDailyTotalCard(group.total, config)
-        : "";
-
-      return `
-            <section
-              class="data-card-group"
-              aria-labelledby="${escapeHtml(titleId)}"
-            >
-              <h3
-                class="data-card-group__title"
-                id="${escapeHtml(titleId)}"
-              >
-                ${escapeHtml(group.date)}
-              </h3>
-
-              <div
-                class="data-card-group__items"
-              >
-                ${cards}
-
-                ${total}
-              </div>
-            </section>
-          `.trim();
-    })
-    .join("");
+  setVariantVisibility(
+    "negotiatedDeals",
+    type === "Minimum-Size" ? "Minimum-Size" : "Negotiated-Deals",
+  );
 
   /*
-   * Enhance only after all grouped card markup exists in the DOM.
+   * Tables must be adjusted only after their variant becomes visible.
    */
-  enhanceDataViewCards(container);
+  requestAnimationFrame(() => {
+    adjustVisibleTables();
+  });
+
+  return getCurrentNegotiatedView();
 }
 
 /* ==========================================================================
-   Negotiated Cards Adapter
+   Company Status Variant Visibility
+   ========================================================================== */
+
+function syncCompanyStatusVariant() {
+  const type = getSelectValue(SELECTORS.companyStatusType, "Suspension");
+
+  state.companyStatusType = type;
+
+  const suspended =
+    getSuspendedDelistedView(type) === TRADING_VIEWS.suspendedCompanies;
+
+  setVariantVisibility(
+    "deListedCompanies",
+    suspended ? "Suspension" : "Delisting",
+  );
+
+  requestAnimationFrame(() => {
+    adjustVisibleTables();
+  });
+
+  return getCurrentCompanyStatusView();
+}
+
+/* ==========================================================================
+   Minimum Size Search
+   ========================================================================== */
+
+function applyMinimumSizeSearch() {
+  const input = query(SELECTORS.negotiatedSearch);
+
+  state.minimumSizeSearch = input?.value || "";
+
+  renderMinimumSize();
+}
+
+/* ==========================================================================
+   Sector -> Company Dependency
+   ========================================================================== */
+
+function getSectorCompanyConfig() {
+  return config.dependencies?.sectorCompany || {};
+}
+
+/* ==========================================================================
+   Company Default Value
+   ========================================================================== */
+
+function getCompanyDefaultValue() {
+  return (
+    config.filters?.negotiatedDeals?.companyClearValue ||
+    getSectorCompanyConfig().defaultValue ||
+    "All"
+  );
+}
+
+/* ==========================================================================
+   Native Control Synchronization
    ========================================================================== */
 
 /*
- * Negotiated mobile presentation is intentionally more specialized than
- * the generic createDataCards() collection because it requires:
+ * Trading updates native form controls programmatically during:
  *
- * - date grouping
- * - a heading per date
- * - standard Data Cards inside each group
- * - a compact Daily Total card at the end of each group
+ * - Reset
+ * - Company clear
+ * - Sector -> Company reload
+ *
+ * The design-system components enhance those native controls, so after
+ * changing a value/options collection we dispatch native events plus the
+ * existing component refresh hook.
+ *
+ * `state.suppressEvents` prevents those synchronization events from causing
+ * duplicate API requests.
  */
 
-function createNegotiatedCardsAdapter({ root, config }) {
-  const container = root.querySelector(
-    getTradingCardsSelector(TRADING_VIEWS.negotiatedDeals),
-  );
+state.suppressEvents = false;
 
-  let rows = [];
-
-  function render() {
-    renderNegotiatedCards(container, rows, config);
+function dispatchNativeControlUpdate(element, options = {}) {
+  if (!element) {
+    return;
   }
 
-  function clear() {
-    rows = [];
+  const {
+    input = false,
 
-    if (container) {
-      container.innerHTML = "";
-    }
+    change = true,
+
+    optionsUpdated = false,
+  } = options;
+
+  if (input) {
+    element.dispatchEvent(
+      new Event("input", {
+        bubbles: true,
+      }),
+    );
   }
 
-  return Object.freeze({
-    setRows(nextRows) {
-      rows = Array.isArray(nextRows) ? nextRows : [];
+  if (change) {
+    element.dispatchEvent(
+      new Event("change", {
+        bubbles: true,
+      }),
+    );
+  }
 
-      render();
-    },
-
-    renderRows(nextRows) {
-      rows = Array.isArray(nextRows) ? nextRows : [];
-
-      render();
-    },
-
-    render(nextRows) {
-      if (Array.isArray(nextRows)) {
-        rows = nextRows;
-      }
-
-      render();
-    },
-
-    clear,
-
-    setLoading() {
-      /*
-       * Primary loading state is owned by the reusable data-view controller.
-       *
-       * Do not inject temporary grouped markup here.
-       */
-    },
-
-    setEmpty() {
-      clear();
-    },
-
-    setError() {
-      clear();
-    },
-
-    destroy() {
-      clear();
-    },
-  });
+  if (optionsUpdated) {
+    element.dispatchEvent(
+      new CustomEvent("custom-select:options-updated", {
+        bubbles: true,
+      }),
+    );
+  }
 }
 
 /* ==========================================================================
-   Trading View
+   Safe Programmatic Update
    ========================================================================== */
 
-function createTradingView({ root, view, config, getFilters }) {
-  const viewRoot = getTradingViewRoot(root, view);
+function withSuppressedEvents(callback) {
+  state.suppressEvents = true;
 
-  if (!viewRoot) {
-    return null;
-  }
-
-  const endpoint = getEndpoint(view, config);
-
-  if (!endpoint) {
-    console.warn(`Trading endpoint missing for view: ${view}`);
-
-    return null;
-  }
-
-  /* ========================================================================
-     State
-     ======================================================================== */
-
-  const state = createDataState({
-    loading: false,
-
-    sourceRows: [],
-
-    visibleRows: [],
-
-    meta: {},
-
-    error: null,
-  });
-
-  /* ========================================================================
-     Source
-     ======================================================================== */
-
-  const source = createDataSource({
-    endpoint,
-
-    buildRequestData() {
-      return buildRequestData(view, config, getFilters());
-    },
-
-    normalizeResponse,
-  });
-
-  /* ========================================================================
-     Table
-     ======================================================================== */
-
-  const table = createDataTable({
-    root: viewRoot,
-
-    table: getTradingTableSelector(view),
-
-    initialView: view,
-
-    getColumns() {
-      return getColumns(view, config);
-    },
-
-    renderCell(args) {
-      return renderTradingCell({
-        ...args,
-
-        config,
-      });
-    },
-
-    tableOptions: getTableConfig(view, config),
-
-    createdRow(rowElement, row) {
-      if (view === TRADING_VIEWS.negotiatedDeals) {
-        decorateNegotiatedRow(rowElement, row, config);
-      }
-    },
-  });
-
-  /* ========================================================================
-     Cards
-     ======================================================================== */
-
-  let cards;
-
-  if (view === TRADING_VIEWS.negotiatedDeals) {
-    cards = createNegotiatedCardsAdapter({
-      root: viewRoot,
-
-      config,
-    });
-  } else {
-    cards = createDataCards({
-      root: viewRoot,
-
-      container: getTradingCardsSelector(view),
-
-      initialView: view,
-
-      renderCard(row, context) {
-        if (view === TRADING_VIEWS.minimumSize) {
-          return renderMinimumSizeCard(row, context, config);
-        }
-
-        return renderStandardTradingCard(row, context, view, config);
-      },
-
-      emptyMessage: config.labels?.noData || "No data available",
-
-      errorMessage: config.labels?.loadError || "Unable to load trading data.",
-    });
-  }
-
-  /* ========================================================================
-     Results
-     ======================================================================== */
-
-  const resultCount = viewRoot.querySelector(getTradingResultSelector(view));
-
-  const results = resultCount
-    ? createDataResults({
-        root: viewRoot,
-
-        count: resultCount,
-
-        labels: {
-          results: config.labels?.results || "Results",
-
-          empty: config.labels?.noData || "No data available",
-
-          error: config.labels?.loadError || "Unable to load trading data.",
-        },
-      })
-    : null;
-
-  /* ========================================================================
-     Controller
-     ======================================================================== */
-
-  const controller = createDataViewController({
-    source,
-    state,
-    table,
-    cards,
-    results,
-
-    getView() {
-      return view;
-    },
-
-    getEmptyMessage() {
-      return config.labels?.noData || "No data available";
-    },
-
-    getErrorMessage(error) {
-      return (
-        error?.response?.message ||
-        config.labels?.loadError ||
-        "Unable to load trading data."
-      );
-    },
-
+  try {
+    callback();
+  } finally {
     /*
-     * Trading loads only the currently active view.
+     * Native change/input events are synchronous, but the enhanced component
+     * may update its visible label in a microtask.
      */
-    autoLoad: false,
-  });
-
-  controller.init();
-
-  return Object.freeze({
-    view,
-
-    reload() {
-      return controller.reload();
-    },
-
-    destroy() {
-      controller.destroy();
-    },
-
-    getRows() {
-      return controller.getSourceRows();
-    },
-
-    getVisibleRows() {
-      return controller.getVisibleRows();
-    },
-
-    getTable() {
-      return table.getApi();
-    },
-  });
-}
-
-/* ==========================================================================
-   Negotiated Variant
-   ========================================================================== */
-
-function syncNegotiatedVariant(root) {
-  const filters = getNegotiatedFilters(root);
-
-  const selectedView = getNegotiatedView(filters.type);
-
-  const showMinimumSize = selectedView === TRADING_VIEWS.minimumSize;
-
-  root
-    .querySelectorAll(
-      '[data-trading-panel="negotiatedDeals"] [data-trading-variant]',
-    )
-    .forEach((element) => {
-      const variant = element.dataset.tradingVariant;
-
-      const visible = showMinimumSize
-        ? variant === "Minimum-Size"
-        : variant === "Negotiated-Deals";
-
-      element.hidden = !visible;
+    queueMicrotask(() => {
+      state.suppressEvents = false;
     });
-
-  return selectedView;
-}
-
-/* ==========================================================================
-   Company Status Variant
-   ========================================================================== */
-
-function syncCompanyStatusVariant(root) {
-  const filters = getCompanyStatusFilters(root);
-
-  const selectedView = getSuspendedDelistedView(filters.type);
-
-  const suspension = selectedView === TRADING_VIEWS.suspendedCompanies;
-
-  root
-    .querySelectorAll(
-      '[data-trading-panel="deListedCompanies"] [data-trading-variant]',
-    )
-    .forEach((element) => {
-      const variant = element.dataset.tradingVariant;
-
-      const visible = suspension
-        ? variant === "Suspension"
-        : variant === "Delisting";
-
-      element.hidden = !visible;
-    });
-
-  return selectedView;
-}
-
-/* ==========================================================================
-   Active View Resolution
-   ========================================================================== */
-
-function resolveActiveView(root, activeTab) {
-  switch (activeTab) {
-    case TRADING_TABS.negotiatedDeals:
-      return syncNegotiatedVariant(root);
-
-    case TRADING_TABS.accumulated:
-      return TRADING_VIEWS.accumulatedLosses;
-
-    case TRADING_TABS.listedTradable:
-      return TRADING_VIEWS.listedTradableRights;
-
-    case TRADING_TABS.deListedCompanies:
-      return syncCompanyStatusVariant(root);
-
-    case TRADING_TABS.otcTrading:
-      return TRADING_VIEWS.otcTrading;
-
-    default:
-      return null;
   }
 }
 
 /* ==========================================================================
-   Company Select Helpers
+   Set Select Value
+   ========================================================================== */
+
+function setSelectValue(element, value, options = {}) {
+  if (!element) {
+    return;
+  }
+
+  const normalized = value == null ? "" : String(value);
+
+  element.value = normalized;
+
+  dispatchNativeControlUpdate(element, {
+    change: options.change !== false,
+
+    optionsUpdated: Boolean(options.optionsUpdated),
+  });
+}
+
+/* ==========================================================================
+   Set Date Value
+   ========================================================================== */
+
+function setDateValue(element, value) {
+  if (!element) {
+    return;
+  }
+
+  element.value = value || "";
+
+  dispatchNativeControlUpdate(element, {
+    input: true,
+
+    change: true,
+  });
+}
+
+/* ==========================================================================
+   Company Default Option
    ========================================================================== */
 
 function getCompanyDefaultLabel(company) {
-  return (
-    company?.dataset?.defaultLabel ||
-    company?.querySelector('option[value="All"]')?.textContent ||
-    company?.options?.[0]?.textContent ||
-    "All"
-  ).trim();
+  if (!company) {
+    return config.labels?.controls?.all || "All";
+  }
+
+  const defaultValue = getCompanyDefaultValue();
+
+  const existing = [...company.options].find(
+    (option) => option.value === defaultValue,
+  );
+
+  if (existing?.textContent) {
+    return existing.textContent.trim();
+  }
+
+  return config.labels?.controls?.all || "All";
 }
 
-function resetCompanyOptions(company, config) {
+/* ==========================================================================
+   Reset Company Options
+   ========================================================================== */
+
+function resetCompanyOptions(options = {}) {
+  const company = query(SELECTORS.negotiatedCompany);
+
   if (!company) {
     return;
   }
 
-  const defaultValue =
-    config.dependencies?.sectorCompany?.defaultValue || "All";
+  const defaultValue = getCompanyDefaultValue();
 
-  const label = getCompanyDefaultLabel(company);
+  const defaultLabel = getCompanyDefaultLabel(company);
 
-  company.innerHTML = "";
+  company.replaceChildren();
 
   const option = document.createElement("option");
 
   option.value = defaultValue;
 
-  option.textContent = label;
+  option.textContent = defaultLabel;
+
+  option.selected = true;
 
   company.appendChild(option);
 
   company.value = defaultValue;
+
+  dispatchNativeControlUpdate(company, {
+    change: options.change !== false,
+
+    optionsUpdated: true,
+  });
 }
 
 /* ==========================================================================
-   Sector -> Company
+   Company Response Normalization
    ========================================================================== */
 
-async function loadCompaniesBySector(root, config) {
-  const sector = getElement(root, SELECTORS.negotiatedSector);
+function normalizeCompanies(payload) {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
 
-  const company = getElement(root, SELECTORS.negotiatedCompany);
+  if (Array.isArray(payload?.data)) {
+    return payload.data;
+  }
 
-  const dependency = config.dependencies?.sectorCompany;
+  if (Array.isArray(payload?.rows)) {
+    return payload.rows;
+  }
 
-  if (!sector || !company || !dependency?.endpoint) {
+  if (Array.isArray(payload?.results)) {
+    return payload.results;
+  }
+
+  return [];
+}
+
+/* ==========================================================================
+   Load Companies for Sector
+   ========================================================================== */
+
+async function loadCompaniesForSector(options = {}) {
+  const sector = query(SELECTORS.negotiatedSector);
+
+  const company = query(SELECTORS.negotiatedCompany);
+
+  const dependency = getSectorCompanyConfig();
+
+  if (!sector || !company) {
     return;
   }
 
-  const sectorValue = sector.value || "All";
+  const sectorValue =
+    sector.value || config.filters?.negotiatedDeals?.defaults?.sector || "All";
 
-  const defaultValue = dependency.defaultValue || "All";
+  const defaultValue = getCompanyDefaultValue();
 
-  /* ========================================================================
+  /* ------------------------------------------------------------------------
      All Sectors
-     ======================================================================== */
+     ------------------------------------------------------------------------ */
 
-  if (sectorValue === "All") {
-    resetCompanyOptions(company, config);
+  if (sectorValue === "All" || !dependency.endpoint) {
+    withSuppressedEvents(() => {
+      resetCompanyOptions({
+        change: true,
+      });
+    });
 
     return;
   }
 
-  /* ========================================================================
-     Request
-     ======================================================================== */
+  /* ------------------------------------------------------------------------
+     Loading
+     ------------------------------------------------------------------------ */
 
   company.disabled = true;
 
   try {
-    const params = new URLSearchParams();
+    const requestKey = "sector-companies";
 
-    params.set("format", dependency.request?.format || "json");
+    const parameters = {};
 
-    params.set(dependency.request?.sectorParameter || "sector", sectorValue);
+    const sectorParameter = dependency.request?.sectorParameter || "sector";
 
-    const separator = dependency.endpoint.includes("?") ? "&" : "?";
+    parameters[sectorParameter] = sectorValue;
 
-    const response = await fetch(
-      `${dependency.endpoint}${separator}${params.toString()}`,
-      {
-        method: "GET",
-
-        credentials: "same-origin",
-
-        headers: {
-          Accept: "application/json",
-        },
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(`Company request failed with status ${response.status}.`);
+    if (dependency.request?.format) {
+      parameters.format = dependency.request.format;
     }
 
-    const payload = await response.json();
+    const payload = await fetchJson(
+      requestKey,
+      dependency.endpoint,
+      parameters,
+    );
 
-    const companies = Array.isArray(payload)
-      ? payload
-      : Array.isArray(payload?.data)
-        ? payload.data
-        : [];
+    const companies = normalizeCompanies(payload);
+
+    const valueKey = dependency.response?.value || "symbol";
+
+    const labelKey = dependency.response?.label || "longName";
 
     const defaultLabel = getCompanyDefaultLabel(company);
 
-    company.innerHTML = "";
+    company.replaceChildren();
+
+    /* ----------------------------------------------------------------------
+       All Companies
+       ---------------------------------------------------------------------- */
 
     const defaultOption = document.createElement("option");
 
@@ -1245,9 +1946,9 @@ async function loadCompaniesBySector(root, config) {
 
     company.appendChild(defaultOption);
 
-    const valueKey = dependency.response?.value || "symbol";
-
-    const labelKey = dependency.response?.label || "longName";
+    /* ----------------------------------------------------------------------
+       Companies
+       ---------------------------------------------------------------------- */
 
     companies.forEach((item) => {
       if (!item || typeof item !== "object") {
@@ -1256,565 +1957,947 @@ async function loadCompaniesBySector(root, config) {
 
       const value = item[valueKey];
 
-      const label = item[labelKey];
-
-      if (value === undefined || value === null) {
+      if (
+        value === undefined ||
+        value === null ||
+        String(value).trim() === ""
+      ) {
         return;
       }
+
+      const label = item[labelKey] ?? value;
 
       const option = document.createElement("option");
 
       option.value = String(value);
 
-      option.textContent = String(label ?? value);
+      option.textContent = String(label);
 
       company.appendChild(option);
     });
 
     company.value = defaultValue;
-  } catch (error) {
-    console.error("Trading Sector -> Company:", error);
 
-    resetCompanyOptions(company, config);
+    withSuppressedEvents(() => {
+      dispatchNativeControlUpdate(company, {
+        change: true,
+
+        optionsUpdated: true,
+      });
+    });
+  } catch (error) {
+    if (error?.name !== "AbortError") {
+      reportError("could not load companies by sector", error);
+    }
+
+    withSuppressedEvents(() => {
+      resetCompanyOptions({
+        change: true,
+      });
+    });
   } finally {
     company.disabled = false;
-  }
-}
-/* ==========================================================================
-   Reset Negotiated Filters
-   ========================================================================== */
 
-function resetNegotiatedFilters(root, config) {
-  const type = getElement(root, SELECTORS.negotiatedType);
-
-  const sector = getElement(root, SELECTORS.negotiatedSector);
-
-  const company = getElement(root, SELECTORS.negotiatedCompany);
-
-  const fromDate = getElement(root, SELECTORS.negotiatedFromDate);
-
-  const toDate = getElement(root, SELECTORS.negotiatedToDate);
-
-  const range = getDefaultTradingDateRange();
-
-  if (type) {
-    type.value = "Negotiated-Deals";
+    state.requests.delete("sector-companies");
   }
 
-  if (sector) {
-    sector.value = "All";
-  }
-
-  if (fromDate) {
-    fromDate.value = range.fromDate;
-  }
-
-  if (toDate) {
-    toDate.value = range.toDate;
-  }
-
-  resetCompanyOptions(company, config);
-}
-
-/* ==========================================================================
-   Reset Accumulated Filters
-   ========================================================================== */
-
-function resetAccumulatedFilters(root) {
-  const report = getElement(root, SELECTORS.accumulatedReport);
-
-  if (report) {
-    report.value = "All";
+  if (
+    options.reload !== false &&
+    state.activeTab === TRADING_TABS.negotiatedDeals &&
+    getCurrentNegotiatedView() === TRADING_VIEWS.negotiatedDeals
+  ) {
+    await reloadView(TRADING_VIEWS.negotiatedDeals);
   }
 }
 
 /* ==========================================================================
-   Reset Company Status Filters
-   ========================================================================== */
-
-function resetCompanyStatusFilters(root) {
-  const type = getElement(root, SELECTORS.companyStatusType);
-
-  const fromDate = getElement(root, SELECTORS.companyStatusFromDate);
-
-  const toDate = getElement(root, SELECTORS.companyStatusToDate);
-
-  const range = getDefaultTradingDateRange();
-
-  if (type) {
-    type.value = "Suspension";
-  }
-
-  if (fromDate) {
-    fromDate.value = range.fromDate;
-  }
-
-  if (toDate) {
-    toDate.value = range.toDate;
-  }
-}
-
-/* ==========================================================================
-   Custom Select Refresh
+   Company Clear -> All
    ========================================================================== */
 
 /*
- * The page updates the native Company <select> after a Sector change.
+ * The enhanced Company select is clearable.
  *
- * The design system remains responsible for its own enhanced Custom Select
- * presentation. This event gives the compiled component a clean refresh hook
- * without importing design-system implementation files into the page module.
+ * Empty is NOT a valid Trading business state.
+ *
+ * If the design-system clear action empties the native select, normalize it
+ * immediately back to `All`.
  */
 
-function notifySelectUpdated(select) {
-  if (!select) {
-    return;
+function normalizeCompanyClear() {
+  const company = query(SELECTORS.negotiatedCompany);
+
+  if (!company) {
+    return false;
   }
 
-  select.dispatchEvent(
-    new CustomEvent("custom-select:options-updated", {
-      bubbles: true,
-    }),
-  );
+  if (hasValue(company.value)) {
+    return false;
+  }
+
+  withSuppressedEvents(() => {
+    setSelectValue(company, getCompanyDefaultValue(), {
+      change: true,
+    });
+  });
+
+  return true;
 }
 
 /* ==========================================================================
-   Public Initialization
+   Default Date Range
    ========================================================================== */
 
-export function initTrading(root = document) {
-  const existing = instances.get(root);
+function getConfiguredDefaultDateRange() {
+  /*
+   * Current TradingConfig uses lastMonthToToday.
+   *
+   * Keep this helper isolated so another date policy can be added later
+   * without changing Reset/event code.
+   */
+  return getDefaultTradingDateRange();
+}
 
-  if (existing) {
-    return existing;
+/* ==========================================================================
+   Initial Negotiated Values
+   ========================================================================== */
+
+function applyInitialNegotiatedValues() {
+  const initial = config.initialState?.negotiatedDeals || {};
+
+  const defaults = config.filters?.negotiatedDeals?.defaults || {};
+
+  const range = getConfiguredDefaultDateRange();
+
+  const type = query(SELECTORS.negotiatedType);
+
+  const sector = query(SELECTORS.negotiatedSector);
+
+  const company = query(SELECTORS.negotiatedCompany);
+
+  const from = query(SELECTORS.negotiatedFrom);
+
+  const to = query(SELECTORS.negotiatedTo);
+
+  withSuppressedEvents(() => {
+    if (type) {
+      setSelectValue(type, initial.type || defaults.type || "Negotiated-Deals");
+    }
+
+    if (sector) {
+      setSelectValue(sector, initial.sector || defaults.sector || "All");
+    }
+
+    if (company) {
+      const requested =
+        initial.company || defaults.company || getCompanyDefaultValue();
+
+      /*
+       * Only select the requested Company if it exists in current markup.
+       */
+      const exists = [...company.options].some(
+        (option) => option.value === requested,
+      );
+
+      setSelectValue(company, exists ? requested : getCompanyDefaultValue());
+    }
+
+    if (from) {
+      setDateValue(from, initial.fromDate || range.fromDate);
+    }
+
+    if (to) {
+      setDateValue(to, initial.toDate || range.toDate);
+    }
+  });
+}
+
+/* ==========================================================================
+   Initial Accumulated Values
+   ========================================================================== */
+
+function applyInitialAccumulatedValues() {
+  const report = query(SELECTORS.accumulatedReport);
+
+  if (!report) {
+    return;
   }
 
-  const config = getConfig();
+  const value =
+    config.initialState?.accumulated?.report ||
+    config.filters?.accumulated?.defaults?.report ||
+    "All";
 
-  const tabs = getElement(root, SELECTORS.tabs);
+  withSuppressedEvents(() => {
+    setSelectValue(report, value);
+  });
+}
 
-  if (!tabs) {
-    return null;
-  }
+/* ==========================================================================
+   Initial Company Status Values
+   ========================================================================== */
 
-  /* ========================================================================
-     Default Date State
-     ======================================================================== */
+function applyInitialCompanyStatusValues() {
+  const initial = config.initialState?.deListedCompanies || {};
 
-  applyDefaultDateRange(
-    root,
-    SELECTORS.negotiatedFromDate,
-    SELECTORS.negotiatedToDate,
-  );
+  const defaults = config.filters?.deListedCompanies?.defaults || {};
 
-  applyDefaultDateRange(
-    root,
-    SELECTORS.companyStatusFromDate,
-    SELECTORS.companyStatusToDate,
-  );
+  const range = getConfiguredDefaultDateRange();
 
-  /* ========================================================================
-     Active Tab
-     ======================================================================== */
+  const type = query(SELECTORS.companyStatusType);
 
-  let activeTab =
-    config.initialState?.activeTab || TRADING_TABS.negotiatedDeals;
+  const from = query(SELECTORS.companyStatusFrom);
 
-  if (!isTradingTab(activeTab)) {
-    activeTab = TRADING_TABS.negotiatedDeals;
-  }
+  const to = query(SELECTORS.companyStatusTo);
 
-  /* ========================================================================
-     View Registry
-     ======================================================================== */
+  withSuppressedEvents(() => {
+    if (type) {
+      setSelectValue(type, initial.type || defaults.type || "Suspension");
+    }
 
-  const views = new Map();
+    if (from) {
+      setDateValue(from, initial.fromDate || range.fromDate);
+    }
 
-  function registerView(view, getFilters) {
-    const instance = createTradingView({
-      root,
-      view,
-      config,
-      getFilters,
+    if (to) {
+      setDateValue(to, initial.toDate || range.toDate);
+    }
+  });
+}
+
+/* ==========================================================================
+   Reset Negotiated
+   ========================================================================== */
+
+async function resetNegotiated() {
+  const defaults = config.filters?.negotiatedDeals?.defaults || {};
+
+  const range = getConfiguredDefaultDateRange();
+
+  const type = query(SELECTORS.negotiatedType);
+
+  const sector = query(SELECTORS.negotiatedSector);
+
+  const company = query(SELECTORS.negotiatedCompany);
+
+  const from = query(SELECTORS.negotiatedFrom);
+
+  const to = query(SELECTORS.negotiatedTo);
+
+  withSuppressedEvents(() => {
+    setSelectValue(type, defaults.type || "Negotiated-Deals");
+
+    setSelectValue(sector, defaults.sector || "All");
+
+    resetCompanyOptions({
+      change: true,
     });
 
-    if (instance) {
-      views.set(view, instance);
-    }
+    setDateValue(from, range.fromDate);
+
+    setDateValue(to, range.toDate);
+  });
+
+  state.minimumSizeSearch = "";
+
+  const search = query(SELECTORS.negotiatedSearch);
+
+  if (search) {
+    search.value = "";
   }
 
-  registerView(TRADING_VIEWS.negotiatedDeals, () => getNegotiatedFilters(root));
+  state.negotiatedType = defaults.type || "Negotiated-Deals";
 
-  registerView(TRADING_VIEWS.minimumSize, () => getNegotiatedFilters(root));
+  syncNegotiatedVariant();
 
-  registerView(TRADING_VIEWS.accumulatedLosses, () =>
-    getAccumulatedFilters(root),
-  );
+  /*
+   * Reset means return to Negotiated Deals + All Sector + All Company +
+   * default dates and reload exactly once.
+   */
+  await reloadView(TRADING_VIEWS.negotiatedDeals);
+}
 
-  registerView(TRADING_VIEWS.listedTradableRights, () => ({}));
+/* ==========================================================================
+   Reset Accumulated
+   ========================================================================== */
 
-  registerView(TRADING_VIEWS.suspendedCompanies, () =>
-    getCompanyStatusFilters(root),
-  );
+async function resetAccumulated() {
+  const report = query(SELECTORS.accumulatedReport);
 
-  registerView(TRADING_VIEWS.delistedCompanies, () =>
-    getCompanyStatusFilters(root),
-  );
+  const value = config.filters?.accumulated?.defaults?.report || "All";
 
-  registerView(TRADING_VIEWS.otcTrading, () => ({}));
+  withSuppressedEvents(() => {
+    setSelectValue(report, value);
+  });
 
-  /* ========================================================================
-     Active View
-     ======================================================================== */
+  await reloadView(TRADING_VIEWS.accumulatedLosses);
+}
 
-  function getActiveView() {
-    return resolveActiveView(root, activeTab);
+/* ==========================================================================
+   Reset Company Status
+   ========================================================================== */
+
+async function resetCompanyStatus() {
+  const defaults = config.filters?.deListedCompanies?.defaults || {};
+
+  const range = getConfiguredDefaultDateRange();
+
+  const type = query(SELECTORS.companyStatusType);
+
+  const from = query(SELECTORS.companyStatusFrom);
+
+  const to = query(SELECTORS.companyStatusTo);
+
+  withSuppressedEvents(() => {
+    setSelectValue(type, defaults.type || "Suspension");
+
+    setDateValue(from, range.fromDate);
+
+    setDateValue(to, range.toDate);
+  });
+
+  state.companyStatusType = defaults.type || "Suspension";
+
+  syncCompanyStatusVariant();
+
+  await reloadView(getCurrentCompanyStatusView());
+}
+
+/* ==========================================================================
+   Reset Dispatcher
+   ========================================================================== */
+
+async function handleReset(key) {
+  switch (key) {
+    case TRADING_TABS.negotiatedDeals:
+      await resetNegotiated();
+
+      return;
+
+    case TRADING_TABS.accumulated:
+      await resetAccumulated();
+
+      return;
+
+    case TRADING_TABS.deListedCompanies:
+      await resetCompanyStatus();
+
+      return;
+
+    default:
+      return;
+  }
+}
+
+/* ==========================================================================
+   Active Tab
+   ========================================================================== */
+
+function setActiveTab(tab, options = {}) {
+  if (!Object.values(TRADING_TABS).includes(tab)) {
+    return;
   }
 
-  /* ========================================================================
-     Reload
-     ======================================================================== */
+  state.activeTab = tab;
 
-  function reloadActiveView() {
-    const view = getActiveView();
+  /*
+   * Design-system Tabs owns:
+   *
+   * - active class
+   * - aria-selected
+   * - tabindex
+   * - panel hidden state
+   *
+   * Trading only synchronizes its data lifecycle.
+   */
+
+  if (options.load === false) {
+    return;
+  }
+
+  queueMicrotask(async () => {
+    const view = getCurrentViewForTab(state.activeTab);
 
     if (!view) {
-      return Promise.resolve();
-    }
-
-    const instance = views.get(view);
-
-    if (!instance) {
-      return Promise.resolve();
-    }
-
-    return instance.reload();
-  }
-
-  /* ========================================================================
-     Tab State
-     ======================================================================== */
-
-  function setActiveTab(tab, options = {}) {
-    if (!isTradingTab(tab)) {
       return;
     }
 
-    activeTab = tab;
+    await loadView(view);
 
     /*
-     * Visual tab state is owned entirely by the design-system Tabs component.
-     *
-     * Do not manually mutate:
-     *
-     * - .active
-     * - aria-selected
-     * - tabindex
-     * - panel hidden state
-     *
-     * Trading only synchronizes the data layer with the selected tab.
+     * Panel is now visible, so widths are safe to calculate.
      */
+    requestAnimationFrame(() => {
+      adjustVisibleTables();
 
-    resolveActiveView(root, activeTab);
+      refreshDataViews?.(getViewElement(view) || document);
+    });
+  });
+}
 
-    if (options.reload !== false) {
-      reloadActiveView();
-    }
-  }
+/* ==========================================================================
+   Tab Events
+   ========================================================================== */
 
-  /* ========================================================================
-     Event Lifecycle
-     ======================================================================== */
-
-  const abortController = new AbortController();
-
-  const eventOptions = {
-    signal: abortController.signal,
-  };
-
-  /* ------------------------------------------------------------------------
-     Tabs
-     ------------------------------------------------------------------------ */
-
-  tabs.addEventListener(
+function bindTabs(signal) {
+  root.addEventListener(
     "click",
     (event) => {
-      if (!(event.target instanceof Element)) {
+      const target = event.target instanceof Element ? event.target : null;
+
+      if (!target) {
         return;
       }
 
-      const tab = event.target.closest(SELECTORS.tab);
+      const tab = target.closest(SELECTORS.tab);
 
       if (!tab) {
         return;
       }
 
-      const tabKey = tab.dataset.tradingTab;
+      const key = tab.dataset.tradingTab;
 
-      if (!isTradingTab(tabKey)) {
+      if (!key) {
+        return;
+      }
+
+      setActiveTab(key);
+    },
+    {
+      signal,
+    },
+  );
+}
+
+/* ==========================================================================
+   Negotiated Type
+   ========================================================================== */
+
+function bindNegotiatedType(signal) {
+  const type = query(SELECTORS.negotiatedType);
+
+  type?.addEventListener(
+    "change",
+    async () => {
+      if (state.suppressEvents) {
+        return;
+      }
+
+      const view = syncNegotiatedVariant();
+
+      if (state.activeTab !== TRADING_TABS.negotiatedDeals) {
         return;
       }
 
       /*
-       * Let the design-system Tabs component complete its visual state update
-       * before Trading loads the newly active dataset.
+       * Minimum Size and Negotiated Deals have different endpoints.
+       *
+       * Load the selected variant only after it becomes visible.
        */
-      queueMicrotask(() => {
-        setActiveTab(tabKey);
+      await loadView(view);
+
+      requestAnimationFrame(() => {
+        adjustVisibleTables();
       });
     },
-    eventOptions,
-  );
-
-  /* ------------------------------------------------------------------------
-     Negotiated Type
-     ------------------------------------------------------------------------ */
-
-  getElement(root, SELECTORS.negotiatedType)?.addEventListener(
-    "change",
-    () => {
-      syncNegotiatedVariant(root);
-
-      if (activeTab === TRADING_TABS.negotiatedDeals) {
-        reloadActiveView();
-      }
+    {
+      signal,
     },
-    eventOptions,
   );
+}
 
-  /* ------------------------------------------------------------------------
-     Negotiated Sector
-     ------------------------------------------------------------------------ */
+/* ==========================================================================
+   Negotiated Sector
+   ========================================================================== */
 
-  getElement(root, SELECTORS.negotiatedSector)?.addEventListener(
+function bindNegotiatedSector(signal) {
+  const sector = query(SELECTORS.negotiatedSector);
+
+  sector?.addEventListener(
     "change",
     async () => {
-      await loadCompaniesBySector(root, config);
-
-      const company = getElement(root, SELECTORS.negotiatedCompany);
-
-      notifySelectUpdated(company);
-
-      if (activeTab === TRADING_TABS.negotiatedDeals) {
-        reloadActiveView();
-      }
-    },
-    eventOptions,
-  );
-
-  /* ------------------------------------------------------------------------
-     Negotiated Company
-     ------------------------------------------------------------------------ */
-
-  getElement(root, SELECTORS.negotiatedCompany)?.addEventListener(
-    "change",
-    () => {
-      if (activeTab === TRADING_TABS.negotiatedDeals) {
-        reloadActiveView();
-      }
-    },
-    eventOptions,
-  );
-
-  /* ------------------------------------------------------------------------
-     Negotiated Dates
-     ------------------------------------------------------------------------ */
-
-  [SELECTORS.negotiatedFromDate, SELECTORS.negotiatedToDate].forEach(
-    (selector) => {
-      getElement(root, selector)?.addEventListener(
-        "change",
-        () => {
-          if (activeTab === TRADING_TABS.negotiatedDeals) {
-            reloadActiveView();
-          }
-        },
-        eventOptions,
-      );
-    },
-  );
-
-  /* ------------------------------------------------------------------------
-     Accumulated Losses
-     ------------------------------------------------------------------------ */
-
-  getElement(root, SELECTORS.accumulatedReport)?.addEventListener(
-    "change",
-    () => {
-      if (activeTab === TRADING_TABS.accumulated) {
-        reloadActiveView();
-      }
-    },
-    eventOptions,
-  );
-
-  /* ------------------------------------------------------------------------
-     Company Status Type
-     ------------------------------------------------------------------------ */
-
-  getElement(root, SELECTORS.companyStatusType)?.addEventListener(
-    "change",
-    () => {
-      syncCompanyStatusVariant(root);
-
-      if (activeTab === TRADING_TABS.deListedCompanies) {
-        reloadActiveView();
-      }
-    },
-    eventOptions,
-  );
-
-  /* ------------------------------------------------------------------------
-     Company Status Dates
-     ------------------------------------------------------------------------ */
-
-  [SELECTORS.companyStatusFromDate, SELECTORS.companyStatusToDate].forEach(
-    (selector) => {
-      getElement(root, selector)?.addEventListener(
-        "change",
-        () => {
-          if (activeTab === TRADING_TABS.deListedCompanies) {
-            reloadActiveView();
-          }
-        },
-        eventOptions,
-      );
-    },
-  );
-
-  /* ------------------------------------------------------------------------
-     Reset
-     ------------------------------------------------------------------------ */
-
-  root.addEventListener(
-    "click",
-    (event) => {
-      if (!(event.target instanceof Element)) {
+      if (state.suppressEvents) {
         return;
       }
 
-      const button = event.target.closest(SELECTORS.reset);
+      /*
+       * Changing Sector always resets Company to All and rebuilds its options.
+       *
+       * loadCompaniesForSector() performs the final Negotiated reload once.
+       */
+      await loadCompaniesForSector({
+        reload: true,
+      });
+    },
+    {
+      signal,
+    },
+  );
+}
+
+/* ==========================================================================
+   Negotiated Company
+   ========================================================================== */
+
+function bindNegotiatedCompany(signal) {
+  const company = query(SELECTORS.negotiatedCompany);
+
+  company?.addEventListener(
+    "change",
+    async () => {
+      if (state.suppressEvents) {
+        return;
+      }
+
+      /*
+       * Clearable select may temporarily produce an empty native value.
+       */
+      normalizeCompanyClear();
+
+      if (
+        state.activeTab !== TRADING_TABS.negotiatedDeals ||
+        getCurrentNegotiatedView() !== TRADING_VIEWS.negotiatedDeals
+      ) {
+        return;
+      }
+
+      await reloadView(TRADING_VIEWS.negotiatedDeals);
+    },
+    {
+      signal,
+    },
+  );
+}
+
+/* ==========================================================================
+   Negotiated Dates
+   ========================================================================== */
+
+function bindNegotiatedDates(signal) {
+  [query(SELECTORS.negotiatedFrom), query(SELECTORS.negotiatedTo)]
+    .filter(Boolean)
+    .forEach((input) => {
+      input.addEventListener(
+        "change",
+        async () => {
+          if (state.suppressEvents) {
+            return;
+          }
+
+          if (
+            state.activeTab !== TRADING_TABS.negotiatedDeals ||
+            getCurrentNegotiatedView() !== TRADING_VIEWS.negotiatedDeals
+          ) {
+            return;
+          }
+
+          await reloadView(TRADING_VIEWS.negotiatedDeals);
+        },
+        {
+          signal,
+        },
+      );
+    });
+}
+
+/* ==========================================================================
+   Minimum Size Search
+   ========================================================================== */
+
+function bindMinimumSizeSearch(signal) {
+  const input = query(SELECTORS.negotiatedSearch);
+
+  if (!input) {
+    return;
+  }
+
+  input.addEventListener(
+    "input",
+    () => {
+      state.minimumSizeSearch = input.value || "";
+
+      if (getCurrentNegotiatedView() !== TRADING_VIEWS.minimumSize) {
+        return;
+      }
+
+      renderMinimumSize();
+    },
+    {
+      signal,
+    },
+  );
+}
+
+/* ==========================================================================
+   Accumulated
+   ========================================================================== */
+
+function bindAccumulated(signal) {
+  const report = query(SELECTORS.accumulatedReport);
+
+  report?.addEventListener(
+    "change",
+    async () => {
+      if (state.suppressEvents) {
+        return;
+      }
+
+      if (state.activeTab !== TRADING_TABS.accumulated) {
+        return;
+      }
+
+      await reloadView(TRADING_VIEWS.accumulatedLosses);
+    },
+    {
+      signal,
+    },
+  );
+}
+
+/* ==========================================================================
+   Company Status Type
+   ========================================================================== */
+
+function bindCompanyStatusType(signal) {
+  const type = query(SELECTORS.companyStatusType);
+
+  type?.addEventListener(
+    "change",
+    async () => {
+      if (state.suppressEvents) {
+        return;
+      }
+
+      const view = syncCompanyStatusVariant();
+
+      if (state.activeTab !== TRADING_TABS.deListedCompanies) {
+        return;
+      }
+
+      /*
+       * Suspension and Delisting use the same endpoint with different
+       * formType values, so changing variants must force a new request.
+       */
+      await reloadView(view);
+
+      requestAnimationFrame(() => {
+        adjustVisibleTables();
+      });
+    },
+    {
+      signal,
+    },
+  );
+}
+
+/* ==========================================================================
+   Company Status Dates
+   ========================================================================== */
+
+function bindCompanyStatusDates(signal) {
+  [query(SELECTORS.companyStatusFrom), query(SELECTORS.companyStatusTo)]
+    .filter(Boolean)
+    .forEach((input) => {
+      input.addEventListener(
+        "change",
+        async () => {
+          if (state.suppressEvents) {
+            return;
+          }
+
+          if (state.activeTab !== TRADING_TABS.deListedCompanies) {
+            return;
+          }
+
+          await reloadView(getCurrentCompanyStatusView());
+        },
+        {
+          signal,
+        },
+      );
+    });
+}
+
+/* ==========================================================================
+   Reset Events
+   ========================================================================== */
+
+function bindReset(signal) {
+  root.addEventListener(
+    "click",
+    async (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+
+      if (!target) {
+        return;
+      }
+
+      const button = target.closest(SELECTORS.reset);
 
       if (!button) {
         return;
       }
 
+      /*
+       * We own the complete reset so enhanced controls and business defaults
+       * stay synchronized.
+       */
       event.preventDefault();
 
-      const target = button.dataset.tradingReset;
+      const key = button.dataset.tradingReset;
 
-      switch (target) {
-        case TRADING_TABS.negotiatedDeals: {
-          resetNegotiatedFilters(root, config);
-
-          const company = getElement(root, SELECTORS.negotiatedCompany);
-
-          notifySelectUpdated(company);
-
-          syncNegotiatedVariant(root);
-
-          break;
-        }
-
-        case TRADING_TABS.accumulated:
-          resetAccumulatedFilters(root);
-
-          break;
-
-        case TRADING_TABS.deListedCompanies:
-          resetCompanyStatusFilters(root);
-
-          syncCompanyStatusVariant(root);
-
-          break;
-      }
-
-      if (target === activeTab) {
-        reloadActiveView();
-      }
+      await handleReset(key);
     },
-    eventOptions,
+    {
+      signal,
+    },
   );
 
-  /* ========================================================================
-     Initial Variant State
-     ======================================================================== */
+  /*
+   * Prevent browser form reset from independently changing native values
+   * before our controlled reset logic runs.
+   */
+  [
+    query(SELECTORS.negotiatedForm),
 
-  syncNegotiatedVariant(root);
+    query(SELECTORS.accumulatedForm),
 
-  syncCompanyStatusVariant(root);
+    query(SELECTORS.companyStatusForm),
+  ]
+    .filter(Boolean)
+    .forEach((form) => {
+      form.addEventListener(
+        "reset",
+        (event) => {
+          event.preventDefault();
+        },
+        {
+          signal,
+        },
+      );
+    });
+}
 
-  /* ========================================================================
-     Initial Load
-     ======================================================================== */
+/* ==========================================================================
+   Resize
+   ========================================================================== */
 
-  reloadActiveView();
+function bindResize(signal) {
+  let frame = null;
 
-  /* ========================================================================
-     Public Instance
-     ======================================================================== */
+  window.addEventListener(
+    "resize",
+    () => {
+      if (frame) {
+        cancelAnimationFrame(frame);
+      }
 
-  const instance = Object.freeze({
-    destroy() {
-      abortController.abort();
+      frame = requestAnimationFrame(() => {
+        frame = null;
 
-      views.forEach((view) => {
-        view.destroy();
+        adjustVisibleTables();
+
+        const view = getCurrentViewForTab(state.activeTab);
+
+        if (view) {
+          initDataViewCards?.(getCardsElement(view) || document);
+        }
       });
-
-      views.clear();
-
-      instances.delete(root);
     },
-
-    reload() {
-      return reloadActiveView();
+    {
+      signal,
     },
+  );
+}
 
-    setActiveTab(tab) {
-      setActiveTab(tab);
-    },
+/* ==========================================================================
+   Bind Events
+   ========================================================================== */
 
-    getActiveTab() {
-      return activeTab;
-    },
+function bindEvents(signal) {
+  bindTabs(signal);
 
-    getActiveView() {
-      return getActiveView();
-    },
+  bindNegotiatedType(signal);
 
-    getView(view) {
-      return views.get(view) || null;
-    },
+  bindNegotiatedSector(signal);
 
-    getFilters() {
-      return {
-        negotiatedDeals: getNegotiatedFilters(root),
+  bindNegotiatedCompany(signal);
 
-        accumulated: getAccumulatedFilters(root),
+  bindNegotiatedDates(signal);
 
-        deListedCompanies: getCompanyStatusFilters(root),
-      };
-    },
+  bindMinimumSizeSearch(signal);
+
+  bindAccumulated(signal);
+
+  bindCompanyStatusType(signal);
+
+  bindCompanyStatusDates(signal);
+
+  bindReset(signal);
+
+  bindResize(signal);
+}
+
+/* ==========================================================================
+   Initial State
+   ========================================================================== */
+
+function applyInitialState() {
+  applyInitialNegotiatedValues();
+
+  applyInitialAccumulatedValues();
+
+  applyInitialCompanyStatusValues();
+
+  syncNegotiatedVariant();
+
+  syncCompanyStatusVariant();
+}
+
+/* ==========================================================================
+   Initial Panel Resolution
+   ========================================================================== */
+
+function resolveInitialTab() {
+  const configured =
+    config.initialState?.activeTab || TRADING_TABS.negotiatedDeals;
+
+  const valid = Object.values(TRADING_TABS).includes(configured);
+
+  state.activeTab = valid ? configured : TRADING_TABS.negotiatedDeals;
+}
+
+/* ==========================================================================
+   Initial Load
+   ========================================================================== */
+
+async function loadInitialView() {
+  const view = getCurrentViewForTab(state.activeTab);
+
+  if (!view) {
+    return;
+  }
+
+  await loadView(view);
+
+  requestAnimationFrame(() => {
+    adjustVisibleTables();
+
+    initDataViewCards?.(getCardsElement(view) || document);
+  });
+}
+
+/* ==========================================================================
+   Controller
+   ========================================================================== */
+
+let lifecycleController = null;
+
+/* ==========================================================================
+   Initialize
+   ========================================================================== */
+
+export async function initTrading() {
+  if (!root || state.initialized) {
+    return;
+  }
+
+  state.initialized = true;
+
+  lifecycleController = new AbortController();
+
+  resolveInitialTab();
+
+  applyInitialState();
+
+  bindEvents(lifecycleController.signal);
+
+  await loadInitialView();
+}
+
+/* ==========================================================================
+   Destroy
+   ========================================================================== */
+
+export function destroyTrading() {
+  if (!state.initialized) {
+    return;
+  }
+
+  lifecycleController?.abort();
+
+  lifecycleController = null;
+
+  state.requests.forEach((controller) => {
+    controller.abort();
   });
 
-  instances.set(root, instance);
+  state.requests.clear();
 
-  return instance;
+  state.tables.forEach((_api, view) => {
+    destroyTable(view);
+  });
+
+  state.tables.clear();
+
+  state.rows.clear();
+
+  state.loaded.clear();
+
+  state.loading.clear();
+
+  state.initialized = false;
+}
+
+/* ==========================================================================
+   Public API
+   ========================================================================== */
+
+export function reloadTrading() {
+  if (!state.initialized) {
+    return Promise.resolve([]);
+  }
+
+  const view = getCurrentViewForTab(state.activeTab);
+
+  if (!view) {
+    return Promise.resolve([]);
+  }
+
+  return reloadView(view);
+}
+
+export function getTradingState() {
+  return {
+    activeTab: state.activeTab,
+
+    activeView: getCurrentViewForTab(state.activeTab),
+
+    negotiatedType: state.negotiatedType,
+
+    companyStatusType: state.companyStatusType,
+
+    minimumSizeSearch: state.minimumSizeSearch,
+
+    loadedViews: [...state.loaded],
+
+    loadingViews: [...state.loading],
+  };
 }
 
 /* ==========================================================================
    Startup
    ========================================================================== */
 
-function start() {
-  initTrading(document);
+function startTrading() {
+  initTrading().catch((error) => {
+    reportError("initialization failed", error);
+  });
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", start, {
+  document.addEventListener("DOMContentLoaded", startTrading, {
     once: true,
   });
 } else {
-  start();
+  startTrading();
 }

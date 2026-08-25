@@ -3,32 +3,35 @@
    ========================================================================== */
 
 /*
- * Single source of truth for Trading data presentation.
+ * Single source of truth for Trading presentation contracts.
  *
  * Responsibilities:
  *
- * - Trading view identifiers
- * - Trading tab identifiers
- * - tab -> view relationships
- * - column order
- * - backend field mappings
- * - column widths
- * - renderer type metadata
- * - mobile field availability
- * - table configuration resolution
- * - negotiated-deal variant resolution
- * - suspended/delisted variant resolution
+ * - Trading tab/view identifiers
+ * - table presentation modes
+ * - stable column definitions
+ * - stable column widths
+ * - authoritative-header metadata
+ * - mobile summary/detail metadata
+ * - Minimum Size matrix metadata
+ * - variant resolution
  *
  * This module intentionally has no:
  *
  * - DOM manipulation
  * - DataTables lifecycle
  * - AJAX
+ * - event listeners
  * - filter state
- * - tab event handling
- * - business-value formatting
+ * - value formatting
  * - card markup
- * - date conversion implementation
+ *
+ * Important:
+ *
+ * Standard views may use ordinary DataTables column handling.
+ *
+ * Complex-header and matrix views MUST preserve the <thead> already rendered
+ * by the JSP. The page JavaScript must never rebuild those headers.
  */
 
 /* ==========================================================================
@@ -68,6 +71,33 @@ export const TRADING_TABS = Object.freeze({
 });
 
 /* ==========================================================================
+   Table Modes
+   ========================================================================== */
+
+/*
+ * STANDARD
+ *
+ * Normal one-row <thead>.
+ *
+ * COMPLEX
+ *
+ * Multi-row / grouped <thead> rendered by JSP and preserved exactly.
+ *
+ * MATRIX
+ *
+ * Specialized multi-row matrix structure. JSP owns the complete heading
+ * structure and Trading uses a dedicated renderer/lifecycle.
+ */
+
+export const TRADING_TABLE_MODES = Object.freeze({
+  standard: "standard",
+
+  complex: "complex",
+
+  matrix: "matrix",
+});
+
+/* ==========================================================================
    Tab -> View Mapping
    ========================================================================== */
 
@@ -90,29 +120,65 @@ const TAB_VIEW_MAP = Object.freeze({
 });
 
 /* ==========================================================================
-   Widths
+   Stable Column Widths
    ========================================================================== */
 
+/*
+ * Trading previously allowed hidden DataTables instances to independently
+ * calculate their widths.
+ *
+ * That caused:
+ *
+ * - Symbol width changing after filter reload
+ * - Company appearing detached from Symbol
+ * - grouped headings not lining up with body columns
+ *
+ * Widths now use percentage-oriented contracts where practical so each
+ * complete table remains internally stable.
+ */
+
 const WIDTHS = Object.freeze({
-  date: "8rem",
+  /* ------------------------------------------------------------------------
+     Identity
+     ------------------------------------------------------------------------ */
 
-  company: "15rem",
+  symbol: "10%",
 
-  symbol: "7rem",
+  company: "24%",
 
-  price: "7rem",
+  combinedCompany: "28%",
 
-  quantity: "8rem",
+  security: "22%",
 
-  value: "9rem",
+  /* ------------------------------------------------------------------------
+     Dates / Time
+     ------------------------------------------------------------------------ */
 
-  time: "7rem",
+  date: "12%",
 
-  security: "15rem",
+  shortDate: "11%",
 
-  reason: "12rem",
+  time: "10%",
 
-  generic: "9rem",
+  /* ------------------------------------------------------------------------
+     Numeric
+     ------------------------------------------------------------------------ */
+
+  price: "12%",
+
+  quantity: "14%",
+
+  value: "16%",
+
+  /* ------------------------------------------------------------------------
+     Supporting
+     ------------------------------------------------------------------------ */
+
+  reason: "30%",
+
+  matrixLabel: "20%",
+
+  matrixValue: "20%",
 });
 
 /* ==========================================================================
@@ -127,47 +193,66 @@ function cleanLabel(value, fallback = "") {
     .trim();
 }
 
-function column(definition = {}) {
-  return {
+function createColumn(definition = {}) {
+  return Object.freeze({
+    key: "",
+
+    label: "",
+
+    data: null,
+
+    type: "text",
+
+    width: null,
+
+    className: "",
+
+    numeric: false,
+
+    orderable: false,
+
+    searchable: false,
+
+    /*
+     * `mobile` controls whether the column belongs in expandable
+     * mobile details.
+     *
+     * Identity/summary fields are usually false because they are already
+     * rendered in the card header.
+     */
     mobile: true,
 
-    orderable: true,
-
-    searchable: true,
-
     ...definition,
-  };
+  });
 }
 
-function sizedColumn(width, definition = {}) {
-  return column({
-    width,
+function createViewSchema(definition = {}) {
+  return Object.freeze({
+    mode: TRADING_TABLE_MODES.standard,
+
+    preserveHeader: false,
+
+    columns: [],
+
+    mobile: {},
 
     ...definition,
   });
 }
 
 /* ==========================================================================
-   Negotiated Deals Labels
-   ========================================================================== */
-
-function getNegotiatedLabels(config = {}) {
-  return config.labels?.negotiatedDeals || {};
-}
-
-/* ==========================================================================
    Negotiated Deals
    ========================================================================== */
 
-function createNegotiatedDealsColumns(config = {}) {
-  const labels = getNegotiatedLabels(config);
+function createNegotiatedDealsSchema(config = {}) {
+  const labels = config.labels?.negotiatedDeals || {};
 
-  return [
+  const columns = [
     /* ----------------------------------------------------------------------
        Date
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.date, {
+    createColumn({
       key: "date",
 
       label: cleanLabel(labels.date, "Date"),
@@ -176,27 +261,28 @@ function createNegotiatedDealsColumns(config = {}) {
 
       type: "negotiated-date",
 
+      width: WIDTHS.date,
+
       className: "table-market__date",
 
       mobile: false,
     }),
 
     /* ----------------------------------------------------------------------
-       Company
+       Company Identity
        ---------------------------------------------------------------------- */
 
     /*
-     * The refined Trading static combines company name and symbol into one
-     * identity column:
+     * Final desktop structure:
      *
      * Company Name
      * Symbol
      *
-     * `company` is therefore the visible table value while `symbol` remains
-     * supporting identity metadata.
+     * Symbol is supporting identity metadata, not a separate Negotiated
+     * desktop column.
      */
 
-    sizedColumn(WIDTHS.company, {
+    createColumn({
       key: "company",
 
       label: cleanLabel(labels.company, "Company"),
@@ -209,7 +295,11 @@ function createNegotiatedDealsColumns(config = {}) {
 
       type: "negotiated-company",
 
-      className: "table-market__company",
+      width: WIDTHS.combinedCompany,
+
+      className: "table-market__company table-market__identity",
+
+      searchable: true,
 
       mobile: false,
     }),
@@ -218,7 +308,7 @@ function createNegotiatedDealsColumns(config = {}) {
        Price
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.price, {
+    createColumn({
       key: "trade-price",
 
       label: cleanLabel(labels.price, "Price"),
@@ -227,13 +317,12 @@ function createNegotiatedDealsColumns(config = {}) {
 
       type: "money",
 
-      className: "table-market__price",
+      width: WIDTHS.price,
+
+      className: "table-market__number table-market__price",
 
       numeric: true,
 
-      /*
-       * Price is already shown in the mobile card summary.
-       */
       mobile: false,
     }),
 
@@ -241,7 +330,7 @@ function createNegotiatedDealsColumns(config = {}) {
        Volume
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.quantity, {
+    createColumn({
       key: "trade-volume",
 
       label: cleanLabel(labels.volume, "Volume"),
@@ -250,16 +339,20 @@ function createNegotiatedDealsColumns(config = {}) {
 
       type: "quantity",
 
+      width: WIDTHS.quantity,
+
       className: "table-market__number",
 
       numeric: true,
+
+      mobile: true,
     }),
 
     /* ----------------------------------------------------------------------
        Value
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.value, {
+    createColumn({
       key: "turnover",
 
       label: cleanLabel(labels.value, "Value"),
@@ -268,13 +361,12 @@ function createNegotiatedDealsColumns(config = {}) {
 
       type: "money",
 
+      width: WIDTHS.value,
+
       className: "table-market__number",
 
       numeric: true,
 
-      /*
-       * Value is shown next to Price in the mobile summary.
-       */
       mobile: false,
     }),
 
@@ -282,7 +374,7 @@ function createNegotiatedDealsColumns(config = {}) {
        Time
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.time, {
+    createColumn({
       key: "time",
 
       label: cleanLabel(labels.time, "Time"),
@@ -291,102 +383,249 @@ function createNegotiatedDealsColumns(config = {}) {
 
       type: "time",
 
+      width: WIDTHS.time,
+
       className: "table-market__number",
 
-      numeric: true,
+      mobile: true,
     }),
   ];
+
+  return createViewSchema({
+    mode: TRADING_TABLE_MODES.standard,
+
+    /*
+     * Negotiated JSP has a simple authoritative one-row header.
+     *
+     * We still preserve it instead of replacing it because the JSP now owns
+     * localized headings and stable data-column-key hooks.
+     */
+    preserveHeader: true,
+
+    columns,
+
+    identity: {
+      codeData: "symbol",
+
+      nameData: "company",
+
+      urlData: "companyURL",
+    },
+
+    mobile: {
+      grouped: true,
+
+      groupBy: "strDate",
+
+      dailyTotal: true,
+
+      summary: ["trade-price", "turnover"],
+
+      details: ["trade-volume", "time"],
+    },
+
+    totals: {
+      enabled: true,
+
+      rowTypeData: "rowType",
+
+      rowTypeValue: "total",
+
+      /*
+       * Keep six physical cells in the table.
+       *
+       * Do not mutate a DataTables <tr> into an incompatible colspan row.
+       */
+      columns: {
+        date: null,
+
+        company: "label",
+
+        "trade-price": null,
+
+        "trade-volume": "volume",
+
+        turnover: "value",
+
+        time: null,
+      },
+    },
+  });
 }
 
 /* ==========================================================================
-   Minimum Size
+   Minimum Size Matrix
    ========================================================================== */
 
-function createMinimumSizeColumns(config = {}) {
+function createMinimumSizeSchema(config = {}) {
   const labels = config.labels?.minimumSize || {};
 
   /*
-   * Legacy Minimum Size data is a matrix-style structure.
+   * Minimum Size is NOT a normal five-business-column table.
    *
-   * The endpoint returns:
+   * Backend payload:
    *
-   * col1
-   * col2
-   * col3
-   * col4
+   *   col1
+   *   col2
+   *   col3
+   *   col4
    *
-   * while the table markup contains five columns because the first column
-   * represents the row heading/category.
+   * Visual matrix:
+   *
+   *   leading matrix position
+   *   + four value positions
+   *
+   * The JSP owns all three matrix heading rows.
+   *
+   * We keep the leading visual position explicitly in the matrix metadata,
+   * but it is not treated as a normal backend field.
    */
 
-  return [
-    sizedColumn(WIDTHS.generic, {
-      key: "minimum-size-label",
-
-      label: cleanLabel(labels.label, ""),
-
-      data: null,
-
-      type: "empty",
-
-      mobile: false,
-
-      orderable: false,
-
-      searchable: false,
-    }),
-
-    sizedColumn(WIDTHS.generic, {
+  const valueColumns = [
+    createColumn({
       key: "col1",
 
-      label: cleanLabel(labels.col1, "Column 1"),
+      label: cleanLabel(labels.col1, ""),
 
       data: "col1",
 
       type: "security-reference",
+
+      width: WIDTHS.matrixValue,
+
+      searchable: true,
+
+      mobile: true,
     }),
 
-    sizedColumn(WIDTHS.generic, {
+    createColumn({
       key: "col2",
 
-      label: cleanLabel(labels.col2, "Column 2"),
+      label: cleanLabel(labels.col2, ""),
 
       data: "col2",
 
       type: "security-reference",
+
+      width: WIDTHS.matrixValue,
+
+      searchable: true,
+
+      mobile: true,
     }),
 
-    sizedColumn(WIDTHS.generic, {
+    createColumn({
       key: "col3",
 
-      label: cleanLabel(labels.col3, "Column 3"),
+      label: cleanLabel(labels.col3, ""),
 
       data: "col3",
 
       type: "security-reference",
+
+      width: WIDTHS.matrixValue,
+
+      searchable: true,
+
+      mobile: true,
     }),
 
-    sizedColumn(WIDTHS.generic, {
+    createColumn({
       key: "col4",
 
-      label: cleanLabel(labels.col4, "Column 4"),
+      label: cleanLabel(labels.col4, ""),
 
       data: "col4",
 
       type: "security-reference",
+
+      width: WIDTHS.matrixValue,
+
+      searchable: true,
+
+      mobile: true,
     }),
   ];
+
+  return createViewSchema({
+    mode: TRADING_TABLE_MODES.matrix,
+
+    /*
+     * Critical:
+     *
+     * Do not allow createDataTable() or Trading JS to regenerate the
+     * three-row matrix <thead>.
+     */
+    preserveHeader: true,
+
+    /*
+     * These are the actual API-backed values.
+     *
+     * There is deliberately NO fake `minimum-size-label` business column.
+     */
+    columns: valueColumns,
+
+    matrix: {
+      headerRows: 3,
+
+      visualColumnCount: 5,
+
+      valueColumnCount: 4,
+
+      /*
+       * The first visual position belongs to the matrix structure rendered
+       * by JSP. It is not response data.
+       */
+      leadingColumn: {
+        key: "matrix-label",
+
+        width: WIDTHS.matrixLabel,
+
+        data: null,
+      },
+
+      valueKeys: ["col1", "col2", "col3", "col4"],
+
+      /*
+       * This tells trading.js to use the dedicated matrix renderer rather
+       * than ordinary createDataTable() column/header generation.
+       */
+      dedicatedRenderer: true,
+    },
+
+    mobile: {
+      grouped: false,
+
+      /*
+       * Minimum Size mobile content must be rendered from all four actual
+       * matrix values instead of creating a card with an empty summary.
+       */
+      fields: ["col1", "col2", "col3", "col4"],
+
+      dedicatedRenderer: true,
+    },
+
+    search: {
+      enabled: true,
+
+      keys: ["col1", "col2", "col3", "col4"],
+    },
+  });
 }
 
 /* ==========================================================================
    Accumulated Losses
    ========================================================================== */
 
-function createAccumulatedLossesColumns(config = {}) {
+function createAccumulatedLossesSchema(config = {}) {
   const labels = config.labels?.accumulated || {};
 
-  return [
-    sizedColumn(WIDTHS.symbol, {
+  const columns = [
+    /* ----------------------------------------------------------------------
+       Symbol + Status
+       ---------------------------------------------------------------------- */
+
+    createColumn({
       key: "symbol",
 
       label: cleanLabel(labels.symbol, "Symbol"),
@@ -395,17 +634,25 @@ function createAccumulatedLossesColumns(config = {}) {
 
       statusData: "companyStatus",
 
+      /*
+       * Status belongs beside the Symbol consistently in desktop/mobile.
+       */
       type: "symbol-status",
 
-      className: "table-market__symbol",
+      width: WIDTHS.symbol,
 
-      /*
-       * Symbol is already shown in mobile identity.
-       */
+      className: "table-market__symbol table-market__identity-symbol",
+
+      searchable: true,
+
       mobile: false,
     }),
 
-    sizedColumn(WIDTHS.company, {
+    /* ----------------------------------------------------------------------
+       Company
+       ---------------------------------------------------------------------- */
+
+    createColumn({
       key: "company",
 
       label: cleanLabel(labels.company, "Company Name"),
@@ -414,41 +661,74 @@ function createAccumulatedLossesColumns(config = {}) {
 
       urlData: "companyURL",
 
-      statusData: "companyStatus",
+      type: "company-link",
 
-      type: "company-status-link",
+      width: WIDTHS.company,
 
-      className: "table-market__company",
+      className: "table-market__company table-market__identity-company",
 
-      /*
-       * Company is already shown in mobile identity.
-       */
+      searchable: true,
+
       mobile: false,
     }),
   ];
-}
 
-/* ==========================================================================
-   Listed Tradable Rights Labels
-   ========================================================================== */
+  return createViewSchema({
+    mode: TRADING_TABLE_MODES.standard,
 
-function getListedTradableLabels(config = {}) {
-  return config.labels?.listedTradable || {};
+    preserveHeader: true,
+
+    columns,
+
+    identity: {
+      codeData: "symbol",
+
+      nameData: "company",
+
+      urlData: "companyURL",
+
+      statusData: "companyStatus",
+
+      /*
+       * Explicitly standardize:
+       *
+       * Symbol ● | Company
+       */
+      statusPlacement: "symbol",
+    },
+
+    mobile: {
+      grouped: false,
+
+      /*
+       * Accumulated only contains identity/status information.
+       *
+       * It should render as a compact card with NO meaningless expandable
+       * details button.
+       */
+      compact: true,
+
+      expandable: false,
+
+      summary: [],
+      details: [],
+    },
+  });
 }
 
 /* ==========================================================================
    Listed Tradable Rights
    ========================================================================== */
 
-function createListedTradableRightsColumns(config = {}) {
-  const labels = getListedTradableLabels(config);
+function createListedTradableRightsSchema(config = {}) {
+  const labels = config.labels?.listedTradable || {};
 
-  return [
+  const columns = [
     /* ----------------------------------------------------------------------
        Security
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.security, {
+    createColumn({
       key: "tradable-right",
 
       label: cleanLabel(labels.security, "Tradable Rights"),
@@ -459,11 +739,12 @@ function createListedTradableRightsColumns(config = {}) {
 
       type: "security-link",
 
-      className: "table-market__security",
+      width: WIDTHS.security,
 
-      /*
-       * Security is already used as mobile identity.
-       */
+      className: "table-market__security table-market__identity",
+
+      searchable: true,
+
       mobile: false,
     }),
 
@@ -471,7 +752,7 @@ function createListedTradableRightsColumns(config = {}) {
        Last Trade
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.price, {
+    createColumn({
       key: "last-trade-price",
 
       label: cleanLabel(labels.lastTradePrice, "Price"),
@@ -480,19 +761,18 @@ function createListedTradableRightsColumns(config = {}) {
 
       type: "display-value",
 
-      headerGroup: "lastTrade",
+      width: WIDTHS.price,
 
       className: "table-market__number",
 
       numeric: true,
 
-      /*
-       * Price is part of the mobile card summary.
-       */
+      headerGroup: "last-trade",
+
       mobile: false,
     }),
 
-    sizedColumn(WIDTHS.quantity, {
+    createColumn({
       key: "last-trade-volume",
 
       label: cleanLabel(labels.lastTradeVolume, "Volume"),
@@ -501,14 +781,18 @@ function createListedTradableRightsColumns(config = {}) {
 
       type: "quantity",
 
-      headerGroup: "lastTrade",
+      width: WIDTHS.quantity,
 
       className: "table-market__number",
 
       numeric: true,
+
+      headerGroup: "last-trade",
+
+      mobile: true,
     }),
 
-    sizedColumn(WIDTHS.price, {
+    createColumn({
       key: "change-value",
 
       label: cleanLabel(labels.changeValue, "Change Value"),
@@ -519,14 +803,18 @@ function createListedTradableRightsColumns(config = {}) {
 
       type: "price-change",
 
-      headerGroup: "lastTrade",
+      width: WIDTHS.price,
 
       className: "table-market__number",
 
       numeric: true,
+
+      headerGroup: "last-trade",
+
+      mobile: true,
     }),
 
-    sizedColumn(WIDTHS.price, {
+    createColumn({
       key: "change-percent",
 
       label: cleanLabel(labels.changePercent, "Change %"),
@@ -537,15 +825,14 @@ function createListedTradableRightsColumns(config = {}) {
 
       type: "price-change",
 
-      headerGroup: "lastTrade",
+      width: WIDTHS.price,
 
       className: "table-market__number",
 
       numeric: true,
 
-      /*
-       * Percentage change is shown in the mobile card summary.
-       */
+      headerGroup: "last-trade",
+
       mobile: false,
     }),
 
@@ -553,7 +840,7 @@ function createListedTradableRightsColumns(config = {}) {
        Today's Trading
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.price, {
+    createColumn({
       key: "open",
 
       label: cleanLabel(labels.open, "Open"),
@@ -562,14 +849,18 @@ function createListedTradableRightsColumns(config = {}) {
 
       type: "display-value",
 
-      headerGroup: "today",
+      width: WIDTHS.price,
 
       className: "table-market__number",
 
       numeric: true,
+
+      headerGroup: "today",
+
+      mobile: true,
     }),
 
-    sizedColumn(WIDTHS.price, {
+    createColumn({
       key: "high",
 
       label: cleanLabel(labels.high, "High"),
@@ -578,14 +869,18 @@ function createListedTradableRightsColumns(config = {}) {
 
       type: "display-value",
 
-      headerGroup: "today",
+      width: WIDTHS.price,
 
       className: "table-market__number",
 
       numeric: true,
+
+      headerGroup: "today",
+
+      mobile: true,
     }),
 
-    sizedColumn(WIDTHS.price, {
+    createColumn({
       key: "low",
 
       label: cleanLabel(labels.low, "Low"),
@@ -594,18 +889,22 @@ function createListedTradableRightsColumns(config = {}) {
 
       type: "display-value",
 
-      headerGroup: "today",
+      width: WIDTHS.price,
 
       className: "table-market__number",
 
       numeric: true,
+
+      headerGroup: "today",
+
+      mobile: true,
     }),
 
     /* ----------------------------------------------------------------------
        Cumulative
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.quantity, {
+    createColumn({
       key: "number-of-trades",
 
       label: cleanLabel(labels.numberOfTrades, "Number of Trades"),
@@ -614,14 +913,18 @@ function createListedTradableRightsColumns(config = {}) {
 
       type: "quantity",
 
-      headerGroup: "cumulative",
+      width: WIDTHS.quantity,
 
       className: "table-market__number",
 
       numeric: true,
+
+      headerGroup: "cumulative",
+
+      mobile: true,
     }),
 
-    sizedColumn(WIDTHS.quantity, {
+    createColumn({
       key: "volume-traded",
 
       label: cleanLabel(labels.volumeTraded, "Volume Traded"),
@@ -630,18 +933,22 @@ function createListedTradableRightsColumns(config = {}) {
 
       type: "quantity",
 
-      headerGroup: "cumulative",
+      width: WIDTHS.quantity,
 
       className: "table-market__number",
 
       numeric: true,
+
+      headerGroup: "cumulative",
+
+      mobile: true,
     }),
 
     /* ----------------------------------------------------------------------
        Best Bid
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.price, {
+    createColumn({
       key: "bid-price",
 
       label: cleanLabel(labels.bidPrice, "Bid Price"),
@@ -650,14 +957,18 @@ function createListedTradableRightsColumns(config = {}) {
 
       type: "display-value",
 
-      headerGroup: "bestBid",
+      width: WIDTHS.price,
 
       className: "table-market__number",
 
       numeric: true,
+
+      headerGroup: "best-bid",
+
+      mobile: true,
     }),
 
-    sizedColumn(WIDTHS.quantity, {
+    createColumn({
       key: "bid-volume",
 
       label: cleanLabel(labels.bidVolume, "Bid Volume"),
@@ -666,18 +977,22 @@ function createListedTradableRightsColumns(config = {}) {
 
       type: "quantity",
 
-      headerGroup: "bestBid",
+      width: WIDTHS.quantity,
 
       className: "table-market__number",
 
       numeric: true,
+
+      headerGroup: "best-bid",
+
+      mobile: true,
     }),
 
     /* ----------------------------------------------------------------------
        Best Offer
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.price, {
+    createColumn({
       key: "ask-price",
 
       label: cleanLabel(labels.askPrice, "Ask Price"),
@@ -686,14 +1001,18 @@ function createListedTradableRightsColumns(config = {}) {
 
       type: "display-value",
 
-      headerGroup: "bestOffer",
+      width: WIDTHS.price,
 
       className: "table-market__number",
 
       numeric: true,
+
+      headerGroup: "best-offer",
+
+      mobile: true,
     }),
 
-    sizedColumn(WIDTHS.quantity, {
+    createColumn({
       key: "ask-volume",
 
       label: cleanLabel(labels.askVolume, "Ask Volume"),
@@ -702,37 +1021,125 @@ function createListedTradableRightsColumns(config = {}) {
 
       type: "quantity",
 
-      headerGroup: "bestOffer",
+      width: WIDTHS.quantity,
 
       className: "table-market__number",
 
       numeric: true,
+
+      headerGroup: "best-offer",
+
+      mobile: true,
     }),
   ];
+
+  return createViewSchema({
+    mode: TRADING_TABLE_MODES.complex,
+
+    /*
+     * The JSP contains the complete two-row grouped header.
+     *
+     * Never regenerate it in JavaScript.
+     */
+    preserveHeader: true,
+
+    columns,
+
+    headerGroups: [
+      {
+        id: "last-trade",
+
+        columnKeys: [
+          "last-trade-price",
+          "last-trade-volume",
+          "change-value",
+          "change-percent",
+        ],
+      },
+
+      {
+        id: "today",
+
+        columnKeys: ["open", "high", "low"],
+      },
+
+      {
+        id: "cumulative",
+
+        columnKeys: ["number-of-trades", "volume-traded"],
+      },
+
+      {
+        id: "best-bid",
+
+        columnKeys: ["bid-price", "bid-volume"],
+      },
+
+      {
+        id: "best-offer",
+
+        columnKeys: ["ask-price", "ask-volume"],
+      },
+    ],
+
+    identity: {
+      codeData: "",
+
+      nameData: "acrynomName",
+
+      urlData: "pageUrl",
+    },
+
+    mobile: {
+      grouped: false,
+
+      summary: ["last-trade-price", "change-percent"],
+
+      details: [
+        "last-trade-volume",
+        "change-value",
+        "open",
+        "high",
+        "low",
+        "number-of-trades",
+        "volume-traded",
+        "bid-price",
+        "bid-volume",
+        "ask-price",
+        "ask-volume",
+      ],
+    },
+  });
 }
 
 /* ==========================================================================
-   Suspended Companies
+   Suspended Companies / Funds
    ========================================================================== */
 
-function createSuspendedCompaniesColumns(config = {}) {
+function createSuspendedCompaniesSchema(config = {}) {
   const labels = config.labels?.suspended || {};
 
-  return [
+  const columns = [
     /* ----------------------------------------------------------------------
-       Symbol
+       Symbol + Status
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.symbol, {
+    createColumn({
       key: "symbol",
 
       label: cleanLabel(labels.symbol, "Symbol"),
 
       data: "symbol",
 
-      type: "text",
+      statusData: "companyStatus",
 
-      className: "table-market__symbol",
+      type: "symbol-status",
+
+      width: WIDTHS.symbol,
+
+      className: "table-market__symbol table-market__identity-symbol",
+
+      searchable: true,
 
       mobile: false,
     }),
@@ -741,7 +1148,7 @@ function createSuspendedCompaniesColumns(config = {}) {
        Company
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.company, {
+    createColumn({
       key: "company",
 
       label: cleanLabel(labels.company, "Company Name"),
@@ -750,11 +1157,13 @@ function createSuspendedCompaniesColumns(config = {}) {
 
       urlData: "companyURL",
 
-      statusData: "companyStatus",
+      type: "company-link",
 
-      type: "company-status-link",
+      width: WIDTHS.company,
 
-      className: "table-market__company",
+      className: "table-market__company table-market__identity-company",
+
+      searchable: true,
 
       mobile: false,
     }),
@@ -763,7 +1172,7 @@ function createSuspendedCompaniesColumns(config = {}) {
        From
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.date, {
+    createColumn({
       key: "from-date",
 
       label: cleanLabel(labels.fromDate, "From"),
@@ -772,14 +1181,20 @@ function createSuspendedCompaniesColumns(config = {}) {
 
       type: "date",
 
+      width: WIDTHS.shortDate,
+
       className: "table-market__date",
+
+      headerGroup: "period",
+
+      mobile: true,
     }),
 
     /* ----------------------------------------------------------------------
        To
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.date, {
+    createColumn({
       key: "to-date",
 
       label: cleanLabel(labels.toDate, "To"),
@@ -788,14 +1203,20 @@ function createSuspendedCompaniesColumns(config = {}) {
 
       type: "date",
 
+      width: WIDTHS.shortDate,
+
       className: "table-market__date",
+
+      headerGroup: "period",
+
+      mobile: true,
     }),
 
     /* ----------------------------------------------------------------------
        Reason
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.reason, {
+    createColumn({
       key: "reason",
 
       label: cleanLabel(labels.reason, "Reason"),
@@ -808,35 +1229,79 @@ function createSuspendedCompaniesColumns(config = {}) {
 
       type: "suspended-news-link",
 
-      orderable: false,
+      width: WIDTHS.reason,
 
-      searchable: false,
+      className: "table-market__reason",
+
+      mobile: true,
     }),
   ];
+
+  return createViewSchema({
+    mode: TRADING_TABLE_MODES.complex,
+
+    preserveHeader: true,
+
+    columns,
+
+    headerGroups: [
+      {
+        id: "period",
+
+        columnKeys: ["from-date", "to-date"],
+      },
+    ],
+
+    identity: {
+      codeData: "symbol",
+
+      nameData: "name",
+
+      urlData: "companyURL",
+
+      statusData: "companyStatus",
+
+      statusPlacement: "symbol",
+    },
+
+    mobile: {
+      grouped: false,
+
+      summary: [],
+
+      details: ["from-date", "to-date", "reason"],
+    },
+  });
 }
 
 /* ==========================================================================
-   Delisted Companies
+   Delisted Companies / Funds
    ========================================================================== */
 
-function createDelistedCompaniesColumns(config = {}) {
+function createDelistedCompaniesSchema(config = {}) {
   const labels = config.labels?.delisted || {};
 
-  return [
+  const columns = [
     /* ----------------------------------------------------------------------
-       Symbol
+       Symbol + Status
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.symbol, {
+    createColumn({
       key: "symbol",
 
       label: cleanLabel(labels.symbol, "Symbol"),
 
       data: "symbol",
 
-      type: "text",
+      statusData: "companyStatus",
 
-      className: "table-market__symbol",
+      type: "symbol-status",
+
+      width: WIDTHS.symbol,
+
+      className: "table-market__symbol table-market__identity-symbol",
+
+      searchable: true,
 
       mobile: false,
     }),
@@ -845,7 +1310,7 @@ function createDelistedCompaniesColumns(config = {}) {
        Company
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.company, {
+    createColumn({
       key: "company",
 
       label: cleanLabel(labels.company, "Company Name"),
@@ -854,11 +1319,13 @@ function createDelistedCompaniesColumns(config = {}) {
 
       urlData: "companyURL",
 
-      statusData: "companyStatus",
+      type: "company-link",
 
-      type: "company-status-link",
+      width: WIDTHS.company,
 
-      className: "table-market__company",
+      className: "table-market__company table-market__identity-company",
+
+      searchable: true,
 
       mobile: false,
     }),
@@ -867,7 +1334,7 @@ function createDelistedCompaniesColumns(config = {}) {
        Date
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.date, {
+    createColumn({
       key: "date",
 
       label: cleanLabel(labels.date, "Date"),
@@ -876,14 +1343,18 @@ function createDelistedCompaniesColumns(config = {}) {
 
       type: "date",
 
+      width: WIDTHS.shortDate,
+
       className: "table-market__date",
+
+      mobile: true,
     }),
 
     /* ----------------------------------------------------------------------
        Reason
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.reason, {
+    createColumn({
       key: "reason",
 
       label: cleanLabel(labels.reason, "Reason"),
@@ -894,26 +1365,56 @@ function createDelistedCompaniesColumns(config = {}) {
 
       type: "delisted-news-link",
 
-      orderable: false,
+      width: WIDTHS.reason,
 
-      searchable: false,
+      className: "table-market__reason",
+
+      mobile: true,
     }),
   ];
+
+  return createViewSchema({
+    mode: TRADING_TABLE_MODES.standard,
+
+    preserveHeader: true,
+
+    columns,
+
+    identity: {
+      codeData: "symbol",
+
+      nameData: "name",
+
+      urlData: "companyURL",
+
+      statusData: "companyStatus",
+
+      statusPlacement: "symbol",
+    },
+
+    mobile: {
+      grouped: false,
+
+      summary: [],
+
+      details: ["date", "reason"],
+    },
+  });
 }
 
 /* ==========================================================================
    OTC Trading
    ========================================================================== */
 
-function createOtcTradingColumns(config = {}) {
+function createOtcTradingSchema(config = {}) {
   const labels = config.labels?.otc || {};
 
-  return [
+  const columns = [
     /* ----------------------------------------------------------------------
        Symbol
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.symbol, {
+    createColumn({
       key: "symbol",
 
       label: cleanLabel(labels.symbol, "Symbol"),
@@ -922,7 +1423,11 @@ function createOtcTradingColumns(config = {}) {
 
       type: "text",
 
-      className: "table-market__symbol",
+      width: WIDTHS.symbol,
+
+      className: "table-market__symbol table-market__identity-symbol",
+
+      searchable: true,
 
       mobile: false,
     }),
@@ -931,7 +1436,7 @@ function createOtcTradingColumns(config = {}) {
        Company
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.company, {
+    createColumn({
       key: "company",
 
       label: cleanLabel(labels.company, "Company"),
@@ -942,7 +1447,11 @@ function createOtcTradingColumns(config = {}) {
 
       type: "company-link",
 
-      className: "table-market__company",
+      width: WIDTHS.company,
+
+      className: "table-market__company table-market__identity-company",
+
+      searchable: true,
 
       mobile: false,
     }),
@@ -951,7 +1460,7 @@ function createOtcTradingColumns(config = {}) {
        Traded Volume
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.quantity, {
+    createColumn({
       key: "traded-volume",
 
       label: cleanLabel(labels.tradedVolume, "Traded Volume"),
@@ -960,13 +1469,12 @@ function createOtcTradingColumns(config = {}) {
 
       type: "quantity",
 
+      width: WIDTHS.quantity,
+
       className: "table-market__number",
 
       numeric: true,
 
-      /*
-       * Volume is part of the compact mobile summary.
-       */
       mobile: false,
     }),
 
@@ -974,24 +1482,46 @@ function createOtcTradingColumns(config = {}) {
        Last Update
        ---------------------------------------------------------------------- */
 
-    sizedColumn(WIDTHS.date, {
+    createColumn({
       key: "last-update",
 
       label: cleanLabel(labels.lastUpdate, "Last Update"),
 
-      /*
-       * Preserve the existing backend/render contract.
-       *
-       * The legacy implementation maps the column labelled
-       * `OTC.LastUpdatePrice` to `lastTradeDate`.
-       */
       data: "lastTradeDate",
 
       type: "display-value",
 
+      width: WIDTHS.date,
+
       className: "table-market__date",
+
+      mobile: true,
     }),
   ];
+
+  return createViewSchema({
+    mode: TRADING_TABLE_MODES.standard,
+
+    preserveHeader: true,
+
+    columns,
+
+    identity: {
+      codeData: "symbol",
+
+      nameData: "companyName",
+
+      urlData: "companyURL",
+    },
+
+    mobile: {
+      grouped: false,
+
+      summary: ["traded-volume"],
+
+      details: ["last-update"],
+    },
+  });
 }
 
 /* ==========================================================================
@@ -999,26 +1529,26 @@ function createOtcTradingColumns(config = {}) {
    ========================================================================== */
 
 const SCHEMA_FACTORIES = Object.freeze({
-  [TRADING_VIEWS.negotiatedDeals]: createNegotiatedDealsColumns,
+  [TRADING_VIEWS.negotiatedDeals]: createNegotiatedDealsSchema,
 
-  [TRADING_VIEWS.minimumSize]: createMinimumSizeColumns,
+  [TRADING_VIEWS.minimumSize]: createMinimumSizeSchema,
 
-  [TRADING_VIEWS.accumulatedLosses]: createAccumulatedLossesColumns,
+  [TRADING_VIEWS.accumulatedLosses]: createAccumulatedLossesSchema,
 
-  [TRADING_VIEWS.listedTradableRights]: createListedTradableRightsColumns,
+  [TRADING_VIEWS.listedTradableRights]: createListedTradableRightsSchema,
 
-  [TRADING_VIEWS.suspendedCompanies]: createSuspendedCompaniesColumns,
+  [TRADING_VIEWS.suspendedCompanies]: createSuspendedCompaniesSchema,
 
-  [TRADING_VIEWS.delistedCompanies]: createDelistedCompaniesColumns,
+  [TRADING_VIEWS.delistedCompanies]: createDelistedCompaniesSchema,
 
-  [TRADING_VIEWS.otcTrading]: createOtcTradingColumns,
+  [TRADING_VIEWS.otcTrading]: createOtcTradingSchema,
 });
 
 /* ==========================================================================
-   Public Columns API
+   Public Schema API
    ========================================================================== */
 
-export function getColumns(view, config = {}) {
+export function getViewSchema(view, config = {}) {
   const factory = SCHEMA_FACTORIES[view];
 
   if (!factory) {
@@ -1029,11 +1559,19 @@ export function getColumns(view, config = {}) {
 }
 
 /* ==========================================================================
+   Columns
+   ========================================================================== */
+
+export function getColumns(view, config = {}) {
+  return [...getViewSchema(view, config).columns];
+}
+
+/* ==========================================================================
    Mobile Columns
    ========================================================================== */
 
 export function getMobileColumns(view, config = {}) {
-  return getColumns(view, config).filter((item) => item.mobile !== false);
+  return getColumns(view, config).filter((column) => column.mobile !== false);
 }
 
 /* ==========================================================================
@@ -1041,7 +1579,149 @@ export function getMobileColumns(view, config = {}) {
    ========================================================================== */
 
 export function getColumnByKey(view, key, config = {}) {
-  return getColumns(view, config).find((item) => item.key === key) || null;
+  return getColumns(view, config).find((column) => column.key === key) || null;
+}
+
+/* ==========================================================================
+   View Mode
+   ========================================================================== */
+
+export function getTableMode(view, config = {}) {
+  return getViewSchema(view, config).mode;
+}
+
+export function isStandardTable(view, config = {}) {
+  return getTableMode(view, config) === TRADING_TABLE_MODES.standard;
+}
+
+export function isComplexHeaderTable(view, config = {}) {
+  return getTableMode(view, config) === TRADING_TABLE_MODES.complex;
+}
+
+export function isMatrixTable(view, config = {}) {
+  return getTableMode(view, config) === TRADING_TABLE_MODES.matrix;
+}
+
+/* ==========================================================================
+   Header Ownership
+   ========================================================================== */
+
+export function shouldPreserveHeader(view, config = {}) {
+  return Boolean(getViewSchema(view, config).preserveHeader);
+}
+
+/* ==========================================================================
+   Complex Header Groups
+   ========================================================================== */
+
+export function getHeaderGroups(view, config = {}) {
+  const groups = getViewSchema(view, config).headerGroups;
+
+  return Array.isArray(groups)
+    ? groups.map((group) => ({
+        ...group,
+
+        columnKeys: [...(group.columnKeys || [])],
+      }))
+    : [];
+}
+
+/* ==========================================================================
+   Matrix Metadata
+   ========================================================================== */
+
+export function getMatrixConfig(view, config = {}) {
+  const matrix = getViewSchema(view, config).matrix;
+
+  if (!matrix) {
+    return null;
+  }
+
+  return {
+    ...matrix,
+
+    valueKeys: [...(matrix.valueKeys || [])],
+
+    leadingColumn: matrix.leadingColumn
+      ? {
+          ...matrix.leadingColumn,
+        }
+      : null,
+  };
+}
+
+/* ==========================================================================
+   Identity Metadata
+   ========================================================================== */
+
+export function getIdentityConfig(view, config = {}) {
+  const identity = getViewSchema(view, config).identity;
+
+  return identity
+    ? {
+        ...identity,
+      }
+    : null;
+}
+
+/* ==========================================================================
+   Mobile Metadata
+   ========================================================================== */
+
+export function getMobileConfig(view, config = {}) {
+  const mobile = getViewSchema(view, config).mobile || {};
+
+  return {
+    ...mobile,
+
+    summary: Array.isArray(mobile.summary) ? [...mobile.summary] : [],
+
+    details: Array.isArray(mobile.details) ? [...mobile.details] : [],
+
+    fields: Array.isArray(mobile.fields) ? [...mobile.fields] : [],
+  };
+}
+
+/* ==========================================================================
+   Total Metadata
+   ========================================================================== */
+
+export function getTotalsConfig(view, config = {}) {
+  const totals = getViewSchema(view, config).totals;
+
+  if (!totals) {
+    return null;
+  }
+
+  return {
+    ...totals,
+
+    columns: {
+      ...(totals.columns || {}),
+    },
+  };
+}
+
+/* ==========================================================================
+   Search Metadata
+   ========================================================================== */
+
+export function getSearchConfig(view, config = {}) {
+  const search = getViewSchema(view, config).search;
+
+  if (!search) {
+    return {
+      enabled: false,
+
+      keys: [],
+    };
+  }
+
+  return {
+    ...search,
+
+    keys: [...(search.keys || [])],
+  };
 }
 
 /* ==========================================================================
@@ -1053,9 +1733,18 @@ export function getTableConfig(view, config = {}) {
 
   const specific = config.tables?.[view] || {};
 
+  const schema = getViewSchema(view, config);
+
   return {
     ...defaults,
     ...specific,
+
+    /*
+     * Make presentation-mode metadata available to the page table adapter.
+     */
+    tradingMode: schema.mode,
+
+    preserveHeader: Boolean(schema.preserveHeader),
 
     layout: {
       ...(defaults.layout || {}),
@@ -1078,7 +1767,7 @@ export function getViewsForTab(tabKey) {
    ========================================================================== */
 
 export function getNegotiatedView(type) {
-  return String(type) === "Minimum-Size"
+  return String(type || "") === "Minimum-Size"
     ? TRADING_VIEWS.minimumSize
     : TRADING_VIEWS.negotiatedDeals;
 }
@@ -1090,16 +1779,10 @@ export function getNegotiatedView(type) {
 export function getSuspendedDelistedView(type) {
   const normalized = String(type || "");
 
-  /*
-   * Suspension_Funds shares the Suspension presentation.
-   */
   if (normalized === "Suspension" || normalized === "Suspension_Funds") {
     return TRADING_VIEWS.suspendedCompanies;
   }
 
-  /*
-   * Delisting and Delisted_Funds share the Delisting presentation.
-   */
   return TRADING_VIEWS.delistedCompanies;
 }
 
@@ -1116,41 +1799,31 @@ export function getTabForView(view) {
 }
 
 /* ==========================================================================
-   View Validation
+   Validation
    ========================================================================== */
 
 export function isTradingView(view) {
   return Boolean(SCHEMA_FACTORIES[view]);
 }
 
-/* ==========================================================================
-   Tab Validation
-   ========================================================================== */
-
 export function isTradingTab(tab) {
   return Object.values(TRADING_TABS).includes(tab);
 }
 
 /* ==========================================================================
-   Negotiated Deals Metadata
+   Negotiated Grouping
    ========================================================================== */
 
-/*
- * Negotiated Deals is unique because both desktop and mobile organize data
- * around trading date.
- *
- * This metadata is intentionally declarative. The actual grouping/rendering
- * stays in trading.js / trading-formatters.js.
- */
+export function getNegotiatedGrouping(config = {}) {
+  const mobile = getMobileConfig(TRADING_VIEWS.negotiatedDeals, config);
 
-export function getNegotiatedGrouping() {
   return Object.freeze({
-    field: "strDate",
+    field: mobile.groupBy || "strDate",
+
+    mobileGroup: Boolean(mobile.grouped),
+
+    mobileDailyTotal: Boolean(mobile.dailyTotal),
 
     totalRowType: "total",
-
-    mobileGroup: true,
-
-    mobileDailyTotal: true,
   });
 }
