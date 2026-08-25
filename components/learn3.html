@@ -44,6 +44,8 @@
 <section
   class="section issuers-trading"
   aria-labelledby="issuers-trading-tabs-title"
+    data-trading
+
 >
   <div class="container">
 
@@ -168,11 +170,13 @@
         <%-- ===============================================================
              Negotiated Deals
              =============================================================== --%>
-
-       <%-- =========================================================================
-     Negotiated Deals
-     ========================================================================= --%>
-
+<section
+  class="tab-pane active"
+  id="tab-negotiated-deals"
+  role="tabpanel"
+  aria-labelledby="tab-negotiated-deals-trigger"
+  data-trading-panel="negotiatedDeals"
+>
 <div
   class="stack stack--lg"
   data-trading-negotiated
@@ -933,7 +937,7 @@
   </div>
 
 </div>
-
+</section>
         </div>
 
       </div>
