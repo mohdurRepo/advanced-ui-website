@@ -1,2717 +1,862 @@
-<c:set var="openCloseAuction" value="false" />
-<c:if
-	test="${requestScope.marketStatusID == 6 or requestScope.marketStatusID ==1  or requestScope.marketStatusID ==4 }">
-	<c:set var="openCloseAuction" value="true" />
-</c:if>
-
-<section class="app-container hero-banner-section sukuk-bonds-page">
-
-	<%-- =====================================================
-         HERO BANNER
-         ===================================================== --%>
-
+<section class="app-container hero-banner-section">
 	<div class="profile-banner animate__animated animate__fadeIn">
 		<div class="profile-banner--pattern">
 			<div class="row">
-
 				<div class="col-12">
-					<h2 class="d-flex align-items-center">
-						<svg class="pc-icon link-icon me-3" width="40" height="40"
-							aria-hidden="true">
-                            <use xlink:href="#tadawul-arrow-icon"></use>
-                        </svg>
-
-						<span> <fmt:message key="sukukAndBonds.marketwatch.title" />
-						</span>
+					<h2>
+						<svg class="pc-icon pr-3 link-icon me-3" width="40" height="40"
+							style="color: rgb(255, 255, 255); fill: rgb(255, 255, 255)">
+                    <use xlink:href="#tadawul-arrow-icon"></use>
+                  </svg>
+						<label style="color: #FFFFFF"><fmt:message
+								key="issuer.trading.info.v2.title" /></label>
 					</h2>
 				</div>
 
-				<div class="col-12">
-					<div class="banner-filters sukuk-bonds-filters">
-						<div class="row g-3 mt-2">
 
-							<input type="hidden" id="requestLocale" name="requestLocale"
-								value="<c:out value='${pageContext.request.locale.language}' />" />
+				<section class="tabs-container" data-tabs data-tabs-id="trading"
+					data-content-target="#main-content">
 
-							<%-- =========================================
-                                 BOND TYPE FILTER
-                                 ========================================= --%>
+					<!-- Tabs Navigation -->
+					<div class="tabs" role="tablist" aria-label="Trading Tabs">
+						<button class="tabs__item is-active" type="button" role="tab"
+							id="trading-tab-negotiatedDeals" aria-selected="true"
+							aria-controls="trading-panel-negotiatedDeals"
+							data-tab="negotiatedDeals">
+							<fmt:message key="issuer.trading.info.v2.title.negotiated" />
+						</button>
 
-							<div class="col-12 col-sm-6 col-md-4 col-lg-3">
-								<div class="form-field">
-									<label class="form-label" for="sectorParameter">
-										<fmt:message key="bonds.market.watch.label.types" />
-									</label>
+						<button class="tabs__item" type="button" role="tab"
+							id="trading-tab-accumulated" aria-selected="false"
+							aria-controls="trading-panel-accumulated" data-tab="accumulated"
+							tabindex="-1">
+							<fmt:message key="issuer.trading.info.v2.title.accumulated" />
+						</button>
 
-									<div class="form-control-shell is-select" tabindex="0"
-										data-select data-field="sectorParameter">
-										<div class="form-select-value is-placeholder">
-											<fmt:message key="bonds.market.watch.label.all.bonds" />
-										</div>
+						<button class="tabs__item" type="button" role="tab"
+							id="trading-tab-listedTradable" aria-selected="false"
+							aria-controls="trading-panel-listedTradable"
+							data-tab="listedTradable" tabindex="-1">
+							<fmt:message key="issuer.trading.info.v2.title.listedtradable" />
+						</button>
 
-										<input type="hidden" id="sectorParameter"
-											name="sectorParameter" data-filter="sectorParameter"
-											value="<c:out value='${empty requestScope.selectedSector ? "all" : requestScope.selectedSector}' />" />
+						<button class="tabs__item" type="button" role="tab"
+							id="trading-tab-deListedCompanies" aria-selected="false"
+							aria-controls="trading-panel-deListedCompanies"
+							data-tab="deListedCompanies" tabindex="-1">
+							<fmt:message key="issuer.trading.info.v2.title.delistedcompanies" />
+						</button>
 
-										<span class="form-suffix form-select-arrow" aria-hidden="true"></span>
+						<button class="tabs__item" type="button" role="tab"
+							id="trading-tab-otcTrading" aria-selected="false"
+							aria-controls="trading-panel-otcTrading" data-tab="otcTrading"
+							tabindex="-1">
+							<fmt:message key="issuer.trading.info.v2.title.otcctrading" />
+						</button>
 
-										<div class="form-popover">
-											<div class="form-select-panel">
-												<div class="form-select-list">
+						<span class="tabs__underline" aria-hidden="true"></span>
+					</div>
 
-													<div class="form-select-option" data-value="all"
-														<c:if test="${empty requestScope.selectedSector or requestScope.selectedSector eq 'all'}">
-                                                            data-selected="true"
-                                                        </c:if>>
-														<fmt:message key="bonds.market.watch.label.all.bonds" />
-													</div>
+					<!-- Filters -->
+					<div class="banner-filters" data-filters>
 
-													<c:forEach items="${requestScope.sectorList}"
-														var="sectorItem">
+						<!-- negotiatedDeals filters -->
+						<div class="banner-filters__group is-active"
+							data-filters-for="negotiatedDeals">
+							<div class="row mt-2">
+
+								<!-- Type -->
+								<div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+									<div class="form-field">
+										<label class="form-label"><fmt:message key="suspended.company.type" /></label>
+										<div class="form-control-shell is-select" tabindex="0"
+											data-select data-field="type">
+											<div class="form-select-value is-placeholder">
+												<fmt:message key="adtv.main.tab.1" />
+											</div>
+											<input type="hidden" name="type" data-filter="type"
+												value="Negotiated-Deals" data-default="Negotiated-Deals" />
+											<span class="form-suffix form-select-arrow"
+												aria-hidden="true"></span>
+											<div class="form-popover">
+												<div class="form-select-panel">
+													<div class="form-select-list">
 														<div class="form-select-option"
-															data-value="<c:out value='${sectorItem.name}' />"
-															<c:if test="${requestScope.selectedSector eq sectorItem.name}">
-                                                                data-selected="true"
-                                                            </c:if>>
-															<c:out value="${sectorItem.symbol}" />
+															data-value="Negotiated-Deals" data-selected="true">
+															<fmt:message key="adtv.main.tab.1" />
 														</div>
-													</c:forEach>
-
+														<div class="form-select-option" data-value="Minimum-Size">
+															<fmt:message key="adtv.main.tab.2" />
+														</div>
+													</div>
 												</div>
 											</div>
 										</div>
 									</div>
 								</div>
-							</div>
 
-							<%-- =========================================
-                                 COLUMN VISIBILITY
-                                 ========================================= --%>
-
-							<div class="col-12 col-sm-6 col-md-4 col-lg-3">
-								<div class="form-field">
-									<label class="form-label" for="columnVisibility">
-										<fmt:message key="show.hide.column" />
-									</label>
-
-									<div class="form-control-shell is-select is-multi is-search"
-										tabindex="0" data-select data-field="columnVisibility">
-										<div class="form-select-value is-placeholder"
-											data-placeholder="<fmt:message key='show.hide.all' />">
-											<fmt:message key="show.hide.all" />
-										</div>
-
-										<input type="hidden" id="columnVisibility"
-											name="columnVisibility" data-label="Show / Hide Columns" />
-
-										<span class="form-suffix form-select-arrow" aria-hidden="true"></span>
-
-										<div class="form-popover">
-											<div class="form-select-panel">
-
-												<div class="form-select-actions">
-													<button type="button" class="form-select-action"
-														data-column-action="select-all">
-														<fmt:message key="select.all" />
-													</button>
-
-													<button type="button" class="form-select-action"
-														data-column-action="clear-all">
-														<fmt:message key="clear.all" />
-													</button>
-												</div>
-
-												<div class="form-select-list">
-
-													<div class="form-select-option" data-value="isin"
-														data-selected="true">
-														<input type="checkbox" class="form-select-checkbox"
-															checked />
-
-														<span> <fmt:message
-																key="sukukAndBonds.all.market.watch.table.column.header.isin" />
-														</span>
+								<!-- Sector -->
+								<div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+									<div class="form-field">
+										<label class="form-label"> <fmt:message
+												key="issuer.trading.info.v2.section.heading.sector" />
+										</label>
+										<div class="form-control-shell is-select" tabindex="0"
+											data-select data-field="sector">
+											<div class="form-select-value is-placeholder">
+												<fmt:message key="issuer.trading.info.v2.section.allsectors" />
+											</div>
+											<input type="hidden" name="sector" data-filter="sector"
+												value="All" data-default="All" /> <span
+												class="form-suffix form-select-arrow" aria-hidden="true"></span>
+											<div class="form-popover">
+												<div class="form-select-panel">
+												
+												<div class="form-select-search-wrap">
+<input type="text" class="form-select-search"
+														placeholder="<fmt:message key='suspended.history.search' />"
+														autocomplete="off" />
+</div>
+ 
+													<div class="form-select-list">
+														<div class="form-select-option" data-value="All"
+															data-selected="true">
+															<fmt:message
+																key="issuer.trading.info.v2.section.allsectors" />
+														</div>
+														<c:forEach
+															items="${requestScope.compresultlBean.allSectors}"
+															var="sectors">
+															<div class="form-select-option"
+																data-value="${sectors.pk_rf_sector}"
+																<c:if test="${requestScope.sector eq sectors.pk_rf_sector}">data-selected="true"</c:if>>
+																${sectors.name}</div>
+														</c:forEach>
 													</div>
-
-													<div class="form-select-option" data-value="couponDetails"
-														data-selected="true">
-														<input type="checkbox" class="form-select-checkbox"
-															checked />
-
-														<span> <fmt:message
-																key="sukukAndBonds.all.market.watch.table.column.header.couponDetails" />
-														</span>
-													</div>
-
-													<div class="form-select-option" data-value="maturity"
-														data-selected="true">
-														<input type="checkbox" class="form-select-checkbox"
-															checked />
-
-														<span> <fmt:message
-																key="sukukAndBonds.all.market.watch.table.column.header.maturitydate" />
-														</span>
-													</div>
-
-													<div class="form-select-option" data-value="yieldDetails"
-														data-selected="true">
-														<input type="checkbox" class="form-select-checkbox"
-															checked />
-
-														<span> <fmt:message
-																key="marketwatch.todaywatch.v2.table.column.header.div.yield" />
-														</span>
-													</div>
-
-													<div class="form-select-option" data-value="priceDetails"
-														data-selected="true">
-														<input type="checkbox" class="form-select-checkbox"
-															checked />
-
-														<span> <fmt:message
-																key="marketwatch.todaywatch.v2.table.column.header.price" />
-														</span>
-													</div>
-
-													<div class="form-select-option" data-value="issueDetails"
-														data-selected="true">
-														<input type="checkbox" class="form-select-checkbox"
-															checked />
-
-														<span> <fmt:message
-																key="marketwatch.todaywatch.v2.table.column.issue_details" />
-														</span>
-													</div>
-
-													<div class="form-select-option" data-value="couponMeta"
-														data-selected="true">
-														<input type="checkbox" class="form-select-checkbox"
-															checked />
-
-														<span> <fmt:message
-																key="marketwatch.todaywatch.v2.table.column.couponMeta" />
-														</span>
-													</div>
-
-													<div class="form-select-option" data-value="watchlist"
-														data-selected="true">
-														<input type="checkbox" class="form-select-checkbox"
-															checked />
-
-														<span> <fmt:message
-																key="marketwatch.todaywatch.v2.table.column.header.watchlist" />
-														</span>
-													</div>
-
 												</div>
 											</div>
 										</div>
 									</div>
 								</div>
+
+								<!-- Company -->
+								<div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+									<div class="form-field">
+										<label class="form-label"> <fmt:message
+												key="issuer.trading.info.v2.section.heading.company" />
+										</label>
+										<div class="form-control-shell is-select" tabindex="0"
+											data-select data-field="company">
+											<div class="form-select-value is-placeholder">
+												<fmt:message key="issuer.trading.info.v2.allcompanies" />
+											</div>
+											<input type="hidden" name="company" data-filter="company"
+												value="All" data-default="All" /> <span
+												class="form-suffix form-select-arrow" aria-hidden="true"></span>
+											<div class="form-popover">
+												<div class="form-select-panel">
+												<div class="form-select-search-wrap">
+<input type="text" class="form-select-search"
+														placeholder="<fmt:message key='suspended.history.search' />"
+														autocomplete="off" />
+</div>
+													<div class="form-select-list">
+														<div class="form-select-option" data-value="All"
+															data-selected="true">
+															<fmt:message key="issuer.trading.info.v2.accumulated.drop.all" />
+															
+															
+														</div>
+														<c:forEach
+															items="${requestScope.compresultlBean.companyList}"
+															var="companies">
+															<div class="form-select-option"
+																data-value="${companies.symbol}"
+																<c:if test="${requestScope.company eq companies.symbol}">data-selected="true"</c:if>>
+																${companies.longName}</div>
+														</c:forEach>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Date Range -->
+								<div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+									<div class="form-field">
+										<label class="form-label"> <fmt:message
+												key="issuer.trading.info.v2.section.heading.timeperiod" />
+										</label>
+
+										<div class="form-control-shell form-date-range is-date"
+											data-date-range>
+											<input type="text" name="fromDate" data-filter="fromDate"
+												class="form-date-input" placeholder="Start date" readonly
+												data-date-start /> <span class="form-date-range-separator"
+												aria-hidden="true">-</span> <input type="text" name="toDate"
+												data-filter="toDate" class="form-date-input"
+												placeholder="End date" readonly data-date-end /> <span
+												class="form-suffix form-date-icon"></span>
+										</div>
+									</div>
+								</div>
+
 							</div>
-
-							<%-- Reserved area for future actions. --%>
-
-							<div class="col-12 col-md-4 col-lg-6">
-								<div class="d-flex h-100 align-items-end justify-content-lg-end"></div>
+							<div class="row">
+								<div class="col-12 col-lg-12 col-md-12 col-sm-12 mt-3">
+									<div class="d-flex justify-content-lg-end align-items-end">
+										<button type="button" class="se-btn se-btn--banner"
+											data-reset-filters>
+											<span>                      <fmt:message key="issuer.trading.info.v2.search.reset" />
+</span>
+											 <span
+												class="se-btn__icon se-btn__icon--refresh se-icon icon-custom-refresh-cycle icon-md"></span>
+										</button>
+									</div>
+								</div>
 							</div>
 
 						</div>
-					</div>
-				</div>
 
+						<!-- accumulated -->
+						<div class="banner-filters__group" data-filters-for="accumulated">
+							<div class="row">
+
+								<div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+									<div class="form-field">
+										<label class="form-label"> <fmt:message
+												key="issuer.trading.info.v2.accumulated.drop.selectloss" />
+										</label>
+
+										<div class="form-control-shell is-select" tabindex="0"
+											data-select data-field="report">
+
+											<div class="form-select-value is-placeholder">
+												<fmt:message
+													key="issuer.trading.info.v2.accumulated.drop.all" />
+											</div>
+
+											<input type="hidden" name="report" data-filter="report"
+												value="All" data-default="All" /> <span
+												class="form-suffix form-select-arrow" aria-hidden="true"></span>
+
+											<div class="form-popover">
+												<div class="form-select-panel">
+													<div class="form-select-list">
+
+														<div class="form-select-option" data-value="All"
+															data-selected="true">
+															<fmt:message
+																key="issuer.trading.info.v2.accumulated.drop.all" />
+														</div>
+
+														<div class="form-select-option" data-value="50-MORE">
+															<fmt:message
+																key="issuer.trading.info.v2.accumulated.drop.50.more" />
+														</div>
+
+														<div class="form-select-option" data-value="35-50">
+															<fmt:message
+																key="issuer.trading.info.v2.accumulated.drop.35.to.50" />
+														</div>
+
+														<div class="form-select-option" data-value="20-35">
+															<fmt:message
+																key="issuer.trading.info.v2.accumulated.drop.20.to.35" />
+														</div>
+
+													</div>
+												</div>
+											</div>
+
+										</div>
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-12 col-lg-12 col-md-12 col-sm-12 mt-3">
+										<div class="d-flex justify-content-lg-end align-items-end">
+											<button type="button" class="se-btn se-btn--banner"
+												data-reset-filters>
+												<span><fmt:message key="issuer.trading.info.v2.search.reset" /></span> <span
+													class="se-btn__icon se-btn__icon--refresh se-icon icon-custom-refresh-cycle icon-md"></span>
+											</button>
+										</div>
+									</div>
+								</div>
+								<div
+									class="col-12 col-lg-12 col-md-12 col-sm-12 col-xm-12 legend">
+									<ul class="listIdentation">
+										<li class="liIdentation"><span class="legendGrn"></span>
+											<fmt:message
+												key="issuer.trading.info.v2.accumulated.losses.50.more" /></li>
+										<li class="mx-0 liIdentation"><span class="legendOrg"></span>
+											<fmt:message
+												key="issuer.trading.info.v2.accumulated.losses.35.to.50" /></li>
+										<li class="mx-0 liIdentation"><span class="legendYlw"></span>
+											<fmt:message
+												key="issuer.trading.info.v2.accumulated.losses.20.to.35" /></li>
+									</ul>
+								</div>
+							</div>
+
+						</div>
+
+						<div class="banner-filters__group"
+							data-filters-for="deListedCompanies">
+							<div class="row">
+
+								<!-- Type -->
+								<div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+									<div class="form-field">
+										<label class="form-label"> <fmt:message
+												key="suspended.company.type" />
+										</label>
+
+										<div class="form-control-shell is-select" tabindex="0"
+											data-select data-field="type">
+
+											<div class="form-select-value is-placeholder">
+												<fmt:message key="suspended.company.suspension.dp" />
+											</div>
+
+											<input type="hidden" name="type" data-filter="type"
+												value="Suspension" data-default="Suspension" /> <span
+												class="form-suffix form-select-arrow" aria-hidden="true"></span>
+
+											<div class="form-popover">
+												<div class="form-select-panel">
+													<div class="form-select-list">
+
+														<div class="form-select-option" data-value="Suspension"
+															data-selected="true">
+															<fmt:message key="suspended.company.suspension.dp" />
+														</div>
+
+														<div class="form-select-option" data-value="Delisting">
+															<fmt:message key="suspended.company.delisting.dp" />
+														</div>
+														
+														<div class="form-select-option" data-value="Suspension_Funds">
+															<fmt:message key="suspended.company.suspension.funds.dp" />
+														</div>
+														
+														<div class="form-select-option" data-value="Delisted_Funds">
+															<fmt:message key="suspended.company.delisting.funds.dp" />
+														</div>
+
+													</div>
+												</div>
+											</div>
+
+										</div>
+									</div>
+								</div>
+
+								<!-- Date Range -->
+								<div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+									<div class="form-field">
+										<label class="form-label"> <fmt:message
+												key="issuer.trading.info.v2.section.heading.timeperiod" />
+										</label>
+
+
+										<div class="form-control-shell form-date-range is-date"
+											data-date-range>
+											<input type="text" name="fromDate" data-filter="fromDate"
+												class="form-date-input" placeholder="Start date" readonly
+												data-date-start /> <span class="form-date-range-separator"
+												aria-hidden="true">-</span> <input type="text" name="toDate"
+												data-filter="toDate" class="form-date-input"
+												placeholder="End date" readonly data-date-end /> <span
+												class="form-suffix form-date-icon"></span>
+										</div>
+
+
+
+
+									</div>
+								</div>
+
+							</div>
+							<div class="row">
+								<div class="col-12 col-lg-12 col-md-12 col-sm-12 mt-3">
+									<div class="d-flex justify-content-lg-end align-items-end">
+										<button type="button" class="se-btn se-btn--banner"
+											data-reset-filters>
+											<span> <fmt:message key="issuer.trading.info.v2.search.reset" /> </span> <span
+												class="se-btn__icon se-btn__icon--refresh se-icon icon-custom-refresh-cycle icon-md"></span>
+										</button>
+									</div>
+								</div>
+							</div>
+							
+								<div
+									class="col-12 col-lg-12 col-md-12 col-sm-12 col-xm-12 legend">
+									<ul class="listIdentation">
+										<li class="liIdentation"><span class="legendGrn"></span>
+											<fmt:message
+												key="issuer.trading.info.v2.accumulated.losses.50.more" /></li>
+										<li class="mx-0 liIdentation"><span class="legendOrg"></span>
+											<fmt:message
+												key="issuer.trading.info.v2.accumulated.losses.35.to.50" /></li>
+										<li class="mx-0 liIdentation"><span class="legendYlw"></span>
+											<fmt:message
+												key="issuer.trading.info.v2.accumulated.losses.20.to.35" /></li>
+									</ul>
+								</div>
+						</div>
+
+						<!-- otcTrading -->
+						<div class="banner-filters__group" data-filters-for="otcTrading">
+							<!-- (if any filters exist, same pattern: data-filter only) -->
+						</div>
+
+					</div>
+				</section>
 			</div>
 		</div>
 	</div>
-
-	<%-- =====================================================
-         CONTENT
-         ===================================================== --%>
-
 	<div class="intro-section">
+
 		<section class="app-container mt-5">
-			<section class="feature-content sukuk-bonds-content">
 
-				<%-- =========================================
-                     DESKTOP TABLE VIEW
-                     ========================================= --%>
-
-				<div id="sukukBondsDesktopView"
-					class="desktop-table-view page-view-container">
-					<div class="table-wrapper">
-						<table id="sukukAndBondsMarketWatchTable"
-							class="table sukuk-bonds-market-table" width="100%">
+			<!-- Tab Content (can live anywhere on the page) -->
+			<section id="main-content" class="tab-content">
+				<!-- negotiatedDeals panel -->
+				<section class="tab-content__panel is-active"
+					id="trading-panel-negotiatedDeals" role="tabpanel"
+					aria-labelledby="trading-tab-negotiatedDeals"
+					data-tab="negotiatedDeals">
+					<!-- Variant A: Negotiated Deals -->
+					<div data-variant="Negotiated-Deals">
+						<div class="resultBox">
+							<div class="resultFst">
+								<div class="resultShow">
+									<fmt:message key="issuer.trading.info.results.msg" />
+									: <span id="tradingTableResultsId">0</span>
+								</div>
+							</div>
+						</div>
+						<table id="negotiatedDealsTable" class="table">
 							<thead>
 								<tr>
-
-									<th data-column-group="instrument"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.name" />
-									</th>
-
-									<th data-column-group="isin"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.isin" />
-									</th>
-
-									<th data-column-group="couponDetails"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.couponType" />
-									</th>
-
-									<th data-column-group="couponDetails"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.couponrate" />
-									</th>
-
-									<th data-column-group="maturity"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.maturitydate" />
-									</th>
-
-									<th data-column-group="yieldDetails"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.instrumentYield" />
-									</th>
-
-									<th data-column-group="yieldDetails"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.bidYield" />
-									</th>
-
-									<th data-column-group="yieldDetails"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.askYield" />
-									</th>
-
-									<th data-column-group="issueDetails"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.parValue" />
-									</th>
-
-									<th data-column-group="priceDetails"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.lastTradePrice" />
-									</th>
-
-									<th data-column-group="priceDetails"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.bidPrice" />
-									</th>
-
-									<th data-column-group="priceDetails"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.askPrice" />
-									</th>
-
-									<th data-column-group="issueDetails"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.issuanceAmount" />
-									</th>
-
-									<th data-column-group="issueDetails"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.issuanceCurrency" />
-									</th>
-
-									<th data-column-group="couponMeta"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.couponFrequency" />
-									</th>
-
-									<th data-column-group="couponMeta"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.dayCountConvention" />
-									</th>
-
-									<th data-column-group="watchlist"><fmt:message
-											key="marketwatch.todaywatch.v2.table.column.header.watchlist" />
-									</th>
-
+									<th><fmt:message
+											key="issuer.trading.info.v2.table.heading.date" /></th>
+									<th><fmt:message
+											key="issuer.trading.info.v2.table.heading.symbol" /></th>
+									<th><fmt:message
+											key="issuer.trading.info.v2.table.heading.companyname" /></th>
+									<th><fmt:message
+											key="issuer.trading.info.v2.table.heading.price" /></th>
+									<th><fmt:message
+											key="issuer.trading.info.v2.table.heading.volumetraded" /></th>
+									<th><fmt:message
+											key="issuer.trading.info.v2.table.heading.valuetraded" /></th>
+									<th><fmt:message
+											key="issuer.trading.info.v2.table.heading.time" /></th>
 								</tr>
 							</thead>
-
 							<tbody></tbody>
 						</table>
 					</div>
-				</div>
 
-				<%-- =========================================
-                     MOBILE CARD VIEW
-                     ========================================= --%>
+					<!-- Variant B: Minimum Size (hidden by default) -->
+					<div data-variant="Minimum-Size" hidden>
+						<div class="resultBox">
+							<div class="resultFst">
+								<div class="resultShow">
+									<fmt:message key="issuer.trading.info.results.msg" />
+									: <span id="minimumSizeTableResultsId">0</span>
+								</div>
+							</div>
+						</div>
+						<table id="minimumSizeTable" class="table">
+							<thead>
+								<tr>
+									<th><fmt:message key="adtv.sub.row.1" /></th>
+									<th><fmt:message key="adtv.sub.row.0.col.1" /></th>
+									<th><fmt:message key="adtv.sub.row.0.col.2" /></th>
+									<th><fmt:message key="adtv.sub.row.0.col.3" /></th>
+									<th><fmt:message key="adtv.sub.row.0.col.4" /></th>
+								</tr>
+								<tr>
+									<th><fmt:message key="adtv.sub.row.2" /></th>
+									<th><fmt:message key="adtv.sub.row.1.col.1" /></th>
+									<th><fmt:message key="adtv.sub.row.1.col.2" /></th>
+									<th><fmt:message key="adtv.sub.row.1.col.3" /></th>
+									<th><fmt:message key="adtv.sub.row.1.col.4" /></th>
+								</tr>
+								<tr>
+									<th><fmt:message key="adtv.sub.row.3" /></th>
+									<th><fmt:message key="adtv.sub.row.2.col.1" /></th>
+									<th><fmt:message key="adtv.sub.row.2.col.2" /></th>
+									<th><fmt:message key="adtv.sub.row.2.col.3" /></th>
+									<th><fmt:message key="adtv.sub.row.2.col.4" /></th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</section>
 
-				<div id="sukukBondsMobileView"
-					class="mobile-card-view page-view-container" hidden>
-					<div id="sukukBondsCards" class="market-watch-cards"></div>
-				</div>
+				<!-- accumulated panel -->
+				<section class="tab-content__panel" id="trading-panel-accumulated"
+					role="tabpanel" aria-labelledby="trading-tab-accumulated"
+					data-tab="accumulated" hidden>
+					<div class="resultBox">
+						<div class="resultFst">
+							<div class="resultShow">
+								<fmt:message key="issuer.trading.info.results.msg" />
+								: <span id="accumulatedLossesTableResultsId">0</span>
+							</div>
+						</div>
+					</div>
+					<table id="accumulatedLossesTable" class="table" data-dt>
+						<thead>
+							<tr>
+								<th><fmt:message
+										key="issuer.trading.info.v2.table.heading.acc.symbol" /></th>
+								<th><fmt:message
+										key="issuer.trading.info.v2.table.heading.acc.companyname" /></th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</section>
 
-				<%-- =========================================
-                     FOOTNOTES
-                     ========================================= --%>
+				<!-- listedTradable panel -->
+				<section class="tab-content__panel"
+					id="trading-panel-listedTradable" role="tabpanel"
+					aria-labelledby="trading-tab-listedTradable"
+					data-tab="listedTradable" hidden>
+					<div class="resultBox">
+						<div class="resultFst">
+							<div class="resultShow">
+								<fmt:message key="issuer.trading.info.results.msg" />
+								: <span id="listedTradableRightsTableResultsId">0</span>
+							</div>
+						</div>
+					</div>
+					<table id="listedTradableRightsTable" class="table">
+						<thead>
+							<tr>
+								<th rowspan="2" class="align numeric"
+									style="text-align: center;"><fmt:message
+										key="equityright.table.column.header.tradable.rights" /></th>
+								<th colspan="4" class="align numeric"
+									style="text-align: center;"><fmt:message
+										key="equityright.table.column.header.last.trade" /></th>
+								<th colspan="3" class="align numeric"
+									style="text-align: center;"><fmt:message
+										key="equityright.table.column.header.todays" /></th>
+								<th colspan="2" class="align numeric"
+									style="text-align: center;"><fmt:message
+										key="equityright.table.column.header.cumulative" /></th>
+								<th colspan="2" class="align numeric"
+									style="text-align: center;"><fmt:message
+										key="equityright.table.column.header.best.bid" /></th>
+								<th colspan="2" class="align numeric"
+									style="text-align: center;"><fmt:message
+										key="equityright.table.column.header.best.offer" /></th>
+							</tr>
+							<tr>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.price" /></th>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.volume" /></th>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.change.value" /></th>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.change.percent" /></th>
 
-				<div class="notes">
-					<ul>
-						<li><fmt:message
-								key="equity.market.watch.sukukbonds.footnote1" />
-						</li>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.open" /></th>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.high" /></th>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.low" /></th>
 
-						<li><fmt:message
-								key="equity.market.watch.sukukbonds.footnote2" />
-						</li>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.number.of.trades" /></th>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.volume.traded" /></th>
 
-						<li><fmt:message
-								key="equity.market.watch.sukukbonds.footnote3" />
-						</li>
-					</ul>
-				</div>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.price" /></th>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.volume" /></th>
 
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.price" /></th>
+								<th class="align numeric"><fmt:message
+										key="equityright.table.column.header.volume" /></th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</section>
+
+				<!-- deListedCompanies panel -->
+				<section class="tab-content__panel"
+					id="trading-panel-deListedCompanies" role="tabpanel"
+					aria-labelledby="trading-tab-deListedCompanies"
+					data-tab="deListedCompanies" hidden>
+
+					<!-- Variant A: Suspension -->
+					<div data-variant="Suspension">
+						<div class="resultBox">
+							<div class="resultFst">
+								<div class="resultShow">
+									<fmt:message key="issuer.trading.info.results.msg" />
+									: <span id="suspendedTableResultsId">0</span>
+								</div>
+							</div>
+						</div>
+						<table id="suspendedCompTable" class="table">
+							<thead>
+								<tr>
+									<th rowspan="2"><fmt:message
+											key="suspended.company.symbol" /></th>
+									<th rowspan="2" class="align"><fmt:message
+											key="suspended.company.name" /></th>
+									<th colspan="2" class="text-center"><fmt:message
+											key="suspended.company.period" /></th>
+									<th rowspan="2"><fmt:message
+											key="suspended.company.reason" /></th>
+								</tr>
+								<tr>
+									<th><fmt:message key="suspended.company.period.from" /></th>
+									<th><fmt:message key="suspended.company.period.to" /></th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+
+					<!-- Variant B: Delisting (hidden by default) -->
+					<div data-variant="Delisting" hidden>
+						<div class="resultBox">
+							<div class="resultFst">
+								<div class="resultShow">
+									<fmt:message key="issuer.trading.info.results.msg" />
+									: <span id="suspendedDelistedResultsId">0</span>
+								</div>
+							</div>
+						</div>
+						<table id="delistedCompTable"
+							class="table table-striped table-bordered" cellspacing="0"
+							width="100%" data-dt>
+							<thead>
+								<tr>
+									<th><fmt:message key="delisted.company.symbol" /></th>
+									<th class="align"><fmt:message key="delisted.company.name" /></th>
+									<th><fmt:message key="delisted.company.date" /></th>
+								<!-- 	<th><fmt:message key="delisted.company.transformeddate" /></th>  -->
+									<th><fmt:message key="delisted.company.reason" /></th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</section>
+
+				<!-- otcTrading panel -->
+				<section class="tab-content__panel" id="trading-panel-otcTrading"
+					role="tabpanel" aria-labelledby="trading-tab-otcTrading"
+					data-tab="otcTrading" hidden="hidden">
+					<div class="resultBox">
+						<div class="resultFst">
+							<div class="resultShow">
+								<fmt:message key="issuer.trading.info.results.msg" />
+								: <span id="otcTradingTableResultsId">0</span>
+							</div>
+						</div>
+					</div>
+					<table id="otcTradingTable" class="table" data-dt>
+						<thead>
+							<tr>
+								<th><fmt:message key="OTC.Symbol" /></th>
+								<th><fmt:message key="OTC.Company" /></th>
+								<th><fmt:message key="OTC.TradedVolume" /></th>
+								<th class="text-center"><fmt:message key="OTC.LastUpdatePrice" /></th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</section>
 			</section>
 		</section>
 	</div>
-
 </section>
 
-<%-- =========================================================
-     PAGE CONFIGURATION
-     ========================================================= --%>
+
 
 <script>
-    window.SukukBondsMarketWatchConfig = {
-        moduleName: "sukukBondsMarketWatch",
- 
-        locale:
-            "<c:out value='${pageContext.request.locale.language}' />",
- 
-        endpoints: {
-            marketWatch:
-                "<portlet:resourceURL id='getSukukMarketDetails' />"
+window.DROPDOWN_CONFIG = {
+  sector: {
+    targets: [
+      {
+        field: 'company',
+        url: '<portlet:resourceURL id="getCompaniesBySector" />',
+        method: 'GET',
+        params: function (sectorValue) {
+          return {
+            format: 'json',
+            sector: sectorValue
+          };
         },
- 
-        filters: {
-            sectorParameter:
-                "<c:out value='${empty requestScope.selectedSector ? "all" : requestScope.selectedSector}' />"
-        },
- 
-        selectors: {
-            sectorInput:
-                "#sectorParameter",
- 
-            columnVisibilityInput:
-                "#columnVisibility",
- 
-            desktopView:
-                "#sukukBondsDesktopView",
- 
-            mobileView:
-                "#sukukBondsMobileView",
- 
-            cardsContainer:
-                "#sukukBondsCards",
- 
-            columnField:
-                '[data-field="columnVisibility"]',
- 
-            table:
-                "#sukukAndBondsMarketWatchTable"
-        },
- 
-        breakpoints: {
-            mobileMaxWidth: 767.98
-        },
- 
-        columnGroups: {
-            instrument: true,
-            isin: true,
-            couponDetails: true,
-            maturity: true,
-            yieldDetails: true,
-            priceDetails: true,
-            issueDetails: true,
-            couponMeta: true,
-            watchlist: true
-        },
- 
-        labels: {
-            showAll:
-                "<fmt:message key='show.hide.all' />",
- 
-            noColumns:
-                "<fmt:message key='show.hide.no.columns' />",
- 
-            selectedSuffix:
-                "<fmt:message key='selected' />",
- 
-            noData:
-                "<fmt:message key='no.data.available' />",
- 
-            selectAll:
-                "<fmt:message key='select.all' />",
- 
-            clearAll:
-                "<fmt:message key='clear.all' />",
-                
-            government: "<fmt:message key='sukukAndBonds.sukuk.governmentSukuk' />",
-            
-            corporate: "<fmt:message key='sukukAndBonds.sukuk.corporateSukuk' />",
- 
-            mobile: {
-                symbolName:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.name' />",
- 
-                price:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.lastTradePrice' />"
-            },
- 
-            card: {
-                instrument:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.name' />",
- 
-                tadawulCode:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.tadawulcode' />",
- 
-                name:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.name' />",
- 
-                isin:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.isin' />",
- 
-                couponType:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.couponType' />",
- 
-                couponRate:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.couponrate' />",
- 
-                maturityDate:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.maturitydate' />",
- 
-                instrumentYield:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.instrumentYield' />",
- 
-                bidYield:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.bidYield' />",
- 
-                askYield:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.askYield' />",
- 
-                parValue:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.parValue' />",
- 
-                lastTradePrice:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.lastTradePrice' />",
- 
-                bidPrice:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.bidPrice' />",
- 
-                askPrice:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.askPrice' />",
- 
-                issuanceAmount:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.issuanceAmount' />",
- 
-                issuanceCurrency:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.issuanceCurrency' />",
- 
-                couponFrequency:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.couponFrequency' />",
- 
-                dayCountConvention:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.dayCountConvention' />",
- 
-                watchlist:
-                    "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.watchlist' />",
- 
-                perpetualBond:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.column.perpetualBond' />",
- 
-                floating:
-                    "<fmt:message key='bonds.market.watch.label.Floating' />",
- 
-                fixed:
-                    "<fmt:message key='bonds.market.watch.label.Fixed' />",
- 
-                couponFrequency1:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.1' />",
- 
-                couponFrequency2:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.2' />",
- 
-                couponFrequency4:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.4' />",
- 
-                couponFrequency12:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.12' />",
- 
-                couponFrequency0:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.0' />",
- 
-                dayCount7:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.dayCountConvention.7' />",
- 
-                dayCount2:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.dayCountConvention.2' />",
- 
-                dayCount3:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.dayCountConvention.3' />",
- 
-                dayCount0:
-                    "<fmt:message key='sukukAndBonds.all.market.watch.dayCountConvention.0' />"
-            }
-        },
- 
-        columnVisibilityDelay: 40,
-        resizeDelay: 200
-    };
+        map: function (item) {
+          return {
+            value: item.symbol,
+            label: item.longName
+          };
+        }
+      }
+    ]
+  }
+};
 </script>
 
-<%-- =========================================================
-     MODULE SCRIPTS
-     ========================================================= --%>
+<script>
+window.TRADING_DATATABLE_CONFIG = {
+  locale: document.querySelector("#requestLocale")?.value || "en",
 
-<script
-	src="${pageContext.request.contextPath}/js/utility/format-util.js"></script>
-
-<script
-	src="${pageContext.request.contextPath}/js/utility/custom-select.js"></script>
-
-<script
-	src="${pageContext.request.contextPath}/js/utility/page-view-manager.js"></script>
-
-<script
-	src="${pageContext.request.contextPath}/js/sukuk-bonds.schema.js"></script>
-
-<script
-	src="${pageContext.request.contextPath}/js/sukuk-bonds.page.renderers.js"></script>
-
-<script src="${pageContext.request.contextPath}/js/sukuk-bonds.page.js"></script>
-
-(function (window, document) {
-    "use strict";
+  ui: {
+    loader: {
+      enabled: true,
+      text: '<fmt:message key="datatable.loading" />'
+    },
  
-    var MODULE_NAME = "SukukBonds";
+    empty: {
+      text: '<fmt:message key="datatable.no.data" />',
+      imageUrl: "${pageContext.request.contextPath}/images/no-data.png"
+    },
  
-    var DEFAULT_SELECTORS = {
-        sectorInput:
-            "#sectorParameter",
- 
-        columnVisibilityInput:
-            "#columnVisibility",
- 
-        desktopView:
-            "#sukukBondsDesktopView",
- 
-        mobileView:
-            "#sukukBondsMobileView",
- 
-        cardsContainer:
-            "#sukukBondsCards",
- 
-        columnField:
-            '[data-field="columnVisibility"]',
- 
-        table:
-            "#sukukAndBondsMarketWatchTable"
-    };
- 
-    var DEFAULT_BREAKPOINT =
-        767.98;
- 
-    /* =========================================================
-       INITIALIZATION
-       ========================================================= */
- 
-    document.addEventListener(
-        "DOMContentLoaded",
-        initialize
-    );
- 
-    function initialize() {
-        var baseConfig;
-        var selectors;
-        var managerConfig;
-        var manager;
- 
-        validateDependencies();
- 
-        baseConfig =
-            getBaseConfig();
- 
-        selectors =
-            resolveSelectors(
-                baseConfig.selectors
-            );
- 
-        managerConfig =
-            buildManagerConfig(
-                baseConfig,
-                selectors
-            );
- 
-        if (!managerConfig.endpoint) {
-            console.error(
-                "[" + MODULE_NAME + "] Missing market-watch endpoint.",
-                baseConfig.endpoints || {}
-            );
- 
-            return;
-        }
- 
-        destroyExistingBindings();
-        destroyExistingManager();
- 
-        manager =
-            window.PageViewManager
-                .create({
-                    config:
-                        managerConfig,
- 
-                    renderers:
-                        window.SukukBondsRenderers
-                })
-                .init();
- 
-        window.SukukBondsMarketWatchManager =
-            manager;
- 
-        window.SukukBondsSelectBinding =
-            bindCustomSelects(
-                manager,
-                selectors
-            );
+    pagination: {
+      enabled: true,
+      className: "feed__pagination",
+      pageText: '<fmt:message key="pagination.page" />',
+      ofText: '<fmt:message key="pagination.of" />',
+      prevAriaLabel: '<fmt:message key="pagination.previous" />',
+      nextAriaLabel: '<fmt:message key="pagination.next" />'
     }
+  },
  
-    /* =========================================================
-       DEPENDENCY VALIDATION
-       ========================================================= */
+  defaults: {
+    dateRange: {
+      enabled: true,
+      mode: "lastMonthToToday",
+      format: "dd-MM-yyyy"
+    },
  
-    function validateDependencies() {
-        if (!window.PageViewManager) {
-            throw new Error(
-                "SukukBonds requires PageViewManager."
-            );
-        }
- 
-        if (!window.SukukBondsRenderers) {
-            throw new Error(
-                "SukukBonds requires SukukBondsRenderers."
-            );
-        }
- 
-        if (!window.SukukBondsSchema) {
-            throw new Error(
-                "SukukBonds requires SukukBondsSchema."
-            );
-        }
+    dataTable: {
+      paging: true,
+      pageLength: 25,
+      lengthMenu: [25, 50, 100],
+      searching: false,
+      ordering: false,
+      info: false,
+      dom: "rt",
+      deferRender: true,
+      autoWidth: false,
+      fixedHeader: true
     }
- 
-    /* =========================================================
-       CONFIGURATION
-       ========================================================= */
- 
-    function getBaseConfig() {
-        return (
-            window.SukukBondsMarketWatchConfig ||
-            window.SukukBondsConfig ||
-            {}
-        );
-    }
- 
-    function resolveSelectors(
-        configuredSelectors
-    ) {
-        return Object.assign(
-            {},
-            DEFAULT_SELECTORS,
-            configuredSelectors || {}
-        );
-    }
- 
-    function resolveEndpoint(
-        baseConfig
-    ) {
-        if (baseConfig.endpoint) {
-            return baseConfig.endpoint;
-        }
- 
-        if (
-            baseConfig.endpoints &&
-            baseConfig.endpoints.marketWatch
-        ) {
-            return (
-                baseConfig.endpoints.marketWatch
-            );
-        }
- 
-        return "";
-    }
- 
-    function resolveMobileBreakpoint(
-        baseConfig
-    ) {
-        if (
-            baseConfig.breakpoints &&
-            typeof baseConfig.breakpoints
-                .mobileMaxWidth ===
-                "number"
-        ) {
-            return (
-                baseConfig.breakpoints
-                    .mobileMaxWidth
-            );
-        }
- 
-        if (
-            typeof baseConfig.mobileMaxWidth ===
-                "number"
-        ) {
-            return baseConfig.mobileMaxWidth;
-        }
- 
-        return DEFAULT_BREAKPOINT;
-    }
- 
-    function buildManagerConfig(
-        baseConfig,
-        selectors
-    ) {
-        var schema =
-            window.SukukBondsSchema;
- 
-        var schemaColumnGroups =
-            schema.getColumnGroups(
-                baseConfig
-            );
- 
-        var schemaColumnGroupsByView =
-            schema.getColumnGroupsByView(
-                baseConfig
-            );
- 
-        var configuredVisibility =
-            Object.assign(
-                {},
-                schemaColumnGroups,
-                baseConfig.columnGroups || {}
-            );
- 
-        return Object.assign(
-            {},
-            baseConfig,
-            {
-                moduleName:
-                    baseConfig.moduleName ||
-                    "sukukBondsMarketWatch",
- 
-                endpoint:
-                    resolveEndpoint(
-                        baseConfig
-                    ),
- 
-                initialView:
-                    String(
-                        baseConfig.initialView ||
-                        "1"
-                    ),
- 
-                mobileMaxWidth:
-                    resolveMobileBreakpoint(
-                        baseConfig
-                    ),
- 
-                selectors:
-                    selectors,
- 
-                viewTargets: {
-                    "1":
-                        selectors.table
-                },
- 
-                columnVisibility:
-                    Object.assign(
-                        {},
-                        configuredVisibility
-                    ),
- 
-                defaultColumnVisibility:
-                    Object.assign(
-                        {},
-                        configuredVisibility
-                    ),
- 
-                columnGroupsByView:
-                    schemaColumnGroupsByView,
- 
-                getRequestData:
-                    function () {
-                        return buildRequestData(
-                            baseConfig,
-                            selectors
-                        );
-                    }
-            }
-        );
-    }
- 
-    /* =========================================================
-       REQUEST DATA
-       ========================================================= */
- 
-    function buildRequestData(
-        baseConfig,
-        selectors
-    ) {
-        return {
-            sectorParameter:
-                getSectorValue(
-                    selectors,
-                    baseConfig
-                ),
- 
-            requestLocale:
-                getLocale(
-                    baseConfig
-                )
-        };
-    }
- 
-    function getLocale(baseConfig) {
-        var localeInput =
-            document.querySelector(
-                "#requestLocale"
-            );
- 
-        if (
-            localeInput &&
-            localeInput.value
-        ) {
-            return localeInput.value;
-        }
- 
-        return (
-            baseConfig.locale ||
-            document.documentElement.lang ||
-            "en"
-        );
-    }
- 
-    function getSectorValue(
-        selectors,
-        baseConfig
-    ) {
-        var input =
-            document.querySelector(
-                selectors.sectorInput
-            );
- 
-        if (
-            input &&
-            input.value
-        ) {
-            return input.value;
-        }
- 
-        if (
-            baseConfig &&
-            baseConfig.filters &&
-            baseConfig.filters
-                .sectorParameter
-        ) {
-            return (
-                baseConfig.filters
-                    .sectorParameter
-            );
-        }
- 
-        return "all";
-    }
- 
-    /* =========================================================
-       CUSTOM SELECT BINDING
-       ========================================================= */
- 
-    function bindCustomSelects(
-        manager,
-        selectors
-    ) {
-        var sectorInput;
-        var lastSector;
-        var refreshTimer = null;
-        var destroyed = false;
- 
-        if (!manager) {
-            return createEmptyBinding();
-        }
- 
-        sectorInput =
-            document.querySelector(
-                selectors.sectorInput
-            );
- 
-        lastSector =
-            getCurrentSectorValue(
-                sectorInput
-            );
- 
-        function scheduleSectorSync() {
-            if (destroyed) {
-                return;
-            }
- 
-            if (refreshTimer) {
-                window.clearTimeout(
-                    refreshTimer
-                );
-            }
- 
-            /*
-             * CustomSelect may update its hidden input after
-             * the option click has completed. Running on the
-             * next event loop ensures the new value is available.
-             */
-            refreshTimer =
-                window.setTimeout(
-                    syncSector,
-                    0
-                );
-        }
- 
-        function syncSector() {
-            var currentSector;
- 
-            refreshTimer = null;
- 
-            if (destroyed) {
-                return;
-            }
- 
-            currentSector =
-                getCurrentSectorValue(
-                    sectorInput
-                );
- 
-            if (
-                currentSector ===
-                lastSector
-            ) {
-                return;
-            }
- 
-            lastSector =
-                currentSector;
- 
-            if (
-                typeof manager.refresh ===
-                    "function"
-            ) {
-                manager.refresh();
-            }
-        }
- 
-        function handleDocumentClick(
-            event
-        ) {
-            var option;
-            var fieldShell;
-            var fieldName;
- 
-            option =
-                event.target.closest(
-                    ".form-select-option"
-                );
- 
-            if (!option) {
-                return;
-            }
- 
-            fieldShell =
-                option.closest(
-                    "[data-field]"
-                );
- 
-            if (!fieldShell) {
-                return;
-            }
- 
-            fieldName =
-                fieldShell.getAttribute(
-                    "data-field"
-                );
- 
-            /*
-             * Column visibility is already owned by
-             * PageViewManager. Only the sector filter should
-             * trigger a remote data refresh here.
-             */
-            if (
-                fieldName !==
-                "sectorParameter"
-            ) {
-                return;
-            }
- 
-            scheduleSectorSync();
-        }
- 
-        function handleSectorChange() {
-            scheduleSectorSync();
-        }
- 
-        document.addEventListener(
-            "click",
-            handleDocumentClick
-        );
- 
-        if (sectorInput) {
-            sectorInput.addEventListener(
-                "change",
-                handleSectorChange
-            );
-        }
- 
-        return {
-            destroy:
-                function () {
-                    if (destroyed) {
-                        return;
-                    }
- 
-                    destroyed = true;
- 
-                    document.removeEventListener(
-                        "click",
-                        handleDocumentClick
-                    );
- 
-                    if (sectorInput) {
-                        sectorInput.removeEventListener(
-                            "change",
-                            handleSectorChange
-                        );
-                    }
- 
-                    if (refreshTimer) {
-                        window.clearTimeout(
-                            refreshTimer
-                        );
- 
-                        refreshTimer =
-                            null;
-                    }
-                }
-        };
-    }
- 
-    function getCurrentSectorValue(
-        input
-    ) {
-        if (
-            input &&
-            input.value
-        ) {
-            return input.value;
-        }
- 
-        return "all";
-    }
- 
-    function createEmptyBinding() {
-        return {
-            destroy:
-                function () {}
-        };
-    }
- 
-    /* =========================================================
-       CLEANUP
-       ========================================================= */
- 
-    function destroyExistingManager() {
-        var manager =
-            window
-                .SukukBondsMarketWatchManager;
- 
-        if (
-            manager &&
-            typeof manager.destroy ===
-                "function"
-        ) {
-            manager.destroy();
-        }
- 
-        window.SukukBondsMarketWatchManager =
-            null;
-    }
- 
-    function destroyExistingBindings() {
-        var binding =
-            window.SukukBondsSelectBinding;
- 
-        if (
-            binding &&
-            typeof binding.destroy ===
-                "function"
-        ) {
-            binding.destroy();
-        }
- 
-        window.SukukBondsSelectBinding =
-            null;
-    }
- 
-})(window, document);
-    (function (window) {
-    "use strict";
- 
-    var Format = window.FormatUtils;
-    var Schema = window.SukukBondsSchema;
- 
-    if (!Format) {
-        throw new Error(
-            "SukukBondsRenderers requires FormatUtils."
-        );
-    }
- 
-    if (!Schema) {
-        throw new Error(
-            "SukukBondsRenderers requires SukukBondsSchema."
-        );
-    }
- 
-    /* =========================================================
-       CONFIGURATION HELPERS
-       ========================================================= */
- 
-    function getLabels(config) {
-        return (
-            config &&
-            config.labels
-        ) || {};
-    }
- 
-    function getMobileLabels(config) {
-        return (
-            getLabels(config).mobile ||
-            {}
-        );
-    }
- 
-    function getCardLabels(config) {
-        return (
-            getLabels(config).card ||
-            {}
-        );
-    }
- 
-    /* =========================================================
-       GENERIC VALUE HELPERS
-       ========================================================= */
- 
-    function hasValue(value) {
-        return (
-            value !== null &&
-            value !== undefined &&
-            value !== ""
-        );
-    }
- 
-    function getFirstValue(
-        row,
-        keys,
-        fallback
-    ) {
-        var i;
-        var key;
- 
-        row = row || {};
- 
-        for (
-            i = 0;
-            i < keys.length;
-            i += 1
-        ) {
-            key = keys[i];
- 
-            if (hasValue(row[key])) {
-                return row[key];
-            }
-        }
- 
-        return fallback == null
-            ? ""
-            : fallback;
-    }
- 
-    function normalizeRows(data) {
-        if (Array.isArray(data)) {
-            return data;
-        }
- 
-        if (
-            data &&
-            Array.isArray(data.data)
-        ) {
-            return data.data;
-        }
- 
-        if (
-            data &&
-            Array.isArray(data.rows)
-        ) {
-            return data.rows;
-        }
- 
-        return [];
-    }
- 
-    /* =========================================================
-       INSTRUMENT HELPERS
-       ========================================================= */
- 
-    function getInstrumentCode(row) {
-        return getFirstValue(
-            row,
-            [
-                "symbol",
-                "tadawulCode",
-                "tadawulCodeModified",
-                "tadawulcode",
-                "code",
-                "companyRef",
-                "securityCode"
-            ],
-            "-"
-        );
-    }
- 
-    function getInstrumentName(row) {
-        return getFirstValue(
-            row,
-            [
-                "issuerName",
-                "issuerNameModified",
-                "name",
-                "instrumentName",
-                "securityName"
-            ],
-            "-"
-        );
-    }
- 
-    function getLastPrice(row) {
-        return getFirstValue(
-            row,
-            [
-                "lastTradePrice",
-                "lastTradePriceModified",
-                "bidPrice",
-                "bidPriceModified",
-                "askPrice",
-                "askPriceModified"
-            ],
-            "-"
-        );
-    }
- 
-    /* =========================================================
-       WATCHLIST
-       ========================================================= */
- 
-    function isWatchlistActive(row) {
-        var status =
-            row.watchlist ||
-            row.watchList ||
-            row.watchListId;
- 
-        return (
-            status === true ||
-            status === "true" ||
-            status === "YES" ||
-            status === "Y" ||
-            status === 1 ||
-            status === "1"
-        );
-    }
- 
-    function renderWatchlist(row) {
-        var instrumentRef =
-            getInstrumentCode(row);
- 
-        var active =
-            isWatchlistActive(row);
- 
-        var symbol =
-            Format.escapeHtml(
-                instrumentRef
-            );
- 
-        return (
-            '<div class="market-watch-watchlist">' +
- 
-                '<button type="button" ' +
-                    'id="WL_Btn_add-' + symbol + '" ' +
-                    'class="market-watch-watchlist__button ' +
-                        (active ? "d-none" : "") +
-                    '" ' +
-                    'onclick="showAddToWatchListPopup(\'' +
-                        symbol +
-                    '\')" ' +
-                    'aria-label="Add to Watchlist">' +
- 
-                    '<svg class="pc-icon" ' +
-                        'width="24" ' +
-                        'height="24" ' +
-                        'aria-hidden="true">' +
-                        '<use xlink:href="#custom-star"></use>' +
-                    "</svg>" +
- 
-                "</button>" +
- 
-                '<button type="button" ' +
-                    'id="WL_Btn_del-' + symbol + '" ' +
-                    'class="market-watch-watchlist__button ' +
-                        (active ? "" : "d-none") +
-                    '" ' +
-                    'onclick="showAddToWatchListPopup(\'' +
-                        symbol +
-                    '\')" ' +
-                    'aria-label="In Your Watchlist">' +
- 
-                    '<svg class="pc-icon" ' +
-                        'width="24" ' +
-                        'height="24" ' +
-                        'aria-hidden="true">' +
-                        '<use xlink:href="#custom-star-filled"></use>' +
-                    "</svg>" +
- 
-                "</button>" +
- 
-            "</div>"
-        );
-    }
- 
-    var helpers = {
-        renderWatchlist:
-            renderWatchlist
-    };
- 
-    /* =========================================================
-       COLUMN VISIBILITY
-       ========================================================= */
- 
-    function shouldShowColumn(
-        column,
-        state
-    ) {
-        if (!column.group) {
-            return true;
-        }
- 
-        if (
-            !state ||
-            !state.columnVisibility
-        ) {
-            return true;
-        }
- 
-        return (
-            state.columnVisibility[
-                column.group
-            ] !== false
-        );
-    }
- 
-    /* =========================================================
-       DATATABLE COLUMN BUILDER
-       ========================================================= */
- 
-    function buildDataTableColumn(column) {
-        var output = {
-            data:
-                column.data,
- 
-            className:
-                column.className,
- 
-            orderable:
-                column.orderable !== false,
- 
-            render:
-                function (
-                    data,
-                    type,
-                    row
-                ) {
-                    var value;
- 
-                    if (
-                        typeof column.render ===
-                        "function"
-                    ) {
-                        value =
-                            column.render(
-                                row,
-                                helpers,
-                                type
-                            );
-                    } else {
-                        value = data;
-                    }
- 
-                    if (
-                        value === null ||
-                        value === undefined ||
-                        value === ""
-                    ) {
-                        return "-";
-                    }
- 
-                    return value;
-                }
-        };
- 
-        if (column.width) {
-            output.width =
-                column.width;
-        }
- 
-        return output;
-    }
- 
-    /* =========================================================
-       MOBILE CARD FIELD BUILDER
-       ========================================================= */
- 
-    function buildCardField(
-        column,
-        row,
-        state
-    ) {
-        var value;
-        var fieldKey;
- 
-        if (!column.mobile) {
-            return "";
-        }
- 
-        if (
-            !shouldShowColumn(
-                column,
-                state
-            )
-        ) {
-            return "";
-        }
- 
-        if (
-            typeof column.render ===
-            "function"
-        ) {
-            value =
-                column.render(
-                    row,
-                    helpers,
-                    "display"
-                );
-        } else {
-            value =
-                row[column.data];
-        }
- 
-        if (
-            value === null ||
-            value === undefined ||
-            value === ""
-        ) {
-            value = "-";
-        }
- 
-        fieldKey =
-            column.group ||
-            column.key ||
-            "";
- 
-        return (
-            '<div class="mobile-field-cell" ' +
-                'data-field="' +
-                    Format.escapeHtml(
-                        fieldKey
-                    ) +
-                '">' +
- 
-                "<label>" +
-                    Format.escapeHtml(
-                        Format.sanitizeLabel(
-                            column.label ||
-                            column.key ||
-                            ""
-                        )
-                    ) +
-                "</label>" +
- 
-                '<div class="mobile-field-cell__value">' +
-                    (
-                        column.isHtml
-                            ? value
-                            : Format.escapeHtml(
-                                value
-                            )
-                    ) +
-                "</div>" +
- 
-            "</div>"
-        );
-    }
- 
-    function buildMobileFields(
-        columns,
-        row,
-        state
-    ) {
-        return columns
-            .map(function (column) {
-                return buildCardField(
-                    column,
-                    row,
-                    state
-                );
-            })
-            .join("");
-    }
- /* =========================================================
-       MOBILE CARD
-       ========================================================= */
- 
-    function buildCard(
-        row,
-        state,
-        config
-    ) {
-        var columns =
-            Schema.getViewColumns(
-                config,
-                "1"
-            );
- 
-        var code =
-            getInstrumentCode(row);
- 
-        var name =
-            getInstrumentName(row);
- 
-        var lastPrice =
-            getLastPrice(row);
- 
-        return (
-            '<div class="company-wrapper">' +
- 
-                '<div class="company-card-box" ' +
-                    'data-company-card>' +
- 
-                    '<div class="company-main" ' +
-                        'data-card-toggle>' +
- 
-                        '<div class="company-name-value">' +
- 
-                            '<label class="stock-number">' +
-                                Format.escapeHtml(
-                                    code || "-"
-                                ) +
-                            "</label>" +
- 
-                            '<label class="stock-name">' +
-                                Format.escapeHtml(
-                                    name || "-"
-                                ) +
-                            "</label>" +
- 
-                        "</div>" +
- 
-                        '<div class="company-market-value">' +
- 
-                            '<label class="current-market-value">' +
-                                Format.escapeHtml(
-                                    Format.formatPlainSafe(
-                                        lastPrice
-                                    )
-                                ) +
-                            "</label>" +
- 
-                        "</div>" +
- 
-                    "</div>" +
- 
-                    '<div class="company-extra ' +
-                        'company-market-value">' +
- 
-                        '<div class="mobile-field-grid">' +
-                            buildMobileFields(
-                                columns,
-                                row,
-                                state
-                            ) +
-                        "</div>" +
- 
-                    "</div>" +
- 
-                "</div>" +
- 
-            "</div>"
-        );
-    }
- 
-    /* =========================================================
-       TABLE NORMALIZATION
-       ========================================================= */
- 
-    function normalizeTableLayout(instance) {
-        var table;
-        var wrapper;
-     
-        if (
-            !instance ||
-            typeof instance.table !== "function"
-        ) {
-            return;
-        }
-     
-        table = instance.table().node();
-     
-        if (!table) {
-            return;
-        }
-     
-        /*
-         * Do not force a fixed table layout.
-         * DataTables must calculate widths from the content.
-         */
-        table.style.removeProperty(
-            "table-layout"
-        );
-     
-        table.style.removeProperty(
-            "width"
-        );
-     
-        wrapper = table.closest(
-            ".dt-container, .dataTables_wrapper"
-        );
-     
-        if (wrapper) {
-            wrapper.classList.add(
-                "datatable-core-table-wrapper"
-            );
-        }
-    }
- 
-    function adjustTable(instance) {
-        if (
-            !instance ||
-            !instance.columns ||
-            typeof instance.columns.adjust !==
-                "function"
-        ) {
-            return;
-        }
- 
-        window.requestAnimationFrame(
-            function () {
-                instance
-                    .columns
-                    .adjust();
-            }
-        );
-    }
- 
-    /* =========================================================
-       PUBLIC RENDERER API
-       ========================================================= */
- 
-    window.SukukBondsRenderers = {
- 
-        getTableColumns:
-            function (
-                view,
-                state,
-                config
-            ) {
-                return Schema
-                    .getViewColumns(
-                        config,
-                        view || "1"
-                    )
-                    .map(
-                        buildDataTableColumn
-                    );
-            },
- 
-            getTableOptions: function (
-            	    view,
-            	    state,
-            	    config
-            	) {
-            	    var labels = getLabels(config);
-            	 
-            	    return {
-            	        autoWidth: true,
-            	        scrollX: true,
-            	        scrollCollapse: true,
-            	        responsive: false,
-            	        ordering: false,
-            	        searching: false,
-            	        lengthChange: false,
-            	        info: false,
-            	        paging: false,
-            	        deferRender: true,
-            	        stripeClasses: [],
-            	 
-            	        rowGroup: {
-            	            dataSrc: function (row) {
-            	                var type = String(
-            	                    row && row.bondType
-            	                        ? row.bondType
-            	                        : ""
-            	                )
-            	                    .trim()
-            	                    .toUpperCase();
-            	 
-            	                if (type === "G") {
-            	                    return (
-            	                        labels.government ||
-            	                        "Government Sukuk"
-            	                    );
-            	                }
-            	 
-            	                return (
-            	                    labels.corporate ||
-            	                    "Corporate Sukuk"
-            	                );
-            	            }
-            	        }
-            	    };
-            	},
- 
-        normalizeResponse:
-            function (response) {
-                return normalizeRows(
-                    response
-                );
-            },
- 
-        afterTableInit:
-            function (
-                instance
-            ) {
-                normalizeTableLayout(
-                    instance
-                );
- 
-                adjustTable(
-                    instance
-                );
-            },
- 
-        afterTableRefresh:
-            function (
-                instance
-            ) {
-                normalizeTableLayout(
-                    instance
-                );
- 
-                adjustTable(
-                    instance
-                );
-            },
- 
-        afterAdjust:
-            function (
-                instance
-            ) {
-                normalizeTableLayout(
-                    instance
-                );
-            },
- 
-        afterMobileRender:
-            function () {},
- 
-        renderMobile:
-            function (
-                rows,
-                state,
-                config
-            ) {
-                var labels =
-                    getLabels(config);
- 
-                var mobileLabels =
-                    getMobileLabels(
-                        config
-                    );
- 
-                rows =
-                    normalizeRows(rows);
- 
-                if (!rows.length) {
-                    return (
-                        '<div class="datatable-for-mobile ' +
-                            'd-block d-md-none p-0">' +
- 
-                            '<div class="empty-state">' +
-                                Format.escapeHtml(
-                                    labels.noData ||
-                                    "No data available"
-                                ) +
-                            "</div>" +
- 
-                        "</div>"
-                    );
-                }
- 
-                return (
-                    '<div class="datatable-for-mobile ' +
-                        'd-block d-md-none p-0">' +
- 
-                        '<div class="list-view-section">' +
- 
-                            '<div class="list-view-top-section">' +
- 
-                                "<h5>" +
-                                    Format.escapeHtml(
-                                        mobileLabels.symbolName ||
-                                        "Code & Name"
-                                    ) +
-                                "</h5>" +
- 
-                                "<h5>" +
-                                    Format.escapeHtml(
-                                        mobileLabels.price ||
-                                        "Price"
-                                    ) +
-                                "</h5>" +
- 
-                            "</div>" +
- 
-                        "</div>" +
- 
-                        '<div class="mw-stock-list">' +
- 
-                            rows
-                                .map(function (row) {
-                                    return buildCard(
-                                        row,
-                                        state,
-                                        config
-                                    );
-                                })
-                                .join("") +
- 
-                        "</div>" +
- 
-                    "</div>"
-                );
-            },
- 
-        onMobileClick:
-            function (
-                event,
-                elements
-            ) {
-                var toggle;
-                var card;
- 
-                if (
-                    event.target.closest(
-                        ".form-control-shell"
-                    )
-                ) {
-                    return;
-                }
- 
-                if (
-                    event.target.closest(
-                        ".form-popover"
-                    )
-                ) {
-                    return;
-                }
- 
-                if (
-                    event.target.closest(
-                        "button"
-                    )
-                ) {
-                    return;
-                }
- 
-                if (
-                    event.target.closest(
-                        "a"
-                    )
-                ) {
-                    return;
-                }
- 
-                toggle =
-                    event.target.closest(
-                        "[data-card-toggle]"
-                    );
- 
-                if (!toggle) {
-                    return;
-                }
- 
-                card =
-                    toggle.closest(
-                        "[data-company-card]"
-                    );
- 
-                if (
-                    !card ||
-                    !elements ||
-                    !elements.mobileContainer
-                ) {
-                    return;
-                }
- 
-                elements.mobileContainer
-                    .querySelectorAll(
-                        ".company-card-box.active"
-                    )
-                    .forEach(
-                        function (item) {
-                            if (
-                                item !== card
-                            ) {
-                                item.classList.remove(
-                                    "active"
-                                );
-                            }
-                        }
-                    );
- 
-                card.classList.toggle(
-                    "active"
-                );
-            }
-    };
-})(window);
- (function (window) {
-    "use strict";
- 
-    if (!window.FormatUtils) {
-        throw new Error(
-            "SukukBondsSchema requires FormatUtils."
-        );
-    }
- 
-    var Format = window.FormatUtils;
- 
-    /* =========================================================
-       LABEL HELPERS
-       ========================================================= */
- 
-    function getLabels(config) {
-        if (!config || !config.labels) {
-            return {};
-        }
- 
-        return (
-            config.labels.table ||
-            config.labels.card ||
-            {}
-        );
-    }
- 
-    /* =========================================================
-       GENERIC VALUE HELPERS
-       ========================================================= */
- 
-    function hasValue(value) {
-        return (
-            value !== null &&
-            value !== undefined &&
-            value !== ""
-        );
-    }
- 
-    function valueOrDash(value) {
-        return hasValue(value)
-            ? String(value)
-            : "-";
-    }
- 
-    function getFirstValue(row, keys, fallback) {
-        var i;
-        var key;
- 
-        row = row || {};
- 
-        for (i = 0; i < keys.length; i += 1) {
-            key = keys[i];
- 
-            if (hasValue(row[key])) {
-                return row[key];
-            }
-        }
- 
-        return fallback == null
-            ? "-"
-            : fallback;
-    }
- 
-    /* =========================================================
-       INSTRUMENT HELPERS
-       ========================================================= */
- 
-    function getInstrumentCode(row) {
-        return getFirstValue(
-            row,
-            [
-                "symbol",
-                "tadawulCode",
-                "tadawulCodeModified",
-                "tadawulcode",
-                "code",
-                "companyRef",
-                "securityCode"
-            ],
-            "-"
-        );
-    }
- 
-    function getInstrumentName(row) {
-        return getFirstValue(
-            row,
-            [
-                "issuerName",
-                "issuerNameModified",
-                "name",
-                "instrumentName",
-                "securityName"
-            ],
-            "-"
-        );
-    }
- 
-    function getInstrumentUrl(row) {
-        return getFirstValue(
-            row,
-            [
-                "cUrl",
-                "companyUrl",
-                "detailsUrl",
-                "url"
-            ],
-            ""
-        );
-    }
- 
-    function renderInstrument(row) {
-        var code = getInstrumentCode(row);
-        var name = getInstrumentName(row);
-        var url = getInstrumentUrl(row);
-     
-        var content =
-            '<span class="market-watch-instrument__name">' +
-                Format.escapeHtml(name) +
-            "</span>" +
-            "<br>" +
-            '<span class="market-watch-instrument__code">' +
-                Format.escapeHtml(code) +
-            "</span>";
-     
-        if (!url || url === "#") {
-            return content;
-        }
-     
-        return (
-            '<a class="market-watch-instrument-link" href="' +
-                Format.escapeHtml(url) +
-            '">' +
-                content +
-            "</a>"
-        );
-    }
-     
+  },
+ 
+  urls: {
+    negotiatedDeals: '<portlet:resourceURL id="getNegotiatedDetails" />',
+    minimumSize: '<portlet:resourceURL id="getMainMarketMinimumSizeRequirements" />',
+    accumulatedLosses: '<portlet:resourceURL id="getAccumulatedLossesDetails" />',
+    listedTradableRights: '<portlet:resourceURL id="getListedTradableRightsDetails" />',
+    otcTrading: '<portlet:resourceURL id="getOtcTradingData" />',
+    suspendedDelisted: '<portlet:resourceURL id="getSuspendedDelistedComp" />'
+  },
+ 
+  labels: {
+    suspendedLink: '<fmt:message key="suspended.company.link" />',
+    delistedLink: '<fmt:message key="delisted.company.link" />',
+    	  total: '<fmt:message key="issuer.trading.info.v2.total" />'
+    
+  },
   
-     
- 
-    /* =========================================================
-       DATE FORMATTERS
-       ========================================================= */
- 
-    function formatDateIso(value) {
-        var text;
-        var date;
-        var year;
-        var month;
-        var day;
- 
-        if (!hasValue(value)) {
-            return "-";
-        }
- 
-        text = String(value).trim();
- 
-        if (/^\d{4}-\d{2}-\d{2}/.test(text)) {
-            return text.substring(0, 10);
-        }
- 
-        date = new Date(text);
- 
-        if (Number.isNaN(date.getTime())) {
-            return text;
-        }
- 
-        year = date.getFullYear();
-        month = String(
-            date.getMonth() + 1
-        ).padStart(2, "0");
-        day = String(
-            date.getDate()
-        ).padStart(2, "0");
- 
-        return (
-            year +
-            "-" +
-            month +
-            "-" +
-            day
-        );
-    }
- 
-    /* =========================================================
-       NUMBER FORMATTERS
-       ========================================================= */
- 
-    function formatDecimal(value, decimals) {
-        var number = Format.toNumber(value);
- 
-        if (number === null) {
-            return "-";
-        }
- 
-        return number.toFixed(decimals);
-    }
- 
-    function formatYield4(value) {
-        return formatDecimal(value, 4);
-    }
- 
-    function formatPrice2(value) {
-        return formatDecimal(value, 2);
-    }
- 
-    function formatQuantity(value) {
-        if (!hasValue(value)) {
-            return "-";
-        }
- 
-        return Format.formatQuantitySafe(value);
-    }
- 
-    /* =========================================================
-       BUSINESS VALUE RESOLVERS
-       ========================================================= */
- 
-    function resolveCouponType(value, labels) {
-        value = String(
-            value == null
-                ? ""
-                : value
-        );
- 
-        if (value === "4") {
-            return labels.floating || "Floating";
-        }
- 
-        if (value === "1") {
-            return labels.fixed || "Fixed";
-        }
- 
-        return "-";
-    }
- 
-    function resolveMaturity(row, labels) {
-        var perpetual =
-            row.isPerpetualBond === true ||
-            row.isPerpetualBond === "true" ||
-            row.isPerpetualBond === 1 ||
-            row.isPerpetualBond === "1";
- 
-        if (perpetual) {
-            return (
-                labels.perpetualBond ||
-                "Perpetual Bond"
-            );
-        }
- 
-        return formatDateIso(
-            getFirstValue(
-                row,
-                [
-                    "maturityDate",
-                    "maturityDateStr"
-                ],
-                ""
-            )
-        );
-    }
- 
-    function resolveCouponFrequency(value, labels) {
-        var map = {
-            "1":
-                labels.couponFrequency1 ||
-                "Annual",
- 
-            "2":
-                labels.couponFrequency2 ||
-                "Semi-Annual",
- 
-            "4":
-                labels.couponFrequency4 ||
-                "Quarterly",
- 
-            "12":
-                labels.couponFrequency12 ||
-                "Monthly",
- 
-            "0":
-                labels.couponFrequency0 ||
-                "-"
-        };
- 
-        return (
-            map[String(value)] ||
-            map["0"]
-        );
-    }
- 
-    function resolveDayCountConvention(value, labels) {
-        var map = {
-            "7":
-                labels.dayCount7 ||
-                "Convention 7",
- 
-            "2":
-                labels.dayCount2 ||
-                "Convention 2",
- 
-            "3":
-                labels.dayCount3 ||
-                "Convention 3",
- 
-            "0":
-                labels.dayCount0 ||
-                "-"
-        };
- 
-        return (
-            map[String(value)] ||
-            map["0"]
-        );
-    }
- 
-    /* =========================================================
-       COLUMN FACTORY
-       ========================================================= */
- 
-    function createColumn(options) {
-        return {
-            key: options.key,
-            group: options.group,
-            label: options.label || "",
-            data:
-                options.data === undefined
-                    ? null
-                    : options.data,
-            className:
-                options.className ||
-                "align text-center",
-            width:
-                options.width ||
-                null,
-            orderable:
-                options.orderable !== false,
-            mobile:
-                options.mobile !== false,
-            isHtml:
-                options.isHtml === true,
-            render:
-                options.render
-        };
-    }
- 
-    /* =========================================================
-       SCHEMA
-       ========================================================= */
- 
-    function getSchema(config) {
-        var labels = getLabels(config);
- 
-        return {
-            groups: {
-                isin: true,
-                couponDetails: true,
-                maturity: true,
-                yieldDetails: true,
-                priceDetails: true,
-                issueDetails: true,
-                couponMeta: true,
-                watchlist: true
-            },
- 
-            views: {
-                "1": [
+  
+ resultCounters: {
+  negotiatedDeals: "#tradingTableResultsId",
+  minimumSize: "#minimumSizeTableResultsId",
+  accumulatedLosses: "#accumulatedLossesTableResultsId",
+  listedTradableRights: "#listedTradableRightsTableResultsId",
+  suspended: "#suspendedTableResultsId",
+  suspendedDelisted: "#suspendedDelistedResultsId",
+  otcTrading: "#otcTradingTableResultsId"
+},
 
-                    createColumn({
-                        key: "instrument",
-                        group: null,
-                        label: labels.name || "Name",
-                        data: null,
-                        className:
-                            "align sukuk-bonds-instrument-column",
-                        width: "15%",
-                        mobile: false,
-                        isHtml: true,
-                        render: function (row) {
-                            return renderInstrument(row);
-                        }
-                    }),
+  tables: {
+    negotiatedDeals: {
+      selector: "#negotiatedDealsTable",
+      paging: true,
+      pageLength: 25,
+      lengthMenu: [25, 50, 100],
+      ordering: false,
+      fixedHeader: true
+    },
  
-                    createColumn({
-                        key: "isin",
-                        group: "isin",
-                        label: labels.isin,
-                        data: "isin",
-                        width: "7%",
-                        render: function (row) {
-                            return valueOrDash(
-                                row.isin
-                            );
-                        }
-                    }),
+    minimumSize: {
+      selector: "#minimumSizeTable",
+      pageLength: 25,
+      lengthMenu: [25, 50, 100],
+      ordering: false,
+      fixedHeader: true
+    },
  
-                    createColumn({
-                        key: "couponType",
-                        group: "couponDetails",
-                        label: labels.couponType,
-                        data: "rateCalcType",
-                        width: "6%",
-                        render: function (row) {
-                            return resolveCouponType(
-                                row.rateCalcType,
-                                labels
-                            );
-                        }
-                    }),
+    accumulatedLosses: {
+      selector: "#accumulatedLossesTable",
+      pageLength: 25,
+      lengthMenu: [25, 50, 100],
+      ordering: false,
+      fixedHeader: true
+    },
  
-                    createColumn({
-                        key: "couponRate",
-                        group: "couponDetails",
-                        label: labels.couponRate,
-                        data: "couponRateModified",
-                        width: "6%",
-                        render: function (row) {
-                            return valueOrDash(
-                                getFirstValue(
-                                    row,
-                                    [
-                                        "couponRateModified",
-                                        "couponRate"
-                                    ],
-                                    "-"
-                                )
-                            );
-                        }
-                    }),
-                    createColumn({
-                        key: "maturityDate",
-                        group: "maturity",
-                        label: labels.maturityDate,
-                        data: "maturityDate",
-                        width: "7%",
-                        render: function (row) {
-                            return resolveMaturity(
-                                row,
-                                labels
-                            );
-                        }
-                    }),
+    listedTradableRights: {
+      selector: "#listedTradableRightsTable",
+      paging: false,
+      ordering: true,
+      fixedHeader: true
+    },
  
-                    createColumn({
-                        key: "instrumentYield",
-                        group: "yieldDetails",
-                        label:
-                            labels.instrumentYield,
-                        data: "lastTadeYield",
-                        width: "5.5%",
-                        render: function (row) {
-                            return formatYield4(
-                                getFirstValue(
-                                    row,
-                                    [
-                                        "lastTadeYield",
-                                        "lastTradeYield"
-                                    ],
-                                    null
-                                )
-                            );
-                        }
-                    }),
+    suspendedCompanies: {
+      selector: "#suspendedCompTable",
+      paging: false,
+      ordering: true,
+      order: [[2, 'desc']],
+      fixedHeader: true
+    },
  
-                    createColumn({
-                        key: "bidYield",
-                        group: "yieldDetails",
-                        label: labels.bidYield,
-                        data: "bidYield",
-                        width: "5.5%",
-                        render: function (row) {
-                            return formatYield4(
-                                row.bidYield
-                            );
-                        }
-                    }),
+    delistedCompanies: {
+      selector: "#delistedCompTable",
+      paging: false,
+     ordering: true,
+      order: [[2, 'desc']],
+      fixedHeader: true
+    },
  
-                    createColumn({
-                        key: "askYield",
-                        group: "yieldDetails",
-                        label: labels.askYield,
-                        data: "askYield",
-                        width: "5.5%",
-                        render: function (row) {
-                            return formatYield4(
-                                row.askYield
-                            );
-                        }
-                    }),
- 
-                    createColumn({
-                        key: "parValue",
-                        group: "issueDetails",
-                        label: labels.parValue,
-                        data: "parValue",
-                        width: "6%",
-                        render: function (row) {
-                            return formatQuantity(
-                                row.parValue
-                            );
-                        }
-                    }),
- 
-                    createColumn({
-                        key: "lastTradePrice",
-                        group: "priceDetails",
-                        label:
-                            labels.lastTradePrice,
-                        data: "lastTradePrice",
-                        width: "5.5%",
-                        render: function (row) {
-                            return formatPrice2(
-                                row.lastTradePrice
-                            );
-                        }
-                    }),
- 
-                    createColumn({
-                        key: "bidPrice",
-                        group: "priceDetails",
-                        label: labels.bidPrice,
-                        data: "bidPrice",
-                        width: "5%",
-                        render: function (row) {
-                            return formatPrice2(
-                                row.bidPrice
-                            );
-                        }
-                    }),
- 
-                    createColumn({
-                        key: "askPrice",
-                        group: "priceDetails",
-                        label: labels.askPrice,
-                        data: "askPrice",
-                        width: "5%",
-                        render: function (row) {
-                            return formatPrice2(
-                                row.askPrice
-                            );
-                        }
-                    }),
- 
-                    createColumn({
-                        key: "issuanceAmount",
-                        group: "issueDetails",
-                        label:
-                            labels.issuanceAmount,
-                        data:
-                            "outstandingAmountModified",
-                        width: "7%",
-                        render: function (row) {
-                            return valueOrDash(
-                                getFirstValue(
-                                    row,
-                                    [
-                                        "outstandingAmountModified",
-                                        "issuanceAmount",
-                                        "outstandingAmount"
-                                    ],
-                                    "-"
-                                )
-                            );
-                        }
-                    }),
- 
-                    createColumn({
-                        key: "issuanceCurrency",
-                        group: "issueDetails",
-                        label:
-                            labels.issuanceCurrency,
-                        data: "issueCurrency",
-                        width: "5%",
-                        render: function (row) {
-                            return valueOrDash(
-                                row.issueCurrency
-                            );
-                        }
-                    }),
- 
-                    createColumn({
-                        key: "couponFrequency",
-                        group: "couponMeta",
-                        label:
-                            labels.couponFrequency,
-                        data: "couponFrequency",
-                        width: "6%",
-                        render: function (row) {
-                            return resolveCouponFrequency(
-                                row.couponFrequency,
-                                labels
-                            );
-                        }
-                    }),
- 
-                    createColumn({
-                        key: "dayCountConvention",
-                        group: "couponMeta",
-                        label:
-                            labels.dayCountConvention,
-                        data: "dayCountMethod",
-                        width: "7%",
-                        render: function (row) {
-                            return resolveDayCountConvention(
-                                row.dayCountMethod,
-                                labels
-                            );
-                        }
-                    }),
- 
-                    createColumn({
-                        key: "watchlist",
-                        group: "watchlist",
-                        label: labels.watchlist,
-                        data: null,
-                        className:
-                            "align text-center sukuk-bonds-watchlist-column",
-                        width: "4%",
-                        orderable: false,
-                        mobile: true,
-                        isHtml: true,
-                        render: function (
-                            row,
-                            helpers
-                        ) {
-                            if (
-                                !helpers ||
-                                typeof helpers.renderWatchlist !==
-                                    "function"
-                            ) {
-                                return "";
-                            }
- 
-                            return helpers.renderWatchlist(
-                                row
-                            );
-                        }
-                    })
-                ]
-            }
-        };
+    otcTrading: {
+      selector: "#otcTradingTable",
+      paging: false,
+      ordering: true,
+      fixedHeader: true
     }
- 
-/* =========================================================
-       PUBLIC SCHEMA HELPERS
-       ========================================================= */
- 
-    function getViewColumns(config, view) {
-        var schema = getSchema(config);
-        var requestedView =
-            String(view || "1");
- 
-        return (
-            schema.views[requestedView] ||
-            schema.views["1"] ||
-            []
-        );
-    }
- 
-    function getColumnGroups(config) {
-        return getSchema(config).groups;
-    }
- 
-    function getColumnGroupsByView(config) {
-        var schema = getSchema(config);
-        var result = {};
- 
-        Object.keys(
-            schema.views
-        ).forEach(function (view) {
-            result[view] = {};
- 
-            schema.views[view].forEach(
-                function (column, index) {
-                    if (!column.group) {
-                        return;
-                    }
- 
-                    if (
-                        !result[view][column.group]
-                    ) {
-                        result[view][
-                            column.group
-                        ] = [];
-                    }
- 
-                    result[view][
-                        column.group
-                    ].push(index);
-                }
-            );
-        });
- 
-        return result;
-    }
- 
-    function getColumnIndexes(
-        config,
-        view,
-        group
-    ) {
-        var groupsByView =
-            getColumnGroupsByView(config);
- 
-        return (
-            groupsByView[String(view || "1")] &&
-            groupsByView[String(view || "1")][
-                group
-            ]
-        ) || [];
-    }
- 
-    /* =========================================================
-       PUBLIC API
-       ========================================================= */
- 
-    window.SukukBondsSchema = {
-        getSchema:
-            getSchema,
- 
-        getViewColumns:
-            getViewColumns,
- 
-        getColumnGroups:
-            getColumnGroups,
- 
-        getColumnGroupsByView:
-            getColumnGroupsByView,
- 
-        getColumnIndexes:
-            getColumnIndexes
-    };
-})(window);
- 
-            
+  }
+};
+</script>
+
+<script src="${pageContext.request.contextPath}/js/tabs.controller.js"></script>
+<script
+	src="${pageContext.request.contextPath}/js/tabbed-feature.manager.js"></script>
+<script src="${pageContext.request.contextPath}/js/dropdown-update.js"></script>
+<script
+	src="${pageContext.request.contextPath}/js/custom-trading/datatable-page-utils.js"></script>
+<script
+	src="${pageContext.request.contextPath}/js/custom-trading/trading-datatables.js"></script>
+
+
