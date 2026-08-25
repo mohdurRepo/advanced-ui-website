@@ -158,368 +158,541 @@
       </div>
 
 
+      <%-- =========================================================================
+     Trading Tab Content
+     ========================================================================= --%>
+
+<div
+  class="tabs-content"
+  data-trading-tab-content
+>
+
+  <%-- =======================================================================
+       Negotiated Deals
+       ======================================================================= --%>
+
+  <section
+    class="tab-pane active"
+    id="tab-negotiated-deals"
+    role="tabpanel"
+    aria-labelledby="tab-negotiated-deals-trigger"
+    data-trading-panel="negotiatedDeals"
+  >
+
+    <div
+      class="stack stack--lg"
+      data-trading-negotiated
+    >
+
       <%-- ===================================================================
-           Tab Content
+           Filters
+           =================================================================== --%>
+
+      <form
+        class="filter-bar filter-bar--stacked"
+        data-trading-negotiated-filters
+      >
+
+        <div class="stack stack--lg">
+
+          <%-- ===============================================================
+               Filter Fields
+               =============================================================== --%>
+
+          <div class="filter-bar__fields grid-4">
+
+            <%-- -------------------------------------------------------------
+                 Type
+                 ------------------------------------------------------------- --%>
+
+            <div class="filter-bar__field">
+
+              <label
+                class="form-label"
+                for="trading-negotiated-type"
+              >
+                <fmt:message key="suspended.company.type" />
+              </label>
+
+              <div
+                class="custom-select"
+                data-custom-select
+              >
+
+                <div class="form-select-wrap custom-select__fallback">
+
+                  <select
+                    class="form-select custom-select__native"
+                    id="trading-negotiated-type"
+                    name="type"
+                    data-trading-negotiated-type
+                  >
+
+                    <option
+                      value="Negotiated-Deals"
+                      selected
+                    >
+                      <fmt:message key="adtv.main.tab.1" />
+                    </option>
+
+                    <option value="Minimum-Size">
+                      <fmt:message key="adtv.main.tab.2" />
+                    </option>
+
+                  </select>
+
+                  <span
+                    class="form-select-icon has-icon icon-chevron-down"
+                    aria-hidden="true"
+                  ></span>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <%-- -------------------------------------------------------------
+                 Industry Group
+                 ------------------------------------------------------------- --%>
+
+            <div class="filter-bar__field">
+
+              <label
+                class="form-label"
+                for="trading-negotiated-sector"
+              >
+                <fmt:message
+                  key="issuer.trading.info.v2.section.heading.sector"
+                />
+              </label>
+
+              <div
+                class="custom-select"
+                data-custom-select
+                data-searchable
+              >
+
+                <div class="form-select-wrap custom-select__fallback">
+
+                  <select
+                    class="form-select custom-select__native"
+                    id="trading-negotiated-sector"
+                    name="sector"
+                    data-trading-negotiated-sector
+                  >
+
+                    <option
+                      value="All"
+                      <c:if test="${empty requestScope.sector || requestScope.sector eq 'All'}">
+                        selected
+                      </c:if>
+                    >
+                      <fmt:message
+                        key="issuer.trading.info.v2.section.allsectors"
+                      />
+                    </option>
+
+                    <c:forEach
+                      items="${requestScope.compresultlBean.allSectors}"
+                      var="sector"
+                    >
+
+                      <option
+                        value="<c:out value='${sector.pk_rf_sector}' />"
+                        <c:if test="${requestScope.sector eq sector.pk_rf_sector}">
+                          selected
+                        </c:if>
+                      >
+                        <c:out value="${sector.name}" />
+                      </option>
+
+                    </c:forEach>
+
+                  </select>
+
+                  <span
+                    class="form-select-icon has-icon icon-chevron-down"
+                    aria-hidden="true"
+                  ></span>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <%-- -------------------------------------------------------------
+                 Company
+                 ------------------------------------------------------------- --%>
+
+            <div class="filter-bar__field">
+
+              <label
+                class="form-label"
+                for="trading-negotiated-company"
+              >
+                <fmt:message
+                  key="issuer.trading.info.v2.section.heading.company"
+                />
+              </label>
+
+              <div
+                class="custom-select"
+                data-custom-select
+                data-searchable
+                data-clearable
+                data-trading-clear-value="All"
+              >
+
+                <div class="form-select-wrap custom-select__fallback">
+
+                  <select
+                    class="form-select custom-select__native"
+                    id="trading-negotiated-company"
+                    name="company"
+                    data-trading-negotiated-company
+                  >
+
+                    <option
+                      value="All"
+                      <c:if test="${empty requestScope.company || requestScope.company eq 'All'}">
+                        selected
+                      </c:if>
+                    >
+                      <fmt:message
+                        key="issuer.trading.info.v2.allcompanies"
+                      />
+                    </option>
+
+                    <c:forEach
+                      items="${requestScope.compresultlBean.companyList}"
+                      var="company"
+                    >
+
+                      <option
+                        value="<c:out value='${company.symbol}' />"
+                        <c:if test="${requestScope.company eq company.symbol}">
+                          selected
+                        </c:if>
+                      >
+                        <c:out value="${company.longName}" />
+                      </option>
+
+                    </c:forEach>
+
+                  </select>
+
+                  <span
+                    class="form-select-icon has-icon icon-chevron-down"
+                    aria-hidden="true"
+                  ></span>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <%-- -------------------------------------------------------------
+                 Time Period
+                 ------------------------------------------------------------- --%>
+
+            <div class="filter-bar__field">
+
+              <span
+                class="form-label-static"
+                id="trading-negotiated-period-label"
+              >
+                <fmt:message
+                  key="issuer.trading.info.v2.section.heading.timeperiod"
+                />
+              </span>
+
+              <div
+                class="custom-date custom-date--range"
+                aria-labelledby="trading-negotiated-period-label"
+                data-custom-date-range
+                data-clearable
+                data-placeholder="YYYY-MM-DD – YYYY-MM-DD"
+              >
+
+                <div class="custom-date__fallback">
+
+                  <div class="custom-date__native-range">
+
+                    <input
+                      class="form-control custom-date__native"
+                      id="trading-negotiated-from-date"
+                      name="fromDate"
+                      type="date"
+                      aria-label="Start date"
+                      data-date-start
+                      data-trading-negotiated-from-date
+                    />
+
+                    <input
+                      class="form-control custom-date__native"
+                      id="trading-negotiated-to-date"
+                      name="toDate"
+                      type="date"
+                      aria-label="End date"
+                      data-date-end
+                      data-trading-negotiated-to-date
+                    />
+
+                  </div>
+
+                  <div
+                    class="custom-date__initial-trigger"
+                    aria-hidden="true"
+                  >
+
+                    <span
+                      class="custom-date__initial-value is-placeholder"
+                    >
+                      YYYY-MM-DD – YYYY-MM-DD
+                    </span>
+
+                    <span
+                      class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                      aria-hidden="true"
+                    ></span>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <%-- ===============================================================
+               Actions
+               =============================================================== --%>
+
+          <div class="filter-bar__actions">
+
+            <button
+              class="btn btn-outline-primary has-icon icon-sync-refresh"
+              type="reset"
+              data-trading-reset="negotiatedDeals"
+            >
+              <fmt:message
+                key="issuer.trading.info.v2.search.reset"
+              />
+            </button>
+
+          </div>
+
+        </div>
+
+      </form>
+
+
+      <%-- ===================================================================
+           Negotiated Deals Variant
            =================================================================== --%>
 
       <div
-        class="tabs-content"
-        data-trading-tab-content
+        data-trading-variant="Negotiated-Deals"
       >
 
-        <%-- ===============================================================
-             Negotiated Deals
-             =============================================================== --%>
-<section
-  class="tab-pane active"
-  id="tab-negotiated-deals"
-  role="tabpanel"
-  aria-labelledby="tab-negotiated-deals-trigger"
-  data-trading-panel="negotiatedDeals"
->
-<div
-  class="stack stack--lg"
-  data-trading-negotiated
->
-
-  <%-- =========================================================================
-       Filters
-       ========================================================================= --%>
-
-  <form
-    class="filter-bar filter-bar--stacked"
-    data-trading-negotiated-filters
-  >
-
-    <div class="stack stack--lg">
-
-      <%-- ===================================================================
-           Filter Fields
-           =================================================================== --%>
-
-      <div class="filter-bar__fields grid-4">
-
-        <%-- ===============================================================
-             Type
-             =============================================================== --%>
-
-        <div class="filter-bar__field">
-
-          <label
-            class="form-label"
-            for="trading-negotiated-type"
-          >
-            <fmt:message key="suspended.company.type" />
-          </label>
-
-          <div
-            class="custom-select"
-            data-custom-select
-          >
-            <div class="form-select-wrap custom-select__fallback">
-
-              <select
-                class="form-select custom-select__native"
-                id="trading-negotiated-type"
-                name="type"
-                data-trading-negotiated-type
-              >
-                <option
-                  value="Negotiated-Deals"
-                  selected
-                >
-                  <fmt:message key="adtv.main.tab.1" />
-                </option>
-
-                <option value="Minimum-Size">
-                  <fmt:message key="adtv.main.tab.2" />
-                </option>
-              </select>
-
-              <span
-                class="form-select-icon has-icon icon-chevron-down"
-                aria-hidden="true"
-              ></span>
-
-            </div>
-          </div>
-
-        </div>
-
-
-        <%-- ===============================================================
-             Industry Group
-             =============================================================== --%>
-
-        <div class="filter-bar__field">
-
-          <label
-            class="form-label"
-            for="trading-negotiated-sector"
-          >
-            <fmt:message
-              key="issuer.trading.info.v2.section.heading.sector"
-            />
-          </label>
-
-          <div
-            class="custom-select"
-            data-custom-select
-            data-searchable
-          >
-            <div class="form-select-wrap custom-select__fallback">
-
-              <select
-                class="form-select custom-select__native"
-                id="trading-negotiated-sector"
-                name="sector"
-                data-trading-negotiated-sector
-              >
-                <option
-                  value="All"
-                  <c:if test="${empty requestScope.sector || requestScope.sector eq 'All'}">
-                    selected
-                  </c:if>
-                >
-                  <fmt:message
-                    key="issuer.trading.info.v2.section.allsectors"
-                  />
-                </option>
-
-                <c:forEach
-                  items="${requestScope.compresultlBean.allSectors}"
-                  var="sector"
-                >
-                  <option
-                    value="<c:out value='${sector.pk_rf_sector}' />"
-                    <c:if test="${requestScope.sector eq sector.pk_rf_sector}">
-                      selected
-                    </c:if>
-                  >
-                    <c:out value="${sector.name}" />
-                  </option>
-                </c:forEach>
-              </select>
-
-              <span
-                class="form-select-icon has-icon icon-chevron-down"
-                aria-hidden="true"
-              ></span>
-
-            </div>
-          </div>
-
-        </div>
-
-
-        <%-- ===============================================================
-             Company
-             =============================================================== --%>
-
-        <div class="filter-bar__field">
-
-          <label
-            class="form-label"
-            for="trading-negotiated-company"
-          >
-            <fmt:message
-              key="issuer.trading.info.v2.section.heading.company"
-            />
-          </label>
-
-          <div
-            class="custom-select"
-            data-custom-select
-            data-searchable
-            data-clearable
-            data-trading-clear-value="All"
-          >
-            <div class="form-select-wrap custom-select__fallback">
-
-              <select
-                class="form-select custom-select__native"
-                id="trading-negotiated-company"
-                name="company"
-                data-trading-negotiated-company
-              >
-                <option
-                  value="All"
-                  <c:if test="${empty requestScope.company || requestScope.company eq 'All'}">
-                    selected
-                  </c:if>
-                >
-                  <fmt:message
-                    key="issuer.trading.info.v2.allcompanies"
-                  />
-                </option>
-
-                <c:forEach
-                  items="${requestScope.compresultlBean.companyList}"
-                  var="company"
-                >
-                  <option
-                    value="<c:out value='${company.symbol}' />"
-                    <c:if test="${requestScope.company eq company.symbol}">
-                      selected
-                    </c:if>
-                  >
-                    <c:out value="${company.longName}" />
-                  </option>
-                </c:forEach>
-              </select>
-
-              <span
-                class="form-select-icon has-icon icon-chevron-down"
-                aria-hidden="true"
-              ></span>
-
-            </div>
-          </div>
-
-        </div>
-
-
-        <%-- ===============================================================
-             Time Period
-             =============================================================== --%>
-
-        <div class="filter-bar__field">
-
-          <span
-            class="form-label-static"
-            id="trading-negotiated-period-label"
-          >
-            <fmt:message
-              key="issuer.trading.info.v2.section.heading.timeperiod"
-            />
-          </span>
-
-          <div
-            class="custom-date custom-date--range"
-            aria-labelledby="trading-negotiated-period-label"
-            data-custom-date-range
-            data-clearable
-            data-placeholder="YYYY-MM-DD – YYYY-MM-DD"
-          >
-            <div class="custom-date__fallback">
-
-              <div class="custom-date__native-range">
-
-                <input
-                  class="form-control custom-date__native"
-                  id="trading-negotiated-from-date"
-                  name="fromDate"
-                  type="date"
-                  aria-label="Start date"
-                  data-date-start
-                  data-trading-negotiated-from-date
-                />
-
-                <input
-                  class="form-control custom-date__native"
-                  id="trading-negotiated-to-date"
-                  name="toDate"
-                  type="date"
-                  aria-label="End date"
-                  data-date-end
-                  data-trading-negotiated-to-date
-                />
-
-              </div>
-
-              <div
-                class="custom-date__initial-trigger"
-                aria-hidden="true"
-              >
-                <span
-                  class="custom-date__initial-value is-placeholder"
-                >
-                  YYYY-MM-DD – YYYY-MM-DD
-                </span>
-
-                <span
-                  class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
-                  aria-hidden="true"
-                ></span>
-              </div>
-
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <%-- ===================================================================
-           Actions
-           =================================================================== --%>
-
-      <div class="filter-bar__actions">
-
-        <button
-          class="btn btn-outline-primary has-icon icon-sync-refresh"
-          type="reset"
-          data-trading-reset="negotiatedDeals"
+        <div
+          class="data-view"
+          data-trading-view="negotiatedDeals"
         >
-          <fmt:message
-            key="issuer.trading.info.v2.search.reset"
-          />
-        </button>
 
-      </div>
+          <div class="data-view__workspace">
 
-    </div>
+            <%-- -------------------------------------------------------------
+                 Desktop / Tablet
+                 ------------------------------------------------------------- --%>
 
-  </form>
+            <div class="data-view__table">
+
+              <div class="data-view__table-block">
+
+                <%-- ---------------------------------------------------------
+                     Results Toolbar
+                     --------------------------------------------------------- --%>
+
+                <div class="data-view__toolbar">
+
+                  <div class="data-view__toolbar-start">
+
+                    <div
+                      class="data-view__result-count"
+                      id="negotiated-deals-results"
+                    >
+
+                      <strong>
+                        <fmt:message
+                          key="issuer.trading.info.results.msg"
+                        />:
+                      </strong>
+
+                      <span
+                        data-trading-result-count="negotiatedDeals"
+                      >
+                        0
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                </div>
 
 
-  <%-- =========================================================================
-       Negotiated Deals Variant
-       ========================================================================= --%>
-
-  <div
-    data-trading-variant="Negotiated-Deals"
-  >
-
-    <div
-      class="data-view"
-      data-trading-view="negotiatedDeals"
-    >
-
-      <div class="data-view__workspace">
-
-        <%-- =================================================================
-             Desktop / Tablet
-             ================================================================= --%>
-
-        <div class="data-view__table">
-
-          <div class="data-view__table-block">
-
-            <%-- =============================================================
-                 Toolbar
-                 ============================================================= --%>
-
-            <div class="data-view__toolbar">
-
-              <div class="data-view__toolbar-start">
+                <%-- ---------------------------------------------------------
+                     Table Shell
+                     --------------------------------------------------------- --%>
 
                 <div
-                  class="data-view__result-count"
-                  id="negotiated-deals-results"
+                  class="table-shell"
+                  data-table-shell
                 >
-                  <strong>
-                    <fmt:message
-                      key="issuer.trading.info.results.msg"
-                    />:
-                  </strong>
 
-                  <span
-                    data-trading-result-count="negotiatedDeals"
+                  <%-- -------------------------------------------------------
+                       Loading
+                       ------------------------------------------------------- --%>
+
+                  <div
+                    class="table-loading"
+                    data-trading-loading="negotiatedDeals"
+                    aria-hidden="true"
+                    hidden
                   >
-                    0
-                  </span>
+
+                    <div class="table-loading__row">
+                      <span class="table-skeleton table-skeleton-md"></span>
+                      <span class="table-skeleton table-skeleton-lg"></span>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                      <span class="table-skeleton table-skeleton-md"></span>
+                      <span class="table-skeleton table-skeleton-lg"></span>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </div>
+
+                    <div class="table-loading__row">
+                      <span class="table-skeleton table-skeleton-md"></span>
+                      <span class="table-skeleton table-skeleton-lg"></span>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                      <span class="table-skeleton table-skeleton-md"></span>
+                      <span class="table-skeleton table-skeleton-lg"></span>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </div>
+
+                    <div class="table-loading__row">
+                      <span class="table-skeleton table-skeleton-md"></span>
+                      <span class="table-skeleton table-skeleton-lg"></span>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                      <span class="table-skeleton table-skeleton-md"></span>
+                      <span class="table-skeleton table-skeleton-lg"></span>
+                      <span class="table-skeleton table-skeleton-sm"></span>
+                    </div>
+
+                  </div>
+
+
+                  <%-- -------------------------------------------------------
+                       Table
+                       ------------------------------------------------------- --%>
+
+                  <div
+                    class="table-responsive custom-scrollbar"
+                    data-table-scroll
+                  >
+
+                    <table
+                      id="negotiated-deals-table"
+                      class="table table-hover table-nowrap table-market table-market--results"
+                      aria-describedby="negotiated-deals-results"
+                      data-trading-table="negotiatedDeals"
+                    >
+
+                      <caption class="visually-hidden">
+                        <fmt:message
+                          key="issuer.trading.info.v2.title.negotiated"
+                        />
+                      </caption>
+
+                      <thead>
+                        <tr>
+
+                          <th
+                            scope="col"
+                            data-column-key="date"
+                          >
+                            <fmt:message
+                              key="issuer.trading.info.v2.table.heading.date"
+                            />
+                          </th>
+
+                          <th
+                            scope="col"
+                            data-column-key="company"
+                          >
+                            <fmt:message
+                              key="issuer.trading.info.v2.table.heading.companyname"
+                            />
+                          </th>
+
+                          <th
+                            class="table-market__number"
+                            scope="col"
+                            data-column-key="trade-price"
+                          >
+                            <fmt:message
+                              key="issuer.trading.info.v2.table.heading.price"
+                            />
+                          </th>
+
+                          <th
+                            class="table-market__number"
+                            scope="col"
+                            data-column-key="trade-volume"
+                          >
+                            <fmt:message
+                              key="issuer.trading.info.v2.table.heading.volumetraded"
+                            />
+                          </th>
+
+                          <th
+                            class="table-market__number"
+                            scope="col"
+                            data-column-key="turnover"
+                          >
+                            <fmt:message
+                              key="issuer.trading.info.v2.table.heading.valuetraded"
+                            />
+                          </th>
+
+                          <th
+                            class="table-market__number"
+                            scope="col"
+                            data-column-key="time"
+                          >
+                            <fmt:message
+                              key="issuer.trading.info.v2.table.heading.time"
+                            />
+                          </th>
+
+                        </tr>
+                      </thead>
+
+                      <tbody></tbody>
+
+                    </table>
+
+                  </div>
+
                 </div>
 
               </div>
@@ -527,241 +700,258 @@
             </div>
 
 
-            <%-- =============================================================
-                 Table Shell
-                 ============================================================= --%>
+            <%-- -------------------------------------------------------------
+                 Mobile
+                 ------------------------------------------------------------- --%>
 
             <div
-              class="table-shell"
-              data-table-shell
-            >
-
-              <%-- -----------------------------------------------------------
-                   Loading Skeleton
-                   ----------------------------------------------------------- --%>
-
-              <div
-                class="table-loading"
-                data-trading-loading="negotiatedDeals"
-                aria-hidden="true"
-                hidden
-              >
-                <div class="table-loading__row">
-                  <span class="table-skeleton table-skeleton-md"></span>
-                  <span class="table-skeleton table-skeleton-lg"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-md"></span>
-                  <span class="table-skeleton table-skeleton-lg"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                </div>
-
-                <div class="table-loading__row">
-                  <span class="table-skeleton table-skeleton-md"></span>
-                  <span class="table-skeleton table-skeleton-lg"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-md"></span>
-                  <span class="table-skeleton table-skeleton-lg"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                </div>
-
-                <div class="table-loading__row">
-                  <span class="table-skeleton table-skeleton-md"></span>
-                  <span class="table-skeleton table-skeleton-lg"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-md"></span>
-                  <span class="table-skeleton table-skeleton-lg"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                </div>
-              </div>
-
-
-              <%-- -----------------------------------------------------------
-                   Table
-                   ----------------------------------------------------------- --%>
-
-              <div
-                class="table-responsive custom-scrollbar"
-                data-table-scroll
-              >
-
-                <table
-                  id="negotiated-deals-table"
-                  class="table table-hover table-nowrap table-market table-market--results"
-                  aria-describedby="negotiated-deals-results"
-                  data-trading-table="negotiatedDeals"
-                >
-
-                  <caption class="visually-hidden">
-                    <fmt:message
-                      key="issuer.trading.info.v2.title.negotiated"
-                    />
-                  </caption>
-
-                  <thead>
-                    <tr>
-
-                      <th
-                        scope="col"
-                        data-column-key="date"
-                      >
-                        <fmt:message
-                          key="issuer.trading.info.v2.table.heading.date"
-                        />
-                      </th>
-
-                      <th
-                        scope="col"
-                        data-column-key="company"
-                      >
-                        <fmt:message
-                          key="issuer.trading.info.v2.table.heading.companyname"
-                        />
-                      </th>
-
-                      <th
-                        class="table-market__number"
-                        scope="col"
-                        data-column-key="trade-price"
-                      >
-                        <fmt:message
-                          key="issuer.trading.info.v2.table.heading.price"
-                        />
-                      </th>
-
-                      <th
-                        class="table-market__number"
-                        scope="col"
-                        data-column-key="trade-volume"
-                      >
-                        <fmt:message
-                          key="issuer.trading.info.v2.table.heading.volumetraded"
-                        />
-                      </th>
-
-                      <th
-                        class="table-market__number"
-                        scope="col"
-                        data-column-key="turnover"
-                      >
-                        <fmt:message
-                          key="issuer.trading.info.v2.table.heading.valuetraded"
-                        />
-                      </th>
-
-                      <th
-                        class="table-market__number"
-                        scope="col"
-                        data-column-key="time"
-                      >
-                        <fmt:message
-                          key="issuer.trading.info.v2.table.heading.time"
-                        />
-                      </th>
-
-                    </tr>
-                  </thead>
-
-                  <tbody></tbody>
-
-                </table>
-
-              </div>
-
-            </div>
+              class="data-view__cards"
+              aria-label="<fmt:message key='issuer.trading.info.v2.title.negotiated' />"
+              data-trading-cards="negotiatedDeals"
+            ></div>
 
           </div>
 
         </div>
 
-
-        <%-- =================================================================
-             Mobile
-             ================================================================= --%>
-
-        <div
-          class="data-view__cards"
-          aria-label="<fmt:message key='issuer.trading.info.v2.title.negotiated' />"
-          data-trading-cards="negotiatedDeals"
-        ></div>
-
       </div>
 
-    </div>
 
-  </div>
+      <%-- ===================================================================
+           Minimum Size Variant
+           =================================================================== --%>
+
+      <div
+        data-trading-variant="Minimum-Size"
+        hidden
+      >
+
+        <div
+          class="data-view"
+          data-trading-view="minimumSize"
+        >
+
+          <div class="data-view__workspace">
+
+            <%-- -------------------------------------------------------------
+                 Desktop / Tablet
+                 ------------------------------------------------------------- --%>
+
+            <div class="data-view__table">
+
+              <div class="data-view__table-block">
+
+                <%-- ---------------------------------------------------------
+                     Toolbar
+                     --------------------------------------------------------- --%>
+
+                <div class="data-view__toolbar">
+
+                  <div class="data-view__toolbar-start">
+
+                    <div
+                      class="data-view__result-count"
+                      id="minimum-size-results"
+                    >
+
+                      <strong>
+                        <fmt:message
+                          key="issuer.trading.info.results.msg"
+                        />:
+                      </strong>
+
+                      <span
+                        data-trading-result-count="minimumSize"
+                      >
+                        0
+                      </span>
+
+                    </div>
+
+                  </div>
 
 
-  <%-- =========================================================================
-       Minimum Size Variant
-       ========================================================================= --%>
+                  <div class="data-view__toolbar-end">
 
-  <div
-    data-trading-variant="Minimum-Size"
-    hidden
-  >
+                    <div class="data-view__search">
 
-    <div
-      class="data-view"
-      data-trading-view="minimumSize"
-    >
+                      <label
+                        class="visually-hidden"
+                        for="minimum-size-search"
+                      >
+                        Search
+                      </label>
 
-      <div class="data-view__workspace">
+                      <input
+                        class="form-control"
+                        id="minimum-size-search"
+                        type="search"
+                        autocomplete="off"
+                        placeholder="Search"
+                        data-trading-table-search="minimumSize"
+                      />
 
-        <%-- =================================================================
-             Desktop / Tablet
-             ================================================================= --%>
+                    </div>
 
-        <div class="data-view__table">
+                  </div>
 
-          <div class="data-view__table-block">
+                </div>
 
-            <div class="data-view__toolbar">
 
-              <div class="data-view__toolbar-start">
+                <%-- ---------------------------------------------------------
+                     Table Shell
+                     --------------------------------------------------------- --%>
 
                 <div
-                  class="data-view__result-count"
-                  id="minimum-size-results"
+                  class="table-shell"
+                  data-table-shell
                 >
-                  <strong>
-                    <fmt:message
-                      key="issuer.trading.info.results.msg"
-                    />:
-                  </strong>
 
-                  <span
-                    data-trading-result-count="minimumSize"
+                  <%-- -------------------------------------------------------
+                       Loading
+                       ------------------------------------------------------- --%>
+
+                  <div
+                    class="table-loading"
+                    data-trading-loading="minimumSize"
+                    aria-hidden="true"
+                    hidden
                   >
-                    0
-                  </span>
-                </div>
 
-              </div>
+                    <div class="table-loading__row">
+                      <span class="table-skeleton table-skeleton-lg"></span>
+                      <span class="table-skeleton table-skeleton-lg"></span>
+                      <span class="table-skeleton table-skeleton-lg"></span>
+                      <span class="table-skeleton table-skeleton-lg"></span>
+                      <span class="table-skeleton table-skeleton-lg"></span>
+                    </div>
+
+                    <div class="table-loading__row">
+                      <span class="table-skeleton table-skeleton-lg"></span>
+                      <span class="table-skeleton table-skeleton-lg"></span>
+                      <span class="table-skeleton table-skeleton-lg"></span>
+                      <span class="table-skeleton table-skeleton-lg"></span>
+                      <span class="table-skeleton table-skeleton-lg"></span>
+                    </div>
+
+                  </div>
 
 
-              <%-- ===========================================================
-                   Search
-                   =========================================================== --%>
+                  <%-- -------------------------------------------------------
+                       Matrix Table
+                       ------------------------------------------------------- --%>
 
-              <div class="data-view__toolbar-end">
-
-                <div class="data-view__search">
-
-                  <label
-                    class="visually-hidden"
-                    for="minimum-size-search"
+                  <div
+                    class="table-responsive custom-scrollbar"
+                    data-table-scroll
                   >
-                    Search
-                  </label>
 
-                  <input
-                    class="form-control"
-                    id="minimum-size-search"
-                    type="search"
-                    autocomplete="off"
-                    placeholder="Search"
-                    data-trading-table-search="minimumSize"
-                  />
+                    <table
+                      id="minimum-size-table"
+                      class="table table-hover table-nowrap table-market table-market--results"
+                      aria-describedby="minimum-size-results"
+                      data-trading-table="minimumSize"
+                    >
+
+                      <caption class="visually-hidden">
+                        <fmt:message key="adtv.main.tab.2" />
+                      </caption>
+
+                      <thead>
+
+                        <%-- -------------------------------------------------
+                             Matrix Row 1
+                             ------------------------------------------------- --%>
+
+                        <tr>
+
+                          <th scope="row">
+                            <fmt:message key="adtv.sub.row.1" />
+                          </th>
+
+                          <th scope="col">
+                            <fmt:message key="adtv.sub.row.0.col.1" />
+                          </th>
+
+                          <th scope="col">
+                            <fmt:message key="adtv.sub.row.0.col.2" />
+                          </th>
+
+                          <th scope="col">
+                            <fmt:message key="adtv.sub.row.0.col.3" />
+                          </th>
+
+                          <th scope="col">
+                            <fmt:message key="adtv.sub.row.0.col.4" />
+                          </th>
+
+                        </tr>
+
+
+                        <%-- -------------------------------------------------
+                             Matrix Row 2
+                             ------------------------------------------------- --%>
+
+                        <tr>
+
+                          <th scope="row">
+                            <fmt:message key="adtv.sub.row.2" />
+                          </th>
+
+                          <th scope="col">
+                            <fmt:message key="adtv.sub.row.1.col.1" />
+                          </th>
+
+                          <th scope="col">
+                            <fmt:message key="adtv.sub.row.1.col.2" />
+                          </th>
+
+                          <th scope="col">
+                            <fmt:message key="adtv.sub.row.1.col.3" />
+                          </th>
+
+                          <th scope="col">
+                            <fmt:message key="adtv.sub.row.1.col.4" />
+                          </th>
+
+                        </tr>
+
+
+                        <%-- -------------------------------------------------
+                             Matrix Row 3
+                             ------------------------------------------------- --%>
+
+                        <tr>
+
+                          <th scope="row">
+                            <fmt:message key="adtv.sub.row.3" />
+                          </th>
+
+                          <th scope="col">
+                            <fmt:message key="adtv.sub.row.2.col.1" />
+                          </th>
+
+                          <th scope="col">
+                            <fmt:message key="adtv.sub.row.2.col.2" />
+                          </th>
+
+                          <th scope="col">
+                            <fmt:message key="adtv.sub.row.2.col.3" />
+                          </th>
+
+                          <th scope="col">
+                            <fmt:message key="adtv.sub.row.2.col.4" />
+                          </th>
+
+                        </tr>
+
+                      </thead>
+
+                      <tbody></tbody>
+
+                    </table>
+
+                  </div>
 
                 </div>
 
@@ -769,398 +959,80 @@
 
             </div>
 
+
+            <%-- -------------------------------------------------------------
+                 Mobile
+                 ------------------------------------------------------------- --%>
 
             <div
-              class="table-shell"
-              data-table-shell
-            >
-
-              <%-- -----------------------------------------------------------
-                   Loading Skeleton
-                   ----------------------------------------------------------- --%>
-
-              <div
-                class="table-loading"
-                data-trading-loading="minimumSize"
-                aria-hidden="true"
-                hidden
-              >
-                <div class="table-loading__row">
-                  <span class="table-skeleton table-skeleton-lg"></span>
-                  <span class="table-skeleton table-skeleton-lg"></span>
-                  <span class="table-skeleton table-skeleton-lg"></span>
-                  <span class="table-skeleton table-skeleton-lg"></span>
-                  <span class="table-skeleton table-skeleton-lg"></span>
-                </div>
-
-                <div class="table-loading__row">
-                  <span class="table-skeleton table-skeleton-lg"></span>
-                  <span class="table-skeleton table-skeleton-lg"></span>
-                  <span class="table-skeleton table-skeleton-lg"></span>
-                  <span class="table-skeleton table-skeleton-lg"></span>
-                  <span class="table-skeleton table-skeleton-lg"></span>
-                </div>
-              </div>
-
-
-              <%-- -----------------------------------------------------------
-                   Matrix Table
-                   ----------------------------------------------------------- --%>
-
-              <div
-                class="table-responsive custom-scrollbar"
-                data-table-scroll
-              >
-
-                <table
-                  id="minimum-size-table"
-                  class="table table-hover table-nowrap table-market table-market--results"
-                  aria-describedby="minimum-size-results"
-                  data-trading-table="minimumSize"
-                >
-
-                  <caption class="visually-hidden">
-                    <fmt:message key="adtv.main.tab.2" />
-                  </caption>
-
-                  <thead>
-
-                    <%-- =====================================================
-                         Matrix Heading 1
-                         ===================================================== --%>
-
-                    <tr>
-                      <th scope="row">
-                        <fmt:message key="adtv.sub.row.1" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.0.col.1" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.0.col.2" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.0.col.3" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.0.col.4" />
-                      </th>
-                    </tr>
-
-
-                    <%-- =====================================================
-                         Matrix Heading 2
-                         ===================================================== --%>
-
-                    <tr>
-                      <th scope="row">
-                        <fmt:message key="adtv.sub.row.2" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.1.col.1" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.1.col.2" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.1.col.3" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.1.col.4" />
-                      </th>
-                    </tr>
-
-
-                    <%-- =====================================================
-                         Matrix Heading 3
-                         ===================================================== --%>
-
-                    <tr>
-                      <th scope="row">
-                        <fmt:message key="adtv.sub.row.3" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.2.col.1" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.2.col.2" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.2.col.3" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.2.col.4" />
-                      </th>
-                    </tr>
-
-                  </thead>
-
-                  <tbody></tbody>
-
-                </table>
-
-              </div>
-
-            </div>
+              class="data-view__cards"
+              aria-label="<fmt:message key='adtv.main.tab.2' />"
+              data-trading-cards="minimumSize"
+            ></div>
 
           </div>
 
         </div>
 
-
-        <%-- =================================================================
-             Mobile
-             ================================================================= --%>
-
-        <div
-          class="data-view__cards"
-          aria-label="<fmt:message key='adtv.main.tab.2' />"
-          data-trading-cards="minimumSize"
-        ></div>
-
       </div>
 
     </div>
 
-  </div>
-
-</div>
-</section>
-        </div>
-
-      </div>
-    </div>
-  </div>
+  </section>
 
 
-  <%-- =========================================================================
-       Minimum Size Variant
-       ========================================================================= --%>
-
-  <div
-    data-trading-variant="Minimum-Size"
-    hidden
-  >
-    <div
-      class="data-view"
-      data-trading-view="minimumSize"
-    >
-      <div class="data-view__workspace">
-
-        <%-- =================================================================
-             Desktop / Tablet
-             ================================================================= --%>
-
-        <div class="data-view__table">
-
-          <div class="data-view__table-block">
-
-            <div class="data-view__toolbar">
-
-              <div class="data-view__toolbar-start">
-
-                <div class="data-view__result-count">
-
-                  <strong>
-                    <fmt:message key="issuer.trading.info.results.msg" />:
-                  </strong>
-
-                  <span data-trading-result-count="minimumSize">
-                    0
-                  </span>
-
-                </div>
-
-              </div>
-
-            </div>
-
-
-            <div
-              class="table-shell"
-              data-table-shell
-            >
-              <div
-                class="table-responsive custom-scrollbar"
-                data-table-scroll
-              >
-
-                <table
-                  class="table table-hover table-nowrap table-market table-market--results"
-                  data-trading-table="minimumSize"
-                >
-
-                  <caption class="visually-hidden">
-                    <fmt:message key="adtv.main.tab.2" />
-                  </caption>
-
-                  <thead>
-
-                    <%-- Row 1 --%>
-
-                    <tr>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.1" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.0.col.1" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.0.col.2" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.0.col.3" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.0.col.4" />
-                      </th>
-
-                    </tr>
-
-
-                    <%-- Row 2 --%>
-
-                    <tr>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.2" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.1.col.1" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.1.col.2" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.1.col.3" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.1.col.4" />
-                      </th>
-
-                    </tr>
-
-
-                    <%-- Row 3 --%>
-
-                    <tr>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.3" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.2.col.1" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.2.col.2" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.2.col.3" />
-                      </th>
-
-                      <th scope="col">
-                        <fmt:message key="adtv.sub.row.2.col.4" />
-                      </th>
-
-                    </tr>
-
-                  </thead>
-
-                  <tbody></tbody>
-
-                </table>
-
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-
-        <%-- =================================================================
-             Mobile
-             ================================================================= --%>
-
-        <div
-          class="data-view__cards"
-          data-trading-cards="minimumSize"
-        ></div>
-
-      </div>
-    </div>
-  </div>
-
-</div>
-
-        </section>
-
-
-        <%-- ===============================================================
-     Accumulated Losses
-     =============================================================== --%>
-
-<section
-  class="tab-pane"
-  id="tab-accumulated-losses"
-  role="tabpanel"
-  aria-labelledby="tab-accumulated-losses-trigger"
-  data-trading-panel="accumulated"
-  hidden
->
-
-  <%-- =========================================================================
+  <%-- =======================================================================
        Accumulated Losses
-       ========================================================================= --%>
+       Placeholder only — next step
+       ======================================================================= --%>
+
+  <section
+    class="tab-pane"
+    id="tab-accumulated-losses"
+    role="tabpanel"
+    aria-labelledby="tab-accumulated-losses-trigger"
+    data-trading-panel="accumulated"
+    hidden
+  >
+
+   
 
   <div
     class="stack stack--lg"
     data-trading-accumulated
   >
 
-    <%-- =======================================================================
-         Filters
-         ======================================================================= --%>
+    <%-- =====================================================================
+         Accumulated Losses Filters
+         ===================================================================== --%>
 
     <form
-      class="filter-bar filter-bar--stacked"
+      class="filter-bar"
+      aria-labelledby="trading-accumulated-filters-title"
       data-trading-accumulated-filters
     >
 
-      <div class="stack stack--lg">
+      <h2
+        class="visually-hidden"
+        id="trading-accumulated-filters-title"
+      >
+        <fmt:message
+          key="issuer.trading.info.v2.title.accumulated"
+        />
+      </h2>
 
-        <%-- ===================================================================
-             Filter Content
-             =================================================================== --%>
+
+      <%-- ===================================================================
+           Primary Controls
+           =================================================================== --%>
+
+      <div class="filter-bar__inner">
 
         <div class="filter-bar__fields grid-3">
 
-          <%-- ===============================================================
+          <%-- ---------------------------------------------------------------
                Accumulated Loss Range
-               =============================================================== --%>
+               --------------------------------------------------------------- --%>
 
           <div class="filter-bar__field">
 
@@ -1177,6 +1049,7 @@
               class="custom-select"
               data-custom-select
             >
+
               <div class="form-select-wrap custom-select__fallback">
 
                 <select
@@ -1221,6 +1094,7 @@
                 ></span>
 
               </div>
+
             </div>
 
           </div>
@@ -1228,78 +1102,11 @@
         </div>
 
 
-        <%-- ===================================================================
-             Actions + Legend
-             =================================================================== --%>
+        <%-- ===============================================================
+             Reset
+             =============================================================== --%>
 
         <div class="filter-bar__actions">
-
-          <%-- ---------------------------------------------------------------
-               Legend
-               --------------------------------------------------------------- --%>
-
-          <div
-            class="trading-loss-legend"
-            aria-label="<fmt:message key='issuer.trading.info.v2.title.accumulated' />"
-          >
-
-            <ul class="legend-list">
-
-              <li class="legend-list__item">
-
-                <span
-                  class="legend-list__marker legend-list__marker--danger"
-                  aria-hidden="true"
-                ></span>
-
-                <span>
-                  <fmt:message
-                    key="issuer.trading.info.v2.accumulated.losses.50.more"
-                  />
-                </span>
-
-              </li>
-
-
-              <li class="legend-list__item">
-
-                <span
-                  class="legend-list__marker legend-list__marker--warning"
-                  aria-hidden="true"
-                ></span>
-
-                <span>
-                  <fmt:message
-                    key="issuer.trading.info.v2.accumulated.losses.35.to.50"
-                  />
-                </span>
-
-              </li>
-
-
-              <li class="legend-list__item">
-
-                <span
-                  class="legend-list__marker legend-list__marker--caution"
-                  aria-hidden="true"
-                ></span>
-
-                <span>
-                  <fmt:message
-                    key="issuer.trading.info.v2.accumulated.losses.20.to.35"
-                  />
-                </span>
-
-              </li>
-
-            </ul>
-
-          </div>
-
-
-          <%-- ---------------------------------------------------------------
-               Reset
-               --------------------------------------------------------------- --%>
 
           <button
             class="btn btn-outline-primary has-icon icon-sync-refresh"
@@ -1315,12 +1122,95 @@
 
       </div>
 
+
+      <%-- ===================================================================
+           Accumulated Loss Legend
+           =================================================================== --%>
+
+      <div class="filter-bar__secondary">
+
+        <div
+          class="filter-bar__secondary-content"
+          role="list"
+          aria-label="<fmt:message key='issuer.trading.info.v2.title.accumulated' />"
+        >
+
+          <div class="filter-bar__legend">
+
+            <%-- 50% or more --%>
+
+            <span
+              class="filter-bar__legend-item"
+              role="listitem"
+            >
+
+              <span
+                class="filter-bar__legend-indicator filter-bar__legend-indicator--danger"
+                aria-hidden="true"
+              ></span>
+
+              <span>
+                <fmt:message
+                  key="issuer.trading.info.v2.accumulated.losses.50.more"
+                />
+              </span>
+
+            </span>
+
+
+            <%-- 35% to less than 50% --%>
+
+            <span
+              class="filter-bar__legend-item"
+              role="listitem"
+            >
+
+              <span
+                class="filter-bar__legend-indicator filter-bar__legend-indicator--warning"
+                aria-hidden="true"
+              ></span>
+
+              <span>
+                <fmt:message
+                  key="issuer.trading.info.v2.accumulated.losses.35.to.50"
+                />
+              </span>
+
+            </span>
+
+
+            <%-- 20% to less than 35% --%>
+
+            <span
+              class="filter-bar__legend-item"
+              role="listitem"
+            >
+
+              <span
+                class="filter-bar__legend-indicator filter-bar__legend-indicator--primary"
+                aria-hidden="true"
+              ></span>
+
+              <span>
+                <fmt:message
+                  key="issuer.trading.info.v2.accumulated.losses.20.to.35"
+                />
+              </span>
+
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
     </form>
 
 
-    <%-- =========================================================================
+    <%-- =====================================================================
          Accumulated Losses Data View
-         ========================================================================= --%>
+         ===================================================================== --%>
 
     <div
       class="data-view"
@@ -1329,17 +1219,17 @@
 
       <div class="data-view__workspace">
 
-        <%-- =================================================================
+        <%-- ---------------------------------------------------------------
              Desktop / Tablet
-             ================================================================= --%>
+             --------------------------------------------------------------- --%>
 
         <div class="data-view__table">
 
           <div class="data-view__table-block">
 
-            <%-- =============================================================
+            <%-- -----------------------------------------------------------
                  Results Toolbar
-                 ============================================================= --%>
+                 ----------------------------------------------------------- --%>
 
             <div class="data-view__toolbar">
 
@@ -1369,18 +1259,16 @@
             </div>
 
 
-            <%-- =============================================================
+            <%-- -----------------------------------------------------------
                  Table Shell
-                 ============================================================= --%>
+                 ----------------------------------------------------------- --%>
 
             <div
               class="table-shell"
               data-table-shell
             >
 
-              <%-- -----------------------------------------------------------
-                   Loading Skeleton
-                   ----------------------------------------------------------- --%>
+              <%-- Loading Skeleton --%>
 
               <div
                 class="table-loading"
@@ -1390,59 +1278,24 @@
               >
 
                 <div class="table-loading__row">
-
-                  <span
-                    class="table-skeleton table-skeleton-sm"
-                  ></span>
-
-                  <span
-                    class="table-skeleton table-skeleton-lg"
-                  ></span>
-
+                  <span class="table-skeleton table-skeleton-sm"></span>
+                  <span class="table-skeleton table-skeleton-lg"></span>
                 </div>
 
                 <div class="table-loading__row">
-
-                  <span
-                    class="table-skeleton table-skeleton-sm"
-                  ></span>
-
-                  <span
-                    class="table-skeleton table-skeleton-lg"
-                  ></span>
-
+                  <span class="table-skeleton table-skeleton-sm"></span>
+                  <span class="table-skeleton table-skeleton-lg"></span>
                 </div>
 
                 <div class="table-loading__row">
-
-                  <span
-                    class="table-skeleton table-skeleton-sm"
-                  ></span>
-
-                  <span
-                    class="table-skeleton table-skeleton-lg"
-                  ></span>
-
-                </div>
-
-                <div class="table-loading__row">
-
-                  <span
-                    class="table-skeleton table-skeleton-sm"
-                  ></span>
-
-                  <span
-                    class="table-skeleton table-skeleton-lg"
-                  ></span>
-
+                  <span class="table-skeleton table-skeleton-sm"></span>
+                  <span class="table-skeleton table-skeleton-lg"></span>
                 </div>
 
               </div>
 
 
-              <%-- -----------------------------------------------------------
-                   Table
-                   ----------------------------------------------------------- --%>
+              <%-- Table --%>
 
               <div
                 class="table-responsive custom-scrollbar"
@@ -1465,10 +1318,6 @@
                   <thead>
                     <tr>
 
-                      <%-- ===================================================
-                           Symbol
-                           =================================================== --%>
-
                       <th
                         scope="col"
                         data-column-key="symbol"
@@ -1477,11 +1326,6 @@
                           key="issuer.trading.info.v2.table.heading.acc.symbol"
                         />
                       </th>
-
-
-                      <%-- ===================================================
-                           Company
-                           =================================================== --%>
 
                       <th
                         scope="col"
@@ -1508,9 +1352,9 @@
         </div>
 
 
-        <%-- =================================================================
+        <%-- ---------------------------------------------------------------
              Mobile
-             ================================================================= --%>
+             --------------------------------------------------------------- --%>
 
         <div
           class="data-view__cards"
@@ -1524,49 +1368,547 @@
 
   </div>
 
-</section>
+
+  </section>
 
 
-   <%-- ===============================================================
-     Listed Tradable Rights
-     =============================================================== --%>
+  <%-- =======================================================================
+       Listed Tradable Rights
+       Placeholder only
+       ======================================================================= --%>
 
-<section
-  class="tab-pane"
-  id="tab-listed-tradable-rights"
-  role="tabpanel"
-  aria-labelledby="tab-listed-tradable-rights-trigger"
-  data-trading-panel="listedTradable"
-  hidden
+  <section
+    class="tab-pane"
+    id="tab-listed-tradable-rights"
+    role="tabpanel"
+    aria-labelledby="tab-listed-tradable-rights-trigger"
+    data-trading-panel="listedTradable"
+    hidden
+  >
+
+    <%-- =========================================================================
+     Listed Tradable Rights Data View
+     ========================================================================= --%>
+
+<div
+  class="stack stack--lg"
+  data-trading-listed-tradable
 >
 
-  <%-- =========================================================================
-       Listed Tradable Rights
-       ========================================================================= --%>
+  <div
+    class="data-view"
+    data-trading-view="listedTradableRights"
+  >
+
+    <div class="data-view__workspace">
+
+      <%-- ===================================================================
+           Desktop / Tablet
+           =================================================================== --%>
+
+      <div class="data-view__table">
+
+        <div class="data-view__table-block">
+
+          <%-- ===============================================================
+               Results Toolbar
+               =============================================================== --%>
+
+          <div class="data-view__toolbar">
+
+            <div class="data-view__toolbar-start">
+
+              <div
+                class="data-view__result-count"
+                id="listed-tradable-rights-results"
+              >
+
+                <strong>
+                  <fmt:message
+                    key="issuer.trading.info.results.msg"
+                  />:
+                </strong>
+
+                <span
+                  data-trading-result-count="listedTradableRights"
+                >
+                  0
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <%-- ===============================================================
+               Table Shell
+               =============================================================== --%>
+
+          <div
+            class="table-shell"
+            data-table-shell
+          >
+
+            <%-- =============================================================
+                 Loading Skeleton
+                 ============================================================= --%>
+
+            <div
+              class="table-loading"
+              data-trading-loading="listedTradableRights"
+              aria-hidden="true"
+              hidden
+            >
+
+              <div class="table-loading__row">
+                <span class="table-skeleton table-skeleton-sm"></span>
+                <span class="table-skeleton table-skeleton-lg"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+              </div>
+
+              <div class="table-loading__row">
+                <span class="table-skeleton table-skeleton-sm"></span>
+                <span class="table-skeleton table-skeleton-lg"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+              </div>
+
+              <div class="table-loading__row">
+                <span class="table-skeleton table-skeleton-sm"></span>
+                <span class="table-skeleton table-skeleton-lg"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+              </div>
+
+            </div>
+
+
+            <%-- =============================================================
+                 Listed Tradable Rights Table
+                 ============================================================= --%>
+
+            <div
+              class="table-responsive custom-scrollbar"
+              data-table-scroll
+            >
+
+              <table
+                id="listed-tradable-rights-table"
+                class="table table-hover table-nowrap table-market table-market--results"
+                aria-describedby="listed-tradable-rights-results"
+                data-trading-table="listedTradableRights"
+              >
+
+                <caption class="visually-hidden">
+                  <fmt:message
+                    key="issuer.trading.info.v2.title.listedtradablerights"
+                  />
+                </caption>
+
+
+                <%-- =========================================================
+                     IMPORTANT
+
+                     JSP owns this complete complex header.
+
+                     trading.js / common Data View must populate tbody only.
+                     The header must not be reconstructed by JavaScript.
+                     ========================================================= --%>
+
+                <thead>
+
+                  <%-- =======================================================
+                       Header Row 1
+                       ======================================================= --%>
+
+                  <tr>
+
+                    <%-- Symbol --%>
+
+                    <th
+                      scope="col"
+                      rowspan="2"
+                      data-column-key="symbol"
+                    >
+                      <fmt:message
+                        key="issuer.trading.info.v2.table.heading.symbol"
+                      />
+                    </th>
+
+
+                    <%-- Company --%>
+
+                    <th
+                      scope="col"
+                      rowspan="2"
+                      data-column-key="company"
+                    >
+                      <fmt:message
+                        key="issuer.trading.info.v2.table.heading.companyname"
+                      />
+                    </th>
+
+
+                    <%-- Market Information Group --%>
+
+                    <th
+                      scope="colgroup"
+                      colspan="4"
+                    >
+                      <fmt:message
+                        key="issuer.trading.info.v2.table.heading.marketinformation"
+                      />
+                    </th>
+
+                  </tr>
+
+
+                  <%-- =======================================================
+                       Header Row 2
+                       ======================================================= --%>
+
+                  <tr>
+
+                    <%-- Last Trade Price --%>
+
+                    <th
+                      class="table-market__number"
+                      scope="col"
+                      data-column-key="last-trade-price"
+                    >
+                      <fmt:message
+                        key="issuer.trading.info.v2.table.heading.lasttradeprice"
+                      />
+                    </th>
+
+
+                    <%-- Change --%>
+
+                    <th
+                      class="table-market__number"
+                      scope="col"
+                      data-column-key="change"
+                    >
+                      <fmt:message
+                        key="issuer.trading.info.v2.table.heading.change"
+                      />
+                    </th>
+
+
+                    <%-- Change % --%>
+
+                    <th
+                      class="table-market__number"
+                      scope="col"
+                      data-column-key="change-percent"
+                    >
+                      <fmt:message
+                        key="issuer.trading.info.v2.table.heading.changepercentage"
+                      />
+                    </th>
+
+
+                    <%-- Volume --%>
+
+                    <th
+                      class="table-market__number"
+                      scope="col"
+                      data-column-key="volume"
+                    >
+                      <fmt:message
+                        key="issuer.trading.info.v2.table.heading.volume"
+                      />
+                    </th>
+
+                  </tr>
+
+                </thead>
+
+                <tbody></tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <%-- ===================================================================
+           Mobile
+           =================================================================== --%>
+
+      <div
+        class="data-view__cards"
+        aria-label="<fmt:message key='issuer.trading.info.v2.title.listedtradablerights' />"
+        data-trading-cards="listedTradableRights"
+      ></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+  </section>
+
+
+  <%-- =======================================================================
+       Suspended / Delisted Companies
+       Placeholder only
+       ======================================================================= --%>
+
+  <section
+    class="tab-pane"
+    id="tab-company-status"
+    role="tabpanel"
+    aria-labelledby="tab-company-status-trigger"
+    data-trading-panel="deListedCompanies"
+    hidden
+  >
+
+    <%-- =========================================================================
+     Suspended / Delisted Companies Content
+     ========================================================================= --%>
+
+<div
+  class="stack stack--lg"
+  data-trading-company-status
+>
+
+  <%-- =======================================================================
+       Filters
+       ======================================================================= --%>
+
+  <form
+    class="filter-bar"
+    aria-labelledby="trading-company-status-filters-title"
+    data-trading-delisted-filters
+  >
+
+    <h2
+      class="visually-hidden"
+      id="trading-company-status-filters-title"
+    >
+      <fmt:message
+        key="issuer.trading.info.v2.title.delistedcompanies"
+      />
+    </h2>
+
+
+    <%-- =====================================================================
+         Primary Controls
+         ===================================================================== --%>
+
+    <div class="filter-bar__inner">
+
+      <div class="filter-bar__fields grid-3">
+
+        <%-- -----------------------------------------------------------------
+             Type
+             ----------------------------------------------------------------- --%>
+
+        <div class="filter-bar__field">
+
+          <label
+            class="form-label"
+            for="trading-delisted-type"
+          >
+            <fmt:message key="suspended.company.type" />
+          </label>
+
+          <div
+            class="custom-select"
+            data-custom-select
+          >
+
+            <div class="form-select-wrap custom-select__fallback">
+
+              <select
+                class="form-select custom-select__native"
+                id="trading-delisted-type"
+                name="type"
+                data-trading-delisted-type
+              >
+
+                <option
+                  value="Suspension"
+                  selected
+                >
+                  <fmt:message
+                    key="suspended.company.suspension.dp"
+                  />
+                </option>
+
+                <option value="Delisting">
+                  <fmt:message
+                    key="suspended.company.delisting.dp"
+                  />
+                </option>
+
+                <option value="Suspension_Funds">
+                  <fmt:message
+                    key="suspended.company.suspension.funds.dp"
+                  />
+                </option>
+
+                <option value="Delisted_Funds">
+                  <fmt:message
+                    key="suspended.company.delisting.funds.dp"
+                  />
+                </option>
+
+              </select>
+
+              <span
+                class="form-select-icon has-icon icon-chevron-down"
+                aria-hidden="true"
+              ></span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <%-- -----------------------------------------------------------------
+             Time Period
+             ----------------------------------------------------------------- --%>
+
+        <div class="filter-bar__field">
+
+          <span
+            class="form-label-static"
+            id="trading-company-status-period-label"
+          >
+            <fmt:message
+              key="issuer.trading.info.v2.section.heading.timeperiod"
+            />
+          </span>
+
+          <div
+            class="custom-date custom-date--range"
+            aria-labelledby="trading-company-status-period-label"
+            data-custom-date-range
+            data-clearable
+            data-placeholder="YYYY-MM-DD – YYYY-MM-DD"
+          >
+
+            <div class="custom-date__fallback">
+
+              <div class="custom-date__native-range">
+
+                <input
+                  class="form-control custom-date__native"
+                  id="trading-delisted-from-date"
+                  name="fromDate"
+                  type="date"
+                  aria-label="Start date"
+                  data-date-start
+                  data-trading-delisted-from-date
+                />
+
+                <input
+                  class="form-control custom-date__native"
+                  id="trading-delisted-to-date"
+                  name="toDate"
+                  type="date"
+                  aria-label="End date"
+                  data-date-end
+                  data-trading-delisted-to-date
+                />
+
+              </div>
+
+              <div
+                class="custom-date__initial-trigger"
+                aria-hidden="true"
+              >
+
+                <span
+                  class="custom-date__initial-value is-placeholder"
+                >
+                  YYYY-MM-DD – YYYY-MM-DD
+                </span>
+
+                <span
+                  class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                  aria-hidden="true"
+                ></span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <%-- ===================================================================
+           Reset
+           =================================================================== --%>
+
+      <div class="filter-bar__actions">
+
+        <button
+          class="btn btn-outline-primary has-icon icon-sync-refresh"
+          type="reset"
+          data-trading-reset="deListedCompanies"
+        >
+          <fmt:message
+            key="issuer.trading.info.v2.search.reset"
+          />
+        </button>
+
+      </div>
+
+    </div>
+
+  </form>
+
+
+  <%-- =======================================================================
+       Suspended Companies / Funds Variant
+       ======================================================================= --%>
 
   <div
-    class="stack stack--lg"
-    data-trading-listed-tradable
+    data-trading-variant="Suspension"
   >
 
     <div
       class="data-view"
-      data-trading-view="listedTradableRights"
+      data-trading-view="suspendedCompanies"
     >
 
       <div class="data-view__workspace">
 
-        <%-- =================================================================
+        <%-- ---------------------------------------------------------------
              Desktop / Tablet
-             ================================================================= --%>
+             --------------------------------------------------------------- --%>
 
         <div class="data-view__table">
 
           <div class="data-view__table-block">
 
-            <%-- =============================================================
+            <%-- -----------------------------------------------------------
                  Results Toolbar
-                 ============================================================= --%>
+                 ----------------------------------------------------------- --%>
 
             <div class="data-view__toolbar">
 
@@ -1574,7 +1916,7 @@
 
                 <div
                   class="data-view__result-count"
-                  id="listed-tradable-results"
+                  id="suspended-companies-results"
                 >
 
                   <strong>
@@ -1584,7 +1926,7 @@
                   </strong>
 
                   <span
-                    data-trading-result-count="listedTradableRights"
+                    data-trading-result-count="suspendedCompanies"
                   >
                     0
                   </span>
@@ -1596,80 +1938,56 @@
             </div>
 
 
-            <%-- =============================================================
+            <%-- -----------------------------------------------------------
                  Table Shell
-                 ============================================================= --%>
+                 ----------------------------------------------------------- --%>
 
             <div
               class="table-shell"
               data-table-shell
             >
 
-              <%-- -----------------------------------------------------------
-                   Loading Skeleton
-                   ----------------------------------------------------------- --%>
+              <%-- ---------------------------------------------------------
+                   Loading
+                   --------------------------------------------------------- --%>
 
               <div
                 class="table-loading"
-                data-trading-loading="listedTradableRights"
+                data-trading-loading="suspendedCompanies"
                 aria-hidden="true"
                 hidden
               >
 
                 <div class="table-loading__row">
+                  <span class="table-skeleton table-skeleton-sm"></span>
                   <span class="table-skeleton table-skeleton-lg"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
+                  <span class="table-skeleton table-skeleton-md"></span>
+                  <span class="table-skeleton table-skeleton-md"></span>
+                  <span class="table-skeleton table-skeleton-lg"></span>
                 </div>
 
                 <div class="table-loading__row">
+                  <span class="table-skeleton table-skeleton-sm"></span>
                   <span class="table-skeleton table-skeleton-lg"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
+                  <span class="table-skeleton table-skeleton-md"></span>
+                  <span class="table-skeleton table-skeleton-md"></span>
+                  <span class="table-skeleton table-skeleton-lg"></span>
                 </div>
 
                 <div class="table-loading__row">
+                  <span class="table-skeleton table-skeleton-sm"></span>
                   <span class="table-skeleton table-skeleton-lg"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
-                  <span class="table-skeleton table-skeleton-sm"></span>
+                  <span class="table-skeleton table-skeleton-md"></span>
+                  <span class="table-skeleton table-skeleton-md"></span>
+                  <span class="table-skeleton table-skeleton-lg"></span>
                 </div>
 
               </div>
 
 
-              <%-- -----------------------------------------------------------
-                   Complex Market Table
-                   ----------------------------------------------------------- --%>
+              <%-- ---------------------------------------------------------
+                   Suspended Table
+                   --------------------------------------------------------- --%>
 
               <div
                 class="table-responsive custom-scrollbar"
@@ -1677,276 +1995,90 @@
               >
 
                 <table
-                  id="listed-tradable-rights-table"
+                  id="suspended-companies-table"
                   class="table table-hover table-nowrap table-market table-market--results"
-                  aria-describedby="listed-tradable-results"
-                  data-trading-table="listedTradableRights"
+                  aria-describedby="suspended-companies-results"
+                  data-trading-table="suspendedCompanies"
                   data-trading-complex-header
                 >
 
                   <caption class="visually-hidden">
                     <fmt:message
-                      key="issuer.trading.info.v2.title.listedtradable"
+                      key="issuer.trading.info.v2.title.delistedcompanies"
                     />
                   </caption>
 
 
                   <%-- =======================================================
-                       IMPORTANT
-                       -------------------------------------------------------
-                       This THEAD is authoritative.
+                       JSP-owned complex header
 
-                       Trading JS/DataTables must preserve this grouped header.
-                       It must not recreate or replace the THEAD.
+                       Symbol | Company | Period        | Reason
+                                        | From | To
                        ======================================================= --%>
 
                   <thead>
 
-                    <%-- =====================================================
-                         Group Header
-                         ===================================================== --%>
-
                     <tr>
-
-                      <%-- ---------------------------------------------------
-                           Tradable Right
-                           --------------------------------------------------- --%>
 
                       <th
                         scope="col"
                         rowspan="2"
-                        data-column-key="tradable-right"
+                        data-column-key="symbol"
                       >
                         <fmt:message
-                          key="equityright.table.column.header.tradable.rights"
+                          key="suspended.company.symbol"
                         />
                       </th>
-
-
-                      <%-- ---------------------------------------------------
-                           Last Trade
-                           --------------------------------------------------- --%>
 
                       <th
-                        scope="colgroup"
-                        colspan="4"
-                        data-column-group="last-trade"
+                        scope="col"
+                        rowspan="2"
+                        data-column-key="company"
                       >
                         <fmt:message
-                          key="equityright.table.column.header.last.trade"
+                          key="suspended.company.name"
                         />
                       </th>
-
-
-                      <%-- ---------------------------------------------------
-                           Today's Trading
-                           --------------------------------------------------- --%>
-
-                      <th
-                        scope="colgroup"
-                        colspan="3"
-                        data-column-group="today"
-                      >
-                        <fmt:message
-                          key="equityright.table.column.header.todays"
-                        />
-                      </th>
-
-
-                      <%-- ---------------------------------------------------
-                           Cumulative
-                           --------------------------------------------------- --%>
 
                       <th
                         scope="colgroup"
                         colspan="2"
-                        data-column-group="cumulative"
+                        data-column-group="period"
                       >
                         <fmt:message
-                          key="equityright.table.column.header.cumulative"
+                          key="suspended.company.period"
                         />
                       </th>
 
-
-                      <%-- ---------------------------------------------------
-                           Best Bid
-                           --------------------------------------------------- --%>
-
                       <th
-                        scope="colgroup"
-                        colspan="2"
-                        data-column-group="best-bid"
+                        scope="col"
+                        rowspan="2"
+                        data-column-key="reason"
                       >
                         <fmt:message
-                          key="equityright.table.column.header.best.bid"
-                        />
-                      </th>
-
-
-                      <%-- ---------------------------------------------------
-                           Best Offer
-                           --------------------------------------------------- --%>
-
-                      <th
-                        scope="colgroup"
-                        colspan="2"
-                        data-column-group="best-offer"
-                      >
-                        <fmt:message
-                          key="equityright.table.column.header.best.offer"
+                          key="suspended.company.reason"
                         />
                       </th>
 
                     </tr>
 
-
-                    <%-- =====================================================
-                         Leaf Column Headers
-                         ===================================================== --%>
-
                     <tr>
 
-                      <%-- Last Trade --------------------------------------- --%>
-
                       <th
-                        class="table-market__number"
                         scope="col"
-                        data-column-key="last-trade-price"
+                        data-column-key="from-date"
                       >
                         <fmt:message
-                          key="equityright.table.column.header.price"
+                          key="suspended.company.period.from"
                         />
                       </th>
 
                       <th
-                        class="table-market__number"
                         scope="col"
-                        data-column-key="last-trade-volume"
+                        data-column-key="to-date"
                       >
                         <fmt:message
-                          key="equityright.table.column.header.volume"
-                        />
-                      </th>
-
-                      <th
-                        class="table-market__number"
-                        scope="col"
-                        data-column-key="change-value"
-                      >
-                        <fmt:message
-                          key="equityright.table.column.header.change.value"
-                        />
-                      </th>
-
-                      <th
-                        class="table-market__number"
-                        scope="col"
-                        data-column-key="change-percent"
-                      >
-                        <fmt:message
-                          key="equityright.table.column.header.change.percent"
-                        />
-                      </th>
-
-
-                      <%-- Today's Trading --------------------------------- --%>
-
-                      <th
-                        class="table-market__number"
-                        scope="col"
-                        data-column-key="open"
-                      >
-                        <fmt:message
-                          key="equityright.table.column.header.open"
-                        />
-                      </th>
-
-                      <th
-                        class="table-market__number"
-                        scope="col"
-                        data-column-key="high"
-                      >
-                        <fmt:message
-                          key="equityright.table.column.header.high"
-                        />
-                      </th>
-
-                      <th
-                        class="table-market__number"
-                        scope="col"
-                        data-column-key="low"
-                      >
-                        <fmt:message
-                          key="equityright.table.column.header.low"
-                        />
-                      </th>
-
-
-                      <%-- Cumulative -------------------------------------- --%>
-
-                      <th
-                        class="table-market__number"
-                        scope="col"
-                        data-column-key="number-of-trades"
-                      >
-                        <fmt:message
-                          key="equityright.table.column.header.number.of.trades"
-                        />
-                      </th>
-
-                      <th
-                        class="table-market__number"
-                        scope="col"
-                        data-column-key="volume-traded"
-                      >
-                        <fmt:message
-                          key="equityright.table.column.header.volume.traded"
-                        />
-                      </th>
-
-
-                      <%-- Best Bid ---------------------------------------- --%>
-
-                      <th
-                        class="table-market__number"
-                        scope="col"
-                        data-column-key="bid-price"
-                      >
-                        <fmt:message
-                          key="equityright.table.column.header.price"
-                        />
-                      </th>
-
-                      <th
-                        class="table-market__number"
-                        scope="col"
-                        data-column-key="bid-volume"
-                      >
-                        <fmt:message
-                          key="equityright.table.column.header.volume"
-                        />
-                      </th>
-
-
-                      <%-- Best Offer -------------------------------------- --%>
-
-                      <th
-                        class="table-market__number"
-                        scope="col"
-                        data-column-key="ask-price"
-                      >
-                        <fmt:message
-                          key="equityright.table.column.header.price"
-                        />
-                      </th>
-
-                      <th
-                        class="table-market__number"
-                        scope="col"
-                        data-column-key="ask-volume"
-                      >
-                        <fmt:message
-                          key="equityright.table.column.header.volume"
+                          key="suspended.company.period.to"
                         />
                       </th>
 
@@ -1967,14 +2099,14 @@
         </div>
 
 
-        <%-- =================================================================
+        <%-- ---------------------------------------------------------------
              Mobile
-             ================================================================= --%>
+             --------------------------------------------------------------- --%>
 
         <div
           class="data-view__cards"
-          aria-label="<fmt:message key='issuer.trading.info.v2.title.listedtradable' />"
-          data-trading-cards="listedTradableRights"
+          aria-label="<fmt:message key='issuer.trading.info.v2.title.delistedcompanies' />"
+          data-trading-cards="suspendedCompanies"
         ></div>
 
       </div>
@@ -1983,703 +2115,34 @@
 
   </div>
 
-</section>
 
-    <%-- ===============================================================
-     Suspended / Delisted Companies
-     =============================================================== --%>
-
-<section
-  class="tab-pane"
-  id="tab-company-status"
-  role="tabpanel"
-  aria-labelledby="tab-company-status-trigger"
-  data-trading-panel="deListedCompanies"
-  hidden
->
-
-  <%-- =========================================================================
-       Company Status
-       ========================================================================= --%>
+  <%-- =======================================================================
+       Delisted Companies / Funds Variant
+       ======================================================================= --%>
 
   <div
-    class="stack stack--lg"
-    data-trading-company-status
-  >
-
-    <%-- =======================================================================
-         Filters
-         ======================================================================= --%>
-
-    <form
-      class="filter-bar filter-bar--stacked"
-      data-trading-delisted-filters
-    >
-
-      <div class="stack stack--lg">
-
-        <%-- ===================================================================
-             Filter Fields
-             =================================================================== --%>
-
-        <div class="filter-bar__fields grid-3">
-
-          <%-- ===============================================================
-               Type
-               =============================================================== --%>
-
-          <div class="filter-bar__field">
-
-            <label
-              class="form-label"
-              for="trading-delisted-type"
-            >
-              <fmt:message key="suspended.company.type" />
-            </label>
-
-            <div
-              class="custom-select"
-              data-custom-select
-            >
-              <div class="form-select-wrap custom-select__fallback">
-
-                <select
-                  class="form-select custom-select__native"
-                  id="trading-delisted-type"
-                  name="type"
-                  data-trading-delisted-type
-                >
-
-                  <option
-                    value="Suspension"
-                    selected
-                  >
-                    <fmt:message
-                      key="suspended.company.suspension.dp"
-                    />
-                  </option>
-
-                  <option value="Delisting">
-                    <fmt:message
-                      key="suspended.company.delisting.dp"
-                    />
-                  </option>
-
-                  <option value="Suspension_Funds">
-                    <fmt:message
-                      key="suspended.company.suspension.funds.dp"
-                    />
-                  </option>
-
-                  <option value="Delisted_Funds">
-                    <fmt:message
-                      key="suspended.company.delisting.funds.dp"
-                    />
-                  </option>
-
-                </select>
-
-                <span
-                  class="form-select-icon has-icon icon-chevron-down"
-                  aria-hidden="true"
-                ></span>
-
-              </div>
-            </div>
-
-          </div>
-
-
-          <%-- ===============================================================
-               Time Period
-               =============================================================== --%>
-
-          <div class="filter-bar__field">
-
-            <span
-              class="form-label-static"
-              id="trading-company-status-period-label"
-            >
-              <fmt:message
-                key="issuer.trading.info.v2.section.heading.timeperiod"
-              />
-            </span>
-
-            <div
-              class="custom-date custom-date--range"
-              aria-labelledby="trading-company-status-period-label"
-              data-custom-date-range
-              data-clearable
-              data-placeholder="YYYY-MM-DD – YYYY-MM-DD"
-            >
-
-              <div class="custom-date__fallback">
-
-                <div class="custom-date__native-range">
-
-                  <input
-                    class="form-control custom-date__native"
-                    id="trading-delisted-from-date"
-                    name="fromDate"
-                    type="date"
-                    aria-label="Start date"
-                    data-date-start
-                    data-trading-delisted-from-date
-                  />
-
-                  <input
-                    class="form-control custom-date__native"
-                    id="trading-delisted-to-date"
-                    name="toDate"
-                    type="date"
-                    aria-label="End date"
-                    data-date-end
-                    data-trading-delisted-to-date
-                  />
-
-                </div>
-
-                <div
-                  class="custom-date__initial-trigger"
-                  aria-hidden="true"
-                >
-
-                  <span
-                    class="custom-date__initial-value is-placeholder"
-                  >
-                    YYYY-MM-DD – YYYY-MM-DD
-                  </span>
-
-                  <span
-                    class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
-                    aria-hidden="true"
-                  ></span>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <%-- ===================================================================
-             Actions
-             =================================================================== --%>
-
-        <div class="filter-bar__actions">
-
-          <button
-            class="btn btn-outline-primary has-icon icon-sync-refresh"
-            type="reset"
-            data-trading-reset="deListedCompanies"
-          >
-            <fmt:message
-              key="issuer.trading.info.v2.search.reset"
-            />
-          </button>
-
-        </div>
-
-      </div>
-
-    </form>
-
-
-    <%-- =========================================================================
-         Suspended Companies / Funds
-         ========================================================================= --%>
-
-    <div
-      data-trading-variant="Suspension"
-    >
-
-      <div
-        class="data-view"
-        data-trading-view="suspendedCompanies"
-      >
-
-        <div class="data-view__workspace">
-
-          <%-- ===============================================================
-               Desktop / Tablet
-               =============================================================== --%>
-
-          <div class="data-view__table">
-
-            <div class="data-view__table-block">
-
-              <%-- ===========================================================
-                   Results Toolbar
-                   =========================================================== --%>
-
-              <div class="data-view__toolbar">
-
-                <div class="data-view__toolbar-start">
-
-                  <div
-                    class="data-view__result-count"
-                    id="suspended-companies-results"
-                  >
-
-                    <strong>
-                      <fmt:message
-                        key="issuer.trading.info.results.msg"
-                      />:
-                    </strong>
-
-                    <span
-                      data-trading-result-count="suspendedCompanies"
-                    >
-                      0
-                    </span>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-
-              <%-- ===========================================================
-                   Table Shell
-                   =========================================================== --%>
-
-              <div
-                class="table-shell"
-                data-table-shell
-              >
-
-                <%-- ---------------------------------------------------------
-                     Loading Skeleton
-                     --------------------------------------------------------- --%>
-
-                <div
-                  class="table-loading"
-                  data-trading-loading="suspendedCompanies"
-                  aria-hidden="true"
-                  hidden
-                >
-
-                  <div class="table-loading__row">
-                    <span class="table-skeleton table-skeleton-sm"></span>
-                    <span class="table-skeleton table-skeleton-lg"></span>
-                    <span class="table-skeleton table-skeleton-md"></span>
-                    <span class="table-skeleton table-skeleton-md"></span>
-                    <span class="table-skeleton table-skeleton-lg"></span>
-                  </div>
-
-                  <div class="table-loading__row">
-                    <span class="table-skeleton table-skeleton-sm"></span>
-                    <span class="table-skeleton table-skeleton-lg"></span>
-                    <span class="table-skeleton table-skeleton-md"></span>
-                    <span class="table-skeleton table-skeleton-md"></span>
-                    <span class="table-skeleton table-skeleton-lg"></span>
-                  </div>
-
-                  <div class="table-loading__row">
-                    <span class="table-skeleton table-skeleton-sm"></span>
-                    <span class="table-skeleton table-skeleton-lg"></span>
-                    <span class="table-skeleton table-skeleton-md"></span>
-                    <span class="table-skeleton table-skeleton-md"></span>
-                    <span class="table-skeleton table-skeleton-lg"></span>
-                  </div>
-
-                </div>
-
-
-                <%-- ---------------------------------------------------------
-                     Suspended Table
-                     --------------------------------------------------------- --%>
-
-                <div
-                  class="table-responsive custom-scrollbar"
-                  data-table-scroll
-                >
-
-                  <table
-                    id="suspended-companies-table"
-                    class="table table-hover table-nowrap table-market table-market--results"
-                    aria-describedby="suspended-companies-results"
-                    data-trading-table="suspendedCompanies"
-                    data-trading-complex-header
-                  >
-
-                    <caption class="visually-hidden">
-                      <fmt:message
-                        key="issuer.trading.info.v2.title.delistedcompanies"
-                      />
-                    </caption>
-
-
-                    <%-- =====================================================
-                         Authoritative Grouped Header
-                         ===================================================== --%>
-
-                    <thead>
-
-                      <tr>
-
-                        <%-- Symbol --%>
-
-                        <th
-                          scope="col"
-                          rowspan="2"
-                          data-column-key="symbol"
-                        >
-                          <fmt:message
-                            key="suspended.company.symbol"
-                          />
-                        </th>
-
-
-                        <%-- Company --%>
-
-                        <th
-                          scope="col"
-                          rowspan="2"
-                          data-column-key="company"
-                        >
-                          <fmt:message
-                            key="suspended.company.name"
-                          />
-                        </th>
-
-
-                        <%-- Period --%>
-
-                        <th
-                          scope="colgroup"
-                          colspan="2"
-                          data-column-group="period"
-                        >
-                          <fmt:message
-                            key="suspended.company.period"
-                          />
-                        </th>
-
-
-                        <%-- Reason --%>
-
-                        <th
-                          scope="col"
-                          rowspan="2"
-                          data-column-key="reason"
-                        >
-                          <fmt:message
-                            key="suspended.company.reason"
-                          />
-                        </th>
-
-                      </tr>
-
-
-                      <tr>
-
-                        <th
-                          scope="col"
-                          data-column-key="from-date"
-                        >
-                          <fmt:message
-                            key="suspended.company.period.from"
-                          />
-                        </th>
-
-                        <th
-                          scope="col"
-                          data-column-key="to-date"
-                        >
-                          <fmt:message
-                            key="suspended.company.period.to"
-                          />
-                        </th>
-
-                      </tr>
-
-                    </thead>
-
-                    <tbody></tbody>
-
-                  </table>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <%-- ===============================================================
-               Mobile
-               =============================================================== --%>
-
-          <div
-            class="data-view__cards"
-            aria-label="<fmt:message key='issuer.trading.info.v2.title.delistedcompanies' />"
-            data-trading-cards="suspendedCompanies"
-          ></div>
-
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <%-- =========================================================================
-         Delisted Companies / Funds
-         ========================================================================= --%>
-
-    <div
-      data-trading-variant="Delisting"
-      hidden
-    >
-
-      <div
-        class="data-view"
-        data-trading-view="delistedCompanies"
-      >
-
-        <div class="data-view__workspace">
-
-          <%-- ===============================================================
-               Desktop / Tablet
-               =============================================================== --%>
-
-          <div class="data-view__table">
-
-            <div class="data-view__table-block">
-
-              <%-- ===========================================================
-                   Results Toolbar
-                   =========================================================== --%>
-
-              <div class="data-view__toolbar">
-
-                <div class="data-view__toolbar-start">
-
-                  <div
-                    class="data-view__result-count"
-                    id="delisted-companies-results"
-                  >
-
-                    <strong>
-                      <fmt:message
-                        key="issuer.trading.info.results.msg"
-                      />:
-                    </strong>
-
-                    <span
-                      data-trading-result-count="delistedCompanies"
-                    >
-                      0
-                    </span>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-
-              <%-- ===========================================================
-                   Table Shell
-                   =========================================================== --%>
-
-              <div
-                class="table-shell"
-                data-table-shell
-              >
-
-                <%-- ---------------------------------------------------------
-                     Loading Skeleton
-                     --------------------------------------------------------- --%>
-
-                <div
-                  class="table-loading"
-                  data-trading-loading="delistedCompanies"
-                  aria-hidden="true"
-                  hidden
-                >
-
-                  <div class="table-loading__row">
-                    <span class="table-skeleton table-skeleton-sm"></span>
-                    <span class="table-skeleton table-skeleton-lg"></span>
-                    <span class="table-skeleton table-skeleton-md"></span>
-                    <span class="table-skeleton table-skeleton-lg"></span>
-                  </div>
-
-                  <div class="table-loading__row">
-                    <span class="table-skeleton table-skeleton-sm"></span>
-                    <span class="table-skeleton table-skeleton-lg"></span>
-                    <span class="table-skeleton table-skeleton-md"></span>
-                    <span class="table-skeleton table-skeleton-lg"></span>
-                  </div>
-
-                  <div class="table-loading__row">
-                    <span class="table-skeleton table-skeleton-sm"></span>
-                    <span class="table-skeleton table-skeleton-lg"></span>
-                    <span class="table-skeleton table-skeleton-md"></span>
-                    <span class="table-skeleton table-skeleton-lg"></span>
-                  </div>
-
-                </div>
-
-
-                <%-- ---------------------------------------------------------
-                     Delisted Table
-                     --------------------------------------------------------- --%>
-
-                <div
-                  class="table-responsive custom-scrollbar"
-                  data-table-scroll
-                >
-
-                  <table
-                    id="delisted-companies-table"
-                    class="table table-hover table-nowrap table-market table-market--results"
-                    aria-describedby="delisted-companies-results"
-                    data-trading-table="delistedCompanies"
-                  >
-
-                    <caption class="visually-hidden">
-                      <fmt:message
-                        key="issuer.trading.info.v2.title.delistedcompanies"
-                      />
-                    </caption>
-
-                    <thead>
-                      <tr>
-
-                        <%-- Symbol --%>
-
-                        <th
-                          scope="col"
-                          data-column-key="symbol"
-                        >
-                          <fmt:message
-                            key="delisted.company.symbol"
-                          />
-                        </th>
-
-
-                        <%-- Company --%>
-
-                        <th
-                          scope="col"
-                          data-column-key="company"
-                        >
-                          <fmt:message
-                            key="delisted.company.name"
-                          />
-                        </th>
-
-
-                        <%-- Date --%>
-
-                        <th
-                          scope="col"
-                          data-column-key="date"
-                        >
-                          <fmt:message
-                            key="delisted.company.date"
-                          />
-                        </th>
-
-
-                        <%-- Reason --%>
-
-                        <th
-                          scope="col"
-                          data-column-key="reason"
-                        >
-                          <fmt:message
-                            key="delisted.company.reason"
-                          />
-                        </th>
-
-                      </tr>
-                    </thead>
-
-                    <tbody></tbody>
-
-                  </table>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <%-- ===============================================================
-               Mobile
-               =============================================================== --%>
-
-          <div
-            class="data-view__cards"
-            aria-label="<fmt:message key='issuer.trading.info.v2.title.delistedcompanies' />"
-            data-trading-cards="delistedCompanies"
-          ></div>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</section>
-
-
-        <%-- ===============================================================
-     OTC Trading
-     =============================================================== --%>
-
-<section
-  class="tab-pane"
-  id="tab-otc-trading"
-  role="tabpanel"
-  aria-labelledby="tab-otc-trading-trigger"
-  data-trading-panel="otcTrading"
-  hidden
->
-
-  <%-- =========================================================================
-       OTC Trading
-       ========================================================================= --%>
-
-  <div
-    class="stack stack--lg"
-    data-trading-otc
+    data-trading-variant="Delisting"
+    hidden
   >
 
     <div
       class="data-view"
-      data-trading-view="otcTrading"
+      data-trading-view="delistedCompanies"
     >
 
       <div class="data-view__workspace">
 
-        <%-- =================================================================
+        <%-- ---------------------------------------------------------------
              Desktop / Tablet
-             ================================================================= --%>
+             --------------------------------------------------------------- --%>
 
         <div class="data-view__table">
 
           <div class="data-view__table-block">
 
-            <%-- =============================================================
+            <%-- -----------------------------------------------------------
                  Results Toolbar
-                 ============================================================= --%>
+                 ----------------------------------------------------------- --%>
 
             <div class="data-view__toolbar">
 
@@ -2687,7 +2150,7 @@
 
                 <div
                   class="data-view__result-count"
-                  id="otc-trading-results"
+                  id="delisted-companies-results"
                 >
 
                   <strong>
@@ -2697,7 +2160,7 @@
                   </strong>
 
                   <span
-                    data-trading-result-count="otcTrading"
+                    data-trading-result-count="delistedCompanies"
                   >
                     0
                   </span>
@@ -2709,92 +2172,53 @@
             </div>
 
 
-            <%-- =============================================================
+            <%-- -----------------------------------------------------------
                  Table Shell
-                 ============================================================= --%>
+                 ----------------------------------------------------------- --%>
 
             <div
               class="table-shell"
               data-table-shell
             >
 
-              <%-- -----------------------------------------------------------
-                   Loading Skeleton
-                   ----------------------------------------------------------- --%>
+              <%-- ---------------------------------------------------------
+                   Loading
+                   --------------------------------------------------------- --%>
 
               <div
                 class="table-loading"
-                data-trading-loading="otcTrading"
+                data-trading-loading="delistedCompanies"
                 aria-hidden="true"
                 hidden
               >
 
                 <div class="table-loading__row">
-
-                  <span
-                    class="table-skeleton table-skeleton-sm"
-                  ></span>
-
-                  <span
-                    class="table-skeleton table-skeleton-lg"
-                  ></span>
-
-                  <span
-                    class="table-skeleton table-skeleton-md"
-                  ></span>
-
-                  <span
-                    class="table-skeleton table-skeleton-md"
-                  ></span>
-
+                  <span class="table-skeleton table-skeleton-sm"></span>
+                  <span class="table-skeleton table-skeleton-lg"></span>
+                  <span class="table-skeleton table-skeleton-md"></span>
+                  <span class="table-skeleton table-skeleton-lg"></span>
                 </div>
 
                 <div class="table-loading__row">
-
-                  <span
-                    class="table-skeleton table-skeleton-sm"
-                  ></span>
-
-                  <span
-                    class="table-skeleton table-skeleton-lg"
-                  ></span>
-
-                  <span
-                    class="table-skeleton table-skeleton-md"
-                  ></span>
-
-                  <span
-                    class="table-skeleton table-skeleton-md"
-                  ></span>
-
+                  <span class="table-skeleton table-skeleton-sm"></span>
+                  <span class="table-skeleton table-skeleton-lg"></span>
+                  <span class="table-skeleton table-skeleton-md"></span>
+                  <span class="table-skeleton table-skeleton-lg"></span>
                 </div>
 
                 <div class="table-loading__row">
-
-                  <span
-                    class="table-skeleton table-skeleton-sm"
-                  ></span>
-
-                  <span
-                    class="table-skeleton table-skeleton-lg"
-                  ></span>
-
-                  <span
-                    class="table-skeleton table-skeleton-md"
-                  ></span>
-
-                  <span
-                    class="table-skeleton table-skeleton-md"
-                  ></span>
-
+                  <span class="table-skeleton table-skeleton-sm"></span>
+                  <span class="table-skeleton table-skeleton-lg"></span>
+                  <span class="table-skeleton table-skeleton-md"></span>
+                  <span class="table-skeleton table-skeleton-lg"></span>
                 </div>
 
               </div>
 
 
-              <%-- -----------------------------------------------------------
-                   OTC Table
-                   ----------------------------------------------------------- --%>
+              <%-- ---------------------------------------------------------
+                   Delisted Table
+                   --------------------------------------------------------- --%>
 
               <div
                 class="table-responsive custom-scrollbar"
@@ -2802,70 +2226,60 @@
               >
 
                 <table
-                  id="otc-trading-table"
+                  id="delisted-companies-table"
                   class="table table-hover table-nowrap table-market table-market--results"
-                  aria-describedby="otc-trading-results"
-                  data-trading-table="otcTrading"
+                  aria-describedby="delisted-companies-results"
+                  data-trading-table="delistedCompanies"
                 >
 
                   <caption class="visually-hidden">
                     <fmt:message
-                      key="issuer.trading.info.v2.title.otcctrading"
+                      key="issuer.trading.info.v2.title.delistedcompanies"
                     />
                   </caption>
 
                   <thead>
-                    <tr>
 
-                      <%-- ===================================================
-                           Symbol
-                           =================================================== --%>
+                    <tr>
 
                       <th
                         scope="col"
                         data-column-key="symbol"
                       >
-                        <fmt:message key="OTC.Symbol" />
+                        <fmt:message
+                          key="delisted.company.symbol"
+                        />
                       </th>
-
-
-                      <%-- ===================================================
-                           Company
-                           =================================================== --%>
 
                       <th
                         scope="col"
                         data-column-key="company"
                       >
-                        <fmt:message key="OTC.Company" />
+                        <fmt:message
+                          key="delisted.company.name"
+                        />
                       </th>
-
-
-                      <%-- ===================================================
-                           Traded Volume
-                           =================================================== --%>
-
-                      <th
-                        class="table-market__number"
-                        scope="col"
-                        data-column-key="traded-volume"
-                      >
-                        <fmt:message key="OTC.TradedVolume" />
-                      </th>
-
-
-                      <%-- ===================================================
-                           Last Update
-                           =================================================== --%>
 
                       <th
                         scope="col"
-                        data-column-key="last-update"
+                        data-column-key="date"
                       >
-                        <fmt:message key="OTC.LastUpdatePrice" />
+                        <fmt:message
+                          key="delisted.company.date"
+                        />
+                      </th>
+
+                      <th
+                        scope="col"
+                        data-column-key="reason"
+                      >
+                        <fmt:message
+                          key="delisted.company.reason"
+                        />
                       </th>
 
                     </tr>
+
                   </thead>
 
                   <tbody></tbody>
@@ -2881,14 +2295,14 @@
         </div>
 
 
-        <%-- =================================================================
+        <%-- ---------------------------------------------------------------
              Mobile
-             ================================================================= --%>
+             --------------------------------------------------------------- --%>
 
         <div
           class="data-view__cards"
-          aria-label="<fmt:message key='issuer.trading.info.v2.title.otcctrading' />"
-          data-trading-cards="otcTrading"
+          aria-label="<fmt:message key='issuer.trading.info.v2.title.delistedcompanies' />"
+          data-trading-cards="delistedCompanies"
         ></div>
 
       </div>
@@ -2897,8 +2311,227 @@
 
   </div>
 
-</section>
+</div>
+
+  </section>
+
+
+  <%-- =======================================================================
+       OTC Trading
+       Placeholder only
+       ======================================================================= --%>
+
+  <section
+    class="tab-pane"
+    id="tab-otc-trading"
+    role="tabpanel"
+    aria-labelledby="tab-otc-trading-trigger"
+    data-trading-panel="otcTrading"
+    hidden
+  >
+
+    <%-- =========================================================================
+     OTC Trading Content
+     ========================================================================= --%>
+
+<div
+  class="stack stack--lg"
+  data-trading-otc
+>
+
+  <div
+    class="data-view"
+    data-trading-view="otcTrading"
+  >
+
+    <div class="data-view__workspace">
+
+      <%-- ===================================================================
+           Desktop / Tablet
+           =================================================================== --%>
+
+      <div class="data-view__table">
+
+        <div class="data-view__table-block">
+
+          <%-- ===============================================================
+               Results Toolbar
+               =============================================================== --%>
+
+          <div class="data-view__toolbar">
+
+            <div class="data-view__toolbar-start">
+
+              <div
+                class="data-view__result-count"
+                id="otc-trading-results"
+              >
+
+                <strong>
+                  <fmt:message
+                    key="issuer.trading.info.results.msg"
+                  />:
+                </strong>
+
+                <span
+                  data-trading-result-count="otcTrading"
+                >
+                  0
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <%-- ===============================================================
+               Table Shell
+               =============================================================== --%>
+
+          <div
+            class="table-shell"
+            data-table-shell
+          >
+
+            <%-- =============================================================
+                 Loading Skeleton
+                 ============================================================= --%>
+
+            <div
+              class="table-loading"
+              data-trading-loading="otcTrading"
+              aria-hidden="true"
+              hidden
+            >
+
+              <div class="table-loading__row">
+                <span class="table-skeleton table-skeleton-sm"></span>
+                <span class="table-skeleton table-skeleton-lg"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+              </div>
+
+              <div class="table-loading__row">
+                <span class="table-skeleton table-skeleton-sm"></span>
+                <span class="table-skeleton table-skeleton-lg"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+              </div>
+
+              <div class="table-loading__row">
+                <span class="table-skeleton table-skeleton-sm"></span>
+                <span class="table-skeleton table-skeleton-lg"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+                <span class="table-skeleton table-skeleton-md"></span>
+              </div>
+
+            </div>
+
+
+            <%-- =============================================================
+                 OTC Trading Table
+                 ============================================================= --%>
+
+            <div
+              class="table-responsive custom-scrollbar"
+              data-table-scroll
+            >
+
+              <table
+                id="otc-trading-table"
+                class="table table-hover table-nowrap table-market table-market--results"
+                aria-describedby="otc-trading-results"
+                data-trading-table="otcTrading"
+              >
+
+                <caption class="visually-hidden">
+                  <fmt:message
+                    key="issuer.trading.info.v2.title.otcctrading"
+                  />
+                </caption>
+
+                <thead>
+
+                  <tr>
+
+                    <%-- Symbol --%>
+
+                    <th
+                      scope="col"
+                      data-column-key="symbol"
+                    >
+                      <fmt:message key="OTC.Symbol" />
+                    </th>
+
+
+                    <%-- Company --%>
+
+                    <th
+                      scope="col"
+                      data-column-key="company"
+                    >
+                      <fmt:message key="OTC.Company" />
+                    </th>
+
+
+                    <%-- Traded Volume --%>
+
+                    <th
+                      class="table-market__number"
+                      scope="col"
+                      data-column-key="traded-volume"
+                    >
+                      <fmt:message key="OTC.TradedVolume" />
+                    </th>
+
+
+                    <%-- Last Update --%>
+
+                    <th
+                      scope="col"
+                      data-column-key="last-update"
+                    >
+                      <fmt:message key="OTC.LastUpdatePrice" />
+                    </th>
+
+                  </tr>
+
+                </thead>
+
+                <tbody></tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
+
+
+      <%-- ===================================================================
+           Mobile
+           =================================================================== --%>
+
+      <div
+        class="data-view__cards"
+        aria-label="<fmt:message key='issuer.trading.info.v2.title.otcctrading' />"
+        data-trading-cards="otcTrading"
+      ></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+  </section>
+
+</div>
 
     </div>
 
