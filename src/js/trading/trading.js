@@ -26,6 +26,7 @@
  * - card markup
  * - cell rendering
  * - Sector -> Company request implementation
+ * - date calculation logic
  * - generic tab keyboard / ARIA behavior
  */
 
@@ -62,21 +63,6 @@ import { createTradingDependencies } from "./dependencies.js";
 /* ==========================================================================
    Trading Views
    ========================================================================== */
-
-/*
- * Each view module will expose one factory.
- *
- * Standard views will reuse:
- *
- * - createDataSource()
- * - createDataState()
- * - createDataTable()
- * - createDataCards()
- * - createDataResults()
- * - createDataViewController()
- *
- * from common/data-view.
- */
 
 import { createNegotiatedView } from "./views/negotiated.js";
 
@@ -119,7 +105,7 @@ const VIEW_FACTORIES = Object.freeze({
 });
 
 /* ==========================================================================
-   Tab -> View Mapping
+   Static Tab -> View Mapping
    ========================================================================== */
 
 const STATIC_TAB_VIEWS = Object.freeze({
@@ -147,10 +133,18 @@ function queryAll(root, selector) {
 }
 
 /* ==========================================================================
-   Active Tab
+   Initial Active Tab
    ========================================================================== */
 
-function getActiveTab(root) {
+/**
+ * Resolve the initially active Trading tab from the shared tabs markup.
+ *
+ * Runtime state is stored separately inside initTrading().
+ *
+ * @param {Element} root
+ * @returns {string}
+ */
+function getInitialActiveTab(root) {
   const selected =
     query(root, `${SELECTORS.tab}[aria-selected="true"]`) ||
     query(root, `${SELECTORS.tab}.active`);
@@ -220,16 +214,14 @@ function setVisibleVariant(elements, activeElement) {
 function syncNegotiatedVariant(root, filters) {
   const type = filters.negotiated.getValue("type");
 
+  const normalizedType =
+    type === NEGOTIATED_TYPES.minimumSize
+      ? NEGOTIATED_TYPES.minimumSize
+      : NEGOTIATED_TYPES.negotiatedDeals;
+
   const variants = queryAll(root, "[data-trading-variant]");
 
-  const active = query(
-    root,
-    getNegotiatedVariantSelector(
-      type === NEGOTIATED_TYPES.minimumSize
-        ? NEGOTIATED_TYPES.minimumSize
-        : NEGOTIATED_TYPES.negotiatedDeals,
-    ),
-  );
+  const active = query(root, getNegotiatedVariantSelector(normalizedType));
 
   setVisibleVariant(variants, active);
 
@@ -277,7 +269,15 @@ export function initTrading(root = document) {
     return existing;
   }
 
+  /* =========================================================================
+     Configuration
+     ========================================================================= */
+
   const config = getTradingConfig();
+
+  /* =========================================================================
+     Lifecycle
+     ========================================================================= */
 
   const abortController = new AbortController();
 
@@ -285,37 +285,55 @@ export function initTrading(root = document) {
 
   let destroyed = false;
 
-  let activeTab = getActiveTab(scope);
+  /* =========================================================================
+     Runtime Tab State
+     ========================================================================= */
 
   /*
-   * View instances are created lazily.
+   * Important:
    *
-   * Switching away from a tab does not destroy its table/card instance.
+   * Do not call the public runtime getActiveTab() method here.
+   *
+   * getInitialActiveTab() reads initial DOM state.
+   * getActiveTab() later exposes current runtime state.
+   */
+  let activeTab = getInitialActiveTab(scope);
+
+  /* =========================================================================
+     View Instances
+     ========================================================================= */
+
+  /*
+   * Views are created lazily.
+   *
+   * Once created, switching tabs does not destroy them.
    */
   const views = new Map();
 
-  /* ========================================================================
+  /* =========================================================================
      Filters
-     ======================================================================== */
+     ========================================================================= */
 
   const filters = createTradingFilters({
     root: scope,
+
     config,
   });
 
-  /* ========================================================================
+  /* =========================================================================
      Dependencies
-     ======================================================================== */
+     ========================================================================= */
 
   const dependencies = createTradingDependencies({
     root: scope,
+
     config,
     filters,
   });
 
-  /* ========================================================================
+  /* =========================================================================
      View Creation
-     ======================================================================== */
+     ========================================================================= */
 
   function getOrCreateView(view) {
     if (destroyed || !view) {
@@ -346,7 +364,9 @@ export function initTrading(root = document) {
 
     const instance = factory({
       root: viewRoot,
+
       pageRoot: scope,
+
       config,
       filters,
     });
@@ -362,21 +382,22 @@ export function initTrading(root = document) {
     return instance;
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Current View
-     ======================================================================== */
+     ========================================================================= */
 
   function getCurrentView() {
     return resolveViewForTab({
       tab: activeTab,
+
       filters,
       config,
     });
   }
 
-  /* ========================================================================
-     Loading
-     ======================================================================== */
+  /* =========================================================================
+     Load View
+     ========================================================================= */
 
   async function loadView(view, options = {}) {
     if (destroyed || !view) {
@@ -394,11 +415,15 @@ export function initTrading(root = document) {
     });
 
     /*
-     * A DataTable initialized while hidden may need to recalculate widths
-     * after its panel/variant becomes visible.
+     * Tables initialized while hidden may require width recalculation after
+     * the shared tabs/variant system makes them visible.
      */
     if (!destroyed && view === getCurrentView()) {
       requestAnimationFrame(() => {
+        if (destroyed) {
+          return;
+        }
+
         instance.adjust?.();
       });
     }
@@ -406,29 +431,29 @@ export function initTrading(root = document) {
     return result;
   }
 
-  /* ========================================================================
-     Active View
-     ======================================================================== */
+  /* =========================================================================
+     Load Current View
+     ========================================================================= */
 
   function loadCurrentView(options = {}) {
     return loadView(getCurrentView(), options);
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Tab Changes
-     ======================================================================== */
+     ========================================================================= */
 
   async function handleTabChange(tab) {
-    if (destroyed || !tab) {
+    if (destroyed || !tab || tab === activeTab) {
       return;
     }
 
     activeTab = tab;
 
     /*
-     * Ensure the correct nested presentation is visible before creating or
-     * adjusting its view.
+     * Synchronize nested variants before loading/adjusting the active view.
      */
+
     if (activeTab === TRADING_TABS.negotiatedDeals) {
       syncNegotiatedVariant(scope, filters);
     }
@@ -443,7 +468,7 @@ export function initTrading(root = document) {
       });
     } catch (error) {
       /*
-       * Stale tab loads are normal when users navigate quickly.
+       * AbortError is expected when a newer request supersedes an older one.
        */
       if (error?.name !== "AbortError") {
         console.error("Trading tab load:", error);
@@ -451,24 +476,23 @@ export function initTrading(root = document) {
     }
   }
 
-  /* ========================================================================
-     Shared Tab Event
-     ======================================================================== */
+  /* =========================================================================
+     Shared Tabs Integration
+     ========================================================================= */
 
   const tabsRoot = query(scope, SELECTORS.tabs);
 
   /*
-   * Preferred integration:
-   *
-   * The shared tabs component owns:
+   * Shared tabs own:
    *
    * - aria-selected
    * - tabindex
    * - panel hidden state
-   * - keyboard navigation
+   * - keyboard behavior
    *
-   * Trading only reacts to its emitted tab:change event.
+   * Trading reacts only to the resulting active-tab change.
    */
+
   tabsRoot?.addEventListener(
     "tab:change",
     (event) => {
@@ -489,13 +513,12 @@ export function initTrading(root = document) {
   /*
    * Compatibility fallback.
    *
-   * If the current shared tabs implementation does not yet emit tab:change,
-   * observe activation through the Trading tab click without implementing
-   * tab behavior here.
+   * If the shared tabs implementation does not emit tab:change, use the
+   * Trading tab metadata after the shared click handler has run.
    *
-   * queueMicrotask allows the shared tabs component to update ARIA/panels
-   * first.
+   * This observes tab changes only; it does not implement tab behavior.
    */
+
   tabsRoot?.addEventListener(
     "click",
     (event) => {
@@ -506,6 +529,10 @@ export function initTrading(root = document) {
       }
 
       queueMicrotask(() => {
+        if (destroyed) {
+          return;
+        }
+
         const nextTab = tabElement.dataset.tradingTab;
 
         if (nextTab && nextTab !== activeTab) {
@@ -518,9 +545,9 @@ export function initTrading(root = document) {
     },
   );
 
-  /* ========================================================================
-     Negotiated Filter Changes
-     ======================================================================== */
+  /* =========================================================================
+     Negotiated Filters
+     ========================================================================= */
 
   const unsubscribeNegotiated = filters.negotiated.subscribe(async (event) => {
     if (destroyed) {
@@ -552,10 +579,10 @@ export function initTrading(root = document) {
         await dependencies.loadCompanies(event.value);
 
         /*
-         * Sector changes always restore Company to All Companies.
+         * Sector changes always restore Company to "All Companies".
          *
-         * Only Negotiated Deals uses Sector/Company. Minimum Size does
-         * not need a second request after the dependency completes.
+         * Only the actual Negotiated Deals dataset consumes Sector and
+         * Company. Minimum Size does not.
          */
         if (
           activeTab === TRADING_TABS.negotiatedDeals &&
@@ -570,19 +597,13 @@ export function initTrading(root = document) {
       }
 
       /* --------------------------------------------------------------
-             Ordinary Negotiated filters
+             Company / Date
              -------------------------------------------------------------- */
 
       if (activeTab !== TRADING_TABS.negotiatedDeals) {
         return;
       }
 
-      /*
-       * Company/date filters belong only to actual Negotiated Deals.
-       *
-       * Minimum Size uses the Type selector but does not consume these
-       * filters in its backend contract.
-       */
       if (getNegotiatedView(filters) !== TRADING_VIEWS.negotiatedDeals) {
         return;
       }
@@ -597,9 +618,9 @@ export function initTrading(root = document) {
     }
   });
 
-  /* ========================================================================
-     Accumulated Filter Changes
-     ======================================================================== */
+  /* =========================================================================
+     Accumulated Filters
+     ========================================================================= */
 
   const unsubscribeAccumulated = filters.accumulated.subscribe(async () => {
     if (destroyed || activeTab !== TRADING_TABS.accumulated) {
@@ -617,9 +638,9 @@ export function initTrading(root = document) {
     }
   });
 
-  /* ========================================================================
-     Company Status Filter Changes
-     ======================================================================== */
+  /* =========================================================================
+     Company Status Filters
+     ========================================================================= */
 
   const unsubscribeCompanyStatus = filters.companyStatus.subscribe(
     async (event) => {
@@ -628,6 +649,10 @@ export function initTrading(root = document) {
       }
 
       try {
+        /* --------------------------------------------------------------
+             Type
+             -------------------------------------------------------------- */
+
         if (event.key === "type") {
           const view = syncCompanyStatusVariant(scope, filters, config);
 
@@ -639,6 +664,10 @@ export function initTrading(root = document) {
 
           return;
         }
+
+        /* --------------------------------------------------------------
+             Date Range
+             -------------------------------------------------------------- */
 
         if (activeTab !== TRADING_TABS.companyStatus) {
           return;
@@ -655,37 +684,44 @@ export function initTrading(root = document) {
     },
   );
 
-  /* ========================================================================
-     Reset Buttons
-     ======================================================================== */
+  /* =========================================================================
+     Reset: Negotiated
+     ========================================================================= */
 
   async function resetNegotiated() {
     /*
-     * Reset common filters without notifying subscribers individually.
+     * filters.js owns reset values.
      *
-     * This avoids:
+     * Its date reset contract is:
      *
-     * Type reload
-     * + Sector dependency reload
-     * + Company reload
-     * + From Date reload
-     * + To Date reload
+     * fromDate = one calendar month before today
+     * toDate   = today
      *
-     * becoming five AJAX requests.
+     * notify:false prevents one AJAX call per field.
      */
+
     filters.resetNegotiated({
       notify: false,
 
       source: "reset",
     });
 
+    /*
+     * Reset restores the default Negotiated Deals variant.
+     */
     syncNegotiatedVariant(scope, filters);
 
     /*
-     * Rebuild Company back to the All Companies state.
+     * Reset Company options to the single safe default:
+     *
+     * All Companies
      */
     dependencies.resetCompany();
 
+    /*
+     * Synchronize createDataFilters' cached DOM state after the programmatic
+     * reset/dependency updates.
+     */
     filters.negotiated.sync();
 
     if (activeTab === TRADING_TABS.negotiatedDeals) {
@@ -694,6 +730,10 @@ export function initTrading(root = document) {
       });
     }
   }
+
+  /* =========================================================================
+     Reset: Accumulated
+     ========================================================================= */
 
   async function resetAccumulated() {
     filters.resetAccumulated({
@@ -711,7 +751,19 @@ export function initTrading(root = document) {
     }
   }
 
+  /* =========================================================================
+     Reset: Company Status
+     ========================================================================= */
+
   async function resetCompanyStatus() {
+    /*
+     * filters.js owns the reset values:
+     *
+     * type     = Suspension
+     * fromDate = one calendar month before today
+     * toDate   = today
+     */
+
     filters.resetCompanyStatus({
       notify: false,
 
@@ -729,6 +781,10 @@ export function initTrading(root = document) {
     }
   }
 
+  /* =========================================================================
+     Reset Dispatcher
+     ========================================================================= */
+
   function runReset(key) {
     switch (key) {
       case TRADING_TABS.negotiatedDeals:
@@ -745,6 +801,10 @@ export function initTrading(root = document) {
     }
   }
 
+  /* =========================================================================
+     Reset Events
+     ========================================================================= */
+
   [
     TRADING_TABS.negotiatedDeals,
     TRADING_TABS.accumulated,
@@ -756,10 +816,10 @@ export function initTrading(root = document) {
       "click",
       (event) => {
         /*
-         * The button may be type="reset".
+         * Reset buttons are type="reset".
          *
-         * Prevent native form reset because createDataFilters() owns the
-         * business reset values, including the calculated date range.
+         * Prevent the browser's native form reset because Trading reset
+         * values include calculated date defaults.
          */
         event.preventDefault();
 
@@ -775,24 +835,33 @@ export function initTrading(root = document) {
     );
   });
 
-  /* ========================================================================
+  /* =========================================================================
      Initial Variant State
-     ======================================================================== */
+     ========================================================================= */
 
   syncNegotiatedVariant(scope, filters);
 
   syncCompanyStatusVariant(scope, filters, config);
 
-  /* ========================================================================
+  /* =========================================================================
      Initial Load
-     ======================================================================== */
+     ========================================================================= */
 
   /*
-   * Do not delay the loading lifecycle with arbitrary timers.
+   * filters.js has already initialized:
    *
-   * The active view factory will immediately establish its common
-   * table/card loading state and then issue the request.
+   * Negotiated:
+   *   fromDate = one month ago
+   *   toDate   = today
+   *
+   * Company Status:
+   *   fromDate = one month ago
+   *   toDate   = today
+   *
+   * The active view can therefore immediately render its loading state and
+   * issue the correctly dated request.
    */
+
   loadCurrentView({
     reason: "initial",
   }).catch((error) => {
@@ -801,9 +870,9 @@ export function initTrading(root = document) {
     }
   });
 
-  /* ========================================================================
+  /* =========================================================================
      Public API
-     ======================================================================== */
+     ========================================================================= */
 
   function refresh() {
     return loadCurrentView({
@@ -811,6 +880,12 @@ export function initTrading(root = document) {
     });
   }
 
+  /**
+   * Return the current runtime tab.
+   *
+   * This intentionally differs from getInitialActiveTab(), which reads only
+   * the initial shared-tabs DOM state.
+   */
   function getActiveTab() {
     return activeTab;
   }
@@ -823,9 +898,9 @@ export function initTrading(root = document) {
     return views.get(view) || null;
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Destruction
-     ======================================================================== */
+     ========================================================================= */
 
   function destroy() {
     if (destroyed) {
@@ -853,9 +928,9 @@ export function initTrading(root = document) {
     instances.delete(scope);
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Instance
-     ======================================================================== */
+     ========================================================================= */
 
   const instance = Object.freeze({
     refresh,
