@@ -7,15 +7,23 @@
  *
  * Responsibilities:
  *
- * - define the Suspended dataset
- * - build the shared Suspended/Delisted backend request
- * - render Symbol + company-status indicator
+ * - preserve the JSP-owned grouped Period header
+ * - define the exact five-column backend/body contract
+ * - build the exact Suspended backend request
+ * - render Symbol + accumulated/status indicator
  * - render linked Company name
- * - render From / To suspension dates
- * - render suspension reason / announcement action
+ * - render From / To period
+ * - render announcement action
  * - render standard expandable mobile cards
  *
- * Generic lifecycle behavior remains in common/data-view.
+ * Shared behavior remains in common/data-view:
+ *
+ * - request cancellation
+ * - loading skeletons
+ * - table lifecycle
+ * - card lifecycle
+ * - empty/error states
+ * - result state
  */
 
 /* ==========================================================================
@@ -30,7 +38,7 @@ import {
   createDataTable,
   createDataViewController,
   renderStandardDataCard,
-} from "../common/data-view/index.js";
+} from "../../common/data-view/index.js";
 
 /* ==========================================================================
    Trading
@@ -47,10 +55,10 @@ import {
   escapeHtml,
   formatTradingDate,
   getDisplayValue,
-  renderCompanyLink,
-  renderSuspendedNewsLink,
-  renderSymbolWithStatus,
+  getTradingIdentity,
+  renderMobileIdentity,
   renderTradingCell,
+  safeUrl,
 } from "../formatters.js";
 
 /* ==========================================================================
@@ -60,95 +68,149 @@ import {
 const VIEW = TRADING_VIEWS.suspendedCompanies;
 
 /* ==========================================================================
+   Helpers
+   ========================================================================== */
+
+function hasValue(value) {
+  return value !== null && value !== undefined && String(value).trim() !== "";
+}
+
+function firstDefined(...values) {
+  return values.find(
+    (value) => value !== undefined && value !== null && value !== "",
+  );
+}
+
+/* ==========================================================================
    Columns
    ========================================================================== */
+
+/*
+ * JSP owns:
+ *
+ * Symbol | Company | Period        | Reason
+ *                  | From | To
+ *
+ * Therefore the tbody must always contain exactly five physical columns.
+ */
 
 function getColumns(config) {
   const labels = config.labels?.suspended || {};
 
   return [
+    /* ----------------------------------------------------------------------
+       Symbol
+       ---------------------------------------------------------------------- */
+
     {
       key: "symbol",
 
-      data: "symbol",
-
-      fallbackData: ["companySymbol", "securitySymbol"],
-
       label: labels.symbol || "Symbol",
 
-      type: "symbol-status",
+      data: "symbol",
 
-      statusData: "companyStatus",
+      /*
+       * Status rendering is local because companyStatus belongs visually beside
+       * the Symbol.
+       */
+      format: "suspended-symbol",
 
-      className: "table-market__symbol",
+      width: "10rem",
 
-      width: "9rem",
+      className: "table-market__symbol table-market__identity-symbol",
+
+      searchable: true,
     },
+
+    /* ----------------------------------------------------------------------
+       Company
+       ---------------------------------------------------------------------- */
 
     {
       key: "company",
 
-      data: "companyName",
+      label: labels.company || "Company Name",
 
-      fallbackData: ["company", "name"],
+      /*
+       * IMPORTANT:
+       *
+       * Suspended backend uses `name`, not company / companyName.
+       */
+      data: "name",
 
-      label: labels.company || "Company",
-
-      type: "company-link",
+      format: "link",
 
       urlData: "companyURL",
 
-      className: "table-market__company",
+      width: "18rem",
 
-      width: "16rem",
+      className: "table-market__company table-market__identity-company",
+
+      searchable: true,
     },
+
+    /* ----------------------------------------------------------------------
+       Period: From
+       ---------------------------------------------------------------------- */
 
     {
       key: "from-date",
 
-      data: "fromDate",
-
-      fallbackData: ["startDate", "suspensionFrom"],
-
       label: labels.fromDate || "From",
 
-      type: "date",
+      data: "fromDate",
+
+      format: "date",
+
+      width: "10rem",
 
       className: "table-market__date",
 
-      group: "period",
-
-      width: "9rem",
+      headerGroup: "period",
     },
+
+    /* ----------------------------------------------------------------------
+       Period: To
+       ---------------------------------------------------------------------- */
 
     {
       key: "to-date",
 
-      data: "toDate",
-
-      fallbackData: ["endDate", "suspensionTo"],
-
       label: labels.toDate || "To",
 
-      type: "date",
+      data: "toDate",
+
+      format: "date",
+
+      width: "10rem",
 
       className: "table-market__date",
 
-      group: "period",
-
-      width: "9rem",
+      headerGroup: "period",
     },
+
+    /* ----------------------------------------------------------------------
+       Announcement / Reason
+       ---------------------------------------------------------------------- */
 
     {
       key: "reason",
 
-      data: "reason",
-
-      fallbackData: ["suspensionReason", "statusReason"],
-
       label: labels.reason || "Reason",
 
-      type: "display-value",
+      /*
+       * There is no useful scalar field here.
+       *
+       * The legacy/current contract is an action URL:
+       *
+       * primary  = annUrl
+       * fallback = newsUrl
+       */
+      data: null,
+
+      format: "suspended-announcement",
+
+      width: "12rem",
 
       className: "table-market__reason",
     },
@@ -163,18 +225,18 @@ function buildRequestData(filters, config) {
   const state = filters.getCompanyStatusRequestState();
 
   return {
+    /*
+     * Exact existing backend contract.
+     */
+    renderType: "Search",
+
     formType: state.type,
 
     fromDate: state.fromDate,
 
     toDate: state.toDate,
 
-    locale: config.locale,
-
-    /*
-     * Preserve the backend contract used by the legacy implementation.
-     */
-    renderType: "Search",
+    requestLocale: config.locale || "en",
   };
 }
 
@@ -182,40 +244,60 @@ function buildRequestData(filters, config) {
    Response
    ========================================================================== */
 
-function getRows(response) {
-  if (Array.isArray(response)) {
+function parseResponse(response) {
+  if (typeof response !== "string") {
     return response;
   }
 
-  if (Array.isArray(response?.data)) {
-    return response.data;
+  try {
+    return JSON.parse(response);
+  } catch {
+    return response;
+  }
+}
+
+function getResponseRows(response) {
+  const value = parseResponse(response);
+
+  if (Array.isArray(value)) {
+    return value;
   }
 
-  if (Array.isArray(response?.rows)) {
-    return response.rows;
+  if (Array.isArray(value?.data)) {
+    return value.data;
   }
 
-  if (Array.isArray(response?.results)) {
-    return response.results;
+  if (Array.isArray(value?.rows)) {
+    return value.rows;
+  }
+
+  if (Array.isArray(value?.results)) {
+    return value.results;
+  }
+
+  if (Array.isArray(value?.aaData)) {
+    return value.aaData;
   }
 
   return [];
 }
 
-function getTotal(response, rows) {
+function getResponseCount(response, rows) {
+  const value = parseResponse(response);
+
   const candidates = [
-    response?.total,
-    response?.count,
-    response?.recordsFiltered,
-    response?.recordsTotal,
+    value?.total,
+    value?.count,
+    value?.recordsTotal,
+    value?.recordsFiltered,
     rows?.[0]?.count,
   ];
 
   for (const candidate of candidates) {
-    const total = Number(candidate);
+    const count = Number(candidate);
 
-    if (Number.isFinite(total) && total >= 0) {
-      return Math.floor(total);
+    if (Number.isFinite(count) && count >= 0) {
+      return Math.floor(count);
     }
   }
 
@@ -223,61 +305,145 @@ function getTotal(response, rows) {
 }
 
 function normalizeResponse(response) {
-  const rows = getRows(response);
+  const raw = parseResponse(response);
+
+  const rows = getResponseRows(raw);
 
   return {
     rows,
 
     meta: {
-      total: getTotal(response, rows),
+      total: getResponseCount(raw, rows),
 
-      updatedAt:
-        response?.updatedAt ??
-        response?.lastUpdated ??
-        response?.timestamp ??
-        null,
+      updatedAt: raw?.updatedAt ?? raw?.lastUpdated ?? raw?.timestamp ?? null,
     },
 
-    raw: response,
+    raw,
   };
 }
 
 /* ==========================================================================
-   Mobile Summary
+   Status
    ========================================================================== */
 
-function renderMobileSummary(row) {
-  const symbol = getDisplayValue(row?.symbol ?? row?.companySymbol, "");
+function getStatusClass(status) {
+  if (!hasValue(status)) {
+    return "";
+  }
 
-  const company = getDisplayValue(row?.companyName ?? row?.company, "");
+  const value = String(status).trim().toLowerCase();
 
-  const status = row?.companyStatus;
+  /*
+   * Preserve semantic state classes only.
+   *
+   * SCSS owns actual colors.
+   */
+  if (
+    value.includes("red") ||
+    value.includes("danger") ||
+    value.includes("50")
+  ) {
+    return "is-danger";
+  }
 
-  const companyUrl = row?.companyURL ?? row?.companyUrl ?? row?.pageUrl ?? "";
+  if (
+    value.includes("orange") ||
+    value.includes("warning") ||
+    value.includes("35")
+  ) {
+    return "is-warning";
+  }
+
+  if (
+    value.includes("yellow") ||
+    value.includes("primary") ||
+    value.includes("20")
+  ) {
+    return "is-primary";
+  }
+
+  return "";
+}
+
+function renderSymbol(row) {
+  const identity = getTradingIdentity(row, VIEW);
+
+  const statusClass = getStatusClass(row?.companyStatus);
 
   return `
-    <div class="data-card__identity">
+    <div class="trading-symbol-status">
 
-      <div class="data-card__identity-content">
+      ${
+        statusClass
+          ? `
+            <span
+              class="
+                trading-symbol-status__indicator
+                ${statusClass}
+              "
+              aria-hidden="true"
+            ></span>
+          `
+          : ""
+      }
 
-        <div class="data-card__identity-name">
-          ${renderSymbolWithStatus(symbol, status)}
-        </div>
-
-        ${
-          company
-            ? `
-              <div class="data-card__identity-meta">
-                ${renderCompanyLink(company, companyUrl)}
-              </div>
-            `
-            : ""
-        }
-
-      </div>
+      <span class="trading-symbol-status__symbol">
+        ${escapeHtml(identity.code || "-")}
+      </span>
 
     </div>
   `.trim();
+}
+
+/* ==========================================================================
+   Announcement
+   ========================================================================== */
+
+function getAnnouncementUrl(row) {
+  return safeUrl(firstDefined(row?.annUrl, row?.newsUrl));
+}
+
+function renderAnnouncement(row, config) {
+  const url = getAnnouncementUrl(row);
+
+  if (!url) {
+    return "-";
+  }
+
+  const label =
+    config.labels?.suspendedLink || config.labels?.suspended?.reason || "View";
+
+  return `
+    <a
+      class="trading-announcement-link"
+      href="${escapeHtml(url)}"
+    >
+      ${escapeHtml(label)}
+    </a>
+  `.trim();
+}
+
+/* ==========================================================================
+   Table Cell
+   ========================================================================== */
+
+function renderCell(args, config) {
+  switch (args.column.key) {
+    case "symbol":
+      return renderSymbol(args.row);
+
+    case "reason":
+      return renderAnnouncement(args.row, config);
+
+    default:
+      return renderTradingCell({
+        ...args,
+
+        config,
+
+        view: VIEW,
+      });
+  }
 }
 
 /* ==========================================================================
@@ -287,46 +453,26 @@ function renderMobileSummary(row) {
 function getMobileFields(row, config) {
   const labels = config.labels?.suspended || {};
 
-  const reason = getDisplayValue(row?.reason ?? row?.suspensionReason, "-");
-
-  const news = renderSuspendedNewsLink(row, config);
-
   return [
     {
       label: labels.fromDate || "From",
 
-      value: escapeHtml(formatTradingDate(row?.fromDate ?? row?.startDate)),
+      value: escapeHtml(getDisplayValue(formatTradingDate(row?.fromDate), "-")),
     },
 
     {
       label: labels.toDate || "To",
 
-      value: escapeHtml(formatTradingDate(row?.toDate ?? row?.endDate)),
+      value: escapeHtml(getDisplayValue(formatTradingDate(row?.toDate), "-")),
     },
 
     {
       label: labels.reason || "Reason",
 
-      value: escapeHtml(reason),
+      value: renderAnnouncement(row, config),
 
       fullWidth: true,
     },
-
-    /*
-     * Announcement/news action is shown only when the backend provides a
-     * usable URL.
-     */
-    ...(news !== "-"
-      ? [
-          {
-            label: config.labels?.suspendedLink || "Announcement",
-
-            value: news,
-
-            fullWidth: true,
-          },
-        ]
-      : []),
   ];
 }
 
@@ -335,25 +481,29 @@ function getMobileFields(row, config) {
    ========================================================================== */
 
 function renderMobileCard(row, context, config) {
+  const identity = getTradingIdentity(row, VIEW);
+
   return renderStandardDataCard({
-    rowId: row?.id ?? row?.symbol ?? context.index,
+    idPrefix: "trading-suspended-details",
 
-    idPrefix: "suspended-company-card-details",
+    rowId: `${identity.code || identity.name || "suspended"}-${context.index}`,
 
-    summary: renderMobileSummary(row),
+    className: "trading-data-card trading-data-card--suspended",
+
+    summary: renderMobileIdentity(row, VIEW),
 
     fields: getMobileFields(row, config),
+
+    expandable: true,
 
     moreLabel: config.labels?.mobile?.showDetails || "Show details",
 
     lessLabel: config.labels?.mobile?.hideDetails || "Hide details",
-
-    className: "trading-card trading-card--suspended",
   });
 }
 
 /* ==========================================================================
-   Public View Factory
+   Public View
    ========================================================================== */
 
 export function createSuspendedView({ root, config, filters } = {}) {
@@ -370,6 +520,8 @@ export function createSuspendedView({ root, config, filters } = {}) {
   }
 
   const columns = getColumns(config);
+
+  let lastResultCount = 0;
 
   /* =========================================================================
      State
@@ -398,7 +550,13 @@ export function createSuspendedView({ root, config, filters } = {}) {
       return buildRequestData(filters, config);
     },
 
-    normalizeResponse,
+    normalizeResponse(response) {
+      const normalized = normalizeResponse(response);
+
+      lastResultCount = Number(normalized.meta?.total) || 0;
+
+      return normalized;
+    },
   });
 
   /* =========================================================================
@@ -413,10 +571,14 @@ export function createSuspendedView({ root, config, filters } = {}) {
     initialView: VIEW,
 
     /*
-     * JSP owns the complete grouped header:
+     * CRITICAL:
+     *
+     * JSP owns:
      *
      * Symbol | Company | Period        | Reason
      *                  | From | To
+     *
+     * Never rebuild this header in JavaScript.
      */
     headerMode: "existing",
 
@@ -425,21 +587,28 @@ export function createSuspendedView({ root, config, filters } = {}) {
     },
 
     renderCell(args) {
-      /*
-       * Reason is text in the primary table column.
-       *
-       * Announcement/news remains available in the mobile details and can
-       * later be composed into the Reason cell if product UX requires it.
-       */
-      return renderTradingCell({
-        ...args,
-        config,
-      });
+      return renderCell(args, config);
     },
 
     tableOptions: {
       ...config.tableDefaults,
+
       ...config.tables?.suspendedCompanies,
+
+      /*
+       * .table-responsive owns horizontal scrolling.
+       *
+       * Avoid dt-scroll cloned headers for this grouped table.
+       */
+      scrollX: false,
+
+      scrollCollapse: false,
+
+      fixedHeader: false,
+
+      fixedColumns: false,
+
+      ordering: false,
     },
   });
 
@@ -460,11 +629,11 @@ export function createSuspendedView({ root, config, filters } = {}) {
 
     emptyMessage: config.labels?.noData || "No data available",
 
-    errorMessage: config.labels?.loadError || "Unable to load data.",
+    errorMessage: config.labels?.loadError || "Unable to load trading data.",
 
     afterRender(container) {
       container?.classList?.add(
-        "trading-card-list",
+        "trading-data-card-list",
         "trading-suspended-card-list",
       );
     },
@@ -474,7 +643,7 @@ export function createSuspendedView({ root, config, filters } = {}) {
      Results
      ========================================================================= */
 
-  const results = createDataResults({
+  const baseResults = createDataResults({
     root,
 
     count: getResultCountSelector(VIEW),
@@ -486,7 +655,33 @@ export function createSuspendedView({ root, config, filters } = {}) {
 
       error: config.labels?.loadError,
 
-      results: config.labels?.results,
+      results: "",
+    },
+  });
+
+  const results = Object.freeze({
+    showLoading() {
+      baseResults.showLoading();
+    },
+
+    showReady() {
+      baseResults.showReady(lastResultCount);
+    },
+
+    showEmpty(message) {
+      lastResultCount = 0;
+
+      baseResults.showEmpty(message);
+    },
+
+    showError(message) {
+      lastResultCount = 0;
+
+      baseResults.showError(message);
+    },
+
+    destroy() {
+      baseResults.destroy();
     },
   });
 
@@ -515,7 +710,7 @@ export function createSuspendedView({ root, config, filters } = {}) {
       return (
         error?.response?.message ||
         config.labels?.loadError ||
-        "Unable to load data."
+        "Unable to load trading data."
       );
     },
   });
@@ -523,31 +718,24 @@ export function createSuspendedView({ root, config, filters } = {}) {
   controller.init();
 
   /* =========================================================================
-     Loading
+     Busy State
      ========================================================================= */
 
-  function showLoading() {
-    root.setAttribute("aria-busy", "true");
+  const unsubscribeState = state.subscribe(({ state: snapshot }) => {
+    root.setAttribute("aria-busy", String(Boolean(snapshot.loading)));
+  });
 
-    table?.showLoading?.();
-
-    cards?.showLoading?.();
-
-    results?.showLoading?.();
-  }
+  /*
+   * JS owns actual runtime loading state.
+   */
+  root.setAttribute("aria-busy", "false");
 
   /* =========================================================================
      Reload
      ========================================================================= */
 
-  async function reload() {
-    showLoading();
-
-    try {
-      return await controller.reload();
-    } finally {
-      root.setAttribute("aria-busy", "false");
-    }
+  function reload() {
+    return controller.reload();
   }
 
   /* =========================================================================
@@ -555,9 +743,33 @@ export function createSuspendedView({ root, config, filters } = {}) {
      ========================================================================= */
 
   function adjust() {
-    const api = table?.getApi?.();
+    const api = table.getApi?.();
 
-    api?.columns?.adjust?.();
+    if (!api) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      try {
+        api.columns?.adjust?.();
+
+        api.responsive?.recalc?.();
+      } catch (error) {
+        console.warn("Suspended table adjustment failed:", error);
+      }
+    });
+  }
+
+  /* =========================================================================
+     Lifecycle
+     ========================================================================= */
+
+  function destroy() {
+    unsubscribeState();
+
+    controller.destroy();
+
+    root.removeAttribute("aria-busy");
   }
 
   /* =========================================================================
@@ -565,6 +777,8 @@ export function createSuspendedView({ root, config, filters } = {}) {
      ========================================================================= */
 
   return Object.freeze({
+    view: VIEW,
+
     reload,
     adjust,
 
@@ -577,11 +791,9 @@ export function createSuspendedView({ root, config, filters } = {}) {
     },
 
     getTable() {
-      return table?.getApi?.() || null;
+      return table.getApi?.() || null;
     },
 
-    destroy() {
-      controller.destroy();
-    },
+    destroy,
   });
 }

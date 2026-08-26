@@ -7,12 +7,20 @@
  *
  * Responsibilities:
  *
- * - define the 14-column market dataset
- * - normalize Listed Tradable response data
- * - render the existing grouped table header/body contract
+ * - define the exact 14-column backend/body contract
+ * - preserve the JSP-owned two-row grouped header
+ * - build the exact backend request
+ * - normalize legacy/current response wrappers
  * - render standard expandable mobile cards
  *
- * Generic lifecycle behavior remains in common/data-view.
+ * Shared lifecycle remains in common/data-view:
+ *
+ * - request cancellation
+ * - table skeletons
+ * - card skeletons
+ * - empty/error states
+ * - DataTables lifecycle
+ * - DataViewCard enhancement
  */
 
 /* ==========================================================================
@@ -27,7 +35,7 @@ import {
   createDataTable,
   createDataViewController,
   renderStandardDataCard,
-} from "../common/data-view/index.js";
+} from "../../common/data-view/index.js";
 
 /* ==========================================================================
    Trading
@@ -42,10 +50,10 @@ import {
 
 import {
   escapeHtml,
-  formatMoney,
-  formatQuantity,
   getDisplayValue,
-  renderLink,
+  getTradingIdentity,
+  renderListedTradableMobileSummary,
+  renderMobileIdentity,
   renderPriceChange,
   renderTradingCell,
 } from "../formatters.js";
@@ -60,30 +68,43 @@ const VIEW = TRADING_VIEWS.listedTradableRights;
    Columns
    ========================================================================== */
 
+/*
+ * IMPORTANT
+ *
+ * These 14 columns correspond exactly to the 14 leaf positions represented
+ * by the JSP-owned grouped <thead>.
+ *
+ * Backend property names are intentionally preserved from the working Trading
+ * implementation. Do not replace them with generic guessed names.
+ */
+
 function getColumns(config) {
   const labels = config.labels?.listedTradable || {};
 
   return [
     /* ======================================================================
-       Identity
+       Tradable Right
        ====================================================================== */
 
     {
       key: "tradable-right",
 
-      data: "acrynomName",
-
-      fallbackData: ["symbol", "securityName", "name"],
-
       label: labels.security || "Tradable Rights",
 
-      type: "security-link",
+      /*
+       * Actual backend field.
+       */
+      data: "acrynomName",
+
+      format: "link",
 
       urlData: "pageUrl",
 
-      className: "table-market__security",
+      width: "22%",
 
-      width: "14rem",
+      className: "table-market__security table-market__identity",
+
+      searchable: true,
     },
 
     /* ======================================================================
@@ -93,85 +114,84 @@ function getColumns(config) {
     {
       key: "last-trade-price",
 
-      data: "lastTradePrice",
-
-      fallbackData: ["price"],
-
       label: labels.lastTradePrice || "Price",
 
-      type: "money",
+      /*
+       * Already formatted by backend.
+       */
+      data: "lastTradePriceModified",
+
+      width: "8rem",
 
       numeric: true,
 
       className: "table-market__number",
 
-      group: "last-trade",
-
-      width: "7rem",
+      headerGroup: "last-trade",
     },
 
     {
       key: "last-trade-volume",
 
-      data: "lastTradeVolume",
-
-      fallbackData: ["volume"],
-
       label: labels.lastTradeVolume || "Volume",
 
-      type: "quantity",
+      data: "lastTradeQuantity",
+
+      format: "quantity",
+
+      width: "9rem",
 
       numeric: true,
 
       className: "table-market__number",
 
-      group: "last-trade",
-
-      width: "8rem",
+      headerGroup: "last-trade",
     },
 
     {
       key: "change-value",
 
-      data: "changeValue",
+      label: labels.changeValue || "Change Value",
 
-      fallbackData: ["change"],
+      data: "netChangeModified",
 
-      label: labels.changeValue || "Change",
+      numericData: "netChangeDoubleModified",
 
-      type: "price-change",
+      format: "change",
 
-      numericData: "changeValue",
+      width: "8rem",
 
       numeric: true,
 
       className: "table-market__number",
 
-      group: "last-trade",
-
-      width: "8rem",
+      headerGroup: "last-trade",
     },
 
     {
       key: "change-percent",
 
-      data: "changePercentage",
-
-      fallbackData: ["changePercent", "percentageChange"],
-
       label: labels.changePercent || "Change %",
 
-      type: "price-change",
+      data: "percentChangeModified",
 
-      numericData: "changePercentage",
+      numericData: "percentChangeDoubleModified",
+
+      /*
+       * Backend display value already carries the desired formatting.
+       *
+       * We still use the numeric double only to determine positive/negative
+       * presentation.
+       */
+      format: "change",
+
+      width: "8rem",
 
       numeric: true,
 
       className: "table-market__number",
 
-      group: "last-trade",
-
-      width: "8rem",
+      headerGroup: "last-trade",
     },
 
     /* ======================================================================
@@ -181,61 +201,49 @@ function getColumns(config) {
     {
       key: "open",
 
-      data: "openPrice",
-
-      fallbackData: ["open"],
-
       label: labels.open || "Open",
 
-      type: "money",
+      data: "todayOpenModified",
+
+      width: "8rem",
 
       numeric: true,
 
       className: "table-market__number",
 
-      group: "today",
-
-      width: "7rem",
+      headerGroup: "today",
     },
 
     {
       key: "high",
 
-      data: "highPrice",
-
-      fallbackData: ["high"],
-
       label: labels.high || "High",
 
-      type: "money",
+      data: "highPriceModified",
+
+      width: "8rem",
 
       numeric: true,
 
       className: "table-market__number",
 
-      group: "today",
-
-      width: "7rem",
+      headerGroup: "today",
     },
 
     {
       key: "low",
 
-      data: "lowPrice",
-
-      fallbackData: ["low"],
-
       label: labels.low || "Low",
 
-      type: "money",
+      data: "lowPriceModified",
+
+      width: "8rem",
 
       numeric: true,
 
       className: "table-market__number",
 
-      group: "today",
-
-      width: "7rem",
+      headerGroup: "today",
     },
 
     /* ======================================================================
@@ -245,41 +253,42 @@ function getColumns(config) {
     {
       key: "number-of-trades",
 
-      data: "noOfTrades",
+      label: labels.numberOfTrades || "Number of Trades",
 
-      fallbackData: ["numberOfTrades", "trades"],
+      /*
+       * IMPORTANT:
+       *
+       * Backend uses nuOfTrades, not noOfTrades.
+       */
+      data: "nuOfTrades",
 
-      label: labels.numberOfTrades || "No. of Trades",
+      format: "quantity",
 
-      type: "quantity",
+      width: "9rem",
 
       numeric: true,
 
       className: "table-market__number",
 
-      group: "cumulative",
-
-      width: "9rem",
+      headerGroup: "cumulative",
     },
 
     {
       key: "volume-traded",
 
-      data: "volumeTraded",
-
-      fallbackData: ["tradedVolume", "totalVolume"],
-
       label: labels.volumeTraded || "Volume Traded",
 
-      type: "quantity",
+      data: "volumeTraded",
+
+      format: "quantity",
+
+      width: "10rem",
 
       numeric: true,
 
       className: "table-market__number",
 
-      group: "cumulative",
-
-      width: "10rem",
+      headerGroup: "cumulative",
     },
 
     /* ======================================================================
@@ -289,41 +298,35 @@ function getColumns(config) {
     {
       key: "bid-price",
 
-      data: "bestBidPrice",
+      label: labels.bidPrice || "Bid Price",
 
-      fallbackData: ["bidPrice"],
+      data: "bidPriceModified",
 
-      label: labels.bidPrice || "Price",
-
-      type: "money",
+      width: "8rem",
 
       numeric: true,
 
       className: "table-market__number",
 
-      group: "best-bid",
-
-      width: "7rem",
+      headerGroup: "best-bid",
     },
 
     {
       key: "bid-volume",
 
-      data: "bestBidVolume",
+      label: labels.bidVolume || "Bid Volume",
 
-      fallbackData: ["bidVolume"],
+      data: "bidQuantity",
 
-      label: labels.bidVolume || "Volume",
+      format: "quantity",
 
-      type: "quantity",
+      width: "9rem",
 
       numeric: true,
 
       className: "table-market__number",
 
-      group: "best-bid",
-
-      width: "8rem",
+      headerGroup: "best-bid",
     },
 
     /* ======================================================================
@@ -333,41 +336,35 @@ function getColumns(config) {
     {
       key: "ask-price",
 
-      data: "bestOfferPrice",
+      label: labels.askPrice || "Ask Price",
 
-      fallbackData: ["askPrice", "offerPrice"],
+      data: "askPriceModified",
 
-      label: labels.askPrice || "Price",
-
-      type: "money",
+      width: "8rem",
 
       numeric: true,
 
       className: "table-market__number",
 
-      group: "best-offer",
-
-      width: "7rem",
+      headerGroup: "best-offer",
     },
 
     {
       key: "ask-volume",
 
-      data: "bestOfferVolume",
+      label: labels.askVolume || "Ask Volume",
 
-      fallbackData: ["askVolume", "offerVolume"],
+      data: "askQuantity",
 
-      label: labels.askVolume || "Volume",
+      format: "quantity",
 
-      type: "quantity",
+      width: "9rem",
 
       numeric: true,
 
       className: "table-market__number",
 
-      group: "best-offer",
-
-      width: "8rem",
+      headerGroup: "best-offer",
     },
   ];
 }
@@ -376,9 +373,13 @@ function getColumns(config) {
    Request
    ========================================================================== */
 
+/*
+ * Exact working backend contract.
+ */
+
 function buildRequestData(config) {
   return {
-    locale: config.locale,
+    requestLocale: config.locale || "en",
   };
 }
 
@@ -386,40 +387,63 @@ function buildRequestData(config) {
    Response
    ========================================================================== */
 
-function getRows(response) {
-  if (Array.isArray(response)) {
+function parseResponse(response) {
+  if (typeof response !== "string") {
     return response;
   }
 
-  if (Array.isArray(response?.data)) {
-    return response.data;
+  try {
+    return JSON.parse(response);
+  } catch {
+    return response;
+  }
+}
+
+function getResponseRows(response) {
+  const value = parseResponse(response);
+
+  if (Array.isArray(value)) {
+    return value;
   }
 
-  if (Array.isArray(response?.rows)) {
-    return response.rows;
+  if (Array.isArray(value?.data)) {
+    return value.data;
   }
 
-  if (Array.isArray(response?.results)) {
-    return response.results;
+  if (Array.isArray(value?.rows)) {
+    return value.rows;
+  }
+
+  if (Array.isArray(value?.results)) {
+    return value.results;
+  }
+
+  /*
+   * Preserve legacy DataTables response compatibility.
+   */
+  if (Array.isArray(value?.aaData)) {
+    return value.aaData;
   }
 
   return [];
 }
 
-function getTotal(response, rows) {
+function getResponseCount(response, rows) {
+  const value = parseResponse(response);
+
   const candidates = [
-    response?.total,
-    response?.count,
-    response?.recordsFiltered,
-    response?.recordsTotal,
+    value?.total,
+    value?.count,
+    value?.recordsTotal,
+    value?.recordsFiltered,
     rows?.[0]?.count,
   ];
 
   for (const candidate of candidates) {
-    const total = Number(candidate);
+    const count = Number(candidate);
 
-    if (Number.isFinite(total) && total >= 0) {
-      return Math.floor(total);
+    if (Number.isFinite(count) && count >= 0) {
+      return Math.floor(count);
     }
   }
 
@@ -427,121 +451,69 @@ function getTotal(response, rows) {
 }
 
 function normalizeResponse(response) {
-  const rows = getRows(response);
+  const raw = parseResponse(response);
+
+  const rows = getResponseRows(raw);
 
   return {
     rows,
 
     meta: {
-      total: getTotal(response, rows),
+      total: getResponseCount(raw, rows),
 
-      updatedAt:
-        response?.updatedAt ??
-        response?.lastUpdated ??
-        response?.timestamp ??
-        null,
+      updatedAt: raw?.updatedAt ?? raw?.lastUpdated ?? raw?.timestamp ?? null,
     },
 
-    raw: response,
+    raw,
   };
 }
 
 /* ==========================================================================
-   Mobile Identity
+   Mobile Details
    ========================================================================== */
 
-function renderMobileIdentity(row) {
-  const name = getDisplayValue(
-    row?.acrynomName ?? row?.symbol ?? row?.securityName,
-    "",
-  );
-
-  const url = row?.pageUrl ?? row?.companyURL ?? "";
-
-  return `
-    <div class="data-card__identity">
-
-      <div class="data-card__identity-content">
-
-        <div class="data-card__identity-name">
-          ${renderLink(name, url, {
-            className: "data-card__identity-link",
-          })}
-        </div>
-
-      </div>
-
-    </div>
-  `.trim();
-}
-
-/* ==========================================================================
-   Mobile Summary
-   ========================================================================== */
-
-function renderMobileSummary(row, config) {
-  const price = formatMoney(row?.lastTradePrice ?? row?.price, config);
-
-  const changeValue = row?.changePercentage ?? row?.changePercent ?? "";
-
-  return `
-    ${renderMobileIdentity(row)}
-
-    <div class="data-card__quote">
-
-      <div class="data-card__quote-item">
-
-        <span class="data-card__price">
-          ${escapeHtml(price)}
-        </span>
-
-      </div>
-
-      <div class="data-card__quote-item">
-
-        ${renderPriceChange(getDisplayValue(changeValue, "-"), changeValue)}
-
-      </div>
-
-    </div>
-  `.trim();
-}
-
-/* ==========================================================================
-   Mobile Fields
-   ========================================================================== */
+/*
+ * Price + Change % remain visible in the summary.
+ *
+ * Everything below is secondary market detail and belongs in the expandable
+ * details area.
+ */
 
 function getMobileFields(row, config) {
   const labels = config.labels?.listedTradable || {};
 
   return [
-    /* Last Trade */
+    /* ----------------------------------------------------------------------
+       Last Trade
+       ---------------------------------------------------------------------- */
 
     {
-      label: labels.lastTradeVolume || "Last Trade Volume",
+      label: labels.lastTradeVolume || "Volume",
 
-      value: escapeHtml(formatQuantity(row?.lastTradeVolume, config)),
+      value: escapeHtml(getDisplayValue(row?.lastTradeQuantity, "-")),
 
       numeric: true,
     },
 
     {
-      label: labels.changeValue || "Change",
+      label: labels.changeValue || "Change Value",
 
       value: renderPriceChange(
-        getDisplayValue(row?.changeValue, "-"),
-        row?.changeValue,
+        row?.netChangeModified,
+        row?.netChangeDoubleModified,
       ),
 
       numeric: true,
     },
 
-    /* Today's */
+    /* ----------------------------------------------------------------------
+       Today's Trading
+       ---------------------------------------------------------------------- */
 
     {
       label: labels.open || "Open",
 
-      value: escapeHtml(formatMoney(row?.openPrice, config)),
+      value: escapeHtml(getDisplayValue(row?.todayOpenModified, "-")),
 
       numeric: true,
     },
@@ -549,7 +521,7 @@ function getMobileFields(row, config) {
     {
       label: labels.high || "High",
 
-      value: escapeHtml(formatMoney(row?.highPrice, config)),
+      value: escapeHtml(getDisplayValue(row?.highPriceModified, "-")),
 
       numeric: true,
     },
@@ -557,19 +529,19 @@ function getMobileFields(row, config) {
     {
       label: labels.low || "Low",
 
-      value: escapeHtml(formatMoney(row?.lowPrice, config)),
+      value: escapeHtml(getDisplayValue(row?.lowPriceModified, "-")),
 
       numeric: true,
     },
 
-    /* Cumulative */
+    /* ----------------------------------------------------------------------
+       Cumulative
+       ---------------------------------------------------------------------- */
 
     {
-      label: labels.numberOfTrades || "No. of Trades",
+      label: labels.numberOfTrades || "Number of Trades",
 
-      value: escapeHtml(
-        formatQuantity(row?.noOfTrades ?? row?.numberOfTrades, config),
-      ),
+      value: escapeHtml(getDisplayValue(row?.nuOfTrades, "-")),
 
       numeric: true,
     },
@@ -577,21 +549,19 @@ function getMobileFields(row, config) {
     {
       label: labels.volumeTraded || "Volume Traded",
 
-      value: escapeHtml(
-        formatQuantity(row?.volumeTraded ?? row?.tradedVolume, config),
-      ),
+      value: escapeHtml(getDisplayValue(row?.volumeTraded, "-")),
 
       numeric: true,
     },
 
-    /* Best Bid */
+    /* ----------------------------------------------------------------------
+       Best Bid
+       ---------------------------------------------------------------------- */
 
     {
       label: labels.bidPrice || "Bid Price",
 
-      value: escapeHtml(
-        formatMoney(row?.bestBidPrice ?? row?.bidPrice, config),
-      ),
+      value: escapeHtml(getDisplayValue(row?.bidPriceModified, "-")),
 
       numeric: true,
     },
@@ -599,31 +569,27 @@ function getMobileFields(row, config) {
     {
       label: labels.bidVolume || "Bid Volume",
 
-      value: escapeHtml(
-        formatQuantity(row?.bestBidVolume ?? row?.bidVolume, config),
-      ),
+      value: escapeHtml(getDisplayValue(row?.bidQuantity, "-")),
 
       numeric: true,
     },
 
-    /* Best Offer */
+    /* ----------------------------------------------------------------------
+       Best Offer
+       ---------------------------------------------------------------------- */
 
     {
-      label: labels.askPrice || "Offer Price",
+      label: labels.askPrice || "Ask Price",
 
-      value: escapeHtml(
-        formatMoney(row?.bestOfferPrice ?? row?.askPrice, config),
-      ),
+      value: escapeHtml(getDisplayValue(row?.askPriceModified, "-")),
 
       numeric: true,
     },
 
     {
-      label: labels.askVolume || "Offer Volume",
+      label: labels.askVolume || "Ask Volume",
 
-      value: escapeHtml(
-        formatQuantity(row?.bestOfferVolume ?? row?.askVolume, config),
-      ),
+      value: escapeHtml(getDisplayValue(row?.askQuantity, "-")),
 
       numeric: true,
     },
@@ -635,25 +601,33 @@ function getMobileFields(row, config) {
    ========================================================================== */
 
 function renderMobileCard(row, context, config) {
+  const identity = getTradingIdentity(row, VIEW);
+
   return renderStandardDataCard({
-    rowId: row?.id ?? row?.acrynomName ?? context.index,
+    idPrefix: "trading-listed-tradable-details",
 
-    idPrefix: "listed-tradable-card-details",
+    rowId: `${identity.name || "tradable-right"}-${context.index}`,
 
-    summary: renderMobileSummary(row, config),
+    className: "trading-data-card trading-data-card--listed-tradable",
+
+    summary: `
+      ${renderMobileIdentity(row, VIEW)}
+
+      ${renderListedTradableMobileSummary(row, config)}
+    `.trim(),
 
     fields: getMobileFields(row, config),
+
+    expandable: true,
 
     moreLabel: config.labels?.mobile?.showDetails || "Show details",
 
     lessLabel: config.labels?.mobile?.hideDetails || "Hide details",
-
-    className: "trading-card trading-card--listed-tradable",
   });
 }
 
 /* ==========================================================================
-   Public View Factory
+   Public View
    ========================================================================== */
 
 export function createListedTradableView({ root, config } = {}) {
@@ -664,6 +638,8 @@ export function createListedTradableView({ root, config } = {}) {
   }
 
   const columns = getColumns(config);
+
+  let lastResultCount = 0;
 
   /* =========================================================================
      State
@@ -692,7 +668,13 @@ export function createListedTradableView({ root, config } = {}) {
       return buildRequestData(config);
     },
 
-    normalizeResponse,
+    normalizeResponse(response) {
+      const normalized = normalizeResponse(response);
+
+      lastResultCount = Number(normalized.meta?.total) || 0;
+
+      return normalized;
+    },
   });
 
   /* =========================================================================
@@ -707,16 +689,12 @@ export function createListedTradableView({ root, config } = {}) {
     initialView: VIEW,
 
     /*
-     * Critical:
+     * CRITICAL
      *
-     * JSP owns the complete two-row grouped header:
+     * The JSP owns the entire two-row grouped <thead>.
      *
-     * Tradable Rights
-     * Last Trade
-     * Today's
-     * Cumulative
-     * Best Bid
-     * Best Offer
+     * common/data-table supports headerMode:"existing", which prevents its
+     * schema header lifecycle from touching that markup.
      */
     headerMode: "existing",
 
@@ -727,13 +705,33 @@ export function createListedTradableView({ root, config } = {}) {
     renderCell(args) {
       return renderTradingCell({
         ...args,
+
         config,
+        view: VIEW,
       });
     },
 
     tableOptions: {
       ...config.tableDefaults,
+
       ...config.tables?.listedTradableRights,
+
+      /*
+       * The design-system .table-responsive wrapper owns horizontal
+       * scrolling.
+       *
+       * Do not allow DataTables to clone this complex header into separate
+       * dt-scroll-head / dt-scroll-body tables.
+       */
+      scrollX: false,
+
+      scrollCollapse: false,
+
+      fixedHeader: false,
+
+      fixedColumns: false,
+
+      ordering: false,
     },
   });
 
@@ -754,11 +752,11 @@ export function createListedTradableView({ root, config } = {}) {
 
     emptyMessage: config.labels?.noData || "No data available",
 
-    errorMessage: config.labels?.loadError || "Unable to load data.",
+    errorMessage: config.labels?.loadError || "Unable to load trading data.",
 
     afterRender(container) {
       container?.classList?.add(
-        "trading-card-list",
+        "trading-data-card-list",
         "trading-listed-tradable-card-list",
       );
     },
@@ -768,7 +766,7 @@ export function createListedTradableView({ root, config } = {}) {
      Results
      ========================================================================= */
 
-  const results = createDataResults({
+  const baseResults = createDataResults({
     root,
 
     count: getResultCountSelector(VIEW),
@@ -780,7 +778,36 @@ export function createListedTradableView({ root, config } = {}) {
 
       error: config.labels?.loadError,
 
-      results: config.labels?.results,
+      /*
+       * JSP already owns "Results:".
+       */
+      results: "",
+    },
+  });
+
+  const results = Object.freeze({
+    showLoading() {
+      baseResults.showLoading();
+    },
+
+    showReady() {
+      baseResults.showReady(lastResultCount);
+    },
+
+    showEmpty(message) {
+      lastResultCount = 0;
+
+      baseResults.showEmpty(message);
+    },
+
+    showError(message) {
+      lastResultCount = 0;
+
+      baseResults.showError(message);
+    },
+
+    destroy() {
+      baseResults.destroy();
     },
   });
 
@@ -809,7 +836,7 @@ export function createListedTradableView({ root, config } = {}) {
       return (
         error?.response?.message ||
         config.labels?.loadError ||
-        "Unable to load data."
+        "Unable to load trading data."
       );
     },
   });
@@ -817,31 +844,31 @@ export function createListedTradableView({ root, config } = {}) {
   controller.init();
 
   /* =========================================================================
-     Loading
+     Busy State
      ========================================================================= */
 
-  function showLoading() {
-    root.setAttribute("aria-busy", "true");
+  /*
+   * Common table/cards own the actual skeleton rendering.
+   *
+   * This subscription owns only the outer Data View's busy state so
+   * cursor:wait cannot remain after rendering has completed.
+   */
 
-    table?.showLoading?.();
+  const unsubscribeState = state.subscribe(({ state: snapshot }) => {
+    root.setAttribute("aria-busy", String(Boolean(snapshot.loading)));
+  });
 
-    cards?.showLoading?.();
-
-    results?.showLoading?.();
-  }
+  /*
+   * Remove stale JSP initialization state immediately.
+   */
+  root.setAttribute("aria-busy", "false");
 
   /* =========================================================================
      Reload
      ========================================================================= */
 
-  async function reload() {
-    showLoading();
-
-    try {
-      return await controller.reload();
-    } finally {
-      root.setAttribute("aria-busy", "false");
-    }
+  function reload() {
+    return controller.reload();
   }
 
   /* =========================================================================
@@ -849,9 +876,33 @@ export function createListedTradableView({ root, config } = {}) {
      ========================================================================= */
 
   function adjust() {
-    const api = table?.getApi?.();
+    const api = table.getApi?.();
 
-    api?.columns?.adjust?.();
+    if (!api) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      try {
+        api.columns?.adjust?.();
+
+        api.responsive?.recalc?.();
+      } catch (error) {
+        console.warn("Listed Tradable table adjustment failed:", error);
+      }
+    });
+  }
+
+  /* =========================================================================
+     Lifecycle
+     ========================================================================= */
+
+  function destroy() {
+    unsubscribeState();
+
+    controller.destroy();
+
+    root.removeAttribute("aria-busy");
   }
 
   /* =========================================================================
@@ -859,6 +910,8 @@ export function createListedTradableView({ root, config } = {}) {
      ========================================================================= */
 
   return Object.freeze({
+    view: VIEW,
+
     reload,
     adjust,
 
@@ -871,11 +924,9 @@ export function createListedTradableView({ root, config } = {}) {
     },
 
     getTable() {
-      return table?.getApi?.() || null;
+      return table.getApi?.() || null;
     },
 
-    destroy() {
-      controller.destroy();
-    },
+    destroy,
   });
 }

@@ -8,12 +8,13 @@
  * Responsibilities:
  *
  * - define the two-column dataset
- * - map the Accumulated filter to the backend request
- * - render Symbol + loss-status indicator
+ * - build the exact backend request contract
+ * - preserve the JSP-owned table header
+ * - render Symbol + accumulated-loss status
  * - render linked Company name
- * - render compact non-expandable mobile cards
+ * - render compact mobile cards
  *
- * All generic lifecycle behavior remains in common/data-view.
+ * Generic lifecycle behavior remains in common/data-view.
  */
 
 /* ==========================================================================
@@ -28,7 +29,7 @@ import {
   createDataTable,
   createDataViewController,
   renderStandardDataCard,
-} from "../common/data-view/index.js";
+} from "../../common/data-view/index.js";
 
 /* ==========================================================================
    Trading
@@ -42,10 +43,9 @@ import {
 } from "../constants.js";
 
 import {
-  escapeHtml,
-  getDisplayValue,
-  renderCompanyLink,
-  renderSymbolWithStatus,
+  getTradingIdentity,
+  renderIdentityCell,
+  renderMobileIdentity,
   renderTradingCell,
 } from "../formatters.js";
 
@@ -59,6 +59,14 @@ const VIEW = TRADING_VIEWS.accumulatedLosses;
    Columns
    ========================================================================== */
 
+/*
+ * JSP owns:
+ *
+ * Symbol | Company
+ *
+ * Status indication belongs with Symbol.
+ */
+
 function getColumns(config) {
   const labels = config.labels?.accumulated || {};
 
@@ -66,33 +74,36 @@ function getColumns(config) {
     {
       key: "symbol",
 
-      data: "symbol",
-
-      fallbackData: ["companySymbol", "securitySymbol"],
-
       label: labels.symbol || "Symbol",
 
-      type: "symbol-status",
+      data: "symbol",
 
-      statusData: "companyStatus",
+      /*
+       * We render the Symbol cell locally because the status marker belongs
+       * beside Symbol, while the shared identity renderer includes Company.
+       */
+      format: "accumulated-symbol",
+
+      width: "24%",
 
       className: "table-market__symbol",
-
-      width: "10rem",
     },
 
     {
       key: "company",
 
-      data: "companyName",
-
-      fallbackData: ["company", "name"],
-
       label: labels.company || "Company",
 
-      type: "company-link",
+      /*
+       * Actual backend field.
+       */
+      data: "company",
+
+      format: "link",
 
       urlData: "companyURL",
+
+      width: "76%",
 
       className: "table-market__company",
     },
@@ -107,9 +118,15 @@ function buildRequestData(filters, config) {
   const state = filters.getAccumulatedRequestState();
 
   return {
-    report: state.report,
+    /*
+     * IMPORTANT:
+     *
+     * UI concept = report
+     * backend parameter = percentage
+     */
+    percentage: state.report,
 
-    locale: config.locale,
+    requestLocale: config.locale || "en",
   };
 }
 
@@ -117,44 +134,60 @@ function buildRequestData(filters, config) {
    Response
    ========================================================================== */
 
-function getRows(response) {
-  if (Array.isArray(response)) {
+function parseResponse(response) {
+  if (typeof response !== "string") {
     return response;
   }
 
-  if (Array.isArray(response?.data)) {
-    return response.data;
+  try {
+    return JSON.parse(response);
+  } catch {
+    return response;
+  }
+}
+
+function getResponseRows(response) {
+  const value = parseResponse(response);
+
+  if (Array.isArray(value)) {
+    return value;
   }
 
-  if (Array.isArray(response?.rows)) {
-    return response.rows;
+  if (Array.isArray(value?.data)) {
+    return value.data;
   }
 
-  if (Array.isArray(response?.results)) {
-    return response.results;
+  if (Array.isArray(value?.rows)) {
+    return value.rows;
+  }
+
+  if (Array.isArray(value?.results)) {
+    return value.results;
+  }
+
+  if (Array.isArray(value?.aaData)) {
+    return value.aaData;
   }
 
   return [];
 }
 
-function getTotal(response, rows) {
-  const candidates = [
-    response?.total,
-    response?.count,
-    response?.recordsFiltered,
-    response?.recordsTotal,
+function getResponseCount(response, rows) {
+  const value = parseResponse(response);
 
-    /*
-     * Legacy endpoint sometimes carries the result count on the first row.
-     */
+  const candidates = [
+    value?.total,
+    value?.count,
+    value?.recordsTotal,
+    value?.recordsFiltered,
     rows?.[0]?.count,
   ];
 
   for (const candidate of candidates) {
-    const total = Number(candidate);
+    const count = Number(candidate);
 
-    if (Number.isFinite(total) && total >= 0) {
-      return Math.floor(total);
+    if (Number.isFinite(count) && count >= 0) {
+      return Math.floor(count);
     }
   }
 
@@ -162,61 +195,120 @@ function getTotal(response, rows) {
 }
 
 function normalizeResponse(response) {
-  const rows = getRows(response);
+  const raw = parseResponse(response);
+
+  const rows = getResponseRows(raw);
 
   return {
     rows,
 
     meta: {
-      total: getTotal(response, rows),
+      total: getResponseCount(raw, rows),
 
-      updatedAt:
-        response?.updatedAt ??
-        response?.lastUpdated ??
-        response?.timestamp ??
-        null,
+      updatedAt: raw?.updatedAt ?? raw?.lastUpdated ?? raw?.timestamp ?? null,
     },
 
-    raw: response,
+    raw,
   };
 }
 
 /* ==========================================================================
-   Mobile Identity
+   Status
    ========================================================================== */
 
-function renderMobileSummary(row, config) {
-  const symbol = getDisplayValue(row?.symbol ?? row?.companySymbol, "");
+function getStatusClass(status) {
+  if (status === null || status === undefined) {
+    return "";
+  }
 
-  const company = getDisplayValue(row?.companyName ?? row?.company, "");
+  const value = String(status).trim().toLowerCase();
 
-  const status = row?.companyStatus;
+  /*
+   * Keep these semantic classes local.
+   *
+   * Existing Trading SCSS can map them to the established accumulated-loss
+   * colors.
+   */
+  if (
+    value.includes("50") ||
+    value.includes("red") ||
+    value.includes("danger")
+  ) {
+    return "is-danger";
+  }
 
-  const companyUrl = row?.companyURL ?? row?.companyUrl ?? row?.pageUrl ?? "";
+  if (
+    value.includes("35") ||
+    value.includes("orange") ||
+    value.includes("warning")
+  ) {
+    return "is-warning";
+  }
+
+  if (
+    value.includes("20") ||
+    value.includes("yellow") ||
+    value.includes("primary")
+  ) {
+    return "is-primary";
+  }
+
+  return "";
+}
+
+function renderAccumulatedSymbol(row) {
+  const identity = getTradingIdentity(row, VIEW);
+
+  const statusClass = getStatusClass(row?.companyStatus);
 
   return `
-    <div class="data-card__identity">
+    <div class="trading-symbol-status">
 
-      <div class="data-card__identity-content">
+      ${
+        statusClass
+          ? `
+            <span
+              class="
+                trading-symbol-status__indicator
+                ${statusClass}
+              "
+              aria-hidden="true"
+            ></span>
+          `
+          : ""
+      }
 
-        <div class="data-card__identity-name">
-          ${renderSymbolWithStatus(symbol, status)}
-        </div>
-
-        ${
-          company
-            ? `
-              <div class="data-card__identity-meta">
-                ${renderCompanyLink(company, companyUrl)}
-              </div>
-            `
-            : ""
-        }
-
-      </div>
+      <span class="trading-symbol-status__symbol">
+        ${identity.code || "-"}
+      </span>
 
     </div>
   `.trim();
+}
+
+/* ==========================================================================
+   Table Cell
+   ========================================================================== */
+
+function renderCell(args, config) {
+  if (args.column.key === "symbol") {
+    return renderAccumulatedSymbol(args.row);
+  }
+
+  return renderTradingCell({
+    ...args,
+
+    config,
+    view: VIEW,
+  });
+}
+
+/* ==========================================================================
+   Mobile Summary
+   ========================================================================== */
+
+function renderMobileSummary(row) {
+  return renderMobileIdentity(row, VIEW);
 }
 
 /* ==========================================================================
@@ -224,28 +316,33 @@ function renderMobileSummary(row, config) {
    ========================================================================== */
 
 /*
- * Accumulated Losses deliberately has no expandable details.
+ * Accumulated Losses is intentionally compact.
  *
- * The dataset is already compact:
+ * There are only two meaningful fields:
  *
- * Symbol + status
- * Company
+ * Symbol/status + Company
+ *
+ * Therefore no expand/collapse control is required.
  */
 
-function renderMobileCard(row, context, config) {
-  return renderStandardDataCard({
-    rowId: row?.id ?? row?.symbol ?? context.index,
+function renderMobileCard(row, context) {
+  const identity = getTradingIdentity(row, VIEW);
 
-    summary: renderMobileSummary(row, config),
+  return renderStandardDataCard({
+    rowId: `${
+      identity.code || identity.name || "accumulated"
+    }-${context.index}`,
+
+    className: "trading-data-card trading-data-card--accumulated",
+
+    summary: renderMobileSummary(row),
 
     expandable: false,
-
-    className: "trading-card trading-card--accumulated",
   });
 }
 
 /* ==========================================================================
-   Public View Factory
+   Public View
    ========================================================================== */
 
 export function createAccumulatedView({ root, config, filters } = {}) {
@@ -260,6 +357,8 @@ export function createAccumulatedView({ root, config, filters } = {}) {
   }
 
   const columns = getColumns(config);
+
+  let lastResultCount = 0;
 
   /* =========================================================================
      State
@@ -288,7 +387,13 @@ export function createAccumulatedView({ root, config, filters } = {}) {
       return buildRequestData(filters, config);
     },
 
-    normalizeResponse,
+    normalizeResponse(response) {
+      const normalized = normalizeResponse(response);
+
+      lastResultCount = Number(normalized.meta?.total) || 0;
+
+      return normalized;
+    },
   });
 
   /* =========================================================================
@@ -305,7 +410,7 @@ export function createAccumulatedView({ root, config, filters } = {}) {
     /*
      * JSP owns:
      *
-     * Symbol | Company Name
+     * Symbol | Company
      */
     headerMode: "existing",
 
@@ -314,15 +419,21 @@ export function createAccumulatedView({ root, config, filters } = {}) {
     },
 
     renderCell(args) {
-      return renderTradingCell({
-        ...args,
-        config,
-      });
+      return renderCell(args, config);
     },
 
     tableOptions: {
       ...config.tableDefaults,
+
       ...config.tables?.accumulatedLosses,
+
+      scrollX: false,
+
+      scrollCollapse: false,
+
+      fixedHeader: false,
+
+      fixedColumns: false,
     },
   });
 
@@ -338,16 +449,16 @@ export function createAccumulatedView({ root, config, filters } = {}) {
     initialView: VIEW,
 
     renderCard(row, context) {
-      return renderMobileCard(row, context, config);
+      return renderMobileCard(row, context);
     },
 
     emptyMessage: config.labels?.noData || "No data available",
 
-    errorMessage: config.labels?.loadError || "Unable to load data.",
+    errorMessage: config.labels?.loadError || "Unable to load trading data.",
 
     afterRender(container) {
       container?.classList?.add(
-        "trading-card-list",
+        "trading-data-card-list",
         "trading-accumulated-card-list",
       );
     },
@@ -357,7 +468,7 @@ export function createAccumulatedView({ root, config, filters } = {}) {
      Results
      ========================================================================= */
 
-  const results = createDataResults({
+  const baseResults = createDataResults({
     root,
 
     count: getResultCountSelector(VIEW),
@@ -369,7 +480,33 @@ export function createAccumulatedView({ root, config, filters } = {}) {
 
       error: config.labels?.loadError,
 
-      results: config.labels?.results,
+      results: "",
+    },
+  });
+
+  const results = Object.freeze({
+    showLoading() {
+      baseResults.showLoading();
+    },
+
+    showReady() {
+      baseResults.showReady(lastResultCount);
+    },
+
+    showEmpty(message) {
+      lastResultCount = 0;
+
+      baseResults.showEmpty(message);
+    },
+
+    showError(message) {
+      lastResultCount = 0;
+
+      baseResults.showError(message);
+    },
+
+    destroy() {
+      baseResults.destroy();
     },
   });
 
@@ -398,7 +535,7 @@ export function createAccumulatedView({ root, config, filters } = {}) {
       return (
         error?.response?.message ||
         config.labels?.loadError ||
-        "Unable to load data."
+        "Unable to load trading data."
       );
     },
   });
@@ -406,31 +543,24 @@ export function createAccumulatedView({ root, config, filters } = {}) {
   controller.init();
 
   /* =========================================================================
-     Loading
+     Busy State
      ========================================================================= */
 
-  function showLoading() {
-    root.setAttribute("aria-busy", "true");
+  const unsubscribeState = state.subscribe(({ state: snapshot }) => {
+    root.setAttribute("aria-busy", String(Boolean(snapshot.loading)));
+  });
 
-    table?.showLoading?.();
-
-    cards?.showLoading?.();
-
-    results?.showLoading?.();
-  }
+  /*
+   * JS owns runtime busy state.
+   */
+  root.setAttribute("aria-busy", "false");
 
   /* =========================================================================
      Reload
      ========================================================================= */
 
-  async function reload() {
-    showLoading();
-
-    try {
-      return await controller.reload();
-    } finally {
-      root.setAttribute("aria-busy", "false");
-    }
+  function reload() {
+    return controller.reload();
   }
 
   /* =========================================================================
@@ -438,9 +568,33 @@ export function createAccumulatedView({ root, config, filters } = {}) {
      ========================================================================= */
 
   function adjust() {
-    const api = table?.getApi?.();
+    const api = table.getApi?.();
 
-    api?.columns?.adjust?.();
+    if (!api) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      try {
+        api.columns?.adjust?.();
+
+        api.responsive?.recalc?.();
+      } catch (error) {
+        console.warn("Accumulated table adjustment failed:", error);
+      }
+    });
+  }
+
+  /* =========================================================================
+     Lifecycle
+     ========================================================================= */
+
+  function destroy() {
+    unsubscribeState();
+
+    controller.destroy();
+
+    root.removeAttribute("aria-busy");
   }
 
   /* =========================================================================
@@ -448,6 +602,8 @@ export function createAccumulatedView({ root, config, filters } = {}) {
      ========================================================================= */
 
   return Object.freeze({
+    view: VIEW,
+
     reload,
     adjust,
 
@@ -460,11 +616,9 @@ export function createAccumulatedView({ root, config, filters } = {}) {
     },
 
     getTable() {
-      return table?.getApi?.() || null;
+      return table.getApi?.() || null;
     },
 
-    destroy() {
-      controller.destroy();
-    },
+    destroy,
   });
 }

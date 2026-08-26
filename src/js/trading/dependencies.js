@@ -3,28 +3,38 @@
    ========================================================================== */
 
 /*
- * Trading-specific dependent-filter behavior.
+ * Trading dependent-filter behavior.
  *
  * Responsibilities:
  *
- * - load Company options when Sector changes
- * - keep only one active dependency request
+ * - manage Industry Group -> Company
+ * - preserve the original All-Market Company options
+ * - load sector-specific Company options
  * - reset Company to "All Companies"
- * - synchronize the enhanced custom-select UI
- * - expose loading/error-safe lifecycle
+ * - restore the full original Company list when Sector returns to All
+ * - keep createDataFilters synchronized
+ * - keep the design-system custom-select synchronized
+ * - cancel stale dependency requests
  *
  * This file intentionally has no:
  *
  * - Trading table loading
- * - Trading cards
+ * - Trading dataset reloads
+ * - cards
  * - DataTables
- * - tab switching
- * - view switching
+ * - tabs
  * - result rendering
- * - page reload orchestration
  */
 
+/* ==========================================================================
+   Common Data View
+   ========================================================================== */
+
 import { createDataSource } from "../common/data-view/index.js";
+
+/* ==========================================================================
+   Trading
+   ========================================================================== */
 
 import { SELECTORS, TRADING_VALUES } from "./constants.js";
 
@@ -40,58 +50,58 @@ function hasValue(value) {
   return value !== null && value !== undefined && String(value).trim() !== "";
 }
 
-function getElement(root, selector) {
+function normalizeString(value, fallback = "") {
+  return hasValue(value) ? String(value).trim() : fallback;
+}
+
+function query(root, selector) {
   return root?.querySelector?.(selector) || null;
 }
 
 /* ==========================================================================
-   Custom Select Synchronization
+   Option Snapshot
    ========================================================================== */
 
-/*
- * The native <select> is the source of truth.
+/**
+ * Capture an immutable representation of a native <select>'s options.
  *
- * After programmatic option/value changes, notify the design-system
- * custom-select enhancement so its visible UI stays synchronized.
+ * The JSP-provided Company options represent the complete "All Market"
+ * Company list and must remain recoverable after sector-specific filtering.
  *
- * Keep these events centralized here rather than scattering them through
- * Trading.
+ * @param {HTMLSelectElement} select
+ * @returns {ReadonlyArray<object>}
  */
-
-function refreshCustomSelect(select) {
+function captureOptions(select) {
   if (!(select instanceof HTMLSelectElement)) {
-    return;
+    return Object.freeze([]);
   }
 
-  /*
-   * Native change keeps ordinary listeners synchronized.
-   *
-   * This event should be dispatched only after the final value has been set.
-   */
-  select.dispatchEvent(
-    new Event("change", {
-      bubbles: true,
-    }),
-  );
+  return Object.freeze(
+    Array.from(select.options).map((option) =>
+      Object.freeze({
+        value: option.value,
 
-  /*
-   * Existing design-system hook used after dynamically replacing options.
-   *
-   * If the current custom-select implementation uses a different event name,
-   * only this function needs to change.
-   */
-  select.dispatchEvent(
-    new CustomEvent("custom-select:refresh", {
-      bubbles: true,
-    }),
+        label: option.textContent || "",
+
+        disabled: option.disabled,
+
+        hidden: option.hidden,
+      }),
+    ),
   );
 }
 
 /* ==========================================================================
-   Option Rendering
+   Option Creation
    ========================================================================== */
 
-function createOption(value, label, selected = false) {
+function createOption({
+  value,
+  label,
+  selected = false,
+  disabled = false,
+  hidden = false,
+}) {
   const option = document.createElement("option");
 
   option.value = String(value ?? "");
@@ -100,14 +110,62 @@ function createOption(value, label, selected = false) {
 
   option.selected = Boolean(selected);
 
+  option.disabled = Boolean(disabled);
+
+  option.hidden = Boolean(hidden);
+
   return option;
+}
+
+/* ==========================================================================
+   Native Select Update
+   ========================================================================== */
+
+/**
+ * Notify the existing design-system custom-select after native options/value
+ * change.
+ *
+ * The current design-system contract uses:
+ *
+ * custom-select:options-updated
+ *
+ * The native change event is optional because Trading normally synchronizes
+ * common filter state explicitly and does not need to create a second filter
+ * reload cycle.
+ *
+ * @param {HTMLSelectElement} select
+ * @param {object} options
+ */
+function dispatchSelectUpdate(
+  select,
+  { change = false, optionsUpdated = true } = {},
+) {
+  if (!(select instanceof HTMLSelectElement)) {
+    return;
+  }
+
+  if (optionsUpdated) {
+    select.dispatchEvent(
+      new CustomEvent("custom-select:options-updated", {
+        bubbles: true,
+      }),
+    );
+  }
+
+  if (change) {
+    select.dispatchEvent(
+      new Event("change", {
+        bubbles: true,
+      }),
+    );
+  }
 }
 
 /* ==========================================================================
    Response Normalization
    ========================================================================== */
 
-function normalizeCompaniesResponse(response) {
+function getCompanyRows(response) {
   if (Array.isArray(response)) {
     return response;
   }
@@ -124,11 +182,17 @@ function normalizeCompaniesResponse(response) {
     return response.results;
   }
 
-  if (Array.isArray(response?.companies)) {
-    return response.companies;
-  }
-
   return [];
+}
+
+function normalizeResponse(response) {
+  return {
+    rows: getCompanyRows(response),
+
+    meta: {},
+
+    raw: response,
+  };
 }
 
 /* ==========================================================================
@@ -144,120 +208,130 @@ export function createTradingDependencies({
     throw new TypeError("Trading dependencies require negotiated filters.");
   }
 
-  const dependencyConfig = config.dependencies?.sectorCompany || {};
+  /* =========================================================================
+     Configuration
+     ========================================================================= */
+
+  const dependency = config.dependencies?.sectorCompany || {};
 
   const endpoint =
-    dependencyConfig.endpoint || config.endpoints?.companiesBySector || "";
+    dependency.endpoint || config.endpoints?.companiesBySector || "";
 
   if (!endpoint) {
-    throw new Error("Trading Sector → Company endpoint is required.");
+    throw new Error("Trading Company dependency endpoint is required.");
   }
 
-  const defaultValue = dependencyConfig.defaultValue || TRADING_VALUES.all;
+  const defaultValue = normalizeString(
+    config.filters?.negotiatedDeals?.companyClearValue,
+    normalizeString(dependency.defaultValue, TRADING_VALUES.all),
+  );
 
-  const valueField = dependencyConfig.response?.value || "symbol";
+  const sectorParameter = normalizeString(
+    dependency.request?.sectorParameter,
+    "sector",
+  );
 
-  const labelField = dependencyConfig.response?.label || "longName";
+  const valueField = normalizeString(dependency.response?.value, "symbol");
 
-  const sectorParameter = dependencyConfig.request?.sectorParameter || "sector";
+  const labelField = normalizeString(dependency.response?.label, "longName");
 
-  const companySelect = getElement(root, SELECTORS.negotiated.company);
+  /* =========================================================================
+     Elements
+     ========================================================================= */
+
+  const companySelect = query(root, SELECTORS.negotiated.company);
 
   if (!(companySelect instanceof HTMLSelectElement)) {
     throw new Error("Trading Company select was not found.");
   }
 
-  const initialAllOption = companySelect.querySelector(
-    `option[value="${CSS.escape(defaultValue)}"]`,
+  /* =========================================================================
+     Original All-Market Options
+     ========================================================================= */
+
+  /*
+   * Capture these exactly once, before any Sector dependency replaces them.
+   *
+   * This is the critical difference from the previous implementation.
+   */
+  const originalOptions = captureOptions(companySelect);
+
+  const originalDefaultOption = originalOptions.find(
+    (option) => String(option.value) === String(defaultValue),
   );
 
-  const allCompaniesLabel =
-    initialAllOption?.textContent?.trim() ||
-    config.labels?.controls?.all ||
-    "All Companies";
+  const defaultLabel = normalizeString(
+    originalDefaultOption?.label,
+    config.labels?.controls?.all || "All Companies",
+  );
 
-  /* ==========================================================================
-     Source
-     ========================================================================== */
+  /* =========================================================================
+     State
+     ========================================================================= */
+
+  let destroyed = false;
+
+  /* =========================================================================
+     Data Source
+     ========================================================================= */
 
   const source = createDataSource({
     endpoint,
 
+    /*
+     * Keep this endpoint contract deliberately small.
+     *
+     * Existing backend:
+     *
+     * sector=<selected-sector>
+     */
     buildRequestData(state = {}) {
       return {
-        [sectorParameter]: state.sector || defaultValue,
+        [sectorParameter]: normalizeString(state.sector, TRADING_VALUES.all),
       };
     },
 
-    normalizeResponse(response) {
-      return {
-        rows: normalizeCompaniesResponse(response),
-
-        meta: {},
-
-        raw: response,
-      };
-    },
+    normalizeResponse,
   });
 
-  /* ==========================================================================
-     Company Options
-     ========================================================================== */
+  /* =========================================================================
+     Filter Synchronization
+     ========================================================================= */
 
-  function replaceCompanyOptions(companies = []) {
-    const fragment = document.createDocumentFragment();
-
-    fragment.append(createOption(defaultValue, allCompaniesLabel, true));
-
-    companies.forEach((company) => {
-      if (!isObject(company)) {
-        return;
-      }
-
-      const value = company[valueField];
-
-      const label = company[labelField];
-
-      if (!hasValue(value) || !hasValue(label)) {
-        return;
-      }
-
-      fragment.append(createOption(value, label, false));
-    });
-
-    companySelect.replaceChildren(fragment);
-
-    companySelect.value = defaultValue;
+  function synchronizeCompanyFilter() {
+    if (destroyed) {
+      return;
+    }
 
     /*
-     * Keep common filter state synchronized with the native control without
-     * creating its own notification/reload cycle.
+     * createDataFilters reads the native select as the source of truth.
+     *
+     * Silent setValue ensures any cached internal state is consistent without
+     * triggering a Trading data reload.
      */
-    filters.negotiated.setValue("company", defaultValue, {
-      notify: false,
+    filters.negotiated.setValue(
+      "company",
+      companySelect.value || defaultValue,
+      {
+        notify: false,
 
-      source: "sector-company-dependency",
-    });
+        source: "sector-company-dependency",
+      },
+    );
 
-    /*
-     * createDataFilters caches the last DOM value used for change detection.
-     * Re-sync after replacing the native options.
-     */
     filters.negotiated.sync();
-
-    refreshCustomSelect(companySelect);
   }
 
-  function resetCompany() {
-    replaceCompanyOptions([]);
-  }
-
-  /* ==========================================================================
-     Loading
-     ========================================================================== */
+  /* =========================================================================
+     Loading State
+     ========================================================================= */
 
   function setCompanyLoading(loading) {
-    filters.negotiated.setDisabled("company", loading);
+    if (destroyed) {
+      return;
+    }
+
+    filters.negotiated.setDisabled("company", Boolean(loading));
 
     if (loading) {
       companySelect.setAttribute("aria-busy", "true");
@@ -268,27 +342,205 @@ export function createTradingDependencies({
     companySelect.removeAttribute("aria-busy");
   }
 
-  /* ==========================================================================
-     Load Companies
-     ========================================================================== */
+  /* =========================================================================
+     Restore Original Options
+     ========================================================================= */
 
-  async function loadCompanies(sectorValue) {
-    const sector = hasValue(sectorValue)
-      ? String(sectorValue).trim()
-      : defaultValue;
+  /**
+   * Restore the complete JSP-rendered Company list.
+   *
+   * Used when:
+   *
+   * - Sector = All
+   * - Negotiated Reset
+   * - dependency request fails
+   *
+   * The selected Company becomes All Companies.
+   */
+  function restoreAllCompanies() {
+    if (destroyed) {
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+
+    originalOptions.forEach((item) => {
+      fragment.append(
+        createOption({
+          ...item,
+
+          selected: String(item.value) === String(defaultValue),
+        }),
+      );
+    });
 
     /*
-     * "All Sectors" requires no remote Company lookup.
-     *
-     * Company simply returns to its business-default state.
+     * Defensive fallback for a malformed JSP/config where no All option was
+     * originally rendered.
      */
-    if (sector === defaultValue) {
+    if (
+      !originalOptions.some(
+        (item) => String(item.value) === String(defaultValue),
+      )
+    ) {
+      fragment.prepend(
+        createOption({
+          value: defaultValue,
+
+          label: defaultLabel,
+
+          selected: true,
+        }),
+      );
+    }
+
+    companySelect.replaceChildren(fragment);
+
+    companySelect.value = defaultValue;
+
+    synchronizeCompanyFilter();
+
+    dispatchSelectUpdate(companySelect, {
+      change: false,
+
+      optionsUpdated: true,
+    });
+  }
+
+  /* =========================================================================
+     Sector-specific Options
+     ========================================================================= */
+
+  function renderSectorCompanies(companies = []) {
+    if (destroyed) {
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+
+    /*
+     * All Companies is always first and always selected after a Sector change.
+     */
+    fragment.append(
+      createOption({
+        value: defaultValue,
+
+        label: defaultLabel,
+
+        selected: true,
+      }),
+    );
+
+    const seenValues = new Set([String(defaultValue)]);
+
+    companies.forEach((company) => {
+      if (!isObject(company)) {
+        return;
+      }
+
+      const rawValue = company[valueField];
+
+      if (!hasValue(rawValue)) {
+        return;
+      }
+
+      const value = String(rawValue).trim();
+
+      /*
+       * Prevent duplicate options if the backend itself returns All or
+       * repeated companies.
+       */
+      if (seenValues.has(value)) {
+        return;
+      }
+
+      seenValues.add(value);
+
+      const rawLabel = company[labelField];
+
+      const label = normalizeString(rawLabel, value);
+
+      fragment.append(
+        createOption({
+          value,
+          label,
+        }),
+      );
+    });
+
+    companySelect.replaceChildren(fragment);
+
+    companySelect.value = defaultValue;
+
+    synchronizeCompanyFilter();
+
+    dispatchSelectUpdate(companySelect, {
+      change: false,
+
+      optionsUpdated: true,
+    });
+  }
+
+  /* =========================================================================
+     Company Clear
+     ========================================================================= */
+
+  /**
+   * Ensure Company never remains empty.
+   *
+   * Useful if the enhanced custom-select exposes a clear action now or later.
+   *
+   * @returns {boolean}
+   */
+  function normalizeCompanyValue() {
+    if (destroyed || hasValue(companySelect.value)) {
+      return false;
+    }
+
+    companySelect.value = defaultValue;
+
+    synchronizeCompanyFilter();
+
+    dispatchSelectUpdate(companySelect, {
+      change: false,
+
+      optionsUpdated: false,
+    });
+
+    return true;
+  }
+
+  /* =========================================================================
+     Load Companies
+     ========================================================================= */
+
+  async function loadCompanies(sectorValue) {
+    if (destroyed) {
+      return {
+        sector: defaultValue,
+
+        companies: [],
+      };
+    }
+
+    const sector = normalizeString(sectorValue, TRADING_VALUES.all);
+
+    /*
+     * Sector = All
+     *
+     * No remote dependency request is required because the original complete
+     * Company list was already rendered by the JSP.
+     */
+    if (sector === TRADING_VALUES.all) {
       source.cancel();
 
-      resetCompany();
+      setCompanyLoading(false);
+
+      restoreAllCompanies();
 
       return Object.freeze({
         sector,
+
         companies: [],
       });
     }
@@ -300,42 +552,51 @@ export function createTradingDependencies({
         sector,
       });
 
+      if (destroyed) {
+        return Object.freeze({
+          sector,
+
+          companies: [],
+        });
+      }
+
       const companies = Array.isArray(response.rows) ? response.rows : [];
 
-      replaceCompanyOptions(companies);
+      renderSectorCompanies(companies);
 
       return Object.freeze({
         sector,
-        companies,
+
+        companies: [...companies],
       });
     } catch (error) {
       /*
-       * createDataSource uses AbortError for stale/cancelled requests.
-       *
-       * Do not reset the current Company UI when an older Sector request was
-       * cancelled by a newer one.
+       * Stale Sector requests are expected and must not overwrite a newer
+       * Sector selection.
        */
       if (error?.name === "AbortError") {
         throw error;
       }
 
       /*
-       * Dependency failure should leave the filter in a safe usable state.
+       * On real dependency failure, never leave stale companies from the
+       * previous Sector visible.
        *
-       * Users can still request all Companies rather than being left with
-       * stale options from the previous Sector.
+       * Restore the safe full-market state.
        */
-      resetCompany();
+      restoreAllCompanies();
 
       throw error;
     } finally {
-      setCompanyLoading(false);
+      if (!destroyed) {
+        setCompanyLoading(false);
+      }
     }
   }
 
-  /* ==========================================================================
+  /* =========================================================================
      Current Sector
-     ========================================================================== */
+     ========================================================================= */
 
   function loadCurrentSector() {
     const sector = filters.negotiated.getValue("sector");
@@ -343,27 +604,73 @@ export function createTradingDependencies({
     return loadCompanies(sector);
   }
 
-  /* ==========================================================================
+  /* =========================================================================
+     Reset
+     ========================================================================= */
+
+  /**
+   * Restore the complete initial Company option set and select All Companies.
+   *
+   * Important:
+   *
+   * This does NOT perform an AJAX request.
+   *
+   * trading.js performs one final Negotiated dataset reload after all reset
+   * state has been synchronized.
+   */
+  function resetCompany() {
+    source.cancel();
+
+    setCompanyLoading(false);
+
+    restoreAllCompanies();
+  }
+
+  /* =========================================================================
+     Public Queries
+     ========================================================================= */
+
+  function getCompanyValue() {
+    return companySelect.value || defaultValue;
+  }
+
+  function getOriginalCompanyCount() {
+    return originalOptions.length;
+  }
+
+  /* =========================================================================
      Lifecycle
-     ========================================================================== */
+     ========================================================================= */
 
   function cancel() {
     return source.cancel();
   }
 
   function destroy() {
+    if (destroyed) {
+      return;
+    }
+
+    destroyed = true;
+
     source.destroy();
   }
 
-  /* ==========================================================================
+  /* =========================================================================
      Public Instance
-     ========================================================================== */
+     ========================================================================= */
 
   return Object.freeze({
     loadCompanies,
     loadCurrentSector,
 
+    normalizeCompanyValue,
+
     resetCompany,
+    restoreAllCompanies,
+
+    getCompanyValue,
+    getOriginalCompanyCount,
 
     cancel,
     destroy,

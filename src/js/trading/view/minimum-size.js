@@ -3,34 +3,24 @@
    ========================================================================== */
 
 /*
- * Minimum Size is intentionally a special Trading view.
- *
- * The API returns:
- *
- * - col1
- * - col2
- * - col3
- * - col4
- *
- * The JSP owns the complete matrix header and its five visual positions.
+ * Minimum Size Trading view.
  *
  * Responsibilities:
  *
- * - load Minimum Size data through common createDataSource()
- * - render only the matrix <tbody>
- * - provide client-side matrix search
- * - render mobile content through common createDataCards()
- * - use the standard design-system Data Card
- * - synchronize result count through common createDataResults()
+ * - load the Minimum Size endpoint
+ * - preserve the JSP-owned matrix header
+ * - render only the native table <tbody>
+ * - provide client-side search
+ * - render mobile cards
+ * - synchronize common loading / empty / error / results state
  *
  * This file intentionally has no:
  *
  * - DataTables
  * - header generation
- * - generic card lifecycle
- * - AJAX implementation
- * - tab switching
+ * - tab behavior
  * - filter orchestration
+ * - AJAX implementation details
  */
 
 /* ==========================================================================
@@ -41,8 +31,7 @@ import {
   createDataCards,
   createDataResults,
   createDataSource,
-  renderStandardDataCard,
-} from "../common/data-view/index.js";
+} from "../../common/data-view/index.js";
 
 /* ==========================================================================
    Trading
@@ -58,8 +47,9 @@ import {
 
 import {
   escapeHtml,
-  getDisplayValue,
-  renderSecurityReference,
+  filterMinimumSizeRows,
+  renderMinimumSizeDesktopRow,
+  renderMinimumSizeMobileCard,
 } from "../formatters.js";
 
 /* ==========================================================================
@@ -71,265 +61,94 @@ const VIEW = TRADING_VIEWS.minimumSize;
 const MATRIX_COLUMN_COUNT = 5;
 
 /* ==========================================================================
-   Values
+   Helpers
    ========================================================================== */
 
-function getValues(row = {}) {
-  return [row.col1, row.col2, row.col3, row.col4];
-}
-
-/* ==========================================================================
-   Search Text
-   ========================================================================== */
-
-function getValueSearchText(value) {
-  if (value && typeof value === "object" && !Array.isArray(value)) {
-    return [value.symbol, value.name, value.label].filter(Boolean).join(" ");
-  }
-
-  return getDisplayValue(value, "");
-}
-
-function getRowSearchText(row = {}) {
-  return getValues(row).map(getValueSearchText).join(" ").toLowerCase();
-}
-
-function filterRows(rows = [], query = "") {
-  if (!Array.isArray(rows)) {
-    return [];
-  }
-
-  const normalized = String(query || "")
-    .trim()
-    .toLowerCase();
-
-  if (!normalized) {
-    return [...rows];
-  }
-
-  return rows.filter((row) => getRowSearchText(row).includes(normalized));
-}
-
-/* ==========================================================================
-   Response
-   ========================================================================== */
-
-function getRows(response) {
-  if (Array.isArray(response)) {
+function parseResponse(response) {
+  if (typeof response !== "string") {
     return response;
   }
 
-  if (Array.isArray(response?.data)) {
-    return response.data;
+  try {
+    return JSON.parse(response);
+  } catch {
+    return response;
+  }
+}
+
+function getResponseRows(response) {
+  const value = parseResponse(response);
+
+  if (Array.isArray(value)) {
+    return value;
   }
 
-  if (Array.isArray(response?.rows)) {
-    return response.rows;
+  if (Array.isArray(value?.data)) {
+    return value.data;
   }
 
-  if (Array.isArray(response?.results)) {
-    return response.results;
+  if (Array.isArray(value?.rows)) {
+    return value.rows;
+  }
+
+  if (Array.isArray(value?.results)) {
+    return value.results;
+  }
+
+  if (Array.isArray(value?.aaData)) {
+    return value.aaData;
   }
 
   return [];
 }
 
 function normalizeResponse(response) {
-  const rows = getRows(response);
+  const raw = parseResponse(response);
+
+  const rows = getResponseRows(raw);
 
   return {
     rows,
 
     meta: {
       total: rows.length,
-
-      updatedAt:
-        response?.updatedAt ??
-        response?.lastUpdated ??
-        response?.timestamp ??
-        null,
     },
 
-    raw: response,
+    raw,
   };
 }
 
 /* ==========================================================================
-   Desktop Matrix Cell
+   Desktop Rendering
    ========================================================================== */
 
-function renderMatrixValue(value) {
-  return renderSecurityReference(value);
-}
-
-/* ==========================================================================
-   Desktop Matrix Row
-   ========================================================================== */
-
-/*
- * The first physical tbody cell corresponds to the row-heading position
- * already represented visually by the JSP matrix header.
- *
- * Do not modify:
- *
- * - table.tHead
- * - table.innerHTML
- *
- * Only tbody is rendered here.
- */
-
-function renderMatrixRow(row) {
-  return `
-    <tr class="trading-minimum-size-row">
-
-      <td
-        class="trading-minimum-size-row__label"
-        aria-hidden="true"
-      ></td>
-
-      <td>
-        ${renderMatrixValue(row?.col1)}
-      </td>
-
-      <td>
-        ${renderMatrixValue(row?.col2)}
-      </td>
-
-      <td>
-        ${renderMatrixValue(row?.col3)}
-      </td>
-
-      <td>
-        ${renderMatrixValue(row?.col4)}
-      </td>
-
-    </tr>
-  `.trim();
-}
-
-/* ==========================================================================
-   Desktop Loading
-   ========================================================================== */
-
-function renderMatrixLoadingRow() {
+function renderLoadingRow() {
   return `
     <tr
       class="table-loading"
       aria-hidden="true"
     >
       <td colspan="${MATRIX_COLUMN_COUNT}">
-
         <span
           class="table-skeleton table-skeleton-lg"
         ></span>
-
       </td>
     </tr>
   `.trim();
 }
 
-/* ==========================================================================
-   Desktop Empty / Error
-   ========================================================================== */
-
-function renderMatrixMessageRow(message, className = "table-empty") {
+function renderMessageRow(message, className = "table-empty") {
   return `
     <tr class="${escapeHtml(className)}">
-
       <td colspan="${MATRIX_COLUMN_COUNT}">
         ${escapeHtml(message)}
       </td>
-
     </tr>
   `.trim();
 }
 
 /* ==========================================================================
-   Mobile Fields
-   ========================================================================== */
-
-function getMobileFields(row, config) {
-  const labels = config.labels?.minimumSize || {};
-
-  return [
-    {
-      label: labels.col1 || "",
-
-      value: renderMatrixValue(row?.col1),
-
-      fullWidth: true,
-    },
-
-    {
-      label: labels.col2 || "",
-
-      value: renderMatrixValue(row?.col2),
-
-      fullWidth: true,
-    },
-
-    {
-      label: labels.col3 || "",
-
-      value: renderMatrixValue(row?.col3),
-
-      fullWidth: true,
-    },
-
-    {
-      label: labels.col4 || "",
-
-      value: renderMatrixValue(row?.col4),
-
-      fullWidth: true,
-    },
-  ];
-}
-
-/* ==========================================================================
-   Mobile Summary
-   ========================================================================== */
-
-function renderMobileSummary(config) {
-  return `
-    <div class="data-card__identity">
-
-      <div class="data-card__identity-content">
-
-        <div class="data-card__identity-name">
-          ${escapeHtml(config.labels?.tabs?.negotiatedDeals || "Minimum Size")}
-        </div>
-
-      </div>
-
-    </div>
-  `.trim();
-}
-
-/* ==========================================================================
-   Mobile Card
-   ========================================================================== */
-
-function renderMobileCard(row, context, config) {
-  return renderStandardDataCard({
-    rowId: context.index,
-
-    idPrefix: "minimum-size-card-details",
-
-    summary: renderMobileSummary(config),
-
-    fields: getMobileFields(row, config),
-
-    moreLabel: config.labels?.mobile?.showDetails || "Show details",
-
-    lessLabel: config.labels?.mobile?.hideDetails || "Hide details",
-
-    className: "trading-card trading-card--minimum-size",
-  });
-}
-
-/* ==========================================================================
-   Public View Factory
+   Public View
    ========================================================================== */
 
 export function createMinimumSizeView({ root, config } = {}) {
@@ -351,17 +170,13 @@ export function createMinimumSizeView({ root, config } = {}) {
 
   const search = root.querySelector(SELECTORS.minimumSize.search);
 
+  let destroyed = false;
+
   let sourceRows = [];
 
   let visibleRows = [];
 
-  let searchQuery = "";
-
-  let destroyed = false;
-
-  const abortController = new AbortController();
-
-  const { signal } = abortController;
+  let searchValue = "";
 
   /* =========================================================================
      Source
@@ -371,13 +186,11 @@ export function createMinimumSizeView({ root, config } = {}) {
     endpoint: config.endpoints.minimumSize,
 
     /*
-     * Legacy Minimum Size does not consume the Negotiated filters.
-     *
-     * Locale is the only request state required here.
+     * Preserve the actual backend contract.
      */
     buildRequestData() {
       return {
-        locale: config.locale,
+        requestLocale: config.locale || "en",
       };
     },
 
@@ -400,7 +213,7 @@ export function createMinimumSizeView({ root, config } = {}) {
 
       error: config.labels?.loadError,
 
-      results: config.labels?.results,
+      results: "",
     },
   });
 
@@ -416,16 +229,16 @@ export function createMinimumSizeView({ root, config } = {}) {
     initialView: VIEW,
 
     renderCard(row, context) {
-      return renderMobileCard(row, context, config);
+      return renderMinimumSizeMobileCard(row, context, config);
     },
 
     emptyMessage: config.labels?.noData || "No data available",
 
-    errorMessage: config.labels?.loadError || "Unable to load data.",
+    errorMessage: config.labels?.loadError || "Unable to load trading data.",
 
     afterRender(container) {
       container?.classList?.add(
-        "trading-card-list",
+        "trading-data-card-list",
         "trading-minimum-size-card-list",
       );
     },
@@ -436,21 +249,28 @@ export function createMinimumSizeView({ root, config } = {}) {
      ========================================================================= */
 
   function setBusy(busy) {
-    root.setAttribute("aria-busy", String(Boolean(busy)));
+    const loading = Boolean(busy);
 
-    table.setAttribute("aria-busy", String(Boolean(busy)));
+    root.setAttribute("aria-busy", String(loading));
+
+    table.setAttribute("aria-busy", String(loading));
   }
 
+  /*
+   * JS becomes authoritative immediately.
+   */
+  setBusy(false);
+
   /* =========================================================================
-     Visible Rows
+     Filtering
      ========================================================================= */
 
-  function updateVisibleRows() {
-    visibleRows = filterRows(sourceRows, searchQuery);
+  function applySearch() {
+    visibleRows = filterMinimumSizeRows(sourceRows, searchValue);
   }
 
   /* =========================================================================
-     Desktop Render
+     Desktop
      ========================================================================= */
 
   function renderTable() {
@@ -459,26 +279,18 @@ export function createMinimumSizeView({ root, config } = {}) {
     }
 
     if (!visibleRows.length) {
-      tbody.innerHTML = renderMatrixMessageRow(
+      tbody.innerHTML = renderMessageRow(
         config.labels?.noData || "No data available",
       );
 
       return;
     }
 
-    tbody.innerHTML = visibleRows.map(renderMatrixRow).join("");
+    tbody.innerHTML = visibleRows.map(renderMinimumSizeDesktopRow).join("");
   }
 
   /* =========================================================================
-     Results Render
-     ========================================================================= */
-
-  function renderResults() {
-    results.setCount(visibleRows.length);
-  }
-
-  /* =========================================================================
-     Cards Render
+     Mobile
      ========================================================================= */
 
   function renderCards() {
@@ -486,11 +298,31 @@ export function createMinimumSizeView({ root, config } = {}) {
   }
 
   /* =========================================================================
+     Results
+     ========================================================================= */
+
+  function renderResults() {
+    results.showReady(visibleRows.length);
+  }
+
+  /* =========================================================================
      Render
      ========================================================================= */
 
   function render() {
-    updateVisibleRows();
+    applySearch();
+
+    if (!visibleRows.length) {
+      const message = config.labels?.noData || "No data available";
+
+      tbody.innerHTML = renderMessageRow(message);
+
+      cards.showEmpty(message);
+
+      results.showEmpty(message);
+
+      return;
+    }
 
     renderTable();
 
@@ -510,11 +342,11 @@ export function createMinimumSizeView({ root, config } = {}) {
 
     setBusy(true);
 
-    tbody.innerHTML = renderMatrixLoadingRow();
+    tbody.innerHTML = renderLoadingRow();
 
-    cards.showLoading?.();
+    cards.showLoading();
 
-    results.showLoading?.();
+    results.showLoading();
   }
 
   /* =========================================================================
@@ -523,17 +355,18 @@ export function createMinimumSizeView({ root, config } = {}) {
 
   function showEmpty() {
     sourceRows = [];
+
     visibleRows = [];
 
     setBusy(false);
 
-    tbody.innerHTML = renderMatrixMessageRow(
-      config.labels?.noData || "No data available",
-    );
+    const message = config.labels?.noData || "No data available";
 
-    cards.setEmpty?.(config.labels?.noData || "No data available");
+    tbody.innerHTML = renderMessageRow(message);
 
-    results.showEmpty?.(config.labels?.noData || "No data available");
+    cards.showEmpty(message);
+
+    results.showEmpty(message);
   }
 
   /* =========================================================================
@@ -542,6 +375,7 @@ export function createMinimumSizeView({ root, config } = {}) {
 
   function showError(error) {
     sourceRows = [];
+
     visibleRows = [];
 
     setBusy(false);
@@ -549,16 +383,13 @@ export function createMinimumSizeView({ root, config } = {}) {
     const message =
       error?.response?.message ||
       config.labels?.loadError ||
-      "Unable to load data.";
+      "Unable to load trading data.";
 
-    tbody.innerHTML = renderMatrixMessageRow(
-      message,
-      "table-empty table-error",
-    );
+    tbody.innerHTML = renderMessageRow(message, "table-empty table-error");
 
-    cards.setError?.(message);
+    cards.showError(message);
 
-    results.showError?.(message);
+    results.showError(message);
   }
 
   /* =========================================================================
@@ -570,23 +401,14 @@ export function createMinimumSizeView({ root, config } = {}) {
       return;
     }
 
-    searchQuery = search?.value || "";
+    searchValue = search?.value || "";
 
     render();
   }
 
-  search?.addEventListener("input", handleSearch, {
-    signal,
-  });
+  search?.addEventListener("input", handleSearch);
 
-  /*
-   * Search is client-side only.
-   *
-   * Do not issue another backend request while users type.
-   */
-  search?.addEventListener("search", handleSearch, {
-    signal,
-  });
+  search?.addEventListener("search", handleSearch);
 
   /* =========================================================================
      Reload
@@ -618,8 +440,6 @@ export function createMinimumSizeView({ root, config } = {}) {
 
       render();
 
-      results.showReady?.(visibleRows.length);
-
       return [...sourceRows];
     } catch (error) {
       if (error?.name === "AbortError") {
@@ -638,10 +458,9 @@ export function createMinimumSizeView({ root, config } = {}) {
 
   function adjust() {
     /*
-     * No DataTables recalculation is necessary.
+     * Native table only.
      *
-     * Minimum Size uses one physical native table whose JSP-owned thead and
-     * dynamically rendered tbody share the same layout.
+     * No DataTables width recalculation is required.
      */
   }
 
@@ -658,9 +477,6 @@ export function createMinimumSizeView({ root, config } = {}) {
   }
 
   function getTable() {
-    /*
-     * There is intentionally no DataTables API for this view.
-     */
     return null;
   }
 
@@ -675,18 +491,25 @@ export function createMinimumSizeView({ root, config } = {}) {
 
     destroyed = true;
 
-    abortController.abort();
+    search?.removeEventListener("input", handleSearch);
+
+    search?.removeEventListener("search", handleSearch);
 
     source.destroy();
 
-    cards.destroy?.();
+    cards.destroy();
 
-    results.destroy?.();
+    results.destroy();
 
     sourceRows = [];
+
     visibleRows = [];
 
     tbody.replaceChildren();
+
+    root.removeAttribute("aria-busy");
+
+    table.removeAttribute("aria-busy");
   }
 
   /* =========================================================================
@@ -694,6 +517,8 @@ export function createMinimumSizeView({ root, config } = {}) {
      ========================================================================= */
 
   return Object.freeze({
+    view: VIEW,
+
     reload,
     adjust,
 

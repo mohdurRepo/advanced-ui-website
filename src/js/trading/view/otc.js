@@ -7,12 +7,15 @@
  *
  * Responsibilities:
  *
- * - define the four-column OTC dataset
- * - normalize the OTC response
- * - render the existing JSP-owned table header
+ * - preserve the JSP-owned four-column header
+ * - define the exact OTC backend/body contract
+ * - build the exact backend request
+ * - render Company + Symbol correctly
+ * - render traded volume
+ * - render last update
  * - render standard expandable mobile cards
  *
- * Generic lifecycle behavior remains in common/data-view.
+ * Shared behavior remains in common/data-view.
  */
 
 /* ==========================================================================
@@ -27,7 +30,7 @@ import {
   createDataTable,
   createDataViewController,
   renderStandardDataCard,
-} from "../common/data-view/index.js";
+} from "../../common/data-view/index.js";
 
 /* ==========================================================================
    Trading
@@ -42,10 +45,10 @@ import {
 
 import {
   escapeHtml,
-  formatQuantity,
-  formatTradingDate,
   getDisplayValue,
-  renderCompanyLink,
+  getTradingIdentity,
+  renderMobileIdentity,
+  renderOtcMobileSummary,
   renderTradingCell,
 } from "../formatters.js";
 
@@ -59,6 +62,12 @@ const VIEW = TRADING_VIEWS.otcTrading;
    Columns
    ========================================================================== */
 
+/*
+ * JSP owns exactly:
+ *
+ * Symbol | Company | Traded Volume | Last Update
+ */
+
 function getColumns(config) {
   const labels = config.labels?.otc || {};
 
@@ -66,67 +75,67 @@ function getColumns(config) {
     {
       key: "symbol",
 
-      data: "symbol",
-
-      fallbackData: ["companySymbol", "securitySymbol"],
-
       label: labels.symbol || "Symbol",
 
-      type: "display-value",
+      data: "symbol",
 
-      className: "table-market__symbol",
+      width: "10rem",
 
-      width: "9rem",
+      className: "table-market__symbol table-market__identity-symbol",
+
+      searchable: true,
     },
 
     {
       key: "company",
 
-      data: "companyName",
-
-      fallbackData: ["company", "name"],
-
       label: labels.company || "Company",
 
-      type: "company-link",
+      /*
+       * Exact OTC backend property.
+       */
+      data: "companyName",
+
+      format: "link",
 
       urlData: "companyURL",
 
-      className: "table-market__company",
+      width: "20rem",
+
+      className: "table-market__company table-market__identity-company",
+
+      searchable: true,
     },
 
     {
       key: "traded-volume",
 
-      data: "lastTradeVolume",
-
-      fallbackData: ["tradedVolume", "volume"],
-
       label: labels.tradedVolume || "Traded Volume",
 
-      type: "quantity",
+      data: "lastTradeVolume",
+
+      format: "quantity",
 
       numeric: true,
 
-      className: "table-market__number",
+      width: "11rem",
 
-      width: "10rem",
+      className: "table-market__number",
     },
 
     {
       key: "last-update",
 
-      data: "lastTradeDate",
-
-      fallbackData: ["lastUpdate", "updatedAt", "date"],
-
       label: labels.lastUpdate || "Last Update",
 
-      type: "date",
+      /*
+       * Backend already provides the display value.
+       */
+      data: "lastTradeDate",
+
+      width: "12rem",
 
       className: "table-market__date",
-
-      width: "10rem",
     },
   ];
 }
@@ -137,7 +146,7 @@ function getColumns(config) {
 
 function buildRequestData(config) {
   return {
-    locale: config.locale,
+    requestLocale: config.locale || "en",
   };
 }
 
@@ -145,40 +154,60 @@ function buildRequestData(config) {
    Response
    ========================================================================== */
 
-function getRows(response) {
-  if (Array.isArray(response)) {
+function parseResponse(response) {
+  if (typeof response !== "string") {
     return response;
   }
 
-  if (Array.isArray(response?.data)) {
-    return response.data;
+  try {
+    return JSON.parse(response);
+  } catch {
+    return response;
+  }
+}
+
+function getResponseRows(response) {
+  const value = parseResponse(response);
+
+  if (Array.isArray(value)) {
+    return value;
   }
 
-  if (Array.isArray(response?.rows)) {
-    return response.rows;
+  if (Array.isArray(value?.data)) {
+    return value.data;
   }
 
-  if (Array.isArray(response?.results)) {
-    return response.results;
+  if (Array.isArray(value?.rows)) {
+    return value.rows;
+  }
+
+  if (Array.isArray(value?.results)) {
+    return value.results;
+  }
+
+  if (Array.isArray(value?.aaData)) {
+    return value.aaData;
   }
 
   return [];
 }
 
-function getTotal(response, rows) {
+function getResponseCount(response, rows) {
+  const value = parseResponse(response);
+
   const candidates = [
-    response?.total,
-    response?.count,
-    response?.recordsFiltered,
-    response?.recordsTotal,
+    value?.total,
+    value?.count,
+    value?.recordsTotal,
+    value?.recordsFiltered,
     rows?.[0]?.count,
   ];
 
   for (const candidate of candidates) {
-    const total = Number(candidate);
+    const count = Number(candidate);
 
-    if (Number.isFinite(total) && total >= 0) {
-      return Math.floor(total);
+    if (Number.isFinite(count) && count >= 0) {
+      return Math.floor(count);
     }
   }
 
@@ -186,86 +215,25 @@ function getTotal(response, rows) {
 }
 
 function normalizeResponse(response) {
-  const rows = getRows(response);
+  const raw = parseResponse(response);
+
+  const rows = getResponseRows(raw);
 
   return {
     rows,
 
     meta: {
-      total: getTotal(response, rows),
+      total: getResponseCount(raw, rows),
 
-      updatedAt:
-        response?.updatedAt ??
-        response?.lastUpdated ??
-        response?.timestamp ??
-        null,
+      updatedAt: raw?.updatedAt ?? raw?.lastUpdated ?? raw?.timestamp ?? null,
     },
 
-    raw: response,
+    raw,
   };
 }
 
 /* ==========================================================================
-   Mobile Summary
-   ========================================================================== */
-
-function renderMobileSummary(row, config) {
-  const symbol = getDisplayValue(row?.symbol ?? row?.companySymbol, "");
-
-  const company = getDisplayValue(row?.companyName ?? row?.company, "");
-
-  const companyUrl = row?.companyURL ?? row?.companyUrl ?? row?.pageUrl ?? "";
-
-  const volume = formatQuantity(
-    row?.lastTradeVolume ?? row?.tradedVolume ?? row?.volume,
-    config,
-  );
-
-  const volumeLabel = config.labels?.otc?.tradedVolume || "Traded Volume";
-
-  return `
-    <div class="data-card__identity">
-
-      <div class="data-card__identity-content">
-
-        <div class="data-card__identity-name">
-          ${renderCompanyLink(company, companyUrl)}
-        </div>
-
-        ${
-          symbol
-            ? `
-              <div class="data-card__identity-meta">
-                ${escapeHtml(symbol)}
-              </div>
-            `
-            : ""
-        }
-
-      </div>
-
-    </div>
-
-    <div class="data-card__quote">
-
-      <div class="data-card__quote-item">
-
-        <span class="data-card__quote-label">
-          ${escapeHtml(volumeLabel)}
-        </span>
-
-        <span class="data-card__price">
-          ${escapeHtml(volume)}
-        </span>
-
-      </div>
-
-    </div>
-  `.trim();
-}
-
-/* ==========================================================================
-   Mobile Fields
+   Mobile Details
    ========================================================================== */
 
 function getMobileFields(row, config) {
@@ -275,11 +243,10 @@ function getMobileFields(row, config) {
     {
       label: labels.lastUpdate || "Last Update",
 
-      value: escapeHtml(
-        formatTradingDate(
-          row?.lastTradeDate ?? row?.lastUpdate ?? row?.updatedAt,
-        ),
-      ),
+      /*
+       * Preserve backend display string exactly.
+       */
+      value: escapeHtml(getDisplayValue(row?.lastTradeDate, "-")),
 
       fullWidth: true,
     },
@@ -291,25 +258,33 @@ function getMobileFields(row, config) {
    ========================================================================== */
 
 function renderMobileCard(row, context, config) {
+  const identity = getTradingIdentity(row, VIEW);
+
   return renderStandardDataCard({
-    rowId: row?.id ?? row?.symbol ?? context.index,
+    idPrefix: "trading-otc-details",
 
-    idPrefix: "otc-trading-card-details",
+    rowId: `${identity.code || identity.name || "otc"}-${context.index}`,
 
-    summary: renderMobileSummary(row, config),
+    className: "trading-data-card trading-data-card--otc",
+
+    summary: `
+      ${renderMobileIdentity(row, VIEW)}
+
+      ${renderOtcMobileSummary(row, config)}
+    `.trim(),
 
     fields: getMobileFields(row, config),
+
+    expandable: true,
 
     moreLabel: config.labels?.mobile?.showDetails || "Show details",
 
     lessLabel: config.labels?.mobile?.hideDetails || "Hide details",
-
-    className: "trading-card trading-card--otc",
   });
 }
 
 /* ==========================================================================
-   Public View Factory
+   Public View
    ========================================================================== */
 
 export function createOtcView({ root, config } = {}) {
@@ -319,6 +294,8 @@ export function createOtcView({ root, config } = {}) {
 
   const columns = getColumns(config);
 
+  let lastResultCount = 0;
+
   /* =========================================================================
      State
      ========================================================================= */
@@ -327,7 +304,6 @@ export function createOtcView({ root, config } = {}) {
     loading: false,
 
     sourceRows: [],
-
     visibleRows: [],
 
     meta: {},
@@ -346,7 +322,13 @@ export function createOtcView({ root, config } = {}) {
       return buildRequestData(config);
     },
 
-    normalizeResponse,
+    normalizeResponse(response) {
+      const normalized = normalizeResponse(response);
+
+      lastResultCount = Number(normalized.meta?.total) || 0;
+
+      return normalized;
+    },
   });
 
   /* =========================================================================
@@ -374,13 +356,33 @@ export function createOtcView({ root, config } = {}) {
     renderCell(args) {
       return renderTradingCell({
         ...args,
+
         config,
+
+        view: VIEW,
       });
     },
 
     tableOptions: {
       ...config.tableDefaults,
+
       ...config.tables?.otcTrading,
+
+      /*
+       * The design-system .table-responsive wrapper owns overflow.
+       *
+       * This prevents the leftmost Symbol column clipping we saw when
+       * DataTables created a separate scroll-head / scroll-body structure.
+       */
+      scrollX: false,
+
+      scrollCollapse: false,
+
+      fixedHeader: false,
+
+      fixedColumns: false,
+
+      ordering: false,
     },
   });
 
@@ -401,10 +403,13 @@ export function createOtcView({ root, config } = {}) {
 
     emptyMessage: config.labels?.noData || "No data available",
 
-    errorMessage: config.labels?.loadError || "Unable to load data.",
+    errorMessage: config.labels?.loadError || "Unable to load trading data.",
 
     afterRender(container) {
-      container?.classList?.add("trading-card-list", "trading-otc-card-list");
+      container?.classList?.add(
+        "trading-data-card-list",
+        "trading-otc-card-list",
+      );
     },
   });
 
@@ -412,7 +417,7 @@ export function createOtcView({ root, config } = {}) {
      Results
      ========================================================================= */
 
-  const results = createDataResults({
+  const baseResults = createDataResults({
     root,
 
     count: getResultCountSelector(VIEW),
@@ -424,7 +429,36 @@ export function createOtcView({ root, config } = {}) {
 
       error: config.labels?.loadError,
 
-      results: config.labels?.results,
+      /*
+       * JSP already renders "Results:".
+       */
+      results: "",
+    },
+  });
+
+  const results = Object.freeze({
+    showLoading() {
+      baseResults.showLoading();
+    },
+
+    showReady() {
+      baseResults.showReady(lastResultCount);
+    },
+
+    showEmpty(message) {
+      lastResultCount = 0;
+
+      baseResults.showEmpty(message);
+    },
+
+    showError(message) {
+      lastResultCount = 0;
+
+      baseResults.showError(message);
+    },
+
+    destroy() {
+      baseResults.destroy();
     },
   });
 
@@ -453,7 +487,7 @@ export function createOtcView({ root, config } = {}) {
       return (
         error?.response?.message ||
         config.labels?.loadError ||
-        "Unable to load data."
+        "Unable to load trading data."
       );
     },
   });
@@ -461,31 +495,24 @@ export function createOtcView({ root, config } = {}) {
   controller.init();
 
   /* =========================================================================
-     Loading
+     Busy State
      ========================================================================= */
 
-  function showLoading() {
-    root.setAttribute("aria-busy", "true");
+  const unsubscribeState = state.subscribe(({ state: snapshot }) => {
+    root.setAttribute("aria-busy", String(Boolean(snapshot.loading)));
+  });
 
-    table?.showLoading?.();
-
-    cards?.showLoading?.();
-
-    results?.showLoading?.();
-  }
+  /*
+   * JS owns runtime loading state.
+   */
+  root.setAttribute("aria-busy", "false");
 
   /* =========================================================================
      Reload
      ========================================================================= */
 
-  async function reload() {
-    showLoading();
-
-    try {
-      return await controller.reload();
-    } finally {
-      root.setAttribute("aria-busy", "false");
-    }
+  function reload() {
+    return controller.reload();
   }
 
   /* =========================================================================
@@ -493,9 +520,33 @@ export function createOtcView({ root, config } = {}) {
      ========================================================================= */
 
   function adjust() {
-    const api = table?.getApi?.();
+    const api = table.getApi?.();
 
-    api?.columns?.adjust?.();
+    if (!api) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      try {
+        api.columns?.adjust?.();
+
+        api.responsive?.recalc?.();
+      } catch (error) {
+        console.warn("OTC table adjustment failed:", error);
+      }
+    });
+  }
+
+  /* =========================================================================
+     Lifecycle
+     ========================================================================= */
+
+  function destroy() {
+    unsubscribeState();
+
+    controller.destroy();
+
+    root.removeAttribute("aria-busy");
   }
 
   /* =========================================================================
@@ -503,6 +554,8 @@ export function createOtcView({ root, config } = {}) {
      ========================================================================= */
 
   return Object.freeze({
+    view: VIEW,
+
     reload,
     adjust,
 
@@ -515,11 +568,9 @@ export function createOtcView({ root, config } = {}) {
     },
 
     getTable() {
-      return table?.getApi?.() || null;
+      return table.getApi?.() || null;
     },
 
-    destroy() {
-      controller.destroy();
-    },
+    destroy,
   });
 }

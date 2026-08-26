@@ -12,7 +12,7 @@
  * - establish business reset values
  * - initialize default Trading date ranges
  * - convert native date values to backend request values
- * - expose one stable filter API per filter group
+ * - expose stable filter state per Trading area
  *
  * This file intentionally has no:
  *
@@ -21,16 +21,22 @@
  * - DataTables
  * - cards
  * - tabs
- * - variant visibility
  * - result rendering
- * - loading states
  */
+
+/* ==========================================================================
+   Common Data View
+   ========================================================================== */
 
 import { createDataFilters } from "../common/data-view/index.js";
 
+/* ==========================================================================
+   Trading
+   ========================================================================== */
+
 import {
-  NEGOTIATED_TYPES,
   COMPANY_STATUS_TYPES,
+  NEGOTIATED_TYPES,
   SELECTORS,
   TRADING_VALUES,
 } from "./constants.js";
@@ -48,14 +54,13 @@ function normalizeString(value, fallback = "") {
 }
 
 /* ==========================================================================
-   Native Dates
+   Dates
    ========================================================================== */
 
 /**
- * Format a Date as YYYY-MM-DD for <input type="date">.
+ * Format a Date for <input type="date">.
  *
- * Local date parts are deliberately used so timezone conversion cannot move
- * the user's calendar date backward or forward.
+ * Local date parts are intentionally used.
  *
  * @param {Date} date
  * @returns {string}
@@ -71,7 +76,7 @@ function formatNativeDate(date) {
 }
 
 /**
- * Return the last valid day of a calendar month.
+ * Return number of days in a calendar month.
  *
  * @param {number} year
  * @param {number} month Zero-based month.
@@ -82,21 +87,19 @@ function getDaysInMonth(year, month) {
 }
 
 /**
- * Subtract one calendar month while safely clamping dates such as:
+ * Subtract exactly one calendar month.
  *
- * March 31 -> February 28/29
+ * Example:
  *
- * rather than allowing JavaScript Date rollover into March.
+ * 31 March -> 28/29 February
+ *
+ * rather than allowing native Date rollover.
  *
  * @param {Date} date
  * @returns {Date}
  */
 function subtractCalendarMonth(date) {
-  const year = date.getFullYear();
-
-  const previousMonth = date.getMonth() - 1;
-
-  const target = new Date(year, previousMonth, 1);
+  const target = new Date(date.getFullYear(), date.getMonth() - 1, 1);
 
   const day = Math.min(
     date.getDate(),
@@ -108,15 +111,11 @@ function subtractCalendarMonth(date) {
   return target;
 }
 
-/* ==========================================================================
-   Default Date Range
-   ========================================================================== */
-
 /**
- * Trading legacy/default range:
+ * Trading business default:
  *
- * from = one calendar month before today
- * to   = today
+ * fromDate = one calendar month before today
+ * toDate   = today
  *
  * @param {Date} today
  * @returns {{fromDate:string,toDate:string}}
@@ -128,6 +127,7 @@ export function getDefaultTradingDateRange(today = new Date()) {
 
   return Object.freeze({
     fromDate: formatNativeDate(from),
+
     toDate: formatNativeDate(to),
   });
 }
@@ -137,17 +137,15 @@ export function getDefaultTradingDateRange(today = new Date()) {
    ========================================================================== */
 
 /**
- * Convert the native input date:
+ * Convert:
  *
  * YYYY-MM-DD
  *
- * to the Trading backend contract:
+ * to:
  *
  * DD-MM-YYYY
  *
- * Already-normalized DD-MM-YYYY values are preserved.
- *
- * Unknown values are preserved rather than guessed.
+ * Existing DD-MM-YYYY values are preserved.
  *
  * @param {*} value
  * @returns {string}
@@ -173,21 +171,26 @@ export function toTradingRequestDate(value) {
 }
 
 /* ==========================================================================
-   Negotiated Deals
+   Negotiated Deals Filters
    ========================================================================== */
 
 function createNegotiatedFilters({ root, config }) {
   const defaults = config.filters?.negotiatedDeals?.defaults || {};
 
-  const dates = getDefaultTradingDateRange();
+  const clearCompanyValue =
+    config.filters?.negotiatedDeals?.companyClearValue ||
+    defaults.company ||
+    TRADING_VALUES.all;
+
+  const dateRange = getDefaultTradingDateRange();
 
   const filters = createDataFilters({
     root,
 
     fields: {
-      /* --------------------------------------------------------------------
-         Type
-         -------------------------------------------------------------------- */
+      /* ------------------------------------------------------------------
+           Type
+           ------------------------------------------------------------------ */
 
       type: {
         selector: SELECTORS.negotiated.type,
@@ -213,20 +216,15 @@ function createNegotiatedFilters({ root, config }) {
         },
       },
 
-      /* --------------------------------------------------------------------
-         Sector / Industry
-         -------------------------------------------------------------------- */
+      /* ------------------------------------------------------------------
+           Sector
+           ------------------------------------------------------------------ */
 
       sector: {
         selector: SELECTORS.negotiated.sector,
 
         required: true,
 
-        /*
-         * Sector has a dependency side-effect.
-         *
-         * dependencies.js decides how the Company options are reloaded.
-         */
         effect: "dependency",
 
         resetValue: normalizeString(defaults.sector, TRADING_VALUES.all),
@@ -236,9 +234,9 @@ function createNegotiatedFilters({ root, config }) {
         },
       },
 
-      /* --------------------------------------------------------------------
-         Company
-         -------------------------------------------------------------------- */
+      /* ------------------------------------------------------------------
+           Company
+           ------------------------------------------------------------------ */
 
       company: {
         selector: SELECTORS.negotiated.company,
@@ -248,20 +246,20 @@ function createNegotiatedFilters({ root, config }) {
         effect: "reload",
 
         /*
-         * Company has no empty/clear state.
+         * Company must never become empty.
          *
-         * "All" is the business default.
+         * Clearing the enhanced control or Reset always means All Companies.
          */
-        resetValue: normalizeString(defaults.company, TRADING_VALUES.all),
+        resetValue: clearCompanyValue,
 
         normalize(value) {
-          return normalizeString(value, TRADING_VALUES.all);
+          return normalizeString(value, clearCompanyValue);
         },
       },
 
-      /* --------------------------------------------------------------------
-         From Date
-         -------------------------------------------------------------------- */
+      /* ------------------------------------------------------------------
+           From Date
+           ------------------------------------------------------------------ */
 
       fromDate: {
         selector: SELECTORS.negotiated.fromDate,
@@ -270,16 +268,16 @@ function createNegotiatedFilters({ root, config }) {
 
         effect: "reload",
 
-        resetValue: dates.fromDate,
+        resetValue: dateRange.fromDate,
 
         normalize(value) {
-          return normalizeString(value, "");
+          return normalizeString(value, dateRange.fromDate);
         },
       },
 
-      /* --------------------------------------------------------------------
-         To Date
-         -------------------------------------------------------------------- */
+      /* ------------------------------------------------------------------
+           To Date
+           ------------------------------------------------------------------ */
 
       toDate: {
         selector: SELECTORS.negotiated.toDate,
@@ -288,32 +286,38 @@ function createNegotiatedFilters({ root, config }) {
 
         effect: "reload",
 
-        resetValue: dates.toDate,
+        resetValue: dateRange.toDate,
 
         normalize(value) {
-          return normalizeString(value, "");
+          return normalizeString(value, dateRange.toDate);
         },
       },
     },
   });
 
-  /*
-   * JSP date inputs intentionally start empty.
-   *
-   * Populate the initial default range without notifying subscribers because
-   * initialization must not trigger an AJAX request by itself.
-   */
+  /* =========================================================================
+     Initial State
+     ========================================================================= */
+
+  const initial = config.initialState?.negotiatedDeals || {};
+
   filters.setState(
     {
-      fromDate: normalizeString(
-        config.initialState?.negotiatedDeals?.fromDate,
-        dates.fromDate,
+      type: normalizeString(
+        initial.type,
+        defaults.type || NEGOTIATED_TYPES.negotiatedDeals,
       ),
 
-      toDate: normalizeString(
-        config.initialState?.negotiatedDeals?.toDate,
-        dates.toDate,
+      sector: normalizeString(
+        initial.sector,
+        defaults.sector || TRADING_VALUES.all,
       ),
+
+      company: normalizeString(initial.company, clearCompanyValue),
+
+      fromDate: normalizeString(initial.fromDate, dateRange.fromDate),
+
+      toDate: normalizeString(initial.toDate, dateRange.toDate),
     },
     {
       notify: false,
@@ -322,17 +326,19 @@ function createNegotiatedFilters({ root, config }) {
     },
   );
 
+  filters.sync();
+
   return filters;
 }
 
 /* ==========================================================================
-   Accumulated Losses
+   Accumulated Losses Filters
    ========================================================================== */
 
 function createAccumulatedFilters({ root, config }) {
   const defaults = config.filters?.accumulated?.defaults || {};
 
-  return createDataFilters({
+  const filters = createDataFilters({
     root,
 
     fields: {
@@ -351,24 +357,44 @@ function createAccumulatedFilters({ root, config }) {
       },
     },
   });
+
+  const initial = config.initialState?.accumulated || {};
+
+  filters.setState(
+    {
+      report: normalizeString(
+        initial.report,
+        defaults.report || TRADING_VALUES.all,
+      ),
+    },
+    {
+      notify: false,
+
+      source: "initialization",
+    },
+  );
+
+  filters.sync();
+
+  return filters;
 }
 
 /* ==========================================================================
-   Suspended / Delisted
+   Suspended / Delisted Filters
    ========================================================================== */
 
 function createCompanyStatusFilters({ root, config }) {
   const defaults = config.filters?.deListedCompanies?.defaults || {};
 
-  const dates = getDefaultTradingDateRange();
+  const dateRange = getDefaultTradingDateRange();
 
   const filters = createDataFilters({
     root,
 
     fields: {
-      /* --------------------------------------------------------------------
-         Type
-         -------------------------------------------------------------------- */
+      /* ------------------------------------------------------------------
+           Type
+           ------------------------------------------------------------------ */
 
       type: {
         selector: SELECTORS.companyStatus.type,
@@ -387,9 +413,9 @@ function createCompanyStatusFilters({ root, config }) {
         },
       },
 
-      /* --------------------------------------------------------------------
-         From Date
-         -------------------------------------------------------------------- */
+      /* ------------------------------------------------------------------
+           From Date
+           ------------------------------------------------------------------ */
 
       fromDate: {
         selector: SELECTORS.companyStatus.fromDate,
@@ -398,16 +424,16 @@ function createCompanyStatusFilters({ root, config }) {
 
         effect: "reload",
 
-        resetValue: dates.fromDate,
+        resetValue: dateRange.fromDate,
 
         normalize(value) {
-          return normalizeString(value, "");
+          return normalizeString(value, dateRange.fromDate);
         },
       },
 
-      /* --------------------------------------------------------------------
-         To Date
-         -------------------------------------------------------------------- */
+      /* ------------------------------------------------------------------
+           To Date
+           ------------------------------------------------------------------ */
 
       toDate: {
         selector: SELECTORS.companyStatus.toDate,
@@ -416,26 +442,27 @@ function createCompanyStatusFilters({ root, config }) {
 
         effect: "reload",
 
-        resetValue: dates.toDate,
+        resetValue: dateRange.toDate,
 
         normalize(value) {
-          return normalizeString(value, "");
+          return normalizeString(value, dateRange.toDate);
         },
       },
     },
   });
 
+  const initial = config.initialState?.deListedCompanies || {};
+
   filters.setState(
     {
-      fromDate: normalizeString(
-        config.initialState?.deListedCompanies?.fromDate,
-        dates.fromDate,
+      type: normalizeString(
+        initial.type,
+        defaults.type || COMPANY_STATUS_TYPES.suspension,
       ),
 
-      toDate: normalizeString(
-        config.initialState?.deListedCompanies?.toDate,
-        dates.toDate,
-      ),
+      fromDate: normalizeString(initial.fromDate, dateRange.fromDate),
+
+      toDate: normalizeString(initial.toDate, dateRange.toDate),
     },
     {
       notify: false,
@@ -444,6 +471,8 @@ function createCompanyStatusFilters({ root, config }) {
     },
   );
 
+  filters.sync();
+
   return filters;
 }
 
@@ -451,18 +480,6 @@ function createCompanyStatusFilters({ root, config }) {
    Public Trading Filters
    ========================================================================== */
 
-/**
- * Create all page-level Trading filter groups.
- *
- * Each group remains an ordinary common createDataFilters() instance.
- *
- * The wrapper provides only convenient grouping and lifecycle management.
- *
- * @param {object} options
- * @param {Document|Element} options.root
- * @param {object} options.config
- * @returns {Readonly<object>}
- */
 export function createTradingFilters({ root = document, config = {} } = {}) {
   const negotiated = createNegotiatedFilters({
     root,
@@ -479,12 +496,12 @@ export function createTradingFilters({ root = document, config = {} } = {}) {
     config,
   });
 
-  /* ========================================================================
-     Request State
-     ======================================================================== */
+  /* =========================================================================
+     Request States
+     ========================================================================= */
 
   /**
-   * Return Negotiated filters in backend-ready form.
+   * Negotiated backend-ready filter values.
    */
   function getNegotiatedRequestState() {
     const state = negotiated.getState();
@@ -503,7 +520,15 @@ export function createTradingFilters({ root = document, config = {} } = {}) {
   }
 
   /**
-   * Return Accumulated Loss filters in backend-ready form.
+   * Accumulated state.
+   *
+   * Important:
+   *
+   * The UI calls this field `report`.
+   * The backend parameter name is `percentage`.
+   *
+   * That mapping belongs in views/accumulated.js, not in the generic filter
+   * state.
    */
   function getAccumulatedRequestState() {
     const state = accumulated.getState();
@@ -514,7 +539,7 @@ export function createTradingFilters({ root = document, config = {} } = {}) {
   }
 
   /**
-   * Return Suspended / Delisted filters in backend-ready form.
+   * Suspended / Delisted backend-ready filter values.
    */
   function getCompanyStatusRequestState() {
     const state = companyStatus.getState();
@@ -528,43 +553,43 @@ export function createTradingFilters({ root = document, config = {} } = {}) {
     });
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Reset
-     ======================================================================== */
+     ========================================================================= */
 
-  function resetNegotiated(settings = {}) {
+  function resetNegotiated(options = {}) {
     return negotiated.reset({
       type: "reset",
 
       effect: "reload",
 
-      ...settings,
+      ...options,
     });
   }
 
-  function resetAccumulated(settings = {}) {
+  function resetAccumulated(options = {}) {
     return accumulated.reset({
       type: "reset",
 
       effect: "reload",
 
-      ...settings,
+      ...options,
     });
   }
 
-  function resetCompanyStatus(settings = {}) {
+  function resetCompanyStatus(options = {}) {
     return companyStatus.reset({
       type: "reset",
 
       effect: "reload",
 
-      ...settings,
+      ...options,
     });
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Lifecycle
-     ======================================================================== */
+     ========================================================================= */
 
   function destroy() {
     negotiated.destroy();
@@ -574,9 +599,9 @@ export function createTradingFilters({ root = document, config = {} } = {}) {
     companyStatus.destroy();
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Public Instance
-     ======================================================================== */
+     ========================================================================= */
 
   return Object.freeze({
     negotiated,

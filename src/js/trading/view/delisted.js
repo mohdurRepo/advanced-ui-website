@@ -7,15 +7,16 @@
  *
  * Responsibilities:
  *
- * - define the Delisted dataset
- * - build the shared Suspended/Delisted backend request
- * - render Symbol + company-status indicator
+ * - preserve the JSP-owned four-column header
+ * - define the exact backend/body contract
+ * - build the shared Suspended/Delisted request
+ * - render Symbol + company status
  * - render linked Company name
- * - render delisting date
- * - render delisting reason / news action
+ * - render delisting Date
+ * - render delisting news/action
  * - render standard expandable mobile cards
  *
- * Generic lifecycle behavior remains in common/data-view.
+ * Shared behavior remains in common/data-view.
  */
 
 /* ==========================================================================
@@ -30,7 +31,7 @@ import {
   createDataTable,
   createDataViewController,
   renderStandardDataCard,
-} from "../common/data-view/index.js";
+} from "../../common/data-view/index.js";
 
 /* ==========================================================================
    Trading
@@ -47,10 +48,10 @@ import {
   escapeHtml,
   formatTradingDate,
   getDisplayValue,
-  renderCompanyLink,
-  renderDelistedNewsLink,
-  renderSymbolWithStatus,
+  getTradingIdentity,
+  renderMobileIdentity,
   renderTradingCell,
+  safeUrl,
 } from "../formatters.js";
 
 /* ==========================================================================
@@ -70,65 +71,70 @@ function getColumns(config) {
     {
       key: "symbol",
 
-      data: "symbol",
-
-      fallbackData: ["companySymbol", "securitySymbol"],
-
       label: labels.symbol || "Symbol",
 
-      type: "symbol-status",
+      data: "symbol",
 
-      statusData: "companyStatus",
+      format: "delisted-symbol",
 
-      className: "table-market__symbol",
+      width: "10rem",
 
-      width: "9rem",
+      className: "table-market__symbol table-market__identity-symbol",
+
+      searchable: true,
     },
 
     {
       key: "company",
 
-      data: "companyName",
+      label: labels.company || "Company Name",
 
-      fallbackData: ["company", "name"],
+      /*
+       * Actual backend property.
+       */
+      data: "name",
 
-      label: labels.company || "Company",
-
-      type: "company-link",
+      format: "link",
 
       urlData: "companyURL",
 
-      className: "table-market__company",
+      width: "20rem",
 
-      width: "16rem",
+      className: "table-market__company table-market__identity-company",
+
+      searchable: true,
     },
 
     {
       key: "date",
 
-      data: "fromDate",
-
-      fallbackData: ["date", "delistingDate"],
-
       label: labels.date || "Date",
 
-      type: "date",
+      /*
+       * Existing Delisted endpoint uses fromDate as the event date.
+       */
+      data: "fromDate",
+
+      format: "date",
+
+      width: "11rem",
 
       className: "table-market__date",
-
-      width: "9rem",
     },
 
     {
       key: "reason",
 
-      data: "reason",
-
-      fallbackData: ["delistingReason", "statusReason"],
-
       label: labels.reason || "Reason",
 
-      type: "display-value",
+      /*
+       * Action-only column.
+       */
+      data: null,
+
+      format: "delisted-news",
+
+      width: "12rem",
 
       className: "table-market__reason",
     },
@@ -143,15 +149,15 @@ function buildRequestData(filters, config) {
   const state = filters.getCompanyStatusRequestState();
 
   return {
+    renderType: "Search",
+
     formType: state.type,
 
     fromDate: state.fromDate,
 
     toDate: state.toDate,
 
-    locale: config.locale,
-
-    renderType: "Search",
+    requestLocale: config.locale || "en",
   };
 }
 
@@ -159,40 +165,60 @@ function buildRequestData(filters, config) {
    Response
    ========================================================================== */
 
-function getRows(response) {
-  if (Array.isArray(response)) {
+function parseResponse(response) {
+  if (typeof response !== "string") {
     return response;
   }
 
-  if (Array.isArray(response?.data)) {
-    return response.data;
+  try {
+    return JSON.parse(response);
+  } catch {
+    return response;
+  }
+}
+
+function getResponseRows(response) {
+  const value = parseResponse(response);
+
+  if (Array.isArray(value)) {
+    return value;
   }
 
-  if (Array.isArray(response?.rows)) {
-    return response.rows;
+  if (Array.isArray(value?.data)) {
+    return value.data;
   }
 
-  if (Array.isArray(response?.results)) {
-    return response.results;
+  if (Array.isArray(value?.rows)) {
+    return value.rows;
+  }
+
+  if (Array.isArray(value?.results)) {
+    return value.results;
+  }
+
+  if (Array.isArray(value?.aaData)) {
+    return value.aaData;
   }
 
   return [];
 }
 
-function getTotal(response, rows) {
+function getResponseCount(response, rows) {
+  const value = parseResponse(response);
+
   const candidates = [
-    response?.total,
-    response?.count,
-    response?.recordsFiltered,
-    response?.recordsTotal,
+    value?.total,
+    value?.count,
+    value?.recordsTotal,
+    value?.recordsFiltered,
     rows?.[0]?.count,
   ];
 
   for (const candidate of candidates) {
-    const total = Number(candidate);
+    const count = Number(candidate);
 
-    if (Number.isFinite(total) && total >= 0) {
-      return Math.floor(total);
+    if (Number.isFinite(count) && count >= 0) {
+      return Math.floor(count);
     }
   }
 
@@ -200,61 +226,147 @@ function getTotal(response, rows) {
 }
 
 function normalizeResponse(response) {
-  const rows = getRows(response);
+  const raw = parseResponse(response);
+
+  const rows = getResponseRows(raw);
 
   return {
     rows,
 
     meta: {
-      total: getTotal(response, rows),
+      total: getResponseCount(raw, rows),
 
-      updatedAt:
-        response?.updatedAt ??
-        response?.lastUpdated ??
-        response?.timestamp ??
-        null,
+      updatedAt: raw?.updatedAt ?? raw?.lastUpdated ?? raw?.timestamp ?? null,
     },
 
-    raw: response,
+    raw,
   };
 }
 
 /* ==========================================================================
-   Mobile Summary
+   Status
    ========================================================================== */
 
-function renderMobileSummary(row) {
-  const symbol = getDisplayValue(row?.symbol ?? row?.companySymbol, "");
+function getStatusClass(status) {
+  if (status === null || status === undefined || String(status).trim() === "") {
+    return "";
+  }
 
-  const company = getDisplayValue(row?.companyName ?? row?.company, "");
+  const value = String(status).trim().toLowerCase();
 
-  const status = row?.companyStatus;
+  if (
+    value.includes("red") ||
+    value.includes("danger") ||
+    value.includes("50")
+  ) {
+    return "is-danger";
+  }
 
-  const companyUrl = row?.companyURL ?? row?.companyUrl ?? row?.pageUrl ?? "";
+  if (
+    value.includes("orange") ||
+    value.includes("warning") ||
+    value.includes("35")
+  ) {
+    return "is-warning";
+  }
+
+  if (
+    value.includes("yellow") ||
+    value.includes("primary") ||
+    value.includes("20")
+  ) {
+    return "is-primary";
+  }
+
+  return "";
+}
+
+function renderSymbol(row) {
+  const identity = getTradingIdentity(row, VIEW);
+
+  const statusClass = getStatusClass(row?.companyStatus);
 
   return `
-    <div class="data-card__identity">
+    <div class="trading-symbol-status">
 
-      <div class="data-card__identity-content">
+      ${
+        statusClass
+          ? `
+            <span
+              class="
+                trading-symbol-status__indicator
+                ${statusClass}
+              "
+              aria-hidden="true"
+            ></span>
+          `
+          : ""
+      }
 
-        <div class="data-card__identity-name">
-          ${renderSymbolWithStatus(symbol, status)}
-        </div>
-
-        ${
-          company
-            ? `
-              <div class="data-card__identity-meta">
-                ${renderCompanyLink(company, companyUrl)}
-              </div>
-            `
-            : ""
-        }
-
-      </div>
+      <span class="trading-symbol-status__symbol">
+        ${escapeHtml(identity.code || "-")}
+      </span>
 
     </div>
   `.trim();
+}
+
+/* ==========================================================================
+   News
+   ========================================================================== */
+
+function getNewsUrl(row) {
+  /*
+   * Exact Delisted contract:
+   *
+   * newsUrl only.
+   *
+   * Do not reuse Suspended annUrl behavior here.
+   */
+  return safeUrl(row?.newsUrl);
+}
+
+function renderNewsLink(row, config) {
+  const url = getNewsUrl(row);
+
+  if (!url) {
+    return "-";
+  }
+
+  const label =
+    config.labels?.delistedLink || config.labels?.delisted?.reason || "View";
+
+  return `
+    <a
+      class="trading-announcement-link"
+      href="${escapeHtml(url)}"
+    >
+      ${escapeHtml(label)}
+    </a>
+  `.trim();
+}
+
+/* ==========================================================================
+   Table Cell
+   ========================================================================== */
+
+function renderCell(args, config) {
+  switch (args.column.key) {
+    case "symbol":
+      return renderSymbol(args.row);
+
+    case "reason":
+      return renderNewsLink(args.row, config);
+
+    default:
+      return renderTradingCell({
+        ...args,
+
+        config,
+
+        view: VIEW,
+      });
+  }
 }
 
 /* ==========================================================================
@@ -264,38 +376,20 @@ function renderMobileSummary(row) {
 function getMobileFields(row, config) {
   const labels = config.labels?.delisted || {};
 
-  const reason = getDisplayValue(row?.reason ?? row?.delistingReason, "-");
-
-  const news = renderDelistedNewsLink(row, config);
-
   return [
     {
       label: labels.date || "Date",
 
-      value: escapeHtml(
-        formatTradingDate(row?.fromDate ?? row?.date ?? row?.delistingDate),
-      ),
+      value: escapeHtml(getDisplayValue(formatTradingDate(row?.fromDate), "-")),
     },
 
     {
       label: labels.reason || "Reason",
 
-      value: escapeHtml(reason),
+      value: renderNewsLink(row, config),
 
       fullWidth: true,
     },
-
-    ...(news !== "-"
-      ? [
-          {
-            label: config.labels?.delistedLink || "News",
-
-            value: news,
-
-            fullWidth: true,
-          },
-        ]
-      : []),
   ];
 }
 
@@ -304,25 +398,29 @@ function getMobileFields(row, config) {
    ========================================================================== */
 
 function renderMobileCard(row, context, config) {
+  const identity = getTradingIdentity(row, VIEW);
+
   return renderStandardDataCard({
-    rowId: row?.id ?? row?.symbol ?? context.index,
+    idPrefix: "trading-delisted-details",
 
-    idPrefix: "delisted-company-card-details",
+    rowId: `${identity.code || identity.name || "delisted"}-${context.index}`,
 
-    summary: renderMobileSummary(row),
+    className: "trading-data-card trading-data-card--delisted",
+
+    summary: renderMobileIdentity(row, VIEW),
 
     fields: getMobileFields(row, config),
+
+    expandable: true,
 
     moreLabel: config.labels?.mobile?.showDetails || "Show details",
 
     lessLabel: config.labels?.mobile?.hideDetails || "Hide details",
-
-    className: "trading-card trading-card--delisted",
   });
 }
 
 /* ==========================================================================
-   Public View Factory
+   Public View
    ========================================================================== */
 
 export function createDelistedView({ root, config, filters } = {}) {
@@ -340,6 +438,8 @@ export function createDelistedView({ root, config, filters } = {}) {
 
   const columns = getColumns(config);
 
+  let lastResultCount = 0;
+
   /* =========================================================================
      State
      ========================================================================= */
@@ -348,7 +448,6 @@ export function createDelistedView({ root, config, filters } = {}) {
     loading: false,
 
     sourceRows: [],
-
     visibleRows: [],
 
     meta: {},
@@ -367,7 +466,13 @@ export function createDelistedView({ root, config, filters } = {}) {
       return buildRequestData(filters, config);
     },
 
-    normalizeResponse,
+    normalizeResponse(response) {
+      const normalized = normalizeResponse(response);
+
+      lastResultCount = Number(normalized.meta?.total) || 0;
+
+      return normalized;
+    },
   });
 
   /* =========================================================================
@@ -393,15 +498,21 @@ export function createDelistedView({ root, config, filters } = {}) {
     },
 
     renderCell(args) {
-      return renderTradingCell({
-        ...args,
-        config,
-      });
+      return renderCell(args, config);
     },
 
     tableOptions: {
       ...config.tableDefaults,
+
       ...config.tables?.delistedCompanies,
+
+      scrollX: false,
+      scrollCollapse: false,
+
+      fixedHeader: false,
+      fixedColumns: false,
+
+      ordering: false,
     },
   });
 
@@ -422,11 +533,11 @@ export function createDelistedView({ root, config, filters } = {}) {
 
     emptyMessage: config.labels?.noData || "No data available",
 
-    errorMessage: config.labels?.loadError || "Unable to load data.",
+    errorMessage: config.labels?.loadError || "Unable to load trading data.",
 
     afterRender(container) {
       container?.classList?.add(
-        "trading-card-list",
+        "trading-data-card-list",
         "trading-delisted-card-list",
       );
     },
@@ -436,7 +547,7 @@ export function createDelistedView({ root, config, filters } = {}) {
      Results
      ========================================================================= */
 
-  const results = createDataResults({
+  const baseResults = createDataResults({
     root,
 
     count: getResultCountSelector(VIEW),
@@ -448,7 +559,33 @@ export function createDelistedView({ root, config, filters } = {}) {
 
       error: config.labels?.loadError,
 
-      results: config.labels?.results,
+      results: "",
+    },
+  });
+
+  const results = Object.freeze({
+    showLoading() {
+      baseResults.showLoading();
+    },
+
+    showReady() {
+      baseResults.showReady(lastResultCount);
+    },
+
+    showEmpty(message) {
+      lastResultCount = 0;
+
+      baseResults.showEmpty(message);
+    },
+
+    showError(message) {
+      lastResultCount = 0;
+
+      baseResults.showError(message);
+    },
+
+    destroy() {
+      baseResults.destroy();
     },
   });
 
@@ -477,7 +614,7 @@ export function createDelistedView({ root, config, filters } = {}) {
       return (
         error?.response?.message ||
         config.labels?.loadError ||
-        "Unable to load data."
+        "Unable to load trading data."
       );
     },
   });
@@ -485,31 +622,24 @@ export function createDelistedView({ root, config, filters } = {}) {
   controller.init();
 
   /* =========================================================================
-     Loading
+     Busy State
      ========================================================================= */
 
-  function showLoading() {
-    root.setAttribute("aria-busy", "true");
+  const unsubscribeState = state.subscribe(({ state: snapshot }) => {
+    root.setAttribute("aria-busy", String(Boolean(snapshot.loading)));
+  });
 
-    table?.showLoading?.();
-
-    cards?.showLoading?.();
-
-    results?.showLoading?.();
-  }
+  /*
+   * Remove any stale server-rendered busy state.
+   */
+  root.setAttribute("aria-busy", "false");
 
   /* =========================================================================
      Reload
      ========================================================================= */
 
-  async function reload() {
-    showLoading();
-
-    try {
-      return await controller.reload();
-    } finally {
-      root.setAttribute("aria-busy", "false");
-    }
+  function reload() {
+    return controller.reload();
   }
 
   /* =========================================================================
@@ -517,9 +647,33 @@ export function createDelistedView({ root, config, filters } = {}) {
      ========================================================================= */
 
   function adjust() {
-    const api = table?.getApi?.();
+    const api = table.getApi?.();
 
-    api?.columns?.adjust?.();
+    if (!api) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      try {
+        api.columns?.adjust?.();
+
+        api.responsive?.recalc?.();
+      } catch (error) {
+        console.warn("Delisted table adjustment failed:", error);
+      }
+    });
+  }
+
+  /* =========================================================================
+     Lifecycle
+     ========================================================================= */
+
+  function destroy() {
+    unsubscribeState();
+
+    controller.destroy();
+
+    root.removeAttribute("aria-busy");
   }
 
   /* =========================================================================
@@ -527,6 +681,8 @@ export function createDelistedView({ root, config, filters } = {}) {
      ========================================================================= */
 
   return Object.freeze({
+    view: VIEW,
+
     reload,
     adjust,
 
@@ -539,11 +695,9 @@ export function createDelistedView({ root, config, filters } = {}) {
     },
 
     getTable() {
-      return table?.getApi?.() || null;
+      return table.getApi?.() || null;
     },
 
-    destroy() {
-      controller.destroy();
-    },
+    destroy,
   });
 }

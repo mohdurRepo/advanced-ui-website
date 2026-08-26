@@ -3,22 +3,23 @@
    ========================================================================== */
 
 /*
- * Normalize and expose the page-provided Trading configuration.
+ * Normalize and expose the JSP-provided window.TradingConfig.
  *
  * Responsibilities:
  *
- * - read window.TradingConfig
- * - validate required configuration
- * - normalize optional configuration
- * - provide stable defaults
- * - expose an immutable configuration snapshot
+ * - validate the page configuration
+ * - apply safe application defaults
+ * - normalize Trading configuration once
+ * - expose immutable configuration
+ * - provide per-view table configuration
  *
  * This file intentionally has no:
  *
  * - DOM queries
- * - event listeners
- * - AJAX requests
- * - DataTables logic
+ * - AJAX
+ * - request payload construction
+ * - DataTables initialization
+ * - filtering
  * - rendering
  * - tab behavior
  */
@@ -30,6 +31,10 @@
 const DEFAULTS = Object.freeze({
   locale: "en",
 
+  /* =========================================================================
+     Initial State
+     ========================================================================= */
+
   initialState: {
     activeTab: "negotiatedDeals",
 
@@ -37,6 +42,13 @@ const DEFAULTS = Object.freeze({
       type: "Negotiated-Deals",
       sector: "All",
       company: "All",
+
+      /*
+       * Empty means filters.js calculates:
+       *
+       * fromDate = one calendar month ago
+       * toDate   = today
+       */
       fromDate: "",
       toDate: "",
     },
@@ -47,23 +59,54 @@ const DEFAULTS = Object.freeze({
 
     deListedCompanies: {
       type: "Suspension",
+
+      /*
+       * Same calculated one-month default from filters.js.
+       */
       fromDate: "",
       toDate: "",
     },
   },
 
+  /* =========================================================================
+     Date Contract
+     ========================================================================= */
+
   dateRange: {
+    /*
+     * Trading business default:
+     *
+     * start = one calendar month before today
+     * end   = today
+     */
     defaultMode: "lastMonthToToday",
+
+    /*
+     * Native <input type="date">.
+     */
     inputFormat: "yyyy-MM-dd",
+
+    /*
+     * Existing Trading backend contract.
+     */
     requestFormat: "dd-MM-yyyy",
   },
 
+  /* =========================================================================
+     Dependencies
+     ========================================================================= */
+
   dependencies: {
     sectorCompany: {
+      /*
+       * Actual endpoint is derived from endpoints.companiesBySector when not
+       * explicitly provided by the JSP.
+       */
+      endpoint: "",
+
       defaultValue: "All",
 
       request: {
-        format: "json",
         sectorParameter: "sector",
       },
 
@@ -74,6 +117,10 @@ const DEFAULTS = Object.freeze({
     },
   },
 
+  /* =========================================================================
+     Filter Contracts
+     ========================================================================= */
+
   filters: {
     negotiatedDeals: {
       defaults: {
@@ -81,6 +128,12 @@ const DEFAULTS = Object.freeze({
         sector: "All",
         company: "All",
       },
+
+      /*
+       * Clearing Company must mean "All Companies", never an empty backend
+       * value.
+       */
+      companyClearValue: "All",
     },
 
     accumulated: {
@@ -100,24 +153,64 @@ const DEFAULTS = Object.freeze({
     },
   },
 
+  /* =========================================================================
+     Shared Table Defaults
+     ========================================================================= */
+
   tableDefaults: {
     autoWidth: false,
 
     searching: false,
+    ordering: false,
     info: false,
     lengthChange: false,
 
     serverSide: false,
+
+    /*
+     * Trading owns its loading lifecycle through common data-view.
+     *
+     * Do not enable DataTables' separate Processing overlay.
+     */
     processing: false,
 
     deferRender: true,
 
-    scrollX: true,
-    scrollCollapse: true,
+    /*
+     * IMPORTANT:
+     *
+     * Trading tables already live inside the design-system:
+     *
+     * .table-shell
+     *   -> .table-responsive
+     *      -> .table
+     *
+     * Therefore DataTables must NOT create an additional dt-scroll-head /
+     * dt-scroll-body hierarchy.
+     *
+     * Horizontal overflow remains owned by .table-responsive.
+     *
+     * This is particularly important for:
+     *
+     * - grouped <thead>s
+     * - Suspended Period headers
+     * - Listed Tradable grouped headers
+     * - first-column alignment
+     * - RTL
+     */
+    scrollX: false,
+    scrollCollapse: false,
 
+    /*
+     * Keep cloning/fixed-column extensions disabled while Trading uses hidden
+     * tabs and grouped headers.
+     */
     fixedHeader: false,
     fixedColumns: 0,
 
+    /*
+     * Trading JSP/data-view owns its own toolbar/results presentation.
+     */
     layout: {
       topStart: null,
       topEnd: null,
@@ -126,33 +219,99 @@ const DEFAULTS = Object.freeze({
     },
   },
 
-  tables: {},
+  /* =========================================================================
+     Per-view Tables
+     ========================================================================= */
 
+  tables: {
+    negotiatedDeals: {
+      paging: true,
+      pageLength: 25,
+
+      ordering: false,
+      searching: false,
+    },
+
+    /*
+     * Minimum Size is not initialized through the normal DataTable adapter.
+     */
+    minimumSize: {
+      paging: false,
+      ordering: false,
+      searching: false,
+    },
+
+    accumulatedLosses: {
+      paging: true,
+      pageLength: 25,
+
+      ordering: false,
+      searching: false,
+    },
+
+    listedTradableRights: {
+      paging: false,
+
+      ordering: false,
+      searching: false,
+
+      /*
+       * Metadata only. The JSP remains authoritative for its grouped header.
+       */
+      complexHeader: true,
+    },
+
+    suspendedCompanies: {
+      paging: false,
+
+      ordering: false,
+      searching: false,
+
+      complexHeader: true,
+    },
+
+    delistedCompanies: {
+      paging: false,
+
+      ordering: false,
+      searching: false,
+    },
+
+    otcTrading: {
+      paging: false,
+
+      ordering: false,
+      searching: false,
+    },
+  },
+
+  /* =========================================================================
+     Labels
+     ========================================================================= */
+
+  /*
+   * Only genuinely generic fallbacks live here.
+   *
+   * Page/business labels must come from JSP localization rather than being
+   * invented in JavaScript.
+   */
   labels: {
     loading: "Loading…",
     noData: "No data available",
     loadError: "Unable to load data.",
     results: "Results",
     total: "Total",
-    reset: "Reset",
-
-    suspendedLink: "",
-    delistedLink: "",
 
     controls: {
-      search: "Search",
-      searchPlaceholder: "Search",
       all: "All",
     },
-
-    tabs: {},
 
     mobile: {
       showDetails: "Show details",
       hideDetails: "Hide details",
-      daily: "Daily",
-      total: "Total",
     },
+
+    tabs: {},
 
     negotiatedDeals: {},
     minimumSize: {},
@@ -163,6 +322,20 @@ const DEFAULTS = Object.freeze({
     otc: {},
   },
 });
+
+/* ==========================================================================
+   Required Endpoints
+   ========================================================================== */
+
+const REQUIRED_ENDPOINTS = Object.freeze([
+  "negotiatedDeals",
+  "minimumSize",
+  "accumulatedLosses",
+  "listedTradableRights",
+  "suspendedDelisted",
+  "otcTrading",
+  "companiesBySector",
+]);
 
 /* ==========================================================================
    Helpers
@@ -201,10 +374,10 @@ function deepFreeze(value) {
 }
 
 /**
- * Deep-merge plain objects.
+ * Deep merge configuration objects.
  *
- * Arrays are replaced rather than merged because configuration arrays
- * represent complete ordered contracts.
+ * Arrays are replaced rather than concatenated because configuration arrays
+ * represent complete contracts.
  */
 function mergeConfig(base, override) {
   if (!isObject(base)) {
@@ -231,18 +404,8 @@ function mergeConfig(base, override) {
 }
 
 /* ==========================================================================
-   Required Endpoints
+   Validation
    ========================================================================== */
-
-const REQUIRED_ENDPOINTS = Object.freeze([
-  "negotiatedDeals",
-  "minimumSize",
-  "accumulatedLosses",
-  "listedTradableRights",
-  "suspendedDelisted",
-  "otcTrading",
-  "companiesBySector",
-]);
 
 function validateEndpoints(endpoints) {
   if (!isObject(endpoints)) {
@@ -256,14 +419,10 @@ function validateEndpoints(endpoints) {
   });
 }
 
-/* ==========================================================================
-   Configuration Validation
-   ========================================================================== */
-
 function validateRawConfig(config) {
   if (!isObject(config)) {
     throw new Error(
-      "window.TradingConfig is required before Trading initializes.",
+      "window.TradingConfig must be defined before Trading initializes.",
     );
   }
 
@@ -271,7 +430,7 @@ function validateRawConfig(config) {
 }
 
 /* ==========================================================================
-   Normalization
+   Locale
    ========================================================================== */
 
 function normalizeLocale(locale) {
@@ -282,6 +441,10 @@ function normalizeLocale(locale) {
   return locale.trim();
 }
 
+/* ==========================================================================
+   Normalization
+   ========================================================================== */
+
 function normalizeConfig(rawConfig) {
   validateRawConfig(rawConfig);
 
@@ -290,12 +453,24 @@ function normalizeConfig(rawConfig) {
   config.locale = normalizeLocale(config.locale);
 
   /*
-   * Keep the dependency endpoint synchronized with the canonical
-   * endpoint map unless the page explicitly overrides it.
+   * Keep one canonical Company endpoint.
+   *
+   * JSP does not need to duplicate the same resourceURL in both:
+   *
+   * endpoints.companiesBySector
+   * dependencies.sectorCompany.endpoint
    */
   if (!isNonEmptyString(rawConfig.dependencies?.sectorCompany?.endpoint)) {
     config.dependencies.sectorCompany.endpoint =
       config.endpoints.companiesBySector;
+  }
+
+  /*
+   * The Company business default must always be usable.
+   */
+  if (!isNonEmptyString(config.filters?.negotiatedDeals?.companyClearValue)) {
+    config.filters.negotiatedDeals.companyClearValue =
+      config.filters?.negotiatedDeals?.defaults?.company || "All";
   }
 
   return deepFreeze(config);
@@ -308,14 +483,11 @@ function normalizeConfig(rawConfig) {
 let cachedConfig = null;
 
 /* ==========================================================================
-   Public API
+   Public Configuration
    ========================================================================== */
 
 /**
  * Return the normalized immutable Trading configuration.
- *
- * Configuration is created once because the JSP contract is static for the
- * lifetime of the page.
  *
  * @returns {Readonly<object>}
  */
@@ -329,8 +501,12 @@ export function getTradingConfig() {
   return cachedConfig;
 }
 
+/* ==========================================================================
+   Endpoints
+   ========================================================================== */
+
 /**
- * Return one configured endpoint by key.
+ * Return one configured Trading endpoint.
  *
  * @param {string} key
  * @returns {string}
@@ -338,17 +514,21 @@ export function getTradingConfig() {
 export function getTradingEndpoint(key) {
   const config = getTradingConfig();
 
-  if (typeof key !== "string" || !isNonEmptyString(config.endpoints?.[key])) {
+  const endpoint = config.endpoints?.[key];
+
+  if (!isNonEmptyString(endpoint)) {
     throw new Error(`Unknown Trading endpoint "${String(key)}".`);
   }
 
-  return config.endpoints[key];
+  return endpoint;
 }
 
+/* ==========================================================================
+   Table Configuration
+   ========================================================================== */
+
 /**
- * Return merged DataTable configuration for one Trading view.
- *
- * Per-view options override shared table defaults.
+ * Return merged DataTables configuration for one Trading view.
  *
  * @param {string} view
  * @returns {Readonly<object>}
@@ -361,8 +541,12 @@ export function getTradingTableConfig(view) {
   return deepFreeze(mergeConfig(config.tableDefaults, specific));
 }
 
+/* ==========================================================================
+   Labels
+   ========================================================================== */
+
 /**
- * Return one localized label group.
+ * Return one Trading label group.
  *
  * @param {string} key
  * @returns {Readonly<object>}
@@ -379,8 +563,12 @@ export function getTradingLabels(key) {
   return isObject(labels) ? labels : Object.freeze({});
 }
 
+/* ==========================================================================
+   Filters
+   ========================================================================== */
+
 /**
- * Return one filter configuration.
+ * Return one Trading filter configuration.
  *
  * @param {string} key
  * @returns {Readonly<object>}
