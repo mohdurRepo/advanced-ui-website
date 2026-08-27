@@ -11,6 +11,7 @@
  * - listen to the existing design-system tab controller
  * - lazily create tab-specific data modules
  * - activate and deactivate data modules
+ * - preserve placeholder tabs
  * - destroy page resources
  *
  * This module intentionally does not:
@@ -31,11 +32,19 @@ import { getIssuerTradingConfig } from "./issuer-trading-config.js";
 
 import { createNegotiatedDealsTab } from "./tabs/negotiated-deals/negotiated-deals.tab.js";
 
+import { createAccumulatedLossesTab } from "./tabs/accumulated-losses/accumulated-losses.tab.js";
+
 /* ==========================================================================
    Constants
    ========================================================================== */
 
 const DEFAULT_TAB = "negotiated-deals";
+
+const TAB_ID_PREFIXES = Object.freeze([
+  "issuer-trading-panel-",
+  "issuer-trading-tab-",
+  "tab-",
+]);
 
 const SELECTORS = Object.freeze({
   root: "[data-issuer-trading]",
@@ -54,12 +63,14 @@ const SELECTORS = Object.freeze({
 /*
  * Add future tab modules here only after each tab has been completed.
  *
- * Placeholder tabs intentionally have no definition yet.
+ * Tabs without a definition remain valid visual placeholders.
  */
 
 const FEATURE_DEFINITIONS = Object.freeze({
   "negotiated-deals": Object.freeze({
     selector: '[data-issuer-trading-feature="negotiated-deals"]',
+
+    statusSelector: "[data-negotiated-deals-status]",
 
     create({ root, config }) {
       return createNegotiatedDealsTab({
@@ -67,7 +78,23 @@ const FEATURE_DEFINITIONS = Object.freeze({
         config,
 
         autoInit: false,
+
         active: false,
+
+        reloadOnActivate: true,
+      });
+    },
+  }),
+
+  "accumulated-losses": Object.freeze({
+    selector: '[data-issuer-trading-feature="accumulated-losses"]',
+
+    statusSelector: "[data-accumulated-losses-status]",
+
+    create({ root, config }) {
+      return createAccumulatedLossesTab({
+        root,
+        config,
 
         reloadOnActivate: true,
       });
@@ -82,15 +109,39 @@ const FEATURE_DEFINITIONS = Object.freeze({
 const instances = new WeakMap();
 
 /* ==========================================================================
-   Helpers
+   General Helpers
    ========================================================================== */
+
+function isElement(value) {
+  return Boolean(value && value.nodeType === 1);
+}
 
 function normalizeString(value) {
   return String(value ?? "").trim();
 }
 
+function normalizeTabKey(value) {
+  const normalized = normalizeString(value);
+
+  if (!normalized) {
+    return "";
+  }
+
+  if (Object.prototype.hasOwnProperty.call(FEATURE_DEFINITIONS, normalized)) {
+    return normalized;
+  }
+
+  for (const prefix of TAB_ID_PREFIXES) {
+    if (normalized.startsWith(prefix)) {
+      return normalized.slice(prefix.length);
+    }
+  }
+
+  return normalized;
+}
+
 function resolvePageRoot(root) {
-  if (root instanceof Element && root.matches(SELECTORS.root)) {
+  if (isElement(root) && root.matches(SELECTORS.root)) {
     return root;
   }
 
@@ -104,7 +155,7 @@ function resolvePageRoot(root) {
 function getInitialTabKey(pageRoot, tabs) {
   const activeTab = tabs.querySelector(SELECTORS.activeTab);
 
-  const activeTabKey = normalizeString(activeTab?.dataset.tab);
+  const activeTabKey = normalizeTabKey(activeTab?.dataset.tab);
 
   if (activeTabKey) {
     return activeTabKey;
@@ -112,14 +163,17 @@ function getInitialTabKey(pageRoot, tabs) {
 
   const activePanel = pageRoot.querySelector(SELECTORS.activePanel);
 
-  const activePanelKey = normalizeString(activePanel?.dataset.tab);
+  const activePanelKey = normalizeTabKey(activePanel?.dataset.tab);
 
   return activePanelKey || DEFAULT_TAB;
 }
 
 function getEventTabKey(event) {
-  return normalizeString(
-    event?.detail?.tabKey ?? event?.detail?.tab ?? event?.detail?.key,
+  return normalizeTabKey(
+    event?.detail?.tabKey ??
+      event?.detail?.tab ??
+      event?.detail?.key ??
+      event?.detail?.target,
   );
 }
 
@@ -131,6 +185,22 @@ function resolveFeatureRoot(pageRoot, definition) {
   return pageRoot.querySelector(definition.selector);
 }
 
+function validateFeature(feature, tabKey) {
+  const requiredMethods = ["activate", "deactivate", "destroy", "reload"];
+
+  const valid = requiredMethods.every(
+    (method) => typeof feature?.[method] === "function",
+  );
+
+  if (!valid) {
+    throw new TypeError(
+      `Issuer Trading feature "${tabKey}" does not expose the required lifecycle API.`,
+    );
+  }
+
+  return feature;
+}
+
 /* ==========================================================================
    Lifecycle Error
    ========================================================================== */
@@ -140,7 +210,9 @@ function reportLifecycleError({ pageRoot, tabKey, error, config }) {
 
   const featureRoot = resolveFeatureRoot(pageRoot, definition);
 
-  const status = featureRoot?.querySelector("[data-negotiated-deals-status]");
+  const status = definition?.statusSelector
+    ? featureRoot?.querySelector(definition.statusSelector)
+    : null;
 
   if (status) {
     status.textContent = config.labels?.error || "Unable to load data.";
@@ -192,15 +264,19 @@ export function initIssuerTrading(root = document) {
   let destroyed = false;
 
   /* ========================================================================
-     Feature Creation
+     Feature Lookup
      ======================================================================== */
 
-  function getFeature(tabKey) {
+  function findFeature(tabKey) {
     return featureInstances.get(tabKey) || null;
   }
 
+  /* ========================================================================
+     Feature Creation
+     ======================================================================== */
+
   function createFeature(tabKey) {
-    const existingFeature = getFeature(tabKey);
+    const existingFeature = findFeature(tabKey);
 
     if (existingFeature) {
       return existingFeature;
@@ -224,38 +300,44 @@ export function initIssuerTrading(root = document) {
       );
     }
 
-    const feature = definition.create({
-      root: featureRoot,
-      config,
-    });
+    const feature = validateFeature(
+      definition.create({
+        root: featureRoot,
+        config,
+      }),
+      tabKey,
+    );
 
     featureInstances.set(tabKey, feature);
 
     return feature;
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Feature Activation
-     ======================================================================== */
+     ========================================================================== */
 
   async function activateFeature(tabKey) {
     if (destroyed) {
       return null;
     }
 
-    const normalizedTabKey = normalizeString(tabKey);
+    const normalizedTabKey = normalizeTabKey(tabKey);
 
     if (!normalizedTabKey) {
       return null;
     }
 
-    const currentFeature = getFeature(activeTabKey);
+    const currentFeature = findFeature(activeTabKey);
 
     /*
-     * Ignore duplicate initial tab events emitted by the tabs controller.
+     * The tabs controller may emit its initial tab event after this module
+     * has already activated that same tab.
+     *
+     * Returning the existing feature avoids a duplicate request.
      */
 
-    if (normalizedTabKey === activeTabKey && currentFeature?.isActive?.()) {
+    if (normalizedTabKey === activeTabKey && currentFeature) {
       return currentFeature;
     }
 
@@ -268,8 +350,9 @@ export function initIssuerTrading(root = document) {
     const nextFeature = createFeature(normalizedTabKey);
 
     /*
-     * Placeholder tab: visual tab behavior still works, but there is no data
-     * module to activate yet.
+     * Placeholder tab:
+     *
+     * Visual tab behavior remains functional, but no data module is created.
      */
 
     if (!nextFeature) {
@@ -281,9 +364,9 @@ export function initIssuerTrading(root = document) {
     return nextFeature;
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Tab Events
-     ======================================================================== */
+     ========================================================================== */
 
   function handleTabChange(event) {
     const tabKey = getEventTabKey(event);
@@ -309,9 +392,9 @@ export function initIssuerTrading(root = document) {
     signal: abortController.signal,
   });
 
-  /* ========================================================================
+  /* =========================================================================
      Initial Feature
-     ======================================================================== */
+     ========================================================================== */
 
   const initialTabKey = getInitialTabKey(pageRoot, tabs);
 
@@ -327,9 +410,9 @@ export function initIssuerTrading(root = document) {
     });
   });
 
-  /* ========================================================================
+  /* =========================================================================
      Public Instance
-     ======================================================================== */
+     ========================================================================== */
 
   const instance = Object.freeze({
     destroy() {
@@ -353,7 +436,7 @@ export function initIssuerTrading(root = document) {
     },
 
     reload() {
-      const feature = getFeature(activeTabKey);
+      const feature = findFeature(activeTabKey);
 
       return feature ? feature.reload() : Promise.resolve(null);
     },
@@ -363,7 +446,7 @@ export function initIssuerTrading(root = document) {
     },
 
     getFeature(tabKey) {
-      return getFeature(normalizeString(tabKey));
+      return findFeature(normalizeTabKey(tabKey));
     },
 
     getFeatures() {

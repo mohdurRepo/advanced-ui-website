@@ -662,22 +662,208 @@
           </div>
         </section>
 
-        <%-- =================================================================
-             Accumulated Losses — Placeholder
-             ================================================================= --%>
+           <%-- ==========================================================================
+          Accumulated Losses
+          ========================================================================== --%>
 
-        <section
-          class="tab-pane tab-content__panel"
-          id="issuer-trading-panel-accumulated-losses"
-          role="tabpanel"
-          aria-labelledby="issuer-trading-tab-accumulated-losses"
-          aria-hidden="true"
-          data-tab="accumulated-losses"
-          hidden
+      <section
+        class="tab-pane tab-content__panel"
+        id="issuer-trading-panel-accumulated-losses"
+        role="tabpanel"
+        aria-labelledby="issuer-trading-tab-accumulated-losses"
+        aria-hidden="true"
+        data-tab="accumulated-losses"
+        hidden
+      >
+        <div
+          class="stack stack--lg"
+          data-issuer-trading-feature="accumulated-losses"
         >
-          <%-- Implemented after Negotiated Deals is confirmed. --%>
-        </section>
+          <%-- ======================================================================
+              Accumulated Losses Filter
+              ====================================================================== --%>
 
+          <form
+            class="filter-bar"
+            aria-labelledby="issuer-trading-tab-accumulated-losses"
+            data-accumulated-losses-filters
+            novalidate
+          >
+            <div class="filter-bar__inner">
+              <div class="filter-bar__fields grid-4">
+                <div class="filter-bar__field">
+                  <label
+                    class="form-label"
+                    for="accumulated-losses-percentage"
+                  >
+                    <fmt:message
+                      key="issuer.trading.info.v2.accumulated.drop.selectloss"
+                    />
+                  </label>
+
+                  <div
+                    class="custom-select"
+                    data-custom-select
+                  >
+                    <div class="form-select-wrap custom-select__fallback">
+                      <select
+                        class="form-select custom-select__native"
+                        id="accumulated-losses-percentage"
+                        name="percentage"
+                        data-accumulated-losses-percentage
+                      >
+                        <option
+                          value="All"
+                          <c:if test="${empty requestScope.percentage or requestScope.percentage eq 'All'}">
+                            selected
+                          </c:if>
+                        >
+                          <fmt:message
+                            key="issuer.trading.info.v2.accumulated.drop.all"
+                          />
+                        </option>
+
+                        <option
+                          value="50-MORE"
+                          <c:if test="${requestScope.percentage eq '50-MORE'}">
+                            selected
+                          </c:if>
+                        >
+                          <fmt:message
+                            key="issuer.trading.info.v2.accumulated.drop.50.more"
+                          />
+                        </option>
+
+                        <option
+                          value="35-50"
+                          <c:if test="${requestScope.percentage eq '35-50'}">
+                            selected
+                          </c:if>
+                        >
+                          <fmt:message
+                            key="issuer.trading.info.v2.accumulated.drop.35.to.50"
+                          />
+                        </option>
+
+                        <option
+                          value="20-35"
+                          <c:if test="${requestScope.percentage eq '20-35'}">
+                            selected
+                          </c:if>
+                        >
+                          <fmt:message
+                            key="issuer.trading.info.v2.accumulated.drop.20.to.35"
+                          />
+                        </option>
+                      </select>
+
+                      <span
+                        class="form-select-icon has-icon icon-chevron-down"
+                        aria-hidden="true"
+                      ></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <%-- ==================================================================
+                  Filter Actions
+                  ================================================================== --%>
+
+              <div class="filter-bar__actions">
+                <button
+                  class="btn btn-outline-primary has-icon icon-sync-refresh"
+                  type="reset"
+                  data-accumulated-losses-reset
+                >
+                  <fmt:message
+                    key="issuer.trading.info.v2.search.reset"
+                  />
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <%-- ======================================================================
+              Accumulated Losses Results
+
+              This tab uses one responsive content-feed presentation for desktop
+              and mobile. Every company returned by the service is displayed.
+              ====================================================================== --%>
+
+          <section
+            class="content-feed"
+            aria-labelledby="accumulated-losses-results-title"
+            aria-busy="false"
+            data-accumulated-losses-view
+          >
+            <%-- ==================================================================
+                Results Header
+                ================================================================== --%>
+
+            <header class="content-feed__header">
+              <div class="content-feed__heading">
+                <h2
+                  class="content-feed__title"
+                  id="accumulated-losses-results-title"
+                >
+                  <fmt:message
+                    key="issuer.trading.info.v2.title.accumulated"
+                  />
+                </h2>
+              </div>
+
+              <span
+                class="content-feed__count"
+                aria-live="polite"
+              >
+                <strong
+                  class="content-feed__count-value"
+                  data-accumulated-losses-result-count
+                >
+                  0
+                </strong>
+
+                <span>
+                  <fmt:message
+                    key="issuer.trading.info.results.msg"
+                  />
+                </span>
+              </span>
+            </header>
+
+            <%-- ==================================================================
+                Accessible Loading and Result Status
+                ================================================================== --%>
+
+            <p
+              class="visually-hidden"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+              data-accumulated-losses-status
+            ></p>
+
+            <%-- ==================================================================
+                Company Results
+
+                JavaScript renders one responsive content item for every company:
+
+                - company logo
+                - company name
+                - company code
+                ================================================================== --%>
+
+            <ol
+              class="content-feed__list"
+              aria-labelledby="accumulated-losses-results-title"
+              data-accumulated-losses-list
+            >
+              <%-- JavaScript renders loading, results, empty, and error states. --%>
+            </ol>
+          </section>
+        </div>
+      </section>
         <%-- =================================================================
              Listed Tradable Rights — Placeholder
              ================================================================= --%>
