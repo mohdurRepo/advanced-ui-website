@@ -8,7 +8,7 @@
  * Responsibilities:
  *
  * - read validated JSP configuration
- * - listen to the existing design-system tab controller
+ * - observe the existing design-system tabs
  * - lazily create tab-specific data modules
  * - activate and deactivate data modules
  * - preserve placeholder tabs
@@ -17,11 +17,12 @@
  * This module intentionally does not:
  *
  * - implement tab UI behavior
+ * - change active tab classes
  * - change ARIA tab state
  * - show or hide tab panels
  * - contain tab-specific business logic
  *
- * Visual tab behavior remains owned by the existing tabs controller.
+ * Visual tab behavior remains owned by the design-system tabs controller.
  */
 
 /* ==========================================================================
@@ -40,6 +41,8 @@ import { createAccumulatedLossesTab } from "./tabs/accumulated-losses/accumulate
 
 const DEFAULT_TAB = "negotiated-deals";
 
+const TAB_CHANGE_EVENTS = Object.freeze(["tab:change", "tabs:change"]);
+
 const TAB_ID_PREFIXES = Object.freeze([
   "issuer-trading-panel-",
   "issuer-trading-tab-",
@@ -49,11 +52,13 @@ const TAB_ID_PREFIXES = Object.freeze([
 const SELECTORS = Object.freeze({
   root: "[data-issuer-trading]",
 
-  tabs: '[data-tabs][data-tabs-id="issuer-trading"]',
+  tabs: "[data-tabs]",
 
-  activeTab: '[role="tab"][data-tab][aria-selected="true"]',
+  tab: ['[role="tab"][data-tab]', '[role="tab"][data-tab-target]'].join(", "),
 
-  activePanel: ".tab-content__panel[data-tab]:not([hidden])",
+  activeTab: '[role="tab"][aria-selected="true"]',
+
+  activePanel: ".tab-pane:not([hidden])",
 });
 
 /* ==========================================================================
@@ -121,7 +126,7 @@ function normalizeString(value) {
 }
 
 function normalizeTabKey(value) {
-  const normalized = normalizeString(value);
+  const normalized = normalizeString(value).replace(/^#/, "");
 
   if (!normalized) {
     return "";
@@ -140,6 +145,19 @@ function normalizeTabKey(value) {
   return normalized;
 }
 
+function getTabElementKey(tab) {
+  if (!isElement(tab)) {
+    return "";
+  }
+
+  return normalizeTabKey(
+    tab.dataset.tab ||
+      tab.dataset.tabTarget ||
+      tab.getAttribute("aria-controls") ||
+      tab.id,
+  );
+}
+
 function resolvePageRoot(root) {
   if (isElement(root) && root.matches(SELECTORS.root)) {
     return root;
@@ -155,7 +173,7 @@ function resolvePageRoot(root) {
 function getInitialTabKey(pageRoot, tabs) {
   const activeTab = tabs.querySelector(SELECTORS.activeTab);
 
-  const activeTabKey = normalizeTabKey(activeTab?.dataset.tab);
+  const activeTabKey = getTabElementKey(activeTab);
 
   if (activeTabKey) {
     return activeTabKey;
@@ -163,18 +181,38 @@ function getInitialTabKey(pageRoot, tabs) {
 
   const activePanel = pageRoot.querySelector(SELECTORS.activePanel);
 
-  const activePanelKey = normalizeTabKey(activePanel?.dataset.tab);
+  const activePanelKey = normalizeTabKey(
+    activePanel?.dataset.tab || activePanel?.id,
+  );
 
   return activePanelKey || DEFAULT_TAB;
 }
 
 function getEventTabKey(event) {
+  const detailTarget = event?.detail?.target;
+
+  if (isElement(detailTarget)) {
+    return getTabElementKey(detailTarget);
+  }
+
   return normalizeTabKey(
     event?.detail?.tabKey ??
       event?.detail?.tab ??
       event?.detail?.key ??
-      event?.detail?.target,
+      detailTarget,
   );
+}
+
+function getClickedTab(event, tabs) {
+  const target = event?.target;
+
+  if (!isElement(target)) {
+    return null;
+  }
+
+  const tab = target.closest(SELECTORS.tab);
+
+  return tab && tabs.contains(tab) ? tab : null;
 }
 
 function resolveFeatureRoot(pageRoot, definition) {
@@ -259,6 +297,8 @@ export function initIssuerTrading(root = document) {
 
   const abortController = new AbortController();
 
+  let tabStateObserver = null;
+
   let activeTabKey = "";
 
   let destroyed = false;
@@ -313,9 +353,9 @@ export function initIssuerTrading(root = document) {
     return feature;
   }
 
-  /* =========================================================================
+  /* ========================================================================
      Feature Activation
-     ========================================================================== */
+     ======================================================================== */
 
   async function activateFeature(tabKey) {
     if (destroyed) {
@@ -331,10 +371,10 @@ export function initIssuerTrading(root = document) {
     const currentFeature = findFeature(activeTabKey);
 
     /*
-     * The tabs controller may emit its initial tab event after this module
-     * has already activated that same tab.
+     * A click, an accessibility-state mutation, and an optional custom
+     * tab-change event may all report the same activation.
      *
-     * Returning the existing feature avoids a duplicate request.
+     * Ignore duplicates to prevent duplicate service requests.
      */
 
     if (normalizedTabKey === activeTabKey && currentFeature) {
@@ -364,22 +404,22 @@ export function initIssuerTrading(root = document) {
     return nextFeature;
   }
 
-  /* =========================================================================
-     Tab Events
-     ========================================================================== */
+  /* ========================================================================
+     Safe Feature Activation
+     ======================================================================== */
 
-  function handleTabChange(event) {
-    const tabKey = getEventTabKey(event);
+  function requestFeatureActivation(tabKey) {
+    const normalizedTabKey = normalizeTabKey(tabKey);
 
-    if (!tabKey) {
+    if (!normalizedTabKey) {
       return;
     }
 
-    activateFeature(tabKey).catch((error) => {
+    activateFeature(normalizedTabKey).catch((error) => {
       reportLifecycleError({
         pageRoot,
 
-        tabKey,
+        tabKey: normalizedTabKey,
 
         error,
 
@@ -388,31 +428,92 @@ export function initIssuerTrading(root = document) {
     });
   }
 
-  tabs.addEventListener("tab:change", handleTabChange, {
+  /* ========================================================================
+     Design-System Tab Clicks
+     ======================================================================== */
+
+  function handleTabClick(event) {
+    const tab = getClickedTab(event, tabs);
+
+    if (!tab) {
+      return;
+    }
+
+    /*
+     * This does not alter the visual tab state.
+     *
+     * The design-system controller processes data-tab-target and owns the
+     * corresponding active classes, ARIA state, and panel visibility.
+     */
+
+    requestFeatureActivation(getTabElementKey(tab));
+  }
+
+  tabs.addEventListener("click", handleTabClick, {
     signal: abortController.signal,
   });
 
-  /* =========================================================================
-     Initial Feature
-     ========================================================================== */
+  /* ========================================================================
+     Optional Tab Change Events
+     ======================================================================== */
 
-  const initialTabKey = getInitialTabKey(pageRoot, tabs);
+  function handleTabChange(event) {
+    requestFeatureActivation(getEventTabKey(event));
+  }
 
-  activateFeature(initialTabKey).catch((error) => {
-    reportLifecycleError({
-      pageRoot,
-
-      tabKey: initialTabKey,
-
-      error,
-
-      config,
+  TAB_CHANGE_EVENTS.forEach((eventName) => {
+    tabs.addEventListener(eventName, handleTabChange, {
+      signal: abortController.signal,
     });
   });
 
-  /* =========================================================================
+  /* ========================================================================
+     Accessibility-State Observation
+     ======================================================================== */
+
+  /*
+   * Some design-system controllers activate tabs through keyboard navigation
+   * without dispatching a public custom event.
+   *
+   * Observing aria-selected keeps the data lifecycle synchronized without
+   * duplicating or replacing the visual controller.
+   */
+
+  tabStateObserver = new MutationObserver((mutations) => {
+    const selectionChanged = mutations.some(
+      (mutation) =>
+        mutation.type === "attributes" &&
+        mutation.attributeName === "aria-selected",
+    );
+
+    if (!selectionChanged) {
+      return;
+    }
+
+    const selectedTab = tabs.querySelector(SELECTORS.activeTab);
+
+    requestFeatureActivation(getTabElementKey(selectedTab));
+  });
+
+  tabStateObserver.observe(tabs, {
+    subtree: true,
+
+    attributes: true,
+
+    attributeFilter: ["aria-selected"],
+  });
+
+  /* ========================================================================
+     Initial Feature
+     ======================================================================== */
+
+  const initialTabKey = getInitialTabKey(pageRoot, tabs);
+
+  requestFeatureActivation(initialTabKey);
+
+  /* ========================================================================
      Public Instance
-     ========================================================================== */
+     ======================================================================== */
 
   const instance = Object.freeze({
     destroy() {
@@ -423,6 +524,10 @@ export function initIssuerTrading(root = document) {
       destroyed = true;
 
       abortController.abort();
+
+      tabStateObserver?.disconnect();
+
+      tabStateObserver = null;
 
       featureInstances.forEach((feature) => {
         feature.destroy();

@@ -59,22 +59,16 @@
     <%-- =====================================================================
          Tabs
 
-         The shared design-system classes are:
+         Tab presentation and accessibility state are owned by the shared
+         design-system tabs controller.
 
-         - tabs
-         - tabs-nav
-         - tab-link
-         - tabs-content
-         - tab-pane
-
-         Compatibility classes and data-tab attributes are retained for the
-         existing tab controller and its tab:change event.
+         The page-level Issuer Trading module observes tab selection only to
+         activate and deactivate the corresponding data module.
          ===================================================================== --%>
 
     <div
-      class="tabs tabs-container"
+      class="tabs"
       data-tabs
-      data-tabs-id="issuer-trading"
     >
       <%-- ===================================================================
            Tab Navigation
@@ -88,13 +82,12 @@
         <%-- Negotiated Deals --%>
 
         <button
-          class="tab-link tabs__item active is-active"
+          class="tab-link active"
           type="button"
           id="issuer-trading-tab-negotiated-deals"
           role="tab"
           aria-selected="true"
           aria-controls="issuer-trading-panel-negotiated-deals"
-          data-tab="negotiated-deals"
           data-tab-target="issuer-trading-panel-negotiated-deals"
         >
           <fmt:message key="issuer.trading.info.v2.title.negotiated" />
@@ -103,15 +96,13 @@
         <%-- Accumulated Losses --%>
 
         <button
-          class="tab-link tabs__item"
+          class="tab-link"
           type="button"
           id="issuer-trading-tab-accumulated-losses"
           role="tab"
           aria-selected="false"
           aria-controls="issuer-trading-panel-accumulated-losses"
-          data-tab="accumulated-losses"
           data-tab-target="issuer-trading-panel-accumulated-losses"
-          tabindex="-1"
         >
           <fmt:message key="issuer.trading.info.v2.title.accumulated" />
         </button>
@@ -119,15 +110,13 @@
         <%-- Listed Tradable Rights --%>
 
         <button
-          class="tab-link tabs__item"
+          class="tab-link"
           type="button"
           id="issuer-trading-tab-listed-tradable-rights"
           role="tab"
           aria-selected="false"
           aria-controls="issuer-trading-panel-listed-tradable-rights"
-          data-tab="listed-tradable-rights"
           data-tab-target="issuer-trading-panel-listed-tradable-rights"
-          tabindex="-1"
         >
           <fmt:message key="issuer.trading.info.v2.title.listedtradable" />
         </button>
@@ -135,15 +124,13 @@
         <%-- Suspended / Delisted Companies and Funds --%>
 
         <button
-          class="tab-link tabs__item"
+          class="tab-link"
           type="button"
           id="issuer-trading-tab-company-status"
           role="tab"
           aria-selected="false"
           aria-controls="issuer-trading-panel-company-status"
-          data-tab="company-status"
           data-tab-target="issuer-trading-panel-company-status"
-          tabindex="-1"
         >
           <fmt:message
             key="issuer.trading.info.v2.title.delistedcompanies"
@@ -153,36 +140,31 @@
         <%-- OTC Trading --%>
 
         <button
-          class="tab-link tabs__item"
+          class="tab-link"
           type="button"
           id="issuer-trading-tab-otc-trading"
           role="tab"
           aria-selected="false"
           aria-controls="issuer-trading-panel-otc-trading"
-          data-tab="otc-trading"
           data-tab-target="issuer-trading-panel-otc-trading"
-          tabindex="-1"
         >
           <fmt:message key="issuer.trading.info.v2.title.otcctrading" />
         </button>
       </div>
-
       <%-- ===================================================================
            Tab Content
            =================================================================== --%>
 
-      <div class="tabs-content tab-content">
+      <div class="tabs-content">
         <%-- =================================================================
              Negotiated Deals
              ================================================================= --%>
 
         <section
-          class="tab-pane tab-content__panel active is-active"
+          class="tab-pane active"
           id="issuer-trading-panel-negotiated-deals"
           role="tabpanel"
           aria-labelledby="issuer-trading-tab-negotiated-deals"
-          aria-hidden="false"
-          data-tab="negotiated-deals"
         >
           <div data-issuer-trading-feature="negotiated-deals">
             <%-- =============================================================
@@ -667,12 +649,10 @@
           ========================================================================== --%>
 
       <section
-        class="tab-pane tab-content__panel"
+        class="tab-pane"
         id="issuer-trading-panel-accumulated-losses"
         role="tabpanel"
         aria-labelledby="issuer-trading-tab-accumulated-losses"
-        aria-hidden="true"
-        data-tab="accumulated-losses"
         hidden
       >
         <div
@@ -869,12 +849,10 @@
              ================================================================= --%>
 
         <section
-          class="tab-pane tab-content__panel"
+          class="tab-pane"
           id="issuer-trading-panel-listed-tradable-rights"
           role="tabpanel"
           aria-labelledby="issuer-trading-tab-listed-tradable-rights"
-          aria-hidden="true"
-          data-tab="listed-tradable-rights"
           hidden
         >
           <%-- Implemented after Accumulated Losses. --%>
@@ -885,12 +863,10 @@
              ================================================================= --%>
 
         <section
-          class="tab-pane tab-content__panel"
+          class="tab-pane"
           id="issuer-trading-panel-company-status"
           role="tabpanel"
           aria-labelledby="issuer-trading-tab-company-status"
-          aria-hidden="true"
-          data-tab="company-status"
           hidden
         >
           <%--
@@ -904,12 +880,10 @@
              ================================================================= --%>
 
         <section
-          class="tab-pane tab-content__panel"
+          class="tab-pane"
           id="issuer-trading-panel-otc-trading"
           role="tabpanel"
           aria-labelledby="issuer-trading-tab-otc-trading"
-          aria-hidden="true"
-          data-tab="otc-trading"
           hidden
         >
           <%-- Implemented after the Company Status tab. --%>
