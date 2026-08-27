@@ -1154,78 +1154,41 @@ export function getNegotiatedDateGroup(row) {
    ========================================================================== */
 
 export function renderNegotiatedDailyTotalCard(row, config = {}) {
-  const dailyLabel = config.labels?.mobile?.daily || "Daily";
-
-  const totalLabel =
-    config.labels?.mobile?.total || config.labels?.total || "Total";
-
   const volumeLabel = config.labels?.negotiatedDeals?.volume || "Volume";
 
   const valueLabel = config.labels?.negotiatedDeals?.value || "Value";
 
   return `
     <article
-      class="data-card data-card--compact trading-daily-total-card"
+      class="
+        data-card
+        data-card--compact
+        trading-daily-total-card
+      "
     >
-      <div
-        class="data-card__main"
-      >
-        <div
-          class="data-card__identity"
-        >
-          <div
-            class="data-card__identity-content"
-          >
-            <span
-              class="data-card__symbol"
-            >
-              ${escapeHtml(dailyLabel)}
-            </span>
-
-            <h4
-              class="data-card__title"
-            >
-              ${escapeHtml(totalLabel)}
-            </h4>
-          </div>
-        </div>
-
-        <div
-          class="data-card__quote"
-        >
-          <div
-            class="data-card__quote-item"
-          >
-            <span
-              class="data-card__quote-label"
-            >
+      <div class="data-card__main">
+        <div class="data-card__identity">
+          <div class="data-card__identity-content">
+            <span class="data-card__symbol">
               ${escapeHtml(volumeLabel)}
             </span>
 
-            <span
-              class="data-card__price"
-            >
+            <span class="data-card__title">
               ${escapeHtml(
                 formatQuantity(getNegotiatedTotalVolume(row), config),
               )}
             </span>
           </div>
+        </div>
 
-          <div
-            class="data-card__quote-item"
-          >
-            <span
-              class="data-card__quote-label"
-            >
-              ${escapeHtml(valueLabel)}
-            </span>
+        <div class="data-card__quote">
+          <span class="data-card__symbol">
+            ${escapeHtml(valueLabel)}
+          </span>
 
-            <span
-              class="data-card__change"
-            >
-              ${escapeHtml(formatMoney(getNegotiatedTotalValue(row), config))}
-            </span>
-          </div>
+          <span class="data-card__price">
+            ${escapeHtml(formatMoney(getNegotiatedTotalValue(row), config))}
+          </span>
         </div>
       </div>
     </article>

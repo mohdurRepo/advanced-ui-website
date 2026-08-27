@@ -449,7 +449,6 @@ function createNegotiatedFilters({ root, config }) {
       /* ------------------------------------------------------------------
            From Date
            ------------------------------------------------------------------ */
-
       fromDate: {
         selector: SELECTORS.negotiated.fromDate,
 
@@ -460,14 +459,13 @@ function createNegotiatedFilters({ root, config }) {
         resetValue: dateRange.fromDate,
 
         normalize(value) {
-          return normalizeString(value, dateRange.fromDate);
+          return normalizeString(value);
         },
       },
 
       /* ------------------------------------------------------------------
            To Date
            ------------------------------------------------------------------ */
-
       toDate: {
         selector: SELECTORS.negotiated.toDate,
 
@@ -478,7 +476,7 @@ function createNegotiatedFilters({ root, config }) {
         resetValue: dateRange.toDate,
 
         normalize(value) {
-          return normalizeString(value, dateRange.toDate);
+          return normalizeString(value);
         },
       },
     },
