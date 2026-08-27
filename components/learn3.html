@@ -1363,9 +1363,9 @@
 </section>
 
 
-          <%-- ========================================================================
+  <%-- =========================================================================
      Tab 3: Listed Tradable Rights
-     ======================================================================== --%>
+     ========================================================================= --%>
 
 <section
   class="tab-pane"
@@ -1388,11 +1388,9 @@
     <div
       class="data-view"
       data-trading-view="listedTradableRights"
-      aria-busy="true"
     >
 
       <div class="data-view__workspace">
-
 
         <%-- =================================================================
              Desktop / Tablet
@@ -1401,7 +1399,6 @@
         <div class="data-view__table">
 
           <div class="data-view__table-block">
-
 
             <%-- =============================================================
                  Results Toolbar
@@ -1432,14 +1429,16 @@
 
             </div>
 
-
             <%-- =============================================================
                  Table
 
                  Important:
-                 - JSP owns this complete two-row header.
+
+                 - JSP owns the complete two-row grouped <thead>.
                  - JavaScript populates tbody only.
                  - Header structure must never be regenerated.
+                 - First logical identity column is Tradable Rights.
+                 - This is a long financial table and may scroll horizontally.
                  ============================================================= --%>
 
             <div
@@ -1448,10 +1447,13 @@
             >
 
               <div
-                class="table-responsive custom-scrollbar"
+                class="
+                  table-responsive
+                  custom-scrollbar
+                "
                 tabindex="0"
                 role="region"
-                aria-label="<fmt:message key='issuer.trading.info.v2.title.listedtradablerights' />"
+                aria-labelledby="listed-tradable-rights-results"
                 data-table-scroll
               >
 
@@ -1464,9 +1466,11 @@
                     table-header-grouped
                     table-market
                     table-market--results
+                    table-market--grouped
+                    table-market--listed-tradable
+                    table-market--has-fixed-identity
                   "
                   aria-describedby="listed-tradable-rights-results"
-                  aria-busy="true"
                   data-trading-table="listedTradableRights"
                 >
 
@@ -1476,12 +1480,11 @@
                     />
                   </caption>
 
-
-                  <%-- =======================================================
-                       Header Row 1
-                       ======================================================= --%>
-
                   <thead>
+
+                    <%-- =====================================================
+                         Header Row 1
+                         ===================================================== --%>
 
                     <tr>
 
@@ -1500,7 +1503,6 @@
                         />
                       </th>
 
-
                       <%-- ---------------------------------------------------
                            Last Trade
                            --------------------------------------------------- --%>
@@ -1515,7 +1517,6 @@
                           key="equityright.table.column.header.last.trade"
                         />
                       </th>
-
 
                       <%-- ---------------------------------------------------
                            Today's Trading
@@ -1532,7 +1533,6 @@
                         />
                       </th>
 
-
                       <%-- ---------------------------------------------------
                            Cumulative
                            --------------------------------------------------- --%>
@@ -1548,7 +1548,6 @@
                         />
                       </th>
 
-
                       <%-- ---------------------------------------------------
                            Best Bid
                            --------------------------------------------------- --%>
@@ -1563,7 +1562,6 @@
                           key="equityright.table.column.header.best.bid"
                         />
                       </th>
-
 
                       <%-- ---------------------------------------------------
                            Best Offer
@@ -1582,13 +1580,11 @@
 
                     </tr>
 
-
                     <%-- =====================================================
                          Header Row 2
                          ===================================================== --%>
 
                     <tr>
-
 
                       <%-- ===================================================
                            Last Trade
@@ -1605,7 +1601,6 @@
                         />
                       </th>
 
-
                       <th
                         class="table-market__number"
                         scope="col"
@@ -1616,7 +1611,6 @@
                           key="equityright.table.column.header.volume"
                         />
                       </th>
-
 
                       <th
                         class="table-market__number"
@@ -1631,7 +1625,6 @@
                         </span>
                       </th>
 
-
                       <th
                         class="table-market__number"
                         scope="col"
@@ -1644,7 +1637,6 @@
                           />
                         </span>
                       </th>
-
 
                       <%-- ===================================================
                            Today's Trading
@@ -1661,7 +1653,6 @@
                         />
                       </th>
 
-
                       <th
                         class="table-market__number"
                         scope="col"
@@ -1673,7 +1664,6 @@
                         />
                       </th>
 
-
                       <th
                         class="table-market__number"
                         scope="col"
@@ -1684,7 +1674,6 @@
                           key="equityright.table.column.header.low"
                         />
                       </th>
-
 
                       <%-- ===================================================
                            Cumulative
@@ -1703,7 +1692,6 @@
                         </span>
                       </th>
 
-
                       <th
                         class="table-market__number"
                         scope="col"
@@ -1716,7 +1704,6 @@
                           />
                         </span>
                       </th>
-
 
                       <%-- ===================================================
                            Best Bid
@@ -1733,7 +1720,6 @@
                         />
                       </th>
 
-
                       <th
                         class="table-market__number"
                         scope="col"
@@ -1744,7 +1730,6 @@
                           key="equityright.table.column.header.volume"
                         />
                       </th>
-
 
                       <%-- ===================================================
                            Best Offer
@@ -1761,7 +1746,6 @@
                         />
                       </th>
 
-
                       <th
                         class="table-market__number"
                         scope="col"
@@ -1777,7 +1761,6 @@
 
                   </thead>
 
-
                   <tbody></tbody>
 
                 </table>
@@ -1790,20 +1773,30 @@
 
         </div>
 
-
         <%-- =================================================================
              Mobile
 
-             Intended structure:
-             - Tradable Right identity
-             - Last Trade Price + Change % summary
-             - expandable secondary market values
+             Intended card structure:
+
+             LEFT
+               [logo] Tradable Right / Company
+                      Symbol
+
+             RIGHT
+               Price
+               Change %
+
+             Expandable details:
+               remaining Last Trade values
+               Today's Trading
+               Cumulative
+               Best Bid
+               Best Offer
              ================================================================= --%>
 
         <div
           class="data-view__cards"
           aria-label="<fmt:message key='issuer.trading.info.v2.title.listedtradablerights' />"
-          aria-busy="true"
           data-trading-cards="listedTradableRights"
         ></div>
 
@@ -1815,11 +1808,10 @@
 
 </section>
 
-
-    
-         <%-- ========================================================================
+  
+<%-- =========================================================================
      Tab 4: Suspended / Delisted Companies
-     ======================================================================== --%>
+     ========================================================================= --%>
 
 <section
   class="tab-pane"
@@ -1835,13 +1827,12 @@
     data-trading-company-status
   >
 
-
     <%-- =====================================================================
          Filters
          ===================================================================== --%>
 
     <form
-      class="filter-bar"
+      class="filter-bar filter-bar--connected"
       aria-labelledby="trading-company-status-filters-title"
       data-trading-company-status-filters
     >
@@ -1855,7 +1846,6 @@
         />
       </h3>
 
-
       <div class="filter-bar__inner">
 
         <%-- ===============================================================
@@ -1863,7 +1853,6 @@
              =============================================================== --%>
 
         <div class="filter-bar__fields grid-3">
-
 
           <%-- -------------------------------------------------------------
                Type
@@ -1875,54 +1864,87 @@
               class="form-label"
               for="trading-company-status-type"
             >
-              <fmt:message key="suspended.company.type" />
+              <fmt:message
+                key="suspended.company.type"
+              />
             </label>
 
             <div
               class="custom-select"
               data-custom-select
             >
-              <div class="form-select-wrap custom-select__fallback">
+
+              <div
+                class="
+                  form-select-wrap
+                  custom-select__fallback
+                "
+              >
 
                 <select
-                  class="form-select custom-select__native"
+                  class="
+                    form-select
+                    custom-select__native
+                  "
                   id="trading-company-status-type"
                   name="type"
                   data-trading-company-status-type
                 >
-                  <%-- Keep the exact option values already used by backend/config. --%>
+
+                  <%-- -----------------------------------------------------
+                       IMPORTANT
+
+                       These are the exact backend values.
+
+                       Suspension
+                       Suspension_Funds
+                       Delisting
+                       Delisting_Funds
+                       ----------------------------------------------------- --%>
 
                   <option
                     value="Suspension"
                     selected
                   >
-                    <fmt:message key="suspended.company.type.suspension" />
+                    <fmt:message
+                      key="suspended.company.type.suspension"
+                    />
                   </option>
 
                   <option value="Suspension_Funds">
-                    <fmt:message key="suspended.company.type.suspension.funds" />
+                    <fmt:message
+                      key="suspended.company.type.suspension.funds"
+                    />
                   </option>
 
                   <option value="Delisting">
-                    <fmt:message key="delisted.company.type.delisting" />
+                    <fmt:message
+                      key="delisted.company.type.delisting"
+                    />
                   </option>
 
                   <option value="Delisting_Funds">
-                    <fmt:message key="delisted.company.type.delisting.funds" />
+                    <fmt:message
+                      key="delisted.company.type.delisting.funds"
+                    />
                   </option>
 
                 </select>
 
                 <span
-                  class="form-select-icon has-icon icon-chevron-down"
+                  class="
+                    form-select-icon
+                    has-icon
+                    icon-chevron-down
+                  "
                   aria-hidden="true"
                 ></span>
 
               </div>
+
             </div>
 
           </div>
-
 
           <%-- -------------------------------------------------------------
                Time Period
@@ -1940,18 +1962,25 @@
             </span>
 
             <div
-              class="custom-date custom-date--range"
+              class="
+                custom-date
+                custom-date--range
+              "
               aria-labelledby="trading-company-status-period-label"
               data-custom-date-range
               data-clearable
               data-placeholder="YYYY-MM-DD – YYYY-MM-DD"
             >
+
               <div class="custom-date__fallback">
 
                 <div class="custom-date__native-range">
 
                   <input
-                    class="form-control custom-date__native"
+                    class="
+                      form-control
+                      custom-date__native
+                    "
                     id="trading-company-status-from-date"
                     name="fromDate"
                     type="date"
@@ -1961,7 +1990,10 @@
                   />
 
                   <input
-                    class="form-control custom-date__native"
+                    class="
+                      form-control
+                      custom-date__native
+                    "
                     id="trading-company-status-to-date"
                     name="toDate"
                     type="date"
@@ -1972,30 +2004,36 @@
 
                 </div>
 
-
                 <div
                   class="custom-date__initial-trigger"
                   aria-hidden="true"
                 >
                   <span
-                    class="custom-date__initial-value is-placeholder"
+                    class="
+                      custom-date__initial-value
+                      is-placeholder
+                    "
                   >
                     YYYY-MM-DD – YYYY-MM-DD
                   </span>
 
                   <span
-                    class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                    class="
+                      custom-date__initial-indicator
+                      has-icon
+                      icon-calendar-scheduler
+                    "
                     aria-hidden="true"
                   ></span>
                 </div>
 
               </div>
+
             </div>
 
           </div>
 
         </div>
-
 
         <%-- ===============================================================
              Actions
@@ -2004,7 +2042,12 @@
         <div class="filter-bar__actions">
 
           <button
-            class="btn btn-outline-primary has-icon icon-sync-refresh"
+            class="
+              btn
+              btn-outline-primary
+              has-icon
+              icon-sync-refresh
+            "
             type="reset"
             data-trading-reset="deListedCompanies"
           >
@@ -2019,7 +2062,6 @@
 
     </form>
 
-
     <%-- =====================================================================
          Suspended Variant
          ===================================================================== --%>
@@ -2029,13 +2071,14 @@
     >
 
       <div
-        class="data-view"
+        class="
+          data-view
+          data-view--connected
+        "
         data-trading-view="suspendedCompanies"
-        aria-busy="true"
       >
 
         <div class="data-view__workspace">
-
 
           <%-- ===============================================================
                Desktop / Tablet
@@ -2044,7 +2087,6 @@
           <div class="data-view__table">
 
             <div class="data-view__table-block">
-
 
               <%-- -----------------------------------------------------------
                    Results Toolbar
@@ -2075,11 +2117,21 @@
 
               </div>
 
-
               <%-- -----------------------------------------------------------
                    Suspended Companies Table
 
-                   JSP owns the full grouped header.
+                   Final contract:
+
+                   Company | Period        | Reason
+                           | From | To
+
+                   Company identity:
+
+                   [logo] Company Name
+                          SYMBOL + status
+
+                   JSP owns the grouped header.
+                   JavaScript owns tbody only.
                    ----------------------------------------------------------- --%>
 
               <div
@@ -2088,7 +2140,10 @@
               >
 
                 <div
-                  class="table-responsive custom-scrollbar"
+                  class="
+                    table-responsive
+                    custom-scrollbar
+                  "
                   tabindex="0"
                   role="region"
                   aria-labelledby="suspended-companies-results"
@@ -2104,9 +2159,10 @@
                       table-header-grouped
                       table-market
                       table-market--results
+                      table-market--grouped
+                      table-market--suspended
                     "
                     aria-describedby="suspended-companies-results"
-                    aria-busy="true"
                     data-trading-table="suspendedCompanies"
                   >
 
@@ -2116,29 +2172,20 @@
                       />
                     </caption>
 
-
                     <thead>
 
-                      <%-- ===================================================
+                      <%-- =================================================
                            Header Row 1
-                           =================================================== --%>
+                           ================================================= --%>
 
                       <tr>
 
-                        <th
-                          class="table-market__symbol"
-                          scope="col"
-                          rowspan="2"
-                          data-column-key="symbol"
-                        >
-                          <fmt:message
-                            key="suspended.company.symbol"
-                          />
-                        </th>
-
+                        <%-- -----------------------------------------------
+                             Company
+                             ----------------------------------------------- --%>
 
                         <th
-                          class="table-market__company"
+                          class="table-market__security"
                           scope="col"
                           rowspan="2"
                           data-column-key="company"
@@ -2148,6 +2195,9 @@
                           />
                         </th>
 
+                        <%-- -----------------------------------------------
+                             Period
+                             ----------------------------------------------- --%>
 
                         <th
                           class="table-market__group-heading"
@@ -2160,6 +2210,9 @@
                           />
                         </th>
 
+                        <%-- -----------------------------------------------
+                             Reason / Announcement
+                             ----------------------------------------------- --%>
 
                         <th
                           class="table-market__reason"
@@ -2174,10 +2227,9 @@
 
                       </tr>
 
-
-                      <%-- ===================================================
+                      <%-- =================================================
                            Header Row 2
-                           =================================================== --%>
+                           ================================================= --%>
 
                       <tr>
 
@@ -2191,7 +2243,6 @@
                             key="suspended.company.period.from"
                           />
                         </th>
-
 
                         <th
                           class="table-market__date"
@@ -2208,7 +2259,6 @@
 
                     </thead>
 
-
                     <tbody></tbody>
 
                   </table>
@@ -2221,24 +2271,26 @@
 
           </div>
 
-
           <%-- ===============================================================
                Mobile
 
                Summary:
-               - Symbol + status
-               - Company
+
+               [logo] Company Name
+                      SYMBOL + status
 
                Details:
-               - From
-               - To
-               - Reason
+
+               Period
+                 From
+                 To
+
+               Announcement / Reason
                =============================================================== --%>
 
           <div
             class="data-view__cards"
             aria-label="<fmt:message key='issuer.trading.info.v2.title.delistedcompanies' />"
-            aria-busy="true"
             data-trading-cards="suspendedCompanies"
           ></div>
 
@@ -2247,7 +2299,6 @@
       </div>
 
     </div>
-
 
     <%-- =====================================================================
          Delisted Variant
@@ -2259,13 +2310,14 @@
     >
 
       <div
-        class="data-view"
+        class="
+          data-view
+          data-view--connected
+        "
         data-trading-view="delistedCompanies"
-        aria-busy="true"
       >
 
         <div class="data-view__workspace">
-
 
           <%-- ===============================================================
                Desktop / Tablet
@@ -2274,7 +2326,6 @@
           <div class="data-view__table">
 
             <div class="data-view__table-block">
-
 
               <%-- -----------------------------------------------------------
                    Results Toolbar
@@ -2305,11 +2356,20 @@
 
               </div>
 
-
               <%-- -----------------------------------------------------------
                    Delisted Companies Table
 
-                   Simple authoritative JSP header.
+                   Final contract:
+
+                   Company | Date | Reason
+
+                   Company identity:
+
+                   [logo] Company Name
+                          SYMBOL + status
+
+                   JSP owns the complete header.
+                   JavaScript owns tbody only.
                    ----------------------------------------------------------- --%>
 
               <div
@@ -2318,7 +2378,10 @@
               >
 
                 <div
-                  class="table-responsive custom-scrollbar"
+                  class="
+                    table-responsive
+                    custom-scrollbar
+                  "
                   tabindex="0"
                   role="region"
                   aria-labelledby="delisted-companies-results"
@@ -2333,9 +2396,9 @@
                       table-nowrap
                       table-market
                       table-market--results
+                      table-market--delisted
                     "
                     aria-describedby="delisted-companies-results"
-                    aria-busy="true"
                     data-trading-table="delistedCompanies"
                   >
 
@@ -2345,23 +2408,16 @@
                       />
                     </caption>
 
-
                     <thead>
+
                       <tr>
 
-                        <th
-                          class="table-market__symbol"
-                          scope="col"
-                          data-column-key="symbol"
-                        >
-                          <fmt:message
-                            key="delisted.company.symbol"
-                          />
-                        </th>
-
+                        <%-- -----------------------------------------------
+                             Company
+                             ----------------------------------------------- --%>
 
                         <th
-                          class="table-market__company"
+                          class="table-market__security"
                           scope="col"
                           data-column-key="company"
                         >
@@ -2370,6 +2426,9 @@
                           />
                         </th>
 
+                        <%-- -----------------------------------------------
+                             Date
+                             ----------------------------------------------- --%>
 
                         <th
                           class="table-market__date"
@@ -2381,6 +2440,9 @@
                           />
                         </th>
 
+                        <%-- -----------------------------------------------
+                             Reason / News
+                             ----------------------------------------------- --%>
 
                         <th
                           class="table-market__reason"
@@ -2393,8 +2455,8 @@
                         </th>
 
                       </tr>
-                    </thead>
 
+                    </thead>
 
                     <tbody></tbody>
 
@@ -2408,23 +2470,23 @@
 
           </div>
 
-
           <%-- ===============================================================
                Mobile
 
                Summary:
-               - Symbol + status
-               - Company
+
+               [logo] Company Name
+                      SYMBOL + status
 
                Details:
-               - Date
-               - Reason
+
+               Date
+               Reason / News
                =============================================================== --%>
 
           <div
             class="data-view__cards"
             aria-label="<fmt:message key='issuer.trading.info.v2.title.delistedcompanies' />"
-            aria-busy="true"
             data-trading-cards="delistedCompanies"
           ></div>
 
@@ -2438,9 +2500,8 @@
 
 </section>
 
-
   
-          <%-- ========================================================================
+  <%-- ========================================================================
      Tab 5: OTC Trading
      ======================================================================== --%>
 
@@ -2452,7 +2513,6 @@
   data-trading-panel="otcTrading"
   hidden
 >
-
   <div
     class="stack stack--lg"
     data-trading-otc
@@ -2465,27 +2525,22 @@
     <div
       class="data-view"
       data-trading-view="otcTrading"
-      aria-busy="true"
+      aria-busy="false"
     >
-
       <div class="data-view__workspace">
-
 
         <%-- =================================================================
              Desktop / Tablet
              ================================================================= --%>
 
         <div class="data-view__table">
-
           <div class="data-view__table-block">
-
 
             <%-- =============================================================
                  Results Toolbar
                  ============================================================= --%>
 
             <div class="data-view__toolbar">
-
               <div class="data-view__toolbar-start">
 
                 <p
@@ -2506,22 +2561,30 @@
                 </p>
 
               </div>
-
             </div>
-
 
             <%-- =============================================================
                  OTC Table
 
-                 JSP owns the complete header.
-                 JavaScript populates tbody only.
+                 Final physical column contract:
+
+                 1. Company
+                    - logo
+                    - company name
+                    - symbol
+
+                 2. Traded Volume
+
+                 3. Last Update Price
+
+                 JSP owns the complete <thead>.
+                 JavaScript populates <tbody> only.
                  ============================================================= --%>
 
             <div
               class="table-shell"
               data-table-shell
             >
-
               <div
                 class="table-responsive custom-scrollbar"
                 tabindex="0"
@@ -2529,7 +2592,6 @@
                 aria-labelledby="otc-trading-results"
                 data-table-scroll
               >
-
                 <table
                   id="otc-trading-table"
                   class="
@@ -2540,32 +2602,26 @@
                     table-market--results
                   "
                   aria-describedby="otc-trading-results"
-                  aria-busy="true"
+                  aria-busy="false"
                   data-trading-table="otcTrading"
                 >
-
                   <caption class="visually-hidden">
                     <fmt:message
                       key="issuer.trading.info.v2.title.otcctrading"
                     />
                   </caption>
 
-
                   <thead>
                     <tr>
 
-                      <%-- Symbol --%>
+                      <%-- ===================================================
+                           Company
 
-                      <th
-                        class="table-market__symbol"
-                        scope="col"
-                        data-column-key="symbol"
-                      >
-                        <fmt:message key="OTC.Symbol" />
-                      </th>
+                           JS renders:
 
-
-                      <%-- Company --%>
+                           [logo] Company Name
+                                  SYMBOL
+                           =================================================== --%>
 
                       <th
                         class="table-market__company"
@@ -2575,8 +2631,9 @@
                         <fmt:message key="OTC.Company" />
                       </th>
 
-
-                      <%-- Traded Volume --%>
+                      <%-- ===================================================
+                           Traded Volume
+                           =================================================== --%>
 
                       <th
                         class="table-market__number"
@@ -2586,8 +2643,9 @@
                         <fmt:message key="OTC.TradedVolume" />
                       </th>
 
-
-                      <%-- Last Update --%>
+                      <%-- ===================================================
+                           Last Update Price
+                           =================================================== --%>
 
                       <th
                         class="table-market__date"
@@ -2600,47 +2658,41 @@
                     </tr>
                   </thead>
 
-
                   <tbody></tbody>
-
                 </table>
-
               </div>
-
             </div>
 
           </div>
-
         </div>
-
 
         <%-- =================================================================
              Mobile
 
              Intended structure:
 
-             Company / security identity
-             Symbol
+             [logo] Company Name
+                    SYMBOL
 
-             Traded Volume             summary
+             Traded Volume                summary
 
              expandable:
-             Last Update
+               Last Update Price
+
+             JavaScript owns card markup.
              ================================================================= --%>
 
         <div
           class="data-view__cards"
           aria-label="<fmt:message key='issuer.trading.info.v2.title.otcctrading' />"
-          aria-busy="true"
+          aria-busy="false"
           data-trading-cards="otcTrading"
         ></div>
 
       </div>
-
     </div>
 
   </div>
-
 </section>
 
 
@@ -2667,7 +2719,8 @@
      - event behavior
      ========================================================================= --%>
 
-<script>
+
+     <script>
   window.TradingConfig = {
 
     /* ======================================================================
@@ -2683,19 +2736,24 @@
        ====================================================================== */
 
     /*
-     * Shared market identity assets.
+     * Shared Trading company-identity assets.
      *
-     * Negotiated Deals will now use the same professional identity pattern
-     * as Market Watch:
+     * Company-oriented Trading views use the common identity pattern:
      *
      * [logo] Company Name
-     *        Symbol
+     *        Symbol / supporting metadata
      *
-     * Other Trading views will adopt this contract only when we refine them
-     * one by one.
+     * The formatter replaces {companyCode} with the resolved company code.
+     *
+     * If the requested company image cannot be loaded, the shared fallback
+     * image is used.
+     *
+     * Keep this configuration centralized. Individual Trading tabs should
+     * not construct company-logo URLs themselves.
      */
 
     assets: {
+
       companyLogoUrlTemplate:
         "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/{companyCode}.png",
 
@@ -2707,6 +2765,13 @@
     /* ======================================================================
        Endpoints
        ====================================================================== */
+
+    /*
+     * Canonical resource endpoints for the Trading page.
+     *
+     * Views consume these through config.endpoints rather than embedding
+     * resource URLs inside individual JavaScript modules.
+     */
 
     endpoints: {
 
@@ -2722,6 +2787,11 @@
       listedTradableRights:
         "<portlet:resourceURL id='getListedTradableRightsDetails' />",
 
+      /*
+       * Suspended and Delisted are two presentation variants backed by the
+       * same endpoint.
+       */
+
       suspendedDelisted:
         "<portlet:resourceURL id='getSuspendedDelistedComp' />",
 
@@ -2736,6 +2806,14 @@
     /* ======================================================================
        Initial State
        ====================================================================== */
+
+    /*
+     * Server-provided/default state used when Trading initializes.
+     *
+     * Runtime date defaults are deliberately not serialized here.
+     * The shared Trading date helper owns those values so the initial load
+     * and Reset action use exactly the same date calculation.
+     */
 
     initialState: {
 
@@ -2759,17 +2837,14 @@
           "<c:out value='${empty requestScope.company ? "All" : requestScope.company}' />",
 
         /*
-         * Deliberately blank here.
+         * Deliberately blank.
          *
-         * The Trading date helper owns runtime initialization because:
+         * Runtime default:
          *
-         * - today changes every day
-         * - one calendar month must be calculated correctly
-         * - the same helper must also own Reset
+         * fromDate = one calendar month before today
+         * toDate   = today
          *
-         * Default:
-         *
-         * one calendar month ago -> today
+         * The shared date-range helper owns both initialization and Reset.
          */
 
         fromDate:
@@ -2792,8 +2867,15 @@
 
 
       /* --------------------------------------------------------------------
-         Suspended / Delisted
+         Suspended / Delisted Companies
          -------------------------------------------------------------------- */
+
+      /*
+       * Suspension is the initial Company Status variant.
+       *
+       * Dates remain blank here for the same reason as Negotiated Deals:
+       * runtime date initialization belongs to the shared date helper.
+       */
 
       deListedCompanies: {
 
@@ -2813,12 +2895,18 @@
        Date Range
        ====================================================================== */
 
+    /*
+     * Shared Trading date-range contract.
+     *
+     * This is intentionally centralized so initial values, Reset behavior,
+     * native date inputs, enhanced date controls, and backend requests remain
+     * synchronized.
+     */
+
     dateRange: {
 
       /*
-       * Shared Trading business default.
-       *
-       * For Negotiated Deals in this pass:
+       * Business default:
        *
        * start = one calendar month before today
        * end   = today
@@ -2828,7 +2916,7 @@
         "lastMonthToToday",
 
       /*
-       * Native <input type="date"> value format.
+       * Native <input type="date"> format.
        */
 
       inputFormat:
@@ -2847,39 +2935,38 @@
        Dependencies
        ====================================================================== */
 
+    /*
+     * Cross-filter dependencies used by Trading filters.
+     */
+
     dependencies: {
 
       /* --------------------------------------------------------------------
-         Negotiated Deals
+         Negotiated Deals: Industry Group -> Company
          -------------------------------------------------------------------- */
 
       /*
-       * Industry Group -> Company
-       *
        * Contract:
        *
        * - Industry = All:
-       *     restore the complete JSP Company list
+       *     restore the complete JSP-rendered Company list
        *
        * - Industry = specific sector:
-       *     request companies for that sector
+       *     request companies belonging to that sector
        *
        * - after Industry changes:
        *     Company returns to All Companies
        *
        * - clearing Company:
-       *     means All Companies, never an empty backend value
+       *     resolves to All Companies, never an empty backend value
        */
 
       sectorCompany: {
 
         /*
-         * config.js derives this from:
+         * config.js derives this from endpoints.companiesBySector.
          *
-         * endpoints.companiesBySector
-         *
-         * Keeping the endpoint in one canonical location avoids duplicate
-         * resourceURL contracts.
+         * Keep the resource URL in one canonical endpoint location.
          */
 
         endpoint:
@@ -2913,6 +3000,15 @@
        Filter Contracts
        ====================================================================== */
 
+    /*
+     * Stable backend/filter values.
+     *
+     * IMPORTANT:
+     *
+     * Values in this section are application/backend identifiers.
+     * They are NOT translated presentation labels.
+     */
+
     filters: {
 
 
@@ -2935,9 +3031,7 @@
         },
 
         /*
-         * Enhanced Company selection must never resolve to an empty value.
-         *
-         * X / Clear = All Companies.
+         * Clearing the enhanced Company control means All Companies.
          */
 
         companyClearValue:
@@ -2960,8 +3054,24 @@
 
 
       /* --------------------------------------------------------------------
-         Suspended / Delisted
+         Suspended / Delisted Companies
          -------------------------------------------------------------------- */
+
+      /*
+       * These strings are the exact backend values.
+       *
+       * Do not replace them with localized labels.
+       *
+       * Suspended variants:
+       *
+       * - Suspension
+       * - Suspension_Funds
+       *
+       * Delisted variants:
+       *
+       * - Delisting
+       * - Delisting_Funds
+       */
 
       deListedCompanies: {
 
@@ -2989,12 +3099,13 @@
        ====================================================================== */
 
     /*
-     * Do not change the remaining Trading tables globally yet.
+     * Shared baseline for DataTables-backed Trading views.
      *
-     * We are completing the page tab by tab.
+     * Individual views override behavior below where their table structure
+     * requires something different.
      *
-     * Negotiated Deals receives its finalized behavior below through its
-     * per-view configuration.
+     * Minimum Size remains a native matrix and therefore does not use the
+     * normal DataTables fixed-header/fixed-column behavior.
      */
 
     tableDefaults: {
@@ -3024,8 +3135,9 @@
         true,
 
       /*
-       * Legacy/default values remain temporarily for views we have not yet
-       * completed in this tab-by-tab refinement pass.
+       * Compatibility defaults.
+       *
+       * Completed views explicitly override these values below.
        */
 
       scrollX:
@@ -3039,6 +3151,11 @@
 
       fixedColumns:
         0,
+
+      /*
+       * Trading owns its result toolbar and surrounding UI.
+       * DataTables therefore does not render its own controls.
+       */
 
       layout: {
 
@@ -3069,14 +3186,13 @@
          -------------------------------------------------------------------- */
 
       /*
-       * FINAL TARGET FOR TAB 1:
+       * Final behavior:
        *
-       * - ordinary six-column results table
-       * - design-system .table-responsive owns horizontal containment
-       * - FixedHeader enabled
-       * - no FixedColumn required
+       * - six physical columns
        * - JSP owns <thead>
-       * - common data-view owns loading skeleton
+       * - .table-responsive owns horizontal containment
+       * - FixedHeader enabled
+       * - no FixedColumns instance
        */
 
       negotiatedDeals: {
@@ -3112,26 +3228,27 @@
          -------------------------------------------------------------------- */
 
       /*
-       * Minimum Size will be completed after Negotiated Deals is approved.
+       * Native matrix renderer.
        *
-       * It has a dedicated matrix renderer.
+       * Minimum Size does not use DataTables FixedHeader or FixedColumns.
        */
 
       minimumSize: {
-        paging: false,
 
-        ordering: false,
+        paging:
+          false,
 
-        searching: false,
+        ordering:
+          false,
 
-        /*
-        * Native matrix:
-        * no DataTables FixedHeader/FixedColumns.
-        */
+        searching:
+          false,
 
-        fixedHeader: false,
+        fixedHeader:
+          false,
 
-        fixedColumns: 0,
+        fixedColumns:
+          0,
       },
 
 
@@ -3159,6 +3276,19 @@
          Listed Tradable Rights
          -------------------------------------------------------------------- */
 
+      /*
+       * Complex 14-column grouped table.
+       *
+       * JSP owns the two-row grouped <thead>.
+       *
+       * The view module finalizes its long-table behavior, including:
+       *
+       * - outer responsive scrolling
+       * - FixedHeader
+       * - CSS sticky identity column
+       * - no DataTables FixedColumns duplication
+       */
+
       listedTradableRights: {
 
         paging:
@@ -3169,12 +3299,35 @@
 
         searching:
           false,
+
+        scrollX:
+          false,
+
+        scrollCollapse:
+          false,
+
+        fixedHeader:
+          true,
+
+        fixedColumns:
+          0,
+
+        responsive:
+          false,
       },
 
 
       /* --------------------------------------------------------------------
          Suspended Companies / Funds
          -------------------------------------------------------------------- */
+
+      /*
+       * Final physical table contract:
+       *
+       * Company | From | To | Reason
+       *
+       * Company contains the shared logo/name/symbol identity.
+       */
 
       suspendedCompanies: {
 
@@ -3186,12 +3339,32 @@
 
         searching:
           false,
+
+        scrollX:
+          false,
+
+        scrollCollapse:
+          false,
+
+        fixedHeader:
+          true,
+
+        fixedColumns:
+          0,
       },
 
 
       /* --------------------------------------------------------------------
          Delisted Companies / Funds
          -------------------------------------------------------------------- */
+
+      /*
+       * Final physical table contract:
+       *
+       * Company | Date | Reason
+       *
+       * Company contains the shared logo/name/symbol identity.
+       */
 
       delistedCompanies: {
 
@@ -3203,12 +3376,38 @@
 
         searching:
           false,
+
+        scrollX:
+          false,
+
+        scrollCollapse:
+          false,
+
+        fixedHeader:
+          true,
+
+        fixedColumns:
+          0,
       },
 
 
       /* --------------------------------------------------------------------
-         OTC Trading
-         -------------------------------------------------------------------- */
+        OTC Trading
+        -------------------------------------------------------------------- */
+
+      /*
+      * Final physical table contract:
+      *
+      * Company | Traded Volume | Last Update Price
+      *
+      * Company contains:
+      *
+      * [logo] Company Name
+      *        Symbol
+      *
+      * JSP owns the complete <thead>.
+      * .table-responsive owns horizontal containment.
+      */
 
       otcTrading: {
 
@@ -3220,11 +3419,24 @@
 
         searching:
           false,
+
+        scrollX:
+          false,
+
+        scrollCollapse:
+          false,
+
+        fixedHeader:
+          true,
+
+        fixedColumns:
+          0,
+
+        responsive:
+          false,
       },
     },
-
-
-    /* ======================================================================
+        /* ======================================================================
        Labels
        ====================================================================== */
 
@@ -3234,6 +3446,13 @@
       /* --------------------------------------------------------------------
          Shared Data States
          -------------------------------------------------------------------- */
+
+      /*
+       * Generic labels consumed by the common data-view infrastructure.
+       *
+       * Keep these at the root of labels because they are shared by all
+       * Trading views.
+       */
 
       loading:
         "<fmt:message key='datatable.loading' />",
@@ -3257,6 +3476,10 @@
       /* --------------------------------------------------------------------
          Action Links
          -------------------------------------------------------------------- */
+
+      /*
+       * Shared Company Status action labels.
+       */
 
       suspendedLink:
         "<fmt:message key='suspended.company.link' />",
@@ -3286,6 +3509,13 @@
          Tabs
          -------------------------------------------------------------------- */
 
+      /*
+       * Trading tab labels.
+       *
+       * These remain centralized because Trading JS may need the same
+       * localized text for accessibility or responsive presentation.
+       */
+
       tabs: {
 
         negotiatedDeals:
@@ -3309,6 +3539,10 @@
          Mobile
          -------------------------------------------------------------------- */
 
+      /*
+       * Shared mobile-card interaction labels.
+       */
+
       mobile: {
 
         showDetails:
@@ -3328,6 +3562,20 @@
       /* ====================================================================
          Negotiated Deals
          ==================================================================== */
+
+      /*
+       * Six-column desktop contract:
+       *
+       * Date
+       * Company
+       * Price
+       * Volume
+       * Value
+       * Time
+       *
+       * Symbol is supporting Company identity metadata and therefore does
+       * not have its own column label.
+       */
 
       negotiatedDeals: {
 
@@ -3355,76 +3603,92 @@
          Minimum Size
          ==================================================================== */
 
+      /*
+       * Complete semantic matrix.
+       *
+       * Each backend value col1-col4 maps vertically through all three
+       * JSP-owned header rows.
+       *
+       * This configuration allows the native matrix renderer and mobile
+       * cards to use exactly the same localized matrix semantics.
+       */
+
       minimumSize: {
-          /*
-          * Complete semantic matrix.
-          *
-          * Each backend value col1-col4 maps vertically through all three
-          * JSP-owned header rows.
-          */
 
-          columns: [
-            {
-              key: "col1",
+        columns: [
 
-              levels: [
-                "<fmt:message key='adtv.sub.row.0.col.1' />",
-                "<fmt:message key='adtv.sub.row.1.col.1' />",
-                "<fmt:message key='adtv.sub.row.2.col.1' />",
-              ],
-            },
+          {
+            key:
+              "col1",
 
-            {
-              key: "col2",
+            levels: [
+              "<fmt:message key='adtv.sub.row.0.col.1' />",
+              "<fmt:message key='adtv.sub.row.1.col.1' />",
+              "<fmt:message key='adtv.sub.row.2.col.1' />",
+            ],
+          },
 
-              levels: [
-                "<fmt:message key='adtv.sub.row.0.col.2' />",
-                "<fmt:message key='adtv.sub.row.1.col.2' />",
-                "<fmt:message key='adtv.sub.row.2.col.2' />",
-              ],
-            },
+          {
+            key:
+              "col2",
 
-            {
-              key: "col3",
+            levels: [
+              "<fmt:message key='adtv.sub.row.0.col.2' />",
+              "<fmt:message key='adtv.sub.row.1.col.2' />",
+              "<fmt:message key='adtv.sub.row.2.col.2' />",
+            ],
+          },
 
-              levels: [
-                "<fmt:message key='adtv.sub.row.0.col.3' />",
-                "<fmt:message key='adtv.sub.row.1.col.3' />",
-                "<fmt:message key='adtv.sub.row.2.col.3' />",
-              ],
-            },
+          {
+            key:
+              "col3",
 
-            {
-              key: "col4",
+            levels: [
+              "<fmt:message key='adtv.sub.row.0.col.3' />",
+              "<fmt:message key='adtv.sub.row.1.col.3' />",
+              "<fmt:message key='adtv.sub.row.2.col.3' />",
+            ],
+          },
 
-              levels: [
-                "<fmt:message key='adtv.sub.row.0.col.4' />",
-                "<fmt:message key='adtv.sub.row.1.col.4' />",
-                "<fmt:message key='adtv.sub.row.2.col.4' />",
-              ],
-            },
-          ],
+          {
+            key:
+              "col4",
 
-          /*
-          * The left-side matrix-axis labels are also retained for accessibility
-          * and future presentation needs.
-          */
+            levels: [
+              "<fmt:message key='adtv.sub.row.0.col.4' />",
+              "<fmt:message key='adtv.sub.row.1.col.4' />",
+              "<fmt:message key='adtv.sub.row.2.col.4' />",
+            ],
+          },
+        ],
 
-          rows: [
-            "<fmt:message key='adtv.sub.row.1' />",
-            "<fmt:message key='adtv.sub.row.2' />",
-            "<fmt:message key='adtv.sub.row.3' />",
-          ],
-        },
+        /*
+         * Left-side matrix-axis labels.
+         *
+         * Retained for accessibility, native matrix presentation, and
+         * responsive/mobile presentation.
+         */
+
+        rows: [
+          "<fmt:message key='adtv.sub.row.1' />",
+          "<fmt:message key='adtv.sub.row.2' />",
+          "<fmt:message key='adtv.sub.row.3' />",
+        ],
+      },
 
 
       /* ====================================================================
          Accumulated Losses
          ==================================================================== */
 
+      /*
+       * Company is the primary identity.
+       *
+       * Symbol is displayed beneath Company through the common Trading
+       * company-identity renderer rather than as a separate table column.
+       */
+
       accumulated: {
-        symbol:
-          "<fmt:message key='issuer.trading.info.v2.table.heading.acc.symbol' />",
 
         company:
           "<fmt:message key='issuer.trading.info.v2.table.heading.acc.companyname' />",
@@ -3444,18 +3708,57 @@
          Listed Tradable Rights
          ==================================================================== */
 
-      listedTradable: {
+      /*
+       * Desktop uses a 14-leaf-column grouped header.
+       *
+       * Mobile preserves the same financial meaning through semantic groups
+       * instead of flattening all values into one long field list.
+       */
 
-        security:
+      listedTradableRights: {
+
+        /* ------------------------------------------------------------------
+           Identity
+           ------------------------------------------------------------------ */
+
+        tradableRight:
           "<fmt:message key='equityright.table.column.header.tradable.rights' />",
 
-        /* Last Trade */
 
-        lastTradePrice:
+        /* ------------------------------------------------------------------
+           Group Labels
+           ------------------------------------------------------------------ */
+
+        lastTrade:
+          "<fmt:message key='equityright.table.column.header.last.trade' />",
+
+        todaysTrading:
+          "<fmt:message key='equityright.table.column.header.todays' />",
+
+        cumulative:
+          "<fmt:message key='equityright.table.column.header.cumulative' />",
+
+        bestBid:
+          "<fmt:message key='equityright.table.column.header.best.bid' />",
+
+        bestOffer:
+          "<fmt:message key='equityright.table.column.header.best.offer' />",
+
+
+        /* ------------------------------------------------------------------
+           Shared Financial Labels
+           ------------------------------------------------------------------ */
+
+        price:
           "<fmt:message key='equityright.table.column.header.price' />",
 
-        lastTradeVolume:
+        volume:
           "<fmt:message key='equityright.table.column.header.volume' />",
+
+
+        /* ------------------------------------------------------------------
+           Last Trade
+           ------------------------------------------------------------------ */
 
         changeValue:
           "<fmt:message key='equityright.table.column.header.change.value' />",
@@ -3463,7 +3766,10 @@
         changePercent:
           "<fmt:message key='equityright.table.column.header.change.percent' />",
 
-        /* Today's Trading */
+
+        /* ------------------------------------------------------------------
+           Today's Trading
+           ------------------------------------------------------------------ */
 
         open:
           "<fmt:message key='equityright.table.column.header.open' />",
@@ -3474,7 +3780,10 @@
         low:
           "<fmt:message key='equityright.table.column.header.low' />",
 
-        /* Cumulative */
+
+        /* ------------------------------------------------------------------
+           Cumulative
+           ------------------------------------------------------------------ */
 
         numberOfTrades:
           "<fmt:message key='equityright.table.column.header.number.of.trades' />",
@@ -3482,7 +3791,10 @@
         volumeTraded:
           "<fmt:message key='equityright.table.column.header.volume.traded' />",
 
-        /* Best Bid */
+
+        /* ------------------------------------------------------------------
+           Best Bid
+           ------------------------------------------------------------------ */
 
         bidPrice:
           "<fmt:message key='equityright.table.column.header.price' />",
@@ -3490,7 +3802,10 @@
         bidVolume:
           "<fmt:message key='equityright.table.column.header.volume' />",
 
-        /* Best Offer */
+
+        /* ------------------------------------------------------------------
+           Best Offer
+           ------------------------------------------------------------------ */
 
         askPrice:
           "<fmt:message key='equityright.table.column.header.price' />",
@@ -3501,16 +3816,86 @@
 
 
       /* ====================================================================
+         Company Status
+         ==================================================================== */
+
+      /*
+       * Shared localized labels for the Suspended / Delisted Type control.
+       *
+       * IMPORTANT:
+       *
+       * These values are PRESENTATION labels only.
+       *
+       * The stable backend values remain in:
+       *
+       * config.filters.deListedCompanies
+       *
+       * Backend:
+       *
+       * Suspension
+       * Suspension_Funds
+       * Delisting
+       * Delisting_Funds
+       *
+       * Never send one of these localized strings as formType.
+       */
+
+      companyStatus: {
+
+        type: {
+
+          label:
+            "<fmt:message key='suspended.company.type' />",
+
+          suspension:
+            "<fmt:message key='suspended.company.type.suspension' />",
+
+          suspensionFunds:
+            "<fmt:message key='suspended.company.type.suspension.funds' />",
+
+          delisting:
+            "<fmt:message key='delisted.company.type.delisting' />",
+
+          delistingFunds:
+            "<fmt:message key='delisted.company.type.delisting.funds' />",
+        },
+      },
+
+
+      /* ====================================================================
          Suspended Companies / Funds
          ==================================================================== */
 
-      suspended: {
+      /*
+       * Desktop physical contract:
+       *
+       * Company | From | To | Reason
+       *
+       * JSP groups From + To beneath Period.
+       *
+       * Company identity:
+       *
+       * [logo] Company Name
+       *        Symbol + status
+       *
+       * Mobile can therefore present:
+       *
+       * Company identity
+       *
+       * Period
+       *   From
+       *   To
+       *
+       * Reason / Announcement
+       */
 
-        symbol:
-          "<fmt:message key='suspended.company.symbol' />",
+      suspended: {
 
         company:
           "<fmt:message key='suspended.company.name' />",
+
+        period:
+          "<fmt:message key='suspended.company.period' />",
 
         fromDate:
           "<fmt:message key='suspended.company.period.from' />",
@@ -3527,10 +3912,21 @@
          Delisted Companies / Funds
          ==================================================================== */
 
-      delisted: {
+      /*
+       * Desktop physical contract:
+       *
+       * Company | Date | Reason
+       *
+       * Company identity:
+       *
+       * [logo] Company Name
+       *        Symbol + status
+       *
+       * Symbol is supporting identity metadata and therefore does not have a
+       * separate table-column label.
+       */
 
-        symbol:
-          "<fmt:message key='delisted.company.symbol' />",
+      delisted: {
 
         company:
           "<fmt:message key='delisted.company.name' />",
@@ -3546,6 +3942,12 @@
       /* ====================================================================
          OTC Trading
          ==================================================================== */
+
+      /*
+       * OTC has not yet been finalized in the current tab-by-tab pass.
+       *
+       * Preserve its existing labels until we review its JSP/JS contract.
+       */
 
       otc: {
 
@@ -3564,7 +3966,6 @@
     },
   };
 </script>
-
 
 <%-- =========================================================================
      Trading Entry Module

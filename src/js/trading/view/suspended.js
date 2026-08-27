@@ -5,25 +5,58 @@
 /*
  * Suspended Companies / Funds Trading view.
  *
+ * Final desktop contract:
+ *
+ *   Company | Period        | Reason
+ *           | From | To
+ *
+ * Physical tbody columns:
+ *
+ *   1 Company
+ *   2 From
+ *   3 To
+ *   4 Reason
+ *
+ * Company identity:
+ *
+ *   [logo] Company Name
+ *          SYMBOL + status
+ *
+ * Mobile:
+ *
+ *   [logo] Company Name
+ *          SYMBOL + status
+ *
+ *   expandable:
+ *
+ *   Period
+ *     From
+ *     To
+ *
+ *   Reason / Announcement
+ *
  * Responsibilities:
  *
- * - preserve the JSP-owned grouped Period header
- * - define the exact five-column backend/body contract
- * - build the exact Suspended backend request
- * - render Symbol + accumulated/status indicator
- * - render linked Company name
- * - render From / To period
- * - render announcement action
- * - render standard expandable mobile cards
+ * - preserve JSP-owned grouped header
+ * - build the existing Suspended/Delisted backend request
+ * - normalize response wrappers
+ * - render four physical body columns
+ * - render status-aware company identity
+ * - render mobile cards
+ * - synchronize result count
+ * - expose standard Trading view lifecycle
  *
- * Shared behavior remains in common/data-view:
+ * This module intentionally does not own:
  *
- * - request cancellation
- * - loading skeletons
- * - table lifecycle
- * - card lifecycle
- * - empty/error states
- * - result state
+ * - global tab switching
+ * - Company Status filter orchestration
+ * - date-range initialization
+ * - AJAX transport implementation
+ * - company-name field normalization
+ * - company-symbol field normalization
+ * - company-logo resolution / fallback
+ * - generic date formatting
+ * - common loading / empty / error UI
  */
 
 /* ==========================================================================
@@ -53,12 +86,13 @@ import {
 
 import {
   escapeHtml,
-  formatTradingDate,
-  getDisplayValue,
-  getTradingIdentity,
-  renderMobileIdentity,
-  renderTradingCell,
-  safeUrl,
+  formatDate,
+  getAnnouncementUrl,
+  getCompanyName,
+  getCompanySymbol,
+  renderAnnouncementLink,
+  renderTradingCardIdentity,
+  renderTradingCompanyCell,
 } from "../formatters.js";
 
 /* ==========================================================================
@@ -82,76 +116,187 @@ function firstDefined(...values) {
 }
 
 /* ==========================================================================
+   Suspended Field Accessors
+   ========================================================================== */
+
+function getFromDate(row) {
+  return firstDefined(
+    row?.fromDate,
+    row?.startDate,
+    row?.suspensionFrom,
+    row?.suspendFrom,
+    row?.dateFrom,
+    "",
+  );
+}
+
+function getToDate(row) {
+  return firstDefined(
+    row?.toDate,
+    row?.endDate,
+    row?.suspensionTo,
+    row?.suspendTo,
+    row?.dateTo,
+    "",
+  );
+}
+
+/* ==========================================================================
+   Status
+   ========================================================================== */
+
+/*
+ * companyStatus has historically arrived in several forms:
+ *
+ * - Red / Orange / Yellow
+ * - danger / warning / primary
+ * - percentage-oriented status values
+ *
+ * Keep only semantic mapping here.
+ *
+ * SCSS owns the actual colors.
+ */
+
+function getStatusTone(status) {
+  if (!hasValue(status)) {
+    return "";
+  }
+
+  const value = String(status).trim().toLowerCase();
+
+  if (
+    value.includes("red") ||
+    value.includes("danger") ||
+    value.includes("50")
+  ) {
+    return "danger";
+  }
+
+  if (
+    value.includes("orange") ||
+    value.includes("warning") ||
+    value.includes("35")
+  ) {
+    return "warning";
+  }
+
+  if (
+    value.includes("yellow") ||
+    value.includes("primary") ||
+    value.includes("20")
+  ) {
+    return "primary";
+  }
+
+  return "";
+}
+
+/* ==========================================================================
+   Status Indicator
+   ========================================================================== */
+
+function renderStatusIndicator(row) {
+  const tone = getStatusTone(row?.companyStatus);
+
+  if (!tone) {
+    return "";
+  }
+
+  return `
+    <span
+      class="
+        table-market__status
+        table-market__status--${escapeHtml(tone)}
+      "
+      aria-hidden="true"
+    ></span>
+  `.trim();
+}
+
+/* ==========================================================================
+   Desktop Company Identity
+   ========================================================================== */
+
+/*
+ * Company identity markup and logo fallback belong to formatters.js.
+ *
+ * This view adds only the Company Status indicator.
+ *
+ * Base formatter output:
+ *
+ *   [logo] Company Name
+ *          SYMBOL
+ *
+ * Final Suspended presentation:
+ *
+ *   [logo] Company Name
+ *          SYMBOL + status
+ */
+
+function renderCompanyIdentity(row, config) {
+  const status = renderStatusIndicator(row);
+
+  return renderTradingCompanyCell(row, config, {
+    status,
+  });
+}
+
+/* ==========================================================================
+   Announcement
+   ========================================================================== */
+
+function renderAnnouncement(row, config) {
+  const url = getAnnouncementUrl(row);
+
+  if (!url) {
+    return escapeHtml(config.labels?.notAvailable || "-");
+  }
+
+  return renderAnnouncementLink(
+    row,
+    config,
+    config.labels?.suspendedLink || config.labels?.suspended?.reason || "View",
+  );
+}
+
+/* ==========================================================================
    Columns
    ========================================================================== */
 
 /*
- * JSP owns:
+ * JSP physical contract:
  *
- * Symbol | Company | Period        | Reason
- *                  | From | To
+ * Company | Period        | Reason
+ *         | From | To
  *
- * Therefore the tbody must always contain exactly five physical columns.
+ * Therefore DataTables must expose exactly FOUR leaf/body columns.
  */
 
 function getColumns(config) {
   const labels = config.labels?.suspended || {};
 
   return [
-    /* ----------------------------------------------------------------------
-       Symbol
-       ---------------------------------------------------------------------- */
-
-    {
-      key: "symbol",
-
-      label: labels.symbol || "Symbol",
-
-      data: "symbol",
-
-      /*
-       * Status rendering is local because companyStatus belongs visually beside
-       * the Symbol.
-       */
-      format: "suspended-symbol",
-
-      width: "10rem",
-
-      className: "table-market__symbol table-market__identity-symbol",
-
-      searchable: true,
-    },
-
-    /* ----------------------------------------------------------------------
+    /* ---------------------------------------------------------------------
        Company
-       ---------------------------------------------------------------------- */
+       --------------------------------------------------------------------- */
 
     {
       key: "company",
 
-      label: labels.company || "Company Name",
+      label: labels.company || "Company",
 
-      /*
-       * IMPORTANT:
-       *
-       * Suspended backend uses `name`, not company / companyName.
-       */
-      data: "name",
-
-      format: "link",
-
-      urlData: "companyURL",
+      data: null,
 
       width: "18rem",
 
-      className: "table-market__company table-market__identity-company",
+      className: "table-market__security",
 
       searchable: true,
     },
 
-    /* ----------------------------------------------------------------------
+    /* ---------------------------------------------------------------------
        Period: From
-       ---------------------------------------------------------------------- */
+       --------------------------------------------------------------------- */
 
     {
       key: "from-date",
@@ -160,8 +305,6 @@ function getColumns(config) {
 
       data: "fromDate",
 
-      format: "date",
-
       width: "10rem",
 
       className: "table-market__date",
@@ -169,9 +312,9 @@ function getColumns(config) {
       headerGroup: "period",
     },
 
-    /* ----------------------------------------------------------------------
+    /* ---------------------------------------------------------------------
        Period: To
-       ---------------------------------------------------------------------- */
+       --------------------------------------------------------------------- */
 
     {
       key: "to-date",
@@ -180,8 +323,6 @@ function getColumns(config) {
 
       data: "toDate",
 
-      format: "date",
-
       width: "10rem",
 
       className: "table-market__date",
@@ -189,26 +330,16 @@ function getColumns(config) {
       headerGroup: "period",
     },
 
-    /* ----------------------------------------------------------------------
-       Announcement / Reason
-       ---------------------------------------------------------------------- */
+    /* ---------------------------------------------------------------------
+       Reason / Announcement
+       --------------------------------------------------------------------- */
 
     {
       key: "reason",
 
       label: labels.reason || "Reason",
 
-      /*
-       * There is no useful scalar field here.
-       *
-       * The legacy/current contract is an action URL:
-       *
-       * primary  = annUrl
-       * fallback = newsUrl
-       */
       data: null,
-
-      format: "suspended-announcement",
 
       width: "12rem",
 
@@ -226,8 +357,9 @@ function buildRequestData(filters, config) {
 
   return {
     /*
-     * Exact existing backend contract.
+     * Preserve the exact backend contract.
      */
+
     renderType: "Search",
 
     formType: state.type,
@@ -241,7 +373,7 @@ function buildRequestData(filters, config) {
 }
 
 /* ==========================================================================
-   Response
+   Response Parsing
    ========================================================================== */
 
 function parseResponse(response) {
@@ -255,6 +387,10 @@ function parseResponse(response) {
     return response;
   }
 }
+
+/* ==========================================================================
+   Response Rows
+   ========================================================================== */
 
 function getResponseRows(response) {
   const value = parseResponse(response);
@@ -275,12 +411,24 @@ function getResponseRows(response) {
     return value.results;
   }
 
+  if (Array.isArray(value?.items)) {
+    return value.items;
+  }
+
+  /*
+   * Legacy DataTables wrapper.
+   */
+
   if (Array.isArray(value?.aaData)) {
     return value.aaData;
   }
 
   return [];
 }
+
+/* ==========================================================================
+   Response Count
+   ========================================================================== */
 
 function getResponseCount(response, rows) {
   const value = parseResponse(response);
@@ -304,6 +452,10 @@ function getResponseCount(response, rows) {
   return rows.length;
 }
 
+/* ==========================================================================
+   Response Normalization
+   ========================================================================== */
+
 function normalizeResponse(response) {
   const raw = parseResponse(response);
 
@@ -315,7 +467,12 @@ function normalizeResponse(response) {
     meta: {
       total: getResponseCount(raw, rows),
 
-      updatedAt: raw?.updatedAt ?? raw?.lastUpdated ?? raw?.timestamp ?? null,
+      updatedAt: firstDefined(
+        raw?.updatedAt,
+        raw?.lastUpdated,
+        raw?.timestamp,
+        null,
+      ),
     },
 
     raw,
@@ -323,127 +480,44 @@ function normalizeResponse(response) {
 }
 
 /* ==========================================================================
-   Status
+   Desktop Cell Rendering
    ========================================================================== */
 
-function getStatusClass(status) {
-  if (!hasValue(status)) {
-    return "";
-  }
+function renderCell({ row, column }, config) {
+  switch (column.key) {
+    case "company":
+      return renderCompanyIdentity(row, config);
 
-  const value = String(status).trim().toLowerCase();
+    case "from-date":
+      return escapeHtml(formatDate(getFromDate(row), config));
 
-  /*
-   * Preserve semantic state classes only.
-   *
-   * SCSS owns actual colors.
-   */
-  if (
-    value.includes("red") ||
-    value.includes("danger") ||
-    value.includes("50")
-  ) {
-    return "is-danger";
-  }
-
-  if (
-    value.includes("orange") ||
-    value.includes("warning") ||
-    value.includes("35")
-  ) {
-    return "is-warning";
-  }
-
-  if (
-    value.includes("yellow") ||
-    value.includes("primary") ||
-    value.includes("20")
-  ) {
-    return "is-primary";
-  }
-
-  return "";
-}
-
-function renderSymbol(row) {
-  const identity = getTradingIdentity(row, VIEW);
-
-  const statusClass = getStatusClass(row?.companyStatus);
-
-  return `
-    <div class="trading-symbol-status">
-
-      ${
-        statusClass
-          ? `
-            <span
-              class="
-                trading-symbol-status__indicator
-                ${statusClass}
-              "
-              aria-hidden="true"
-            ></span>
-          `
-          : ""
-      }
-
-      <span class="trading-symbol-status__symbol">
-        ${escapeHtml(identity.code || "-")}
-      </span>
-
-    </div>
-  `.trim();
-}
-
-/* ==========================================================================
-   Announcement
-   ========================================================================== */
-
-function getAnnouncementUrl(row) {
-  return safeUrl(firstDefined(row?.annUrl, row?.newsUrl));
-}
-
-function renderAnnouncement(row, config) {
-  const url = getAnnouncementUrl(row);
-
-  if (!url) {
-    return "-";
-  }
-
-  const label =
-    config.labels?.suspendedLink || config.labels?.suspended?.reason || "View";
-
-  return `
-    <a
-      class="trading-announcement-link"
-      href="${escapeHtml(url)}"
-    >
-      ${escapeHtml(label)}
-    </a>
-  `.trim();
-}
-
-/* ==========================================================================
-   Table Cell
-   ========================================================================== */
-
-function renderCell(args, config) {
-  switch (args.column.key) {
-    case "symbol":
-      return renderSymbol(args.row);
+    case "to-date":
+      return escapeHtml(formatDate(getToDate(row), config));
 
     case "reason":
-      return renderAnnouncement(args.row, config);
+      return renderAnnouncement(row, config);
 
     default:
-      return renderTradingCell({
-        ...args,
-
-        config,
-
-        view: VIEW,
-      });
+      return "";
   }
+}
+
+/* ==========================================================================
+   Mobile Labels
+   ========================================================================== */
+
+function getMobileLabels(config) {
+  const labels = config.labels?.suspended || {};
+
+  return {
+    period: labels.period || "Period",
+
+    fromDate: labels.fromDate || "From",
+
+    toDate: labels.toDate || "To",
+
+    reason: labels.reason || "Reason",
+  };
 }
 
 /* ==========================================================================
@@ -451,23 +525,28 @@ function renderCell(args, config) {
    ========================================================================== */
 
 function getMobileFields(row, config) {
-  const labels = config.labels?.suspended || {};
+  const labels = getMobileLabels(config);
 
   return [
     {
-      label: labels.fromDate || "From",
+      label: labels.fromDate,
 
-      value: escapeHtml(getDisplayValue(formatTradingDate(row?.fromDate), "-")),
+      value: formatDate(getFromDate(row), config),
     },
 
     {
-      label: labels.toDate || "To",
+      label: labels.toDate,
 
-      value: escapeHtml(getDisplayValue(formatTradingDate(row?.toDate), "-")),
+      value: formatDate(getToDate(row), config),
     },
 
     {
-      label: labels.reason || "Reason",
+      label: labels.reason,
+
+      /*
+       * renderStandardDataCard supports HTML-valued fields in the current
+       * data-view contract used by Company Status.
+       */
 
       value: renderAnnouncement(row, config),
 
@@ -481,16 +560,31 @@ function getMobileFields(row, config) {
    ========================================================================== */
 
 function renderMobileCard(row, context, config) {
-  const identity = getTradingIdentity(row, VIEW);
+  const symbol = getCompanySymbol(row);
+
+  const company = getCompanyName(row, config);
+
+  const status = renderStatusIndicator(row);
 
   return renderStandardDataCard({
     idPrefix: "trading-suspended-details",
 
-    rowId: `${identity.code || identity.name || "suspended"}-${context.index}`,
+    rowId: `${symbol || company || "suspended"}-${context.index}`,
 
     className: "trading-data-card trading-data-card--suspended",
 
-    summary: renderMobileIdentity(row, VIEW),
+    /*
+     * Shared Trading identity owns:
+     *
+     * [logo] Company Name
+     *        Symbol
+     *
+     * Company Status contributes only the status indicator.
+     */
+
+    summary: renderTradingCardIdentity(row, config, {
+      status,
+    }),
 
     fields: getMobileFields(row, config),
 
@@ -507,6 +601,10 @@ function renderMobileCard(row, context, config) {
    ========================================================================== */
 
 export function createSuspendedView({ root, config, filters } = {}) {
+  /* =========================================================================
+     Guards
+     ========================================================================= */
+
   if (!(root instanceof Element)) {
     throw new TypeError(
       "Suspended Companies view requires a valid root element.",
@@ -517,6 +615,10 @@ export function createSuspendedView({ root, config, filters } = {}) {
     throw new TypeError(
       "Suspended Companies view requires Company Status filters.",
     );
+  }
+
+  if (!config?.endpoints?.suspendedDelisted) {
+    throw new TypeError("Suspended / Delisted endpoint is required.");
   }
 
   const columns = getColumns(config);
@@ -571,15 +673,14 @@ export function createSuspendedView({ root, config, filters } = {}) {
     initialView: VIEW,
 
     /*
-     * CRITICAL:
-     *
      * JSP owns:
      *
-     * Symbol | Company | Period        | Reason
-     *                  | From | To
+     * Company | Period        | Reason
+     *         | From | To
      *
-     * Never rebuild this header in JavaScript.
+     * Never regenerate this grouped header in JavaScript.
      */
+
     headerMode: "existing",
 
     getColumns() {
@@ -596,19 +697,26 @@ export function createSuspendedView({ root, config, filters } = {}) {
       ...config.tables?.suspendedCompanies,
 
       /*
-       * .table-responsive owns horizontal scrolling.
-       *
-       * Avoid dt-scroll cloned headers for this grouped table.
+       * Horizontal containment belongs to .table-responsive.
        */
+
       scrollX: false,
 
       scrollCollapse: false,
 
-      fixedHeader: false,
+      /*
+       * Shared FixedHeader owns the sticky table header.
+       *
+       * There is no FixedColumns requirement for this compact table.
+       */
+
+      fixedHeader: true,
 
       fixedColumns: false,
 
       ordering: false,
+
+      responsive: false,
     },
   });
 
@@ -655,6 +763,10 @@ export function createSuspendedView({ root, config, filters } = {}) {
 
       error: config.labels?.loadError,
 
+      /*
+       * JSP already renders the visible Results label.
+       */
+
       results: "",
     },
   });
@@ -691,10 +803,19 @@ export function createSuspendedView({ root, config, filters } = {}) {
 
   const controller = createDataViewController({
     source,
+
     state,
+
     table,
+
     cards,
+
     results,
+
+    /*
+     * Company Status orchestration decides which variant is active and when
+     * the associated dataset should load.
+     */
 
     autoLoad: false,
 
@@ -725,9 +846,6 @@ export function createSuspendedView({ root, config, filters } = {}) {
     root.setAttribute("aria-busy", String(Boolean(snapshot.loading)));
   });
 
-  /*
-   * JS owns actual runtime loading state.
-   */
   root.setAttribute("aria-busy", "false");
 
   /* =========================================================================
@@ -749,15 +867,39 @@ export function createSuspendedView({ root, config, filters } = {}) {
       return;
     }
 
+    /*
+     * Company Status variants are shown/hidden dynamically.
+     *
+     * Recalculate after Suspended becomes visible.
+     */
+
     requestAnimationFrame(() => {
       try {
         api.columns?.adjust?.();
+
+        api.fixedHeader?.adjust?.();
 
         api.responsive?.recalc?.();
       } catch (error) {
         console.warn("Suspended table adjustment failed:", error);
       }
     });
+  }
+
+  /* =========================================================================
+     Queries
+     ========================================================================= */
+
+  function getRows() {
+    return controller.getSourceRows?.() || [];
+  }
+
+  function getVisibleRows() {
+    return controller.getVisibleRows?.() || [];
+  }
+
+  function getTable() {
+    return table.getApi?.() || null;
   }
 
   /* =========================================================================
@@ -780,19 +922,14 @@ export function createSuspendedView({ root, config, filters } = {}) {
     view: VIEW,
 
     reload,
+
     adjust,
 
-    getRows() {
-      return controller.getSourceRows?.() || [];
-    },
+    getRows,
 
-    getVisibleRows() {
-      return controller.getVisibleRows?.() || [];
-    },
+    getVisibleRows,
 
-    getTable() {
-      return table.getApi?.() || null;
-    },
+    getTable,
 
     destroy,
   });

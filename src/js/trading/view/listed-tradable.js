@@ -5,22 +5,60 @@
 /*
  * Listed Tradable Rights Trading view.
  *
- * Responsibilities:
+ * Final desktop contract:
  *
- * - define the exact 14-column backend/body contract
- * - preserve the JSP-owned two-row grouped header
- * - build the exact backend request
- * - normalize legacy/current response wrappers
- * - render standard expandable mobile cards
+ *   Tradable Rights
  *
- * Shared lifecycle remains in common/data-view:
+ *   Last Trade
+ *     - Price
+ *     - Volume
+ *     - Change Value
+ *     - Change %
  *
- * - request cancellation
- * - table skeletons
- * - card skeletons
- * - empty/error states
+ *   Today's Trading
+ *     - Open
+ *     - High
+ *     - Low
+ *
+ *   Cumulative
+ *     - Number of Trades
+ *     - Volume Traded
+ *
+ *   Best Bid
+ *     - Price
+ *     - Volume
+ *
+ *   Best Offer
+ *     - Price
+ *     - Volume
+ *
+ * The JSP owns the complete two-row grouped <thead>.
+ *
+ * This module owns:
+ *
+ * - data loading
+ * - response normalization
+ * - 14-column tbody rendering
+ * - mobile card composition
+ * - result count
+ * - table lifecycle
+ *
+ * Shared formatters own:
+ *
+ * - company identity
+ * - company logo / fallback
+ * - number formatting
+ * - money formatting
+ * - percentage formatting
+ * - HTML escaping
+ *
+ * Shared data-view owns:
+ *
+ * - loading state
+ * - empty state
+ * - error state
  * - DataTables lifecycle
- * - DataViewCard enhancement
+ * - card lifecycle
  */
 
 /* ==========================================================================
@@ -34,7 +72,6 @@ import {
   createDataState,
   createDataTable,
   createDataViewController,
-  renderStandardDataCard,
 } from "../../common/data-view/index.js";
 
 /* ==========================================================================
@@ -50,12 +87,13 @@ import {
 
 import {
   escapeHtml,
-  getDisplayValue,
-  getTradingIdentity,
-  renderListedTradableMobileSummary,
-  renderMobileIdentity,
-  renderPriceChange,
-  renderTradingCell,
+  formatMoney,
+  formatPercentage,
+  formatQuantity,
+  getCompanyName,
+  getCompanySymbol,
+  renderTradingCardIdentity,
+  renderTradingCompanyCell,
 } from "../formatters.js";
 
 /* ==========================================================================
@@ -65,87 +103,274 @@ import {
 const VIEW = TRADING_VIEWS.listedTradableRights;
 
 /* ==========================================================================
+   Generic Helpers
+   ========================================================================== */
+
+function hasValue(value) {
+  return value !== null && value !== undefined && String(value).trim() !== "";
+}
+
+function firstDefined(...values) {
+  return values.find(
+    (value) => value !== undefined && value !== null && value !== "",
+  );
+}
+
+/* ==========================================================================
+   Change Tone
+   ========================================================================== */
+
+/*
+ * Keep the CSS-facing semantic tone local to this view.
+ *
+ * formatters.js is a frozen shared contract and therefore does not need a
+ * Listed-specific public tone helper.
+ */
+
+function getChangeTone(value) {
+  const normalized = String(value ?? "")
+    .replace(/,/g, "")
+    .replace(/%/g, "")
+    .trim();
+
+  if (!normalized) {
+    return "neutral";
+  }
+
+  const number = Number(normalized);
+
+  if (!Number.isFinite(number)) {
+    return "neutral";
+  }
+
+  if (number > 0) {
+    return "positive";
+  }
+
+  if (number < 0) {
+    return "negative";
+  }
+
+  return "neutral";
+}
+
+/* ==========================================================================
+   Field Accessors
+   ========================================================================== */
+
+/*
+ * Keep endpoint-specific aliases here.
+ *
+ * The common formatter should remain generic and reusable across Trading
+ * tabs rather than accumulating every possible Listed Rights backend alias.
+ */
+
+/* --------------------------------------------------------------------------
+   Last Trade
+   -------------------------------------------------------------------------- */
+
+function getLastTradePrice(row) {
+  return firstDefined(
+    row?.lastTradePrice,
+    row?.lastPrice,
+    row?.tradePrice,
+    row?.price,
+    "",
+  );
+}
+
+function getLastTradeVolume(row) {
+  return firstDefined(
+    row?.lastTradeVolume,
+    row?.lastVolume,
+    row?.tradeVolume,
+    row?.volume,
+    "",
+  );
+}
+
+function getChangeValue(row) {
+  return firstDefined(
+    row?.changeValue,
+    row?.change,
+    row?.netChange,
+    row?.priceChange,
+    "",
+  );
+}
+
+function getChangePercent(row) {
+  return firstDefined(
+    row?.changePercent,
+    row?.changePercentage,
+    row?.percentageChange,
+    row?.percentChange,
+    row?.changePct,
+    "",
+  );
+}
+
+/* --------------------------------------------------------------------------
+   Today's Trading
+   -------------------------------------------------------------------------- */
+
+function getOpen(row) {
+  return firstDefined(row?.open, row?.openPrice, row?.openingPrice, "");
+}
+
+function getHigh(row) {
+  return firstDefined(row?.high, row?.highPrice, row?.highestPrice, "");
+}
+
+function getLow(row) {
+  return firstDefined(row?.low, row?.lowPrice, row?.lowestPrice, "");
+}
+
+/* --------------------------------------------------------------------------
+   Cumulative
+   -------------------------------------------------------------------------- */
+
+function getNumberOfTrades(row) {
+  return firstDefined(
+    row?.numberOfTrades,
+    row?.noOfTrades,
+    row?.tradeCount,
+    row?.trades,
+    "",
+  );
+}
+
+function getVolumeTraded(row) {
+  return firstDefined(
+    row?.volumeTraded,
+    row?.tradedVolume,
+    row?.totalVolume,
+    row?.cumulativeVolume,
+    "",
+  );
+}
+
+/* --------------------------------------------------------------------------
+   Best Bid
+   -------------------------------------------------------------------------- */
+
+function getBidPrice(row) {
+  return firstDefined(row?.bidPrice, row?.bestBidPrice, row?.bestBid, "");
+}
+
+function getBidVolume(row) {
+  return firstDefined(
+    row?.bidVolume,
+    row?.bestBidVolume,
+    row?.bestBidQuantity,
+    "",
+  );
+}
+
+/* --------------------------------------------------------------------------
+   Best Offer
+   -------------------------------------------------------------------------- */
+
+function getAskPrice(row) {
+  return firstDefined(
+    row?.askPrice,
+    row?.offerPrice,
+    row?.bestAskPrice,
+    row?.bestOfferPrice,
+    row?.bestOffer,
+    "",
+  );
+}
+
+function getAskVolume(row) {
+  return firstDefined(
+    row?.askVolume,
+    row?.offerVolume,
+    row?.bestAskVolume,
+    row?.bestOfferVolume,
+    row?.bestOfferQuantity,
+    "",
+  );
+}
+
+/* ==========================================================================
    Columns
    ========================================================================== */
 
 /*
- * IMPORTANT
+ * IMPORTANT:
  *
- * These 14 columns correspond exactly to the 14 leaf positions represented
- * by the JSP-owned grouped <thead>.
+ * This array describes the 14 PHYSICAL leaf columns represented by the
+ * JSP-owned grouped header.
  *
- * Backend property names are intentionally preserved from the working Trading
- * implementation. Do not replace them with generic guessed names.
+ * JSP:
+ *
+ *   1 Tradable Rights
+ *
+ *   Last Trade       = 4
+ *   Today's Trading  = 3
+ *   Cumulative       = 2
+ *   Best Bid         = 2
+ *   Best Offer       = 2
+ *
+ * Total:
+ *
+ *   1 + 4 + 3 + 2 + 2 + 2 = 14
+ *
+ * Do not add Symbol as a separate column.
+ * Symbol belongs beneath the Tradable Right / company name.
  */
 
 function getColumns(config) {
-  const labels = config.labels?.listedTradable || {};
+  const labels = config.labels?.listedTradableRights || {};
 
   return [
-    /* ======================================================================
-       Tradable Right
-       ====================================================================== */
+    /* ---------------------------------------------------------------------
+       Identity
+       --------------------------------------------------------------------- */
 
     {
       key: "tradable-right",
 
-      label: labels.security || "Tradable Rights",
+      label: labels.tradableRight || "Tradable Rights",
 
-      /*
-       * Actual backend field.
-       */
-      data: "acrynomName",
+      data: null,
 
-      format: "link",
+      width: "18rem",
 
-      urlData: "pageUrl",
-
-      width: "22%",
-
-      className: "table-market__security table-market__identity",
-
-      searchable: true,
+      className: "table-market__security",
     },
 
-    /* ======================================================================
+    /* ---------------------------------------------------------------------
        Last Trade
-       ====================================================================== */
+       --------------------------------------------------------------------- */
 
     {
       key: "last-trade-price",
 
-      label: labels.lastTradePrice || "Price",
+      label: labels.price || "Price",
 
-      /*
-       * Already formatted by backend.
-       */
-      data: "lastTradePriceModified",
-
-      width: "8rem",
+      data: null,
 
       numeric: true,
 
-      className: "table-market__number",
+      width: "7.5rem",
 
-      headerGroup: "last-trade",
+      className: "table-market__number table-market__price",
     },
 
     {
       key: "last-trade-volume",
 
-      label: labels.lastTradeVolume || "Volume",
+      label: labels.volume || "Volume",
 
-      data: "lastTradeQuantity",
-
-      format: "quantity",
-
-      width: "9rem",
+      data: null,
 
       numeric: true,
 
-      className: "table-market__number",
+      width: "9rem",
 
-      headerGroup: "last-trade",
+      className: "table-market__number",
     },
 
     {
@@ -153,19 +378,13 @@ function getColumns(config) {
 
       label: labels.changeValue || "Change Value",
 
-      data: "netChangeModified",
-
-      numericData: "netChangeDoubleModified",
-
-      format: "change",
-
-      width: "8rem",
+      data: null,
 
       numeric: true,
 
-      className: "table-market__number",
+      width: "8.5rem",
 
-      headerGroup: "last-trade",
+      className: "table-market__number",
     },
 
     {
@@ -173,45 +392,31 @@ function getColumns(config) {
 
       label: labels.changePercent || "Change %",
 
-      data: "percentChangeModified",
-
-      numericData: "percentChangeDoubleModified",
-
-      /*
-       * Backend display value already carries the desired formatting.
-       *
-       * We still use the numeric double only to determine positive/negative
-       * presentation.
-       */
-      format: "change",
-
-      width: "8rem",
+      data: null,
 
       numeric: true,
 
-      className: "table-market__number",
+      width: "8rem",
 
-      headerGroup: "last-trade",
+      className: "table-market__number",
     },
 
-    /* ======================================================================
+    /* ---------------------------------------------------------------------
        Today's Trading
-       ====================================================================== */
+       --------------------------------------------------------------------- */
 
     {
       key: "open",
 
       label: labels.open || "Open",
 
-      data: "todayOpenModified",
-
-      width: "8rem",
+      data: null,
 
       numeric: true,
 
-      className: "table-market__number",
+      width: "7.5rem",
 
-      headerGroup: "today",
+      className: "table-market__number",
     },
 
     {
@@ -219,15 +424,13 @@ function getColumns(config) {
 
       label: labels.high || "High",
 
-      data: "highPriceModified",
-
-      width: "8rem",
+      data: null,
 
       numeric: true,
 
-      className: "table-market__number",
+      width: "7.5rem",
 
-      headerGroup: "today",
+      className: "table-market__number",
     },
 
     {
@@ -235,42 +438,31 @@ function getColumns(config) {
 
       label: labels.low || "Low",
 
-      data: "lowPriceModified",
-
-      width: "8rem",
+      data: null,
 
       numeric: true,
 
-      className: "table-market__number",
+      width: "7.5rem",
 
-      headerGroup: "today",
+      className: "table-market__number",
     },
 
-    /* ======================================================================
+    /* ---------------------------------------------------------------------
        Cumulative
-       ====================================================================== */
+       --------------------------------------------------------------------- */
 
     {
       key: "number-of-trades",
 
       label: labels.numberOfTrades || "Number of Trades",
 
-      /*
-       * IMPORTANT:
-       *
-       * Backend uses nuOfTrades, not noOfTrades.
-       */
-      data: "nuOfTrades",
-
-      format: "quantity",
-
-      width: "9rem",
+      data: null,
 
       numeric: true,
 
-      className: "table-market__number",
+      width: "9rem",
 
-      headerGroup: "cumulative",
+      className: "table-market__number",
     },
 
     {
@@ -278,93 +470,77 @@ function getColumns(config) {
 
       label: labels.volumeTraded || "Volume Traded",
 
-      data: "volumeTraded",
-
-      format: "quantity",
-
-      width: "10rem",
+      data: null,
 
       numeric: true,
 
-      className: "table-market__number",
+      width: "10rem",
 
-      headerGroup: "cumulative",
+      className: "table-market__number",
     },
 
-    /* ======================================================================
+    /* ---------------------------------------------------------------------
        Best Bid
-       ====================================================================== */
+       --------------------------------------------------------------------- */
 
     {
       key: "bid-price",
 
-      label: labels.bidPrice || "Bid Price",
+      label: labels.bidPrice || labels.price || "Price",
 
-      data: "bidPriceModified",
-
-      width: "8rem",
+      data: null,
 
       numeric: true,
 
-      className: "table-market__number",
+      width: "7.5rem",
 
-      headerGroup: "best-bid",
+      className: "table-market__number",
     },
 
     {
       key: "bid-volume",
 
-      label: labels.bidVolume || "Bid Volume",
+      label: labels.bidVolume || labels.volume || "Volume",
 
-      data: "bidQuantity",
-
-      format: "quantity",
-
-      width: "9rem",
+      data: null,
 
       numeric: true,
 
-      className: "table-market__number",
+      width: "9rem",
 
-      headerGroup: "best-bid",
+      className: "table-market__number",
     },
 
-    /* ======================================================================
+    /* ---------------------------------------------------------------------
        Best Offer
-       ====================================================================== */
+       --------------------------------------------------------------------- */
 
     {
       key: "ask-price",
 
-      label: labels.askPrice || "Ask Price",
+      label: labels.askPrice || labels.price || "Price",
 
-      data: "askPriceModified",
-
-      width: "8rem",
+      data: null,
 
       numeric: true,
 
-      className: "table-market__number",
+      width: "7.5rem",
 
-      headerGroup: "best-offer",
+      className: "table-market__number",
     },
 
     {
       key: "ask-volume",
 
-      label: labels.askVolume || "Ask Volume",
+      label: labels.askVolume || labels.volume || "Volume",
 
-      data: "askQuantity",
-
-      format: "quantity",
-
-      width: "9rem",
+      data: null,
 
       numeric: true,
 
-      className: "table-market__number",
+      width: "9rem",
 
-      headerGroup: "best-offer",
+      className: "table-market__number",
     },
   ];
 }
@@ -374,7 +550,9 @@ function getColumns(config) {
    ========================================================================== */
 
 /*
- * Exact working backend contract.
+ * Listed Tradable Rights has no local filter form.
+ *
+ * Keep the request contract deliberately small.
  */
 
 function buildRequestData(config) {
@@ -384,7 +562,7 @@ function buildRequestData(config) {
 }
 
 /* ==========================================================================
-   Response
+   Response Parsing
    ========================================================================== */
 
 function parseResponse(response) {
@@ -398,6 +576,10 @@ function parseResponse(response) {
     return response;
   }
 }
+
+/* ==========================================================================
+   Response Rows
+   ========================================================================== */
 
 function getResponseRows(response) {
   const value = parseResponse(response);
@@ -418,15 +600,24 @@ function getResponseRows(response) {
     return value.results;
   }
 
+  if (Array.isArray(value?.items)) {
+    return value.items;
+  }
+
   /*
-   * Preserve legacy DataTables response compatibility.
+   * Compatibility with older DataTables-oriented endpoints.
    */
+
   if (Array.isArray(value?.aaData)) {
     return value.aaData;
   }
 
   return [];
 }
+
+/* ==========================================================================
+   Result Count
+   ========================================================================== */
 
 function getResponseCount(response, rows) {
   const value = parseResponse(response);
@@ -436,7 +627,6 @@ function getResponseCount(response, rows) {
     value?.count,
     value?.recordsTotal,
     value?.recordsFiltered,
-    rows?.[0]?.count,
   ];
 
   for (const candidate of candidates) {
@@ -450,6 +640,10 @@ function getResponseCount(response, rows) {
   return rows.length;
 }
 
+/* ==========================================================================
+   Response Normalization
+   ========================================================================== */
+
 function normalizeResponse(response) {
   const raw = parseResponse(response);
 
@@ -461,7 +655,12 @@ function normalizeResponse(response) {
     meta: {
       total: getResponseCount(raw, rows),
 
-      updatedAt: raw?.updatedAt ?? raw?.lastUpdated ?? raw?.timestamp ?? null,
+      updatedAt: firstDefined(
+        raw?.updatedAt,
+        raw?.lastUpdated,
+        raw?.timestamp,
+        null,
+      ),
     },
 
     raw,
@@ -469,161 +668,564 @@ function normalizeResponse(response) {
 }
 
 /* ==========================================================================
-   Mobile Details
+   Change Presentation
+   ========================================================================== */
+
+function renderChangeValue(row, config) {
+  const value = getChangeValue(row);
+
+  const tone = getChangeTone(value);
+
+  return `
+    <span
+      class="
+        table-market__change
+        table-market__change--${escapeHtml(tone)}
+      "
+    >
+      ${escapeHtml(formatMoney(value, config))}
+    </span>
+  `.trim();
+}
+
+/* ==========================================================================
+   Change Percent
+   ========================================================================== */
+
+function renderChangePercent(row, config) {
+  const value = getChangePercent(row);
+
+  const tone = getChangeTone(value);
+
+  return `
+    <span
+      class="
+        table-market__change
+        table-market__change--${escapeHtml(tone)}
+      "
+    >
+      ${escapeHtml(formatPercentage(value, config))}
+    </span>
+  `.trim();
+}
+
+/* ==========================================================================
+   Desktop Cell
+   ========================================================================== */
+
+function renderCell({ row, column }, config) {
+  switch (column.key) {
+    /* ---------------------------------------------------------------------
+       Identity
+       --------------------------------------------------------------------- */
+
+    case "tradable-right":
+      return renderTradingCompanyCell(row, config);
+
+    /* ---------------------------------------------------------------------
+       Last Trade
+       --------------------------------------------------------------------- */
+
+    case "last-trade-price":
+      return escapeHtml(formatMoney(getLastTradePrice(row), config));
+
+    case "last-trade-volume":
+      return escapeHtml(formatQuantity(getLastTradeVolume(row), config));
+
+    case "change-value":
+      return renderChangeValue(row, config);
+
+    case "change-percent":
+      return renderChangePercent(row, config);
+
+    /* ---------------------------------------------------------------------
+       Today's Trading
+       --------------------------------------------------------------------- */
+
+    case "open":
+      return escapeHtml(formatMoney(getOpen(row), config));
+
+    case "high":
+      return escapeHtml(formatMoney(getHigh(row), config));
+
+    case "low":
+      return escapeHtml(formatMoney(getLow(row), config));
+
+    /* ---------------------------------------------------------------------
+       Cumulative
+       --------------------------------------------------------------------- */
+
+    case "number-of-trades":
+      return escapeHtml(formatQuantity(getNumberOfTrades(row), config));
+
+    case "volume-traded":
+      return escapeHtml(formatQuantity(getVolumeTraded(row), config));
+
+    /* ---------------------------------------------------------------------
+       Best Bid
+       --------------------------------------------------------------------- */
+
+    case "bid-price":
+      return escapeHtml(formatMoney(getBidPrice(row), config));
+
+    case "bid-volume":
+      return escapeHtml(formatQuantity(getBidVolume(row), config));
+
+    /* ---------------------------------------------------------------------
+       Best Offer
+       --------------------------------------------------------------------- */
+
+    case "ask-price":
+      return escapeHtml(formatMoney(getAskPrice(row), config));
+
+    case "ask-volume":
+      return escapeHtml(formatQuantity(getAskVolume(row), config));
+
+    default:
+      return "";
+  }
+}
+
+/* ==========================================================================
+   Mobile Labels
+   ========================================================================== */
+
+function getMobileLabels(config) {
+  const labels = config.labels?.listedTradableRights || {};
+
+  return {
+    lastTrade: labels.lastTrade || "Last Trade",
+
+    todaysTrading: labels.todaysTrading || "Today's Trading",
+
+    cumulative: labels.cumulative || "Cumulative",
+
+    bestBid: labels.bestBid || "Best Bid",
+
+    bestOffer: labels.bestOffer || "Best Offer",
+
+    price: labels.price || "Price",
+
+    volume: labels.volume || "Volume",
+
+    changeValue: labels.changeValue || "Change Value",
+
+    changePercent: labels.changePercent || "Change %",
+
+    open: labels.open || "Open",
+
+    high: labels.high || "High",
+
+    low: labels.low || "Low",
+
+    numberOfTrades: labels.numberOfTrades || "Number of Trades",
+
+    volumeTraded: labels.volumeTraded || "Volume Traded",
+  };
+}
+
+/* ==========================================================================
+   Mobile Summary
    ========================================================================== */
 
 /*
- * Price + Change % remain visible in the summary.
+ * Smart mobile treatment for the complex grouped desktop table.
  *
- * Everything below is secondary market detail and belongs in the expandable
- * details area.
+ * Do NOT reproduce the 14-column table as a flat list.
+ *
+ * Card summary:
+ *
+ *   LEFT
+ *     [logo] Company / Tradable Right
+ *            SYMBOL
+ *
+ *   RIGHT
+ *     Last Price
+ *     Change %
+ *
+ * Details:
+ *
+ *   Last Trade
+ *   Today's Trading
+ *   Cumulative
+ *   Best Bid
+ *   Best Offer
  */
 
-function getMobileFields(row, config) {
-  const labels = config.labels?.listedTradable || {};
+function renderMobileSummary(row, config) {
+  const labels = getMobileLabels(config);
+
+  const price = getLastTradePrice(row);
+
+  const changePercent = getChangePercent(row);
+
+  const tone = getChangeTone(changePercent);
+
+  return `
+    <div
+      class="
+        data-card__quote
+        trading-listed-right__quote
+      "
+    >
+      <span
+        class="data-card__symbol"
+      >
+        ${escapeHtml(labels.price)}
+      </span>
+
+      <span
+        class="data-card__price"
+      >
+        ${escapeHtml(formatMoney(price, config))}
+      </span>
+
+      <span
+        class="
+          data-card__meta
+          table-market__change
+          table-market__change--${escapeHtml(tone)}
+        "
+      >
+        ${escapeHtml(formatPercentage(changePercent, config))}
+      </span>
+    </div>
+  `.trim();
+}
+
+/* ==========================================================================
+   Mobile Field
+   ========================================================================== */
+
+function createMobileField({ label, value, numeric = true, className = "" }) {
+  return {
+    label,
+    value,
+    numeric,
+    className,
+  };
+}
+
+/* ==========================================================================
+   Mobile Last Trade Fields
+   ========================================================================== */
+
+function getLastTradeFields(row, config) {
+  const labels = getMobileLabels(config);
 
   return [
-    /* ----------------------------------------------------------------------
-       Last Trade
-       ---------------------------------------------------------------------- */
+    createMobileField({
+      label: labels.volume,
 
-    {
-      label: labels.lastTradeVolume || "Volume",
+      value: formatQuantity(getLastTradeVolume(row), config),
+    }),
 
-      value: escapeHtml(getDisplayValue(row?.lastTradeQuantity, "-")),
+    createMobileField({
+      label: labels.changeValue,
 
-      numeric: true,
-    },
+      value: formatMoney(getChangeValue(row), config),
 
-    {
-      label: labels.changeValue || "Change Value",
+      className: `table-market__change table-market__change--${getChangeTone(
+        getChangeValue(row),
+      )}`,
+    }),
 
-      value: renderPriceChange(
-        row?.netChangeModified,
-        row?.netChangeDoubleModified,
-      ),
+    createMobileField({
+      label: labels.changePercent,
 
-      numeric: true,
-    },
+      value: formatPercentage(getChangePercent(row), config),
 
-    /* ----------------------------------------------------------------------
-       Today's Trading
-       ---------------------------------------------------------------------- */
-
-    {
-      label: labels.open || "Open",
-
-      value: escapeHtml(getDisplayValue(row?.todayOpenModified, "-")),
-
-      numeric: true,
-    },
-
-    {
-      label: labels.high || "High",
-
-      value: escapeHtml(getDisplayValue(row?.highPriceModified, "-")),
-
-      numeric: true,
-    },
-
-    {
-      label: labels.low || "Low",
-
-      value: escapeHtml(getDisplayValue(row?.lowPriceModified, "-")),
-
-      numeric: true,
-    },
-
-    /* ----------------------------------------------------------------------
-       Cumulative
-       ---------------------------------------------------------------------- */
-
-    {
-      label: labels.numberOfTrades || "Number of Trades",
-
-      value: escapeHtml(getDisplayValue(row?.nuOfTrades, "-")),
-
-      numeric: true,
-    },
-
-    {
-      label: labels.volumeTraded || "Volume Traded",
-
-      value: escapeHtml(getDisplayValue(row?.volumeTraded, "-")),
-
-      numeric: true,
-    },
-
-    /* ----------------------------------------------------------------------
-       Best Bid
-       ---------------------------------------------------------------------- */
-
-    {
-      label: labels.bidPrice || "Bid Price",
-
-      value: escapeHtml(getDisplayValue(row?.bidPriceModified, "-")),
-
-      numeric: true,
-    },
-
-    {
-      label: labels.bidVolume || "Bid Volume",
-
-      value: escapeHtml(getDisplayValue(row?.bidQuantity, "-")),
-
-      numeric: true,
-    },
-
-    /* ----------------------------------------------------------------------
-       Best Offer
-       ---------------------------------------------------------------------- */
-
-    {
-      label: labels.askPrice || "Ask Price",
-
-      value: escapeHtml(getDisplayValue(row?.askPriceModified, "-")),
-
-      numeric: true,
-    },
-
-    {
-      label: labels.askVolume || "Ask Volume",
-
-      value: escapeHtml(getDisplayValue(row?.askQuantity, "-")),
-
-      numeric: true,
-    },
+      className: `table-market__change table-market__change--${getChangeTone(
+        getChangePercent(row),
+      )}`,
+    }),
   ];
+}
+
+/* ==========================================================================
+   Mobile Today's Trading Fields
+   ========================================================================== */
+
+function getTodayFields(row, config) {
+  const labels = getMobileLabels(config);
+
+  return [
+    createMobileField({
+      label: labels.open,
+
+      value: formatMoney(getOpen(row), config),
+    }),
+
+    createMobileField({
+      label: labels.high,
+
+      value: formatMoney(getHigh(row), config),
+    }),
+
+    createMobileField({
+      label: labels.low,
+
+      value: formatMoney(getLow(row), config),
+    }),
+  ];
+}
+
+/* ==========================================================================
+   Mobile Cumulative Fields
+   ========================================================================== */
+
+function getCumulativeFields(row, config) {
+  const labels = getMobileLabels(config);
+
+  return [
+    createMobileField({
+      label: labels.numberOfTrades,
+
+      value: formatQuantity(getNumberOfTrades(row), config),
+    }),
+
+    createMobileField({
+      label: labels.volumeTraded,
+
+      value: formatQuantity(getVolumeTraded(row), config),
+    }),
+  ];
+}
+
+/* ==========================================================================
+   Mobile Best Bid Fields
+   ========================================================================== */
+
+function getBestBidFields(row, config) {
+  const labels = getMobileLabels(config);
+
+  return [
+    createMobileField({
+      label: labels.price,
+
+      value: formatMoney(getBidPrice(row), config),
+    }),
+
+    createMobileField({
+      label: labels.volume,
+
+      value: formatQuantity(getBidVolume(row), config),
+    }),
+  ];
+}
+
+/* ==========================================================================
+   Mobile Best Offer Fields
+   ========================================================================== */
+
+function getBestOfferFields(row, config) {
+  const labels = getMobileLabels(config);
+
+  return [
+    createMobileField({
+      label: labels.price,
+
+      value: formatMoney(getAskPrice(row), config),
+    }),
+
+    createMobileField({
+      label: labels.volume,
+
+      value: formatQuantity(getAskVolume(row), config),
+    }),
+  ];
+}
+
+/* ==========================================================================
+   Safe Mobile Detail Group
+   ========================================================================== */
+
+/*
+ * Values are normalized before markup generation.
+ *
+ * This is the single grouped-detail renderer.
+ */
+
+function renderMobileDetailGroup({ title, fields }) {
+  return `
+    <section
+      class="
+        data-card__field-group
+        trading-listed-right__group
+      "
+    >
+      <h4
+        class="data-card__field-group-title"
+      >
+        ${escapeHtml(title)}
+      </h4>
+
+      <dl
+        class="
+          data-card__fields
+          trading-listed-right__fields
+        "
+      >
+        ${fields
+          .map(({ label, value, className = "" }) =>
+            `
+              <div
+                class="data-card__field"
+              >
+                <dt
+                  class="data-card__label"
+                >
+                  ${escapeHtml(label)}
+                </dt>
+
+                <dd
+                  class="
+                    data-card__value
+                    ${escapeHtml(className)}
+                  "
+                >
+                  ${escapeHtml(value)}
+                </dd>
+              </div>
+            `.trim(),
+          )
+          .join("")}
+      </dl>
+    </section>
+  `.trim();
+}
+
+/* ==========================================================================
+   Mobile Detail Groups
+   ========================================================================== */
+
+function renderMobileDetails(row, config) {
+  const labels = getMobileLabels(config);
+
+  const fallback = config.labels?.notAvailable || "-";
+
+  /*
+   * Normalize missing values once before handing them to the presentation
+   * renderer.
+   */
+
+  const normalizeFields = (fields) =>
+    fields.map((field) => ({
+      ...field,
+
+      value: hasValue(field.value) ? field.value : fallback,
+    }));
+
+  return [
+    renderMobileDetailGroup({
+      title: labels.lastTrade,
+
+      fields: normalizeFields(getLastTradeFields(row, config)),
+    }),
+
+    renderMobileDetailGroup({
+      title: labels.todaysTrading,
+
+      fields: normalizeFields(getTodayFields(row, config)),
+    }),
+
+    renderMobileDetailGroup({
+      title: labels.cumulative,
+
+      fields: normalizeFields(getCumulativeFields(row, config)),
+    }),
+
+    renderMobileDetailGroup({
+      title: labels.bestBid,
+
+      fields: normalizeFields(getBestBidFields(row, config)),
+    }),
+
+    renderMobileDetailGroup({
+      title: labels.bestOffer,
+
+      fields: normalizeFields(getBestOfferFields(row, config)),
+    }),
+  ].join("");
 }
 
 /* ==========================================================================
    Mobile Card
    ========================================================================== */
 
-function renderMobileCard(row, context, config) {
-  const identity = getTradingIdentity(row, VIEW);
+function renderListedTradableCard(row, context, config) {
+  const symbol = getCompanySymbol(row);
 
-  return renderStandardDataCard({
-    idPrefix: "trading-listed-tradable-details",
+  const company = getCompanyName(row, config);
 
-    rowId: `${identity.name || "tradable-right"}-${context.index}`,
+  const rowId = `${symbol || company || "listed-right"}-${context.index}`;
 
-    className: "trading-data-card trading-data-card--listed-tradable",
+  const detailsId = `trading-listed-right-details-${rowId}`;
 
-    summary: `
-      ${renderMobileIdentity(row, VIEW)}
+  /*
+   * We intentionally provide the grouped detail markup ourselves.
+   *
+   * A complex grouped financial table should not become a flat 13-field
+   * mobile card.
+   */
 
-      ${renderListedTradableMobileSummary(row, config)}
-    `.trim(),
+  return `
+    <article
+      class="
+        data-card
+        trading-data-card
+        trading-data-card--listed-tradable
+      "
+      data-data-card
+    >
+      <div
+        class="data-card__main"
+      >
+        ${renderTradingCardIdentity(row, config)}
 
-    fields: getMobileFields(row, config),
+        ${renderMobileSummary(row, config)}
+      </div>
 
-    expandable: true,
+      <div
+        class="data-card__actions"
+      >
+        <button
+          class="
+            data-card__toggle
+            btn
+            btn-sm
+            btn-link
+          "
+          type="button"
+          aria-expanded="false"
+          aria-controls="${escapeHtml(detailsId)}"
+          data-data-card-toggle
+        >
+          <span
+            data-data-card-more-label
+          >
+            ${escapeHtml(config.labels?.mobile?.showDetails || "Show details")}
+          </span>
 
-    moreLabel: config.labels?.mobile?.showDetails || "Show details",
+          <span
+            data-data-card-less-label
+            hidden
+          >
+            ${escapeHtml(config.labels?.mobile?.hideDetails || "Hide details")}
+          </span>
+        </button>
+      </div>
 
-    lessLabel: config.labels?.mobile?.hideDetails || "Hide details",
-  });
+      <div
+        class="data-card__details"
+        id="${escapeHtml(detailsId)}"
+        hidden
+        data-data-card-details
+      >
+        ${renderMobileDetails(row, config)}
+      </div>
+    </article>
+  `.trim();
 }
 
 /* ==========================================================================
@@ -631,10 +1233,18 @@ function renderMobileCard(row, context, config) {
    ========================================================================== */
 
 export function createListedTradableView({ root, config } = {}) {
+  /* =========================================================================
+     Guards
+     ========================================================================= */
+
   if (!(root instanceof Element)) {
     throw new TypeError(
       "Listed Tradable Rights view requires a valid root element.",
     );
+  }
+
+  if (!config?.endpoints?.listedTradableRights) {
+    throw new TypeError("Listed Tradable Rights endpoint is required.");
   }
 
   const columns = getColumns(config);
@@ -689,13 +1299,13 @@ export function createListedTradableView({ root, config } = {}) {
     initialView: VIEW,
 
     /*
-     * CRITICAL
+     * CRITICAL:
      *
-     * The JSP owns the entire two-row grouped <thead>.
+     * JSP owns the complete grouped two-row header.
      *
-     * common/data-table supports headerMode:"existing", which prevents its
-     * schema header lifecycle from touching that markup.
+     * DataTable must not recreate <thead>.
      */
+
     headerMode: "existing",
 
     getColumns() {
@@ -703,35 +1313,57 @@ export function createListedTradableView({ root, config } = {}) {
     },
 
     renderCell(args) {
-      return renderTradingCell({
-        ...args,
-
-        config,
-        view: VIEW,
-      });
+      return renderCell(args, config);
     },
 
     tableOptions: {
+      /*
+       * Common Trading defaults.
+       */
+
       ...config.tableDefaults,
+
+      /*
+       * Listed Tradable Rights overrides.
+       */
 
       ...config.tables?.listedTradableRights,
 
       /*
-       * The design-system .table-responsive wrapper owns horizontal
-       * scrolling.
+       * The outer .table-responsive owns horizontal scrolling.
        *
-       * Do not allow DataTables to clone this complex header into separate
-       * dt-scroll-head / dt-scroll-body tables.
+       * Do not introduce a second DataTables scroll container.
        */
+
       scrollX: false,
 
       scrollCollapse: false,
 
-      fixedHeader: false,
+      /*
+       * Header participates in the shared FixedHeader system.
+       *
+       * The table has a complex two-row header, so the shared table
+       * infrastructure must measure the complete <thead>.
+       */
+
+      fixedHeader: true,
+
+      /*
+       * The first identity column is visually sticky through shared
+       * table-market CSS.
+       *
+       * Do not also enable DataTables FixedColumns.
+       */
 
       fixedColumns: false,
 
-      ordering: false,
+      /*
+       * Preserve all 14 physical columns.
+       *
+       * Mobile uses cards instead of DataTables Responsive child rows.
+       */
+
+      responsive: false,
     },
   });
 
@@ -747,7 +1379,7 @@ export function createListedTradableView({ root, config } = {}) {
     initialView: VIEW,
 
     renderCard(row, context) {
-      return renderMobileCard(row, context, config);
+      return renderListedTradableCard(row, context, config);
     },
 
     emptyMessage: config.labels?.noData || "No data available",
@@ -779,8 +1411,11 @@ export function createListedTradableView({ root, config } = {}) {
       error: config.labels?.loadError,
 
       /*
-       * JSP already owns "Results:".
+       * JSP already owns the visible Result label.
+       *
+       * JavaScript writes only the number.
        */
+
       results: "",
     },
   });
@@ -817,10 +1452,18 @@ export function createListedTradableView({ root, config } = {}) {
 
   const controller = createDataViewController({
     source,
+
     state,
+
     table,
+
     cards,
+
     results,
+
+    /*
+     * trading.js controls loading according to active-tab lifecycle.
+     */
 
     autoLoad: false,
 
@@ -844,23 +1487,17 @@ export function createListedTradableView({ root, config } = {}) {
   controller.init();
 
   /* =========================================================================
-     Busy State
+     Outer Busy State
      ========================================================================= */
-
-  /*
-   * Common table/cards own the actual skeleton rendering.
-   *
-   * This subscription owns only the outer Data View's busy state so
-   * cursor:wait cannot remain after rendering has completed.
-   */
 
   const unsubscribeState = state.subscribe(({ state: snapshot }) => {
     root.setAttribute("aria-busy", String(Boolean(snapshot.loading)));
   });
 
   /*
-   * Remove stale JSP initialization state immediately.
+   * JSP no longer hard-codes aria-busy="true".
    */
+
   root.setAttribute("aria-busy", "false");
 
   /* =========================================================================
@@ -882,19 +1519,52 @@ export function createListedTradableView({ root, config } = {}) {
       return;
     }
 
+    /*
+     * This table frequently initializes while its tab is hidden.
+     *
+     * Once visible we must remeasure:
+     *
+     * - all 14 columns
+     * - grouped two-row header
+     * - FixedHeader clone
+     */
+
     requestAnimationFrame(() => {
       try {
         api.columns?.adjust?.();
 
+        api.fixedHeader?.adjust?.();
+
+        /*
+         * Responsive is deliberately disabled, but keep the optional call
+         * safe in case the common table adapter exposes it.
+         */
+
         api.responsive?.recalc?.();
       } catch (error) {
-        console.warn("Listed Tradable table adjustment failed:", error);
+        console.warn("Listed Tradable Rights table adjustment failed:", error);
       }
     });
   }
 
   /* =========================================================================
-     Lifecycle
+     Queries
+     ========================================================================= */
+
+  function getRows() {
+    return controller.getSourceRows?.() || [];
+  }
+
+  function getVisibleRows() {
+    return controller.getVisibleRows?.() || [];
+  }
+
+  function getTable() {
+    return table.getApi?.() || null;
+  }
+
+  /* =========================================================================
+     Destroy
      ========================================================================= */
 
   function destroy() {
@@ -913,19 +1583,14 @@ export function createListedTradableView({ root, config } = {}) {
     view: VIEW,
 
     reload,
+
     adjust,
 
-    getRows() {
-      return controller.getSourceRows?.() || [];
-    },
+    getRows,
 
-    getVisibleRows() {
-      return controller.getVisibleRows?.() || [];
-    },
+    getVisibleRows,
 
-    getTable() {
-      return table.getApi?.() || null;
-    },
+    getTable,
 
     destroy,
   });

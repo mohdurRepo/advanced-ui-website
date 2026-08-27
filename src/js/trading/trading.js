@@ -17,7 +17,6 @@
  * - coordinate Reset
  * - lazily create individual Trading views
  * - coordinate table adjustment after hidden views become visible
- * - coordinate shared company-logo fallback behavior
  * - destroy owned page instances
  *
  * This file intentionally has no:
@@ -27,6 +26,7 @@
  * - DataTables schemas
  * - table cell markup
  * - card markup
+ * - company-logo rendering / fallback logic
  * - Sector -> Company request implementation
  * - date calculation logic
  * - generic tab keyboard / ARIA behavior
@@ -37,8 +37,10 @@
  * - filters.js
  * - dependencies.js
  * - formatters.js
- * - individual views/*
- * ========================================================================== 
+ * - individual views
+ */
+
+/* ==========================================================================
    Configuration
    ========================================================================== */
 
@@ -127,10 +129,18 @@ const VIEW_FACTORIES = Object.freeze({
  * Negotiated and Company Status are intentionally excluded:
  *
  * Negotiated:
- *   selected Type determines Negotiated Deals vs Minimum Size.
+ *
+ * selected Type determines:
+ *
+ * - Negotiated Deals
+ * - Minimum Size
  *
  * Company Status:
- *   selected Type determines Suspended vs Delisted.
+ *
+ * selected Type determines:
+ *
+ * - Suspended
+ * - Delisted
  */
 
 const STATIC_TAB_VIEWS = Object.freeze({
@@ -190,6 +200,7 @@ function resolveTradingRoot(root) {
  * @param {Element} root
  * @returns {string}
  */
+
 function getInitialActiveTab(root) {
   const selected =
     query(root, `${SELECTORS.tab}[aria-selected="true"]`) ||
@@ -308,80 +319,6 @@ function syncCompanyStatusVariant(root, filters, config) {
 }
 
 /* ==========================================================================
-   Company Logo Fallback
-   ========================================================================== */
-
-/*
- * Company identity rendering belongs in formatters.js.
- *
- * Image failure is runtime behavior, so it belongs here at the page
- * orchestration layer.
- *
- * Flow:
- *
- * requested company logo
- *        ↓
- * configured fallback logo
- *        ↓
- * CSS missing-image state
- *
- * One delegated capture listener serves:
- *
- * - Negotiated
- * - Accumulated
- * - Listed Tradable
- * - Suspended
- * - Delisted
- * - OTC
- * - desktop table identities
- * - mobile card identities
- */
-
-function handleCompanyLogoError(event) {
-  const image = event.target;
-
-  if (
-    !(image instanceof HTMLImageElement) ||
-    !image.matches("[data-trading-logo]")
-  ) {
-    return;
-  }
-
-  const fallback = image.dataset.tradingLogoFallback;
-
-  const fallbackUsed = image.dataset.tradingLogoFallbackUsed === "true";
-
-  /*
-   * First failure:
-   *
-   * Try the configured generic company logo.
-   */
-
-  if (fallback && !fallbackUsed) {
-    image.dataset.tradingLogoFallbackUsed = "true";
-
-    image.src = fallback;
-
-    return;
-  }
-
-  /*
-   * Generic fallback also failed.
-   *
-   * Keep the identity geometry intact and allow SCSS to display its
-   * missing-image state.
-   */
-
-  const wrapper = image.closest(
-    [".table-market__logo", ".data-card__logo"].join(", "),
-  );
-
-  wrapper?.classList?.add("is-image-missing");
-
-  image.remove();
-}
-
-/* ==========================================================================
    View Adjustment
    ========================================================================== */
 
@@ -447,13 +384,11 @@ export function initTrading(root = document) {
      ========================================================================= */
 
   /*
-   * This fixes the old:
+   * Initial DOM reading and runtime state are deliberately separate.
+   *
+   * This prevents temporal-dead-zone problems such as:
    *
    * Cannot access 'activeTab' before initialization
-   *
-   * problem permanently.
-   *
-   * Initial DOM reading and runtime state access are separate concepts.
    */
 
   let activeTab = getInitialActiveTab(scope);
@@ -493,22 +428,21 @@ export function initTrading(root = document) {
     root: scope,
 
     config,
+
     filters,
   });
 
-  /* =========================================================================
-     Global Runtime Events
-     ========================================================================= */
-
   /*
-   * Capture is intentional because native image error events do not bubble.
+   * There is intentionally NO page-level image error listener here.
+   *
+   * formatters.js owns:
+   *
+   * - company-logo URL resolution
+   * - configured fallback resolution
+   * - image fallback behavior
+   *
+   * Trading remains orchestration-only.
    */
-
-  scope.addEventListener("error", handleCompanyLogoError, {
-    capture: true,
-
-    signal,
-  });
 
   /* =========================================================================
      View Creation
@@ -547,6 +481,7 @@ export function initTrading(root = document) {
       pageRoot: scope,
 
       config,
+
       filters,
     });
 
@@ -570,6 +505,7 @@ export function initTrading(root = document) {
       tab: activeTab,
 
       filters,
+
       config,
     });
   }
@@ -612,6 +548,7 @@ export function initTrading(root = document) {
   function loadCurrentView(options = {}) {
     return loadView(getCurrentView(), options);
   }
+
   /* =========================================================================
      Tab Changes
      ========================================================================= */
@@ -745,8 +682,8 @@ export function initTrading(root = document) {
 
     try {
       /* ==============================================================
-               Type
-               ============================================================== */
+             Type
+             ============================================================== */
 
       if (event.key === "type") {
         const view = syncNegotiatedVariant(scope, filters);
@@ -769,8 +706,8 @@ export function initTrading(root = document) {
       }
 
       /* ==============================================================
-               Sector
-               ============================================================== */
+             Sector
+             ============================================================== */
 
       if (event.key === "sector") {
         /*
@@ -800,8 +737,8 @@ export function initTrading(root = document) {
       }
 
       /* ==============================================================
-               Company
-               ============================================================== */
+             Company
+             ============================================================== */
 
       if (event.key === "company") {
         /*
@@ -828,8 +765,8 @@ export function initTrading(root = document) {
       }
 
       /* ==============================================================
-               Date Range
-               ============================================================== */
+             Date Range
+             ============================================================== */
 
       if (event.key === "fromDate" || event.key === "toDate") {
         if (activeTab !== TRADING_TABS.negotiatedDeals) {
@@ -885,8 +822,8 @@ export function initTrading(root = document) {
 
       try {
         /* ==============================================================
-               Type
-               ============================================================== */
+             Type
+             ============================================================== */
 
         if (event.key === "type") {
           const view = syncCompanyStatusVariant(scope, filters, config);
@@ -903,8 +840,8 @@ export function initTrading(root = document) {
         }
 
         /* ==============================================================
-               Date Range
-               ============================================================== */
+             Date Range
+             ============================================================== */
 
         if (event.key !== "fromDate" && event.key !== "toDate") {
           return;
@@ -965,11 +902,8 @@ export function initTrading(root = document) {
     filters.negotiated.sync();
 
     /*
-     * filters.resetNegotiated() already synchronizes the date-range control.
-     *
-     * Calling the public helper here is harmless and ensures the custom-date
-     * presentation remains correct if Company restoration caused another
-     * progressive-enhancement render.
+     * Keep the custom date-range presentation synchronized with the restored
+     * native date inputs.
      */
 
     filters.refreshNegotiatedDateRange?.();
@@ -981,7 +915,7 @@ export function initTrading(root = document) {
     const view = syncNegotiatedVariant(scope, filters);
 
     /*
-     * Exactly one final dataset request.
+     * Exactly one final dataset request when this tab is active.
      */
 
     if (activeTab === TRADING_TABS.negotiatedDeals) {
@@ -1002,6 +936,11 @@ export function initTrading(root = document) {
       source: "reset",
     });
 
+    /*
+     * Synchronize the filter snapshot once after all reset values have been
+     * applied.
+     */
+
     filters.accumulated.sync();
 
     if (activeTab === TRADING_TABS.accumulated) {
@@ -1017,14 +956,10 @@ export function initTrading(root = document) {
 
   async function resetCompanyStatus() {
     /*
-     * filters.js currently owns:
+     * filters.js owns Company Status defaults.
      *
-     * Type     = Suspension
-     * From     = one calendar month ago
-     * To       = today
-     *
-     * We will refine its visible date synchronization and exact legacy labels
-     * when we reach the Suspended / Delisted tab.
+     * The reset operation is intentionally silent while values are restored,
+     * followed by one explicit synchronization and, when active, one request.
      */
 
     filters.resetCompanyStatus({
@@ -1034,6 +969,11 @@ export function initTrading(root = document) {
     });
 
     filters.companyStatus.sync();
+
+    /*
+     * Type may have changed during Reset, therefore restore the matching
+     * Suspended / Delisted presentation before loading.
+     */
 
     const view = syncCompanyStatusVariant(scope, filters, config);
 
@@ -1084,10 +1024,8 @@ export function initTrading(root = document) {
          * Reset controls are type="reset".
          *
          * Prevent native form reset because browser reset would restore the
-         * JSP's original empty date values instead of the Trading business
-         * default:
-         *
-         * one calendar month ago -> today
+         * JSP's original values rather than the Trading business defaults
+         * managed by filters.js.
          */
 
         event.preventDefault();
@@ -1111,7 +1049,9 @@ export function initTrading(root = document) {
   /*
    * Filters are already initialized at this point.
    *
-   * Synchronize nested presentation before the first view is created.
+   * Synchronize both nested presentations before the first view is created.
+   *
+   * This does not load either hidden dataset.
    */
 
   syncNegotiatedVariant(scope, filters);
@@ -1127,7 +1067,7 @@ export function initTrading(root = document) {
    *
    * 1. getOrCreateView() lazily creates the active view.
    * 2. common data-view immediately renders its loading/skeleton state.
-   * 3. the view sends its request.
+   * 3. the active view sends its request.
    * 4. skeletons are replaced by ready / empty / error state.
    *
    * No artificial loading timeout is used.
@@ -1179,11 +1119,11 @@ export function initTrading(root = document) {
     destroyed = true;
 
     /*
-     * Removes every event listener registered with this page lifecycle:
+     * Removes every DOM event listener registered with this page lifecycle.
      *
-     * - tabs
-     * - reset
-     * - delegated logo errors
+     * At this level that means Trading's tab and reset integrations.
+     *
+     * Company-logo error handling is deliberately not owned here.
      */
 
     abortController.abort();

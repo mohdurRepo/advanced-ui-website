@@ -5,17 +5,53 @@
 /*
  * OTC Trading view.
  *
+ * Final desktop contract:
+ *
+ *   Company | Traded Volume | Last Update Price
+ *
+ * Physical tbody columns:
+ *
+ *   1 Company
+ *   2 Traded Volume
+ *   3 Last Update Price
+ *
+ * Company identity:
+ *
+ *   [logo] Company Name
+ *          SYMBOL
+ *
+ * Mobile:
+ *
+ *   [logo] Company Name
+ *          SYMBOL
+ *
+ *   Traded Volume
+ *
+ *   expandable:
+ *
+ *   Last Update Price
+ *
  * Responsibilities:
  *
- * - preserve the JSP-owned four-column header
- * - define the exact OTC backend/body contract
- * - build the exact backend request
- * - render Company + Symbol correctly
+ * - preserve the JSP-owned three-column header
+ * - build the OTC backend request
+ * - normalize response wrappers
+ * - render three physical body columns
+ * - render shared company identity
  * - render traded volume
- * - render last update
- * - render standard expandable mobile cards
+ * - preserve the backend last-update display value
+ * - render mobile cards
+ * - synchronize result count
+ * - expose standard Trading view lifecycle
  *
- * Shared behavior remains in common/data-view.
+ * This module intentionally does not own:
+ *
+ * - global tab switching
+ * - AJAX transport implementation
+ * - company-name normalization
+ * - company-symbol normalization
+ * - company-logo resolution / fallback
+ * - common loading / empty / error UI
  */
 
 /* ==========================================================================
@@ -45,11 +81,11 @@ import {
 
 import {
   escapeHtml,
+  getCompanyName,
+  getCompanySymbol,
   getDisplayValue,
-  getTradingIdentity,
-  renderMobileIdentity,
-  renderOtcMobileSummary,
-  renderTradingCell,
+  renderTradingCardIdentity,
+  renderTradingCompanyCell,
 } from "../formatters.js";
 
 /* ==========================================================================
@@ -59,79 +95,126 @@ import {
 const VIEW = TRADING_VIEWS.otcTrading;
 
 /* ==========================================================================
+   Helpers
+   ========================================================================== */
+
+function firstDefined(...values) {
+  return values.find(
+    (value) => value !== undefined && value !== null && value !== "",
+  );
+}
+
+/* ==========================================================================
+   OTC Field Accessors
+   ========================================================================== */
+
+/*
+ * Keep OTC backend-field knowledge local to this view.
+ *
+ * The first value in each accessor is the current known backend property.
+ * Additional aliases provide harmless compatibility with alternate wrappers.
+ */
+
+function getTradedVolume(row) {
+  return firstDefined(row?.lastTradeVolume, row?.tradedVolume, row?.volume, "");
+}
+
+function getLastUpdate(row) {
+  return firstDefined(
+    row?.lastTradeDate,
+    row?.lastUpdate,
+    row?.lastUpdatePrice,
+    "",
+  );
+}
+
+/* ==========================================================================
+   Traded Volume
+   ========================================================================== */
+
+function renderTradedVolume(row) {
+  return escapeHtml(getDisplayValue(getTradedVolume(row), "-"));
+}
+
+/* ==========================================================================
+   Last Update
+   ========================================================================== */
+
+/*
+ * OTC currently receives this field as an already prepared display value.
+ *
+ * Do not pass it through the generic Trading date formatter unless the backend
+ * contract is explicitly changed later.
+ */
+
+function renderLastUpdate(row) {
+  return escapeHtml(getDisplayValue(getLastUpdate(row), "-"));
+}
+
+/* ==========================================================================
    Columns
    ========================================================================== */
 
 /*
  * JSP owns exactly:
  *
- * Symbol | Company | Traded Volume | Last Update
+ * Company | Traded Volume | Last Update Price
+ *
+ * Symbol is supporting Company identity metadata.
+ *
+ * Therefore DataTables must expose exactly THREE physical body columns.
  */
 
 function getColumns(config) {
   const labels = config.labels?.otc || {};
 
   return [
-    {
-      key: "symbol",
-
-      label: labels.symbol || "Symbol",
-
-      data: "symbol",
-
-      width: "10rem",
-
-      className: "table-market__symbol table-market__identity-symbol",
-
-      searchable: true,
-    },
+    /* ---------------------------------------------------------------------
+       Company
+       --------------------------------------------------------------------- */
 
     {
       key: "company",
 
       label: labels.company || "Company",
 
-      /*
-       * Exact OTC backend property.
-       */
-      data: "companyName",
-
-      format: "link",
-
-      urlData: "companyURL",
+      data: null,
 
       width: "20rem",
 
-      className: "table-market__company table-market__identity-company",
+      className: "table-market__company table-market__security",
 
       searchable: true,
     },
+
+    /* ---------------------------------------------------------------------
+       Traded Volume
+       --------------------------------------------------------------------- */
 
     {
       key: "traded-volume",
 
       label: labels.tradedVolume || "Traded Volume",
 
-      data: "lastTradeVolume",
-
-      format: "quantity",
-
-      numeric: true,
+      data: null,
 
       width: "11rem",
 
       className: "table-market__number",
+
+      numeric: true,
     },
+
+    /* ---------------------------------------------------------------------
+       Last Update Price
+       --------------------------------------------------------------------- */
 
     {
       key: "last-update",
 
       label: labels.lastUpdate || "Last Update",
 
-      /*
-       * Backend already provides the display value.
-       */
-      data: "lastTradeDate",
+      data: null,
 
       width: "12rem",
 
@@ -151,7 +234,7 @@ function buildRequestData(config) {
 }
 
 /* ==========================================================================
-   Response
+   Response Parsing
    ========================================================================== */
 
 function parseResponse(response) {
@@ -165,6 +248,10 @@ function parseResponse(response) {
     return response;
   }
 }
+
+/* ==========================================================================
+   Response Rows
+   ========================================================================== */
 
 function getResponseRows(response) {
   const value = parseResponse(response);
@@ -185,12 +272,24 @@ function getResponseRows(response) {
     return value.results;
   }
 
+  if (Array.isArray(value?.items)) {
+    return value.items;
+  }
+
+  /*
+   * Legacy DataTables wrapper.
+   */
+
   if (Array.isArray(value?.aaData)) {
     return value.aaData;
   }
 
   return [];
 }
+
+/* ==========================================================================
+   Response Count
+   ========================================================================== */
 
 function getResponseCount(response, rows) {
   const value = parseResponse(response);
@@ -214,6 +313,10 @@ function getResponseCount(response, rows) {
   return rows.length;
 }
 
+/* ==========================================================================
+   Response Normalization
+   ========================================================================== */
+
 function normalizeResponse(response) {
   const raw = parseResponse(response);
 
@@ -225,7 +328,12 @@ function normalizeResponse(response) {
     meta: {
       total: getResponseCount(raw, rows),
 
-      updatedAt: raw?.updatedAt ?? raw?.lastUpdated ?? raw?.timestamp ?? null,
+      updatedAt: firstDefined(
+        raw?.updatedAt,
+        raw?.lastUpdated,
+        raw?.timestamp,
+        null,
+      ),
     },
 
     raw,
@@ -233,7 +341,27 @@ function normalizeResponse(response) {
 }
 
 /* ==========================================================================
-   Mobile Details
+   Desktop Cell Rendering
+   ========================================================================== */
+
+function renderCell({ row, column }, config) {
+  switch (column.key) {
+    case "company":
+      return renderTradingCompanyCell(row, config);
+
+    case "traded-volume":
+      return renderTradedVolume(row);
+
+    case "last-update":
+      return renderLastUpdate(row);
+
+    default:
+      return "";
+  }
+}
+
+/* ==========================================================================
+   Mobile Fields
    ========================================================================== */
 
 function getMobileFields(row, config) {
@@ -241,12 +369,15 @@ function getMobileFields(row, config) {
 
   return [
     {
+      label: labels.tradedVolume || "Traded Volume",
+
+      value: getDisplayValue(getTradedVolume(row), "-"),
+    },
+
+    {
       label: labels.lastUpdate || "Last Update",
 
-      /*
-       * Preserve backend display string exactly.
-       */
-      value: escapeHtml(getDisplayValue(row?.lastTradeDate, "-")),
+      value: getDisplayValue(getLastUpdate(row), "-"),
 
       fullWidth: true,
     },
@@ -258,20 +389,25 @@ function getMobileFields(row, config) {
    ========================================================================== */
 
 function renderMobileCard(row, context, config) {
-  const identity = getTradingIdentity(row, VIEW);
+  const symbol = getCompanySymbol(row);
+
+  const company = getCompanyName(row, config);
 
   return renderStandardDataCard({
     idPrefix: "trading-otc-details",
 
-    rowId: `${identity.code || identity.name || "otc"}-${context.index}`,
+    rowId: `${symbol || company || "otc"}-${context.index}`,
 
     className: "trading-data-card trading-data-card--otc",
 
-    summary: `
-      ${renderMobileIdentity(row, VIEW)}
+    /*
+     * Shared Trading formatter owns:
+     *
+     * [logo] Company Name
+     *        Symbol
+     */
 
-      ${renderOtcMobileSummary(row, config)}
-    `.trim(),
+    summary: renderTradingCardIdentity(row, config),
 
     fields: getMobileFields(row, config),
 
@@ -288,8 +424,16 @@ function renderMobileCard(row, context, config) {
    ========================================================================== */
 
 export function createOtcView({ root, config } = {}) {
+  /* =========================================================================
+     Guards
+     ========================================================================= */
+
   if (!(root instanceof Element)) {
     throw new TypeError("OTC Trading view requires a valid root element.");
+  }
+
+  if (!config?.endpoints?.otcTrading) {
+    throw new TypeError("OTC Trading endpoint is required.");
   }
 
   const columns = getColumns(config);
@@ -304,6 +448,7 @@ export function createOtcView({ root, config } = {}) {
     loading: false,
 
     sourceRows: [],
+
     visibleRows: [],
 
     meta: {},
@@ -345,8 +490,9 @@ export function createOtcView({ root, config } = {}) {
     /*
      * JSP owns:
      *
-     * Symbol | Company | Traded Volume | Last Update
+     * Company | Traded Volume | Last Update Price
      */
+
     headerMode: "existing",
 
     getColumns() {
@@ -354,13 +500,7 @@ export function createOtcView({ root, config } = {}) {
     },
 
     renderCell(args) {
-      return renderTradingCell({
-        ...args,
-
-        config,
-
-        view: VIEW,
-      });
+      return renderCell(args, config);
     },
 
     tableOptions: {
@@ -370,19 +510,23 @@ export function createOtcView({ root, config } = {}) {
 
       /*
        * The design-system .table-responsive wrapper owns overflow.
-       *
-       * This prevents the leftmost Symbol column clipping we saw when
-       * DataTables created a separate scroll-head / scroll-body structure.
        */
+
       scrollX: false,
 
       scrollCollapse: false,
 
-      fixedHeader: false,
+      /*
+       * OTC is now aligned with the other compact Trading tables.
+       */
+
+      fixedHeader: true,
 
       fixedColumns: false,
 
       ordering: false,
+
+      responsive: false,
     },
   });
 
@@ -430,8 +574,9 @@ export function createOtcView({ root, config } = {}) {
       error: config.labels?.loadError,
 
       /*
-       * JSP already renders "Results:".
+       * JSP already renders the visible Results label.
        */
+
       results: "",
     },
   });
@@ -468,10 +613,18 @@ export function createOtcView({ root, config } = {}) {
 
   const controller = createDataViewController({
     source,
+
     state,
+
     table,
+
     cards,
+
     results,
+
+    /*
+     * trading.js owns active-tab loading.
+     */
 
     autoLoad: false,
 
@@ -502,9 +655,6 @@ export function createOtcView({ root, config } = {}) {
     root.setAttribute("aria-busy", String(Boolean(snapshot.loading)));
   });
 
-  /*
-   * JS owns runtime loading state.
-   */
   root.setAttribute("aria-busy", "false");
 
   /* =========================================================================
@@ -526,15 +676,39 @@ export function createOtcView({ root, config } = {}) {
       return;
     }
 
+    /*
+     * OTC may initialize while its tab panel is hidden.
+     *
+     * Recalculate after the tab becomes visible.
+     */
+
     requestAnimationFrame(() => {
       try {
         api.columns?.adjust?.();
+
+        api.fixedHeader?.adjust?.();
 
         api.responsive?.recalc?.();
       } catch (error) {
         console.warn("OTC table adjustment failed:", error);
       }
     });
+  }
+
+  /* =========================================================================
+     Queries
+     ========================================================================= */
+
+  function getRows() {
+    return controller.getSourceRows?.() || [];
+  }
+
+  function getVisibleRows() {
+    return controller.getVisibleRows?.() || [];
+  }
+
+  function getTable() {
+    return table.getApi?.() || null;
   }
 
   /* =========================================================================
@@ -557,19 +731,14 @@ export function createOtcView({ root, config } = {}) {
     view: VIEW,
 
     reload,
+
     adjust,
 
-    getRows() {
-      return controller.getSourceRows?.() || [];
-    },
+    getRows,
 
-    getVisibleRows() {
-      return controller.getVisibleRows?.() || [];
-    },
+    getVisibleRows,
 
-    getTable() {
-      return table.getApi?.() || null;
-    },
+    getTable,
 
     destroy,
   });

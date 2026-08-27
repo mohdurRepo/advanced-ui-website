@@ -5,18 +5,53 @@
 /*
  * Delisted Companies / Funds Trading view.
  *
+ * Final desktop contract:
+ *
+ *   Company | Date | Reason
+ *
+ * Physical tbody columns:
+ *
+ *   1 Company
+ *   2 Date
+ *   3 Reason
+ *
+ * Company identity:
+ *
+ *   [logo] Company Name
+ *          SYMBOL + status
+ *
+ * Mobile:
+ *
+ *   [logo] Company Name
+ *          SYMBOL + status
+ *
+ *   expandable:
+ *
+ *   Date
+ *   Reason / Announcement
+ *
  * Responsibilities:
  *
- * - preserve the JSP-owned four-column header
- * - define the exact backend/body contract
- * - build the shared Suspended/Delisted request
- * - render Symbol + company status
- * - render linked Company name
- * - render delisting Date
- * - render delisting news/action
- * - render standard expandable mobile cards
+ * - preserve JSP-owned header
+ * - build the existing Suspended/Delisted backend request
+ * - normalize response wrappers
+ * - render three physical body columns
+ * - render status-aware company identity
+ * - render mobile cards
+ * - synchronize result count
+ * - expose standard Trading view lifecycle
  *
- * Shared behavior remains in common/data-view.
+ * This module intentionally does not own:
+ *
+ * - global tab switching
+ * - Company Status filter orchestration
+ * - date-range initialization
+ * - AJAX transport implementation
+ * - company-name field normalization
+ * - company-symbol field normalization
+ * - company-logo resolution / fallback
+ * - generic date formatting
+ * - common loading / empty / error UI
  */
 
 /* ==========================================================================
@@ -46,12 +81,13 @@ import {
 
 import {
   escapeHtml,
-  formatTradingDate,
-  getDisplayValue,
-  getTradingIdentity,
-  renderMobileIdentity,
-  renderTradingCell,
-  safeUrl,
+  formatDate,
+  getAnnouncementUrl,
+  getCompanyName,
+  getCompanySymbol,
+  renderAnnouncementLink,
+  renderTradingCardIdentity,
+  renderTradingCompanyCell,
 } from "../formatters.js";
 
 /* ==========================================================================
@@ -61,46 +97,168 @@ import {
 const VIEW = TRADING_VIEWS.delistedCompanies;
 
 /* ==========================================================================
+   Helpers
+   ========================================================================== */
+
+function hasValue(value) {
+  return value !== null && value !== undefined && String(value).trim() !== "";
+}
+
+function firstDefined(...values) {
+  return values.find(
+    (value) => value !== undefined && value !== null && value !== "",
+  );
+}
+
+/* ==========================================================================
+   Delisted Date
+   ========================================================================== */
+
+function getDelistedDate(row) {
+  return firstDefined(
+    row?.date,
+    row?.delistedDate,
+    row?.delistingDate,
+    row?.toDate,
+    row?.endDate,
+    "",
+  );
+}
+
+/* ==========================================================================
+   Status
+   ========================================================================== */
+
+/*
+ * companyStatus has historically arrived in several forms:
+ *
+ * - Red / Orange / Yellow
+ * - danger / warning / primary
+ * - percentage-oriented status values
+ *
+ * Keep semantic mapping local.
+ *
+ * SCSS owns the actual colors.
+ */
+
+function getStatusTone(status) {
+  if (!hasValue(status)) {
+    return "";
+  }
+
+  const value = String(status).trim().toLowerCase();
+
+  if (
+    value.includes("red") ||
+    value.includes("danger") ||
+    value.includes("50")
+  ) {
+    return "danger";
+  }
+
+  if (
+    value.includes("orange") ||
+    value.includes("warning") ||
+    value.includes("35")
+  ) {
+    return "warning";
+  }
+
+  if (
+    value.includes("yellow") ||
+    value.includes("primary") ||
+    value.includes("20")
+  ) {
+    return "primary";
+  }
+
+  return "";
+}
+
+/* ==========================================================================
+   Status Indicator
+   ========================================================================== */
+
+function renderStatusIndicator(row) {
+  const tone = getStatusTone(row?.companyStatus);
+
+  if (!tone) {
+    return "";
+  }
+
+  return `
+    <span
+      class="
+        table-market__status
+        table-market__status--${escapeHtml(tone)}
+      "
+      aria-hidden="true"
+    ></span>
+  `.trim();
+}
+
+/* ==========================================================================
+   Company Identity
+   ========================================================================== */
+
+/*
+ * Company identity and logo fallback belong to frozen formatters.js.
+ *
+ * Delisted contributes only the Company Status indicator.
+ */
+
+function renderCompanyIdentity(row, config) {
+  const status = renderStatusIndicator(row);
+
+  return renderTradingCompanyCell(row, config, {
+    status,
+  });
+}
+
+/* ==========================================================================
+   Announcement
+   ========================================================================== */
+
+function renderAnnouncement(row, config) {
+  const url = getAnnouncementUrl(row);
+
+  if (!url) {
+    return escapeHtml(config.labels?.notAvailable || "-");
+  }
+
+  return renderAnnouncementLink(
+    row,
+    config,
+    config.labels?.delistedLink || config.labels?.delisted?.reason || "View",
+  );
+}
+
+/* ==========================================================================
    Columns
    ========================================================================== */
+
+/*
+ * JSP physical contract:
+ *
+ * Company | Date | Reason
+ *
+ * Therefore DataTables must expose exactly THREE body columns.
+ */
 
 function getColumns(config) {
   const labels = config.labels?.delisted || {};
 
   return [
     {
-      key: "symbol",
-
-      label: labels.symbol || "Symbol",
-
-      data: "symbol",
-
-      format: "delisted-symbol",
-
-      width: "10rem",
-
-      className: "table-market__symbol table-market__identity-symbol",
-
-      searchable: true,
-    },
-
-    {
       key: "company",
 
-      label: labels.company || "Company Name",
+      label: labels.company || "Company",
 
-      /*
-       * Actual backend property.
-       */
-      data: "name",
+      data: null,
 
-      format: "link",
+      width: "18rem",
 
-      urlData: "companyURL",
-
-      width: "20rem",
-
-      className: "table-market__company table-market__identity-company",
+      className: "table-market__security",
 
       searchable: true,
     },
@@ -110,12 +268,7 @@ function getColumns(config) {
 
       label: labels.date || "Date",
 
-      /*
-       * Existing Delisted endpoint uses fromDate as the event date.
-       */
-      data: "fromDate",
-
-      format: "date",
+      data: null,
 
       width: "11rem",
 
@@ -127,12 +280,7 @@ function getColumns(config) {
 
       label: labels.reason || "Reason",
 
-      /*
-       * Action-only column.
-       */
       data: null,
-
-      format: "delisted-news",
 
       width: "12rem",
 
@@ -149,6 +297,10 @@ function buildRequestData(filters, config) {
   const state = filters.getCompanyStatusRequestState();
 
   return {
+    /*
+     * Preserve the exact shared Company Status backend contract.
+     */
+
     renderType: "Search",
 
     formType: state.type,
@@ -162,7 +314,7 @@ function buildRequestData(filters, config) {
 }
 
 /* ==========================================================================
-   Response
+   Response Parsing
    ========================================================================== */
 
 function parseResponse(response) {
@@ -176,6 +328,10 @@ function parseResponse(response) {
     return response;
   }
 }
+
+/* ==========================================================================
+   Response Rows
+   ========================================================================== */
 
 function getResponseRows(response) {
   const value = parseResponse(response);
@@ -196,12 +352,24 @@ function getResponseRows(response) {
     return value.results;
   }
 
+  if (Array.isArray(value?.items)) {
+    return value.items;
+  }
+
+  /*
+   * Legacy DataTables wrapper.
+   */
+
   if (Array.isArray(value?.aaData)) {
     return value.aaData;
   }
 
   return [];
 }
+
+/* ==========================================================================
+   Response Count
+   ========================================================================== */
 
 function getResponseCount(response, rows) {
   const value = parseResponse(response);
@@ -225,6 +393,10 @@ function getResponseCount(response, rows) {
   return rows.length;
 }
 
+/* ==========================================================================
+   Response Normalization
+   ========================================================================== */
+
 function normalizeResponse(response) {
   const raw = parseResponse(response);
 
@@ -236,7 +408,12 @@ function normalizeResponse(response) {
     meta: {
       total: getResponseCount(raw, rows),
 
-      updatedAt: raw?.updatedAt ?? raw?.lastUpdated ?? raw?.timestamp ?? null,
+      updatedAt: firstDefined(
+        raw?.updatedAt,
+        raw?.lastUpdated,
+        raw?.timestamp,
+        null,
+      ),
     },
 
     raw,
@@ -244,129 +421,37 @@ function normalizeResponse(response) {
 }
 
 /* ==========================================================================
-   Status
+   Desktop Cell Rendering
    ========================================================================== */
 
-function getStatusClass(status) {
-  if (status === null || status === undefined || String(status).trim() === "") {
-    return "";
-  }
+function renderCell({ row, column }, config) {
+  switch (column.key) {
+    case "company":
+      return renderCompanyIdentity(row, config);
 
-  const value = String(status).trim().toLowerCase();
-
-  if (
-    value.includes("red") ||
-    value.includes("danger") ||
-    value.includes("50")
-  ) {
-    return "is-danger";
-  }
-
-  if (
-    value.includes("orange") ||
-    value.includes("warning") ||
-    value.includes("35")
-  ) {
-    return "is-warning";
-  }
-
-  if (
-    value.includes("yellow") ||
-    value.includes("primary") ||
-    value.includes("20")
-  ) {
-    return "is-primary";
-  }
-
-  return "";
-}
-
-function renderSymbol(row) {
-  const identity = getTradingIdentity(row, VIEW);
-
-  const statusClass = getStatusClass(row?.companyStatus);
-
-  return `
-    <div class="trading-symbol-status">
-
-      ${
-        statusClass
-          ? `
-            <span
-              class="
-                trading-symbol-status__indicator
-                ${statusClass}
-              "
-              aria-hidden="true"
-            ></span>
-          `
-          : ""
-      }
-
-      <span class="trading-symbol-status__symbol">
-        ${escapeHtml(identity.code || "-")}
-      </span>
-
-    </div>
-  `.trim();
-}
-
-/* ==========================================================================
-   News
-   ========================================================================== */
-
-function getNewsUrl(row) {
-  /*
-   * Exact Delisted contract:
-   *
-   * newsUrl only.
-   *
-   * Do not reuse Suspended annUrl behavior here.
-   */
-  return safeUrl(row?.newsUrl);
-}
-
-function renderNewsLink(row, config) {
-  const url = getNewsUrl(row);
-
-  if (!url) {
-    return "-";
-  }
-
-  const label =
-    config.labels?.delistedLink || config.labels?.delisted?.reason || "View";
-
-  return `
-    <a
-      class="trading-announcement-link"
-      href="${escapeHtml(url)}"
-    >
-      ${escapeHtml(label)}
-    </a>
-  `.trim();
-}
-
-/* ==========================================================================
-   Table Cell
-   ========================================================================== */
-
-function renderCell(args, config) {
-  switch (args.column.key) {
-    case "symbol":
-      return renderSymbol(args.row);
+    case "date":
+      return escapeHtml(formatDate(getDelistedDate(row), config));
 
     case "reason":
-      return renderNewsLink(args.row, config);
+      return renderAnnouncement(row, config);
 
     default:
-      return renderTradingCell({
-        ...args,
-
-        config,
-
-        view: VIEW,
-      });
+      return "";
   }
+}
+
+/* ==========================================================================
+   Mobile Labels
+   ========================================================================== */
+
+function getMobileLabels(config) {
+  const labels = config.labels?.delisted || {};
+
+  return {
+    date: labels.date || "Date",
+
+    reason: labels.reason || "Reason",
+  };
 }
 
 /* ==========================================================================
@@ -374,19 +459,19 @@ function renderCell(args, config) {
    ========================================================================== */
 
 function getMobileFields(row, config) {
-  const labels = config.labels?.delisted || {};
+  const labels = getMobileLabels(config);
 
   return [
     {
-      label: labels.date || "Date",
+      label: labels.date,
 
-      value: escapeHtml(getDisplayValue(formatTradingDate(row?.fromDate), "-")),
+      value: formatDate(getDelistedDate(row), config),
     },
 
     {
-      label: labels.reason || "Reason",
+      label: labels.reason,
 
-      value: renderNewsLink(row, config),
+      value: renderAnnouncement(row, config),
 
       fullWidth: true,
     },
@@ -398,16 +483,22 @@ function getMobileFields(row, config) {
    ========================================================================== */
 
 function renderMobileCard(row, context, config) {
-  const identity = getTradingIdentity(row, VIEW);
+  const symbol = getCompanySymbol(row);
+
+  const company = getCompanyName(row, config);
+
+  const status = renderStatusIndicator(row);
 
   return renderStandardDataCard({
     idPrefix: "trading-delisted-details",
 
-    rowId: `${identity.code || identity.name || "delisted"}-${context.index}`,
+    rowId: `${symbol || company || "delisted"}-${context.index}`,
 
     className: "trading-data-card trading-data-card--delisted",
 
-    summary: renderMobileIdentity(row, VIEW),
+    summary: renderTradingCardIdentity(row, config, {
+      status,
+    }),
 
     fields: getMobileFields(row, config),
 
@@ -424,6 +515,10 @@ function renderMobileCard(row, context, config) {
    ========================================================================== */
 
 export function createDelistedView({ root, config, filters } = {}) {
+  /* =========================================================================
+     Guards
+     ========================================================================= */
+
   if (!(root instanceof Element)) {
     throw new TypeError(
       "Delisted Companies view requires a valid root element.",
@@ -434,6 +529,10 @@ export function createDelistedView({ root, config, filters } = {}) {
     throw new TypeError(
       "Delisted Companies view requires Company Status filters.",
     );
+  }
+
+  if (!config?.endpoints?.suspendedDelisted) {
+    throw new TypeError("Suspended / Delisted endpoint is required.");
   }
 
   const columns = getColumns(config);
@@ -448,6 +547,7 @@ export function createDelistedView({ root, config, filters } = {}) {
     loading: false,
 
     sourceRows: [],
+
     visibleRows: [],
 
     meta: {},
@@ -489,8 +589,9 @@ export function createDelistedView({ root, config, filters } = {}) {
     /*
      * JSP owns:
      *
-     * Symbol | Company | Date | Reason
+     * Company | Date | Reason
      */
+
     headerMode: "existing",
 
     getColumns() {
@@ -507,12 +608,16 @@ export function createDelistedView({ root, config, filters } = {}) {
       ...config.tables?.delistedCompanies,
 
       scrollX: false,
+
       scrollCollapse: false,
 
-      fixedHeader: false,
+      fixedHeader: true,
+
       fixedColumns: false,
 
       ordering: false,
+
+      responsive: false,
     },
   });
 
@@ -559,6 +664,10 @@ export function createDelistedView({ root, config, filters } = {}) {
 
       error: config.labels?.loadError,
 
+      /*
+       * JSP owns the visible Results label.
+       */
+
       results: "",
     },
   });
@@ -595,10 +704,18 @@ export function createDelistedView({ root, config, filters } = {}) {
 
   const controller = createDataViewController({
     source,
+
     state,
+
     table,
+
     cards,
+
     results,
+
+    /*
+     * trading.js owns active-tab / active-variant loading.
+     */
 
     autoLoad: false,
 
@@ -629,9 +746,6 @@ export function createDelistedView({ root, config, filters } = {}) {
     root.setAttribute("aria-busy", String(Boolean(snapshot.loading)));
   });
 
-  /*
-   * Remove any stale server-rendered busy state.
-   */
   root.setAttribute("aria-busy", "false");
 
   /* =========================================================================
@@ -653,9 +767,17 @@ export function createDelistedView({ root, config, filters } = {}) {
       return;
     }
 
+    /*
+     * Delisted may be initialized while its Company Status variant is hidden.
+     *
+     * Remeasure after it becomes visible.
+     */
+
     requestAnimationFrame(() => {
       try {
         api.columns?.adjust?.();
+
+        api.fixedHeader?.adjust?.();
 
         api.responsive?.recalc?.();
       } catch (error) {
@@ -665,7 +787,23 @@ export function createDelistedView({ root, config, filters } = {}) {
   }
 
   /* =========================================================================
-     Lifecycle
+     Queries
+     ========================================================================= */
+
+  function getRows() {
+    return controller.getSourceRows?.() || [];
+  }
+
+  function getVisibleRows() {
+    return controller.getVisibleRows?.() || [];
+  }
+
+  function getTable() {
+    return table.getApi?.() || null;
+  }
+
+  /* =========================================================================
+     Destroy
      ========================================================================= */
 
   function destroy() {
@@ -684,19 +822,14 @@ export function createDelistedView({ root, config, filters } = {}) {
     view: VIEW,
 
     reload,
+
     adjust,
 
-    getRows() {
-      return controller.getSourceRows?.() || [];
-    },
+    getRows,
 
-    getVisibleRows() {
-      return controller.getVisibleRows?.() || [];
-    },
+    getVisibleRows,
 
-    getTable() {
-      return table.getApi?.() || null;
-    },
+    getTable,
 
     destroy,
   });

@@ -1,68 +1,83 @@
 /* ==========================================================================
-   Trading — Accumulated Losses
+   Accumulated Losses View
    ========================================================================== */
 
 /*
- * Accumulated Losses view controller.
+ * Accumulated Losses Trading view.
  *
- * Final presentation contract:
- *
- * Desktop:
+ * Final desktop contract:
  *
  *   Company
+ *
  *   [logo] Company Name
  *          SYMBOL + accumulated-loss status
  *
- * Mobile:
+ * Final mobile contract:
  *
  *   [logo] Company Name
  *          SYMBOL + accumulated-loss status
  *
  * Responsibilities:
  *
- * - own Accumulated Losses local state
- * - normalize the report filter
- * - request Accumulated Losses data
- * - render desktop rows
- * - render mobile cards
- * - update result count
- * - manage loading / empty / error states
- * - bind filter / reset behavior
- * - expose refresh / adjust / destroy lifecycle
+ * - preserve the JSP-owned one-column table header
+ * - build the exact backend request contract
+ * - normalize backend response wrappers
+ * - render one physical desktop cell per row
+ * - render compact mobile cards
+ * - preserve accumulated-loss status presentation
+ * - synchronize result count
+ * - expose the standard Trading view lifecycle
  *
  * This module intentionally does not own:
  *
- * - company-name resolution
- * - company-symbol resolution
+ * - the Report <select> DOM
+ * - filter reset orchestration
+ * - global tab switching
+ * - AJAX transport implementation
  * - company-logo URL construction
- * - company-logo fallback
- * - accumulated-loss band mapping
- * - accumulated-loss status presentation
- * - shared HTML escaping
- * - global Trading tabs
- * - shared table behavior
+ * - company-name / symbol field normalization
+ * - accumulated-loss tone calculation
+ * - common loading / empty / error presentation
  *
- * Those responsibilities belong to the common Trading formatter,
- * dependency and table layers.
+ * Those responsibilities belong to:
+ *
+ * - filters.js
+ * - trading.js
+ * - formatters.js
+ * - common/data-view
  */
 
 /* ==========================================================================
-   Imports
+   Common Data View
    ========================================================================== */
 
 import {
-  SELECTORS,
-  TRADING_VALUES,
+  createDataCards,
+  createDataResults,
+  createDataSource,
+  createDataState,
+  createDataTable,
+  createDataViewController,
+} from "../../common/data-view/index.js";
+
+/* ==========================================================================
+   Trading
+   ========================================================================== */
+
+import {
   TRADING_VIEWS,
   getCardsSelector,
   getResultCountSelector,
   getTableSelector,
-  getViewSelector,
 } from "../constants.js";
 
 import {
-  renderAccumulatedDesktopRow,
+  escapeHtml,
+  getCompanyName,
+  getCompanySymbol,
   renderAccumulatedMobileCard,
+  renderAccumulatedStatus,
+  renderTradingCompanyCell,
 } from "../formatters.js";
 
 /* ==========================================================================
@@ -71,706 +86,595 @@ import {
 
 const VIEW = TRADING_VIEWS.accumulatedLosses;
 
-const DEFAULT_REPORT = TRADING_VALUES?.all || "All";
-
-const VALID_REPORTS = new Set(["All", "50-MORE", "35-50", "20-35"]);
-
 /* ==========================================================================
-   Accumulated View
+   Columns
    ========================================================================== */
 
-export function createAccumulatedView({
-  root,
-  config = {},
-  dependencies = {},
-}) {
-  /* ========================================================================
-     Guard
-     ======================================================================== */
-
-  if (!root) {
-    return createNoopView();
-  }
-
-  /* ========================================================================
-     Dependencies
-     ======================================================================== */
-
-  const request = dependencies.request;
-
-  const refreshCustomSelect = dependencies.refreshCustomSelect || (() => {});
-
-  /* ========================================================================
-     DOM
-     ======================================================================== */
-
-  const viewRoot = root.querySelector(getViewSelector(VIEW));
-
-  const accumulatedRoot = root.querySelector(SELECTORS.accumulated.root);
-
-  const filters = root.querySelector(SELECTORS.accumulated.filters);
-
-  const reportSelect = root.querySelector(SELECTORS.accumulated.report);
-
-  const table = root.querySelector(getTableSelector(VIEW));
-
-  const tbody = table?.tBodies?.[0] || table?.querySelector("tbody") || null;
-
-  const cards = root.querySelector(getCardsSelector(VIEW));
-
-  const resultCount = root.querySelector(getResultCountSelector(VIEW));
-
-  /* ========================================================================
-     Endpoint
-     ======================================================================== */
-
-  const endpoint = config.endpoints?.accumulatedLosses || "";
-
-  /* ========================================================================
-     State
-     ======================================================================== */
-
-  const state = {
-    report: normalizeReport(config.initialState?.accumulated?.report),
-
-    rows: [],
-
-    loading: false,
-
-    initialized: false,
-
-    destroyed: false,
-
-    requestId: 0,
-  };
-
-  /* ========================================================================
-     Initial Control Synchronization
-     ======================================================================== */
-
-  syncControlsFromState();
-
-  /* ========================================================================
-     Load
-     ======================================================================== */
-
-  async function load({ preserveRows = true } = {}) {
-    if (state.destroyed) {
-      return;
-    }
-
-    if (typeof request !== "function") {
-      renderError(
-        new Error("Accumulated Losses request dependency is unavailable."),
-      );
-
-      return;
-    }
-
-    if (!endpoint) {
-      renderError(new Error("Accumulated Losses endpoint is unavailable."));
-
-      return;
-    }
-
-    /*
-     * Every request receives its own identifier.
-     *
-     * This prevents an older/slower response from replacing a newer filter
-     * result if the user changes the report quickly.
-     */
-
-    const requestId = ++state.requestId;
-
-    clearError();
-
-    setLoading(true);
-
-    if (!preserveRows) {
-      state.rows = [];
-
-      render();
-    }
-
-    try {
-      const response = await request({
-        url: endpoint,
-
-        method: "GET",
-
-        data: {
-          /*
-           * Keep the legacy backend contract unchanged.
-           *
-           * Expected values:
-           *
-           * All
-           * 50-MORE
-           * 35-50
-           * 20-35
-           */
-
-          percentage: state.report,
-
-          requestLocale: config.locale || "en",
-        },
-      });
-
-      /*
-       * Ignore stale responses.
-       */
-
-      if (state.destroyed || requestId !== state.requestId) {
-        return;
-      }
-
-      state.rows = normalizeRows(response);
-
-      state.initialized = true;
-
-      render();
-    } catch (error) {
-      if (state.destroyed || requestId !== state.requestId) {
-        return;
-      }
-
-      renderError(error);
-    } finally {
-      if (!state.destroyed && requestId === state.requestId) {
-        setLoading(false);
-      }
-    }
-  }
-
-  /* ========================================================================
-     Render
-     ======================================================================== */
-
-  function render() {
-    if (state.destroyed) {
-      return;
-    }
-
-    renderResultCount();
-
-    renderDesktop();
-
-    renderMobile();
-
-    setEmptyState(state.rows.length === 0);
-  }
-
-  /* ========================================================================
-     Desktop Rendering
-     ======================================================================== */
-
-  function renderDesktop() {
-    if (!tbody) {
-      return;
-    }
-
-    if (!state.rows.length) {
-      tbody.innerHTML = "";
-
-      return;
-    }
-
-    /*
-     * IMPORTANT:
-     *
-     * JSP now contains ONE <th>:
-     *
-     *   Company
-     *
-     * Therefore every formatter row must contain ONE <td>.
-     *
-     * formatters.js owns:
-     *
-     *   [logo] Company Name
-     *          SYMBOL + status
-     */
-
-    tbody.innerHTML = state.rows
-      .map((row) => renderAccumulatedDesktopRow(row, config))
-      .join("");
-  }
-
-  /* ========================================================================
-     Mobile Rendering
-     ======================================================================== */
-
-  function renderMobile() {
-    if (!cards) {
-      return;
-    }
-
-    if (!state.rows.length) {
-      cards.innerHTML = "";
-
-      return;
-    }
-
-    /*
-     * Accumulated Losses contains no secondary business fields requiring
-     * an expandable details area.
-     *
-     * Mobile therefore remains a compact identity card.
-     */
-
-    cards.innerHTML = state.rows
-      .map((row, index) =>
-        renderAccumulatedMobileCard(
-          row,
-          {
-            index,
-          },
-          config,
-        ),
-      )
-      .join("");
-  }
-
-  /* ========================================================================
-     Result Count
-     ======================================================================== */
-
-  function renderResultCount() {
-    if (!resultCount) {
-      return;
-    }
-
-    /*
-     * JSP owns:
-     *
-     *   Result:
-     *
-     * This module owns only:
-     *
-     *   152
-     *
-     * Never write the label here. This prevents:
-     *
-     *   Result: Result: 152
-     */
-
-    resultCount.textContent = String(state.rows.length);
-  }
-
-  /* ========================================================================
-     Loading State
-     ======================================================================== */
-
-  function setLoading(loading) {
-    state.loading = Boolean(loading);
-
-    const busy = state.loading ? "true" : "false";
-
-    viewRoot?.setAttribute("aria-busy", busy);
-
-    table?.setAttribute("aria-busy", busy);
-
-    cards?.setAttribute("aria-busy", busy);
-
-    accumulatedRoot?.classList.toggle("is-loading", state.loading);
-  }
-
-  /* ========================================================================
-     Empty State
-     ======================================================================== */
-
-  function setEmptyState(empty) {
-    const isEmpty = Boolean(empty);
-
-    viewRoot?.classList.toggle("is-empty", isEmpty);
-
-    accumulatedRoot?.classList.toggle("is-empty", isEmpty);
-  }
-
-  /* ========================================================================
-     Error State
-     ======================================================================== */
-
-  function renderError(error) {
-    state.rows = [];
-
-    renderResultCount();
-
-    if (tbody) {
-      tbody.innerHTML = "";
-    }
-
-    if (cards) {
-      cards.innerHTML = "";
-    }
-
-    viewRoot?.classList.add("is-error");
-
-    accumulatedRoot?.classList.add("is-error");
-
-    setEmptyState(true);
-
-    /*
-     * Keep console output opt-in.
-     *
-     * User-facing empty/error presentation should continue to be handled
-     * by the shared Trading/data-view layer.
-     */
-
-    if (error && config.debug === true) {
-      console.error("[Trading] Accumulated Losses request failed.", error);
-    }
-  }
-
-  /* ========================================================================
-     Clear Error State
-     ======================================================================== */
-
-  function clearError() {
-    viewRoot?.classList.remove("is-error");
-
-    accumulatedRoot?.classList.remove("is-error");
-  }
-
-  /* ========================================================================
-     Report Change
-     ======================================================================== */
-
-  function handleReportChange() {
-    const nextReport = normalizeReport(reportSelect?.value);
-
-    /*
-     * Avoid an unnecessary request when the effective value has not changed.
-     */
-
-    if (nextReport === state.report) {
-      return;
-    }
-
-    state.report = nextReport;
-
-    clearError();
-
-    load({
-      preserveRows: true,
-    });
-  }
-
-  /* ========================================================================
-     Reset
-     ======================================================================== */
-
-  function handleReset(event) {
-    /*
-     * Own reset explicitly instead of depending on native form reset timing.
-     *
-     * This is especially important because the native <select> is wrapped by
-     * the shared custom-select presentation.
-     */
-
-    event?.preventDefault();
-
-    state.report = DEFAULT_REPORT;
-
-    syncControlsFromState();
-
-    clearError();
-
-    load({
-      preserveRows: true,
-    });
-  }
-
-  /* ========================================================================
-     Synchronize Controls
-     ======================================================================== */
-
-  function syncControlsFromState() {
-    if (!reportSelect) {
-      return;
-    }
-
-    reportSelect.value = state.report;
-
-    /*
-     * Defensive fallback:
-     *
-     * If JSP options and JS state ever become inconsistent, restore All
-     * rather than leaving the select without a valid selected option.
-     */
-
-    if (reportSelect.value !== state.report) {
-      state.report = DEFAULT_REPORT;
-
-      reportSelect.value = DEFAULT_REPORT;
-    }
-
-    refreshSelect();
-  }
-
-  /* ========================================================================
-     Refresh Custom Select
-     ======================================================================== */
-
-  function refreshSelect() {
-    if (!reportSelect) {
-      return;
-    }
-
-    /*
-     * The shared dependency owns custom-select presentation.
-     *
-     * This module only tells it that the underlying native value changed.
-     */
-
-    refreshCustomSelect(reportSelect);
-  }
-
-  /* ========================================================================
-     Bind Events
-     ======================================================================== */
-
-  function bindEvents() {
-    reportSelect?.addEventListener("change", handleReportChange);
-
-    filters?.addEventListener("reset", handleReset);
-  }
-
-  /* ========================================================================
-     Unbind Events
-     ======================================================================== */
-
-  function unbindEvents() {
-    reportSelect?.removeEventListener("change", handleReportChange);
-
-    filters?.removeEventListener("reset", handleReset);
-  }
-
-  /* ========================================================================
-     Refresh
-     ======================================================================== */
-
-  async function refresh() {
-    if (state.destroyed) {
-      return;
-    }
-
-    clearError();
-
-    await load({
-      preserveRows: true,
-    });
-  }
-
-  /* ========================================================================
-     Adjust
-     ======================================================================== */
-
-  function adjust() {
-    if (state.destroyed) {
-      return;
-    }
-
-    /*
-     * There is deliberately no local table positioning logic here.
-     *
-     * Accumulated Losses:
-     *
-     * - has one column
-     * - is not a long table
-     * - does not require a fixed column
-     *
-     * Shared table infrastructure remains responsible for the normal
-     * fixed-header lifecycle.
-     */
-
-    refreshSelect();
-  }
-
-  /* ========================================================================
-     Destroy
-     ======================================================================== */
-
-  function destroy() {
-    if (state.destroyed) {
-      return;
-    }
-
-    state.destroyed = true;
-
-    /*
-     * Invalidate any in-flight response.
-     */
-
-    state.requestId += 1;
-
-    unbindEvents();
-
-    state.rows = [];
-
-    if (tbody) {
-      tbody.innerHTML = "";
-    }
-
-    if (cards) {
-      cards.innerHTML = "";
-    }
-
-    if (resultCount) {
-      resultCount.textContent = "0";
-    }
-
-    viewRoot?.classList.remove("is-empty", "is-error");
-
-    accumulatedRoot?.classList.remove("is-empty", "is-error", "is-loading");
-
-    setLoading(false);
-  }
-
-  /* ========================================================================
-     Initialize
-     ======================================================================== */
-
-  bindEvents();
-
-  /* ========================================================================
-     Public API
-     ======================================================================== */
+/*
+ * IMPORTANT:
+ *
+ * JSP now owns exactly ONE physical header:
+ *
+ * Company
+ *
+ * Symbol is supporting company identity metadata.
+ *
+ * It is not a second DataTables column.
+ */
+
+function getColumns(config) {
+  const labels = config.labels?.accumulated || {};
+
+  return [
+    {
+      key: "company",
+
+      label: labels.company || "Company",
+
+      data: null,
+
+      width: "100%",
+
+      className: "table-market__security",
+
+      searchable: true,
+    },
+  ];
+}
+
+/* ==========================================================================
+   Request
+   ========================================================================== */
+
+/*
+ * filters.js owns the page-level Report filter.
+ *
+ * Accumulated must consume that shared state rather than querying the
+ * <select> from its inner data-view root.
+ */
+
+function buildRequestData(filters, config) {
+  const state = filters.getAccumulatedRequestState();
 
   return {
-    name: VIEW,
+    /*
+     * UI concept:
+     *
+     * report
+     *
+     * Backend parameter:
+     *
+     * percentage
+     *
+     * Exact values remain:
+     *
+     * All
+     * 50-MORE
+     * 35-50
+     * 20-35
+     */
 
-    refresh,
+    percentage: state.report,
 
-    adjust,
-
-    destroy,
-
-    getState() {
-      return {
-        report: state.report,
-
-        rows: state.rows.slice(),
-
-        loading: state.loading,
-
-        initialized: state.initialized,
-      };
-    },
+    requestLocale: config.locale || "en",
   };
 }
 
 /* ==========================================================================
-   Report Normalization
+   Response Parsing
    ========================================================================== */
 
-function normalizeReport(value) {
-  const raw = String(value || DEFAULT_REPORT).trim();
-
-  if (!raw) {
-    return DEFAULT_REPORT;
-  }
-
-  const normalized = raw.toUpperCase();
-
-  /*
-   * Preserve the backend's exact "All" spelling.
-   */
-
-  if (normalized === "ALL") {
-    return "All";
-  }
-
-  if (VALID_REPORTS.has(normalized)) {
-    return normalized;
-  }
-
-  return DEFAULT_REPORT;
-}
-
-/* ==========================================================================
-   Response Normalization
-   ========================================================================== */
-
-function normalizeRows(response) {
-  /*
-   * Direct array response.
-   */
-
-  if (Array.isArray(response)) {
+function parseResponse(response) {
+  if (typeof response !== "string") {
     return response;
   }
 
-  if (!response || typeof response !== "object") {
-    return [];
+  try {
+    return JSON.parse(response);
+  } catch {
+    return response;
+  }
+}
+
+/* ==========================================================================
+   Response Rows
+   ========================================================================== */
+
+function getResponseRows(response) {
+  const value = parseResponse(response);
+
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (Array.isArray(value?.data)) {
+    return value.data;
+  }
+
+  if (Array.isArray(value?.rows)) {
+    return value.rows;
+  }
+
+  if (Array.isArray(value?.results)) {
+    return value.results;
+  }
+
+  if (Array.isArray(value?.items)) {
+    return value.items;
   }
 
   /*
-   * Common Trading response shapes.
+   * Compatibility with the legacy DataTables response wrapper.
    */
 
-  const candidates = [
-    response.data,
-    response.rows,
-    response.items,
-    response.results,
-    response.result,
-    response.list,
-  ];
-
-  for (const candidate of candidates) {
-    if (Array.isArray(candidate)) {
-      return candidate;
-    }
-  }
-
-  /*
-   * Some portal endpoints wrap the actual collection one level below data.
-   */
-
-  if (response.data && typeof response.data === "object") {
-    const nestedCandidates = [
-      response.data.rows,
-      response.data.items,
-      response.data.results,
-      response.data.result,
-      response.data.list,
-      response.data.data,
-    ];
-
-    for (const candidate of nestedCandidates) {
-      if (Array.isArray(candidate)) {
-        return candidate;
-      }
-    }
+  if (Array.isArray(value?.aaData)) {
+    return value.aaData;
   }
 
   return [];
 }
 
 /* ==========================================================================
-   No-op View
+   Response Count
    ========================================================================== */
 
-function createNoopView() {
+function getResponseCount(response, rows) {
+  const value = parseResponse(response);
+
+  const candidates = [
+    value?.total,
+    value?.count,
+    value?.recordsTotal,
+    value?.recordsFiltered,
+    rows?.[0]?.count,
+  ];
+
+  for (const candidate of candidates) {
+    const count = Number(candidate);
+
+    if (Number.isFinite(count) && count >= 0) {
+      return Math.floor(count);
+    }
+  }
+
+  return rows.length;
+}
+
+/* ==========================================================================
+   Response Normalization
+   ========================================================================== */
+
+function normalizeResponse(response) {
+  const raw = parseResponse(response);
+
+  const rows = getResponseRows(raw);
+
   return {
-    name: TRADING_VIEWS.accumulatedLosses,
+    rows,
 
-    async refresh() {},
+    meta: {
+      total: getResponseCount(raw, rows),
 
-    adjust() {},
-
-    destroy() {},
-
-    getState() {
-      return {
-        report: DEFAULT_REPORT,
-
-        rows: [],
-
-        loading: false,
-
-        initialized: false,
-      };
+      updatedAt: raw?.updatedAt ?? raw?.lastUpdated ?? raw?.timestamp ?? null,
     },
+
+    raw,
   };
+}
+
+/* ==========================================================================
+   Desktop Identity
+   ========================================================================== */
+
+/*
+ * renderTradingCompanyCell() owns:
+ *
+ * [logo] Company Name
+ *        Symbol
+ *
+ * Accumulated adds only its semantic loss-status indicator to the supporting
+ * identity line.
+ */
+
+function renderAccumulatedCompanyCell(row, config) {
+  const status = renderAccumulatedStatus(row, config);
+
+  return renderTradingCompanyCell(row, config, {
+    status,
+  });
+}
+
+/* ==========================================================================
+   Desktop Cell
+   ========================================================================== */
+
+function renderCell({ row, column }, config) {
+  switch (column.key) {
+    case "company":
+      return renderAccumulatedCompanyCell(row, config);
+
+    default:
+      return "";
+  }
+}
+
+/* ==========================================================================
+   Mobile Card
+   ========================================================================== */
+
+/*
+ * The common formatter owns the compact Accumulated card.
+ *
+ * Expected presentation:
+ *
+ * [logo] Company Name
+ *        SYMBOL + status
+ *
+ * No expandable details are required because the dataset contains no
+ * additional business fields.
+ */
+
+function renderMobileCard(row, context, config) {
+  return renderAccumulatedMobileCard(row, context, config);
+}
+
+/* ==========================================================================
+   Public View
+   ========================================================================== */
+
+export function createAccumulatedView({ root, config, filters } = {}) {
+  /* =========================================================================
+     Guards
+     ========================================================================= */
+
+  if (!(root instanceof Element)) {
+    throw new TypeError(
+      "Accumulated Losses view requires a valid root element.",
+    );
+  }
+
+  if (
+    !filters?.accumulated ||
+    typeof filters.getAccumulatedRequestState !== "function"
+  ) {
+    throw new TypeError(
+      "Accumulated Losses view requires Trading accumulated filters.",
+    );
+  }
+
+  if (!config?.endpoints?.accumulatedLosses) {
+    throw new TypeError("Accumulated Losses endpoint is required.");
+  }
+
+  const columns = getColumns(config);
+
+  let lastResultCount = 0;
+
+  /* =========================================================================
+     State
+     ========================================================================= */
+
+  const state = createDataState({
+    loading: false,
+
+    sourceRows: [],
+
+    visibleRows: [],
+
+    meta: {},
+
+    error: null,
+  });
+
+  /* =========================================================================
+     Source
+     ========================================================================= */
+
+  const source = createDataSource({
+    endpoint: config.endpoints.accumulatedLosses,
+
+    buildRequestData() {
+      return buildRequestData(filters, config);
+    },
+
+    normalizeResponse(response) {
+      const normalized = normalizeResponse(response);
+
+      lastResultCount = Number(normalized.meta?.total) || 0;
+
+      return normalized;
+    },
+  });
+
+  /* =========================================================================
+     Table
+     ========================================================================= */
+
+  const table = createDataTable({
+    root,
+
+    table: getTableSelector(VIEW),
+
+    initialView: VIEW,
+
+    /*
+     * JSP owns:
+     *
+     * Company
+     *
+     * The header must not be regenerated.
+     */
+
+    headerMode: "existing",
+
+    getColumns() {
+      return columns;
+    },
+
+    renderCell(args) {
+      return renderCell(args, config);
+    },
+
+    tableOptions: {
+      /*
+       * Shared Trading defaults.
+       */
+
+      ...config.tableDefaults,
+
+      /*
+       * Accumulated-specific configuration.
+       */
+
+      ...config.tables?.accumulatedLosses,
+
+      /*
+       * The outer .table-responsive owns horizontal containment.
+       */
+
+      scrollX: false,
+
+      scrollCollapse: false,
+
+      /*
+       * Standard single-row header.
+       */
+
+      fixedHeader: true,
+
+      /*
+       * There is only one physical column.
+       */
+
+      fixedColumns: false,
+
+      /*
+       * Mobile uses our card presentation rather than DataTables
+       * Responsive child rows.
+       */
+
+      responsive: false,
+    },
+  });
+
+  /* =========================================================================
+     Cards
+     ========================================================================= */
+
+  const cards = createDataCards({
+    root,
+
+    container: getCardsSelector(VIEW),
+
+    initialView: VIEW,
+
+    renderCard(row, context) {
+      return renderMobileCard(row, context, config);
+    },
+
+    emptyMessage: config.labels?.noData || "No data available",
+
+    errorMessage: config.labels?.loadError || "Unable to load trading data.",
+
+    afterRender(container) {
+      container?.classList?.add(
+        "trading-data-card-list",
+        "trading-accumulated-card-list",
+      );
+    },
+  });
+
+  /* =========================================================================
+     Results
+     ========================================================================= */
+
+  const baseResults = createDataResults({
+    root,
+
+    count: getResultCountSelector(VIEW),
+
+    labels: {
+      loading: config.labels?.loading,
+
+      empty: config.labels?.noData,
+
+      error: config.labels?.loadError,
+
+      /*
+       * JSP already renders:
+       *
+       * Results:
+       *
+       * JS writes only the count.
+       */
+
+      results: "",
+    },
+  });
+
+  const results = Object.freeze({
+    showLoading() {
+      baseResults.showLoading();
+    },
+
+    showReady() {
+      baseResults.showReady(lastResultCount);
+    },
+
+    showEmpty(message) {
+      lastResultCount = 0;
+
+      baseResults.showEmpty(message);
+    },
+
+    showError(message) {
+      lastResultCount = 0;
+
+      baseResults.showError(message);
+    },
+
+    destroy() {
+      baseResults.destroy();
+    },
+  });
+
+  /* =========================================================================
+     Controller
+     ========================================================================= */
+
+  const controller = createDataViewController({
+    source,
+
+    state,
+
+    table,
+
+    cards,
+
+    results,
+
+    /*
+     * trading.js owns active-tab loading.
+     */
+
+    autoLoad: false,
+
+    getView() {
+      return VIEW;
+    },
+
+    getEmptyMessage() {
+      return config.labels?.noData || "No data available";
+    },
+
+    getErrorMessage(error) {
+      return (
+        error?.response?.message ||
+        config.labels?.loadError ||
+        "Unable to load trading data."
+      );
+    },
+  });
+
+  controller.init();
+
+  /* =========================================================================
+     Busy State
+     ========================================================================= */
+
+  const unsubscribeState = state.subscribe(({ state: snapshot }) => {
+    root.setAttribute("aria-busy", String(Boolean(snapshot.loading)));
+  });
+
+  /*
+   * JSP does not permanently own runtime busy state.
+   */
+
+  root.setAttribute("aria-busy", "false");
+
+  /* =========================================================================
+     Reload
+     ========================================================================= */
+
+  function reload() {
+    return controller.reload();
+  }
+
+  /* =========================================================================
+     Adjust
+     ========================================================================= */
+
+  function adjust() {
+    const api = table.getApi?.();
+
+    if (!api) {
+      return;
+    }
+
+    /*
+     * Accumulated may initialize after its tab becomes active.
+     *
+     * Recalculate the single column and FixedHeader when required.
+     */
+
+    requestAnimationFrame(() => {
+      try {
+        api.columns?.adjust?.();
+
+        api.fixedHeader?.adjust?.();
+
+        api.responsive?.recalc?.();
+      } catch (error) {
+        console.warn("Accumulated table adjustment failed:", error);
+      }
+    });
+  }
+
+  /* =========================================================================
+     Queries
+     ========================================================================= */
+
+  function getRows() {
+    return controller.getSourceRows?.() || [];
+  }
+
+  function getVisibleRows() {
+    return controller.getVisibleRows?.() || [];
+  }
+
+  function getTable() {
+    return table.getApi?.() || null;
+  }
+
+  /* =========================================================================
+     Lifecycle
+     ========================================================================= */
+
+  function destroy() {
+    unsubscribeState();
+
+    controller.destroy();
+
+    root.removeAttribute("aria-busy");
+  }
+
+  /* =========================================================================
+     Public Instance
+     ========================================================================= */
+
+  return Object.freeze({
+    view: VIEW,
+
+    reload,
+
+    adjust,
+
+    getRows,
+
+    getVisibleRows,
+
+    getTable,
+
+    destroy,
+  });
 }
