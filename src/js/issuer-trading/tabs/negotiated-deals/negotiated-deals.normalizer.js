@@ -665,15 +665,24 @@ function normalizeMinimumSizeCell(value) {
         }
       : null;
   }
-
   const company = normalizeCompany(value);
 
-  if (!company.companyCode && !company.companyName) {
+  const nestedCompany = isObject(value.company) ? value.company : {};
+
+  const companyCode = getFirstString(
+    value.symbolCode,
+    nestedCompany.symbolCode,
+    company.companyCode,
+  );
+
+  if (!companyCode && !company.companyName) {
     return null;
   }
 
   return {
     ...company,
+
+    companyCode,
 
     raw: value,
   };
