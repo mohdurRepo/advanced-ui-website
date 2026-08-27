@@ -10,12 +10,13 @@
  * - synchronize result count
  * - expose loading / empty / error / ready states
  * - support page-specific labels
+ * - allow the page/JSP to own the visible result label
  * - support custom render hooks
  *
  * This module intentionally has no:
  *
- * - AJAX code
- * - DataTables code
+ * - AJAX
+ * - DataTables
  * - card rendering
  * - filter logic
  * - paging implementation
@@ -27,9 +28,13 @@
 
 const STATES = Object.freeze({
   idle: "idle",
+
   loading: "loading",
+
   ready: "ready",
+
   empty: "empty",
+
   error: "error",
 });
 
@@ -47,7 +52,7 @@ function resolveElement(root, value) {
   }
 
   if (typeof value === "string") {
-    return root.querySelector(value);
+    return root?.querySelector?.(value) || null;
   }
 
   return null;
@@ -61,6 +66,29 @@ function normalizeCount(value) {
   }
 
   return Math.floor(count);
+}
+
+/* ==========================================================================
+   Label Resolution
+   ========================================================================== */
+
+/*
+ * IMPORTANT:
+ *
+ * Use nullish coalescing rather than ||.
+ *
+ * An explicit empty string is meaningful:
+ *
+ * results: ""
+ *
+ * means:
+ *
+ * "The surrounding JSP/markup already owns the visible Results label.
+ *  Render only the numeric value."
+ */
+
+function resolveLabel(value, fallback) {
+  return value ?? fallback;
 }
 
 /* ==========================================================================
@@ -78,7 +106,7 @@ export function createDataResults(options = {}) {
 
   const statusElement = resolveElement(root, options.status);
 
-  let count = normalizeCount(options.initialCount || 0);
+  let count = normalizeCount(options.initialCount ?? 0);
 
   let state = options.initialState || STATES.idle;
 
@@ -86,30 +114,38 @@ export function createDataResults(options = {}) {
 
   let destroyed = false;
 
-  /* ========================================================================
+  /* =========================================================================
      Labels
-     ======================================================================== */
+     ========================================================================= */
 
   function getLabels() {
     return {
-      loading: options.labels?.loading || "Loading…",
+      loading: resolveLabel(options.labels?.loading, "Loading…"),
 
-      empty: options.labels?.empty || "No data available",
+      empty: resolveLabel(options.labels?.empty, "No data available"),
 
-      error: options.labels?.error || "Unable to load data.",
+      error: resolveLabel(options.labels?.error, "Unable to load data."),
 
-      results: options.labels?.results || "Results",
+      /*
+       * Empty string is intentionally preserved.
+       */
+
+      results: resolveLabel(options.labels?.results, "Results"),
     };
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Count
-     ======================================================================== */
+     ========================================================================= */
 
   function renderCount() {
     if (destroyed || !countElement) {
       return;
     }
+
+    /* -----------------------------------------------------------------------
+       Custom Renderer
+       ----------------------------------------------------------------------- */
 
     if (typeof options.renderCount === "function") {
       countElement.innerHTML = options.renderCount({
@@ -121,14 +157,24 @@ export function createDataResults(options = {}) {
       return;
     }
 
+    /* -----------------------------------------------------------------------
+       Dedicated Value Node
+       ----------------------------------------------------------------------- */
+
     /*
-     * If the count element contains a dedicated value node,
-     * update only that node.
+     * Preferred markup:
      *
-     * Otherwise replace the count element's text content.
+     * <p class="data-view__result-count">
+     *   <strong>Results:</strong>
+     *
+     *   <span data-result-count-value>0</span>
+     * </p>
+     *
+     * When createDataResults receives the outer wrapper, update only its
+     * dedicated numeric node.
      */
 
-    const valueElement = countElement.querySelector(
+    const valueElement = countElement.querySelector?.(
       "[data-result-count-value]",
     );
 
@@ -138,12 +184,39 @@ export function createDataResults(options = {}) {
       return;
     }
 
-    countElement.textContent = `${getLabels().results}: ${count}`;
+    /* -----------------------------------------------------------------------
+       Direct Count Element
+       ----------------------------------------------------------------------- */
+
+    /*
+     * Trading currently passes the numeric span itself:
+     *
+     * <strong>Results:</strong>
+     * <span data-trading-result-count>0</span>
+     *
+     * Therefore:
+     *
+     * labels.results === ""
+     *
+     * must result in:
+     *
+     * 152
+     *
+     * and NOT:
+     *
+     * Results: 152
+     */
+
+    const resultsLabel = String(getLabels().results ?? "").trim();
+
+    countElement.textContent = resultsLabel
+      ? `${resultsLabel}: ${count}`
+      : String(count);
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Status
-     ======================================================================== */
+     ========================================================================= */
 
   function renderStatus() {
     if (destroyed || !statusElement) {
@@ -185,9 +258,9 @@ export function createDataResults(options = {}) {
     }
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Render
-     ======================================================================== */
+     ========================================================================= */
 
   function render() {
     if (destroyed) {
@@ -195,6 +268,7 @@ export function createDataResults(options = {}) {
     }
 
     renderCount();
+
     renderStatus();
 
     options.afterRender?.({
@@ -204,9 +278,9 @@ export function createDataResults(options = {}) {
     });
   }
 
-  /* ========================================================================
+  /* =========================================================================
      State
-     ======================================================================== */
+     ========================================================================= */
 
   function setState(nextState, nextMessage = "") {
     if (destroyed) {
@@ -220,9 +294,9 @@ export function createDataResults(options = {}) {
     render();
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Count API
-     ======================================================================== */
+     ========================================================================= */
 
   function setCount(nextCount) {
     if (destroyed) {
@@ -242,15 +316,19 @@ export function createDataResults(options = {}) {
     options.onCountChange?.(count);
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Convenience States
-     ======================================================================== */
+     ========================================================================= */
 
   function showLoading(nextMessage = "") {
     setState(STATES.loading, nextMessage);
   }
 
   function showReady(nextCount = count) {
+    if (destroyed) {
+      return;
+    }
+
     count = normalizeCount(nextCount);
 
     state = STATES.ready;
@@ -261,27 +339,43 @@ export function createDataResults(options = {}) {
   }
 
   function showEmpty(nextMessage = "") {
+    if (destroyed) {
+      return;
+    }
+
     count = 0;
 
-    setState(STATES.empty, nextMessage);
+    state = STATES.empty;
+
+    message = nextMessage || "";
+
+    render();
   }
 
   function showError(nextMessage = "") {
+    if (destroyed) {
+      return;
+    }
+
     count = 0;
 
-    setState(STATES.error, nextMessage);
+    state = STATES.error;
+
+    message = nextMessage || "";
+
+    render();
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Reset
-     ======================================================================== */
+     ========================================================================= */
 
   function reset() {
     if (destroyed) {
       return;
     }
 
-    count = normalizeCount(options.initialCount || 0);
+    count = normalizeCount(options.initialCount ?? 0);
 
     state = options.initialState || STATES.idle;
 
@@ -290,9 +384,9 @@ export function createDataResults(options = {}) {
     render();
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Queries
-     ======================================================================== */
+     ========================================================================= */
 
   function getState() {
     return Object.freeze({
@@ -302,9 +396,9 @@ export function createDataResults(options = {}) {
     });
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Lifecycle
-     ======================================================================== */
+     ========================================================================= */
 
   function destroy() {
     if (destroyed) {
@@ -314,17 +408,17 @@ export function createDataResults(options = {}) {
     destroyed = true;
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Initialization
-     ======================================================================== */
+     ========================================================================= */
 
   if (options.autoRender !== false) {
     render();
   }
 
-  /* ========================================================================
+  /* =========================================================================
      Public Instance
-     ======================================================================== */
+     ========================================================================= */
 
   return Object.freeze({
     destroy,

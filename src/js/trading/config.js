@@ -40,7 +40,9 @@ const DEFAULTS = Object.freeze({
 
     negotiatedDeals: {
       type: "Negotiated-Deals",
+
       sector: "All",
+
       company: "All",
 
       /*
@@ -49,7 +51,9 @@ const DEFAULTS = Object.freeze({
        * fromDate = one calendar month ago
        * toDate   = today
        */
+
       fromDate: "",
+
       toDate: "",
     },
 
@@ -63,7 +67,9 @@ const DEFAULTS = Object.freeze({
       /*
        * Same calculated one-month default from filters.js.
        */
+
       fromDate: "",
+
       toDate: "",
     },
   },
@@ -79,16 +85,19 @@ const DEFAULTS = Object.freeze({
      * start = one calendar month before today
      * end   = today
      */
+
     defaultMode: "lastMonthToToday",
 
     /*
      * Native <input type="date">.
      */
+
     inputFormat: "yyyy-MM-dd",
 
     /*
      * Existing Trading backend contract.
      */
+
     requestFormat: "dd-MM-yyyy",
   },
 
@@ -102,6 +111,7 @@ const DEFAULTS = Object.freeze({
        * Actual endpoint is derived from endpoints.companiesBySector when not
        * explicitly provided by the JSP.
        */
+
       endpoint: "",
 
       defaultValue: "All",
@@ -112,6 +122,7 @@ const DEFAULTS = Object.freeze({
 
       response: {
         value: "symbol",
+
         label: "longName",
       },
     },
@@ -125,7 +136,9 @@ const DEFAULTS = Object.freeze({
     negotiatedDeals: {
       defaults: {
         type: "Negotiated-Deals",
+
         sector: "All",
+
         company: "All",
       },
 
@@ -133,6 +146,7 @@ const DEFAULTS = Object.freeze({
        * Clearing Company must mean "All Companies", never an empty backend
        * value.
        */
+
       companyClearValue: "All",
     },
 
@@ -161,8 +175,11 @@ const DEFAULTS = Object.freeze({
     autoWidth: false,
 
     searching: false,
+
     ordering: false,
+
     info: false,
+
     lengthChange: false,
 
     serverSide: false,
@@ -170,51 +187,52 @@ const DEFAULTS = Object.freeze({
     /*
      * Trading owns its loading lifecycle through common data-view.
      *
-     * Do not enable DataTables' separate Processing overlay.
+     * Do not enable DataTables' separate processing overlay.
      */
+
     processing: false,
 
     deferRender: true,
 
     /*
-     * IMPORTANT:
-     *
-     * Trading tables already live inside the design-system:
+     * Trading tables already live inside:
      *
      * .table-shell
      *   -> .table-responsive
      *      -> .table
      *
-     * Therefore DataTables must NOT create an additional dt-scroll-head /
-     * dt-scroll-body hierarchy.
-     *
      * Horizontal overflow remains owned by .table-responsive.
      *
-     * This is particularly important for:
-     *
-     * - grouped <thead>s
-     * - Suspended Period headers
-     * - Listed Tradable grouped headers
-     * - first-column alignment
-     * - RTL
+     * DataTables must not create a second dt-scroll-head / dt-scroll-body
+     * hierarchy.
      */
+
     scrollX: false,
+
     scrollCollapse: false,
 
     /*
-     * Keep cloning/fixed-column extensions disabled while Trading uses hidden
-     * tabs and grouped headers.
+     * Conservative shared defaults.
+     *
+     * Each view explicitly opts into FixedHeader / FixedColumns where its
+     * structure supports them.
      */
+
     fixedHeader: false,
+
     fixedColumns: 0,
 
     /*
-     * Trading JSP/data-view owns its own toolbar/results presentation.
+     * JSP/data-view owns toolbar and result presentation.
      */
+
     layout: {
       topStart: null,
+
       topEnd: null,
+
       bottomStart: null,
+
       bottomEnd: null,
     },
   },
@@ -224,64 +242,163 @@ const DEFAULTS = Object.freeze({
      ========================================================================= */
 
   tables: {
+    /* ------------------------------------------------------------------------
+       Negotiated Deals
+       ------------------------------------------------------------------------ */
+
     negotiatedDeals: {
       paging: true,
+
       pageLength: 25,
 
       ordering: false,
+
       searching: false,
+
+      /*
+       * Standard six-column table.
+       *
+       * DataTables owns FixedHeader.
+       *
+       * No fixed body column is required.
+       */
+
+      fixedHeader: true,
+
+      fixedColumns: 0,
     },
+
+    /* ------------------------------------------------------------------------
+       Minimum Size
+       ------------------------------------------------------------------------ */
 
     /*
      * Minimum Size is not initialized through the normal DataTable adapter.
+     *
+     * It uses:
+     *
+     * .table-market--minimum-size
+     * .table-market--native-sticky
+     *
+     * for its JSP-owned three-row matrix header.
      */
+
     minimumSize: {
       paging: false,
+
       ordering: false,
+
       searching: false,
+
+      fixedHeader: false,
+
+      fixedColumns: 0,
     },
+
+    /* ------------------------------------------------------------------------
+       Accumulated Losses
+       ------------------------------------------------------------------------ */
 
     accumulatedLosses: {
       paging: true,
+
       pageLength: 25,
 
       ordering: false,
+
       searching: false,
+
+      fixedHeader: true,
+
+      fixedColumns: 0,
     },
+
+    /* ------------------------------------------------------------------------
+       Listed Tradable Rights
+       ------------------------------------------------------------------------ */
 
     listedTradableRights: {
       paging: false,
 
       ordering: false,
+
       searching: false,
 
       /*
-       * Metadata only. The JSP remains authoritative for its grouped header.
+       * JSP remains authoritative for the grouped header.
        */
+
       complexHeader: true,
+
+      /*
+       * This is the genuinely long Trading dataset.
+       *
+       * FixedHeader stays active while only the first logical identity column
+       * remains fixed horizontally.
+       */
+
+      fixedHeader: true,
+
+      fixedColumns: {
+        start: 1,
+      },
     },
+
+    /* ------------------------------------------------------------------------
+       Suspended Companies
+       ------------------------------------------------------------------------ */
 
     suspendedCompanies: {
       paging: false,
 
       ordering: false,
+
       searching: false,
 
+      /*
+       * JSP owns:
+       *
+       * Symbol | Company | Period        | Reason
+       *                  | From | To
+       */
+
       complexHeader: true,
+
+      fixedHeader: true,
+
+      fixedColumns: 0,
     },
+
+    /* ------------------------------------------------------------------------
+       Delisted Companies
+       ------------------------------------------------------------------------ */
 
     delistedCompanies: {
       paging: false,
 
       ordering: false,
+
       searching: false,
+
+      fixedHeader: true,
+
+      fixedColumns: 0,
     },
+
+    /* ------------------------------------------------------------------------
+       OTC Trading
+       ------------------------------------------------------------------------ */
 
     otcTrading: {
       paging: false,
 
       ordering: false,
+
       searching: false,
+
+      fixedHeader: true,
+
+      fixedColumns: 0,
     },
   },
 
@@ -295,11 +412,16 @@ const DEFAULTS = Object.freeze({
    * Page/business labels must come from JSP localization rather than being
    * invented in JavaScript.
    */
+
   labels: {
     loading: "Loading…",
+
     noData: "No data available",
+
     loadError: "Unable to load data.",
+
     results: "Results",
+
     total: "Total",
 
     controls: {
@@ -308,17 +430,24 @@ const DEFAULTS = Object.freeze({
 
     mobile: {
       showDetails: "Show details",
+
       hideDetails: "Hide details",
     },
 
     tabs: {},
 
     negotiatedDeals: {},
+
     minimumSize: {},
+
     accumulated: {},
+
     listedTradable: {},
+
     suspended: {},
+
     delisted: {},
+
     otc: {},
   },
 });
@@ -329,11 +458,17 @@ const DEFAULTS = Object.freeze({
 
 const REQUIRED_ENDPOINTS = Object.freeze([
   "negotiatedDeals",
+
   "minimumSize",
+
   "accumulatedLosses",
+
   "listedTradableRights",
+
   "suspendedDelisted",
+
   "otcTrading",
+
   "companiesBySector",
 ]);
 
@@ -349,6 +484,10 @@ function isNonEmptyString(value) {
   return typeof value === "string" && value.trim() !== "";
 }
 
+/* ==========================================================================
+   Clone
+   ========================================================================== */
+
 function cloneValue(value) {
   if (Array.isArray(value)) {
     return value.map(cloneValue);
@@ -363,6 +502,10 @@ function cloneValue(value) {
   return value;
 }
 
+/* ==========================================================================
+   Deep Freeze
+   ========================================================================== */
+
 function deepFreeze(value) {
   if (value === null || typeof value !== "object" || Object.isFrozen(value)) {
     return value;
@@ -373,11 +516,19 @@ function deepFreeze(value) {
   return Object.freeze(value);
 }
 
+/* ==========================================================================
+   Deep Merge
+   ========================================================================== */
+
 /**
  * Deep merge configuration objects.
  *
  * Arrays are replaced rather than concatenated because configuration arrays
  * represent complete contracts.
+ *
+ * @param {*} base
+ * @param {*} override
+ * @returns {*}
  */
 function mergeConfig(base, override) {
   if (!isObject(base)) {
@@ -460,18 +611,50 @@ function normalizeConfig(rawConfig) {
    * endpoints.companiesBySector
    * dependencies.sectorCompany.endpoint
    */
+
   if (!isNonEmptyString(rawConfig.dependencies?.sectorCompany?.endpoint)) {
     config.dependencies.sectorCompany.endpoint =
       config.endpoints.companiesBySector;
   }
 
   /*
-   * The Company business default must always be usable.
+   * Company clear/reset must always resolve to a valid backend value.
    */
+
   if (!isNonEmptyString(config.filters?.negotiatedDeals?.companyClearValue)) {
     config.filters.negotiatedDeals.companyClearValue =
       config.filters?.negotiatedDeals?.defaults?.company || "All";
   }
+
+  /*
+   * Normalize FixedColumns contract.
+   *
+   * DataTables accepts:
+   *
+   * 0
+   *
+   * or:
+   *
+   * {
+   *   start: 1
+   * }
+   *
+   * Keep configuration declarative and avoid accidental boolean values.
+   */
+
+  Object.values(config.tables || {}).forEach((table) => {
+    if (!isObject(table)) {
+      return;
+    }
+
+    if (table.fixedColumns === false) {
+      table.fixedColumns = 0;
+    }
+
+    if (table.fixedHeader === undefined) {
+      table.fixedHeader = false;
+    }
+  });
 
   return deepFreeze(config);
 }
@@ -529,6 +712,9 @@ export function getTradingEndpoint(key) {
 
 /**
  * Return merged DataTables configuration for one Trading view.
+ *
+ * Minimum Size may still call this helper for presentation metadata even
+ * though it does not create a DataTables instance.
  *
  * @param {string} view
  * @returns {Readonly<object>}

@@ -514,7 +514,6 @@
               <div
                 class="data-view"
                 data-trading-view="negotiatedDeals"
-                aria-busy="true"
               >
 
                 <div class="data-view__workspace">
@@ -581,9 +580,15 @@
 
                           <table
                             id="negotiated-deals-table"
-                            class="table table-hover table-nowrap table-market table-market--results"
+                            class="
+                            table
+                            table-hover
+                            table-nowrap
+                            table-market
+                            table-market--results
+                            table-market--negotiated
+                          "
                             aria-describedby="negotiated-deals-results"
-                            aria-busy="true"
                             data-trading-table="negotiatedDeals"
                           >
 
@@ -612,6 +617,7 @@
                                 </th>
 
                                 <th
+                                  class="table-market__security"
                                   scope="col"
                                   data-column-key="company"
                                 >
@@ -688,7 +694,6 @@
                   <div
                     class="data-view__cards"
                     aria-label="<fmt:message key='issuer.trading.info.v2.title.negotiated' />"
-                    aria-busy="true"
                     data-trading-cards="negotiatedDeals"
                   ></div>
 
@@ -807,9 +812,16 @@
 
                           <table
                             id="minimum-size-table"
-                            class="table table-hover table-nowrap table-market table-market--results"
+                            class="
+                              table
+                              table-hover
+                              table-nowrap
+                              table-market
+                              table-market--results
+                              table-market--minimum-size
+                              table-market--native-sticky
+                            "
                             aria-describedby="minimum-size-results"
-                            aria-busy="true"
                             data-trading-table="minimumSize"
                           >
 
@@ -2619,6 +2631,32 @@
 
 
     /* ======================================================================
+       Assets
+       ====================================================================== */
+
+    /*
+     * Shared market identity assets.
+     *
+     * Negotiated Deals will now use the same professional identity pattern
+     * as Market Watch:
+     *
+     * [logo] Company Name
+     *        Symbol
+     *
+     * Other Trading views will adopt this contract only when we refine them
+     * one by one.
+     */
+
+    assets: {
+      companyLogoUrlTemplate:
+        "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/{companyCode}.png",
+
+      companyLogoFallbackUrl:
+        "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/default.png",
+    },
+
+
+    /* ======================================================================
        Endpoints
        ====================================================================== */
 
@@ -2673,11 +2711,19 @@
           "<c:out value='${empty requestScope.company ? "All" : requestScope.company}' />",
 
         /*
-         * Dates are initialized by the Trading date helper.
+         * Deliberately blank here.
+         *
+         * The Trading date helper owns runtime initialization because:
+         *
+         * - today changes every day
+         * - one calendar month must be calculated correctly
+         * - the same helper must also own Reset
          *
          * Default:
-         * one month ago -> today
+         *
+         * one calendar month ago -> today
          */
+
         fromDate:
           "",
 
@@ -2722,23 +2768,28 @@
     dateRange: {
 
       /*
-       * Default Trading date range:
+       * Shared Trading business default.
+       *
+       * For Negotiated Deals in this pass:
        *
        * start = one calendar month before today
        * end   = today
        */
+
       defaultMode:
         "lastMonthToToday",
 
       /*
-       * Native <input type="date"> format.
+       * Native <input type="date"> value format.
        */
+
       inputFormat:
         "yyyy-MM-dd",
 
       /*
-       * Backend request format.
+       * Existing backend request format.
        */
+
       requestFormat:
         "dd-MM-yyyy",
     },
@@ -2750,18 +2801,41 @@
 
     dependencies: {
 
+      /* --------------------------------------------------------------------
+         Negotiated Deals
+         -------------------------------------------------------------------- */
+
       /*
-       * Negotiated Deals:
-       *
        * Industry Group -> Company
        *
-       * Company always returns to "All Companies" after the Industry
-       * selection changes.
+       * Contract:
+       *
+       * - Industry = All:
+       *     restore the complete JSP Company list
+       *
+       * - Industry = specific sector:
+       *     request companies for that sector
+       *
+       * - after Industry changes:
+       *     Company returns to All Companies
+       *
+       * - clearing Company:
+       *     means All Companies, never an empty backend value
        */
+
       sectorCompany: {
 
+        /*
+         * config.js derives this from:
+         *
+         * endpoints.companiesBySector
+         *
+         * Keeping the endpoint in one canonical location avoids duplicate
+         * resourceURL contracts.
+         */
+
         endpoint:
-          "<portlet:resourceURL id='getCompaniesBySector' />",
+          "",
 
         defaultValue:
           "All",
@@ -2811,6 +2885,15 @@
           company:
             "All",
         },
+
+        /*
+         * Enhanced Company selection must never resolve to an empty value.
+         *
+         * X / Clear = All Companies.
+         */
+
+        companyClearValue:
+          "All",
       },
 
 
@@ -2840,9 +2923,6 @@
             "Suspension",
         },
 
-        /*
-         * These values determine which table/card presentation is active.
-         */
         suspendedTypes: [
           "Suspension",
           "Suspension_Funds",
@@ -2860,12 +2940,24 @@
        Table Defaults
        ====================================================================== */
 
+    /*
+     * Do not change the remaining Trading tables globally yet.
+     *
+     * We are completing the page tab by tab.
+     *
+     * Negotiated Deals receives its finalized behavior below through its
+     * per-view configuration.
+     */
+
     tableDefaults: {
 
       autoWidth:
         false,
 
       searching:
+        false,
+
+      ordering:
         false,
 
       info:
@@ -2883,21 +2975,17 @@
       deferRender:
         true,
 
+      /*
+       * Legacy/default values remain temporarily for views we have not yet
+       * completed in this tab-by-tab refinement pass.
+       */
+
       scrollX:
         true,
 
       scrollCollapse:
         true,
 
-      /*
-       * Keep FixedHeader disabled while Trading contains:
-       *
-       * - tabs
-       * - hidden variants
-       * - multi-row grouped headers
-       *
-       * We can revisit FixedHeader after every table has been stabilized.
-       */
       fixedHeader:
         false,
 
@@ -2932,6 +3020,17 @@
          Negotiated Deals
          -------------------------------------------------------------------- */
 
+      /*
+       * FINAL TARGET FOR TAB 1:
+       *
+       * - ordinary six-column results table
+       * - design-system .table-responsive owns horizontal containment
+       * - FixedHeader enabled
+       * - no FixedColumn required
+       * - JSP owns <thead>
+       * - common data-view owns loading skeleton
+       */
+
       negotiatedDeals: {
 
         paging:
@@ -2945,16 +3044,30 @@
 
         searching:
           false,
+
+        scrollX:
+          false,
+
+        scrollCollapse:
+          false,
+
+        fixedHeader:
+          true,
+
+        fixedColumns:
+          0,
       },
 
 
       /* --------------------------------------------------------------------
          Minimum Size
-
-         Minimum Size has a dedicated matrix renderer.
-         These values remain useful as presentation metadata, but it is not
-         passed through the ordinary DataTable adapter.
          -------------------------------------------------------------------- */
+
+      /*
+       * Minimum Size will be completed after Negotiated Deals is approved.
+       *
+       * It has a dedicated matrix renderer.
+       */
 
       minimumSize: {
 
@@ -3105,9 +3218,6 @@
 
       controls: {
 
-        /*
-         * Replace these literals with existing localized keys if available.
-         */
         search:
           "Search",
 
@@ -3148,9 +3258,6 @@
 
       mobile: {
 
-        /*
-         * Use localized resource keys here when available.
-         */
         showDetails:
           "Show details",
 
@@ -3196,22 +3303,66 @@
          ==================================================================== */
 
       minimumSize: {
+          /*
+          * Complete semantic matrix.
+          *
+          * Each backend value col1-col4 maps vertically through all three
+          * JSP-owned header rows.
+          */
 
-        /*
-         * Matrix labels are kept separate from ordinary table column labels.
-         */
-        col1:
-          "<fmt:message key='adtv.sub.row.0.col.1' />",
+          columns: [
+            {
+              key: "col1",
 
-        col2:
-          "<fmt:message key='adtv.sub.row.0.col.2' />",
+              levels: [
+                "<fmt:message key='adtv.sub.row.0.col.1' />",
+                "<fmt:message key='adtv.sub.row.1.col.1' />",
+                "<fmt:message key='adtv.sub.row.2.col.1' />",
+              ],
+            },
 
-        col3:
-          "<fmt:message key='adtv.sub.row.0.col.3' />",
+            {
+              key: "col2",
 
-        col4:
-          "<fmt:message key='adtv.sub.row.0.col.4' />",
-      },
+              levels: [
+                "<fmt:message key='adtv.sub.row.0.col.2' />",
+                "<fmt:message key='adtv.sub.row.1.col.2' />",
+                "<fmt:message key='adtv.sub.row.2.col.2' />",
+              ],
+            },
+
+            {
+              key: "col3",
+
+              levels: [
+                "<fmt:message key='adtv.sub.row.0.col.3' />",
+                "<fmt:message key='adtv.sub.row.1.col.3' />",
+                "<fmt:message key='adtv.sub.row.2.col.3' />",
+              ],
+            },
+
+            {
+              key: "col4",
+
+              levels: [
+                "<fmt:message key='adtv.sub.row.0.col.4' />",
+                "<fmt:message key='adtv.sub.row.1.col.4' />",
+                "<fmt:message key='adtv.sub.row.2.col.4' />",
+              ],
+            },
+          ],
+
+          /*
+          * The left-side matrix-axis labels are also retained for accessibility
+          * and future presentation needs.
+          */
+
+          rows: [
+            "<fmt:message key='adtv.sub.row.1' />",
+            "<fmt:message key='adtv.sub.row.2' />",
+            "<fmt:message key='adtv.sub.row.3' />",
+          ],
+        },
 
 
       /* ====================================================================
@@ -3237,7 +3388,6 @@
         security:
           "<fmt:message key='equityright.table.column.header.tradable.rights' />",
 
-
         /* Last Trade */
 
         lastTradePrice:
@@ -3252,7 +3402,6 @@
         changePercent:
           "<fmt:message key='equityright.table.column.header.change.percent' />",
 
-
         /* Today's Trading */
 
         open:
@@ -3264,7 +3413,6 @@
         low:
           "<fmt:message key='equityright.table.column.header.low' />",
 
-
         /* Cumulative */
 
         numberOfTrades:
@@ -3273,7 +3421,6 @@
         volumeTraded:
           "<fmt:message key='equityright.table.column.header.volume.traded' />",
 
-
         /* Best Bid */
 
         bidPrice:
@@ -3281,7 +3428,6 @@
 
         bidVolume:
           "<fmt:message key='equityright.table.column.header.volume' />",
-
 
         /* Best Offer */
 

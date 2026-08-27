@@ -308,7 +308,9 @@ export function toRequestDate(value) {
 function toInputDate(date) {
   return [
     date.getFullYear(),
+
     pad2(date.getMonth() + 1),
+
     pad2(date.getDate()),
   ].join("-");
 }
@@ -338,6 +340,7 @@ function subtractCalendarMonth(date) {
 
   const targetDay = Math.min(
     date.getDate(),
+
     getDaysInMonth(target.getFullYear(), target.getMonth()),
   );
 
@@ -383,7 +386,13 @@ function getChangeClass(value) {
 export function renderPriceChange(
   displayValue,
   numericValue = displayValue,
-  { percent = false, config = {}, className = "table-market__change" } = {},
+  {
+    percent = false,
+
+    config = {},
+
+    className = "table-market__change",
+  } = {},
 ) {
   const display = percent
     ? formatPercent(displayValue, config)
@@ -787,7 +796,6 @@ export function getCompanyLogoUrl(row = {}, config = {}) {
 
   return getCompanyLogoFallbackUrl(config);
 }
-
 /* ==========================================================================
    Company Logo
    ========================================================================== */
@@ -801,7 +809,11 @@ function normalizeLogoSize(value, fallback = 40) {
 export function renderCompanyLogo(
   row = {},
   config = {},
-  { className = "table-market__logo", size = 40 } = {},
+  {
+    className = "table-market__logo",
+
+    size = 40,
+  } = {},
 ) {
   const logoUrl = getCompanyLogoUrl(row, config);
 
@@ -814,8 +826,8 @@ export function renderCompanyLogo(
   const normalizedSize = normalizeLogoSize(size, 40);
 
   /*
-   * If no image contract exists at all, retain a proper visual identity
-   * surface rather than rendering a broken image.
+   * If no image contract exists at all, keep a proper identity surface rather
+   * than rendering a broken <img>.
    */
 
   if (!logoUrl) {
@@ -972,7 +984,7 @@ export function renderIdentityCell(row, view, config = {}) {
    ========================================================================== */
 
 /*
- * Some current Trading JSPs still contain a separate Symbol column.
+ * Some Trading tables still contain a separate Symbol column.
  *
  * Until those tabs are migrated to one combined Market Watch-style identity
  * column, use this formatter so status dots remain correct and consistent.
@@ -1202,16 +1214,12 @@ export function renderTradingCell({
    ========================================================================== */
 
 /*
- * Canonical Trading mobile identity:
+ * Compact market-card identity:
  *
- * [logo] Company Name          [quote owned by the view]
- *        Symbol •status
+ * [logo] Company Name
+ *        Symbol
  *
- * renderMobileIdentity() owns ONLY the left identity.
- *
- * Negotiated / Listed / OTC summaries remain separate so cards can use the
- * same balanced Market Watch composition instead of putting price/change
- * inside ordinary detail fields.
+ * The right-side market value is rendered separately by the view summary.
  */
 
 export function renderMobileIdentity(row, view, config = {}) {
@@ -1219,29 +1227,23 @@ export function renderMobileIdentity(row, view, config = {}) {
 
   const statusMarkup = renderCompanyStatus(identity.status, config);
 
-  const symbolMarkup = identity.code
-    ? `
+  const secondary = [
+    identity.code
+      ? `
           <span
             class="data-card__symbol"
           >
             ${escapeHtml(identity.code)}
           </span>
         `.trim()
-    : "";
+      : "",
 
-  const secondaryMarkup =
-    symbolMarkup || statusMarkup
-      ? `
-          <span
-            class="data-card__identity-code"
-          >
-            ${symbolMarkup}
-            ${statusMarkup}
-          </span>
-        `.trim()
-      : "";
+    statusMarkup,
+  ]
+    .filter(Boolean)
+    .join("");
 
-  const identityContent = `
+  const content = `
     <div
       class="data-card__identity-content"
     >
@@ -1251,20 +1253,30 @@ export function renderMobileIdentity(row, view, config = {}) {
         ${escapeHtml(identity.name || "-")}
       </h4>
 
-      ${secondaryMarkup}
+      ${
+        secondary
+          ? `
+              <span
+                class="data-card__identity-code"
+              >
+                ${secondary}
+              </span>
+            `.trim()
+          : ""
+      }
     </div>
   `.trim();
 
-  const linkedIdentity = identity.url
+  const identityContent = identity.url
     ? `
           <a
             class="data-card__security-link"
             href="${escapeHtml(identity.url)}"
           >
-            ${identityContent}
+            ${content}
           </a>
         `.trim()
-    : identityContent;
+    : content;
 
   return `
     <div
@@ -1276,65 +1288,47 @@ export function renderMobileIdentity(row, view, config = {}) {
         size: 44,
       })}
 
-      ${linkedIdentity}
+      ${identityContent}
     </div>
   `.trim();
 }
+
 /* ==========================================================================
    Negotiated Mobile Summary
    ========================================================================== */
 
 /*
- * Negotiated mobile composition:
+ * Approved compact Negotiated mobile composition:
  *
  * LEFT
- *   company identity
+ *   logo + Company Name
+ *          Symbol
  *
  * RIGHT
  *   Price
  *   Value
  *
- * Volume and Time remain expandable details.
+ * Collapsed card intentionally has NO visible table-style labels.
+ *
+ * Volume and Time belong in expandable details.
  */
 
 export function renderNegotiatedMobileSummary(row, config = {}) {
-  const labels = config.labels?.negotiatedDeals || {};
-
   return `
     <div
       class="data-card__quote"
     >
-      <div
-        class="data-card__quote-item"
+      <span
+        class="data-card__price"
       >
-        <span
-          class="data-card__quote-label"
-        >
-          ${escapeHtml(labels.price || "Price")}
-        </span>
+        ${escapeHtml(formatMoney(row?.tradePrice, config))}
+      </span>
 
-        <span
-          class="data-card__price"
-        >
-          ${escapeHtml(formatMoney(row?.tradePrice, config))}
-        </span>
-      </div>
-
-      <div
-        class="data-card__quote-item"
+      <span
+        class="data-card__change"
       >
-        <span
-          class="data-card__quote-label"
-        >
-          ${escapeHtml(labels.value || "Value")}
-        </span>
-
-        <span
-          class="data-card__change"
-        >
-          ${escapeHtml(formatMoney(row?.turnOver, config))}
-        </span>
-      </div>
+        ${escapeHtml(formatMoney(row?.turnOver, config))}
+      </span>
     </div>
   `.trim();
 }
@@ -1344,7 +1338,7 @@ export function renderNegotiatedMobileSummary(row, config = {}) {
    ========================================================================== */
 
 /*
- * Listed Tradable follows the same Market Watch card hierarchy:
+ * Listed Tradable follows the Market Watch card hierarchy:
  *
  * LEFT
  *   security identity
@@ -1353,7 +1347,7 @@ export function renderNegotiatedMobileSummary(row, config = {}) {
  *   Price
  *   Change %
  *
- * Do not repeat Price / Change % inside expandable fields.
+ * Price / Change % should not be repeated inside expandable details.
  */
 
 export function renderListedTradableMobileSummary(row, config = {}) {
@@ -1542,15 +1536,17 @@ function getNegotiatedTotalValue(row = {}) {
    ========================================================================== */
 
 /*
- * Daily total is a summary card, not a normal expandable company card.
+ * Date grouping already owns the contextual heading.
+ *
+ * Therefore the summary card does NOT repeat:
+ *
+ * Daily
+ * Total
+ *
+ * It presents only the two aggregate values.
  */
 
 export function renderNegotiatedDailyTotalCard(row, config = {}) {
-  const dailyLabel = config.labels?.mobile?.daily || "Daily";
-
-  const totalLabel =
-    config.labels?.mobile?.total || config.labels?.total || "Total";
-
   const volumeLabel = config.labels?.negotiatedDeals?.volume || "Volume";
 
   const valueLabel = config.labels?.negotiatedDeals?.value || "Value";
@@ -1575,74 +1571,158 @@ export function renderNegotiatedDailyTotalCard(row, config = {}) {
             <span
               class="data-card__symbol"
             >
-              ${escapeHtml(dailyLabel)}
-            </span>
-
-            <h4
-              class="data-card__title"
-            >
-              ${escapeHtml(totalLabel)}
-            </h4>
-          </div>
-        </div>
-
-        <div
-          class="data-card__quote"
-        >
-          <div
-            class="data-card__quote-item"
-          >
-            <span
-              class="data-card__quote-label"
-            >
               ${escapeHtml(volumeLabel)}
             </span>
 
             <span
-              class="data-card__price"
+              class="data-card__title"
             >
               ${escapeHtml(
                 formatQuantity(getNegotiatedTotalVolume(row), config),
               )}
             </span>
           </div>
+        </div>
 
-          <div
-            class="data-card__quote-item"
+        <div
+          class="data-card__quote"
+        >
+          <span
+            class="data-card__symbol"
           >
-            <span
-              class="data-card__quote-label"
-            >
-              ${escapeHtml(valueLabel)}
-            </span>
+            ${escapeHtml(valueLabel)}
+          </span>
 
-            <span
-              class="data-card__change"
-            >
-              ${escapeHtml(formatMoney(getNegotiatedTotalValue(row), config))}
-            </span>
-          </div>
+          <span
+            class="data-card__price"
+          >
+            ${escapeHtml(formatMoney(getNegotiatedTotalValue(row), config))}
+          </span>
         </div>
       </div>
     </article>
   `.trim();
 }
+/* ==========================================================================
+   Minimum Size Matrix
+   ========================================================================== */
+
+/*
+ * Minimum Size is not an ordinary table.
+ *
+ * Desktop:
+ *
+ * Header level 1 ┐
+ * Header level 2 ├── col1
+ * Header level 3 ┘
+ *
+ * Header level 1 ┐
+ * Header level 2 ├── col2
+ * Header level 3 ┘
+ *
+ * ...etc.
+ *
+ * Mobile must preserve that semantic hierarchy rather than flattening the
+ * matrix into four unrelated label/value fields.
+ */
 
 /* ==========================================================================
    Minimum Size Values
    ========================================================================== */
 
-/*
- * Exact existing Minimum Size matrix response:
- *
- * col1
- * col2
- * col3
- * col4
- */
-
 export function getMinimumSizeValues(row = {}) {
   return [row.col1, row.col2, row.col3, row.col4];
+}
+
+/* ==========================================================================
+   Minimum Size Matrix Configuration
+   ========================================================================== */
+
+/*
+ * Preferred configuration:
+ *
+ * minimumSize: {
+ *   columns: [
+ *     {
+ *       key: "col1",
+ *       levels: [
+ *         "...",
+ *         "...",
+ *         "..."
+ *       ]
+ *     },
+ *     ...
+ *   ],
+ *
+ *   rows: [
+ *     "...",
+ *     "...",
+ *     "..."
+ *   ]
+ * }
+ *
+ * rows are retained in configuration for semantic completeness and future
+ * accessibility/presentation needs.
+ *
+ * Mobile rendering currently consumes columns[].levels because every backend
+ * value sits beneath one vertical three-level heading path.
+ */
+
+function getMinimumSizeColumns(config = {}) {
+  const configured = config.labels?.minimumSize?.columns;
+
+  if (Array.isArray(configured) && configured.length) {
+    return configured
+      .filter(
+        (column) =>
+          column &&
+          typeof column === "object" &&
+          typeof column.key === "string" &&
+          column.key.trim() !== "",
+      )
+      .map((column) => ({
+        key: column.key.trim(),
+
+        levels: Array.isArray(column.levels)
+          ? column.levels.filter(hasValue).map((label) => String(label))
+          : [],
+      }));
+  }
+
+  /*
+   * Compatibility fallback while an older JSP configuration is still active.
+   *
+   * Importantly, we use only labels actually supplied by the page.
+   * We do not invent the missing matrix levels.
+   */
+
+  const labels = config.labels?.minimumSize || {};
+
+  return [
+    {
+      key: "col1",
+
+      levels: [labels.col1].filter(hasValue),
+    },
+
+    {
+      key: "col2",
+
+      levels: [labels.col2].filter(hasValue),
+    },
+
+    {
+      key: "col3",
+
+      levels: [labels.col3].filter(hasValue),
+    },
+
+    {
+      key: "col4",
+
+      levels: [labels.col4].filter(hasValue),
+    },
+  ];
 }
 
 /* ==========================================================================
@@ -1680,7 +1760,7 @@ export function getMinimumSizeSearchText(row = {}) {
    Minimum Size Security Reference
    ========================================================================== */
 
-function renderSecurityReference(value) {
+function renderMinimumSizeSecurityReference(value) {
   if (value && typeof value === "object") {
     const label = firstDefined(
       value.symbol,
@@ -1702,12 +1782,25 @@ function renderSecurityReference(value) {
    ========================================================================== */
 
 export function renderMinimumSizeValue(value) {
-  return renderSecurityReference(value);
+  return renderMinimumSizeSecurityReference(value);
 }
 
 /* ==========================================================================
-   Minimum Size Desktop Row
+   Minimum Size Desktop Matrix Row
    ========================================================================== */
+
+/*
+ * JSP owns:
+ *
+ * - all three header rows
+ * - all heading relationships
+ * - all localization
+ *
+ * JS owns tbody only.
+ *
+ * The first body position remains intentionally empty because the first visual
+ * matrix position belongs to the JSP's row-axis/header structure.
+ */
 
 export function renderMinimumSizeDesktopRow(row) {
   return `
@@ -1739,63 +1832,109 @@ export function renderMinimumSizeDesktopRow(row) {
 }
 
 /* ==========================================================================
+   Minimum Size Mobile Matrix Item
+   ========================================================================== */
+
+/*
+ * Each item carries the complete vertical heading path for one backend value.
+ *
+ * Example:
+ *
+ * Level 1
+ * Level 2
+ * Level 3
+ *
+ * VALUE
+ */
+
+function renderMinimumSizeMobileItem({ value, levels = [], index }) {
+  if (!hasValue(getMinimumSizeDisplayValue(value))) {
+    return "";
+  }
+
+  const headingId = `minimum-size-card-item-${index}`;
+
+  const hierarchy = levels
+    .filter(hasValue)
+    .map((label, levelIndex) =>
+      `
+          <span
+            class="
+              trading-minimum-size-card__level
+              trading-minimum-size-card__level--${levelIndex + 1}
+            "
+          >
+            ${escapeHtml(label)}
+          </span>
+        `.trim(),
+    )
+    .join("");
+
+  return `
+    <section
+      class="trading-minimum-size-card__item"
+      aria-labelledby="${escapeHtml(headingId)}"
+    >
+      <h4
+        class="trading-minimum-size-card__heading"
+        id="${escapeHtml(headingId)}"
+      >
+        ${hierarchy}
+      </h4>
+
+      <div
+        class="trading-minimum-size-card__value"
+      >
+        ${renderMinimumSizeValue(value)}
+      </div>
+    </section>
+  `.trim();
+}
+
+/* ==========================================================================
    Minimum Size Mobile Card
    ========================================================================== */
 
 /*
- * Minimum Size is a matrix rather than a company quote.
+ * One API row becomes one semantic matrix card.
  *
- * Therefore it deliberately does not use the company identity renderer.
+ * Important:
+ *
+ * We deliberately do NOT render:
+ *
+ * <label>col1</label>
+ * <value>...</value>
+ *
+ * because col1-col4 are transport properties, not user-facing business
+ * labels.
+ *
+ * Instead every value receives its actual localized matrix hierarchy.
  */
 
 export function renderMinimumSizeMobileCard(row, context = {}, config = {}) {
-  const values = getMinimumSizeValues(row);
+  const columns = getMinimumSizeColumns(config);
 
-  const labels = config.labels?.minimumSize || {};
+  const items = columns
+    .map((column, columnIndex) =>
+      renderMinimumSizeMobileItem({
+        value: row?.[column.key],
 
-  const columnLabels = [
-    labels.col1 || "",
+        levels: column.levels,
 
-    labels.col2 || "",
-
-    labels.col3 || "",
-
-    labels.col4 || "",
-  ];
-
-  const fields = values
-    .map((value, index) => ({
-      value,
-
-      label: columnLabels[index],
-    }))
-    .filter(({ value }) => hasValue(getMinimumSizeDisplayValue(value)))
-    .map(({ value, label }) =>
-      `
-          <div
-            class="data-card__field"
-          >
-            ${
-              label
-                ? `
-                    <span
-                      class="data-card__field-label"
-                    >
-                      ${escapeHtml(label)}
-                    </span>
-                  `.trim()
-                : ""
-            }
-
-            <span
-              class="data-card__field-value"
-            >
-              ${renderMinimumSizeValue(value)}
-            </span>
-          </div>
-        `.trim(),
+        index: `${context.index ?? 0}-${columnIndex}`,
+      }),
     )
+    .filter(Boolean)
     .join("");
+
+  /*
+   * Do not create an empty visual card when the row contains no useful
+   * Minimum Size values.
+   */
+
+  if (!items) {
+    return "";
+  }
 
   return `
     <article
@@ -1803,22 +1942,27 @@ export function renderMinimumSizeMobileCard(row, context = {}, config = {}) {
         data-card
         trading-minimum-size-card
       "
-      data-index="${escapeHtml(context.index ?? "")}"
+      data-trading-minimum-size-card
+      data-row-index="${escapeHtml(context.index ?? "")}"
     >
       <div
-        class="data-card__main"
+        class="trading-minimum-size-card__grid"
       >
-        ${fields}
+        ${items}
       </div>
     </article>
   `.trim();
 }
 
 /* ==========================================================================
-   Minimum Size Mobile Cards
+   Minimum Size Mobile Collection
    ========================================================================== */
 
 export function renderMinimumSizeMobileCards(rows = [], config = {}) {
+  if (!Array.isArray(rows) || !rows.length) {
+    return "";
+  }
+
   return rows
     .map((row, index) =>
       renderMinimumSizeMobileCard(
@@ -1829,6 +1973,7 @@ export function renderMinimumSizeMobileCards(rows = [], config = {}) {
         config,
       ),
     )
+    .filter(Boolean)
     .join("");
 }
 
@@ -1837,6 +1982,10 @@ export function renderMinimumSizeMobileCards(rows = [], config = {}) {
    ========================================================================== */
 
 export function filterMinimumSizeRows(rows = [], search = "") {
+  if (!Array.isArray(rows)) {
+    return [];
+  }
+
   const query = String(search || "")
     .trim()
     .toLowerCase();
@@ -1851,6 +2000,12 @@ export function filterMinimumSizeRows(rows = [], search = "") {
 /* ==========================================================================
    Card Container
    ========================================================================== */
+
+/*
+ * Trading view modules can apply this class to a cards container.
+ *
+ * The class itself is intentionally only a presentation hook.
+ */
 
 export function getTradingCardContainerClass() {
   return "trading-data-card-list";

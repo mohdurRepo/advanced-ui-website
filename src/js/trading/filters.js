@@ -82,7 +82,7 @@ function getDaysInMonth(year, month) {
   return new Date(year, month + 1, 0).getDate();
 }
 
-/*
+/**
  * Subtract exactly one calendar month.
  *
  * Examples:
@@ -90,14 +90,15 @@ function getDaysInMonth(year, month) {
  * 27 Aug -> 27 Jul
  * 31 Mar -> 28/29 Feb
  * 31 May -> 30 Apr
+ *
+ * @param {Date} date
+ * @returns {Date}
  */
-
 function subtractCalendarMonth(date) {
   const target = new Date(date.getFullYear(), date.getMonth() - 1, 1);
 
   const day = Math.min(
     date.getDate(),
-
     getDaysInMonth(target.getFullYear(), target.getMonth()),
   );
 
@@ -110,6 +111,19 @@ function subtractCalendarMonth(date) {
    Default Trading Date Range
    ========================================================================== */
 
+/**
+ * Trading business default:
+ *
+ * fromDate = exactly one calendar month before today
+ * toDate   = today
+ *
+ * Native date values are returned as:
+ *
+ * YYYY-MM-DD
+ *
+ * @param {Date} today
+ * @returns {{fromDate:string,toDate:string}}
+ */
 export function getDefaultTradingDateRange(today = new Date()) {
   const to = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
@@ -126,16 +140,20 @@ export function getDefaultTradingDateRange(today = new Date()) {
    Backend Date
    ========================================================================== */
 
-/*
- * Native UI:
+/**
+ * Convert native date:
  *
  * YYYY-MM-DD
  *
- * Existing Trading backend:
+ * to the existing Trading backend format:
  *
  * DD-MM-YYYY
+ *
+ * Existing DD-MM-YYYY values are preserved.
+ *
+ * @param {*} value
+ * @returns {string}
  */
-
 export function toTradingRequestDate(value) {
   if (!hasValue(value)) {
     return "";
@@ -170,18 +188,22 @@ export function toTradingRequestDate(value) {
  * <input data-date-start>
  * <input data-date-end>
  *
- * and the initial visible value:
+ * and the visible value:
  *
  * .custom-date__initial-value
  *
- * createDataFilters() correctly owns the native input values.
+ * createDataFilters() owns the actual native input values.
  *
- * This helper keeps the progressive-enhancement presentation synchronized
- * when those values are changed programmatically during:
+ * These helpers keep the enhanced presentation synchronized whenever
+ * Trading changes those native values programmatically during:
  *
  * - initialization
  * - Reset
  */
+
+/* ==========================================================================
+   Date Range Root
+   ========================================================================== */
 
 function getDateRangeRoot(element) {
   if (!(element instanceof Element)) {
@@ -278,11 +300,16 @@ function syncDateRangeControl(root, { fromSelector, toSelector }) {
 
   const toInput = query(root, toSelector);
 
+  /*
+   * First paint the progressive-enhancement value directly.
+   */
+
   updateDateRangeDisplay(fromInput, toInput);
 
   /*
-   * Notify the enhanced date component only after the underlying native values
-   * and createDataFilters snapshot are already synchronized.
+   * Then notify the enhanced custom-date implementation.
+   *
+   * filters.sync() must have already happened before this function is called.
    */
 
   notifyDateInput(fromInput);
@@ -290,8 +317,9 @@ function syncDateRangeControl(root, { fromSelector, toSelector }) {
   notifyDateInput(toInput);
 
   /*
-   * Some implementations repaint after handling the native events.
-   * Reassert the progressive-enhancement display after that synchronous pass.
+   * Some custom-date implementations repaint after handling the native events.
+   *
+   * Reassert the visible value after that synchronous event pass.
    */
 
   updateDateRangeDisplay(fromInput, toInput);
@@ -306,6 +334,25 @@ function syncNegotiatedDateRange(root) {
     fromSelector: SELECTORS.negotiated.fromDate,
 
     toSelector: SELECTORS.negotiated.toDate,
+  });
+}
+
+/* ==========================================================================
+   Company Status Date Synchronization
+   ========================================================================== */
+
+/*
+ * Same reusable date contract.
+ *
+ * We expose this now so Suspended / Delisted can use exactly the same
+ * initialization/reset behavior when we polish that tab.
+ */
+
+function syncCompanyStatusDateRange(root) {
+  syncDateRangeControl(root, {
+    fromSelector: SELECTORS.companyStatus.fromDate,
+
+    toSelector: SELECTORS.companyStatus.toDate,
   });
 }
 
@@ -479,11 +526,11 @@ function createNegotiatedFilters({ root, config }) {
   /*
    * Important ordering:
    *
-   * 1. write native values
-   * 2. synchronize createDataFilters lastValue
-   * 3. refresh the progressive-enhancement date UI
+   * 1. setState() writes the initial filter values
+   * 2. sync() aligns createDataFilters' DOM snapshot
+   * 3. custom-date presentation is synchronized
    *
-   * This prevents initialization from producing an unwanted Trading reload.
+   * This prevents initialization from creating an unwanted Trading reload.
    */
 
   filters.sync();
@@ -496,10 +543,6 @@ function createNegotiatedFilters({ root, config }) {
 /* ==========================================================================
    Accumulated Losses Filters
    ========================================================================== */
-
-/*
- * No changes to this tab in the current Negotiated pass.
- */
 
 function createAccumulatedFilters({ root, config }) {
   const defaults = config.filters?.accumulated?.defaults || {};
@@ -544,16 +587,9 @@ function createAccumulatedFilters({ root, config }) {
 
   return filters;
 }
-
 /* ==========================================================================
    Suspended / Delisted Filters
    ========================================================================== */
-
-/*
- * Keep the existing contract intact for now.
- *
- * We will polish its date-control presentation when we work on that tab.
- */
 
 function createCompanyStatusFilters({ root, config }) {
   const defaults = config.filters?.deListedCompanies?.defaults || {};
@@ -623,6 +659,10 @@ function createCompanyStatusFilters({ root, config }) {
     },
   });
 
+  /* =========================================================================
+     Initial State
+     ========================================================================= */
+
   const initial = config.initialState?.deListedCompanies || {};
 
   filters.setState(
@@ -643,7 +683,20 @@ function createCompanyStatusFilters({ root, config }) {
     },
   );
 
+  /*
+   * Keep native inputs + internal snapshot synchronized first.
+   */
+
   filters.sync();
+
+  /*
+   * Use the same date-range presentation contract as Negotiated.
+   *
+   * This also prepares Suspended / Delisted for the later tab polish without
+   * introducing a second date implementation.
+   */
+
+  syncCompanyStatusDateRange(root);
 
   return filters;
 }
@@ -709,16 +762,16 @@ export function createTradingFilters({ root = document, config = {} } = {}) {
   }
 
   /* =========================================================================
-     Reset
+     Negotiated Reset
      ========================================================================= */
 
   function resetNegotiated(options = {}) {
     /*
-     * createDataFilters.reset() writes:
+     * Business defaults:
      *
      * Type    -> Negotiated Deals
      * Sector  -> All
-     * Company -> All
+     * Company -> All Companies
      * From    -> one calendar month ago
      * To      -> today
      */
@@ -732,11 +785,9 @@ export function createTradingFilters({ root = document, config = {} } = {}) {
     });
 
     /*
-     * Reset writes fields directly.
+     * createDataFilters.reset() updates the native controls.
      *
-     * Synchronize lastValue BEFORE emitting native date events so the custom
-     * date UI can refresh without those events becoming additional filter
-     * notifications / AJAX calls.
+     * Synchronize the internal DOM snapshot before notifying custom-date.
      */
 
     negotiated.sync();
@@ -746,24 +797,42 @@ export function createTradingFilters({ root = document, config = {} } = {}) {
     return changed;
   }
 
+  /* =========================================================================
+     Accumulated Reset
+     ========================================================================= */
+
   function resetAccumulated(options = {}) {
-    return accumulated.reset({
+    const changed = accumulated.reset({
       type: "reset",
 
       effect: "reload",
 
       ...options,
     });
+
+    accumulated.sync();
+
+    return changed;
   }
 
+  /* =========================================================================
+     Company Status Reset
+     ========================================================================= */
+
   function resetCompanyStatus(options = {}) {
-    return companyStatus.reset({
+    const changed = companyStatus.reset({
       type: "reset",
 
       effect: "reload",
 
       ...options,
     });
+
+    companyStatus.sync();
+
+    syncCompanyStatusDateRange(root);
+
+    return changed;
   }
 
   /* =========================================================================
@@ -771,14 +840,32 @@ export function createTradingFilters({ root = document, config = {} } = {}) {
      ========================================================================= */
 
   /*
-   * Exposed primarily for orchestration after any future programmatic
-   * Negotiated date update.
+   * These methods are intentionally exposed for page orchestration after any
+   * future programmatic date update.
+   *
+   * They do not mutate business state.
+   *
+   * They only ensure:
+   *
+   * native inputs
+   *    ↓
+   * createDataFilters snapshot
+   *    ↓
+   * enhanced custom-date UI
+   *
+   * remain synchronized.
    */
 
   function refreshNegotiatedDateRange() {
     negotiated.sync();
 
     syncNegotiatedDateRange(root);
+  }
+
+  function refreshCompanyStatusDateRange() {
+    companyStatus.sync();
+
+    syncCompanyStatusDateRange(root);
   }
 
   /* =========================================================================
@@ -798,19 +885,47 @@ export function createTradingFilters({ root = document, config = {} } = {}) {
      ========================================================================= */
 
   return Object.freeze({
+    /* -----------------------------------------------------------------------
+       Filter Instances
+       ----------------------------------------------------------------------- */
+
     negotiated,
+
     accumulated,
+
     companyStatus,
 
+    /* -----------------------------------------------------------------------
+       Request State
+       ----------------------------------------------------------------------- */
+
     getNegotiatedRequestState,
+
     getAccumulatedRequestState,
+
     getCompanyStatusRequestState,
 
+    /* -----------------------------------------------------------------------
+       Reset
+       ----------------------------------------------------------------------- */
+
     resetNegotiated,
+
     resetAccumulated,
+
     resetCompanyStatus,
 
+    /* -----------------------------------------------------------------------
+       Date UI
+       ----------------------------------------------------------------------- */
+
     refreshNegotiatedDateRange,
+
+    refreshCompanyStatusDateRange,
+
+    /* -----------------------------------------------------------------------
+       Lifecycle
+       ----------------------------------------------------------------------- */
 
     destroy,
   });

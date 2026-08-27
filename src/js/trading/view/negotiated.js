@@ -731,24 +731,30 @@ export function createNegotiatedView({ root, config, filters } = {}) {
 
     tableOptions: {
       /*
-       * Generic Trading defaults first.
+       * Shared Trading defaults.
        */
       ...config.tableDefaults,
 
       /*
-       * Negotiated overrides are authoritative.
-       *
-       * Current contract:
-       *
-       * fixedHeader   = true
-       * fixedColumns  = 0
-       * scrollX       = false
-       *
-       * .table-responsive owns containment/overflow.
+       * View-level configuration.
        */
       ...config.tables?.negotiatedDeals,
-    },
 
+      /*
+       * Negotiated is a normal six-column DataTable.
+       *
+       * - FixedHeader: yes
+       * - FixedColumns: no
+       * - horizontal scrolling is owned by .table-responsive
+       */
+      scrollX: false,
+
+      scrollCollapse: false,
+
+      fixedHeader: true,
+
+      fixedColumns: false,
+    },
     /* ---------------------------------------------------------------------
          Row State
          --------------------------------------------------------------------- */
