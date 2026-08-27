@@ -3,63 +3,101 @@
    ========================================================================== */
 
 /*
- * Shared presentation helpers for all Trading views.
+ * Shared presentation helpers for the Trading page.
  *
  * Responsibilities:
  *
- * - safe display values
- * - HTML escaping
- * - safe URLs
- * - dates
- * - numeric values
- * - price / change states
- * - company-status mapping
- * - company logos
- * - Trading identity normalization
- * - desktop identity rendering
- * - standalone Symbol rendering
- * - generic table-cell rendering
- * - mobile identity rendering
- * - shared mobile summaries
+ * - safe HTML output
+ * - primitive value normalization
+ * - locale-aware number formatting
+ * - date formatting
+ * - money / quantity / percentage formatting
+ * - company identity presentation
+ * - company logo + fallback handling
+ * - semantic status presentation
+ * - Negotiated Deals desktop rows
+ * - Negotiated Deals mobile cards
  * - Negotiated daily totals
- * - Minimum Size matrix rendering
+ * - Minimum Size desktop rows
+ * - Minimum Size mobile cards
+ * - Accumulated Losses desktop rows
+ * - Accumulated Losses mobile cards
+ * - Listed Tradable Rights desktop rows
+ * - Listed Tradable Rights mobile cards
+ * - Suspended / Delisted desktop rows
+ * - Suspended / Delisted mobile cards
+ * - OTC desktop rows
+ * - OTC mobile cards
  *
- * This module intentionally has no:
+ * This file intentionally contains no:
  *
  * - AJAX
- * - filter state
- * - DataTables lifecycle
- * - tab behavior
- * - DOM event listeners
+ * - DataTables initialization
+ * - DOM querying
+ * - event handling
+ * - tab orchestration
+ * - filter orchestration
+ * - endpoint configuration
+ * - application state
  *
- * Company-logo error handling remains owned by trading.js because error
- * handling is runtime behavior rather than formatting.
+ * Important:
+ *
+ * Endpoint payloads are not perfectly uniform across Trading datasets.
+ * Accessors therefore support the known legacy aliases while renderers consume
+ * one normalized presentation contract.
  */
 
 /* ==========================================================================
-   Values
+   Primitive Helpers
    ========================================================================== */
 
 export function hasValue(value) {
   return value !== null && value !== undefined && String(value).trim() !== "";
 }
 
-export function getDisplayValue(value, fallback = "-") {
-  return hasValue(value) ? String(value) : fallback;
-}
-
-function firstDefined(...values) {
-  return values.find(
-    (value) => value !== null && value !== undefined && value !== "",
-  );
-}
-
-function normalizeString(value, fallback = "") {
+export function toText(value, fallback = "") {
   if (!hasValue(value)) {
     return fallback;
   }
 
-  return String(value).trim();
+  return String(value);
+}
+
+export function toNumber(value, fallback = null) {
+  if (value === null || value === undefined || value === "") {
+    return fallback;
+  }
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : fallback;
+  }
+
+  const normalized = String(value).trim().replace(/,/g, "").replace(/\s+/g, "");
+
+  if (!normalized) {
+    return fallback;
+  }
+
+  const number = Number(normalized);
+
+  return Number.isFinite(number) ? number : fallback;
+}
+
+function firstValue(object, keys, fallback = "") {
+  if (!object || typeof object !== "object") {
+    return fallback;
+  }
+
+  for (const key of keys) {
+    if (
+      Object.prototype.hasOwnProperty.call(object, key) &&
+      hasValue(object[key])
+    ) {
+      return object[key];
+    }
+  }
+
+  return fallback;
 }
 
 /* ==========================================================================
@@ -75,41 +113,49 @@ export function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
+function escapeAttribute(value) {
+  return escapeHtml(value);
+}
+
 /* ==========================================================================
-   URL
+   URL Safety
    ========================================================================== */
 
-export function safeUrl(value) {
+function isSafeImageUrl(value) {
   if (!hasValue(value)) {
-    return "";
+    return false;
   }
 
   const url = String(value).trim();
 
   /*
-   * Existing backend links are commonly application-relative.
+   * Trading logos normally arrive as:
+   *
+   * - application-relative paths
+   * - absolute HTTPS URLs
+   * - protocol-relative URLs
+   * - data:image values in limited legacy cases
+   *
+   * Explicitly reject executable schemes.
    */
 
-  if (
-    url.startsWith("/") ||
-    url.startsWith("./") ||
-    url.startsWith("../") ||
-    url.startsWith("#")
-  ) {
-    return url;
+  if (/^javascript:/i.test(url) || /^vbscript:/i.test(url)) {
+    return false;
   }
 
-  try {
-    const parsed = new URL(url, window.location.href);
-
-    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
-      return url;
-    }
-  } catch {
-    return "";
+  if (/^data:/i.test(url) && !/^data:image\//i.test(url)) {
+    return false;
   }
 
-  return "";
+  return true;
+}
+
+function normalizeImageUrl(value, fallback = "") {
+  if (!isSafeImageUrl(value)) {
+    return fallback;
+  }
+
+  return String(value).trim();
 }
 
 /* ==========================================================================
@@ -117,1219 +163,1769 @@ export function safeUrl(value) {
    ========================================================================== */
 
 function getLocale(config = {}) {
-  return config.locale || document.documentElement.lang || undefined;
+  return config.locale || document?.documentElement?.lang || "en";
+}
+
+function isArabicLocale(config = {}) {
+  return /^ar(?:-|$)/i.test(getLocale(config));
 }
 
 /* ==========================================================================
-   Numbers
+   Number Formatter Cache
    ========================================================================== */
 
-function parseNumber(value) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
+const numberFormatters = new Map();
+
+function getNumberFormatter(locale, options) {
+  const key = `${locale}:${JSON.stringify(options)}`;
+
+  if (numberFormatters.has(key)) {
+    return numberFormatters.get(key);
   }
 
-  if (!hasValue(value)) {
-    return null;
-  }
+  const formatter = new Intl.NumberFormat(locale, options);
 
-  const normalized = String(value).replace(/,/g, "").replace(/%/g, "").trim();
+  numberFormatters.set(key, formatter);
 
-  if (!normalized) {
-    return null;
-  }
-
-  const number = Number(normalized);
-
-  return Number.isFinite(number) ? number : null;
+  return formatter;
 }
 
 /* ==========================================================================
-   Number Formatting
+   Generic Number Formatting
    ========================================================================== */
 
 export function formatNumber(value, config = {}, options = {}) {
-  const number = parseNumber(value);
+  const number = toNumber(value);
 
   if (number === null) {
-    return getDisplayValue(value, options.fallback || "-");
+    return config.labels?.notAvailable || "-";
   }
 
+  const {
+    minimumFractionDigits = 0,
+    maximumFractionDigits = 2,
+    useGrouping = true,
+  } = options;
+
   try {
-    return new Intl.NumberFormat(getLocale(config), {
-      maximumFractionDigits: options.maximumFractionDigits ?? 2,
-
-      minimumFractionDigits: options.minimumFractionDigits ?? 0,
-
-      useGrouping: options.useGrouping !== false,
+    return getNumberFormatter(getLocale(config), {
+      minimumFractionDigits,
+      maximumFractionDigits,
+      useGrouping,
     }).format(number);
   } catch {
-    /*
-     * Backend display value remains a safe fallback.
-     */
-
-    return String(value);
+    return String(number);
   }
 }
 
+/* ==========================================================================
+   Quantity
+   ========================================================================== */
+
 export function formatQuantity(value, config = {}) {
   return formatNumber(value, config, {
+    minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
 }
 
-export function formatMoney(value, config = {}) {
+/* ==========================================================================
+   Decimal
+   ========================================================================== */
+
+export function formatDecimal(value, config = {}, digits = 2) {
   return formatNumber(value, config, {
-    maximumFractionDigits: 2,
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
   });
-}
-
-export function formatPercent(value, config = {}) {
-  if (!hasValue(value)) {
-    return "-";
-  }
-
-  const text = String(value).trim();
-
-  /*
-   * Modified backend values may already contain "%".
-   */
-
-  if (text.includes("%")) {
-    return text;
-  }
-
-  const formatted = formatNumber(value, config, {
-    maximumFractionDigits: 2,
-  });
-
-  return formatted === "-" ? formatted : `${formatted}%`;
 }
 
 /* ==========================================================================
-   Dates
+   Money
    ========================================================================== */
 
-function pad2(value) {
-  return String(value).padStart(2, "0");
+export function formatMoney(value, config = {}) {
+  const digits = Number.isInteger(config.moneyFractionDigits)
+    ? config.moneyFractionDigits
+    : 2;
+
+  return formatNumber(value, config, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+}
+
+/* ==========================================================================
+   Percentage
+   ========================================================================== */
+
+export function formatPercentage(
+  value,
+  config = {},
+  { digits = 2, sign = false } = {},
+) {
+  const number = toNumber(value);
+
+  if (number === null) {
+    return config.labels?.notAvailable || "-";
+  }
+
+  const formatted = formatNumber(Math.abs(number), config, {
+    minimumFractionDigits: digits,
+
+    maximumFractionDigits: digits,
+  });
+
+  let prefix = "";
+
+  if (sign) {
+    if (number > 0) {
+      prefix = "+";
+    } else if (number < 0) {
+      prefix = "-";
+    }
+  } else if (number < 0) {
+    prefix = "-";
+  }
+
+  return `${prefix}${formatted}%`;
 }
 
 /* ==========================================================================
    Date Parsing
    ========================================================================== */
 
-function parseDateParts(value) {
+function parseDateValue(value) {
   if (!hasValue(value)) {
     return null;
+  }
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  if (typeof value === "number") {
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
   const text = String(value).trim();
 
   /*
    * yyyy-MM-dd
+   *
+   * Construct locally instead of feeding this directly into Date because the
+   * latter is interpreted as UTC by browsers and can shift calendar date in
+   * some time zones.
    */
 
-  let match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  let match = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
 
   if (match) {
-    return {
-      year: Number(match[1]),
+    const date = new Date(
+      Number(match[1]),
+      Number(match[2]) - 1,
+      Number(match[3]),
+    );
 
-      month: Number(match[2]),
-
-      day: Number(match[3]),
-    };
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
   /*
-   * dd-MM-yyyy
-   * dd/MM/yyyy
+   * dd/MM/yyyy and dd-MM-yyyy.
    */
 
-  match = text.match(/^(\d{2})[-/](\d{2})[-/](\d{4})/);
+  match = text.match(/^(\d{2})[/-](\d{2})[/-](\d{4})$/);
 
   if (match) {
-    return {
-      year: Number(match[3]),
+    const date = new Date(
+      Number(match[3]),
+      Number(match[2]) - 1,
+      Number(match[1]),
+    );
 
-      month: Number(match[2]),
-
-      day: Number(match[1]),
-    };
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
-  return null;
+  /*
+   * ISO date-time and backend-native date strings.
+   */
+
+  const date = new Date(text);
+
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 /* ==========================================================================
-   Display Date
+   Date Formatting
    ========================================================================== */
 
-export function formatTradingDate(value) {
+export function formatDate(value, config = {}, options = {}) {
   if (!hasValue(value)) {
-    return "";
+    return config.labels?.notAvailable || "-";
   }
 
-  const text = String(value).trim();
+  const date = parseDateValue(value);
 
-  /*
-   * Preserve backend display strings.
-   *
-   * Only normalize exact native yyyy-MM-dd values.
-   */
-
-  const iso = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-
-  if (!iso) {
-    return text;
-  }
-
-  return [iso[3], iso[2], iso[1]].join("-");
-}
-
-/* ==========================================================================
-   Request Date
-   ========================================================================== */
-
-export function toRequestDate(value) {
-  const parts = parseDateParts(value);
-
-  if (!parts) {
-    return hasValue(value) ? String(value) : "";
-  }
-
-  return [pad2(parts.day), pad2(parts.month), parts.year].join("-");
-}
-
-/* ==========================================================================
-   Native Input Date
-   ========================================================================== */
-
-function toInputDate(date) {
-  return [
-    date.getFullYear(),
-
-    pad2(date.getMonth() + 1),
-
-    pad2(date.getDate()),
-  ].join("-");
-}
-
-/* ==========================================================================
-   Calendar Month
-   ========================================================================== */
-
-function getDaysInMonth(year, month) {
-  return new Date(year, month + 1, 0).getDate();
-}
-
-function subtractCalendarMonth(date) {
-  /*
-   * Native:
-   *
-   * new Date(2026, 2, 31).setMonth(1)
-   *
-   * can roll into March because February has fewer days.
-   *
-   * Trading requires one CALENDAR month, so clamp the day explicitly:
-   *
-   * 31 March -> 28/29 February
-   */
-
-  const target = new Date(date.getFullYear(), date.getMonth() - 1, 1);
-
-  const targetDay = Math.min(
-    date.getDate(),
-
-    getDaysInMonth(target.getFullYear(), target.getMonth()),
-  );
-
-  target.setDate(targetDay);
-
-  return target;
-}
-
-/* ==========================================================================
-   Default Trading Date Range
-   ========================================================================== */
-
-export function getDefaultTradingDateRange(today = new Date()) {
-  const to = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
-  const from = subtractCalendarMonth(to);
-
-  return Object.freeze({
-    fromDate: toInputDate(from),
-
-    toDate: toInputDate(to),
-  });
-}
-
-/* ==========================================================================
-   Change State
-   ========================================================================== */
-
-function getChangeClass(value) {
-  const number = parseNumber(value);
-
-  if (number === null || number === 0) {
-    return "price-neutral";
-  }
-
-  return number > 0 ? "price-up" : "price-down";
-}
-
-/* ==========================================================================
-   Price Change
-   ========================================================================== */
-
-export function renderPriceChange(
-  displayValue,
-  numericValue = displayValue,
-  {
-    percent = false,
-
-    config = {},
-
-    className = "table-market__change",
-  } = {},
-) {
-  const display = percent
-    ? formatPercent(displayValue, config)
-    : getDisplayValue(displayValue, "-");
-
-  const stateClass = getChangeClass(numericValue);
-
-  return `
-    <span
-      class="${escapeHtml([className, stateClass].filter(Boolean).join(" "))}"
-    >
-      ${escapeHtml(display)}
-    </span>
-  `.trim();
-}
-
-/* ==========================================================================
-   Company Status
-   ========================================================================== */
-
-/*
- * Exact legacy Trading contract:
- *
- * 1 -> accumulated loss warning
- *      ylwSymbol
- *
- * 2 -> accumulated loss caution
- *      orgSymbol
- *
- * 3 -> accumulated loss danger
- *      redSymbol
- *
- * Do not infer these states from text such as "20", "35", "50".
- * The backend status value is authoritative.
- */
-
-export function getCompanyStatus(value, config = {}) {
-  const normalized = String(value ?? "").trim();
-
-  const labels = config.labels?.status || {};
-
-  switch (normalized) {
-    case "1":
-      return Object.freeze({
-        value: 1,
-
-        key: "warning",
-
-        className: "table-market__status--warning",
-
-        legacyClassName: "ylwSymbol",
-
-        title: labels.losses20To35 || "",
-      });
-
-    case "2":
-      return Object.freeze({
-        value: 2,
-
-        key: "caution",
-
-        className: "table-market__status--caution",
-
-        legacyClassName: "orgSymbol",
-
-        title: labels.losses35To50 || "",
-      });
-
-    case "3":
-      return Object.freeze({
-        value: 3,
-
-        key: "danger",
-
-        className: "table-market__status--danger",
-
-        legacyClassName: "redSymbol",
-
-        title: labels.losses50More || "",
-      });
-
-    default:
-      return Object.freeze({
-        value: null,
-
-        key: "",
-
-        className: "",
-
-        legacyClassName: "",
-
-        title: "",
-      });
-  }
-}
-
-/* ==========================================================================
-   Company Status Markup
-   ========================================================================== */
-
-export function renderCompanyStatus(
-  value,
-  config = {},
-  { className = "" } = {},
-) {
-  const status =
-    typeof value === "object" && value !== null && "key" in value
-      ? value
-      : getCompanyStatus(value, config);
-
-  if (!status.key) {
-    return "";
-  }
-
-  const classes = [
-    "table-market__status",
-
-    status.className,
-
+  if (!date) {
     /*
-     * Compatibility with the exact legacy class contract.
-     *
-     * This can be removed later only after all legacy page-level styling has
-     * been fully migrated.
+     * Preserve unknown legacy date strings instead of replacing valid
+     * server-provided copy with a dash.
      */
 
-    status.legacyClassName,
+    return String(value);
+  }
 
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const { year = "numeric", month = "2-digit", day = "2-digit" } = options;
 
-  if (status.title) {
+  try {
+    return new Intl.DateTimeFormat(getLocale(config), {
+      year,
+      month,
+      day,
+    }).format(date);
+  } catch {
+    return String(value);
+  }
+}
+
+/* ==========================================================================
+   Date + Time
+   ========================================================================== */
+
+export function formatDateTime(value, config = {}) {
+  if (!hasValue(value)) {
+    return config.labels?.notAvailable || "-";
+  }
+
+  const date = parseDateValue(value);
+
+  if (!date) {
+    return String(value);
+  }
+
+  try {
+    return new Intl.DateTimeFormat(getLocale(config), {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  } catch {
+    return String(value);
+  }
+}
+
+/* ==========================================================================
+   Company / Security Accessors
+   ========================================================================== */
+
+export function getCompanySymbol(row) {
+  return firstValue(
+    row,
+    [
+      "symbol",
+      "companySymbol",
+      "securitySymbol",
+      "ticker",
+      "code",
+      "companyCode",
+      "stockCode",
+      "symbolEn",
+      "Symbol",
+    ],
+    "",
+  );
+}
+
+export function getCompanyName(row, config = {}) {
+  const arabic = isArabicLocale(config);
+
+  const localizedKeys = arabic
+    ? [
+        "companyNameAr",
+        "companyNameAR",
+        "arabicCompanyName",
+        "companyArabicName",
+        "nameAr",
+        "nameAR",
+      ]
+    : [
+        "companyNameEn",
+        "companyNameEN",
+        "englishCompanyName",
+        "companyEnglishName",
+        "nameEn",
+        "nameEN",
+      ];
+
+  return firstValue(
+    row,
+    [
+      ...localizedKeys,
+      "companyName",
+      "company",
+      "securityName",
+      "issuerName",
+      "name",
+      "CompanyName",
+    ],
+    "",
+  );
+}
+
+export function getCompanyLogo(row, config = {}) {
+  const directLogo = firstValue(
+    row,
+    [
+      "logo",
+      "logoUrl",
+      "logoURL",
+      "logoPath",
+      "image",
+      "imageUrl",
+      "imageURL",
+      "imagePath",
+      "companyLogo",
+      "companyLogoUrl",
+      "companyLogoURL",
+      "companyImage",
+      "companyImageUrl",
+    ],
+    "",
+  );
+
+  if (isSafeImageUrl(directLogo)) {
+    return String(directLogo).trim();
+  }
+
+  const companyCode = firstValue(
+    row,
+    [
+      "companyCode",
+      "code",
+      "symbol",
+      "companySymbol",
+      "securitySymbol",
+      "ticker",
+    ],
+    "",
+  );
+
+  const template = config.assets?.companyLogoUrlTemplate || "";
+
+  if (hasValue(companyCode) && hasValue(template)) {
+    const generatedLogo = String(template).replace(
+      "{companyCode}",
+      encodeURIComponent(String(companyCode).trim()),
+    );
+
+    if (isSafeImageUrl(generatedLogo)) {
+      return generatedLogo;
+    }
+  }
+
+  return normalizeImageUrl(
+    config.assets?.companyLogoFallbackUrl ||
+      config.assets?.defaultCompanyLogo ||
+      config.assets?.companyLogoFallback ||
+      config.defaultCompanyLogo ||
+      config.companyLogoFallback ||
+      "",
+    "",
+  );
+}
+
+/* ==========================================================================
+   Company Logo Markup
+   ========================================================================== */
+
+function renderCompanyLogo(row, config = {}) {
+  const src = getCompanyLogo(row, config);
+
+  const fallback = normalizeImageUrl(
+    config.defaultCompanyLogo ||
+      config.companyLogoFallback ||
+      config.assets?.defaultCompanyLogo ||
+      config.assets?.companyLogoFallback ||
+      "",
+    "",
+  );
+
+  const name = getCompanyName(row, config);
+
+  if (!src) {
     return `
       <span
-        class="${escapeHtml(classes)}"
-        role="img"
-        aria-label="${escapeHtml(status.title)}"
-        title="${escapeHtml(status.title)}"
+        class="
+          table-market__logo
+          table-market__logo--placeholder
+        "
+        aria-hidden="true"
       ></span>
     `.trim();
   }
 
+  /*
+   * onerror is intentionally tiny and presentation-only.
+   *
+   * The configured fallback path comes from application configuration, not
+   * from row data.
+   */
+
+  const fallbackHandler =
+    fallback && fallback !== src
+      ? `
+        this.onerror=null;
+        this.src='${escapeAttribute(fallback)}';
+      `
+      : `
+        this.onerror=null;
+        this.hidden=true;
+      `;
+
+  return `
+    <img
+      class="table-market__logo"
+      src="${escapeAttribute(src)}"
+      alt=""
+      loading="lazy"
+      decoding="async"
+      onerror="${escapeAttribute(fallbackHandler.replace(/\s+/g, " ").trim())}"
+    />
+  `.trim();
+}
+
+/* ==========================================================================
+   Company Identity
+   ========================================================================== */
+
+/*
+ * Shared Market Watch-style identity:
+ *
+ *   [logo]  COMPANY NAME
+ *           SYMBOL
+ *
+ * This is the standard company identity where a Trading table/card needs the
+ * complete identity block.
+ */
+
+export function renderCompanyIdentity(
+  row,
+  config = {},
+  { compact = false } = {},
+) {
+  const symbol = getCompanySymbol(row);
+
+  const company = getCompanyName(row, config);
+
+  const modifier = compact ? " table-market__identity--compact" : "";
+
+  return `
+    <div
+      class="table-market__identity${modifier}"
+    >
+      ${renderCompanyLogo(row, config)}
+
+      <div
+        class="table-market__identity-content"
+      >
+        <span
+          class="table-market__company-name"
+        >
+          ${escapeHtml(company || symbol || config.labels?.notAvailable || "-")}
+        </span>
+
+        ${
+          symbol
+            ? `
+              <span
+                class="table-market__symbol-text"
+              >
+                ${escapeHtml(symbol)}
+              </span>
+            `
+            : ""
+        }
+      </div>
+    </div>
+  `.trim();
+}
+
+/* ==========================================================================
+   Symbol Identity
+   ========================================================================== */
+
+/*
+ * Some legacy Trading tables deliberately keep Symbol and Company in
+ * different columns.
+ *
+ * For those tables, this formatter renders the Market Watch visual language
+ * without merging the table columns:
+ *
+ *   [logo] SYMBOL
+ *
+ * Status can be placed beside the symbol by callers.
+ */
+
+function renderSymbolIdentity(row, config = {}, { status = "" } = {}) {
+  const symbol = getCompanySymbol(row);
+
+  return `
+    <div
+      class="
+        table-market__identity
+        table-market__identity--symbol
+      "
+    >
+      ${renderCompanyLogo(row, config)}
+
+      <div
+        class="table-market__identity-content"
+      >
+        <span
+          class="table-market__symbol-line"
+        >
+          ${status ? status : ""}
+
+          <span
+            class="table-market__symbol-text"
+          >
+            ${escapeHtml(symbol || config.labels?.notAvailable || "-")}
+          </span>
+        </span>
+      </div>
+    </div>
+  `.trim();
+}
+
+/* ==========================================================================
+   Semantic Status
+   ========================================================================== */
+
+function renderStatusIndicator(tone, label = "") {
+  const normalizedTone = [
+    "danger",
+    "warning",
+    "primary",
+    "success",
+    "muted",
+  ].includes(tone)
+    ? tone
+    : "muted";
+
+  const accessibleLabel = hasValue(label) ? String(label) : "";
+
   return `
     <span
-      class="${escapeHtml(classes)}"
+      class="
+        table-market__status
+        table-market__status--${normalizedTone}
+      "
+      ${accessibleLabel ? `title="${escapeAttribute(accessibleLabel)}"` : ""}
       aria-hidden="true"
     ></span>
   `.trim();
 }
 
 /* ==========================================================================
-   Security Link
+   Negotiated Accessors
    ========================================================================== */
 
-export function renderSecurityLink(label, url, className = "") {
-  const text = getDisplayValue(label, "-");
-
-  const safe = safeUrl(url);
-
-  if (!safe) {
-    return escapeHtml(text);
-  }
-
-  return `
-    <a
-      ${className ? `class="${escapeHtml(className)}"` : ""}
-      href="${escapeHtml(safe)}"
-    >
-      ${escapeHtml(text)}
-    </a>
-  `.trim();
+export function getNegotiatedDate(row) {
+  return firstValue(
+    row,
+    [
+      "date",
+      "tradeDate",
+      "transactionDate",
+      "dealDate",
+      "tradingDate",
+      "createdDate",
+    ],
+    "",
+  );
 }
 
-/* ==========================================================================
-   Trading Identity
-   ========================================================================== */
-
-/*
- * Endpoint-specific identity mappings.
- *
- * IMPORTANT:
- *
- * These property names come from the existing Trading backend contracts.
- * They must not be normalized into invented generic response fields.
- */
-
-export function getTradingIdentity(row = {}, view = "") {
-  switch (view) {
-    /* ----------------------------------------------------------------------
-       Negotiated Deals
-       ---------------------------------------------------------------------- */
-
-    case "negotiatedDeals":
-      return Object.freeze({
-        code: getDisplayValue(row.symbol, ""),
-
-        name: getDisplayValue(row.company, ""),
-
-        url: safeUrl(row.companyURL),
-
-        status: null,
-      });
-
-    /* ----------------------------------------------------------------------
-       Accumulated Losses
-       ---------------------------------------------------------------------- */
-
-    case "accumulatedLosses":
-      return Object.freeze({
-        code: getDisplayValue(row.symbol, ""),
-
-        name: getDisplayValue(row.company, ""),
-
-        url: safeUrl(row.companyURL),
-
-        status: row.companyStatus,
-      });
-
-    /* ----------------------------------------------------------------------
-       Listed Tradable Rights
-       ---------------------------------------------------------------------- */
-
-    case "listedTradableRights":
-      return Object.freeze({
-        /*
-         * Some response versions may expose a symbol in addition to
-         * acrynomName. Use it when available but never require it.
-         */
-
-        code: getDisplayValue(
-          firstDefined(row.symbol, row.companySymbol, ""),
-          "",
-        ),
-
-        name: getDisplayValue(row.acrynomName, ""),
-
-        url: safeUrl(row.pageUrl),
-
-        status: row.companyStatus ?? null,
-      });
-
-    /* ----------------------------------------------------------------------
-       Suspended
-       ---------------------------------------------------------------------- */
-
-    case "suspendedCompanies":
-      return Object.freeze({
-        code: getDisplayValue(row.symbol, ""),
-
-        name: getDisplayValue(row.name, ""),
-
-        url: safeUrl(row.companyURL),
-
-        status: row.companyStatus,
-      });
-
-    /* ----------------------------------------------------------------------
-       Delisted
-       ---------------------------------------------------------------------- */
-
-    case "delistedCompanies":
-      return Object.freeze({
-        code: getDisplayValue(row.symbol, ""),
-
-        name: getDisplayValue(row.name, ""),
-
-        url: safeUrl(row.companyURL),
-
-        status: row.companyStatus,
-      });
-
-    /* ----------------------------------------------------------------------
-       OTC
-       ---------------------------------------------------------------------- */
-
-    case "otcTrading":
-      return Object.freeze({
-        code: getDisplayValue(row.symbol, ""),
-
-        name: getDisplayValue(row.companyName, ""),
-
-        url: safeUrl(row.companyURL),
-
-        status: row.companyStatus,
-      });
-
-    default:
-      return Object.freeze({
-        code: "",
-
-        name: "",
-
-        url: "",
-
-        status: null,
-      });
-  }
+export function getNegotiatedPrice(row) {
+  return firstValue(
+    row,
+    ["price", "tradePrice", "dealPrice", "transactionPrice"],
+    "",
+  );
 }
 
-/* ==========================================================================
-   Company Name
-   ========================================================================== */
+export function getNegotiatedVolume(row) {
+  return firstValue(
+    row,
+    [
+      "volume",
+      "quantity",
+      "tradeVolume",
+      "dealVolume",
+      "transactionVolume",
+      "shares",
+    ],
+    "",
+  );
+}
 
-/*
- * Used by logo fallback generation without requiring a view name.
- */
+export function getNegotiatedValue(row) {
+  return firstValue(
+    row,
+    ["value", "tradeValue", "dealValue", "transactionValue", "amount"],
+    "",
+  );
+}
 
-function getAnyCompanyName(row = {}) {
-  return normalizeString(
-    firstDefined(
-      row.company,
-      row.companyName,
-      row.name,
-      row.acrynomName,
-      row.longName,
-      "",
-    ),
+export function getNegotiatedTotalVolume(row) {
+  return firstValue(
+    row,
+    ["totalVolume", "volumeTotal", "totalQuantity", "totalShares", "volume"],
+    "",
+  );
+}
+
+export function getNegotiatedTotalValue(row) {
+  return firstValue(
+    row,
+    ["totalValue", "valueTotal", "totalAmount", "value"],
+    "",
   );
 }
 
 /* ==========================================================================
-   Company Code
+   Negotiated Row Classification
    ========================================================================== */
 
-export function getCompanyCode(row = {}) {
-  return normalizeString(
-    firstDefined(
-      row.companyCode,
-      row.companyRef,
-      row.companySymbol,
-      row.symbol,
-      row.securityCode,
-      "",
-    ),
-  );
-}
+export function isNegotiatedTotalRow(row) {
+  if (!row) {
+    return false;
+  }
 
-/* ==========================================================================
-   Company Initials
-   ========================================================================== */
+  if (
+    row.isTotal === true ||
+    row.total === true ||
+    row.isSummary === true ||
+    row.summary === true
+  ) {
+    return true;
+  }
 
-function getInitials(value) {
-  return String(value || "")
+  const type = String(firstValue(row, ["rowType", "type", "recordType"], ""))
     .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0))
-    .join("")
-    .toUpperCase();
+    .toLowerCase();
+
+  return type === "total" || type === "summary";
 }
 
 /* ==========================================================================
-   Company Logo URL
+   Negotiated Desktop Row
    ========================================================================== */
 
-export function getCompanyLogoFallbackUrl(config = {}) {
-  return normalizeString(config.assets?.companyLogoFallbackUrl);
+export function renderNegotiatedDesktopRow(row, config = {}) {
+  if (isNegotiatedTotalRow(row)) {
+    return renderNegotiatedDailyTotalRow(row, config);
+  }
+
+  return `
+    <tr>
+      <td
+        class="table-market__date"
+      >
+        ${escapeHtml(formatDate(getNegotiatedDate(row), config))}
+      </td>
+
+      <td
+        class="table-market__company"
+      >
+        ${renderCompanyIdentity(row, config)}
+      </td>
+
+      <td
+        class="
+          table-market__number
+          table-market__price
+        "
+      >
+        ${escapeHtml(formatMoney(getNegotiatedPrice(row), config))}
+      </td>
+
+      <td
+        class="
+          table-market__number
+          table-market__volume
+        "
+      >
+        ${escapeHtml(formatQuantity(getNegotiatedVolume(row), config))}
+      </td>
+
+      <td
+        class="
+          table-market__number
+          table-market__value
+        "
+      >
+        ${escapeHtml(formatMoney(getNegotiatedValue(row), config))}
+      </td>
+    </tr>
+  `.trim();
 }
 
-export function getCompanyLogoUrl(row = {}, config = {}) {
+/* ==========================================================================
+   Negotiated Daily Total Row
+   ========================================================================== */
+
+export function renderNegotiatedDailyTotalRow(row, config = {}) {
+  const totalLabel =
+    config.labels?.negotiatedDeals?.total || config.labels?.total || "Total";
+
+  return `
+    <tr
+      class="
+        table-market__summary-row
+        table-total-row
+      "
+    >
+      <th
+        scope="row"
+        colspan="3"
+      >
+        ${escapeHtml(totalLabel)}
+      </th>
+
+      <td
+        class="
+          table-market__number
+          table-market__volume
+        "
+      >
+        ${escapeHtml(formatQuantity(getNegotiatedTotalVolume(row), config))}
+      </td>
+
+      <td
+        class="
+          table-market__number
+          table-market__value
+        "
+      >
+        ${escapeHtml(formatMoney(getNegotiatedTotalValue(row), config))}
+      </td>
+    </tr>
+  `.trim();
+}
+
+/* ==========================================================================
+   Negotiated Mobile Card
+   ========================================================================== */
+
+export function renderNegotiatedMobileCard(row, context = {}, config = {}) {
+  if (isNegotiatedTotalRow(row)) {
+    return renderNegotiatedDailyTotalCard(row, config);
+  }
+
+  const priceLabel = config.labels?.negotiatedDeals?.price || "Price";
+
+  const volumeLabel = config.labels?.negotiatedDeals?.volume || "Volume";
+
+  const valueLabel = config.labels?.negotiatedDeals?.value || "Value";
+
+  return `
+    <article
+      class="
+        data-card
+        trading-data-card
+        trading-negotiated-card
+      "
+    >
+      <div class="data-card__main">
+
+        <div class="data-card__identity">
+          ${renderCompanyLogo(row, config)}
+
+          <div
+            class="data-card__identity-content"
+          >
+            <span
+              class="data-card__title"
+            >
+              ${escapeHtml(
+                getCompanyName(row, config) ||
+                  getCompanySymbol(row) ||
+                  config.labels?.notAvailable ||
+                  "-",
+              )}
+            </span>
+
+            <span
+              class="data-card__symbol"
+            >
+              ${escapeHtml(getCompanySymbol(row))}
+            </span>
+          </div>
+        </div>
+
+        <div class="data-card__quote">
+          <span class="data-card__symbol">
+            ${escapeHtml(priceLabel)}
+          </span>
+
+          <span class="data-card__price">
+            ${escapeHtml(formatMoney(getNegotiatedPrice(row), config))}
+          </span>
+        </div>
+
+      </div>
+
+      <div class="data-card__details">
+
+        <dl class="data-card__metrics">
+
+          <div class="data-card__metric">
+            <dt>
+              ${escapeHtml(volumeLabel)}
+            </dt>
+
+            <dd>
+              ${escapeHtml(formatQuantity(getNegotiatedVolume(row), config))}
+            </dd>
+          </div>
+
+          <div class="data-card__metric">
+            <dt>
+              ${escapeHtml(valueLabel)}
+            </dt>
+
+            <dd>
+              ${escapeHtml(formatMoney(getNegotiatedValue(row), config))}
+            </dd>
+          </div>
+
+        </dl>
+
+        ${
+          hasValue(getNegotiatedDate(row))
+            ? `
+              <time
+                class="data-card__meta"
+                datetime="${escapeAttribute(getNegotiatedDate(row))}"
+              >
+                ${escapeHtml(formatDate(getNegotiatedDate(row), config))}
+              </time>
+            `
+            : ""
+        }
+
+      </div>
+    </article>
+  `.trim();
+}
+
+/* ==========================================================================
+   Negotiated Daily Total Card
+   ========================================================================== */
+
+export function renderNegotiatedDailyTotalCard(row, config = {}) {
+  const volumeLabel = config.labels?.negotiatedDeals?.volume || "Volume";
+
+  const valueLabel = config.labels?.negotiatedDeals?.value || "Value";
+
   /*
-   * Prefer an explicit URL from the API when available.
+   * No duplicate "Total" text here.
+   *
+   * The Negotiated mobile grouping already communicates the daily total
+   * context. The card therefore presents only the two useful values.
    */
 
-  const directUrl = firstDefined(
-    row.companyLogoUrl,
-    row.logoUrl,
-    row.imageUrl,
-    row.companyImageUrl,
-    row.logo,
-    row.image,
+  return `
+    <article
+      class="
+        data-card
+        data-card--compact
+        trading-daily-total-card
+      "
+    >
+      <div class="data-card__main">
+
+        <div class="data-card__identity">
+          <div
+            class="data-card__identity-content"
+          >
+            <span class="data-card__symbol">
+              ${escapeHtml(volumeLabel)}
+            </span>
+
+            <span class="data-card__title">
+              ${escapeHtml(
+                formatQuantity(getNegotiatedTotalVolume(row), config),
+              )}
+            </span>
+          </div>
+        </div>
+
+        <div class="data-card__quote">
+          <span class="data-card__symbol">
+            ${escapeHtml(valueLabel)}
+          </span>
+
+          <span class="data-card__price">
+            ${escapeHtml(formatMoney(getNegotiatedTotalValue(row), config))}
+          </span>
+        </div>
+
+      </div>
+    </article>
+  `.trim();
+}
+
+/* ==========================================================================
+   Minimum Size Accessors
+   ========================================================================== */
+
+function getMinimumSizeLabel(row, config = {}) {
+  const arabic = isArabicLocale(config);
+
+  return firstValue(
+    row,
+    arabic
+      ? [
+          "nameAr",
+          "nameAR",
+          "labelAr",
+          "labelAR",
+          "descriptionAr",
+          "descriptionAR",
+          "name",
+          "label",
+          "description",
+        ]
+      : [
+          "nameEn",
+          "nameEN",
+          "labelEn",
+          "labelEN",
+          "descriptionEn",
+          "descriptionEN",
+          "name",
+          "label",
+          "description",
+        ],
+    "",
+  );
+}
+
+function getMinimumSizeValue(row, index) {
+  return firstValue(
+    row,
+    [`col${index}`, `column${index}`, `value${index}`],
+    "",
+  );
+}
+
+/* ==========================================================================
+   Minimum Size Search
+   ========================================================================== */
+
+export function filterMinimumSizeRows(rows, searchValue) {
+  if (!Array.isArray(rows)) {
+    return [];
+  }
+
+  const search = String(searchValue || "")
+    .trim()
+    .toLowerCase();
+
+  if (!search) {
+    return rows.slice();
+  }
+
+  return rows.filter((row) => {
+    const values = [
+      getMinimumSizeLabel(row),
+      getMinimumSizeValue(row, 1),
+      getMinimumSizeValue(row, 2),
+      getMinimumSizeValue(row, 3),
+      getMinimumSizeValue(row, 4),
+    ];
+
+    return values.some((value) =>
+      String(value ?? "")
+        .toLowerCase()
+        .includes(search),
+    );
+  });
+}
+
+/* ==========================================================================
+   Minimum Size Desktop Row
+   ========================================================================== */
+
+export function renderMinimumSizeDesktopRow(row, config = {}) {
+  const label = getMinimumSizeLabel(row, config);
+
+  return `
+    <tr>
+      <th
+        class="table-market__company"
+        scope="row"
+      >
+        ${escapeHtml(label || config.labels?.notAvailable || "-")}
+      </th>
+
+      <td class="table-market__number">
+        ${escapeHtml(formatNumber(getMinimumSizeValue(row, 1), config))}
+      </td>
+
+      <td class="table-market__number">
+        ${escapeHtml(formatNumber(getMinimumSizeValue(row, 2), config))}
+      </td>
+
+      <td class="table-market__number">
+        ${escapeHtml(formatNumber(getMinimumSizeValue(row, 3), config))}
+      </td>
+
+      <td class="table-market__number">
+        ${escapeHtml(formatNumber(getMinimumSizeValue(row, 4), config))}
+      </td>
+    </tr>
+  `.trim();
+}
+
+/* ==========================================================================
+   Minimum Size Mobile Card
+   ========================================================================== */
+
+export function renderMinimumSizeMobileCard(row, context = {}, config = {}) {
+  const label = getMinimumSizeLabel(row, config);
+
+  const labels = config.labels?.minimumSize || {};
+
+  return `
+    <article
+      class="
+        data-card
+        trading-data-card
+        trading-minimum-size-card
+      "
+    >
+      <div class="data-card__main">
+
+        <div class="data-card__identity">
+          <div
+            class="data-card__identity-content"
+          >
+            <span
+              class="data-card__title"
+            >
+              ${escapeHtml(label || config.labels?.notAvailable || "-")}
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="data-card__details">
+
+        <dl class="data-card__metrics">
+
+          <div class="data-card__metric">
+            <dt>
+              ${escapeHtml(labels.col1 || "1")}
+            </dt>
+
+            <dd>
+              ${escapeHtml(formatNumber(getMinimumSizeValue(row, 1), config))}
+            </dd>
+          </div>
+
+          <div class="data-card__metric">
+            <dt>
+              ${escapeHtml(labels.col2 || "2")}
+            </dt>
+
+            <dd>
+              ${escapeHtml(formatNumber(getMinimumSizeValue(row, 2), config))}
+            </dd>
+          </div>
+
+          <div class="data-card__metric">
+            <dt>
+              ${escapeHtml(labels.col3 || "3")}
+            </dt>
+
+            <dd>
+              ${escapeHtml(formatNumber(getMinimumSizeValue(row, 3), config))}
+            </dd>
+          </div>
+
+          <div class="data-card__metric">
+            <dt>
+              ${escapeHtml(labels.col4 || "4")}
+            </dt>
+
+            <dd>
+              ${escapeHtml(formatNumber(getMinimumSizeValue(row, 4), config))}
+            </dd>
+          </div>
+
+        </dl>
+
+      </div>
+    </article>
+  `.trim();
+}
+/* ==========================================================================
+   Accumulated Losses
+   ========================================================================== */
+
+/*
+ * Backend/filter contract:
+ *
+ * All
+ * 50-MORE
+ * 35-50
+ * 20-35
+ *
+ * Presentation contract:
+ *
+ * 50-MORE -> danger
+ * 35-50   -> warning
+ * 20-35   -> primary
+ *
+ * The backend status value remains authoritative when available.
+ */
+
+/* ==========================================================================
+   Accumulated Loss Band
+   ========================================================================== */
+
+export function getAccumulatedLossBand(row) {
+  const raw = firstValue(
+    row,
+    [
+      "report",
+      "lossRange",
+      "lossBand",
+      "lossCategory",
+      "category",
+      "range",
+      "companyStatus",
+      "status",
+    ],
+    "",
   );
 
-  if (hasValue(directUrl)) {
-    const safe = safeUrl(directUrl);
+  const normalized = String(raw ?? "")
+    .trim()
+    .toUpperCase();
 
-    if (safe) {
-      return safe;
+  /*
+   * Exact filter/business values.
+   */
+
+  if (
+    normalized === "50-MORE" ||
+    normalized === "50+" ||
+    normalized === "3" ||
+    normalized === "DANGER"
+  ) {
+    return "50-MORE";
+  }
+
+  if (
+    normalized === "35-50" ||
+    normalized === "2" ||
+    normalized === "WARNING"
+  ) {
+    return "35-50";
+  }
+
+  if (
+    normalized === "20-35" ||
+    normalized === "1" ||
+    normalized === "PRIMARY"
+  ) {
+    return "20-35";
+  }
+
+  /*
+   * Some legacy responses expose only a percentage value.
+   *
+   * Use it only as a compatibility fallback.
+   */
+
+  const percentage = toNumber(
+    firstValue(
+      row,
+      [
+        "lossPercentage",
+        "lossPercent",
+        "percentage",
+        "percent",
+        "accumulatedLossPercentage",
+      ],
+      null,
+    ),
+  );
+
+  if (percentage !== null) {
+    const absolute = Math.abs(percentage);
+
+    if (absolute >= 50) {
+      return "50-MORE";
     }
-  }
 
-  /*
-   * Otherwise build the URL using the same company-code contract as
-   * Market Watch.
-   */
+    if (absolute >= 35) {
+      return "35-50";
+    }
 
-  const template = normalizeString(config.assets?.companyLogoUrlTemplate);
-
-  const companyCode = getCompanyCode(row);
-
-  if (template && companyCode) {
-    return template.replace("{companyCode}", encodeURIComponent(companyCode));
-  }
-
-  /*
-   * Stable generic fallback.
-   */
-
-  return getCompanyLogoFallbackUrl(config);
-}
-/* ==========================================================================
-   Company Logo
-   ========================================================================== */
-
-function normalizeLogoSize(value, fallback = 40) {
-  const size = Number(value);
-
-  return Number.isFinite(size) && size > 0 ? size : fallback;
-}
-
-export function renderCompanyLogo(
-  row = {},
-  config = {},
-  {
-    className = "table-market__logo",
-
-    size = 40,
-  } = {},
-) {
-  const logoUrl = getCompanyLogoUrl(row, config);
-
-  const fallbackUrl = getCompanyLogoFallbackUrl(config);
-
-  const companyName = getAnyCompanyName(row);
-
-  const initials = getInitials(companyName);
-
-  const normalizedSize = normalizeLogoSize(size, 40);
-
-  /*
-   * If no image contract exists at all, keep a proper identity surface rather
-   * than rendering a broken <img>.
-   */
-
-  if (!logoUrl) {
-    return `
-      <span
-        class="${escapeHtml(className)}"
-        aria-hidden="true"
-      >
-        <span
-          class="${escapeHtml(`${className}-fallback`)}"
-        >
-          ${escapeHtml(initials || "—")}
-        </span>
-      </span>
-    `.trim();
-  }
-
-  const fallbackAttribute =
-    fallbackUrl && fallbackUrl !== logoUrl
-      ? `
-          data-trading-logo-fallback="${escapeHtml(fallbackUrl)}"
-        `.trim()
-      : "";
-
-  return `
-    <span
-      class="${escapeHtml(className)}"
-      aria-hidden="true"
-    >
-      <img
-        src="${escapeHtml(logoUrl)}"
-        alt=""
-        width="${normalizedSize}"
-        height="${normalizedSize}"
-        loading="lazy"
-        data-trading-logo
-        ${fallbackAttribute}
-      />
-    </span>
-  `.trim();
-}
-
-/* ==========================================================================
-   Desktop Identity Content
-   ========================================================================== */
-
-function renderDesktopIdentityContent(identity, config = {}) {
-  const status = getCompanyStatus(identity.status, config);
-
-  const nameMarkup = `
-    <span
-      class="table-market__name"
-    >
-      ${escapeHtml(identity.name || "-")}
-    </span>
-  `.trim();
-
-  const symbolMarkup = identity.code
-    ? `
-          <span
-            class="table-market__symbol"
-          >
-            ${escapeHtml(identity.code)}
-          </span>
-        `.trim()
-    : "";
-
-  const statusMarkup = renderCompanyStatus(status, config);
-
-  const secondaryMarkup =
-    symbolMarkup || statusMarkup
-      ? `
-          <span
-            class="table-market__identity-status"
-          >
-            ${symbolMarkup}
-            ${statusMarkup}
-          </span>
-        `.trim()
-      : "";
-
-  return `
-    ${nameMarkup}
-    ${secondaryMarkup}
-  `.trim();
-}
-
-/* ==========================================================================
-   Desktop Company / Security Cell
-   ========================================================================== */
-
-/*
- * Canonical Trading identity:
- *
- * [ logo ]  Company Name
- *           Symbol   •status
- *
- * This intentionally follows the Market Watch visual system.
- */
-
-export function renderTradingCompanyCell(row, view, config = {}) {
-  const identity = getTradingIdentity(row, view);
-
-  const identityContent = renderDesktopIdentityContent(identity, config);
-
-  const linkedContent = identity.url
-    ? `
-          <a
-            class="table-market__security-link"
-            href="${escapeHtml(identity.url)}"
-          >
-            ${identityContent}
-          </a>
-        `.trim()
-    : `
-          <span
-            class="table-market__security-link"
-          >
-            ${identityContent}
-          </span>
-        `.trim();
-
-  return `
-    <div
-      class="table-market__security-cell"
-    >
-      ${renderCompanyLogo(row, config, {
-        className: "table-market__logo",
-
-        size: 40,
-      })}
-
-      ${linkedContent}
-    </div>
-  `.trim();
-}
-
-/* ==========================================================================
-   Compatibility Identity API
-   ========================================================================== */
-
-/*
- * Keep the previous public function while existing view modules are migrated.
- *
- * New code should prefer renderTradingCompanyCell().
- */
-
-export function renderIdentityCell(row, view, config = {}) {
-  return renderTradingCompanyCell(row, view, config);
-}
-
-/* ==========================================================================
-   Standalone Symbol Cell
-   ========================================================================== */
-
-/*
- * Some Trading tables still contain a separate Symbol column.
- *
- * Until those tabs are migrated to one combined Market Watch-style identity
- * column, use this formatter so status dots remain correct and consistent.
- */
-
-export function renderTradingSymbolCell(row, view, config = {}) {
-  const identity = getTradingIdentity(row, view);
-
-  const statusMarkup = renderCompanyStatus(identity.status, config);
-
-  return `
-    <span
-      class="table-market__symbol-status"
-    >
-      <span
-        class="table-market__symbol"
-      >
-        ${escapeHtml(identity.code || "-")}
-      </span>
-
-      ${statusMarkup}
-    </span>
-  `.trim();
-}
-
-/* ==========================================================================
-   Announcement URL
-   ========================================================================== */
-
-export function getSuspendedAnnouncementUrl(row = {}) {
-  return safeUrl(firstDefined(row.annUrl, row.newsUrl, row.newsURL, row.url));
-}
-
-export function getDelistedAnnouncementUrl(row = {}) {
-  return safeUrl(firstDefined(row.newsUrl, row.newsURL, row.url));
-}
-
-/* ==========================================================================
-   Announcement Link
-   ========================================================================== */
-
-export function renderAnnouncementLink(url, label) {
-  const safe = safeUrl(url);
-
-  if (!safe) {
-    return "-";
-  }
-
-  return `
-    <a
-      class="table-market__action-link"
-      href="${escapeHtml(safe)}"
-    >
-      ${escapeHtml(getDisplayValue(label, "View"))}
-    </a>
-  `.trim();
-}
-
-/* ==========================================================================
-   Generic Column Value
-   ========================================================================== */
-
-function getColumnValue(row, column) {
-  if (typeof column?.value === "function") {
-    return column.value(row);
-  }
-
-  if (column?.data) {
-    return row?.[column.data];
+    if (absolute >= 20) {
+      return "20-35";
+    }
   }
 
   return "";
 }
 
 /* ==========================================================================
-   Trading Cell
+   Accumulated Status Tone
    ========================================================================== */
 
-export function renderTradingCell({
-  row = {},
-  column = {},
-  type = "display",
-  config = {},
-  view = "",
-} = {}) {
-  const value = getColumnValue(row, column);
+export function getAccumulatedLossTone(row) {
+  switch (getAccumulatedLossBand(row)) {
+    case "50-MORE":
+      return "danger";
 
-  /*
-   * DataTables sorting/searching should receive raw values rather than
-   * rendered markup.
-   */
+    case "35-50":
+      return "warning";
 
-  if (type !== "display") {
-    return value ?? "";
-  }
-
-  switch (column.format) {
-    /* ----------------------------------------------------------------------
-       Identity
-       ---------------------------------------------------------------------- */
-
-    case "identity":
-      return renderTradingCompanyCell(row, view || column.view, config);
-
-    /* ----------------------------------------------------------------------
-       Separate Symbol + Status
-       ---------------------------------------------------------------------- */
-
-    case "symbol-status":
-      return renderTradingSymbolCell(row, view || column.view, config);
-
-    /* ----------------------------------------------------------------------
-       Number
-       ---------------------------------------------------------------------- */
-
-    case "number":
-      return escapeHtml(formatNumber(value, config));
-
-    /* ----------------------------------------------------------------------
-       Quantity
-       ---------------------------------------------------------------------- */
-
-    case "quantity":
-      return escapeHtml(formatQuantity(value, config));
-
-    /* ----------------------------------------------------------------------
-       Money
-       ---------------------------------------------------------------------- */
-
-    case "money":
-      return escapeHtml(formatMoney(value, config));
-
-    /* ----------------------------------------------------------------------
-       Percent
-       ---------------------------------------------------------------------- */
-
-    case "percent":
-      return escapeHtml(formatPercent(value, config));
-
-    /* ----------------------------------------------------------------------
-       Date
-       ---------------------------------------------------------------------- */
-
-    case "date":
-      return escapeHtml(getDisplayValue(formatTradingDate(value), "-"));
-
-    /* ----------------------------------------------------------------------
-       Change
-       ---------------------------------------------------------------------- */
-
-    case "change":
-      return renderPriceChange(
-        value,
-
-        column.numericData ? row?.[column.numericData] : value,
-
-        {
-          config,
-        },
-      );
-
-    /* ----------------------------------------------------------------------
-       Percent Change
-       ---------------------------------------------------------------------- */
-
-    case "percent-change":
-      return renderPriceChange(
-        value,
-
-        column.numericData ? row?.[column.numericData] : value,
-
-        {
-          percent: true,
-
-          config,
-        },
-      );
-
-    /* ----------------------------------------------------------------------
-       Link
-       ---------------------------------------------------------------------- */
-
-    case "link":
-      return renderSecurityLink(
-        value,
-
-        column.urlData ? row?.[column.urlData] : "",
-
-        column.linkClassName || "",
-      );
-
-    /* ----------------------------------------------------------------------
-       Suspended Announcement
-       ---------------------------------------------------------------------- */
-
-    case "suspended-announcement":
-    case "suspended-news-link":
-      return renderAnnouncementLink(
-        getSuspendedAnnouncementUrl(row),
-
-        config.labels?.suspendedLink || getDisplayValue(value, "View"),
-      );
-
-    /* ----------------------------------------------------------------------
-       Delisted Announcement
-       ---------------------------------------------------------------------- */
-
-    case "delisted-news":
-    case "delisted-news-link":
-      return renderAnnouncementLink(
-        getDelistedAnnouncementUrl(row),
-
-        config.labels?.delistedLink || getDisplayValue(value, "View"),
-      );
-
-    /* ----------------------------------------------------------------------
-       Plain
-       ---------------------------------------------------------------------- */
+    case "20-35":
+      return "primary";
 
     default:
-      return escapeHtml(getDisplayValue(value, "-"));
+      return "";
   }
 }
 
 /* ==========================================================================
-   Mobile Identity
+   Accumulated Status Label
+   ========================================================================== */
+
+function getAccumulatedLossLabel(row, config = {}) {
+  const labels = config.labels?.accumulated || {};
+
+  switch (getAccumulatedLossBand(row)) {
+    case "50-MORE":
+      return labels.loss50More || labels.moreThan50 || "50% or more";
+
+    case "35-50":
+      return labels.loss35To50 || labels.from35To50 || "35% - 50%";
+
+    case "20-35":
+      return labels.loss20To35 || labels.from20To35 || "20% - 35%";
+
+    default:
+      return "";
+  }
+}
+
+/* ==========================================================================
+   Accumulated Status Indicator
+   ========================================================================== */
+
+export function renderAccumulatedStatus(row, config = {}) {
+  const tone = getAccumulatedLossTone(row);
+
+  if (!tone) {
+    return "";
+  }
+
+  return renderStatusIndicator(tone, getAccumulatedLossLabel(row, config));
+}
+
+/* ==========================================================================
+   Accumulated Symbol Cell
    ========================================================================== */
 
 /*
- * Compact market-card identity:
+ * Current JSP keeps Symbol and Company as separate columns.
  *
- * [logo] Company Name
- *        Symbol
- *
- * The right-side market value is rendered separately by the view summary.
+ * Status belongs beside Symbol.
  */
 
-export function renderMobileIdentity(row, view, config = {}) {
-  const identity = getTradingIdentity(row, view);
+export function renderAccumulatedSymbolCell(row, config = {}) {
+  const symbol = getCompanySymbol(row);
 
-  const statusMarkup = renderCompanyStatus(identity.status, config);
+  const status = renderAccumulatedStatus(row, config);
 
-  const secondary = [
-    identity.code
-      ? `
-          <span
-            class="data-card__symbol"
-          >
-            ${escapeHtml(identity.code)}
-          </span>
-        `.trim()
-      : "",
-
-    statusMarkup,
-  ]
-    .filter(Boolean)
-    .join("");
-
-  const content = `
-    <div
-      class="data-card__identity-content"
+  return `
+    <span
+      class="table-market__symbol-status"
     >
-      <h4
-        class="data-card__title"
+      ${status}
+
+      <span
+        class="table-market__symbol"
       >
-        ${escapeHtml(identity.name || "-")}
-      </h4>
-
-      ${
-        secondary
-          ? `
-              <span
-                class="data-card__identity-code"
-              >
-                ${secondary}
-              </span>
-            `.trim()
-          : ""
-      }
-    </div>
+        ${escapeHtml(symbol || config.labels?.notAvailable || "-")}
+      </span>
+    </span>
   `.trim();
+}
 
-  const identityContent = identity.url
-    ? `
-          <a
-            class="data-card__security-link"
-            href="${escapeHtml(identity.url)}"
+/* ==========================================================================
+   Accumulated Company Cell
+   ========================================================================== */
+
+export function renderAccumulatedCompanyCell(row, config = {}) {
+  const company = getCompanyName(row, config);
+
+  return `
+    <span
+      class="table-market__company"
+    >
+      ${escapeHtml(
+        company || getCompanySymbol(row) || config.labels?.notAvailable || "-",
+      )}
+    </span>
+  `.trim();
+}
+
+/* ==========================================================================
+   Accumulated Desktop Row
+   ========================================================================== */
+
+export function renderAccumulatedDesktopRow(row, config = {}) {
+  const status = renderAccumulatedStatus(row, config);
+
+  const symbol = getCompanySymbol(row);
+
+  const company = getCompanyName(row, config);
+
+  return `
+    <tr>
+      <td
+        class="
+          table-market__security
+          table-market__identity-column
+        "
+      >
+        <div
+          class="table-market__security-cell"
+        >
+          ${renderCompanyLogo(row, config)}
+
+          <div
+            class="table-market__identity-content"
           >
-            ${content}
-          </a>
-        `.trim()
-    : content;
+            <span
+              class="table-market__company-name"
+            >
+              ${escapeHtml(
+                company || symbol || config.labels?.notAvailable || "-",
+              )}
+            </span>
+
+            ${
+              symbol || status
+                ? `
+                  <span
+                    class="table-market__symbol-line"
+                  >
+                    ${
+                      symbol
+                        ? `
+                          <span
+                            class="table-market__symbol-text"
+                          >
+                            ${escapeHtml(symbol)}
+                          </span>
+                        `
+                        : ""
+                    }
+
+                    ${status}
+                  </span>
+                `
+                : ""
+            }
+          </div>
+        </div>
+      </td>
+    </tr>
+  `.trim();
+}
+
+/* ==========================================================================
+   Accumulated Mobile Card
+   ========================================================================== */
+
+/*
+ * Compact mobile contract:
+ *
+ * LEFT
+ *   status + Symbol
+ *
+ * RIGHT
+ *   Company
+ *
+ * No details rail is needed because the dataset contains only these two
+ * meaningful display fields.
+ */
+
+export function renderAccumulatedMobileCard(row, context = {}, config = {}) {
+  const symbol = getCompanySymbol(row);
+
+  const company = getCompanyName(row, config);
+
+  const status = renderAccumulatedStatus(row, config);
+
+  return `
+    <article
+      class="
+        data-card
+        data-card--compact
+        trading-data-card
+        trading-accumulated-card
+      "
+      data-row-index="${escapeAttribute(context.index ?? "")}"
+    >
+      <div
+        class="data-card__main"
+      >
+        <div
+          class="data-card__identity"
+        >
+          ${renderCompanyLogo(row, config)}
+
+          <div
+            class="data-card__identity-content"
+          >
+            <span
+              class="data-card__title"
+            >
+              ${escapeHtml(
+                company || symbol || config.labels?.notAvailable || "-",
+              )}
+            </span>
+
+            <span
+              class="data-card__identity-code"
+            >
+              ${
+                symbol
+                  ? `
+                    <span
+                      class="data-card__symbol"
+                    >
+                      ${escapeHtml(symbol)}
+                    </span>
+                  `
+                  : ""
+              }
+
+              ${status}
+            </span>
+          </div>
+        </div>
+      </div>
+    </article>
+  `.trim();
+}
+
+/* ==========================================================================
+   Listed Tradable Rights
+   ========================================================================== */
+
+/* ==========================================================================
+   Listed Tradable Accessors
+   ========================================================================== */
+
+export function getListedTradableCompanyName(row, config = {}) {
+  const arabic = isArabicLocale(config);
+
+  const localized = arabic
+    ? ["acrynomNameAr", "companyNameAr", "nameAr"]
+    : ["acrynomNameEn", "companyNameEn", "nameEn"];
+
+  return firstValue(
+    row,
+    [...localized, "acrynomName", "companyName", "company", "name"],
+    "",
+  );
+}
+
+export function getListedTradableSymbol(row) {
+  return firstValue(
+    row,
+    ["symbol", "companySymbol", "securitySymbol", "ticker", "code"],
+    "",
+  );
+}
+
+export function getListedLastTradePrice(row) {
+  return firstValue(
+    row,
+    ["lastTradePriceModified", "lastTradePrice", "lastPrice", "price"],
+    "",
+  );
+}
+
+export function getListedChange(row) {
+  return firstValue(row, ["changeModified", "change", "netChange"], "");
+}
+
+export function getListedChangePercent(row) {
+  return firstValue(
+    row,
+    [
+      "percentChangeModified",
+      "percentChange",
+      "changePercent",
+      "changePercentage",
+    ],
+    "",
+  );
+}
+
+export function getListedChangeNumeric(row) {
+  return firstValue(
+    row,
+    [
+      "percentChangeDoubleModified",
+      "percentChangeDouble",
+      "changePercentValue",
+      "changePercentageValue",
+      "percentChange",
+    ],
+    getListedChangePercent(row),
+  );
+}
+
+export function getListedCumulativeVolume(row) {
+  return firstValue(row, ["cumulativeVolume", "cumVolume", "volume"], "");
+}
+
+export function getListedCumulativeValue(row) {
+  return firstValue(row, ["cumulativeValue", "cumValue", "value"], "");
+}
+
+export function getListedCumulativeTrades(row) {
+  return firstValue(
+    row,
+    ["cumulativeTrades", "cumTrades", "trades", "numberOfTrades"],
+    "",
+  );
+}
+
+export function getListedTodayVolume(row) {
+  return firstValue(
+    row,
+    ["todayVolume", "todayTradeVolume", "tradedVolume"],
+    "",
+  );
+}
+
+export function getListedTodayValue(row) {
+  return firstValue(row, ["todayValue", "todayTradeValue", "tradedValue"], "");
+}
+
+export function getListedTodayTrades(row) {
+  return firstValue(row, ["todayTrades", "todayTradeCount", "tradeCount"], "");
+}
+
+export function getListedBidPrice(row) {
+  return firstValue(row, ["bestBidPrice", "bidPrice", "bestBid"], "");
+}
+
+export function getListedBidVolume(row) {
+  return firstValue(row, ["bestBidVolume", "bidVolume"], "");
+}
+
+export function getListedOfferPrice(row) {
+  return firstValue(
+    row,
+    ["bestOfferPrice", "offerPrice", "bestAskPrice", "askPrice"],
+    "",
+  );
+}
+
+export function getListedOfferVolume(row) {
+  return firstValue(
+    row,
+    ["bestOfferVolume", "offerVolume", "bestAskVolume", "askVolume"],
+    "",
+  );
+}
+
+/* ==========================================================================
+   Listed Tradable Change State
+   ========================================================================== */
+
+function getPriceTone(value) {
+  const number = toNumber(value);
+
+  if (number === null) {
+    return "price-neutral";
+  }
+
+  if (number > 0) {
+    return "price-up";
+  }
+
+  if (number < 0) {
+    return "price-down";
+  }
+
+  return "price-neutral";
+}
+
+/* ==========================================================================
+   Listed Tradable Identity
+   ========================================================================== */
+
+function renderListedIdentity(row, config = {}) {
+  const symbol = getListedTradableSymbol(row);
+
+  const company = getListedTradableCompanyName(row, config);
 
   return `
     <div
-      class="data-card__identity"
+      class="table-market__security-cell"
     >
-      ${renderCompanyLogo(row, config, {
-        className: "data-card__logo",
+      ${renderCompanyLogo(row, config)}
 
-        size: 44,
-      })}
+      <span
+        class="table-market__security-link"
+      >
+        <span
+          class="table-market__name"
+        >
+          ${escapeHtml(company || symbol || config.labels?.notAvailable || "-")}
+        </span>
 
-      ${identityContent}
+        ${
+          symbol
+            ? `
+              <span
+                class="table-market__symbol"
+              >
+                ${escapeHtml(symbol)}
+              </span>
+            `
+            : ""
+        }
+      </span>
     </div>
   `.trim();
 }
 
 /* ==========================================================================
-   Negotiated Mobile Summary
+   Listed Tradable Desktop Row
    ========================================================================== */
 
 /*
- * Approved compact Negotiated mobile composition:
+ * This renderer supports the complete long-table data contract.
  *
- * LEFT
- *   logo + Company Name
- *          Symbol
- *
- * RIGHT
- *   Price
- *   Value
- *
- * Collapsed card intentionally has NO visible table-style labels.
- *
- * Volume and Time belong in expandable details.
+ * JSP still owns the grouped header.
  */
 
-export function renderNegotiatedMobileSummary(row, config = {}) {
-  return `
-    <div
-      class="data-card__quote"
-    >
-      <span
-        class="data-card__price"
-      >
-        ${escapeHtml(formatMoney(row?.tradePrice, config))}
-      </span>
+export function renderListedTradableDesktopRow(row, config = {}) {
+  const changeTone = getPriceTone(getListedChangeNumeric(row));
 
-      <span
-        class="data-card__change"
+  return `
+    <tr>
+      <td
+        class="table-market__security"
       >
-        ${escapeHtml(formatMoney(row?.turnOver, config))}
-      </span>
-    </div>
+        ${renderListedIdentity(row, config)}
+      </td>
+
+      <td
+        class="
+          table-market__number
+          table-market__price
+        "
+      >
+        ${escapeHtml(formatMoney(getListedLastTradePrice(row), config))}
+      </td>
+
+      <td
+        class="
+          table-market__number
+          table-market__change
+          ${changeTone}
+        "
+      >
+        ${escapeHtml(
+          formatPercentage(getListedChangePercent(row), config, {
+            sign: true,
+          }),
+        )}
+      </td>
+
+      <td
+        class="table-market__number"
+      >
+        ${escapeHtml(formatQuantity(getListedCumulativeVolume(row), config))}
+      </td>
+
+      <td
+        class="table-market__number"
+      >
+        ${escapeHtml(formatMoney(getListedCumulativeValue(row), config))}
+      </td>
+
+      <td
+        class="table-market__number"
+      >
+        ${escapeHtml(formatQuantity(getListedCumulativeTrades(row), config))}
+      </td>
+
+      <td
+        class="table-market__number"
+      >
+        ${escapeHtml(formatQuantity(getListedTodayVolume(row), config))}
+      </td>
+
+      <td
+        class="table-market__number"
+      >
+        ${escapeHtml(formatMoney(getListedTodayValue(row), config))}
+      </td>
+
+      <td
+        class="table-market__number"
+      >
+        ${escapeHtml(formatQuantity(getListedTodayTrades(row), config))}
+      </td>
+
+      <td
+        class="table-market__number"
+      >
+        ${escapeHtml(formatMoney(getListedBidPrice(row), config))}
+      </td>
+
+      <td
+        class="table-market__number"
+      >
+        ${escapeHtml(formatQuantity(getListedBidVolume(row), config))}
+      </td>
+
+      <td
+        class="table-market__number"
+      >
+        ${escapeHtml(formatMoney(getListedOfferPrice(row), config))}
+      </td>
+
+      <td
+        class="table-market__number"
+      >
+        ${escapeHtml(formatQuantity(getListedOfferVolume(row), config))}
+      </td>
+    </tr>
   `.trim();
 }
 
@@ -1337,21 +1933,10 @@ export function renderNegotiatedMobileSummary(row, config = {}) {
    Listed Tradable Mobile Summary
    ========================================================================== */
 
-/*
- * Listed Tradable follows the Market Watch card hierarchy:
- *
- * LEFT
- *   security identity
- *
- * RIGHT
- *   Price
- *   Change %
- *
- * Price / Change % should not be repeated inside expandable details.
- */
-
 export function renderListedTradableMobileSummary(row, config = {}) {
   const labels = config.labels?.listedTradable || {};
+
+  const changeTone = getPriceTone(getListedChangeNumeric(row));
 
   return `
     <div
@@ -1363,13 +1948,13 @@ export function renderListedTradableMobileSummary(row, config = {}) {
         <span
           class="data-card__quote-label"
         >
-          ${escapeHtml(labels.lastTradePrice || "Price")}
+          ${escapeHtml(labels.lastTradePrice || labels.price || "Price")}
         </span>
 
         <span
           class="data-card__price"
         >
-          ${escapeHtml(getDisplayValue(row?.lastTradePriceModified, "-"))}
+          ${escapeHtml(formatMoney(getListedLastTradePrice(row), config))}
         </span>
       </div>
 
@@ -1382,46 +1967,17 @@ export function renderListedTradableMobileSummary(row, config = {}) {
           ${escapeHtml(labels.changePercent || "Change %")}
         </span>
 
-        ${renderPriceChange(
-          row?.percentChangeModified,
-
-          row?.percentChangeDoubleModified,
-
-          {
-            percent: true,
-
-            config,
-          },
-        )}
-      </div>
-    </div>
-  `.trim();
-}
-
-/* ==========================================================================
-   OTC Mobile Summary
-   ========================================================================== */
-
-export function renderOtcMobileSummary(row, config = {}) {
-  const labels = config.labels?.otc || {};
-
-  return `
-    <div
-      class="data-card__quote"
-    >
-      <div
-        class="data-card__quote-item"
-      >
         <span
-          class="data-card__quote-label"
+          class="
+            data-card__change
+            ${changeTone}
+          "
         >
-          ${escapeHtml(labels.tradedVolume || "Traded Volume")}
-        </span>
-
-        <span
-          class="data-card__price"
-        >
-          ${escapeHtml(formatQuantity(row?.lastTradeVolume, config))}
+          ${escapeHtml(
+            formatPercentage(getListedChangePercent(row), config, {
+              sign: true,
+            }),
+          )}
         </span>
       </div>
     </div>
@@ -1429,135 +1985,113 @@ export function renderOtcMobileSummary(row, config = {}) {
 }
 
 /* ==========================================================================
-   Generic Mobile Summary
+   Listed Tradable Mobile Card
    ========================================================================== */
 
-export function renderMobileSummaryValue(row, view, config = {}) {
-  switch (view) {
-    case "negotiatedDeals":
-      return renderNegotiatedMobileSummary(row, config);
+export function renderListedTradableMobileCard(row, context = {}, config = {}) {
+  const labels = config.labels?.listedTradable || {};
 
-    case "listedTradableRights":
-      return renderListedTradableMobileSummary(row, config);
+  const symbol = getListedTradableSymbol(row);
 
-    case "otcTrading":
-      return renderOtcMobileSummary(row, config);
+  const company = getListedTradableCompanyName(row, config);
 
-    default:
-      return "";
-  }
-}
+  const detailFields = [
+    {
+      label: labels.cumulativeVolume || "Cumulative Volume",
 
-/* ==========================================================================
-   Mobile Field
-   ========================================================================== */
+      value: formatQuantity(getListedCumulativeVolume(row), config),
+    },
 
-/*
- * Generic bridge between table schemas and standard data-card fields.
- *
- * Individual views may still define explicit mobile fields when their
- * hierarchy differs from the desktop column order.
- */
+    {
+      label: labels.cumulativeValue || "Cumulative Value",
 
-export function createMobileField(row, column, config = {}, view = "") {
-  return {
-    key: column.key,
+      value: formatMoney(getListedCumulativeValue(row), config),
+    },
 
-    label: column.label || column.key,
+    {
+      label: labels.cumulativeTrades || "Cumulative Trades",
 
-    value: renderTradingCell({
-      row,
-      column,
+      value: formatQuantity(getListedCumulativeTrades(row), config),
+    },
 
-      type: "display",
+    {
+      label: labels.todayVolume || "Today's Volume",
 
-      config,
-      view,
-    }),
+      value: formatQuantity(getListedTodayVolume(row), config),
+    },
 
-    numeric: Boolean(column.numeric),
-  };
-}
+    {
+      label: labels.todayValue || "Today's Value",
 
-/* ==========================================================================
-   Negotiated Helpers
-   ========================================================================== */
+      value: formatMoney(getListedTodayValue(row), config),
+    },
 
-export function getNegotiatedDateGroup(row) {
-  return formatTradingDate(row?.strDate);
-}
+    {
+      label: labels.todayTrades || "Today's Trades",
 
-/* ==========================================================================
-   Total Row Detection
-   ========================================================================== */
+      value: formatQuantity(getListedTodayTrades(row), config),
+    },
 
-export function isTotalRow(row = {}) {
-  /*
-   * Historical Negotiated responses have represented daily totals in several
-   * compatible ways.
-   */
+    {
+      label: labels.bidPrice || "Bid Price",
 
-  if (row.isTotal === true || row.total === true) {
-    return true;
-  }
+      value: formatMoney(getListedBidPrice(row), config),
+    },
 
-  const type = firstDefined(row.rowType, row.type, row.recordType);
+    {
+      label: labels.bidVolume || "Bid Volume",
 
-  if (hasValue(type) && String(type).trim().toLowerCase() === "total") {
-    return true;
-  }
+      value: formatQuantity(getListedBidVolume(row), config),
+    },
 
-  const symbol = String(row.symbol ?? "")
-    .trim()
-    .toLowerCase();
+    {
+      label: labels.offerPrice || "Offer Price",
 
-  return symbol === "total";
-}
+      value: formatMoney(getListedOfferPrice(row), config),
+    },
 
-/* ==========================================================================
-   Negotiated Total Values
-   ========================================================================== */
+    {
+      label: labels.offerVolume || "Offer Volume",
 
-function getNegotiatedTotalVolume(row = {}) {
-  return firstDefined(
-    row.totalVolume,
-    row.volume,
-    row.tradeVolume,
-    row.tradedVolume,
-  );
-}
+      value: formatQuantity(getListedOfferVolume(row), config),
+    },
+  ];
 
-function getNegotiatedTotalValue(row = {}) {
-  return firstDefined(row.totalValue, row.turnOver, row.turnover, row.value);
-}
+  const details = detailFields
+    .map(
+      (field, index) => `
+          <div
+            class="data-card__field"
+          >
+            <dt
+              class="data-card__label"
+            >
+              ${escapeHtml(field.label)}
+            </dt>
 
-/* ==========================================================================
-   Negotiated Daily Total Card
-   ========================================================================== */
+            <dd
+              class="
+                data-card__value
+                data-card__value--numeric
+              "
+            >
+              ${escapeHtml(field.value)}
+            </dd>
+          </div>
+        `,
+    )
+    .join("");
 
-/*
- * Date grouping already owns the contextual heading.
- *
- * Therefore the summary card does NOT repeat:
- *
- * Daily
- * Total
- *
- * It presents only the two aggregate values.
- */
-
-export function renderNegotiatedDailyTotalCard(row, config = {}) {
-  const volumeLabel = config.labels?.negotiatedDeals?.volume || "Volume";
-
-  const valueLabel = config.labels?.negotiatedDeals?.value || "Value";
+  const detailsId = `listed-tradable-details-${context.index ?? 0}`;
 
   return `
     <article
       class="
         data-card
-        data-card--compact
-        trading-daily-total-card
+        trading-data-card
+        trading-listed-tradable-card
       "
+      data-row-index="${escapeAttribute(context.index ?? "")}"
     >
       <div
         class="data-card__main"
@@ -1565,448 +2099,1327 @@ export function renderNegotiatedDailyTotalCard(row, config = {}) {
         <div
           class="data-card__identity"
         >
+          ${renderCompanyLogo(row, config)}
+
           <div
             class="data-card__identity-content"
           >
             <span
-              class="data-card__symbol"
-            >
-              ${escapeHtml(volumeLabel)}
-            </span>
-
-            <span
               class="data-card__title"
             >
               ${escapeHtml(
-                formatQuantity(getNegotiatedTotalVolume(row), config),
+                company || symbol || config.labels?.notAvailable || "-",
               )}
             </span>
+
+            ${
+              symbol
+                ? `
+                  <span
+                    class="data-card__symbol"
+                  >
+                    ${escapeHtml(symbol)}
+                  </span>
+                `
+                : ""
+            }
           </div>
         </div>
 
-        <div
-          class="data-card__quote"
-        >
-          <span
-            class="data-card__symbol"
-          >
-            ${escapeHtml(valueLabel)}
-          </span>
+        ${renderListedTradableMobileSummary(row, config)}
+      </div>
 
-          <span
-            class="data-card__price"
-          >
-            ${escapeHtml(formatMoney(getNegotiatedTotalValue(row), config))}
-          </span>
-        </div>
+      <button
+        class="data-card__toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="${escapeAttribute(detailsId)}"
+        data-data-card-toggle
+      >
+        <span
+          class="has-icon icon-chevron-down"
+          aria-hidden="true"
+        ></span>
+
+        <span
+          class="data-card__toggle-label"
+        >
+          ${escapeHtml(config.labels?.mobile?.showDetails || "Show details")}
+        </span>
+      </button>
+
+      <div
+        class="data-card__details"
+        id="${escapeAttribute(detailsId)}"
+        hidden
+      >
+        <dl
+          class="data-card__fields"
+        >
+          ${details}
+        </dl>
       </div>
     </article>
   `.trim();
 }
-/* ==========================================================================
-   Minimum Size Matrix
-   ========================================================================== */
-
-/*
- * Minimum Size is not an ordinary table.
- *
- * Desktop:
- *
- * Header level 1 ┐
- * Header level 2 ├── col1
- * Header level 3 ┘
- *
- * Header level 1 ┐
- * Header level 2 ├── col2
- * Header level 3 ┘
- *
- * ...etc.
- *
- * Mobile must preserve that semantic hierarchy rather than flattening the
- * matrix into four unrelated label/value fields.
- */
 
 /* ==========================================================================
-   Minimum Size Values
+   Company Status — Suspended / Delisted
    ========================================================================== */
 
-export function getMinimumSizeValues(row = {}) {
-  return [row.col1, row.col2, row.col3, row.col4];
+export function getCompanyStatusType(row) {
+  return String(
+    firstValue(
+      row,
+      [
+        "type",
+        "statusType",
+        "companyStatusType",
+        "suspensionType",
+        "delistingType",
+      ],
+      "",
+    ),
+  ).trim();
 }
 
 /* ==========================================================================
-   Minimum Size Matrix Configuration
+   Status Dates
    ========================================================================== */
 
-/*
- * Preferred configuration:
- *
- * minimumSize: {
- *   columns: [
- *     {
- *       key: "col1",
- *       levels: [
- *         "...",
- *         "...",
- *         "..."
- *       ]
- *     },
- *     ...
- *   ],
- *
- *   rows: [
- *     "...",
- *     "...",
- *     "..."
- *   ]
- * }
- *
- * rows are retained in configuration for semantic completeness and future
- * accessibility/presentation needs.
- *
- * Mobile rendering currently consumes columns[].levels because every backend
- * value sits beneath one vertical three-level heading path.
- */
+export function getCompanyStatusFromDate(row) {
+  return firstValue(
+    row,
+    ["fromDate", "startDate", "suspensionFrom", "suspendFrom", "dateFrom"],
+    "",
+  );
+}
 
-function getMinimumSizeColumns(config = {}) {
-  const configured = config.labels?.minimumSize?.columns;
+export function getCompanyStatusToDate(row) {
+  return firstValue(
+    row,
+    ["toDate", "endDate", "suspensionTo", "suspendTo", "dateTo"],
+    "",
+  );
+}
 
-  if (Array.isArray(configured) && configured.length) {
-    return configured
-      .filter(
-        (column) =>
-          column &&
-          typeof column === "object" &&
-          typeof column.key === "string" &&
-          column.key.trim() !== "",
-      )
-      .map((column) => ({
-        key: column.key.trim(),
+/* ==========================================================================
+   Status Reason
+   ========================================================================== */
 
-        levels: Array.isArray(column.levels)
-          ? column.levels.filter(hasValue).map((label) => String(label))
-          : [],
-      }));
+export function getCompanyStatusReason(row, config = {}) {
+  const arabic = isArabicLocale(config);
+
+  return firstValue(
+    row,
+    arabic
+      ? ["reasonAr", "reasonAR", "arabicReason", "reason"]
+      : ["reasonEn", "reasonEN", "englishReason", "reason"],
+    "",
+  );
+}
+
+/* ==========================================================================
+   Announcement URL
+   ========================================================================== */
+
+export function getAnnouncementUrl(row) {
+  const value = firstValue(
+    row,
+    ["annUrl", "announcementUrl", "newsUrl", "newsURL", "url"],
+    "",
+  );
+
+  if (!hasValue(value)) {
+    return "";
   }
 
-  /*
-   * Compatibility fallback while an older JSP configuration is still active.
-   *
-   * Importantly, we use only labels actually supplied by the page.
-   * We do not invent the missing matrix levels.
-   */
+  const url = String(value).trim();
 
-  const labels = config.labels?.minimumSize || {};
-
-  return [
-    {
-      key: "col1",
-
-      levels: [labels.col1].filter(hasValue),
-    },
-
-    {
-      key: "col2",
-
-      levels: [labels.col2].filter(hasValue),
-    },
-
-    {
-      key: "col3",
-
-      levels: [labels.col3].filter(hasValue),
-    },
-
-    {
-      key: "col4",
-
-      levels: [labels.col4].filter(hasValue),
-    },
-  ];
-}
-
-/* ==========================================================================
-   Minimum Size Display Value
-   ========================================================================== */
-
-function getMinimumSizeDisplayValue(value) {
-  if (value && typeof value === "object") {
-    return firstDefined(value.symbol, value.name, value.label, value.value);
+  if (/^javascript:/i.test(url) || /^vbscript:/i.test(url)) {
+    return "";
   }
 
-  return value;
+  return url;
 }
 
 /* ==========================================================================
-   Minimum Size Search Text
+   Announcement Link
    ========================================================================== */
 
-export function getMinimumSizeSearchText(row = {}) {
-  return getMinimumSizeValues(row)
-    .map((value) => {
-      if (value && typeof value === "object") {
-        return [value.symbol, value.name, value.label, value.value]
-          .filter(hasValue)
-          .join(" ");
-      }
+export function renderAnnouncementLink(row, config = {}, label = "") {
+  const url = getAnnouncementUrl(row);
 
-      return getDisplayValue(value, "");
-    })
-    .join(" ")
-    .toLowerCase();
-}
-
-/* ==========================================================================
-   Minimum Size Security Reference
-   ========================================================================== */
-
-function renderMinimumSizeSecurityReference(value) {
-  if (value && typeof value === "object") {
-    const label = firstDefined(
-      value.symbol,
-      value.name,
-      value.label,
-      value.value,
-    );
-
-    const url = firstDefined(value.url, value.pageUrl, value.companyURL);
-
-    return renderSecurityLink(label, url);
+  if (!url) {
+    return config.labels?.notAvailable || "-";
   }
 
-  return escapeHtml(getDisplayValue(value, "-"));
-}
+  const text =
+    label ||
+    config.labels?.companyStatus?.announcement ||
+    config.labels?.announcement ||
+    "View";
 
-/* ==========================================================================
-   Minimum Size Value
-   ========================================================================== */
-
-export function renderMinimumSizeValue(value) {
-  return renderMinimumSizeSecurityReference(value);
-}
-
-/* ==========================================================================
-   Minimum Size Desktop Matrix Row
-   ========================================================================== */
-
-/*
- * JSP owns:
- *
- * - all three header rows
- * - all heading relationships
- * - all localization
- *
- * JS owns tbody only.
- *
- * The first body position remains intentionally empty because the first visual
- * matrix position belongs to the JSP's row-axis/header structure.
- */
-
-export function renderMinimumSizeDesktopRow(row) {
   return `
-    <tr
-      class="trading-minimum-size-row"
+    <a
+      class="table-market__action-link"
+      href="${escapeAttribute(url)}"
     >
+      ${escapeHtml(text)}
+    </a>
+  `.trim();
+}
+/* ==========================================================================
+   Company Status Presentation
+   ========================================================================== */
+
+function normalizeCompanyStatusVariant(variant) {
+  const normalized = String(variant || "")
+    .trim()
+    .toLowerCase();
+
+  if (normalized === "delisted" || normalized === "delisting") {
+    return "delisted";
+  }
+
+  return "suspended";
+}
+
+/* ==========================================================================
+   Company Status Labels
+   ========================================================================== */
+
+function getCompanyStatusLabels(config = {}, variant = "suspended") {
+  const normalizedVariant = normalizeCompanyStatusVariant(variant);
+
+  const common = config.labels?.companyStatus || {};
+
+  const specific =
+    normalizedVariant === "delisted"
+      ? config.labels?.delistedCompanies || {}
+      : config.labels?.suspendedCompanies || {};
+
+  return {
+    company:
+      specific.company || common.company || config.labels?.company || "Company",
+
+    symbol:
+      specific.symbol || common.symbol || config.labels?.symbol || "Symbol",
+
+    type: specific.type || common.type || config.labels?.type || "Type",
+
+    fromDate:
+      specific.fromDate || common.fromDate || config.labels?.fromDate || "From",
+
+    toDate: specific.toDate || common.toDate || config.labels?.toDate || "To",
+
+    date: specific.date || common.date || config.labels?.date || "Date",
+
+    reason:
+      specific.reason || common.reason || config.labels?.reason || "Reason",
+
+    announcement:
+      specific.announcement ||
+      common.announcement ||
+      config.labels?.announcement ||
+      "Announcement",
+  };
+}
+
+/* ==========================================================================
+   Company Status Type Label
+   ========================================================================== */
+
+export function formatCompanyStatusType(row, config = {}) {
+  const type = getCompanyStatusType(row);
+
+  if (!type) {
+    return config.labels?.notAvailable || "-";
+  }
+
+  const labels = config.labels?.companyStatusTypes || {};
+
+  switch (type) {
+    case "Suspension":
+      return labels.suspension || type;
+
+    case "Suspension_Funds":
+      return labels.suspensionFunds || type;
+
+    case "Delisting":
+      return labels.delisting || type;
+
+    case "Delisting_Funds":
+      return labels.delistingFunds || type;
+
+    default:
+      return type;
+  }
+}
+
+/* ==========================================================================
+   Company Status Desktop Row
+   ========================================================================== */
+
+/*
+ * Important:
+ *
+ * Suspended and Delisted share the renderer but not necessarily the exact
+ * business meaning of every date.
+ *
+ * The view supplies the active variant.
+ *
+ * Desktop structure intentionally remains straightforward:
+ *
+ * Company
+ * Type
+ * From
+ * To
+ * Reason
+ * Announcement
+ *
+ * If a particular JSP uses fewer columns, its view can use the dedicated
+ * cell helpers below rather than this complete row renderer.
+ */
+
+export function renderCompanyStatusDesktopRow(
+  row,
+  config = {},
+  { variant = "suspended" } = {},
+) {
+  const labels = getCompanyStatusLabels(config, variant);
+
+  const reason = getCompanyStatusReason(row, config);
+
+  return `
+    <tr>
       <td
-        class="trading-minimum-size-row__label"
-        aria-hidden="true"
-      ></td>
-
-      <td>
-        ${renderMinimumSizeValue(row?.col1)}
+        class="
+          table-market__company
+          table-market__identity-column
+        "
+      >
+        ${renderCompanyIdentity(row, config)}
       </td>
 
-      <td>
-        ${renderMinimumSizeValue(row?.col2)}
+      <td
+        class="table-market__status-type"
+      >
+        ${escapeHtml(formatCompanyStatusType(row, config))}
       </td>
 
-      <td>
-        ${renderMinimumSizeValue(row?.col3)}
+      <td
+        class="table-market__date"
+      >
+        ${escapeHtml(formatDate(getCompanyStatusFromDate(row), config))}
       </td>
 
-      <td>
-        ${renderMinimumSizeValue(row?.col4)}
+      <td
+        class="table-market__date"
+      >
+        ${escapeHtml(formatDate(getCompanyStatusToDate(row), config))}
+      </td>
+
+      <td
+        class="table-market__reason"
+      >
+        ${escapeHtml(reason || config.labels?.notAvailable || "-")}
+      </td>
+
+      <td
+        class="table-market__action"
+      >
+        ${renderAnnouncementLink(row, config, labels.announcement)}
       </td>
     </tr>
   `.trim();
 }
 
 /* ==========================================================================
-   Minimum Size Mobile Matrix Item
+   Suspended Desktop Row
    ========================================================================== */
 
-/*
- * Each item carries the complete vertical heading path for one backend value.
- *
- * Example:
- *
- * Level 1
- * Level 2
- * Level 3
- *
- * VALUE
- */
-
-function renderMinimumSizeMobileItem({ value, levels = [], index }) {
-  if (!hasValue(getMinimumSizeDisplayValue(value))) {
-    return "";
-  }
-
-  const headingId = `minimum-size-card-item-${index}`;
-
-  const hierarchy = levels
-    .filter(hasValue)
-    .map((label, levelIndex) =>
-      `
-          <span
-            class="
-              trading-minimum-size-card__level
-              trading-minimum-size-card__level--${levelIndex + 1}
-            "
-          >
-            ${escapeHtml(label)}
-          </span>
-        `.trim(),
-    )
-    .join("");
-
-  return `
-    <section
-      class="trading-minimum-size-card__item"
-      aria-labelledby="${escapeHtml(headingId)}"
-    >
-      <h4
-        class="trading-minimum-size-card__heading"
-        id="${escapeHtml(headingId)}"
-      >
-        ${hierarchy}
-      </h4>
-
-      <div
-        class="trading-minimum-size-card__value"
-      >
-        ${renderMinimumSizeValue(value)}
-      </div>
-    </section>
-  `.trim();
+export function renderSuspendedDesktopRow(row, config = {}) {
+  return renderCompanyStatusDesktopRow(row, config, {
+    variant: "suspended",
+  });
 }
 
 /* ==========================================================================
-   Minimum Size Mobile Card
+   Delisted Desktop Row
+   ========================================================================== */
+
+export function renderDelistedDesktopRow(row, config = {}) {
+  return renderCompanyStatusDesktopRow(row, config, {
+    variant: "delisted",
+  });
+}
+
+/* ==========================================================================
+   Company Status Individual Cells
    ========================================================================== */
 
 /*
- * One API row becomes one semantic matrix card.
+ * These helpers are useful for DataTables column.render callbacks.
  *
- * Important:
- *
- * We deliberately do NOT render:
- *
- * <label>col1</label>
- * <value>...</value>
- *
- * because col1-col4 are transport properties, not user-facing business
- * labels.
- *
- * Instead every value receives its actual localized matrix hierarchy.
+ * They keep presentation identical whether a view renders a complete native
+ * row or delegates individual cells to DataTables.
  */
 
-export function renderMinimumSizeMobileCard(row, context = {}, config = {}) {
-  const columns = getMinimumSizeColumns(config);
+export function renderCompanyStatusCompanyCell(row, config = {}) {
+  return renderCompanyIdentity(row, config);
+}
 
-  const items = columns
-    .map((column, columnIndex) =>
-      renderMinimumSizeMobileItem({
-        value: row?.[column.key],
+export function renderCompanyStatusTypeCell(row, config = {}) {
+  return escapeHtml(formatCompanyStatusType(row, config));
+}
 
-        levels: column.levels,
+export function renderCompanyStatusFromDateCell(row, config = {}) {
+  return escapeHtml(formatDate(getCompanyStatusFromDate(row), config));
+}
 
-        index: `${context.index ?? 0}-${columnIndex}`,
-      }),
-    )
-    .filter(Boolean)
-    .join("");
+export function renderCompanyStatusToDateCell(row, config = {}) {
+  return escapeHtml(formatDate(getCompanyStatusToDate(row), config));
+}
 
-  /*
-   * Do not create an empty visual card when the row contains no useful
-   * Minimum Size values.
-   */
+export function renderCompanyStatusReasonCell(row, config = {}) {
+  return escapeHtml(
+    getCompanyStatusReason(row, config) || config.labels?.notAvailable || "-",
+  );
+}
 
-  if (!items) {
-    return "";
-  }
+export function renderCompanyStatusAnnouncementCell(row, config = {}) {
+  return renderAnnouncementLink(row, config);
+}
+
+/* ==========================================================================
+   Company Status Mobile Card
+   ========================================================================== */
+
+export function renderCompanyStatusMobileCard(
+  row,
+  context = {},
+  config = {},
+  { variant = "suspended" } = {},
+) {
+  const normalizedVariant = normalizeCompanyStatusVariant(variant);
+
+  const labels = getCompanyStatusLabels(config, normalizedVariant);
+
+  const symbol = getCompanySymbol(row);
+
+  const company = getCompanyName(row, config);
+
+  const type = formatCompanyStatusType(row, config);
+
+  const fromDate = getCompanyStatusFromDate(row);
+
+  const toDate = getCompanyStatusToDate(row);
+
+  const reason = getCompanyStatusReason(row, config);
+
+  const announcement = getAnnouncementUrl(row);
+
+  const detailsId = `company-status-${normalizedVariant}-details-${
+    context.index ?? 0
+  }`;
+
+  const details = [
+    {
+      label: labels.type,
+
+      value: type,
+    },
+
+    {
+      label: labels.fromDate,
+
+      value: formatDate(fromDate, config),
+    },
+
+    {
+      label: labels.toDate,
+
+      value: formatDate(toDate, config),
+    },
+
+    {
+      label: labels.reason,
+
+      value: reason || config.labels?.notAvailable || "-",
+    },
+  ];
 
   return `
     <article
       class="
         data-card
-        trading-minimum-size-card
+        trading-data-card
+        trading-company-status-card
+        trading-company-status-card--${escapeAttribute(normalizedVariant)}
       "
-      data-trading-minimum-size-card
-      data-row-index="${escapeHtml(context.index ?? "")}"
+      data-row-index="${escapeAttribute(context.index ?? "")}"
     >
       <div
-        class="trading-minimum-size-card__grid"
+        class="data-card__main"
       >
-        ${items}
+        <div
+          class="data-card__identity"
+        >
+          ${renderCompanyLogo(row, config)}
+
+          <div
+            class="data-card__identity-content"
+          >
+            <span
+              class="data-card__title"
+            >
+              ${escapeHtml(
+                company || symbol || config.labels?.notAvailable || "-",
+              )}
+            </span>
+
+            ${
+              symbol
+                ? `
+                  <span
+                    class="data-card__symbol"
+                  >
+                    ${escapeHtml(symbol)}
+                  </span>
+                `
+                : ""
+            }
+          </div>
+        </div>
+
+        ${
+          hasValue(type)
+            ? `
+              <div
+                class="data-card__quote"
+              >
+                <span
+                  class="data-card__symbol"
+                >
+                  ${escapeHtml(labels.type)}
+                </span>
+
+                <span
+                  class="data-card__price"
+                >
+                  ${escapeHtml(type)}
+                </span>
+              </div>
+            `
+            : ""
+        }
+      </div>
+
+      <button
+        class="data-card__toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="${escapeAttribute(detailsId)}"
+        data-data-card-toggle
+      >
+        <span
+          class="
+            has-icon
+            icon-chevron-down
+          "
+          aria-hidden="true"
+        ></span>
+
+        <span
+          class="data-card__toggle-label"
+        >
+          ${escapeHtml(config.labels?.mobile?.showDetails || "Show details")}
+        </span>
+      </button>
+
+      <div
+        class="data-card__details"
+        id="${escapeAttribute(detailsId)}"
+        hidden
+      >
+        <dl
+          class="data-card__fields"
+        >
+          ${details
+            .map(
+              (field) => `
+                <div
+                  class="data-card__field"
+                >
+                  <dt
+                    class="data-card__label"
+                  >
+                    ${escapeHtml(field.label)}
+                  </dt>
+
+                  <dd
+                    class="data-card__value"
+                  >
+                    ${escapeHtml(field.value)}
+                  </dd>
+                </div>
+              `,
+            )
+            .join("")}
+        </dl>
+
+        ${
+          announcement
+            ? `
+              <div
+                class="data-card__actions"
+              >
+                ${renderAnnouncementLink(row, config, labels.announcement)}
+              </div>
+            `
+            : ""
+        }
       </div>
     </article>
   `.trim();
 }
 
 /* ==========================================================================
-   Minimum Size Mobile Collection
+   Suspended Mobile Card
    ========================================================================== */
 
-export function renderMinimumSizeMobileCards(rows = [], config = {}) {
-  if (!Array.isArray(rows) || !rows.length) {
+export function renderSuspendedMobileCard(row, context = {}, config = {}) {
+  return renderCompanyStatusMobileCard(row, context, config, {
+    variant: "suspended",
+  });
+}
+
+/* ==========================================================================
+   Delisted Mobile Card
+   ========================================================================== */
+
+export function renderDelistedMobileCard(row, context = {}, config = {}) {
+  return renderCompanyStatusMobileCard(row, context, config, {
+    variant: "delisted",
+  });
+}
+
+/* ==========================================================================
+   OTC Trading
+   ========================================================================== */
+
+/* ==========================================================================
+   OTC Accessors
+   ========================================================================== */
+
+export function getOtcSymbol(row) {
+  return firstValue(
+    row,
+    ["symbol", "companySymbol", "securitySymbol", "ticker", "code"],
+    "",
+  );
+}
+
+export function getOtcCompanyName(row, config = {}) {
+  return getCompanyName(row, config);
+}
+
+export function getOtcLastPrice(row) {
+  return firstValue(
+    row,
+    ["lastPrice", "lastTradePrice", "price", "closePrice"],
+    "",
+  );
+}
+
+export function getOtcChange(row) {
+  return firstValue(row, ["change", "netChange", "priceChange"], "");
+}
+
+export function getOtcChangePercent(row) {
+  return firstValue(
+    row,
+    ["changePercent", "changePercentage", "percentChange", "percentageChange"],
+    "",
+  );
+}
+
+export function getOtcVolume(row) {
+  return firstValue(
+    row,
+    ["volume", "tradeVolume", "tradedVolume", "quantity"],
+    "",
+  );
+}
+
+export function getOtcValue(row) {
+  return firstValue(row, ["value", "tradeValue", "tradedValue", "amount"], "");
+}
+
+export function getOtcTrades(row) {
+  return firstValue(
+    row,
+    ["trades", "tradeCount", "numberOfTrades", "transactions"],
+    "",
+  );
+}
+
+/* ==========================================================================
+   OTC Identity
+   ========================================================================== */
+
+function renderOtcIdentity(row, config = {}) {
+  /*
+   * OTC follows the same identity language as Market Watch.
+   */
+
+  return renderCompanyIdentity(row, config);
+}
+
+/* ==========================================================================
+   OTC Desktop Row
+   ========================================================================== */
+
+export function renderOtcDesktopRow(row, config = {}) {
+  const changeTone = getPriceTone(getOtcChangePercent(row));
+
+  return `
+    <tr>
+      <td
+        class="
+          table-market__company
+          table-market__identity-column
+        "
+      >
+        ${renderOtcIdentity(row, config)}
+      </td>
+
+      <td
+        class="
+          table-market__number
+          table-market__price
+        "
+      >
+        ${escapeHtml(formatMoney(getOtcLastPrice(row), config))}
+      </td>
+
+      <td
+        class="
+          table-market__number
+          table-market__change
+          ${changeTone}
+        "
+      >
+        ${escapeHtml(formatMoney(getOtcChange(row), config))}
+      </td>
+
+      <td
+        class="
+          table-market__number
+          table-market__change
+          ${changeTone}
+        "
+      >
+        ${escapeHtml(
+          formatPercentage(getOtcChangePercent(row), config, {
+            sign: true,
+          }),
+        )}
+      </td>
+
+      <td
+        class="table-market__number"
+      >
+        ${escapeHtml(formatQuantity(getOtcVolume(row), config))}
+      </td>
+
+      <td
+        class="table-market__number"
+      >
+        ${escapeHtml(formatMoney(getOtcValue(row), config))}
+      </td>
+
+      <td
+        class="table-market__number"
+      >
+        ${escapeHtml(formatQuantity(getOtcTrades(row), config))}
+      </td>
+    </tr>
+  `.trim();
+}
+
+/* ==========================================================================
+   OTC Mobile Card
+   ========================================================================== */
+
+export function renderOtcMobileCard(row, context = {}, config = {}) {
+  const labels = config.labels?.otcTrading || {};
+
+  const symbol = getOtcSymbol(row);
+
+  const company = getOtcCompanyName(row, config);
+
+  const changeTone = getPriceTone(getOtcChangePercent(row));
+
+  const detailsId = `otc-trading-details-${context.index ?? 0}`;
+
+  const fields = [
+    {
+      label: labels.change || "Change",
+
+      value: formatMoney(getOtcChange(row), config),
+
+      className: changeTone,
+    },
+
+    {
+      label: labels.volume || "Volume",
+
+      value: formatQuantity(getOtcVolume(row), config),
+    },
+
+    {
+      label: labels.value || "Value",
+
+      value: formatMoney(getOtcValue(row), config),
+    },
+
+    {
+      label: labels.trades || "Trades",
+
+      value: formatQuantity(getOtcTrades(row), config),
+    },
+  ];
+
+  return `
+    <article
+      class="
+        data-card
+        trading-data-card
+        trading-otc-card
+      "
+      data-row-index="${escapeAttribute(context.index ?? "")}"
+    >
+      <div
+        class="data-card__main"
+      >
+        <div
+          class="data-card__identity"
+        >
+          ${renderCompanyLogo(row, config)}
+
+          <div
+            class="data-card__identity-content"
+          >
+            <span
+              class="data-card__title"
+            >
+              ${escapeHtml(
+                company || symbol || config.labels?.notAvailable || "-",
+              )}
+            </span>
+
+            ${
+              symbol
+                ? `
+                  <span
+                    class="data-card__symbol"
+                  >
+                    ${escapeHtml(symbol)}
+                  </span>
+                `
+                : ""
+            }
+          </div>
+        </div>
+
+        <div
+          class="data-card__quote"
+        >
+          <div
+            class="data-card__quote-item"
+          >
+            <span
+              class="data-card__quote-label"
+            >
+              ${escapeHtml(labels.lastPrice || labels.price || "Price")}
+            </span>
+
+            <span
+              class="data-card__price"
+            >
+              ${escapeHtml(formatMoney(getOtcLastPrice(row), config))}
+            </span>
+          </div>
+
+          <div
+            class="data-card__quote-item"
+          >
+            <span
+              class="data-card__quote-label"
+            >
+              ${escapeHtml(labels.changePercent || "Change %")}
+            </span>
+
+            <span
+              class="
+                data-card__change
+                ${changeTone}
+              "
+            >
+              ${escapeHtml(
+                formatPercentage(getOtcChangePercent(row), config, {
+                  sign: true,
+                }),
+              )}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <button
+        class="data-card__toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="${escapeAttribute(detailsId)}"
+        data-data-card-toggle
+      >
+        <span
+          class="
+            has-icon
+            icon-chevron-down
+          "
+          aria-hidden="true"
+        ></span>
+
+        <span
+          class="data-card__toggle-label"
+        >
+          ${escapeHtml(config.labels?.mobile?.showDetails || "Show details")}
+        </span>
+      </button>
+
+      <div
+        class="data-card__details"
+        id="${escapeAttribute(detailsId)}"
+        hidden
+      >
+        <dl
+          class="data-card__fields"
+        >
+          ${fields
+            .map(
+              (field) => `
+                <div
+                  class="data-card__field"
+                >
+                  <dt
+                    class="data-card__label"
+                  >
+                    ${escapeHtml(field.label)}
+                  </dt>
+
+                  <dd
+                    class="
+                      data-card__value
+                      data-card__value--numeric
+                      ${escapeAttribute(field.className || "")}
+                    "
+                  >
+                    ${escapeHtml(field.value)}
+                  </dd>
+                </div>
+              `,
+            )
+            .join("")}
+        </dl>
+      </div>
+    </article>
+  `.trim();
+}
+
+/* ==========================================================================
+   Generic Trading Company Cell
+   ========================================================================== */
+
+/*
+ * Shared bridge for Trading DataTables that need the standard Market Watch
+ * identity without importing knowledge about a specific Trading dataset.
+ */
+
+export function renderTradingCompanyCell(row, config = {}, options = {}) {
+  return renderCompanyIdentity(row, config, options);
+}
+
+/* ==========================================================================
+   Generic Trading Symbol Cell
+   ========================================================================== */
+
+export function renderTradingSymbolCell(row, config = {}, options = {}) {
+  return renderSymbolIdentity(row, config, options);
+}
+
+/* ==========================================================================
+   Generic Numeric Cell
+   ========================================================================== */
+
+export function renderTradingNumberCell(value, config = {}, options = {}) {
+  return escapeHtml(formatNumber(value, config, options));
+}
+
+/* ==========================================================================
+   Generic Quantity Cell
+   ========================================================================== */
+
+export function renderTradingQuantityCell(value, config = {}) {
+  return escapeHtml(formatQuantity(value, config));
+}
+
+/* ==========================================================================
+   Generic Money Cell
+   ========================================================================== */
+
+export function renderTradingMoneyCell(value, config = {}) {
+  return escapeHtml(formatMoney(value, config));
+}
+
+/* ==========================================================================
+   Generic Percentage Cell
+   ========================================================================== */
+
+export function renderTradingPercentageCell(value, config = {}, options = {}) {
+  return escapeHtml(formatPercentage(value, config, options));
+}
+
+/* ==========================================================================
+   Generic Date Cell
+   ========================================================================== */
+
+export function renderTradingDateCell(value, config = {}) {
+  return escapeHtml(formatDate(value, config));
+}
+
+/* ==========================================================================
+   Generic Change Cell
+   ========================================================================== */
+
+export function renderTradingChangeCell(
+  value,
+  config = {},
+  { percentage = false, sign = true } = {},
+) {
+  const tone = getPriceTone(value);
+
+  const formatted = percentage
+    ? formatPercentage(value, config, {
+        sign,
+      })
+    : formatMoney(value, config);
+
+  return `
+    <span
+      class="
+        table-market__change
+        ${tone}
+      "
+    >
+      ${escapeHtml(formatted)}
+    </span>
+  `.trim();
+}
+
+/* ==========================================================================
+   Generic Card Identity
+   ========================================================================== */
+
+export function renderTradingCardIdentity(
+  row,
+  config = {},
+  { status = "" } = {},
+) {
+  const symbol = getCompanySymbol(row);
+
+  const company = getCompanyName(row, config);
+
+  return `
+    <div
+      class="data-card__identity"
+    >
+      ${renderCompanyLogo(row, config)}
+
+      <div
+        class="data-card__identity-content"
+      >
+        <span
+          class="data-card__title"
+        >
+          ${escapeHtml(company || symbol || config.labels?.notAvailable || "-")}
+        </span>
+
+        ${
+          symbol || status
+            ? `
+              <span
+                class="data-card__identity-code"
+              >
+                ${
+                  symbol
+                    ? `
+                      <span
+                        class="data-card__symbol"
+                      >
+                        ${escapeHtml(symbol)}
+                      </span>
+                    `
+                    : ""
+                }
+
+                ${status}
+              </span>
+            `
+            : ""
+        }
+      </div>
+    </div>
+  `.trim();
+}
+
+/* ==========================================================================
+   Generic Card Field
+   ========================================================================== */
+
+export function renderTradingCardField(
+  label,
+  value,
+  { numeric = false, className = "" } = {},
+) {
+  const valueClasses = [
+    "data-card__value",
+
+    numeric ? "data-card__value--numeric" : "",
+
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return `
+    <div
+      class="data-card__field"
+    >
+      <dt
+        class="data-card__label"
+      >
+        ${escapeHtml(label || "")}
+      </dt>
+
+      <dd
+        class="${escapeAttribute(valueClasses)}"
+      >
+        ${escapeHtml(value ?? "")}
+      </dd>
+    </div>
+  `.trim();
+}
+
+/* ==========================================================================
+   Generic Card Fields
+   ========================================================================== */
+
+export function renderTradingCardFields(fields = []) {
+  if (!Array.isArray(fields)) {
     return "";
   }
 
-  return rows
-    .map((row, index) =>
-      renderMinimumSizeMobileCard(
-        row,
-        {
-          index,
-        },
-        config,
-      ),
-    )
+  return fields
     .filter(Boolean)
+    .map((field) =>
+      renderTradingCardField(field.label, field.value, {
+        numeric: Boolean(field.numeric),
+
+        className: field.className || "",
+      }),
+    )
     .join("");
 }
 
 /* ==========================================================================
-   Minimum Size Filtering
-   ========================================================================== */
-
-export function filterMinimumSizeRows(rows = [], search = "") {
-  if (!Array.isArray(rows)) {
-    return [];
-  }
-
-  const query = String(search || "")
-    .trim()
-    .toLowerCase();
-
-  if (!query) {
-    return [...rows];
-  }
-
-  return rows.filter((row) => getMinimumSizeSearchText(row).includes(query));
-}
-
-/* ==========================================================================
-   Card Container
+   Search Text
    ========================================================================== */
 
 /*
- * Trading view modules can apply this class to a cards container.
- *
- * The class itself is intentionally only a presentation hook.
+ * Produces normalized searchable text without coupling the individual view
+ * modules to every legacy company-field alias.
  */
 
-export function getTradingCardContainerClass() {
-  return "trading-data-card-list";
+export function getTradingSearchText(row, config = {}, additionalValues = []) {
+  const values = [
+    getCompanySymbol(row),
+
+    getCompanyName(row, config),
+
+    ...(Array.isArray(additionalValues)
+      ? additionalValues
+      : [additionalValues]),
+  ];
+
+  return values
+    .filter(hasValue)
+    .map((value) => String(value).trim().toLowerCase())
+    .join(" ");
 }
+
+/* ==========================================================================
+   Generic Row Search
+   ========================================================================== */
+
+export function matchesTradingSearch(
+  row,
+  searchValue,
+  config = {},
+  additionalValues = [],
+) {
+  const search = String(searchValue || "")
+    .trim()
+    .toLowerCase();
+
+  if (!search) {
+    return true;
+  }
+
+  return getTradingSearchText(row, config, additionalValues).includes(search);
+}
+
+/* ==========================================================================
+   Safe Display Value
+   ========================================================================== */
+
+export function getDisplayValue(value, config = {}) {
+  return hasValue(value) ? String(value) : config.labels?.notAvailable || "-";
+}
+
+/* ==========================================================================
+   DataTables Display Guard
+   ========================================================================== */
+
+/*
+ * DataTables calls render functions for:
+ *
+ * display
+ * sort
+ * filter
+ * type
+ *
+ * HTML should normally be returned only for display mode.
+ */
+
+export function isDisplayRender(type) {
+  return type === undefined || type === null || type === "display";
+}
+
+/* ==========================================================================
+   DataTables Text Renderer
+   ========================================================================== */
+
+export function renderDataTableText(value, type, config = {}) {
+  if (!isDisplayRender(type)) {
+    return hasValue(value) ? value : "";
+  }
+
+  return escapeHtml(getDisplayValue(value, config));
+}
+
+/* ==========================================================================
+   DataTables Number Renderer
+   ========================================================================== */
+
+export function renderDataTableNumber(value, type, config = {}, options = {}) {
+  if (!isDisplayRender(type)) {
+    return toNumber(value, 0) ?? 0;
+  }
+
+  return renderTradingNumberCell(value, config, options);
+}
+
+/* ==========================================================================
+   DataTables Money Renderer
+   ========================================================================== */
+
+export function renderDataTableMoney(value, type, config = {}) {
+  if (!isDisplayRender(type)) {
+    return toNumber(value, 0) ?? 0;
+  }
+
+  return renderTradingMoneyCell(value, config);
+}
+
+/* ==========================================================================
+   DataTables Quantity Renderer
+   ========================================================================== */
+
+export function renderDataTableQuantity(value, type, config = {}) {
+  if (!isDisplayRender(type)) {
+    return toNumber(value, 0) ?? 0;
+  }
+
+  return renderTradingQuantityCell(value, config);
+}
+
+/* ==========================================================================
+   DataTables Percentage Renderer
+   ========================================================================== */
+
+export function renderDataTablePercentage(
+  value,
+  type,
+  config = {},
+  options = {},
+) {
+  if (!isDisplayRender(type)) {
+    return toNumber(value, 0) ?? 0;
+  }
+
+  return renderTradingPercentageCell(value, config, options);
+}
+
+/* ==========================================================================
+   DataTables Date Renderer
+   ========================================================================== */
+
+export function renderDataTableDate(value, type, config = {}) {
+  if (!isDisplayRender(type)) {
+    const date = parseDateValue(value);
+
+    return date ? date.getTime() : hasValue(value) ? String(value) : "";
+  }
+
+  return renderTradingDateCell(value, config);
+}
+
+/* ==========================================================================
+   Compatibility Aliases
+   ========================================================================== */
+
+/*
+ * Keep these aliases while the individual Trading views are migrated one at
+ * a time.
+ *
+ * Once every tab consumes the canonical exports above, these aliases can be
+ * removed in a separate cleanup without mixing that change into functional
+ * tab work.
+ */
+
+export const renderNegotiatedRow = renderNegotiatedDesktopRow;
+
+export const renderMinimumSizeRow = renderMinimumSizeDesktopRow;
+
+export const renderAccumulatedRow = renderAccumulatedDesktopRow;
+
+export const renderListedTradableRow = renderListedTradableDesktopRow;
+
+export const renderSuspendedRow = renderSuspendedDesktopRow;
+
+export const renderDelistedRow = renderDelistedDesktopRow;
+
+export const renderOtcRow = renderOtcDesktopRow;

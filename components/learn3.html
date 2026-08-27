@@ -172,7 +172,7 @@
       <div
         class="tabs-content"
         data-trading-tab-content
-      >
+      > 
 
 
         <%-- =================================================================
@@ -942,11 +942,9 @@
 
         </section>
 
-
-  
-          <%-- ========================================================================
+<%-- =========================================================================
      Tab 2: Accumulated Losses
-     ======================================================================== --%>
+     ========================================================================= --%>
 
 <section
   class="tab-pane"
@@ -962,13 +960,12 @@
     data-trading-accumulated
   >
 
-
     <%-- =====================================================================
          Filters
          ===================================================================== --%>
 
     <form
-      class="filter-bar"
+      class="filter-bar filter-bar--connected"
       aria-labelledby="trading-accumulated-filters-title"
       data-trading-accumulated-filters
     >
@@ -982,9 +979,7 @@
         />
       </h3>
 
-
       <div class="filter-bar__inner">
-
 
         <%-- ===============================================================
              Filter Fields
@@ -1007,10 +1002,19 @@
               class="custom-select"
               data-custom-select
             >
-              <div class="form-select-wrap custom-select__fallback">
+
+              <div
+                class="
+                  form-select-wrap
+                  custom-select__fallback
+                "
+              >
 
                 <select
-                  class="form-select custom-select__native"
+                  class="
+                    form-select
+                    custom-select__native
+                  "
                   id="trading-accumulated-report"
                   name="report"
                   data-trading-accumulated-report
@@ -1046,17 +1050,21 @@
                 </select>
 
                 <span
-                  class="form-select-icon has-icon icon-chevron-down"
+                  class="
+                    form-select-icon
+                    has-icon
+                    icon-chevron-down
+                  "
                   aria-hidden="true"
                 ></span>
 
               </div>
+
             </div>
 
           </div>
 
         </div>
-
 
         <%-- ===============================================================
              Actions
@@ -1065,7 +1073,12 @@
         <div class="filter-bar__actions">
 
           <button
-            class="btn btn-outline-primary has-icon icon-sync-refresh"
+            class="
+              btn
+              btn-outline-primary
+              has-icon
+              icon-sync-refresh
+            "
             type="reset"
             data-trading-reset="accumulated"
           >
@@ -1077,7 +1090,6 @@
         </div>
 
       </div>
-
 
       <%-- =================================================================
            Accumulated Loss Legend
@@ -1093,15 +1105,20 @@
 
           <div class="filter-bar__legend">
 
-
-            <%-- 50% or more --%>
+            <%-- -----------------------------------------------------------
+                 50% or more
+                 ----------------------------------------------------------- --%>
 
             <span
               class="filter-bar__legend-item"
               role="listitem"
             >
+
               <span
-                class="filter-bar__legend-indicator filter-bar__legend-indicator--danger"
+                class="
+                  filter-bar__legend-indicator
+                  filter-bar__legend-indicator--danger
+                "
                 aria-hidden="true"
               ></span>
 
@@ -1110,17 +1127,23 @@
                   key="issuer.trading.info.v2.accumulated.drop.50.more"
                 />
               </span>
+
             </span>
 
-
-            <%-- 35% - 50% --%>
+            <%-- -----------------------------------------------------------
+                 35% - 50%
+                 ----------------------------------------------------------- --%>
 
             <span
               class="filter-bar__legend-item"
               role="listitem"
             >
+
               <span
-                class="filter-bar__legend-indicator filter-bar__legend-indicator--warning"
+                class="
+                  filter-bar__legend-indicator
+                  filter-bar__legend-indicator--warning
+                "
                 aria-hidden="true"
               ></span>
 
@@ -1129,17 +1152,23 @@
                   key="issuer.trading.info.v2.accumulated.drop.35.to.50"
                 />
               </span>
+
             </span>
 
-
-            <%-- 20% - 35% --%>
+            <%-- -----------------------------------------------------------
+                 20% - 35%
+                 ----------------------------------------------------------- --%>
 
             <span
               class="filter-bar__legend-item"
               role="listitem"
             >
+
               <span
-                class="filter-bar__legend-indicator filter-bar__legend-indicator--primary"
+                class="
+                  filter-bar__legend-indicator
+                  filter-bar__legend-indicator--primary
+                "
                 aria-hidden="true"
               ></span>
 
@@ -1148,6 +1177,7 @@
                   key="issuer.trading.info.v2.accumulated.drop.20.to.35"
                 />
               </span>
+
             </span>
 
           </div>
@@ -1158,19 +1188,17 @@
 
     </form>
 
-
     <%-- =====================================================================
-         Accumulated Losses Data View
+         Data View
          ===================================================================== --%>
 
     <div
-      class="data-view"
+      class="data-view data-view--connected"
       data-trading-view="accumulatedLosses"
       aria-busy="true"
     >
 
       <div class="data-view__workspace">
-
 
         <%-- =================================================================
              Desktop / Tablet
@@ -1179,7 +1207,6 @@
         <div class="data-view__table">
 
           <div class="data-view__table-block">
-
 
             <%-- =============================================================
                  Results Toolbar
@@ -1193,6 +1220,7 @@
                   class="data-view__result-count"
                   id="accumulated-losses-results"
                 >
+
                   <strong>
                     <fmt:message
                       key="issuer.trading.info.results.msg"
@@ -1204,20 +1232,36 @@
                   >
                     0
                   </span>
+
                 </p>
 
               </div>
 
             </div>
 
-
             <%-- =============================================================
-                 Table
-                 
-                 Important:
-                 - JSP owns the complete header.
-                 - JavaScript populates tbody only.
-                 - Status indicator belongs beside Symbol.
+                 Results Table
+
+                 Final desktop presentation:
+
+                 Company
+                 ──────────────────────────────────────
+                 [logo] Company Name
+                        SYMBOL + accumulated-loss status
+
+                 JSP owns:
+                 - table shell
+                 - accessibility
+                 - table header
+
+                 JavaScript owns:
+                 - tbody
+                 - company identity
+                 - logo
+                 - company name
+                 - symbol
+                 - accumulated-loss indicator
+                 - loading / empty / error state
                  ============================================================= --%>
 
             <div
@@ -1226,7 +1270,10 @@
             >
 
               <div
-                class="table-responsive custom-scrollbar"
+                class="
+                  table-responsive
+                  custom-scrollbar
+                "
                 tabindex="0"
                 role="region"
                 aria-labelledby="accumulated-losses-results"
@@ -1235,7 +1282,14 @@
 
                 <table
                   id="accumulated-losses-table"
-                  class="table table-hover table-nowrap table-market table-market--results"
+                  class="
+                    table
+                    table-hover
+                    table-nowrap
+                    table-market
+                    table-market--results
+                    table-market--accumulated
+                  "
                   aria-describedby="accumulated-losses-results"
                   aria-busy="true"
                   data-trading-table="accumulatedLosses"
@@ -1247,22 +1301,12 @@
                     />
                   </caption>
 
-
                   <thead>
+
                     <tr>
 
                       <th
-                        class="table-market__symbol"
-                        scope="col"
-                        data-column-key="symbol"
-                      >
-                        <fmt:message
-                          key="issuer.trading.info.v2.table.heading.acc.symbol"
-                        />
-                      </th>
-
-                      <th
-                        class="table-market__company"
+                        class="table-market__security"
                         scope="col"
                         data-column-key="company"
                       >
@@ -1272,8 +1316,8 @@
                       </th>
 
                     </tr>
-                  </thead>
 
+                  </thead>
 
                   <tbody></tbody>
 
@@ -1287,14 +1331,20 @@
 
         </div>
 
-
         <%-- =================================================================
              Mobile
 
-             Accumulated Losses is deliberately compact:
-             - Symbol + status
-             - Company
-             - no details toggle
+             Same company identity language as desktop:
+
+             [logo] Company Name
+                    SYMBOL + accumulated-loss status
+
+             This dataset contains no additional business fields,
+             therefore:
+
+             - no duplicated table labels
+             - no detail rows
+             - no expand / collapse control
              ================================================================= --%>
 
         <div
@@ -3373,12 +3423,20 @@
          ==================================================================== */
 
       accumulated: {
-
         symbol:
           "<fmt:message key='issuer.trading.info.v2.table.heading.acc.symbol' />",
 
         company:
           "<fmt:message key='issuer.trading.info.v2.table.heading.acc.companyname' />",
+
+        loss50More:
+          "<fmt:message key='issuer.trading.info.v2.accumulated.drop.50.more' />",
+
+        loss35To50:
+          "<fmt:message key='issuer.trading.info.v2.accumulated.drop.35.to.50' />",
+
+        loss20To35:
+          "<fmt:message key='issuer.trading.info.v2.accumulated.drop.20.to.35' />",
       },
 
 
