@@ -12,8 +12,9 @@
  *
  * - parse legacy response envelopes
  * - normalize Negotiated Deals rows
- * - normalize daily total rows
- * - normalize Minimum Size cells
+ * - preserve service-provided daily total rows
+ * - normalize Minimum Size company cells
+ * - resolve the requested view safely
  * - provide consistent result metadata
  *
  * This module intentionally has no:
@@ -381,6 +382,7 @@ function normalizeCompany(row = {}) {
     companyObject.companyCode,
     companyObject.symbol,
     companyObject.code,
+    companyObject.securityCode,
   );
 
   const companyName = getFirstString(
@@ -395,6 +397,7 @@ function normalizeCompany(row = {}) {
     companyObject.companyName,
     companyObject.longName,
     companyObject.name,
+    companyObject.securityName,
 
     companyCode,
   );
@@ -408,6 +411,7 @@ function normalizeCompany(row = {}) {
     companyObject.companyURL,
     companyObject.companyUrl,
     companyObject.url,
+    companyObject.securityUrl,
   );
 
   return {
@@ -589,9 +593,7 @@ export function normalizeNegotiatedDealsRowsResponse(response) {
     }
 
     if (isTotalRow(rawRow)) {
-      const totalRow = normalizeTotalRow(rawRow, index, previousDate);
-
-      rows.push(totalRow);
+      rows.push(normalizeTotalRow(rawRow, index, previousDate));
 
       return;
     }
@@ -624,7 +626,9 @@ export function normalizeNegotiatedDealsRowsResponse(response) {
       view: NEGOTIATED_DEALS_VIEWS.negotiatedDeals,
 
       recordCount: dealRows.length,
+
       summaryCount: summaryRows.length,
+
       groupCount: dateGroups.size,
     }),
 
@@ -637,9 +641,14 @@ export function normalizeNegotiatedDealsRowsResponse(response) {
    ========================================================================== */
 
 function normalizeMinimumSizeCell(value) {
-  if (value == null || value === "") {
+  if (value === undefined || value === null || value === "") {
     return null;
   }
+
+  /*
+   * Some legacy responses may return a symbol directly rather than a company
+   * object. Preserve it as a usable company identity.
+   */
 
   if (!isObject(value)) {
     const companyCode = normalizeString(value);
@@ -647,8 +656,11 @@ function normalizeMinimumSizeCell(value) {
     return companyCode
       ? {
           companyCode,
+
           companyName: companyCode,
+
           companyUrl: "",
+
           raw: value,
         }
       : null;
@@ -671,14 +683,34 @@ function normalizeMinimumSizeCell(value) {
    Minimum Size Row
    ========================================================================== */
 
+function getMinimumSizeColumn(row, position) {
+  const columnKey = `col${position}`;
+
+  const legacyColumnKey = `column${position}`;
+
+  if (row[columnKey] !== undefined) {
+    return row[columnKey];
+  }
+
+  if (row[legacyColumnKey] !== undefined) {
+    return row[legacyColumnKey];
+  }
+
+  if (Array.isArray(row.cells)) {
+    return row.cells[position - 1];
+  }
+
+  return null;
+}
+
 function normalizeMinimumSizeRow(row, index) {
-  const firstColumn = normalizeMinimumSizeCell(row.col1 ?? row.column1);
+  const firstColumn = normalizeMinimumSizeCell(getMinimumSizeColumn(row, 1));
 
-  const secondColumn = normalizeMinimumSizeCell(row.col2 ?? row.column2);
+  const secondColumn = normalizeMinimumSizeCell(getMinimumSizeColumn(row, 2));
 
-  const thirdColumn = normalizeMinimumSizeCell(row.col3 ?? row.column3);
+  const thirdColumn = normalizeMinimumSizeCell(getMinimumSizeColumn(row, 3));
 
-  const fourthColumn = normalizeMinimumSizeCell(row.col4 ?? row.column4);
+  const fourthColumn = normalizeMinimumSizeCell(getMinimumSizeColumn(row, 4));
 
   return {
     id: getFirstString(row.id, row.rowId) || `minimum-size-${index}`,
@@ -723,14 +755,83 @@ export function normalizeMinimumSizeResponse(response) {
 }
 
 /* ==========================================================================
+   Requested View Resolution
+   ========================================================================== */
+
+function normalizeExplicitView(value) {
+  const normalized = normalizeString(value)
+    .replace(/[\s_-]+/g, "")
+    .toLowerCase();
+
+  if (normalized === "minimumsize") {
+    return NEGOTIATED_DEALS_VIEWS.minimumSize;
+  }
+
+  if (normalized === "negotiateddeals") {
+    return NEGOTIATED_DEALS_VIEWS.negotiatedDeals;
+  }
+
+  return "";
+}
+
+function getRequestFilterState(context = {}) {
+  /*
+   * Do not use context.state here.
+   *
+   * context.state is the internal data-view state:
+   *
+   * {
+   *   active,
+   *   loading,
+   *   sourceRows,
+   *   visibleRows,
+   *   meta,
+   *   error
+   * }
+   *
+   * It is not the request filter state.
+   */
+
+  const candidates = [
+    context.requestFilters,
+
+    context.filters,
+
+    context.requestContext?.state,
+
+    context.requestOptions?.filters,
+  ];
+
+  return (
+    candidates.find(
+      (candidate) =>
+        isObject(candidate) &&
+        Object.prototype.hasOwnProperty.call(candidate, "type"),
+    ) || {}
+  );
+}
+
+function resolveRequestedView(context = {}) {
+  /*
+   * createTradingTab() already resolves the canonical view and includes it
+   * in the normalization context. Prefer that value when available.
+   */
+
+  const explicitView = normalizeExplicitView(context.view);
+
+  if (explicitView) {
+    return explicitView;
+  }
+
+  return getNegotiatedDealsView(getRequestFilterState(context));
+}
+
+/* ==========================================================================
    Combined Tab Normalizer
    ========================================================================== */
 
 export function normalizeNegotiatedDealsResponse(response, context = {}) {
-  const filterState =
-    context.state ?? context.filters ?? context.requestOptions?.filters ?? {};
-
-  const view = getNegotiatedDealsView(filterState);
+  const view = resolveRequestedView(context);
 
   if (view === NEGOTIATED_DEALS_VIEWS.minimumSize) {
     return normalizeMinimumSizeResponse(response);

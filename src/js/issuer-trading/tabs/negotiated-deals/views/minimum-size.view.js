@@ -3,15 +3,15 @@
    ========================================================================== */
 
 /*
- * Desktop table and mobile card presentation for Main Market Minimum Size
+ * Desktop table and mobile matrix presentation for Main Market Minimum Size
  * Requirements.
  *
  * Responsibilities:
  *
  * - preserve the legacy three-row table header
- * - define the five-column table schema
+ * - define the five-column desktop table schema
  * - render company cells using the shared Market Watch identity
- * - render accessible mobile cards
+ * - render every mobile row as a semantic four-position matrix
  *
  * This module intentionally has no:
  *
@@ -20,16 +20,14 @@
  * - response normalization
  * - DataTables initialization
  * - tab lifecycle code
+ * - expand/collapse behavior
  */
 
 /* ==========================================================================
    Imports
    ========================================================================== */
 
-import {
-  renderStandardCompanyCardIdentity,
-  renderStandardDataCard,
-} from "../../../../../common/data-view/index.js";
+import { renderStandardCompanyCardIdentity } from "../../../../../common/data-view/index.js";
 
 import {
   escapeHtml,
@@ -62,20 +60,32 @@ const COMPANY_COLUMN_KEYS = Object.freeze([
 
 const DEFAULT_EMPTY_VALUE = "—";
 
+const DEFAULT_RESULT_LABEL = "Result";
+
 /* ==========================================================================
-   Helpers
+   General Helpers
    ========================================================================== */
 
 function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function getCompanyIdentityOptions(config = {}) {
-  return Object.freeze({
-    logoUrlTemplate: normalizeString(config.assets?.companyLogoUrlTemplate),
+function isTableElement(value) {
+  return Boolean(value && value.nodeType === 1 && value.tagName === "TABLE");
+}
 
-    logoFallbackUrl: normalizeString(config.assets?.companyLogoFallbackUrl),
-  });
+function isTableRowElement(value) {
+  return Boolean(value && value.nodeType === 1 && value.tagName === "TR");
+}
+
+function createSafeId(value, fallback = "minimum-size") {
+  const normalized = normalizeString(value)
+    .replace(/[^a-z0-9_-]/gi, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase();
+
+  return normalized || fallback;
 }
 
 function renderLoadingCell() {
@@ -87,28 +97,8 @@ function renderLoadingCell() {
   `.trim();
 }
 
-function createHeaderCell({ label, className = "", scope = "col" }) {
-  const cell = document.createElement("th");
-
-  cell.scope = scope;
-
-  if (className) {
-    cell.className = className;
-  }
-
-  const labelElement = document.createElement("span");
-
-  labelElement.className = "table-column-label";
-
-  labelElement.textContent = normalizeString(label);
-
-  cell.append(labelElement);
-
-  return cell;
-}
-
 /* ==========================================================================
-   Labels
+   Header Labels
    ========================================================================== */
 
 function normalizeHeaderRow(row = {}) {
@@ -136,22 +126,16 @@ function getHeaderRows(config = {}) {
 }
 
 function getLabels(config = {}) {
-  const mobile = config.labels?.mobile || {};
-
   return Object.freeze({
-    result: normalizeString(config.labels?.results) || "Result",
+    result: normalizeString(config.labels?.results) || DEFAULT_RESULT_LABEL,
 
     emptyValue:
       normalizeString(config.labels?.emptyValue) || DEFAULT_EMPTY_VALUE,
-
-    showDetails: normalizeString(mobile.showDetails) || "More details",
-
-    hideDetails: normalizeString(mobile.hideDetails) || "Less details",
   });
 }
 
 /* ==========================================================================
-   Column Schema
+   Desktop Column Schema
    ========================================================================== */
 
 function createColumns(headerRows) {
@@ -188,38 +172,60 @@ function createColumns(headerRows) {
 }
 
 /* ==========================================================================
-   Complex Header
+   Desktop Complex Header
    ========================================================================== */
 
 /*
- * DataTables supports multiple complete header rows when every row resolves
- * to the same number of columns.
+ * Every header row resolves to the same five-column structure:
  *
- * Each Minimum Size header row contains:
- *
- * - one requirement heading
- * - four corresponding category headings
+ * - one requirement header
+ * - four category headers
  */
+
+function createHeaderCell(
+  ownerDocument,
+  { label, className = "", scope = "col" },
+) {
+  const cell = ownerDocument.createElement("th");
+
+  cell.scope = scope;
+
+  if (className) {
+    cell.className = className;
+  }
+
+  const labelElement = ownerDocument.createElement("span");
+
+  labelElement.className = "table-column-label";
+
+  labelElement.textContent = normalizeString(label);
+
+  cell.append(labelElement);
+
+  return cell;
+}
 
 function createHeaderRenderer(headerRows) {
   return function renderHeader(input) {
-    const table = input instanceof HTMLTableElement ? input : input?.table;
+    const table = isTableElement(input) ? input : input?.table;
 
-    if (!(table instanceof HTMLTableElement)) {
+    if (!isTableElement(table)) {
       throw new TypeError("Minimum Size header requires a table element.");
     }
 
-    const thead = document.createElement("thead");
+    const ownerDocument = table.ownerDocument;
+
+    const thead = ownerDocument.createElement("thead");
 
     const rows = headerRows.length ? headerRows : [normalizeHeaderRow()];
 
     rows.forEach((headerRow, rowIndex) => {
-      const tableRow = document.createElement("tr");
+      const tableRow = ownerDocument.createElement("tr");
 
       tableRow.dataset.minimumSizeHeaderRow = String(rowIndex);
 
       tableRow.append(
-        createHeaderCell({
+        createHeaderCell(ownerDocument, {
           label: headerRow.label,
 
           className: "minimum-size__requirement-heading",
@@ -230,7 +236,7 @@ function createHeaderRenderer(headerRows) {
 
       headerRow.columns.forEach((label, columnIndex) => {
         tableRow.append(
-          createHeaderCell({
+          createHeaderCell(ownerDocument, {
             label,
 
             className: [
@@ -247,7 +253,7 @@ function createHeaderRenderer(headerRows) {
       thead.append(tableRow);
     });
 
-    const tbody = document.createElement("tbody");
+    const tbody = ownerDocument.createElement("tbody");
 
     const caption = table.caption;
 
@@ -262,7 +268,7 @@ function createHeaderRenderer(headerRows) {
 }
 
 /* ==========================================================================
-   Table Cells
+   Desktop Table Cells
    ========================================================================== */
 
 function createCellRenderer({ formatters }) {
@@ -284,11 +290,11 @@ function createCellRenderer({ formatters }) {
 }
 
 /* ==========================================================================
-   Table Rows
+   Desktop Table Rows
    ========================================================================== */
 
 function createdRow(rowElement, row) {
-  if (!(rowElement instanceof HTMLTableRowElement)) {
+  if (!isTableRowElement(rowElement)) {
     return;
   }
 
@@ -304,31 +310,38 @@ function createdRow(rowElement, row) {
 }
 
 /* ==========================================================================
-   Mobile Field Labels
+   Mobile Matrix Labels
    ========================================================================== */
 
-function createMobileFieldLabels(headerRows) {
-  return COMPANY_COLUMN_KEYS.map((_columnKey, columnIndex) => {
-    const parts = headerRows
-      .map((headerRow) => {
-        const rowLabel = normalizeString(headerRow.label);
+function createMobileMatrixLevels(headerRows, columnIndex) {
+  const normalizedRows = [0, 1, 2].map(
+    (rowIndex) => headerRows[rowIndex] || normalizeHeaderRow(),
+  );
 
-        const columnLabel = normalizeString(headerRow.columns[columnIndex]);
+  return normalizedRows.map((headerRow, rowIndex) => {
+    const rowLabel = normalizeString(headerRow.label);
 
-        if (rowLabel && columnLabel) {
-          return `${rowLabel}: ${columnLabel}`;
-        }
+    const columnLabel = normalizeString(headerRow.columns[columnIndex]);
 
-        return rowLabel || columnLabel;
-      })
-      .filter(Boolean);
+    /*
+     * The first level always has a useful fallback because it identifies
+     * the logical matrix position.
+     */
 
-    return parts.join(" · ");
+    const fallback = rowIndex === 0 ? String(columnIndex + 1) : "";
+
+    const value = columnLabel || fallback;
+
+    if (rowLabel && value) {
+      return `${rowLabel}: ${value}`;
+    }
+
+    return rowLabel || value;
   });
 }
 
 /* ==========================================================================
-   Mobile Company
+   Mobile Company Value
    ========================================================================== */
 
 function renderMobileCompany(company, config, labels) {
@@ -340,56 +353,130 @@ function renderMobileCompany(company, config, labels) {
     `.trim();
   }
 
-  return renderStandardCompanyCardIdentity(
-    company,
-    getCompanyIdentityOptions(config),
-  );
+  return renderStandardCompanyCardIdentity(company, config);
 }
 
 /* ==========================================================================
-   Mobile Card
+   Mobile Matrix Item
+   ========================================================================== */
+
+function renderMobileMatrixItem({
+  company,
+  config,
+  labels,
+  levels,
+  headingId,
+  position,
+}) {
+  const levelMarkup = levels
+    .map((level, index) => {
+      if (!level) {
+        return "";
+      }
+
+      return `
+        <span
+          class="trading-minimum-size-card__level trading-minimum-size-card__level--${
+            index + 1
+          }"
+        >
+          ${escapeHtml(level)}
+        </span>
+      `.trim();
+    })
+    .filter(Boolean)
+    .join("");
+
+  return `
+    <section
+      class="trading-minimum-size-card__item"
+      role="listitem"
+      aria-labelledby="${escapeHtml(headingId)}"
+      data-minimum-size-position="${position}"
+    >
+      <h4
+        class="trading-minimum-size-card__heading"
+        id="${escapeHtml(headingId)}"
+      >
+        ${levelMarkup}
+      </h4>
+
+      <div class="trading-minimum-size-card__value">
+        ${renderMobileCompany(company, config, labels)}
+      </div>
+    </section>
+  `.trim();
+}
+
+/* ==========================================================================
+   Mobile Matrix Card
    ========================================================================== */
 
 function createCardRenderer({ config, headerRows, labels }) {
-  const fieldLabels = createMobileFieldLabels(headerRows);
+  const matrixLevels = COMPANY_COLUMN_KEYS.map((_columnKey, columnIndex) =>
+    createMobileMatrixLevels(headerRows, columnIndex),
+  );
 
   return function renderCard(row, context = {}) {
-    const rowNumber = Number(context.index || 0) + 1;
+    const parsedIndex = Number(context.index);
+
+    const rowIndex =
+      Number.isInteger(parsedIndex) && parsedIndex >= 0 ? parsedIndex : 0;
+
+    const rowNumber = rowIndex + 1;
 
     const resultLabel = [labels.result, rowNumber].filter(Boolean).join(" ");
 
-    const summary = `
-      <div class="data-card__identity">
-        <div class="data-card__identity-content">
-          <h4 class="data-card__title">
-            ${escapeHtml(resultLabel)}
-          </h4>
+    const cardId = createSafeId(
+      row?.id || `minimum-size-${rowNumber}`,
+      `minimum-size-${rowNumber}`,
+    );
+
+    const cardHeadingId = `${cardId}-heading`;
+
+    const items = COMPANY_COLUMN_KEYS.map((columnKey, columnIndex) =>
+      renderMobileMatrixItem({
+        company: row?.[columnKey],
+
+        config,
+        labels,
+
+        levels: matrixLevels[columnIndex],
+
+        headingId: `${cardId}-position-${columnIndex + 1}`,
+
+        position: columnIndex + 1,
+      }),
+    ).join("");
+
+    /*
+     * This card is intentionally not registered as a DataViewCard.
+     *
+     * It is a complete, non-expandable matrix and therefore has no toggle or
+     * hidden details region.
+     */
+
+    return `
+      <article
+        class="data-card trading-minimum-size-card"
+        aria-labelledby="${escapeHtml(cardHeadingId)}"
+        data-minimum-size-card
+      >
+        <h3
+          class="visually-hidden"
+          id="${escapeHtml(cardHeadingId)}"
+        >
+          ${escapeHtml(resultLabel)}
+        </h3>
+
+        <div
+          class="trading-minimum-size-card__grid"
+          role="list"
+        >
+          ${items}
         </div>
-      </div>
+      </article>
     `.trim();
-
-    const fields = COMPANY_COLUMN_KEYS.map((columnKey, index) => ({
-      label: fieldLabels[index] || String(index + 1),
-
-      value: renderMobileCompany(row?.[columnKey], config, labels),
-
-      fullWidth: true,
-    }));
-
-    return renderStandardDataCard({
-      rowId: row?.id || `minimum-size-${rowNumber}`,
-
-      idPrefix: "minimum-size-details",
-
-      className: "data-card--minimum-size",
-
-      summary,
-      fields,
-
-      moreLabel: labels.showDetails,
-
-      lessLabel: labels.hideDetails,
-    });
   };
 }
 
