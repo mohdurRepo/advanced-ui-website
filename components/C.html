@@ -1,12 +1,29 @@
-<!-- =========================================================================
+<%-- =========================================================================
+     Accessible Labels
+     ========================================================================= --%>
+
+<fmt:message
+  key="suspended.company.period.from"
+  var="negotiatedDealsDateFromLabel"
+/>
+
+<fmt:message
+  key="suspended.company.period.to"
+  var="negotiatedDealsDateToLabel"
+/>
+
+<%-- =========================================================================
      Issuer Trading Information Hero
-     ========================================================================= -->
+     ========================================================================= --%>
 
 <section
   class="hero-section surface-hero"
   aria-labelledby="issuer-trading-page-title"
 >
-  <div class="hero-section__background" aria-hidden="true"></div>
+  <div
+    class="hero-section__background"
+    aria-hidden="true"
+  ></div>
 
   <div class="container hero-section__content">
     <header class="hero-intro">
@@ -17,7 +34,10 @@
             aria-hidden="true"
           ></span>
 
-          <h1 class="hero-intro__title" id="issuer-trading-page-title">
+          <h1
+            class="hero-intro__title"
+            id="issuer-trading-page-title"
+          >
             <fmt:message key="issuer.trading.info.v2.title" />
           </h1>
         </div>
@@ -25,9 +45,10 @@
     </header>
   </div>
 </section>
-<!-- =========================================================================
-     Issuer Trading Tabs
-     ========================================================================= -->
+
+<%-- =========================================================================
+     Issuer Trading
+     ========================================================================= --%>
 
 <section
   class="section issuers-trading"
@@ -35,94 +56,128 @@
   data-issuer-trading
 >
   <div class="container">
-    <div class="tabs-container" data-tabs data-tabs-id="issuer-trading">
-      <!-- ===================================================================
+    <%-- =====================================================================
+         Tabs
+
+         The shared design-system classes are:
+
+         - tabs
+         - tabs-nav
+         - tab-link
+         - tabs-content
+         - tab-pane
+
+         Compatibility classes and data-tab attributes are retained for the
+         existing tab controller and its tab:change event.
+         ===================================================================== --%>
+
+    <div
+      class="tabs tabs-container"
+      data-tabs
+      data-tabs-id="issuer-trading"
+    >
+      <%-- ===================================================================
            Tab Navigation
-           =================================================================== -->
+           =================================================================== --%>
 
       <div
-        class="tabs"
+        class="tabs-nav"
         role="tablist"
         aria-labelledby="issuer-trading-page-title"
       >
+        <%-- Negotiated Deals --%>
+
         <button
-          class="tabs__item is-active"
+          class="tab-link tabs__item active is-active"
           type="button"
           id="issuer-trading-tab-negotiated-deals"
           role="tab"
           aria-selected="true"
           aria-controls="issuer-trading-panel-negotiated-deals"
           data-tab="negotiated-deals"
+          data-tab-target="issuer-trading-panel-negotiated-deals"
         >
           <fmt:message key="issuer.trading.info.v2.title.negotiated" />
         </button>
 
+        <%-- Accumulated Losses --%>
+
         <button
-          class="tabs__item"
+          class="tab-link tabs__item"
           type="button"
           id="issuer-trading-tab-accumulated-losses"
           role="tab"
           aria-selected="false"
           aria-controls="issuer-trading-panel-accumulated-losses"
           data-tab="accumulated-losses"
+          data-tab-target="issuer-trading-panel-accumulated-losses"
           tabindex="-1"
         >
           <fmt:message key="issuer.trading.info.v2.title.accumulated" />
         </button>
 
+        <%-- Listed Tradable Rights --%>
+
         <button
-          class="tabs__item"
+          class="tab-link tabs__item"
           type="button"
           id="issuer-trading-tab-listed-tradable-rights"
           role="tab"
           aria-selected="false"
           aria-controls="issuer-trading-panel-listed-tradable-rights"
           data-tab="listed-tradable-rights"
+          data-tab-target="issuer-trading-panel-listed-tradable-rights"
           tabindex="-1"
         >
           <fmt:message key="issuer.trading.info.v2.title.listedtradable" />
         </button>
 
+        <%-- Suspended / Delisted Companies and Funds --%>
+
         <button
-          class="tabs__item"
+          class="tab-link tabs__item"
           type="button"
           id="issuer-trading-tab-company-status"
           role="tab"
           aria-selected="false"
           aria-controls="issuer-trading-panel-company-status"
           data-tab="company-status"
+          data-tab-target="issuer-trading-panel-company-status"
           tabindex="-1"
         >
-          <fmt:message key="issuer.trading.info.v2.title.delistedcompanies" />
+          <fmt:message
+            key="issuer.trading.info.v2.title.delistedcompanies"
+          />
         </button>
 
+        <%-- OTC Trading --%>
+
         <button
-          class="tabs__item"
+          class="tab-link tabs__item"
           type="button"
           id="issuer-trading-tab-otc-trading"
           role="tab"
           aria-selected="false"
           aria-controls="issuer-trading-panel-otc-trading"
           data-tab="otc-trading"
+          data-tab-target="issuer-trading-panel-otc-trading"
           tabindex="-1"
         >
           <fmt:message key="issuer.trading.info.v2.title.otcctrading" />
         </button>
-
-        <span class="tabs__underline" aria-hidden="true"></span>
       </div>
 
-      <!-- ===================================================================
-           Tab Panels
-           =================================================================== -->
+      <%-- ===================================================================
+           Tab Content
+           =================================================================== --%>
 
-      <div class="tab-content">
-        <!-- ===============================================================
+      <div class="tabs-content tab-content">
+        <%-- =================================================================
              Negotiated Deals
-             =============================================================== -->
+             ================================================================= --%>
 
         <section
-          class="tab-content__panel is-active"
+          class="tab-pane tab-content__panel active is-active"
           id="issuer-trading-panel-negotiated-deals"
           role="tabpanel"
           aria-labelledby="issuer-trading-tab-negotiated-deals"
@@ -130,482 +185,489 @@
           data-tab="negotiated-deals"
         >
           <div data-issuer-trading-feature="negotiated-deals">
-            <!-- =========================================================================
-     Negotiated Deals Filters
-     ========================================================================= -->
+            <%-- =============================================================
+                 Negotiated Deals Filters
+                 ============================================================= --%>
 
-<form
-  class="filter-bar"
-  aria-labelledby="issuer-trading-tab-negotiated-deals"
-  data-negotiated-deals-filters
-  novalidate
->
-  <div class="filter-bar__inner">
-    <div class="filter-bar__fields grid-4">
-      <!-- ===================================================================
-           Deal Type
-           =================================================================== -->
-
-      <div class="filter-bar__field">
-        <label
-          class="form-label"
-          for="negotiated-deals-type"
-        >
-          <fmt:message key="suspended.company.type" />
-        </label>
-
-        <div
-          class="custom-select"
-          data-custom-select
-        >
-          <div class="form-select-wrap custom-select__fallback">
-            <select
-              class="form-select custom-select__native"
-              id="negotiated-deals-type"
-              name="type"
-              data-negotiated-deals-type
+            <form
+              class="filter-bar filter-bar--connected"
+              aria-labelledby="issuer-trading-tab-negotiated-deals"
+              data-negotiated-deals-filters
+              novalidate
             >
-              <option
-                value="Negotiated-Deals"
-                <c:if test="${empty requestScope.type or requestScope.type eq 'Negotiated-Deals'}">
-                  selected
-                </c:if>
-              >
-                <fmt:message key="adtv.main.tab.1" />
-              </option>
+              <div class="filter-bar__inner">
+                <div class="filter-bar__fields grid-4">
+                  <%-- =======================================================
+                       Transaction Type
+                       ======================================================= --%>
 
-              <option
-                value="Minimum-Size"
-                <c:if test="${requestScope.type eq 'Minimum-Size'}">
-                  selected
-                </c:if>
-              >
-                <fmt:message key="adtv.main.tab.2" />
-              </option>
-            </select>
+                  <div class="filter-bar__field">
+                    <label
+                      class="form-label"
+                      for="negotiated-deals-type"
+                    >
+                      <fmt:message key="suspended.company.type" />
+                    </label>
 
-            <span
-              class="form-select-icon has-icon icon-chevron-down"
-              aria-hidden="true"
-            ></span>
-          </div>
-        </div>
-      </div>
+                    <div
+                      class="custom-select"
+                      data-custom-select
+                    >
+                      <div
+                        class="form-select-wrap custom-select__fallback"
+                      >
+                        <select
+                          class="form-select custom-select__native"
+                          id="negotiated-deals-type"
+                          name="type"
+                          data-negotiated-deals-type
+                        >
+                          <option
+                            value="Negotiated-Deals"
+                            <c:if test="${empty requestScope.type or requestScope.type eq 'Negotiated-Deals'}">
+                              selected
+                            </c:if>
+                          >
+                            <fmt:message key="adtv.main.tab.1" />
+                          </option>
 
-      <!-- ===================================================================
-           Sector
-           =================================================================== -->
+                          <option
+                            value="Minimum-Size"
+                            <c:if test="${requestScope.type eq 'Minimum-Size'}">
+                              selected
+                            </c:if>
+                          >
+                            <fmt:message key="adtv.main.tab.2" />
+                          </option>
+                        </select>
 
-      <div
-        class="filter-bar__field"
-        data-negotiated-deals-request-filter
-      >
-        <label
-          class="form-label"
-          for="negotiated-deals-sector"
-        >
-          <fmt:message
-            key="issuer.trading.info.v2.section.heading.sector"
-          />
-        </label>
+                        <span
+                          class="form-select-icon has-icon icon-chevron-down"
+                          aria-hidden="true"
+                        ></span>
+                      </div>
+                    </div>
+                  </div>
 
-        <div
-          class="custom-select"
-          data-custom-select
-          data-searchable
-        >
-          <div class="form-select-wrap custom-select__fallback">
-            <select
-              class="form-select custom-select__native"
-              id="negotiated-deals-sector"
-              name="sector"
-              data-negotiated-deals-sector
+                  <%-- =======================================================
+                       Industry Group
+                       ======================================================= --%>
+
+                  <div
+                    class="filter-bar__field"
+                    data-negotiated-deals-request-filter
+                  >
+                    <label
+                      class="form-label"
+                      for="negotiated-deals-sector"
+                    >
+                      <fmt:message
+                        key="issuer.trading.info.v2.section.heading.sector"
+                      />
+                    </label>
+
+                    <div
+                      class="custom-select"
+                      data-custom-select
+                      data-searchable
+                    >
+                      <div
+                        class="form-select-wrap custom-select__fallback"
+                      >
+                        <select
+                          class="form-select custom-select__native"
+                          id="negotiated-deals-sector"
+                          name="sector"
+                          data-negotiated-deals-sector
+                        >
+                          <option
+                            value="All"
+                            <c:if test="${empty requestScope.sector or requestScope.sector eq 'All'}">
+                              selected
+                            </c:if>
+                          >
+                            <fmt:message
+                              key="issuer.trading.info.v2.section.allsectors"
+                            />
+                          </option>
+
+                          <c:forEach
+                            items="${requestScope.compresultlBean.allSectors}"
+                            var="sector"
+                          >
+                            <option
+                              value="<c:out value='${sector.pk_rf_sector}' />"
+                              <c:if test="${requestScope.sector eq sector.pk_rf_sector}">
+                                selected
+                              </c:if>
+                            >
+                              <c:out value="${sector.name}" />
+                            </option>
+                          </c:forEach>
+                        </select>
+
+                        <span
+                          class="form-select-icon has-icon icon-chevron-down"
+                          aria-hidden="true"
+                        ></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <%-- =======================================================
+                       Company
+                       ======================================================= --%>
+
+                  <div
+                    class="filter-bar__field"
+                    data-negotiated-deals-request-filter
+                  >
+                    <label
+                      class="form-label"
+                      for="negotiated-deals-company"
+                    >
+                      <fmt:message
+                        key="issuer.trading.info.v2.section.heading.company"
+                      />
+                    </label>
+
+                    <div
+                      class="custom-select"
+                      data-custom-select
+                      data-searchable
+                    >
+                      <div
+                        class="form-select-wrap custom-select__fallback"
+                      >
+                        <select
+                          class="form-select custom-select__native"
+                          id="negotiated-deals-company"
+                          name="company"
+                          data-negotiated-deals-company
+                        >
+                          <option
+                            value="All"
+                            <c:if test="${empty requestScope.company or requestScope.company eq 'All'}">
+                              selected
+                            </c:if>
+                          >
+                            <fmt:message
+                              key="issuer.trading.info.v2.allcompanies"
+                            />
+                          </option>
+
+                          <c:forEach
+                            items="${requestScope.compresultlBean.companyList}"
+                            var="company"
+                          >
+                            <option
+                              value="<c:out value='${company.symbol}' />"
+                              <c:if test="${requestScope.company eq company.symbol}">
+                                selected
+                              </c:if>
+                            >
+                              <c:out value="${company.longName}" />
+                            </option>
+                          </c:forEach>
+                        </select>
+
+                        <span
+                          class="form-select-icon has-icon icon-chevron-down"
+                          aria-hidden="true"
+                        ></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <%-- =======================================================
+                       Time Period
+
+                       This intentionally does not use fieldset/legend.
+                       ======================================================= --%>
+
+                  <div
+                    class="filter-bar__field"
+                    data-negotiated-deals-request-filter
+                  >
+                    <span
+                      class="form-label-static"
+                      id="negotiated-deals-date-label"
+                    >
+                      <fmt:message
+                        key="issuer.trading.info.v2.section.heading.timeperiod"
+                      />
+                    </span>
+
+                    <div
+                      class="custom-date custom-date--range"
+                      aria-labelledby="negotiated-deals-date-label"
+                      data-custom-date-range
+                      data-clearable
+                      data-placeholder="YYYY-MM-DD – YYYY-MM-DD"
+                    >
+                      <div class="custom-date__fallback">
+                        <div class="custom-date__native-range">
+                          <input
+                            class="form-control custom-date__native"
+                            id="negotiated-deals-date-from"
+                            name="fromDate"
+                            type="date"
+                            aria-label="<c:out value='${negotiatedDealsDateFromLabel}' />"
+                            data-date-start
+                            data-negotiated-deals-date-from
+                          />
+
+                          <input
+                            class="form-control custom-date__native"
+                            id="negotiated-deals-date-to"
+                            name="toDate"
+                            type="date"
+                            aria-label="<c:out value='${negotiatedDealsDateToLabel}' />"
+                            data-date-end
+                            data-negotiated-deals-date-to
+                          />
+                        </div>
+
+                        <div
+                          class="custom-date__initial-trigger"
+                          aria-hidden="true"
+                        >
+                          <span
+                            class="custom-date__initial-value is-placeholder"
+                          >
+                            YYYY-MM-DD – YYYY-MM-DD
+                          </span>
+
+                          <span
+                            class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                            aria-hidden="true"
+                          ></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <%-- =========================================================
+                     Filter Actions
+                     ========================================================= --%>
+
+                <div class="filter-bar__actions">
+                  <button
+                    class="btn btn-outline-primary has-icon icon-sync-refresh"
+                    type="reset"
+                    data-negotiated-deals-reset
+                  >
+                    <fmt:message
+                      key="issuer.trading.info.v2.search.reset"
+                    />
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            <%-- =============================================================
+                 Negotiated Deals Results
+                 ============================================================= --%>
+
+            <section
+              class="data-view data-view--connected"
+              aria-labelledby="issuer-trading-tab-negotiated-deals"
+              aria-busy="false"
+              data-negotiated-deals-view
             >
-              <option
-                value="All"
-                <c:if test="${empty requestScope.sector or requestScope.sector eq 'All'}">
-                  selected
-                </c:if>
-              >
-                <fmt:message
-                  key="issuer.trading.info.v2.section.allsectors"
-                />
-              </option>
+              <div class="data-view__workspace">
+                <%-- =========================================================
+                     Desktop and Tablet Table
+                     ========================================================= --%>
 
-              <c:forEach
-                items="${requestScope.compresultlBean.allSectors}"
-                var="sector"
-              >
-                <option
-                  value="<c:out value='${sector.pk_rf_sector}' />"
-                  <c:if test="${requestScope.sector eq sector.pk_rf_sector}">
-                    selected
-                  </c:if>
+                <div class="data-view__table">
+                  <div class="data-view__table-block">
+                    <%-- =====================================================
+                         Results Toolbar
+                         ===================================================== --%>
+
+                    <div class="data-view__toolbar">
+                      <div class="data-view__toolbar-start">
+                        <p
+                          class="data-view__result-count"
+                          id="negotiated-deals-results"
+                          data-negotiated-deals-result-count
+                        >
+                          <strong>
+                            <fmt:message
+                              key="issuer.trading.info.results.msg"
+                            />
+                          </strong>
+
+                          <span data-result-count-value>0</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <%-- =====================================================
+                         Accessible Loading and Result Status
+                         ===================================================== --%>
+
+                    <p
+                      class="visually-hidden"
+                      role="status"
+                      aria-live="polite"
+                      aria-atomic="true"
+                      data-negotiated-deals-status
+                    ></p>
+
+                    <%-- =====================================================
+                         Results Table
+                         ===================================================== --%>
+
+                    <div
+                      class="table-shell"
+                      data-table-shell
+                    >
+                      <div
+                        class="table-responsive custom-scrollbar"
+                        role="region"
+                        tabindex="0"
+                        aria-labelledby="issuer-trading-tab-negotiated-deals negotiated-deals-results"
+                        data-table-scroll
+                        data-negotiated-deals-table-region
+                      >
+                        <table
+                          class="table table-market table-market--results table-striped table-hover table-nowrap"
+                          id="negotiated-deals-table"
+                          aria-describedby="negotiated-deals-results"
+                          aria-busy="false"
+                          data-negotiated-deals-table
+                        >
+                          <caption class="visually-hidden">
+                            <fmt:message
+                              key="issuer.trading.info.v2.title.negotiated"
+                            />
+                          </caption>
+
+                          <%-- ===============================================
+                               Accessible Initial Header
+
+                               JavaScript recreates the header when switching
+                               between Negotiated Deals and Minimum Size.
+                               =============================================== --%>
+
+                          <thead>
+                            <tr>
+                              <th
+                                class="table-market__date"
+                                scope="col"
+                              >
+                                <fmt:message
+                                  key="issuer.trading.info.v2.table.heading.date"
+                                />
+                              </th>
+
+                              <th
+                                class="table-market__security"
+                                scope="col"
+                              >
+                                <fmt:message
+                                  key="issuer.trading.info.v2.table.heading.companyname"
+                                />
+                              </th>
+
+                              <th
+                                class="table-market__number"
+                                scope="col"
+                                data-numeric
+                              >
+                                <fmt:message
+                                  key="issuer.trading.info.v2.table.heading.price"
+                                />
+                              </th>
+
+                              <th
+                                class="table-market__number"
+                                scope="col"
+                                data-numeric
+                              >
+                                <fmt:message
+                                  key="issuer.trading.info.v2.table.heading.volumetraded"
+                                />
+                              </th>
+
+                              <th
+                                class="table-market__number"
+                                scope="col"
+                                data-numeric
+                              >
+                                <fmt:message
+                                  key="issuer.trading.info.v2.table.heading.valuetraded"
+                                />
+                              </th>
+
+                              <th
+                                class="table-market__number"
+                                scope="col"
+                              >
+                                <fmt:message
+                                  key="issuer.trading.info.v2.table.heading.time"
+                                />
+                              </th>
+                            </tr>
+                          </thead>
+
+                          <tbody>
+                            <%--
+                              JavaScript renders:
+
+                              - negotiated-deal rows
+                              - alternating row colors
+                              - company logo, name, and code
+                              - server-provided total rows
+                              - loading, empty, and error states
+                            --%>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <%-- =========================================================
+                     Mobile Cards
+                     ========================================================= --%>
+
+                <div
+                  class="data-view__cards"
+                  role="region"
+                  aria-labelledby="issuer-trading-tab-negotiated-deals"
+                  data-negotiated-deals-mobile
                 >
-                  <c:out value="${sector.name}" />
-                </option>
-              </c:forEach>
-            </select>
-
-            <span
-              class="form-select-icon has-icon icon-chevron-down"
-              aria-hidden="true"
-            ></span>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===================================================================
-           Company
-           =================================================================== -->
-
-      <div
-        class="filter-bar__field"
-        data-negotiated-deals-request-filter
-      >
-        <label
-          class="form-label"
-          for="negotiated-deals-company"
-        >
-          <fmt:message
-            key="issuer.trading.info.v2.section.heading.company"
-          />
-        </label>
-
-        <div
-          class="custom-select"
-          data-custom-select
-          data-searchable
-        >
-          <div class="form-select-wrap custom-select__fallback">
-            <select
-              class="form-select custom-select__native"
-              id="negotiated-deals-company"
-              name="company"
-              data-negotiated-deals-company
-            >
-              <option
-                value="All"
-                <c:if test="${empty requestScope.company or requestScope.company eq 'All'}">
-                  selected
-                </c:if>
-              >
-                <fmt:message key="issuer.trading.info.v2.allcompanies" />
-              </option>
-
-              <c:forEach
-                items="${requestScope.compresultlBean.companyList}"
-                var="company"
-              >
-                <option
-                  value="<c:out value='${company.symbol}' />"
-                  <c:if test="${requestScope.company eq company.symbol}">
-                    selected
-                  </c:if>
-                >
-                  <c:out value="${company.longName}" />
-                </option>
-              </c:forEach>
-            </select>
-
-            <span
-              class="form-select-icon has-icon icon-chevron-down"
-              aria-hidden="true"
-            ></span>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===================================================================
-           Date Range
-           =================================================================== -->
-
-      <fieldset
-        class="filter-bar__field form-fieldset"
-        data-negotiated-deals-request-filter
-      >
-        <legend class="form-label">
-          <fmt:message
-            key="issuer.trading.info.v2.section.heading.timeperiod"
-          />
-        </legend>
-
-        <div
-          class="custom-date custom-date--range"
-          data-custom-date-range
-          data-clearable
-          data-placeholder="YYYY-MM-DD – YYYY-MM-DD"
-        >
-          <div class="custom-date__fallback">
-            <div class="custom-date__native-range">
-              <label
-                class="visually-hidden"
-                for="negotiated-deals-date-from"
-              >
-                <fmt:message key="suspended.company.period.from" />
-              </label>
-
-              <input
-                class="form-control custom-date__native"
-                id="negotiated-deals-date-from"
-                name="fromDate"
-                type="date"
-                data-date-start
-                data-negotiated-deals-date-from
-              />
-
-              <label
-                class="visually-hidden"
-                for="negotiated-deals-date-to"
-              >
-                <fmt:message key="suspended.company.period.to" />
-              </label>
-
-              <input
-                class="form-control custom-date__native"
-                id="negotiated-deals-date-to"
-                name="toDate"
-                type="date"
-                data-date-end
-                data-negotiated-deals-date-to
-              />
-            </div>
-
-            <div
-              class="custom-date__initial-trigger"
-              aria-hidden="true"
-            >
-              <span class="custom-date__initial-value is-placeholder">
-                YYYY-MM-DD – YYYY-MM-DD
-              </span>
-
-              <span
-                class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
-                aria-hidden="true"
-              ></span>
-            </div>
-          </div>
-        </div>
-      </fieldset>
-    </div>
-
-    <!-- ===================================================================
-         Actions
-         =================================================================== -->
-
-    <div class="filter-bar__actions">
-      <button
-        class="btn btn-outline-primary has-icon icon-sync-refresh"
-        type="reset"
-        data-negotiated-deals-reset
-      >
-        <fmt:message key="issuer.trading.info.v2.search.reset" />
-      </button>
-    </div>
-  </div>
-</form> 
-
-<!-- =========================================================================
-     Negotiated Deals Data View
-     ========================================================================= -->
-
-<section
-  class="data-view"
-  aria-labelledby="issuer-trading-tab-negotiated-deals"
-  aria-busy="true"
-  data-negotiated-deals-view
->
-  <div class="data-view__workspace">
-    <!-- =====================================================================
-         Desktop and Tablet
-         ===================================================================== -->
-
-    <div class="data-view__table">
-      <div class="data-view__table-block">
-        <!-- =================================================================
-             Results Toolbar
-             ================================================================= -->
-
-        <div class="data-view__toolbar">
-          <div class="data-view__toolbar-start">
-            <p
-              class="data-view__result-count"
-              id="negotiated-deals-results"
-              data-negotiated-deals-result-count
-            >
-              <strong>
-                <fmt:message key="issuer.trading.info.results.msg" />
-              </strong>
-
-              <span data-result-count-value>0</span>
-            </p>
-          </div>
-        </div>
-
-        <!-- =================================================================
-             Accessible Status
-             ================================================================= -->
-
-        <p
-          class="visually-hidden"
-          role="status"
-          aria-live="polite"
-          aria-atomic="true"
-          data-negotiated-deals-status
-        ></p>
-
-        <!-- =================================================================
-             Results Table
-             ================================================================= -->
-
-        <div
-          class="table-shell"
-          data-table-shell
-        >
-          <section
-            class="table-responsive custom-scrollbar"
-            role="region"
-            tabindex="0"
-            aria-labelledby="issuer-trading-tab-negotiated-deals negotiated-deals-results"
-            data-table-scroll
-            data-negotiated-deals-table-region
-          >
-            <table
-              class="table table-market table-market--results table-striped table-hover table-sticky-head table-nowrap"
-              id="negotiated-deals-table"
-              aria-describedby="negotiated-deals-results"
-              aria-busy="true"
-              data-negotiated-deals-table
-            >
-              <caption class="visually-hidden">
-                <fmt:message
-                  key="issuer.trading.info.v2.title.negotiated"
-                />
-              </caption>
-
-              <!-- ===========================================================
-                   Accessible fallback header
-
-                   JavaScript will recreate the appropriate schema when
-                   switching between Negotiated Deals and Minimum Size.
-                   =========================================================== -->
-
-              <thead>
-                <tr>
-                  <th
-                    class="table-market__date"
-                    scope="col"
+                  <div
+                    class="data-view__cards-inner"
+                    aria-busy="false"
+                    data-negotiated-deals-cards
                   >
-                    <fmt:message
-                      key="issuer.trading.info.v2.table.heading.date"
-                    />
-                  </th>
+                    <%--
+                      JavaScript renders:
 
-                  <th
-                    class="table-market__security"
-                    scope="col"
-                  >
-                    <fmt:message
-                      key="issuer.trading.info.v2.table.heading.companyname"
-                    />
-                  </th>
-
-                  <th
-                    class="table-market__number"
-                    scope="col"
-                    data-numeric
-                  >
-                    <fmt:message
-                      key="issuer.trading.info.v2.table.heading.price"
-                    />
-                  </th>
-
-                  <th
-                    class="table-market__number"
-                    scope="col"
-                    data-numeric
-                  >
-                    <fmt:message
-                      key="issuer.trading.info.v2.table.heading.volumetraded"
-                    />
-                  </th>
-
-                  <th
-                    class="table-market__number"
-                    scope="col"
-                    data-numeric
-                  >
-                    <fmt:message
-                      key="issuer.trading.info.v2.table.heading.valuetraded"
-                    />
-                  </th>
-
-                  <th
-                    class="table-market__number"
-                    scope="col"
-                  >
-                    <fmt:message
-                      key="issuer.trading.info.v2.table.heading.time"
-                    />
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                <%--
-                  JavaScript renders:
-
-                  - loading rows
-                  - ordinary negotiated-deal rows
-                  - alternating row colors through table-striped
-                  - company logo, name, and code
-                  - date-group total rows
-                  - empty and error states
-                --%>
-              </tbody>
-            </table>
-          </section>
-        </div>
-      </div>
-    </div>
-
-    <!-- =====================================================================
-         Mobile Cards
-         ===================================================================== -->
-
-    <div
-      class="data-view__cards"
-      role="region"
-      aria-labelledby="issuer-trading-tab-negotiated-deals"
-      data-negotiated-deals-mobile
-    >
-      <div
-        class="data-view__cards-inner"
-        aria-busy="true"
-        data-negotiated-deals-cards
-      >
-        <%--
-          JavaScript renders:
-
-          - cards grouped by trading date
-          - company logo, name, and code
-          - price, volume, value, and time
-          - a total card for every date group
-          - loading, empty, and error states
-        --%>
-      </div>
-    </div>
-  </div>
-</section>
+                      - cards grouped by trading date
+                      - company logo, name, and code
+                      - price, volume, value, and time
+                      - server-provided total cards
+                      - loading, empty, and error states
+                    --%>
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
         </section>
 
-        <!-- ===============================================================
+        <%-- =================================================================
              Accumulated Losses — Placeholder
-             =============================================================== -->
+             ================================================================= --%>
 
         <section
-          class="tab-content__panel"
+          class="tab-pane tab-content__panel"
           id="issuer-trading-panel-accumulated-losses"
           role="tabpanel"
           aria-labelledby="issuer-trading-tab-accumulated-losses"
@@ -613,15 +675,15 @@
           data-tab="accumulated-losses"
           hidden
         >
-          <%-- Implemented after Negotiated Deals is complete. --%>
+          <%-- Implemented after Negotiated Deals is confirmed. --%>
         </section>
 
-        <!-- ===============================================================
+        <%-- =================================================================
              Listed Tradable Rights — Placeholder
-             =============================================================== -->
+             ================================================================= --%>
 
         <section
-          class="tab-content__panel"
+          class="tab-pane tab-content__panel"
           id="issuer-trading-panel-listed-tradable-rights"
           role="tabpanel"
           aria-labelledby="issuer-trading-tab-listed-tradable-rights"
@@ -629,15 +691,15 @@
           data-tab="listed-tradable-rights"
           hidden
         >
-          <%-- Implemented after Accumulated Losses is complete. --%>
+          <%-- Implemented after Accumulated Losses. --%>
         </section>
 
-        <!-- ===============================================================
+        <%-- =================================================================
              Company Status — Placeholder
-             =============================================================== -->
+             ================================================================= --%>
 
         <section
-          class="tab-content__panel"
+          class="tab-pane tab-content__panel"
           id="issuer-trading-panel-company-status"
           role="tabpanel"
           aria-labelledby="issuer-trading-tab-company-status"
@@ -645,15 +707,18 @@
           data-tab="company-status"
           hidden
         >
-          <%-- Suspended and delisted company views will be added later. --%>
+          <%--
+            Suspended, delisted, transformed companies, and funds will be
+            implemented when this tab is reached.
+          --%>
         </section>
 
-        <!-- ===============================================================
+        <%-- =================================================================
              OTC Trading — Placeholder
-             =============================================================== -->
+             ================================================================= --%>
 
         <section
-          class="tab-content__panel"
+          class="tab-pane tab-content__panel"
           id="issuer-trading-panel-otc-trading"
           role="tabpanel"
           aria-labelledby="issuer-trading-tab-otc-trading"
@@ -661,168 +726,321 @@
           data-tab="otc-trading"
           hidden
         >
-          <%-- Implemented after the company-status tab is complete. --%>
+          <%-- Implemented after the Company Status tab. --%>
         </section>
       </div>
     </div>
   </div>
 </section>
 <%-- =========================================================================
-     Issuer Trading Configuration
+     Issuer Trading Page Configuration
      ========================================================================= --%>
 
 <script>
-  window.IssuerTradingConfig = {
-    /* ======================================================================
-       Locale
-       ====================================================================== */
-
-    locale:
-      "<c:out value='${pageContext.request.locale.language}' />",
+  (function initializeIssuerTradingPage(window, document) {
+    "use strict";
 
     /* ======================================================================
-       Endpoints
+       Date Filter Initialization
        ====================================================================== */
 
-    endpoints: {
-      companiesBySector:
-        "<portlet:resourceURL id='getCompaniesBySector' />",
+    /*
+     * Native input[type="date"] requires YYYY-MM-DD.
+     *
+     * This formatting applies only to the filter controls. It does not
+     * transform transaction dates returned by the service.
+     */
 
-      negotiatedDeals:
-        "<portlet:resourceURL id='getNegotiatedDetails' />",
+    function padDatePart(value) {
+      return String(value).padStart(2, "0");
+    }
 
-      minimumSize:
-        "<portlet:resourceURL id='getMainMarketMinimumSizeRequirements' />",
+    function formatInputDate(date) {
+      return [
+        date.getFullYear(),
+        padDatePart(date.getMonth() + 1),
+        padDatePart(date.getDate()),
+      ].join("-");
+    }
 
-      accumulatedLosses:
-        "<portlet:resourceURL id='getAccumulatedLossesDetails' />",
+    function subtractOneCalendarMonth(date) {
+      var year = date.getFullYear();
 
-      listedTradableRights:
-        "<portlet:resourceURL id='getListedTradableRightsDetails' />",
+      var month = date.getMonth();
 
-      companyStatus:
-        "<portlet:resourceURL id='getSuspendedDelistedComp' />",
+      var day = date.getDate();
 
-      otcTrading:
-        "<portlet:resourceURL id='getOtcTradingData' />",
-    },
+      var lastDayOfPreviousMonth = new Date(
+        year,
+        month,
+        0,
+      ).getDate();
+
+      return new Date(
+        year,
+        month - 1,
+        Math.min(day, lastDayOfPreviousMonth),
+      );
+    }
+
+    function getDefaultDateRange() {
+      var today = new Date();
+
+      return {
+        from: formatInputDate(subtractOneCalendarMonth(today)),
+
+        to: formatInputDate(today),
+      };
+    }
+
+    function initializeNegotiatedDealsDateRange() {
+      var form = document.querySelector(
+        "[data-negotiated-deals-filters]",
+      );
+
+      if (!form) {
+        return;
+      }
+
+      var fromInput = form.querySelector(
+        "[data-negotiated-deals-date-from]",
+      );
+
+      var toInput = form.querySelector(
+        "[data-negotiated-deals-date-to]",
+      );
+
+      if (!fromInput || !toInput) {
+        return;
+      }
+
+      var defaultRange = getDefaultDateRange();
+
+      if (!fromInput.value) {
+        fromInput.value = defaultRange.from;
+      }
+
+      if (!toInput.value) {
+        toInput.value = defaultRange.to;
+      }
+
+      /*
+       * Store the initialized values as the native reset values.
+       *
+       * Calling form.reset() will therefore restore the default one-month
+       * range instead of clearing both controls.
+       */
+
+      fromInput.defaultValue = fromInput.value;
+
+      toInput.defaultValue = toInput.value;
+
+      /*
+       * Keep the pre-enhancement date presentation correct.
+       *
+       * The design-system CustomDate component will take ownership when it
+       * initializes.
+       */
+
+      var initialValue = form.querySelector(
+        ".custom-date__initial-value",
+      );
+
+      if (initialValue && fromInput.value && toInput.value) {
+        initialValue.textContent =
+          fromInput.value + " \u2013 " + toInput.value;
+
+        initialValue.classList.remove("is-placeholder");
+      }
+    }
+
+    /*
+     * Run during page parsing, before DOMContentLoaded, so the shared
+     * CustomDate component reads the initialized values.
+     */
+
+    initializeNegotiatedDealsDateRange();
 
     /* ======================================================================
-       Assets
-
-       Use the same production logo URLs configured for Market Watch.
+       Public Configuration
        ====================================================================== */
 
-    assets : {
-			companyLogoUrlTemplate : "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/{companyCode}.png",
+    window.IssuerTradingConfig = {
+      /* ====================================================================
+         Locale
+         ==================================================================== */
 
-			companyLogoFallbackUrl : "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/default.png",
+      locale:
+        "<c:out value='${pageContext.request.locale.language}' />",
 
-			noDataImageUrl : "${pageContext.request.contextPath}/images/no-data.png",
-		},
-    /* ======================================================================
-       Labels
-       ====================================================================== */
+      /* ====================================================================
+         Endpoints
+         ==================================================================== */
 
-    labels: {
-      loading:
-        "<fmt:message key='datatable.loading' />",
+      endpoints: {
+        companiesBySector:
+          "<portlet:resourceURL id='getCompaniesBySector' />",
 
-      noData:
-        "<fmt:message key='datatable.no.data' />",
+        negotiatedDeals:
+          "<portlet:resourceURL id='getNegotiatedDetails' />",
 
-      error:
-        "<fmt:message key='an-unexpected-system-error-occurred' />",
+        minimumSize:
+          "<portlet:resourceURL id='getMainMarketMinimumSizeRequirements' />",
 
-      results:
-        "<fmt:message key='issuer.trading.info.results.msg' />",
+        accumulatedLosses:
+          "<portlet:resourceURL id='getAccumulatedLossesDetails' />",
 
-      total:
-        "<fmt:message key='issuer.trading.info.v2.total' />",
+        listedTradableRights:
+          "<portlet:resourceURL id='getListedTradableRightsDetails' />",
 
-      /* --------------------------------------------------------------------
-         Mobile Cards
-         -------------------------------------------------------------------- */
+        companyStatus:
+          "<portlet:resourceURL id='getSuspendedDelistedComp' />",
 
-      mobile: {
-        showDetails:
-          "<fmt:message key='marketwatch.todaywatch.v2.mobile.show.details' />",
-
-        hideDetails:
-          "<fmt:message key='marketwatch.todaywatch.v2.mobile.hide.details' />",
+        otcTrading:
+          "<portlet:resourceURL id='getOtcTradingData' />",
       },
 
-      /* --------------------------------------------------------------------
-         Negotiated Deals
-         -------------------------------------------------------------------- */
+      /* ====================================================================
+         Assets
+         ==================================================================== */
 
-      negotiatedDeals: {
-        table: {
-          date:
-            "<fmt:message key='issuer.trading.info.v2.table.heading.date' />",
+      assets: {
+        /*
+         * Keep {companyCode} in the configured template.
+         *
+         * The company identity renderer replaces it for each returned row:
+         *
+         * {companyCode} -> row.companyCode
+         */
 
-          company:
-            "<fmt:message key='issuer.trading.info.v2.table.heading.companyname' />",
+        companyLogoUrlTemplate:
+          "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/{companyCode}.png",
 
-          price:
-            "<fmt:message key='issuer.trading.info.v2.table.heading.price' />",
+        companyLogoFallbackUrl:
+          "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/default.png",
 
-          volume:
-            "<fmt:message key='issuer.trading.info.v2.table.heading.volumetraded' />",
+        noDataImageUrl:
+          "${pageContext.request.contextPath}/images/no-data.png",
+      },
 
-          value:
-            "<fmt:message key='issuer.trading.info.v2.table.heading.valuetraded' />",
+      /* ====================================================================
+         Labels
+         ==================================================================== */
 
-          time:
-            "<fmt:message key='issuer.trading.info.v2.table.heading.time' />",
+      labels: {
+        loading:
+          "<fmt:message key='datatable.loading' />",
+
+        noData:
+          "<fmt:message key='datatable.no.data' />",
+
+        error:
+          "<fmt:message key='an-unexpected-system-error-occurred' />",
+
+        results:
+          "<fmt:message key='issuer.trading.info.results.msg' />",
+
+        total:
+          "<fmt:message key='issuer.trading.info.v2.total' />",
+
+        /* ------------------------------------------------------------------
+           Filter Options
+           ------------------------------------------------------------------ */
+
+        filters: {
+          allSectors:
+            "<fmt:message key='issuer.trading.info.v2.section.allsectors' />",
+
+          allCompanies:
+            "<fmt:message key='issuer.trading.info.v2.allcompanies' />",
+        },
+
+        /* ------------------------------------------------------------------
+           Mobile Cards
+           ------------------------------------------------------------------ */
+
+        mobile: {
+          showDetails:
+            "<fmt:message key='marketwatch.todaywatch.v2.mobile.show.details' />",
+
+          hideDetails:
+            "<fmt:message key='marketwatch.todaywatch.v2.mobile.hide.details' />",
+        },
+
+        /* ------------------------------------------------------------------
+           Negotiated Deals
+           ------------------------------------------------------------------ */
+
+        negotiatedDeals: {
+          table: {
+            date:
+              "<fmt:message key='issuer.trading.info.v2.table.heading.date' />",
+
+            company:
+              "<fmt:message key='issuer.trading.info.v2.table.heading.companyname' />",
+
+            price:
+              "<fmt:message key='issuer.trading.info.v2.table.heading.price' />",
+
+            volume:
+              "<fmt:message key='issuer.trading.info.v2.table.heading.volumetraded' />",
+
+            value:
+              "<fmt:message key='issuer.trading.info.v2.table.heading.valuetraded' />",
+
+            time:
+              "<fmt:message key='issuer.trading.info.v2.table.heading.time' />",
+          },
+        },
+
+        /* ------------------------------------------------------------------
+           Minimum Size
+
+           These resource keys are preserved exactly from the legacy JSP.
+           ------------------------------------------------------------------ */
+
+        minimumSize: {
+          headerRows: [
+            {
+              label:
+                "<fmt:message key='adtv.sub.row.1' />",
+
+              columns: [
+                "<fmt:message key='adtv.sub.row.0.col.1' />",
+                "<fmt:message key='adtv.sub.row.0.col.2' />",
+                "<fmt:message key='adtv.sub.row.0.col.3' />",
+                "<fmt:message key='adtv.sub.row.0.col.4' />",
+              ],
+            },
+
+            {
+              label:
+                "<fmt:message key='adtv.sub.row.2' />",
+
+              columns: [
+                "<fmt:message key='adtv.sub.row.1.col.1' />",
+                "<fmt:message key='adtv.sub.row.1.col.2' />",
+                "<fmt:message key='adtv.sub.row.1.col.3' />",
+                "<fmt:message key='adtv.sub.row.1.col.4' />",
+              ],
+            },
+
+            {
+              label:
+                "<fmt:message key='adtv.sub.row.3' />",
+
+              columns: [
+                "<fmt:message key='adtv.sub.row.2.col.1' />",
+                "<fmt:message key='adtv.sub.row.2.col.2' />",
+                "<fmt:message key='adtv.sub.row.2.col.3' />",
+                "<fmt:message key='adtv.sub.row.2.col.4' />",
+              ],
+            },
+          ],
         },
       },
-
-      /* --------------------------------------------------------------------
-         Minimum Size
-         -------------------------------------------------------------------- */
-
-      minimumSize: {
-        headerRows: [
-          {
-            label:
-              "<fmt:message key='adtv.sub.row.1' />",
-
-            columns: [
-              "<fmt:message key='adtv.sub.row.0.col.1' />",
-              "<fmt:message key='adtv.sub.row.0.col.2' />",
-              "<fmt:message key='adtv.sub.row.0.col.3' />",
-              "<fmt:message key='adtv.sub.row.0.col.4' />",
-            ],
-          },
-
-          {
-            label:
-              "<fmt:message key='adtv.sub.row.2' />",
-
-            columns: [
-              "<fmt:message key='adtv.sub.row.1.col.1' />",
-              "<fmt:message key='adtv.sub.row.1.col.2' />",
-              "<fmt:message key='adtv.sub.row.1.col.3' />",
-              "<fmt:message key='adtv.sub.row.1.col.4' />",
-            ],
-          },
-
-          {
-            label:
-              "<fmt:message key='adtv.sub.row.3' />",
-
-            columns: [
-              "<fmt:message key='adtv.sub.row.2.col.1' />",
-              "<fmt:message key='adtv.sub.row.2.col.2' />",
-              "<fmt:message key='adtv.sub.row.2.col.3' />",
-              "<fmt:message key='adtv.sub.row.2.col.4' />",
-            ],
-          },
-        ],
-      },
-    },
-  };
+    };
+  })(window, document);
 </script>
 
 <%-- =========================================================================

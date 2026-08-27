@@ -7,19 +7,21 @@
  *
  * Responsibilities:
  *
- * - define filter selectors and normalization
- * - identify the active Negotiated Deals view
- * - coordinate the dependent sector/company filters
- * - disable request filters for Minimum Size
- * - handle form submission and reset
+ * - define and normalize filter fields
+ * - resolve the selected Negotiated Deals view
+ * - initialize the default one-month date range
+ * - restore the default range after reset
+ * - coordinate the dependent Sector and Company filters
+ * - disable request filters while Minimum Size is selected
+ * - synchronize native and enhanced design-system controls
  *
  * This module intentionally has no:
  *
- * - endpoint URLs
- * - AJAX transport implementation
+ * - endpoint configuration
+ * - request transport
+ * - response normalization
  * - table rendering
  * - card rendering
- * - response normalization
  */
 
 /* ==========================================================================
@@ -45,6 +47,7 @@ export const NEGOTIATED_DEALS_FILTER_SELECTORS = Object.freeze({
 
   dateFrom: "[data-negotiated-deals-date-from]",
   dateTo: "[data-negotiated-deals-date-to]",
+  dateRange: "[data-custom-date-range]",
 
   requestFilters: "[data-negotiated-deals-request-filter]",
 
@@ -53,12 +56,51 @@ export const NEGOTIATED_DEALS_FILTER_SELECTORS = Object.freeze({
 
 const ALL_VALUE = "All";
 
+const DATE_RANGE_SEPARATOR = " \u2013 ";
+
+const INTERACTIVE_SELECTOR = [
+  "input",
+  "select",
+  "textarea",
+  "button",
+  "[role='button']",
+  "[role='combobox']",
+].join(", ");
+
+const ENHANCED_CONTROL_SELECTOR = [
+  "[data-custom-select]",
+  "[data-custom-date-range]",
+].join(", ");
+
+/*
+ * Preserve each control's original disabled state.
+ *
+ * This prevents the filter mode from accidentally enabling controls that
+ * were already disabled by another component.
+ */
+
+const managedInteractiveStates = new WeakMap();
+
+const managedContainerStates = new WeakMap();
+
 /* ==========================================================================
-   Helpers
+   General Helpers
    ========================================================================== */
 
 function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isElement(value) {
+  return Boolean(value && value.nodeType === 1);
+}
+
+function isFormElement(value) {
+  return isElement(value) && value.tagName === "FORM";
+}
+
+function isSelectElement(value) {
+  return isElement(value) && value.tagName === "SELECT";
 }
 
 function normalizeString(value) {
@@ -85,20 +127,79 @@ function getRootElement(root) {
   throw new TypeError("Negotiated Deals filters require a valid root element.");
 }
 
+function isAbortError(error) {
+  return error?.name === "AbortError";
+}
+
 function dispatchControlChange(element) {
-  if (!(element instanceof Element)) {
+  if (!isElement(element)) {
     return;
   }
 
+  const EventConstructor =
+    element.ownerDocument?.defaultView?.Event ?? window.Event;
+
   element.dispatchEvent(
-    new Event("change", {
+    new EventConstructor("change", {
       bubbles: true,
     }),
   );
 }
 
-function isAbortError(error) {
-  return error?.name === "AbortError";
+/* ==========================================================================
+   Default Date Range
+   ========================================================================== */
+
+/*
+ * These dates are used by input[type="date"], so the required browser format
+ * is YYYY-MM-DD.
+ *
+ * Transaction dates returned by the service are not formatted here.
+ */
+
+function padDatePart(value) {
+  return String(value).padStart(2, "0");
+}
+
+function formatInputDate(date) {
+  return [
+    date.getFullYear(),
+    padDatePart(date.getMonth() + 1),
+    padDatePart(date.getDate()),
+  ].join("-");
+}
+
+function subtractOneCalendarMonth(date) {
+  const year = date.getFullYear();
+
+  const month = date.getMonth();
+
+  const day = date.getDate();
+
+  /*
+   * Clamp month-end dates correctly.
+   *
+   * Example:
+   *
+   * March 31 -> February 28 or 29
+   */
+
+  const lastDayOfPreviousMonth = new Date(year, month, 0).getDate();
+
+  return new Date(year, month - 1, Math.min(day, lastDayOfPreviousMonth));
+}
+
+export function getDefaultNegotiatedDealsDateRange(now = new Date()) {
+  const currentDate =
+    now instanceof Date && !Number.isNaN(now.getTime())
+      ? new Date(now.getTime())
+      : new Date();
+
+  return Object.freeze({
+    fromDate: formatInputDate(subtractOneCalendarMonth(currentDate)),
+
+    toDate: formatInputDate(currentDate),
+  });
 }
 
 /* ==========================================================================
@@ -139,6 +240,8 @@ export function isMinimumSizeView(filterState = {}) {
    ========================================================================== */
 
 export function createNegotiatedDealsFilterDefinitions() {
+  const defaultDateRange = getDefaultNegotiatedDealsDateRange();
+
   return {
     type: {
       selector: NEGOTIATED_DEALS_FILTER_SELECTORS.type,
@@ -153,12 +256,10 @@ export function createNegotiatedDealsFilterDefinitions() {
     },
 
     /*
-     * Sector changes are coordinated by this module because the Company
-     * options must be refreshed before the table request is sent.
+     * Sector changes are coordinated by this module.
      *
-     * The filter controller therefore receives the descriptive "none"
-     * effect. bindNegotiatedDealsFilters() performs one reload after the
-     * dependent Company control has been synchronized.
+     * The Company options must be refreshed before the table request is sent,
+     * so the generic filter controller must not reload immediately.
      */
 
     sector: {
@@ -192,7 +293,7 @@ export function createNegotiatedDealsFilterDefinitions() {
 
       effect: "reload",
 
-      resetValue: "",
+      resetValue: defaultDateRange.fromDate,
 
       normalize: normalizeDateValue,
     },
@@ -204,7 +305,7 @@ export function createNegotiatedDealsFilterDefinitions() {
 
       effect: "reload",
 
-      resetValue: "",
+      resetValue: defaultDateRange.toDate,
 
       normalize: normalizeDateValue,
     },
@@ -212,15 +313,116 @@ export function createNegotiatedDealsFilterDefinitions() {
 }
 
 /* ==========================================================================
+   Managed Disabled State
+   ========================================================================== */
+
+function setInteractiveDisabled(element, disabled) {
+  if (!isElement(element)) {
+    return;
+  }
+
+  if (disabled) {
+    if (!managedInteractiveStates.has(element)) {
+      managedInteractiveStates.set(element, {
+        supportsDisabled: "disabled" in element,
+
+        disabled: "disabled" in element ? Boolean(element.disabled) : false,
+
+        ariaDisabled: element.getAttribute("aria-disabled"),
+      });
+    }
+
+    if ("disabled" in element) {
+      element.disabled = true;
+    }
+
+    element.setAttribute("aria-disabled", "true");
+
+    return;
+  }
+
+  const previousState = managedInteractiveStates.get(element);
+
+  if (!previousState) {
+    return;
+  }
+
+  if (previousState.supportsDisabled && "disabled" in element) {
+    element.disabled = previousState.disabled;
+  }
+
+  if (previousState.ariaDisabled === null) {
+    element.removeAttribute("aria-disabled");
+  } else {
+    element.setAttribute("aria-disabled", previousState.ariaDisabled);
+  }
+
+  managedInteractiveStates.delete(element);
+}
+
+function setContainerDisabled(element, disabled) {
+  if (!isElement(element)) {
+    return;
+  }
+
+  if (disabled) {
+    if (!managedContainerStates.has(element)) {
+      managedContainerStates.set(element, {
+        hadDisabledClass: element.classList.contains("is-disabled"),
+
+        ariaDisabled: element.getAttribute("aria-disabled"),
+      });
+    }
+
+    element.classList.add("is-disabled");
+
+    element.setAttribute("aria-disabled", "true");
+
+    return;
+  }
+
+  const previousState = managedContainerStates.get(element);
+
+  if (!previousState) {
+    return;
+  }
+
+  element.classList.toggle("is-disabled", previousState.hadDisabledClass);
+
+  if (previousState.ariaDisabled === null) {
+    element.removeAttribute("aria-disabled");
+  } else {
+    element.setAttribute("aria-disabled", previousState.ariaDisabled);
+  }
+
+  managedContainerStates.delete(element);
+}
+
+function setFilterRegionDisabled(region, disabled) {
+  if (!isElement(region)) {
+    return;
+  }
+
+  setContainerDisabled(region, disabled);
+
+  region.querySelectorAll(ENHANCED_CONTROL_SELECTOR).forEach((controlRoot) => {
+    setContainerDisabled(controlRoot, disabled);
+  });
+
+  region.querySelectorAll(INTERACTIVE_SELECTOR).forEach((control) => {
+    setInteractiveDisabled(control, disabled);
+  });
+}
+
+/* ==========================================================================
    Minimum Size Mode
    ========================================================================== */
 
 /*
- * The Minimum Size endpoint only requires locale information.
+ * Minimum Size requires only the request locale.
  *
- * Sector, Company, and date controls remain visible so the layout does not
- * jump when the user changes the selected type, but they are disabled and
- * excluded from native form submission.
+ * Sector, Company, and Time Period remain visible to avoid layout movement,
+ * but they are disabled and excluded from native form submission.
  */
 
 export function syncNegotiatedDealsFilterMode(root, filterState = {}) {
@@ -228,25 +430,11 @@ export function syncNegotiatedDealsFilterMode(root, filterState = {}) {
 
   const minimumSize = isMinimumSizeView(filterState);
 
-  const regions = scope.querySelectorAll(
-    NEGOTIATED_DEALS_FILTER_SELECTORS.requestFilters,
-  );
-
-  regions.forEach((region) => {
-    region.classList.toggle("is-disabled", minimumSize);
-
-    if (minimumSize) {
-      region.setAttribute("aria-disabled", "true");
-    } else {
-      region.removeAttribute("aria-disabled");
-    }
-
-    region
-      .querySelectorAll("input, select, textarea, button")
-      .forEach((control) => {
-        control.disabled = minimumSize;
-      });
-  });
+  scope
+    .querySelectorAll(NEGOTIATED_DEALS_FILTER_SELECTORS.requestFilters)
+    .forEach((region) => {
+      setFilterRegionDisabled(region, minimumSize);
+    });
 
   return minimumSize;
 }
@@ -278,12 +466,22 @@ function normalizeCompanyOption(company) {
   };
 }
 
+function createSelectOption(selectElement, label, value) {
+  const option = selectElement.ownerDocument.createElement("option");
+
+  option.value = value;
+
+  option.textContent = label;
+
+  return option;
+}
+
 export function replaceNegotiatedDealsCompanyOptions(
   companyElement,
   companies = [],
   options = {},
 ) {
-  if (!(companyElement instanceof HTMLSelectElement)) {
+  if (!isSelectElement(companyElement)) {
     throw new TypeError("Company options require a valid select element.");
   }
 
@@ -306,12 +504,14 @@ export function replaceNegotiatedDealsCompanyOptions(
     }
   });
 
-  const fragment = document.createDocumentFragment();
+  const fragment = companyElement.ownerDocument.createDocumentFragment();
 
-  fragment.append(new Option(allLabel, ALL_VALUE));
+  fragment.append(createSelectOption(companyElement, allLabel, ALL_VALUE));
 
   uniqueCompanies.forEach((company) => {
-    fragment.append(new Option(company.label, company.value));
+    fragment.append(
+      createSelectOption(companyElement, company.label, company.value),
+    );
   });
 
   companyElement.replaceChildren(fragment);
@@ -330,7 +530,7 @@ export function replaceNegotiatedDealsCompanyOptions(
    ========================================================================== */
 
 /*
- * loadCompanies:
+ * loadCompanies example:
  *
  * async function loadCompanies(sector, context) {
  *   return [
@@ -341,8 +541,13 @@ export function replaceNegotiatedDealsCompanyOptions(
  *   ];
  * }
  *
- * The callback owns the request. This module owns updating the Company
- * control and coordinating one table reload after the dependency finishes.
+ * The supplied callback owns the request.
+ *
+ * This module owns:
+ *
+ * - updating the Company control
+ * - synchronizing its enhanced presentation
+ * - triggering one table reload after the dependency is ready
  */
 
 export function bindNegotiatedDealsFilters(options = {}) {
@@ -356,15 +561,20 @@ export function bindNegotiatedDealsFilters(options = {}) {
 
   const filters = options.filters;
 
-  if (
-    !filters ||
-    typeof filters.getState !== "function" ||
-    typeof filters.reset !== "function" ||
-    typeof filters.setValue !== "function" ||
-    typeof filters.setDisabled !== "function" ||
-    typeof filters.subscribe !== "function" ||
-    typeof filters.sync !== "function"
-  ) {
+  const requiredFilterMethods = [
+    "getState",
+    "setDisabled",
+    "setState",
+    "setValue",
+    "subscribe",
+    "sync",
+  ];
+
+  const hasValidFilterController = requiredFilterMethods.every(
+    (method) => typeof filters?.[method] === "function",
+  );
+
+  if (!hasValidFilterController) {
     throw new TypeError(
       "Negotiated Deals requires a valid data-filter controller.",
     );
@@ -392,12 +602,24 @@ export function bindNegotiatedDealsFilters(options = {}) {
     NEGOTIATED_DEALS_FILTER_SELECTORS.dateTo,
   );
 
-  if (!(form instanceof HTMLFormElement)) {
+  if (!isFormElement(form)) {
     throw new Error("Negotiated Deals filter form was not found.");
   }
 
-  if (!(companyElement instanceof HTMLSelectElement)) {
+  if (!isSelectElement(typeElement)) {
+    throw new Error("Negotiated Deals Type filter was not found.");
+  }
+
+  if (!isSelectElement(sectorElement)) {
+    throw new Error("Negotiated Deals Sector filter was not found.");
+  }
+
+  if (!isSelectElement(companyElement)) {
     throw new Error("Negotiated Deals Company filter was not found.");
+  }
+
+  if (!isElement(dateFromElement) || !isElement(dateToElement)) {
+    throw new Error("Negotiated Deals date filters were not found.");
   }
 
   const abortController = new AbortController();
@@ -405,9 +627,116 @@ export function bindNegotiatedDealsFilters(options = {}) {
   const initialAllCompanyLabel =
     normalizeString(companyElement.options[0]?.textContent) || ALL_VALUE;
 
+  const companyRegion = companyElement.closest(
+    NEGOTIATED_DEALS_FILTER_SELECTORS.requestFilters,
+  );
+
   let destroyed = false;
+
   let companyLoading = false;
+
   let companyRequestId = 0;
+
+  /* ========================================================================
+     Enhanced Control Synchronization
+     ======================================================================== */
+
+  function synchronizeControls(elements) {
+    filters.sync();
+
+    elements.filter(isElement).forEach(dispatchControlChange);
+  }
+
+  function synchronizeRequestControls() {
+    synchronizeControls([
+      sectorElement,
+      companyElement,
+      dateFromElement,
+      dateToElement,
+    ]);
+  }
+
+  function synchronizeAllControls() {
+    synchronizeControls([
+      typeElement,
+      sectorElement,
+      companyElement,
+      dateFromElement,
+      dateToElement,
+    ]);
+  }
+
+  /* ========================================================================
+     Date Range Presentation
+     ======================================================================== */
+
+  function updateInitialDatePresentation() {
+    const dateRangeElement = dateFromElement.closest(
+      NEGOTIATED_DEALS_FILTER_SELECTORS.dateRange,
+    );
+
+    const initialValueElement = dateRangeElement?.querySelector(
+      ".custom-date__initial-value",
+    );
+
+    if (!initialValueElement) {
+      return;
+    }
+
+    const fromDate = normalizeDateValue(dateFromElement.value);
+
+    const toDate = normalizeDateValue(dateToElement.value);
+
+    if (!fromDate || !toDate) {
+      initialValueElement.textContent =
+        dateRangeElement.dataset.placeholder || "YYYY-MM-DD \u2013 YYYY-MM-DD";
+
+      initialValueElement.classList.add("is-placeholder");
+
+      return;
+    }
+
+    initialValueElement.textContent = fromDate + DATE_RANGE_SEPARATOR + toDate;
+
+    initialValueElement.classList.remove("is-placeholder");
+  }
+
+  function storeNativeDateDefaults() {
+    dateFromElement.defaultValue = dateFromElement.value;
+
+    dateToElement.defaultValue = dateToElement.value;
+  }
+
+  function initializeDefaultDateRange() {
+    const state = filters.getState();
+
+    const defaultRange = getDefaultNegotiatedDealsDateRange();
+
+    const initialDates = {};
+
+    if (!normalizeDateValue(state.fromDate)) {
+      initialDates.fromDate = defaultRange.fromDate;
+    }
+
+    if (!normalizeDateValue(state.toDate)) {
+      initialDates.toDate = defaultRange.toDate;
+    }
+
+    if (Object.keys(initialDates).length) {
+      filters.setState(initialDates, {
+        notify: false,
+        source: "initial-date-range",
+      });
+    }
+
+    filters.sync();
+
+    storeNativeDateDefaults();
+
+    updateInitialDatePresentation();
+
+    synchronizeControls([dateFromElement, dateToElement]);
+  }
 
   /* ========================================================================
      Availability
@@ -416,11 +745,13 @@ export function bindNegotiatedDealsFilters(options = {}) {
   function syncAvailability() {
     const minimumSize = syncNegotiatedDealsFilterMode(root, filters.getState());
 
-    filters.setDisabled("company", minimumSize || companyLoading);
+    /*
+     * Company may also be disabled independently while its options load.
+     */
 
-    const companyRegion = companyElement.closest(
-      NEGOTIATED_DEALS_FILTER_SELECTORS.requestFilters,
-    );
+    setFilterRegionDisabled(companyRegion, minimumSize || companyLoading);
+
+    filters.setDisabled("company", minimumSize || companyLoading);
 
     if (companyRegion) {
       if (companyLoading) {
@@ -429,20 +760,8 @@ export function bindNegotiatedDealsFilters(options = {}) {
         companyRegion.removeAttribute("aria-busy");
       }
     }
-  }
 
-  /* ========================================================================
-     Enhanced Control Synchronization
-     ======================================================================== */
-
-  function announceControlUpdates() {
-    [
-      typeElement,
-      sectorElement,
-      companyElement,
-      dateFromElement,
-      dateToElement,
-    ].forEach(dispatchControlChange);
+    return minimumSize;
   }
 
   /* ========================================================================
@@ -453,8 +772,7 @@ export function bindNegotiatedDealsFilters(options = {}) {
     const shouldReload = settings.reload !== false;
 
     /*
-     * A new Sector selection must never send the Company value belonging to
-     * the previous Sector.
+     * Never send a Company value belonging to the previous Sector.
      */
 
     filters.setValue("company", ALL_VALUE, {
@@ -483,6 +801,7 @@ export function bindNegotiatedDealsFilters(options = {}) {
     try {
       const companies = await options.loadCompanies(sector, {
         filters: filters.getState(),
+
         source: settings.source || null,
       });
 
@@ -522,6 +841,70 @@ export function bindNegotiatedDealsFilters(options = {}) {
   }
 
   /* ========================================================================
+     Reset
+     ======================================================================== */
+
+  function resetFilters(source = null) {
+    const defaultDateRange = getDefaultNegotiatedDealsDateRange();
+
+    const changed = filters.setState(
+      {
+        type: NEGOTIATED_DEALS_TYPES.negotiatedDeals,
+
+        sector: ALL_VALUE,
+
+        company: ALL_VALUE,
+
+        fromDate: defaultDateRange.fromDate,
+
+        toDate: defaultDateRange.toDate,
+      },
+      {
+        type: "reset",
+
+        effect: "view",
+
+        source,
+      },
+    );
+
+    /*
+     * setState() notifies synchronously when values changed.
+     *
+     * The reset subscription below performs the UI synchronization and
+     * Company refresh in that case.
+     */
+
+    if (changed) {
+      return true;
+    }
+
+    /*
+     * Even if the filters already contain their defaults, Reset should still
+     * refresh the current result set exactly once.
+     */
+
+    filters.sync();
+
+    storeNativeDateDefaults();
+
+    updateInitialDatePresentation();
+
+    syncAvailability();
+
+    synchronizeAllControls();
+
+    refreshCompanies(ALL_VALUE, {
+      reload: false,
+      source,
+    });
+
+    options.onReload?.();
+
+    return false;
+  }
+
+  /* ========================================================================
      Filter Changes
      ======================================================================== */
 
@@ -530,30 +913,47 @@ export function bindNegotiatedDealsFilters(options = {}) {
       return;
     }
 
-    if (event.key === "type" || event.type === "reset") {
+    if (event.key === "type") {
+      filters.sync();
+
       syncAvailability();
+
+      synchronizeRequestControls();
+
+      return;
     }
 
     if (event.key === "sector") {
       refreshCompanies(event.state.sector, {
         reload: true,
+
         source: event.source,
       });
+
+      return;
     }
 
-    /*
-     * Reset already causes the controller's "view" effect and one request.
-     * The Company options still need to match the reset Sector, but no second
-     * table reload is required.
-     */
-
     if (event.type === "reset") {
+      /*
+       * setState() does not update the filter controller's cached field
+       * values, so synchronize before dispatching native change events.
+       */
+
+      filters.sync();
+
+      storeNativeDateDefaults();
+
+      updateInitialDatePresentation();
+
+      syncAvailability();
+
       refreshCompanies(event.state.sector, {
         reload: false,
+
         source: event.source,
       });
 
-      announceControlUpdates();
+      synchronizeAllControls();
     }
   });
 
@@ -580,11 +980,7 @@ export function bindNegotiatedDealsFilters(options = {}) {
     (event) => {
       event.preventDefault();
 
-      filters.reset({
-        type: "reset",
-        effect: "view",
-        source: event,
-      });
+      resetFilters(event);
     },
     {
       signal: abortController.signal,
@@ -594,6 +990,8 @@ export function bindNegotiatedDealsFilters(options = {}) {
   /* ========================================================================
      Initial State
      ======================================================================== */
+
+  initializeDefaultDateRange();
 
   syncAvailability();
 
@@ -615,15 +1013,25 @@ export function bindNegotiatedDealsFilters(options = {}) {
     unsubscribe();
   }
 
+  /* ========================================================================
+     Public Instance
+     ======================================================================== */
+
   return Object.freeze({
     destroy,
 
     refreshCompanies,
 
+    reset: resetFilters,
+
     sync() {
       filters.sync();
 
+      updateInitialDatePresentation();
+
       syncAvailability();
+
+      synchronizeAllControls();
     },
   });
 }

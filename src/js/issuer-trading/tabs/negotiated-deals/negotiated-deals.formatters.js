@@ -5,24 +5,26 @@
 /*
  * Presentation formatters for:
  *
- * - Negotiated Deals table
+ * - Negotiated Deals tables
  * - Negotiated Deals cards
- * - daily total rows/cards
+ * - daily total rows and cards
  * - Minimum Size company cells
  *
  * Responsibilities:
  *
- * - provide DataTables-compatible renderers
- * - format dates, times, prices, quantities, and money
+ * - provide DataTables-compatible orthogonal renderers
+ * - preserve service-provided dates for display
+ * - provide normalized values for sorting and filtering
+ * - format prices, quantities, values, and times
  * - render the shared Market Watch company identity
- * - return plain values for sorting and filtering
  *
  * This module intentionally has no:
  *
- * - endpoint code
+ * - endpoint configuration
+ * - request transport
  * - response normalization
- * - table initialization
- * - card container rendering
+ * - DataTables initialization
+ * - card collection rendering
  * - event listeners
  */
 
@@ -32,7 +34,6 @@
 
 import {
   escapeHtml,
-  formatDate,
   formatInputDate,
   formatMoney,
   formatPrice,
@@ -53,6 +54,8 @@ const DEFAULT_LOCALE = "en";
 
 const DEFAULT_EMPTY_VALUE = "—";
 
+const DEFAULT_TOTAL_LABEL = "Total";
+
 const DATA_TABLE_TYPES = Object.freeze({
   display: "display",
   filter: "filter",
@@ -61,7 +64,7 @@ const DATA_TABLE_TYPES = Object.freeze({
 });
 
 /* ==========================================================================
-   Helpers
+   General Helpers
    ========================================================================== */
 
 function isObject(value) {
@@ -74,6 +77,10 @@ function isSortRequest(type) {
 
 function isFilterRequest(type) {
   return type === DATA_TABLE_TYPES.filter;
+}
+
+function getEmptyValue(settings = {}) {
+  return normalizeString(settings.emptyValue) || DEFAULT_EMPTY_VALUE;
 }
 
 function getNumericSortValue(value) {
@@ -98,8 +105,18 @@ function getTimeSortValue(value) {
   }
 
   const hours = Number(match[1]);
+
   const minutes = Number(match[2]);
+
   const seconds = Number(match[3] || 0);
+
+  if (
+    !Number.isFinite(hours) ||
+    !Number.isFinite(minutes) ||
+    !Number.isFinite(seconds)
+  ) {
+    return normalized;
+  }
 
   return hours * 3600 + minutes * 60 + seconds;
 }
@@ -113,22 +130,50 @@ function getCompanyFilterValue(company = {}) {
     .join(" ");
 }
 
+function getServiceDateValue(row = {}) {
+  return normalizeString(row.tradeDate);
+}
+
+function getDateIsoValue(row = {}) {
+  return formatInputDate(getServiceDateValue(row));
+}
+
+function getDateSortingValue(row = {}) {
+  if (
+    row.dateSort !== undefined &&
+    row.dateSort !== null &&
+    row.dateSort !== ""
+  ) {
+    return row.dateSort;
+  }
+
+  return getDateSortValue(getServiceDateValue(row), "");
+}
+
 function getFormatterSettings(config = {}) {
-  const locale = normalizeString(config.locale) || DEFAULT_LOCALE;
+  const normalizedConfig = isObject(config) ? config : {};
+
+  const locale = normalizeString(normalizedConfig.locale) || DEFAULT_LOCALE;
 
   const emptyValue =
-    normalizeString(config.labels?.emptyValue) || DEFAULT_EMPTY_VALUE;
+    normalizeString(normalizedConfig.labels?.emptyValue) || DEFAULT_EMPTY_VALUE;
+
+  const totalLabel =
+    normalizeString(normalizedConfig.labels?.total) || DEFAULT_TOTAL_LABEL;
 
   return Object.freeze({
     locale,
     emptyValue,
-
-    totalLabel: normalizeString(config.labels?.total) || "Total",
+    totalLabel,
 
     companyIdentity: Object.freeze({
-      logoUrlTemplate: normalizeString(config.assets?.companyLogoUrlTemplate),
+      logoUrlTemplate: normalizeString(
+        normalizedConfig.assets?.companyLogoUrlTemplate,
+      ),
 
-      logoFallbackUrl: normalizeString(config.assets?.companyLogoFallbackUrl),
+      logoFallbackUrl: normalizeString(
+        normalizedConfig.assets?.companyLogoFallbackUrl,
+      ),
     }),
   });
 }
@@ -149,43 +194,44 @@ export function isNegotiatedDealRow(row = {}) {
    Date
    ========================================================================== */
 
+/*
+ * The displayed value remains exactly as supplied by the service.
+ *
+ * DataTables receives a separate normalized value for sorting.
+ */
+
 export function formatNegotiatedDealDate(
   row = {},
   type = DATA_TABLE_TYPES.display,
   settings = {},
 ) {
+  const rawDate = getServiceDateValue(row);
+
   if (isSortRequest(type)) {
-    return row.dateSort || getDateSortValue(row.tradeDate) || "";
+    return getDateSortingValue(row);
   }
 
   if (isFilterRequest(type)) {
-    return normalizeString(row.tradeDate);
+    return rawDate;
   }
 
   if (isNegotiatedDealsTotalRow(row)) {
     return "";
   }
 
-  const rawDate = normalizeString(row.tradeDate);
-
   if (!rawDate) {
-    return escapeHtml(settings.emptyValue);
+    return escapeHtml(getEmptyValue(settings));
   }
 
-  const displayDate = formatDate(rawDate, {
-    locale: settings.locale,
-    fallback: settings.emptyValue,
-  });
-
-  const machineDate = formatInputDate(rawDate);
+  const machineDate = getDateIsoValue(row);
 
   if (!machineDate) {
-    return escapeHtml(displayDate);
+    return escapeHtml(rawDate);
   }
 
   return `
     <time datetime="${escapeHtml(machineDate)}">
-      ${escapeHtml(displayDate)}
+      ${escapeHtml(rawDate)}
     </time>
   `.trim();
 }
@@ -199,14 +245,12 @@ export function formatNegotiatedDealCompany(
   type = DATA_TABLE_TYPES.display,
   settings = {},
 ) {
-  const filterValue = getCompanyFilterValue(row);
-
   if (isSortRequest(type)) {
     return getTextSortValue(row.companyName || row.companyCode);
   }
 
   if (isFilterRequest(type)) {
-    return filterValue;
+    return getCompanyFilterValue(row);
   }
 
   if (isNegotiatedDealsTotalRow(row)) {
@@ -244,7 +288,8 @@ export function formatNegotiatedDealPrice(
   return escapeHtml(
     formatPrice(row.price, {
       locale: settings.locale,
-      fallback: settings.emptyValue,
+
+      fallback: getEmptyValue(settings),
     }),
   );
 }
@@ -266,10 +311,18 @@ export function formatNegotiatedDealVolume(
     return row.volume == null ? "" : String(row.volume);
   }
 
+  /*
+   * Volume is intentionally rendered for both:
+   *
+   * - ordinary deal rows
+   * - service-provided total rows
+   */
+
   return escapeHtml(
     formatQuantity(row.volume, {
       locale: settings.locale,
-      fallback: settings.emptyValue,
+
+      fallback: getEmptyValue(settings),
     }),
   );
 }
@@ -291,10 +344,18 @@ export function formatNegotiatedDealValue(
     return row.value == null ? "" : String(row.value);
   }
 
+  /*
+   * Value is intentionally rendered for both:
+   *
+   * - ordinary deal rows
+   * - service-provided total rows
+   */
+
   return escapeHtml(
     formatMoney(row.value, {
       locale: settings.locale,
-      fallback: settings.emptyValue,
+
+      fallback: getEmptyValue(settings),
     }),
   );
 }
@@ -308,27 +369,28 @@ export function formatNegotiatedDealTime(
   type = DATA_TABLE_TYPES.display,
   settings = {},
 ) {
+  const rawTime = normalizeString(row.tradeTime);
+
   if (isSortRequest(type)) {
-    return getTimeSortValue(row.tradeTime);
+    return getTimeSortValue(rawTime);
   }
 
   if (isFilterRequest(type)) {
-    return normalizeString(row.tradeTime);
+    return rawTime;
   }
 
   if (isNegotiatedDealsTotalRow(row)) {
     return "";
   }
 
-  const rawTime = normalizeString(row.tradeTime);
-
   if (!rawTime) {
-    return escapeHtml(settings.emptyValue);
+    return escapeHtml(getEmptyValue(settings));
   }
 
   const displayTime = formatTime(rawTime, {
     locale: settings.locale,
-    fallback: settings.emptyValue,
+
+    fallback: getEmptyValue(settings),
   });
 
   return `
@@ -343,26 +405,35 @@ export function formatNegotiatedDealTime(
    ========================================================================== */
 
 export function getNegotiatedDealsSummaryValues(row = {}, settings = {}) {
+  const rawDate = getServiceDateValue(row);
+
   return Object.freeze({
-    label: normalizeString(settings.totalLabel) || "Total",
+    label: normalizeString(settings.totalLabel) || DEFAULT_TOTAL_LABEL,
 
-    date: formatDate(row.tradeDate, {
-      locale: settings.locale,
-      fallback: "",
-    }),
+    /*
+     * Preserve the service value for display.
+     */
 
-    dateValue: normalizeString(row.tradeDate),
+    date: rawDate,
 
-    dateIso: formatInputDate(row.tradeDate),
+    dateValue: rawDate,
+
+    /*
+     * ISO is metadata only, used by the semantic <time> element.
+     */
+
+    dateIso: getDateIsoValue(row),
 
     volume: formatQuantity(row.volume, {
       locale: settings.locale,
-      fallback: settings.emptyValue,
+
+      fallback: getEmptyValue(settings),
     }),
 
     value: formatMoney(row.value, {
       locale: settings.locale,
-      fallback: settings.emptyValue,
+
+      fallback: getEmptyValue(settings),
     }),
   });
 }
@@ -372,44 +443,51 @@ export function getNegotiatedDealsSummaryValues(row = {}, settings = {}) {
    ========================================================================== */
 
 export function getNegotiatedDealCardValues(row = {}, settings = {}) {
+  const rawDate = getServiceDateValue(row);
+
   return Object.freeze({
     id: normalizeString(row.id),
 
-    date: formatDate(row.tradeDate, {
-      locale: settings.locale,
-      fallback: settings.emptyValue,
-    }),
+    /*
+     * Preserve the service value in the mobile card.
+     */
 
-    dateValue: normalizeString(row.tradeDate),
+    date: rawDate || getEmptyValue(settings),
 
-    dateIso: formatInputDate(row.tradeDate),
+    dateValue: rawDate,
+
+    dateIso: getDateIsoValue(row),
 
     time: formatTime(row.tradeTime, {
       locale: settings.locale,
-      fallback: settings.emptyValue,
+
+      fallback: getEmptyValue(settings),
     }),
 
     timeValue: normalizeString(row.tradeTime),
 
-    companyCode: getDisplayValue(row.companyCode, settings.emptyValue),
+    companyCode: getDisplayValue(row.companyCode, getEmptyValue(settings)),
 
-    companyName: getDisplayValue(row.companyName, settings.emptyValue),
+    companyName: getDisplayValue(row.companyName, getEmptyValue(settings)),
 
     companyUrl: normalizeString(row.companyUrl),
 
     price: formatPrice(row.price, {
       locale: settings.locale,
-      fallback: settings.emptyValue,
+
+      fallback: getEmptyValue(settings),
     }),
 
     volume: formatQuantity(row.volume, {
       locale: settings.locale,
-      fallback: settings.emptyValue,
+
+      fallback: getEmptyValue(settings),
     }),
 
     value: formatMoney(row.value, {
       locale: settings.locale,
-      fallback: settings.emptyValue,
+
+      fallback: getEmptyValue(settings),
     }),
   });
 }
@@ -428,7 +506,7 @@ export function formatMinimumSizeCompany(
       return "";
     }
 
-    return escapeHtml(settings.emptyValue);
+    return escapeHtml(getEmptyValue(settings));
   }
 
   if (isSortRequest(type)) {
@@ -486,10 +564,15 @@ export function createNegotiatedDealsFormatters(config = {}) {
 
     table: Object.freeze({
       date: renderDate,
+
       company: renderCompany,
+
       price: renderPrice,
+
       volume: renderVolume,
+
       value: renderValue,
+
       time: renderTime,
     }),
 

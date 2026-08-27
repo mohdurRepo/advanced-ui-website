@@ -8,9 +8,11 @@
  * Responsibilities:
  *
  * - resolve company name, code, link, and logo
+ * - replace the logo template token for each data row
  * - render the standard desktop table identity
  * - render the standard mobile-card identity
- * - handle image and fallback-image failures
+ * - apply the configured fallback logo once
+ * - fall back to company initials if both images fail
  * - escape rendered business data
  *
  * The rendered visual structure follows Market Watch:
@@ -29,14 +31,22 @@
 
 const LOGO_SELECTOR = "[data-standard-company-logo]";
 
+const LOGO_CONTAINER_SELECTOR = "[data-standard-company-logo-container]";
+
+const COMPANY_CODE_TOKEN = "{companyCode}";
+
+const DEFAULT_COMPANY_NAME = "-";
+
+const DEFAULT_LOGO_INITIALS = "—";
+
 const UNSAFE_URL_PATTERN = /^(?:javascript|data|vbscript):/i;
 
 /* ==========================================================================
    Value Helpers
    ========================================================================== */
 
-function firstDefined(...values) {
-  return values.find((value) => value !== undefined && value !== null);
+function isObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 function normalizeString(value, fallback = "") {
@@ -45,14 +55,38 @@ function normalizeString(value, fallback = "") {
   return normalized || fallback;
 }
 
+function firstNonEmptyString(...values) {
+  for (const value of values) {
+    const normalized = normalizeString(value);
+
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return "";
+}
+
 function normalizeSize(value, fallback) {
   const size = Number(value);
 
   return Number.isFinite(size) && size > 0 ? size : fallback;
 }
 
+function isElement(value) {
+  return Boolean(value && value.nodeType === 1);
+}
+
+function isImageElement(value) {
+  return (
+    isElement(value) &&
+    value.tagName === "IMG" &&
+    typeof value.matches === "function"
+  );
+}
+
 /* ==========================================================================
-   HTML
+   HTML Escaping
    ========================================================================== */
 
 function escapeHtml(value) {
@@ -82,38 +116,63 @@ function getSafeUrl(value) {
   return url;
 }
 
+function firstSafeUrl(...values) {
+  for (const value of values) {
+    const safeUrl = getSafeUrl(value);
+
+    if (safeUrl) {
+      return safeUrl;
+    }
+  }
+
+  return "";
+}
+
 /* ==========================================================================
    Company Values
    ========================================================================== */
 
 export function getStandardCompanyName(row = {}) {
-  return normalizeString(
-    firstDefined(row.acrynomName, row.companyName, row.company, row.name),
-    "-",
+  return (
+    firstNonEmptyString(
+      row.acrynomName,
+      row.acronymName,
+      row.companyName,
+      row.longName,
+      row.shortName,
+      row.company,
+      row.name,
+    ) || DEFAULT_COMPANY_NAME
   );
 }
 
 export function getStandardCompanyCode(row = {}) {
-  return normalizeString(
-    firstDefined(
-      row.companyCode,
-      row.companyRef,
-      row.companySymbol,
-      row.symbol,
-    ),
+  return firstNonEmptyString(
+    row.companyCode,
+    row.companyRef,
+    row.companySymbol,
+    row.securityCode,
+    row.symbol,
+    row.code,
   );
 }
 
 export function getStandardCompanyUrl(row = {}) {
-  return getSafeUrl(firstDefined(row.companyUrl, row.companyURL, row.pageUrl));
+  return firstSafeUrl(row.companyUrl, row.companyURL, row.pageUrl, row.url);
 }
 
 /* ==========================================================================
-   Initials
+   Company Initials
    ========================================================================== */
 
 function getCompanyInitials(row = {}) {
-  return getStandardCompanyName(row)
+  const companyName = getStandardCompanyName(row);
+
+  if (!companyName || companyName === DEFAULT_COMPANY_NAME) {
+    return "";
+  }
+
+  return companyName
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
@@ -126,39 +185,107 @@ function getCompanyInitials(row = {}) {
    Logo Configuration
    ========================================================================== */
 
-function getAssets(config = {}) {
-  return config?.assets && typeof config.assets === "object"
-    ? config.assets
+/*
+ * Supported configuration shapes:
+ *
+ * Full page configuration:
+ *
+ * {
+ *   assets: {
+ *     companyLogoUrlTemplate: ".../{companyCode}.png",
+ *     companyLogoFallbackUrl: ".../default.png"
+ *   }
+ * }
+ *
+ * Explicit identity configuration:
+ *
+ * {
+ *   logoUrlTemplate: ".../{companyCode}.png",
+ *   logoFallbackUrl: ".../default.png"
+ * }
+ */
+
+function getLogoConfiguration(config = {}) {
+  const normalizedConfig = isObject(config) ? config : {};
+
+  const assets = isObject(normalizedConfig.assets)
+    ? normalizedConfig.assets
     : {};
+
+  return {
+    logoUrlTemplate: firstSafeUrl(
+      normalizedConfig.logoUrlTemplate,
+      normalizedConfig.companyLogoUrlTemplate,
+      assets.companyLogoUrlTemplate,
+    ),
+
+    logoFallbackUrl: firstSafeUrl(
+      normalizedConfig.logoFallbackUrl,
+      normalizedConfig.companyLogoFallbackUrl,
+      assets.companyLogoFallbackUrl,
+    ),
+  };
 }
 
 export function getStandardCompanyLogoFallbackUrl(config = {}) {
-  return getSafeUrl(getAssets(config).companyLogoFallbackUrl);
+  return getLogoConfiguration(config).logoFallbackUrl;
+}
+
+/* ==========================================================================
+   Logo URL Resolution
+   ========================================================================== */
+
+function applyCompanyCodeToTemplate(template, companyCode) {
+  if (!template || !companyCode) {
+    return "";
+  }
+
+  const encodedCompanyCode = encodeURIComponent(companyCode);
+
+  return template.replaceAll(COMPANY_CODE_TOKEN, encodedCompanyCode);
 }
 
 export function getStandardCompanyLogoUrl(row = {}, config = {}) {
-  const directUrl = getSafeUrl(
-    firstDefined(
-      row.companyLogoUrl,
-      row.logoUrl,
-      row.imageUrl,
-      row.companyImageUrl,
-    ),
+  /*
+   * A row-provided logo URL takes precedence over the configured template.
+   */
+
+  const directUrl = firstSafeUrl(
+    row.companyLogoUrl,
+    row.logoUrl,
+    row.imageUrl,
+    row.companyImageUrl,
+    row.logo,
   );
 
   if (directUrl) {
     return directUrl;
   }
 
-  const template = getSafeUrl(getAssets(config).companyLogoUrlTemplate);
+  const { logoUrlTemplate, logoFallbackUrl } = getLogoConfiguration(config);
 
   const companyCode = getStandardCompanyCode(row);
 
-  if (!template || !companyCode) {
-    return getStandardCompanyLogoFallbackUrl(config);
+  if (!logoUrlTemplate || !companyCode) {
+    return logoFallbackUrl;
   }
 
-  return template.replaceAll("{companyCode}", encodeURIComponent(companyCode));
+  /*
+   * The replacement happens here for every rendered row:
+   *
+   * .../{companyCode}.png
+   *
+   * becomes:
+   *
+   * .../1010.png
+   */
+
+  const companyLogoUrl = applyCompanyCodeToTemplate(
+    logoUrlTemplate,
+    companyCode,
+  );
+
+  return getSafeUrl(companyLogoUrl) || logoFallbackUrl;
 }
 
 /* ==========================================================================
@@ -171,7 +298,7 @@ function renderLogoFallback(initials, fallbackClassName) {
       class="${escapeHtml(fallbackClassName)}"
       aria-hidden="true"
     >
-      ${escapeHtml(initials || "—")}
+      ${escapeHtml(initials || DEFAULT_LOGO_INITIALS)}
     </span>
   `.trim();
 }
@@ -181,10 +308,10 @@ function renderLogoFallback(initials, fallbackClassName) {
    ========================================================================== */
 
 export function renderStandardCompanyLogo(row = {}, config = {}, options = {}) {
-  const className = options.className || "table-market__logo";
+  const className = normalizeString(options.className) || "table-market__logo";
 
   const fallbackClassName =
-    options.fallbackClassName || `${className}-fallback`;
+    normalizeString(options.fallbackClassName) || `${className}-fallback`;
 
   const size = normalizeSize(options.size, 40);
 
@@ -211,9 +338,7 @@ export function renderStandardCompanyLogo(row = {}, config = {}, options = {}) {
 
   const fallbackAttribute =
     fallbackUrl && fallbackUrl !== logoUrl
-      ? `
-        data-standard-company-logo-fallback="${escapeHtml(fallbackUrl)}"
-      `.trim()
+      ? `data-standard-company-logo-fallback="${escapeHtml(fallbackUrl)}"`
       : "";
 
   return `
@@ -294,7 +419,9 @@ export function renderStandardCompanyCell(row = {}, config = {}) {
     <div class="table-market__security-cell">
       ${renderStandardCompanyLogo(row, config, {
         className: "table-market__logo",
+
         fallbackClassName: "table-market__logo-fallback",
+
         size: 40,
       })}
 
@@ -355,7 +482,9 @@ export function renderStandardCompanyCardIdentity(row = {}, config = {}) {
     <div class="data-card__identity">
       ${renderStandardCompanyLogo(row, config, {
         className: "data-card__logo",
+
         fallbackClassName: "data-card__logo-fallback",
+
         size: 44,
       })}
 
@@ -371,7 +500,7 @@ export function renderStandardCompanyCardIdentity(row = {}, config = {}) {
 export function handleStandardCompanyLogoError(event, root = document) {
   const image = event?.target;
 
-  if (!(image instanceof HTMLImageElement) || !image.matches(LOGO_SELECTOR)) {
+  if (!isImageElement(image) || !image.matches(LOGO_SELECTOR)) {
     return false;
   }
 
@@ -379,13 +508,13 @@ export function handleStandardCompanyLogoError(event, root = document) {
     return false;
   }
 
-  const fallbackUrl = image.dataset.standardCompanyLogoFallback;
+  const fallbackUrl = getSafeUrl(image.dataset.standardCompanyLogoFallback);
 
   const fallbackApplied =
     image.dataset.standardCompanyLogoFallbackApplied === "true";
 
   /*
-   * Attempt the configured fallback image once.
+   * Attempt the configured fallback image only once.
    */
 
   if (fallbackUrl && !fallbackApplied) {
@@ -397,10 +526,10 @@ export function handleStandardCompanyLogoError(event, root = document) {
   }
 
   /*
-   * The original and fallback images both failed.
+   * The company-specific image and fallback image both failed.
    */
 
-  const container = image.closest("[data-standard-company-logo-container]");
+  const container = image.closest(LOGO_CONTAINER_SELECTOR);
 
   if (!container) {
     image.remove();
@@ -409,16 +538,18 @@ export function handleStandardCompanyLogoError(event, root = document) {
   }
 
   const fallbackClassName =
-    container.dataset.standardCompanyLogoFallbackClass ||
+    normalizeString(container.dataset.standardCompanyLogoFallbackClass) ||
     "table-market__logo-fallback";
 
-  const fallback = document.createElement("span");
+  const fallback = image.ownerDocument.createElement("span");
 
   fallback.className = fallbackClassName;
 
   fallback.setAttribute("aria-hidden", "true");
 
-  fallback.textContent = image.dataset.standardCompanyLogoInitials || "—";
+  fallback.textContent =
+    normalizeString(image.dataset.standardCompanyLogoInitials) ||
+    DEFAULT_LOGO_INITIALS;
 
   container.classList.add("is-image-missing");
 
@@ -436,17 +567,17 @@ export function bindStandardCompanyLogoFallback(root = document) {
     throw new TypeError("Company logo fallback requires an event target.");
   }
 
-  const handleError = (event) => {
+  function handleError(event) {
     handleStandardCompanyLogoError(event, root);
-  };
+  }
 
   /*
-   * Image error events do not bubble, so capture is required.
+   * Image error events do not bubble, so capture mode is required.
    */
 
   root.addEventListener("error", handleError, true);
 
-  return function unbindCompanyLogoFallback() {
+  return function unbindStandardCompanyLogoFallback() {
     root.removeEventListener("error", handleError, true);
   };
 }
