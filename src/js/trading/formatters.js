@@ -3,28 +3,37 @@
    ========================================================================== */
 
 /*
- * Shared presentation helpers for Trading views.
+ * Shared presentation helpers for all Trading views.
  *
  * Responsibilities:
  *
  * - safe display values
  * - HTML escaping
- * - URLs
+ * - safe URLs
  * - dates
  * - numeric values
- * - status markers
- * - Trading identities
- * - schema-driven cell rendering
- * - mobile identity / summary rendering
+ * - price / change states
+ * - company-status mapping
+ * - company logos
+ * - Trading identity normalization
+ * - desktop identity rendering
+ * - standalone Symbol rendering
+ * - generic table-cell rendering
+ * - mobile identity rendering
+ * - shared mobile summaries
  * - Negotiated daily totals
  * - Minimum Size matrix rendering
  *
- * No:
+ * This module intentionally has no:
  *
  * - AJAX
- * - filters
+ * - filter state
  * - DataTables lifecycle
  * - tab behavior
+ * - DOM event listeners
+ *
+ * Company-logo error handling remains owned by trading.js because error
+ * handling is runtime behavior rather than formatting.
  */
 
 /* ==========================================================================
@@ -43,6 +52,14 @@ function firstDefined(...values) {
   return values.find(
     (value) => value !== null && value !== undefined && value !== "",
   );
+}
+
+function normalizeString(value, fallback = "") {
+  if (!hasValue(value)) {
+    return fallback;
+  }
+
+  return String(value).trim();
 }
 
 /* ==========================================================================
@@ -70,8 +87,9 @@ export function safeUrl(value) {
   const url = String(value).trim();
 
   /*
-   * Backend links are normally relative application URLs.
+   * Existing backend links are commonly application-relative.
    */
+
   if (
     url.startsWith("/") ||
     url.startsWith("./") ||
@@ -95,12 +113,16 @@ export function safeUrl(value) {
 }
 
 /* ==========================================================================
-   Numbers
+   Locale
    ========================================================================== */
 
 function getLocale(config = {}) {
   return config.locale || document.documentElement.lang || undefined;
 }
+
+/* ==========================================================================
+   Numbers
+   ========================================================================== */
 
 function parseNumber(value) {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -122,6 +144,10 @@ function parseNumber(value) {
   return Number.isFinite(number) ? number : null;
 }
 
+/* ==========================================================================
+   Number Formatting
+   ========================================================================== */
+
 export function formatNumber(value, config = {}, options = {}) {
   const number = parseNumber(value);
 
@@ -138,6 +164,10 @@ export function formatNumber(value, config = {}, options = {}) {
       useGrouping: options.useGrouping !== false,
     }).format(number);
   } catch {
+    /*
+     * Backend display value remains a safe fallback.
+     */
+
     return String(value);
   }
 }
@@ -161,6 +191,10 @@ export function formatPercent(value, config = {}) {
 
   const text = String(value).trim();
 
+  /*
+   * Modified backend values may already contain "%".
+   */
+
   if (text.includes("%")) {
     return text;
   }
@@ -180,6 +214,10 @@ function pad2(value) {
   return String(value).padStart(2, "0");
 }
 
+/* ==========================================================================
+   Date Parsing
+   ========================================================================== */
+
 function parseDateParts(value) {
   if (!hasValue(value)) {
     return null;
@@ -190,25 +228,32 @@ function parseDateParts(value) {
   /*
    * yyyy-MM-dd
    */
+
   let match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
 
   if (match) {
     return {
       year: Number(match[1]),
+
       month: Number(match[2]),
+
       day: Number(match[3]),
     };
   }
 
   /*
-   * dd-MM-yyyy / dd/MM/yyyy
+   * dd-MM-yyyy
+   * dd/MM/yyyy
    */
+
   match = text.match(/^(\d{2})[-/](\d{2})[-/](\d{4})/);
 
   if (match) {
     return {
       year: Number(match[3]),
+
       month: Number(match[2]),
+
       day: Number(match[1]),
     };
   }
@@ -216,17 +261,22 @@ function parseDateParts(value) {
   return null;
 }
 
+/* ==========================================================================
+   Display Date
+   ========================================================================== */
+
 export function formatTradingDate(value) {
   if (!hasValue(value)) {
     return "";
   }
 
+  const text = String(value).trim();
+
   /*
    * Preserve backend display strings.
    *
-   * We only normalize ISO yyyy-MM-dd because native date values use it.
+   * Only normalize exact native yyyy-MM-dd values.
    */
-  const text = String(value).trim();
 
   const iso = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
 
@@ -234,8 +284,12 @@ export function formatTradingDate(value) {
     return text;
   }
 
-  return `${iso[3]}-${iso[2]}-${iso[1]}`;
+  return [iso[3], iso[2], iso[1]].join("-");
 }
+
+/* ==========================================================================
+   Request Date
+   ========================================================================== */
 
 export function toRequestDate(value) {
   const parts = parseDateParts(value);
@@ -247,6 +301,10 @@ export function toRequestDate(value) {
   return [pad2(parts.day), pad2(parts.month), parts.year].join("-");
 }
 
+/* ==========================================================================
+   Native Input Date
+   ========================================================================== */
+
 function toInputDate(date) {
   return [
     date.getFullYear(),
@@ -255,17 +313,47 @@ function toInputDate(date) {
   ].join("-");
 }
 
-export function getDefaultTradingDateRange() {
-  const to = new Date();
+/* ==========================================================================
+   Calendar Month
+   ========================================================================== */
 
-  const from = new Date(to.getFullYear(), to.getMonth(), to.getDate());
+function getDaysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
 
+function subtractCalendarMonth(date) {
   /*
-   * Business default:
+   * Native:
    *
-   * one calendar month ago -> today
+   * new Date(2026, 2, 31).setMonth(1)
+   *
+   * can roll into March because February has fewer days.
+   *
+   * Trading requires one CALENDAR month, so clamp the day explicitly:
+   *
+   * 31 March -> 28/29 February
    */
-  from.setMonth(from.getMonth() - 1);
+
+  const target = new Date(date.getFullYear(), date.getMonth() - 1, 1);
+
+  const targetDay = Math.min(
+    date.getDate(),
+    getDaysInMonth(target.getFullYear(), target.getMonth()),
+  );
+
+  target.setDate(targetDay);
+
+  return target;
+}
+
+/* ==========================================================================
+   Default Trading Date Range
+   ========================================================================== */
+
+export function getDefaultTradingDateRange(today = new Date()) {
+  const to = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  const from = subtractCalendarMonth(to);
 
   return Object.freeze({
     fromDate: toInputDate(from),
@@ -275,33 +363,37 @@ export function getDefaultTradingDateRange() {
 }
 
 /* ==========================================================================
-   Change
+   Change State
    ========================================================================== */
 
 function getChangeClass(value) {
   const number = parseNumber(value);
 
   if (number === null || number === 0) {
-    return "";
+    return "price-neutral";
   }
 
-  return number > 0 ? "is-positive" : "is-negative";
+  return number > 0 ? "price-up" : "price-down";
 }
+
+/* ==========================================================================
+   Price Change
+   ========================================================================== */
 
 export function renderPriceChange(
   displayValue,
   numericValue = displayValue,
-  { percent = false, config = {} } = {},
+  { percent = false, config = {}, className = "table-market__change" } = {},
 ) {
   const display = percent
     ? formatPercent(displayValue, config)
     : getDisplayValue(displayValue, "-");
 
-  const className = getChangeClass(numericValue);
+  const stateClass = getChangeClass(numericValue);
 
   return `
     <span
-      class="data-change${className ? ` ${className}` : ""}"
+      class="${escapeHtml([className, stateClass].filter(Boolean).join(" "))}"
     >
       ${escapeHtml(display)}
     </span>
@@ -309,21 +401,137 @@ export function renderPriceChange(
 }
 
 /* ==========================================================================
-   Status
+   Company Status
    ========================================================================== */
 
-export function renderStatusMarker(status) {
-  if (!hasValue(status)) {
+/*
+ * Exact legacy Trading contract:
+ *
+ * 1 -> accumulated loss warning
+ *      ylwSymbol
+ *
+ * 2 -> accumulated loss caution
+ *      orgSymbol
+ *
+ * 3 -> accumulated loss danger
+ *      redSymbol
+ *
+ * Do not infer these states from text such as "20", "35", "50".
+ * The backend status value is authoritative.
+ */
+
+export function getCompanyStatus(value, config = {}) {
+  const normalized = String(value ?? "").trim();
+
+  const labels = config.labels?.status || {};
+
+  switch (normalized) {
+    case "1":
+      return Object.freeze({
+        value: 1,
+
+        key: "warning",
+
+        className: "table-market__status--warning",
+
+        legacyClassName: "ylwSymbol",
+
+        title: labels.losses20To35 || "",
+      });
+
+    case "2":
+      return Object.freeze({
+        value: 2,
+
+        key: "caution",
+
+        className: "table-market__status--caution",
+
+        legacyClassName: "orgSymbol",
+
+        title: labels.losses35To50 || "",
+      });
+
+    case "3":
+      return Object.freeze({
+        value: 3,
+
+        key: "danger",
+
+        className: "table-market__status--danger",
+
+        legacyClassName: "redSymbol",
+
+        title: labels.losses50More || "",
+      });
+
+    default:
+      return Object.freeze({
+        value: null,
+
+        key: "",
+
+        className: "",
+
+        legacyClassName: "",
+
+        title: "",
+      });
+  }
+}
+
+/* ==========================================================================
+   Company Status Markup
+   ========================================================================== */
+
+export function renderCompanyStatus(
+  value,
+  config = {},
+  { className = "" } = {},
+) {
+  const status =
+    typeof value === "object" && value !== null && "key" in value
+      ? value
+      : getCompanyStatus(value, config);
+
+  if (!status.key) {
     return "";
   }
 
-  const value = String(status).trim();
+  const classes = [
+    "table-market__status",
+
+    status.className,
+
+    /*
+     * Compatibility with the exact legacy class contract.
+     *
+     * This can be removed later only after all legacy page-level styling has
+     * been fully migrated.
+     */
+
+    status.legacyClassName,
+
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  if (status.title) {
+    return `
+      <span
+        class="${escapeHtml(classes)}"
+        role="img"
+        aria-label="${escapeHtml(status.title)}"
+        title="${escapeHtml(status.title)}"
+      ></span>
+    `.trim();
+  }
 
   return `
     <span
-      class="data-card__status"
-      title="${escapeHtml(value)}"
-      aria-label="${escapeHtml(value)}"
+      class="${escapeHtml(classes)}"
+      aria-hidden="true"
     ></span>
   `.trim();
 }
@@ -332,7 +540,7 @@ export function renderStatusMarker(status) {
    Security Link
    ========================================================================== */
 
-function renderSecurityLink(label, url, className = "") {
+export function renderSecurityLink(label, url, className = "") {
   const text = getDisplayValue(label, "-");
 
   const safe = safeUrl(url);
@@ -356,14 +564,22 @@ function renderSecurityLink(label, url, className = "") {
    ========================================================================== */
 
 /*
- * These mappings intentionally follow the real endpoint shapes from the
- * previous working Trading implementation.
+ * Endpoint-specific identity mappings.
+ *
+ * IMPORTANT:
+ *
+ * These property names come from the existing Trading backend contracts.
+ * They must not be normalized into invented generic response fields.
  */
 
 export function getTradingIdentity(row = {}, view = "") {
   switch (view) {
+    /* ----------------------------------------------------------------------
+       Negotiated Deals
+       ---------------------------------------------------------------------- */
+
     case "negotiatedDeals":
-      return {
+      return Object.freeze({
         code: getDisplayValue(row.symbol, ""),
 
         name: getDisplayValue(row.company, ""),
@@ -371,10 +587,14 @@ export function getTradingIdentity(row = {}, view = "") {
         url: safeUrl(row.companyURL),
 
         status: null,
-      };
+      });
+
+    /* ----------------------------------------------------------------------
+       Accumulated Losses
+       ---------------------------------------------------------------------- */
 
     case "accumulatedLosses":
-      return {
+      return Object.freeze({
         code: getDisplayValue(row.symbol, ""),
 
         name: getDisplayValue(row.company, ""),
@@ -382,22 +602,37 @@ export function getTradingIdentity(row = {}, view = "") {
         url: safeUrl(row.companyURL),
 
         status: row.companyStatus,
-      };
+      });
+
+    /* ----------------------------------------------------------------------
+       Listed Tradable Rights
+       ---------------------------------------------------------------------- */
 
     case "listedTradableRights":
-      return {
-        code: "",
+      return Object.freeze({
+        /*
+         * Some response versions may expose a symbol in addition to
+         * acrynomName. Use it when available but never require it.
+         */
+
+        code: getDisplayValue(
+          firstDefined(row.symbol, row.companySymbol, ""),
+          "",
+        ),
 
         name: getDisplayValue(row.acrynomName, ""),
 
         url: safeUrl(row.pageUrl),
 
-        status: null,
-      };
+        status: row.companyStatus ?? null,
+      });
+
+    /* ----------------------------------------------------------------------
+       Suspended
+       ---------------------------------------------------------------------- */
 
     case "suspendedCompanies":
-    case "delistedCompanies":
-      return {
+      return Object.freeze({
         code: getDisplayValue(row.symbol, ""),
 
         name: getDisplayValue(row.name, ""),
@@ -405,10 +640,29 @@ export function getTradingIdentity(row = {}, view = "") {
         url: safeUrl(row.companyURL),
 
         status: row.companyStatus,
-      };
+      });
+
+    /* ----------------------------------------------------------------------
+       Delisted
+       ---------------------------------------------------------------------- */
+
+    case "delistedCompanies":
+      return Object.freeze({
+        code: getDisplayValue(row.symbol, ""),
+
+        name: getDisplayValue(row.name, ""),
+
+        url: safeUrl(row.companyURL),
+
+        status: row.companyStatus,
+      });
+
+    /* ----------------------------------------------------------------------
+       OTC
+       ---------------------------------------------------------------------- */
 
     case "otcTrading":
-      return {
+      return Object.freeze({
         code: getDisplayValue(row.symbol, ""),
 
         name: getDisplayValue(row.companyName, ""),
@@ -416,49 +670,364 @@ export function getTradingIdentity(row = {}, view = "") {
         url: safeUrl(row.companyURL),
 
         status: row.companyStatus,
-      };
+      });
 
     default:
-      return {
+      return Object.freeze({
         code: "",
+
         name: "",
+
         url: "",
+
         status: null,
-      };
+      });
   }
 }
 
 /* ==========================================================================
-   Identity Cell
+   Company Name
    ========================================================================== */
 
-export function renderIdentityCell(row, view) {
-  const identity = getTradingIdentity(row, view);
+/*
+ * Used by logo fallback generation without requiring a view name.
+ */
 
-  const name = renderSecurityLink(
-    identity.name,
-    identity.url,
-    "trading-security-link",
+function getAnyCompanyName(row = {}) {
+  return normalizeString(
+    firstDefined(
+      row.company,
+      row.companyName,
+      row.name,
+      row.acrynomName,
+      row.longName,
+      "",
+    ),
+  );
+}
+
+/* ==========================================================================
+   Company Code
+   ========================================================================== */
+
+export function getCompanyCode(row = {}) {
+  return normalizeString(
+    firstDefined(
+      row.companyCode,
+      row.companyRef,
+      row.companySymbol,
+      row.symbol,
+      row.securityCode,
+      "",
+    ),
+  );
+}
+
+/* ==========================================================================
+   Company Initials
+   ========================================================================== */
+
+function getInitials(value) {
+  return String(value || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0))
+    .join("")
+    .toUpperCase();
+}
+
+/* ==========================================================================
+   Company Logo URL
+   ========================================================================== */
+
+export function getCompanyLogoFallbackUrl(config = {}) {
+  return normalizeString(config.assets?.companyLogoFallbackUrl);
+}
+
+export function getCompanyLogoUrl(row = {}, config = {}) {
+  /*
+   * Prefer an explicit URL from the API when available.
+   */
+
+  const directUrl = firstDefined(
+    row.companyLogoUrl,
+    row.logoUrl,
+    row.imageUrl,
+    row.companyImageUrl,
+    row.logo,
+    row.image,
   );
 
-  const code = identity.code
+  if (hasValue(directUrl)) {
+    const safe = safeUrl(directUrl);
+
+    if (safe) {
+      return safe;
+    }
+  }
+
+  /*
+   * Otherwise build the URL using the same company-code contract as
+   * Market Watch.
+   */
+
+  const template = normalizeString(config.assets?.companyLogoUrlTemplate);
+
+  const companyCode = getCompanyCode(row);
+
+  if (template && companyCode) {
+    return template.replace("{companyCode}", encodeURIComponent(companyCode));
+  }
+
+  /*
+   * Stable generic fallback.
+   */
+
+  return getCompanyLogoFallbackUrl(config);
+}
+
+/* ==========================================================================
+   Company Logo
+   ========================================================================== */
+
+function normalizeLogoSize(value, fallback = 40) {
+  const size = Number(value);
+
+  return Number.isFinite(size) && size > 0 ? size : fallback;
+}
+
+export function renderCompanyLogo(
+  row = {},
+  config = {},
+  { className = "table-market__logo", size = 40 } = {},
+) {
+  const logoUrl = getCompanyLogoUrl(row, config);
+
+  const fallbackUrl = getCompanyLogoFallbackUrl(config);
+
+  const companyName = getAnyCompanyName(row);
+
+  const initials = getInitials(companyName);
+
+  const normalizedSize = normalizeLogoSize(size, 40);
+
+  /*
+   * If no image contract exists at all, retain a proper visual identity
+   * surface rather than rendering a broken image.
+   */
+
+  if (!logoUrl) {
+    return `
+      <span
+        class="${escapeHtml(className)}"
+        aria-hidden="true"
+      >
+        <span
+          class="${escapeHtml(`${className}-fallback`)}"
+        >
+          ${escapeHtml(initials || "—")}
+        </span>
+      </span>
+    `.trim();
+  }
+
+  const fallbackAttribute =
+    fallbackUrl && fallbackUrl !== logoUrl
+      ? `
+          data-trading-logo-fallback="${escapeHtml(fallbackUrl)}"
+        `.trim()
+      : "";
+
+  return `
+    <span
+      class="${escapeHtml(className)}"
+      aria-hidden="true"
+    >
+      <img
+        src="${escapeHtml(logoUrl)}"
+        alt=""
+        width="${normalizedSize}"
+        height="${normalizedSize}"
+        loading="lazy"
+        data-trading-logo
+        ${fallbackAttribute}
+      />
+    </span>
+  `.trim();
+}
+
+/* ==========================================================================
+   Desktop Identity Content
+   ========================================================================== */
+
+function renderDesktopIdentityContent(identity, config = {}) {
+  const status = getCompanyStatus(identity.status, config);
+
+  const nameMarkup = `
+    <span
+      class="table-market__name"
+    >
+      ${escapeHtml(identity.name || "-")}
+    </span>
+  `.trim();
+
+  const symbolMarkup = identity.code
     ? `
-          <span class="trading-security__symbol">
+          <span
+            class="table-market__symbol"
+          >
             ${escapeHtml(identity.code)}
           </span>
         `.trim()
     : "";
 
-  return `
-    <div class="trading-security">
-      ${code}
+  const statusMarkup = renderCompanyStatus(status, config);
 
-      <span class="trading-security__name">
-        ${name}
+  const secondaryMarkup =
+    symbolMarkup || statusMarkup
+      ? `
+          <span
+            class="table-market__identity-status"
+          >
+            ${symbolMarkup}
+            ${statusMarkup}
+          </span>
+        `.trim()
+      : "";
+
+  return `
+    ${nameMarkup}
+    ${secondaryMarkup}
+  `.trim();
+}
+
+/* ==========================================================================
+   Desktop Company / Security Cell
+   ========================================================================== */
+
+/*
+ * Canonical Trading identity:
+ *
+ * [ logo ]  Company Name
+ *           Symbol   •status
+ *
+ * This intentionally follows the Market Watch visual system.
+ */
+
+export function renderTradingCompanyCell(row, view, config = {}) {
+  const identity = getTradingIdentity(row, view);
+
+  const identityContent = renderDesktopIdentityContent(identity, config);
+
+  const linkedContent = identity.url
+    ? `
+          <a
+            class="table-market__security-link"
+            href="${escapeHtml(identity.url)}"
+          >
+            ${identityContent}
+          </a>
+        `.trim()
+    : `
+          <span
+            class="table-market__security-link"
+          >
+            ${identityContent}
+          </span>
+        `.trim();
+
+  return `
+    <div
+      class="table-market__security-cell"
+    >
+      ${renderCompanyLogo(row, config, {
+        className: "table-market__logo",
+
+        size: 40,
+      })}
+
+      ${linkedContent}
+    </div>
+  `.trim();
+}
+
+/* ==========================================================================
+   Compatibility Identity API
+   ========================================================================== */
+
+/*
+ * Keep the previous public function while existing view modules are migrated.
+ *
+ * New code should prefer renderTradingCompanyCell().
+ */
+
+export function renderIdentityCell(row, view, config = {}) {
+  return renderTradingCompanyCell(row, view, config);
+}
+
+/* ==========================================================================
+   Standalone Symbol Cell
+   ========================================================================== */
+
+/*
+ * Some current Trading JSPs still contain a separate Symbol column.
+ *
+ * Until those tabs are migrated to one combined Market Watch-style identity
+ * column, use this formatter so status dots remain correct and consistent.
+ */
+
+export function renderTradingSymbolCell(row, view, config = {}) {
+  const identity = getTradingIdentity(row, view);
+
+  const statusMarkup = renderCompanyStatus(identity.status, config);
+
+  return `
+    <span
+      class="table-market__symbol-status"
+    >
+      <span
+        class="table-market__symbol"
+      >
+        ${escapeHtml(identity.code || "-")}
       </span>
 
-      ${renderStatusMarker(identity.status)}
-    </div>
+      ${statusMarkup}
+    </span>
+  `.trim();
+}
+
+/* ==========================================================================
+   Announcement URL
+   ========================================================================== */
+
+export function getSuspendedAnnouncementUrl(row = {}) {
+  return safeUrl(firstDefined(row.annUrl, row.newsUrl, row.newsURL, row.url));
+}
+
+export function getDelistedAnnouncementUrl(row = {}) {
+  return safeUrl(firstDefined(row.newsUrl, row.newsURL, row.url));
+}
+
+/* ==========================================================================
+   Announcement Link
+   ========================================================================== */
+
+export function renderAnnouncementLink(url, label) {
+  const safe = safeUrl(url);
+
+  if (!safe) {
+    return "-";
+  }
+
+  return `
+    <a
+      class="table-market__action-link"
+      href="${escapeHtml(safe)}"
+    >
+      ${escapeHtml(getDisplayValue(label, "View"))}
+    </a>
   `.trim();
 }
 
@@ -492,67 +1061,136 @@ export function renderTradingCell({
   const value = getColumnValue(row, column);
 
   /*
-   * DataTables sorting/filtering must receive raw data rather than HTML.
+   * DataTables sorting/searching should receive raw values rather than
+   * rendered markup.
    */
+
   if (type !== "display") {
     return value ?? "";
   }
 
   switch (column.format) {
+    /* ----------------------------------------------------------------------
+       Identity
+       ---------------------------------------------------------------------- */
+
     case "identity":
-      return renderIdentityCell(row, view || column.view);
+      return renderTradingCompanyCell(row, view || column.view, config);
+
+    /* ----------------------------------------------------------------------
+       Separate Symbol + Status
+       ---------------------------------------------------------------------- */
+
+    case "symbol-status":
+      return renderTradingSymbolCell(row, view || column.view, config);
+
+    /* ----------------------------------------------------------------------
+       Number
+       ---------------------------------------------------------------------- */
 
     case "number":
       return escapeHtml(formatNumber(value, config));
 
+    /* ----------------------------------------------------------------------
+       Quantity
+       ---------------------------------------------------------------------- */
+
     case "quantity":
       return escapeHtml(formatQuantity(value, config));
+
+    /* ----------------------------------------------------------------------
+       Money
+       ---------------------------------------------------------------------- */
 
     case "money":
       return escapeHtml(formatMoney(value, config));
 
+    /* ----------------------------------------------------------------------
+       Percent
+       ---------------------------------------------------------------------- */
+
     case "percent":
       return escapeHtml(formatPercent(value, config));
+
+    /* ----------------------------------------------------------------------
+       Date
+       ---------------------------------------------------------------------- */
 
     case "date":
       return escapeHtml(getDisplayValue(formatTradingDate(value), "-"));
 
+    /* ----------------------------------------------------------------------
+       Change
+       ---------------------------------------------------------------------- */
+
     case "change":
       return renderPriceChange(
         value,
+
         column.numericData ? row?.[column.numericData] : value,
+
         {
           config,
         },
       );
+
+    /* ----------------------------------------------------------------------
+       Percent Change
+       ---------------------------------------------------------------------- */
 
     case "percent-change":
       return renderPriceChange(
         value,
+
         column.numericData ? row?.[column.numericData] : value,
+
         {
           percent: true,
+
           config,
         },
       );
 
+    /* ----------------------------------------------------------------------
+       Link
+       ---------------------------------------------------------------------- */
+
     case "link":
       return renderSecurityLink(
         value,
+
         column.urlData ? row?.[column.urlData] : "",
+
+        column.linkClassName || "",
       );
 
+    /* ----------------------------------------------------------------------
+       Suspended Announcement
+       ---------------------------------------------------------------------- */
+
+    case "suspended-announcement":
     case "suspended-news-link":
-      return renderSecurityLink(
-        config.labels?.suspendedLink || getDisplayValue(value, "-"),
-        firstDefined(row.newsURL, row.newsUrl, row.url),
+      return renderAnnouncementLink(
+        getSuspendedAnnouncementUrl(row),
+
+        config.labels?.suspendedLink || getDisplayValue(value, "View"),
       );
 
+    /* ----------------------------------------------------------------------
+       Delisted Announcement
+       ---------------------------------------------------------------------- */
+
+    case "delisted-news":
     case "delisted-news-link":
-      return renderSecurityLink(
-        config.labels?.delistedLink || getDisplayValue(value, "-"),
-        firstDefined(row.newsURL, row.newsUrl, row.url),
+      return renderAnnouncementLink(
+        getDelistedAnnouncementUrl(row),
+
+        config.labels?.delistedLink || getDisplayValue(value, "View"),
       );
+
+    /* ----------------------------------------------------------------------
+       Plain
+       ---------------------------------------------------------------------- */
 
     default:
       return escapeHtml(getDisplayValue(value, "-"));
@@ -563,79 +1201,137 @@ export function renderTradingCell({
    Mobile Identity
    ========================================================================== */
 
-export function renderMobileIdentity(row, view) {
+/*
+ * Canonical Trading mobile identity:
+ *
+ * [logo] Company Name          [quote owned by the view]
+ *        Symbol •status
+ *
+ * renderMobileIdentity() owns ONLY the left identity.
+ *
+ * Negotiated / Listed / OTC summaries remain separate so cards can use the
+ * same balanced Market Watch composition instead of putting price/change
+ * inside ordinary detail fields.
+ */
+
+export function renderMobileIdentity(row, view, config = {}) {
   const identity = getTradingIdentity(row, view);
 
-  const codeMarkup = identity.code
-    ? `
-          <div class="data-card__identity-code">
-            <span class="data-card__symbol">
-              ${escapeHtml(identity.code)}
-            </span>
+  const statusMarkup = renderCompanyStatus(identity.status, config);
 
-            ${renderStatusMarker(identity.status)}
-          </div>
+  const symbolMarkup = identity.code
+    ? `
+          <span
+            class="data-card__symbol"
+          >
+            ${escapeHtml(identity.code)}
+          </span>
         `.trim()
     : "";
 
-  const nameMarkup = `
-    <h4 class="data-card__title">
-      ${escapeHtml(identity.name)}
-    </h4>
-  `.trim();
+  const secondaryMarkup =
+    symbolMarkup || statusMarkup
+      ? `
+          <span
+            class="data-card__identity-code"
+          >
+            ${symbolMarkup}
+            ${statusMarkup}
+          </span>
+        `.trim()
+      : "";
 
-  const content = `
-    <div class="data-card__identity-content">
-      ${codeMarkup}
-      ${nameMarkup}
+  const identityContent = `
+    <div
+      class="data-card__identity-content"
+    >
+      <h4
+        class="data-card__title"
+      >
+        ${escapeHtml(identity.name || "-")}
+      </h4>
+
+      ${secondaryMarkup}
     </div>
   `.trim();
 
-  if (!identity.url) {
-    return `
-      <div class="data-card__identity">
-        ${content}
-      </div>
-    `.trim();
-  }
+  const linkedIdentity = identity.url
+    ? `
+          <a
+            class="data-card__security-link"
+            href="${escapeHtml(identity.url)}"
+          >
+            ${identityContent}
+          </a>
+        `.trim()
+    : identityContent;
 
   return `
-    <div class="data-card__identity">
-      <a
-        class="data-card__security-link"
-        href="${escapeHtml(identity.url)}"
-      >
-        ${content}
-      </a>
+    <div
+      class="data-card__identity"
+    >
+      ${renderCompanyLogo(row, config, {
+        className: "data-card__logo",
+
+        size: 44,
+      })}
+
+      ${linkedIdentity}
     </div>
   `.trim();
 }
-
 /* ==========================================================================
    Negotiated Mobile Summary
    ========================================================================== */
+
+/*
+ * Negotiated mobile composition:
+ *
+ * LEFT
+ *   company identity
+ *
+ * RIGHT
+ *   Price
+ *   Value
+ *
+ * Volume and Time remain expandable details.
+ */
 
 export function renderNegotiatedMobileSummary(row, config = {}) {
   const labels = config.labels?.negotiatedDeals || {};
 
   return `
-    <div class="data-card__quote">
-      <div class="data-card__quote-item">
-        <span class="data-card__quote-label">
+    <div
+      class="data-card__quote"
+    >
+      <div
+        class="data-card__quote-item"
+      >
+        <span
+          class="data-card__quote-label"
+        >
           ${escapeHtml(labels.price || "Price")}
         </span>
 
-        <span class="data-card__price">
+        <span
+          class="data-card__price"
+        >
           ${escapeHtml(formatMoney(row?.tradePrice, config))}
         </span>
       </div>
 
-      <div class="data-card__quote-item">
-        <span class="data-card__quote-label">
+      <div
+        class="data-card__quote-item"
+      >
+        <span
+          class="data-card__quote-label"
+        >
           ${escapeHtml(labels.value || "Value")}
         </span>
 
-        <span class="data-card__change">
+        <span
+          class="data-card__change"
+        >
           ${escapeHtml(formatMoney(row?.turnOver, config))}
         </span>
       </div>
@@ -647,29 +1343,61 @@ export function renderNegotiatedMobileSummary(row, config = {}) {
    Listed Tradable Mobile Summary
    ========================================================================== */
 
+/*
+ * Listed Tradable follows the same Market Watch card hierarchy:
+ *
+ * LEFT
+ *   security identity
+ *
+ * RIGHT
+ *   Price
+ *   Change %
+ *
+ * Do not repeat Price / Change % inside expandable fields.
+ */
+
 export function renderListedTradableMobileSummary(row, config = {}) {
   const labels = config.labels?.listedTradable || {};
 
   return `
-    <div class="data-card__quote">
-      <div class="data-card__quote-item">
-        <span class="data-card__quote-label">
+    <div
+      class="data-card__quote"
+    >
+      <div
+        class="data-card__quote-item"
+      >
+        <span
+          class="data-card__quote-label"
+        >
           ${escapeHtml(labels.lastTradePrice || "Price")}
         </span>
 
-        <span class="data-card__price">
+        <span
+          class="data-card__price"
+        >
           ${escapeHtml(getDisplayValue(row?.lastTradePriceModified, "-"))}
         </span>
       </div>
 
-      <div class="data-card__quote-item">
-        <span class="data-card__quote-label">
+      <div
+        class="data-card__quote-item"
+      >
+        <span
+          class="data-card__quote-label"
+        >
           ${escapeHtml(labels.changePercent || "Change %")}
         </span>
 
         ${renderPriceChange(
           row?.percentChangeModified,
+
           row?.percentChangeDoubleModified,
+
+          {
+            percent: true,
+
+            config,
+          },
         )}
       </div>
     </div>
@@ -681,14 +1409,24 @@ export function renderListedTradableMobileSummary(row, config = {}) {
    ========================================================================== */
 
 export function renderOtcMobileSummary(row, config = {}) {
+  const labels = config.labels?.otc || {};
+
   return `
-    <div class="data-card__quote">
-      <div class="data-card__quote-item">
-        <span class="data-card__quote-label">
-          ${escapeHtml(config.labels?.otc?.tradedVolume || "Traded Volume")}
+    <div
+      class="data-card__quote"
+    >
+      <div
+        class="data-card__quote-item"
+      >
+        <span
+          class="data-card__quote-label"
+        >
+          ${escapeHtml(labels.tradedVolume || "Traded Volume")}
         </span>
 
-        <span class="data-card__price">
+        <span
+          class="data-card__price"
+        >
           ${escapeHtml(formatQuantity(row?.lastTradeVolume, config))}
         </span>
       </div>
@@ -720,6 +1458,13 @@ export function renderMobileSummaryValue(row, view, config = {}) {
    Mobile Field
    ========================================================================== */
 
+/*
+ * Generic bridge between table schemas and standard data-card fields.
+ *
+ * Individual views may still define explicit mobile fields when their
+ * hierarchy differs from the desktop column order.
+ */
+
 export function createMobileField(row, column, config = {}, view = "") {
   return {
     key: column.key,
@@ -729,7 +1474,9 @@ export function createMobileField(row, column, config = {}, view = "") {
     value: renderTradingCell({
       row,
       column,
+
       type: "display",
+
       config,
       view,
     }),
@@ -746,11 +1493,16 @@ export function getNegotiatedDateGroup(row) {
   return formatTradingDate(row?.strDate);
 }
 
+/* ==========================================================================
+   Total Row Detection
+   ========================================================================== */
+
 export function isTotalRow(row = {}) {
   /*
-   * Keep this tolerant because historical Negotiated responses have represented
-   * total rows through more than one field/value shape.
+   * Historical Negotiated responses have represented daily totals in several
+   * compatible ways.
    */
+
   if (row.isTotal === true || row.total === true) {
     return true;
   }
@@ -768,6 +1520,10 @@ export function isTotalRow(row = {}) {
   return symbol === "total";
 }
 
+/* ==========================================================================
+   Negotiated Total Values
+   ========================================================================== */
+
 function getNegotiatedTotalVolume(row = {}) {
   return firstDefined(
     row.totalVolume,
@@ -782,8 +1538,12 @@ function getNegotiatedTotalValue(row = {}) {
 }
 
 /* ==========================================================================
-   Negotiated Daily Total
+   Negotiated Daily Total Card
    ========================================================================== */
+
+/*
+ * Daily total is a summary card, not a normal expandable company card.
+ */
 
 export function renderNegotiatedDailyTotalCard(row, config = {}) {
   const dailyLabel = config.labels?.mobile?.daily || "Daily";
@@ -797,40 +1557,68 @@ export function renderNegotiatedDailyTotalCard(row, config = {}) {
 
   return `
     <article
-      class="data-card data-card--compact trading-daily-total-card"
+      class="
+        data-card
+        data-card--compact
+        trading-daily-total-card
+      "
     >
-      <div class="data-card__main">
-        <div class="data-card__identity">
-          <div class="data-card__identity-content">
-            <span class="data-card__symbol">
+      <div
+        class="data-card__main"
+      >
+        <div
+          class="data-card__identity"
+        >
+          <div
+            class="data-card__identity-content"
+          >
+            <span
+              class="data-card__symbol"
+            >
               ${escapeHtml(dailyLabel)}
             </span>
 
-            <h4 class="data-card__title">
+            <h4
+              class="data-card__title"
+            >
               ${escapeHtml(totalLabel)}
             </h4>
           </div>
         </div>
 
-        <div class="data-card__quote">
-          <div class="data-card__quote-item">
-            <span class="data-card__quote-label">
+        <div
+          class="data-card__quote"
+        >
+          <div
+            class="data-card__quote-item"
+          >
+            <span
+              class="data-card__quote-label"
+            >
               ${escapeHtml(volumeLabel)}
             </span>
 
-            <span class="data-card__price">
+            <span
+              class="data-card__price"
+            >
               ${escapeHtml(
                 formatQuantity(getNegotiatedTotalVolume(row), config),
               )}
             </span>
           </div>
 
-          <div class="data-card__quote-item">
-            <span class="data-card__quote-label">
+          <div
+            class="data-card__quote-item"
+          >
+            <span
+              class="data-card__quote-label"
+            >
               ${escapeHtml(valueLabel)}
             </span>
 
-            <span class="data-card__change">
+            <span
+              class="data-card__change"
+            >
               ${escapeHtml(formatMoney(getNegotiatedTotalValue(row), config))}
             </span>
           </div>
@@ -841,15 +1629,25 @@ export function renderNegotiatedDailyTotalCard(row, config = {}) {
 }
 
 /* ==========================================================================
-   Minimum Size
+   Minimum Size Values
    ========================================================================== */
 
+/*
+ * Exact existing Minimum Size matrix response:
+ *
+ * col1
+ * col2
+ * col3
+ * col4
+ */
+
 export function getMinimumSizeValues(row = {}) {
-  /*
-   * Actual Minimum Size backend matrix.
-   */
   return [row.col1, row.col2, row.col3, row.col4];
 }
+
+/* ==========================================================================
+   Minimum Size Display Value
+   ========================================================================== */
 
 function getMinimumSizeDisplayValue(value) {
   if (value && typeof value === "object") {
@@ -858,6 +1656,10 @@ function getMinimumSizeDisplayValue(value) {
 
   return value;
 }
+
+/* ==========================================================================
+   Minimum Size Search Text
+   ========================================================================== */
 
 export function getMinimumSizeSearchText(row = {}) {
   return getMinimumSizeValues(row)
@@ -873,6 +1675,10 @@ export function getMinimumSizeSearchText(row = {}) {
     .join(" ")
     .toLowerCase();
 }
+
+/* ==========================================================================
+   Minimum Size Security Reference
+   ========================================================================== */
 
 function renderSecurityReference(value) {
   if (value && typeof value === "object") {
@@ -891,25 +1697,56 @@ function renderSecurityReference(value) {
   return escapeHtml(getDisplayValue(value, "-"));
 }
 
+/* ==========================================================================
+   Minimum Size Value
+   ========================================================================== */
+
 export function renderMinimumSizeValue(value) {
   return renderSecurityReference(value);
 }
 
+/* ==========================================================================
+   Minimum Size Desktop Row
+   ========================================================================== */
+
 export function renderMinimumSizeDesktopRow(row) {
   return `
-    <tr class="trading-minimum-size-row">
+    <tr
+      class="trading-minimum-size-row"
+    >
       <td
         class="trading-minimum-size-row__label"
         aria-hidden="true"
       ></td>
 
-      <td>${renderMinimumSizeValue(row?.col1)}</td>
-      <td>${renderMinimumSizeValue(row?.col2)}</td>
-      <td>${renderMinimumSizeValue(row?.col3)}</td>
-      <td>${renderMinimumSizeValue(row?.col4)}</td>
+      <td>
+        ${renderMinimumSizeValue(row?.col1)}
+      </td>
+
+      <td>
+        ${renderMinimumSizeValue(row?.col2)}
+      </td>
+
+      <td>
+        ${renderMinimumSizeValue(row?.col3)}
+      </td>
+
+      <td>
+        ${renderMinimumSizeValue(row?.col4)}
+      </td>
     </tr>
   `.trim();
 }
+
+/* ==========================================================================
+   Minimum Size Mobile Card
+   ========================================================================== */
+
+/*
+ * Minimum Size is a matrix rather than a company quote.
+ *
+ * Therefore it deliberately does not use the company identity renderer.
+ */
 
 export function renderMinimumSizeMobileCard(row, context = {}, config = {}) {
   const values = getMinimumSizeValues(row);
@@ -918,31 +1755,41 @@ export function renderMinimumSizeMobileCard(row, context = {}, config = {}) {
 
   const columnLabels = [
     labels.col1 || "",
+
     labels.col2 || "",
+
     labels.col3 || "",
+
     labels.col4 || "",
   ];
 
   const fields = values
     .map((value, index) => ({
       value,
+
       label: columnLabels[index],
     }))
     .filter(({ value }) => hasValue(getMinimumSizeDisplayValue(value)))
     .map(({ value, label }) =>
       `
-          <div class="data-card__field">
+          <div
+            class="data-card__field"
+          >
             ${
               label
                 ? `
-                  <span class="data-card__field-label">
-                    ${escapeHtml(label)}
-                  </span>
-                `.trim()
+                    <span
+                      class="data-card__field-label"
+                    >
+                      ${escapeHtml(label)}
+                    </span>
+                  `.trim()
                 : ""
             }
 
-            <span class="data-card__field-value">
+            <span
+              class="data-card__field-value"
+            >
               ${renderMinimumSizeValue(value)}
             </span>
           </div>
@@ -952,15 +1799,24 @@ export function renderMinimumSizeMobileCard(row, context = {}, config = {}) {
 
   return `
     <article
-      class="data-card trading-minimum-size-card"
+      class="
+        data-card
+        trading-minimum-size-card
+      "
       data-index="${escapeHtml(context.index ?? "")}"
     >
-      <div class="data-card__main">
+      <div
+        class="data-card__main"
+      >
         ${fields}
       </div>
     </article>
   `.trim();
 }
+
+/* ==========================================================================
+   Minimum Size Mobile Cards
+   ========================================================================== */
 
 export function renderMinimumSizeMobileCards(rows = [], config = {}) {
   return rows
@@ -976,6 +1832,10 @@ export function renderMinimumSizeMobileCards(rows = [], config = {}) {
     .join("");
 }
 
+/* ==========================================================================
+   Minimum Size Filtering
+   ========================================================================== */
+
 export function filterMinimumSizeRows(rows = [], search = "") {
   const query = String(search || "")
     .trim()
@@ -989,7 +1849,7 @@ export function filterMinimumSizeRows(rows = [], search = "") {
 }
 
 /* ==========================================================================
-   Cards
+   Card Container
    ========================================================================== */
 
 export function getTradingCardContainerClass() {

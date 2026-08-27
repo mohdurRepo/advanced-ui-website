@@ -7,19 +7,20 @@
  *
  * Responsibilities:
  *
- * - define the six Negotiated body columns
+ * - define the exact six-column Negotiated contract
  * - preserve the JSP-owned table header
- * - build the exact backend request contract
- * - normalize the legacy/current response shapes
+ * - build the exact backend request
+ * - normalize legacy/current response wrappers
  * - preserve daily total rows
+ * - render Market Watch-style company identity
  * - render grouped mobile cards
- * - render daily totals
+ * - render daily summary cards
  *
  * Shared responsibilities remain in common/data-view:
  *
  * - request cancellation
  * - loading skeletons
- * - table lifecycle
+ * - DataTables lifecycle
  * - mobile card lifecycle
  * - empty/error states
  * - result state
@@ -89,12 +90,18 @@ function firstDefined(...values) {
    ========================================================================== */
 
 /*
- * IMPORTANT:
+ * Exact physical body/header contract:
  *
- * These six body columns correspond exactly to the six physical JSP header
- * cells.
+ * 1 Date
+ * 2 Company identity
+ * 3 Price
+ * 4 Volume
+ * 5 Value
+ * 6 Time
  *
- * Symbol is supporting metadata inside Company. It is not a seventh column.
+ * Symbol belongs beneath Company Name.
+ *
+ * It is supporting identity metadata, not a seventh table column.
  */
 
 function getColumns(config) {
@@ -120,30 +127,29 @@ function getColumns(config) {
     },
 
     /* ----------------------------------------------------------------------
-       Company + Symbol
+       Company Identity
        ---------------------------------------------------------------------- */
 
     {
       key: "company",
 
-      label: labels.company || "Company",
+      label: labels.company || "Company Name",
 
       data: "company",
 
       /*
-       * renderTradingCell() uses the complete Negotiated identity:
+       * Shared formatter renders:
        *
-       * symbol
-       * company
-       * companyURL
+       * [logo] Company Name
+       *        Symbol
        */
       format: "identity",
 
       view: VIEW,
 
-      width: "28%",
+      width: "17rem",
 
-      className: "table-market__company table-market__identity",
+      className: "table-market__security",
     },
 
     /* ----------------------------------------------------------------------
@@ -161,7 +167,7 @@ function getColumns(config) {
 
       numeric: true,
 
-      width: "14%",
+      width: "8rem",
 
       className: "table-market__number table-market__price",
     },
@@ -181,7 +187,7 @@ function getColumns(config) {
 
       numeric: true,
 
-      width: "16%",
+      width: "10rem",
 
       className: "table-market__number",
     },
@@ -201,7 +207,7 @@ function getColumns(config) {
 
       numeric: true,
 
-      width: "18%",
+      width: "11rem",
 
       className: "table-market__number",
     },
@@ -217,7 +223,7 @@ function getColumns(config) {
 
       data: "strTime",
 
-      width: "14%",
+      width: "8rem",
 
       className: "table-market__number",
     },
@@ -228,9 +234,10 @@ function getColumns(config) {
    Request
    ========================================================================== */
 
-/**
- * Preserve the exact working backend request contract.
+/*
+ * Exact existing backend contract.
  */
+
 function buildRequestData(filters, config) {
   const state = filters.getNegotiatedRequestState();
 
@@ -245,12 +252,6 @@ function buildRequestData(filters, config) {
 
     toDate: state.toDate,
 
-    /*
-     * IMPORTANT:
-     *
-     * Existing Trading endpoints expect requestLocale.
-     * Do not rename this to locale.
-     */
     requestLocale: config.locale || "en",
   };
 }
@@ -295,8 +296,9 @@ function getResponseRows(response) {
   }
 
   /*
-   * Legacy DataTables-style endpoint response.
+   * Legacy DataTables response shape.
    */
+
   if (Array.isArray(value?.aaData)) {
     return value.aaData;
   }
@@ -308,12 +310,13 @@ function getResponseRows(response) {
    Group Normalization
    ========================================================================== */
 
-/**
- * Daily-total rows have historically not always repeated strDate.
+/*
+ * Historical daily-total records may omit strDate.
  *
- * Carry the previous Negotiated date onto an internal presentation-only field
- * so the common card grouping system can keep each total with its date group.
+ * Carry the most recent date onto an internal presentation-only property so
+ * the total remains inside the correct mobile date group.
  */
+
 function normalizeGrouping(rows) {
   let currentDate = "";
 
@@ -360,13 +363,14 @@ function getResponseCount(response, rows) {
   }
 
   /*
-   * Daily-total rows are presentation rows, not individual deals.
+   * Daily summary rows do not represent individual deals.
    */
+
   return rows.filter((row) => !isTotalRow(row)).length;
 }
 
 /* ==========================================================================
-   Normalized Response
+   Response Normalization
    ========================================================================== */
 
 function normalizeResponse(response) {
@@ -397,40 +401,80 @@ function normalizeResponse(response) {
    ========================================================================== */
 
 /*
- * Keep six physical <td> cells.
+ * IMPORTANT:
  *
- * Never convert the row into one colspan cell because the table header and
- * DataTables body must remain structurally compatible.
+ * The total remains six physical cells.
+ *
+ * Do not mutate it into a colspan row because DataTables requires body/header
+ * geometry to remain compatible.
  */
 
 function renderTotalCell({ row, column, config }) {
-  const labels = config.labels?.negotiatedDeals || {};
-
   switch (column.key) {
+    /* ----------------------------------------------------------------------
+       Company / Label
+       ---------------------------------------------------------------------- */
+
     case "company":
       return `
-        <strong>
+        <span
+          class="table-market__summary-label"
+        >
           ${escapeHtml(
             firstDefined(row.label, row.company, config.labels?.total, "Total"),
           )}
-        </strong>
+        </span>
       `.trim();
 
+    /* ----------------------------------------------------------------------
+       Volume
+       ---------------------------------------------------------------------- */
+
     case "trade-volume":
-      return escapeHtml(
-        formatQuantity(
-          firstDefined(row.volume, row.totalVolume, row.tradeVolume),
-          config,
-        ),
-      );
+      return `
+        <span
+          class="table-market__summary-value"
+        >
+          ${escapeHtml(
+            formatQuantity(
+              firstDefined(
+                row.volume,
+                row.totalVolume,
+                row.tradeVolume,
+                row.tradedVolume,
+              ),
+              config,
+            ),
+          )}
+        </span>
+      `.trim();
+
+    /* ----------------------------------------------------------------------
+       Value
+       ---------------------------------------------------------------------- */
 
     case "turnover":
-      return escapeHtml(
-        formatMoney(
-          firstDefined(row.value, row.totalValue, row.turnOver),
-          config,
-        ),
-      );
+      return `
+        <span
+          class="table-market__summary-value"
+        >
+          ${escapeHtml(
+            formatMoney(
+              firstDefined(
+                row.value,
+                row.totalValue,
+                row.turnOver,
+                row.turnover,
+              ),
+              config,
+            ),
+          )}
+        </span>
+      `.trim();
+
+    /* ----------------------------------------------------------------------
+       Intentionally Empty
+       ---------------------------------------------------------------------- */
 
     case "date":
     case "trade-price":
@@ -441,7 +485,7 @@ function renderTotalCell({ row, column, config }) {
 }
 
 /* ==========================================================================
-   Table Cell
+   Cell Rendering
    ========================================================================== */
 
 function renderCell(args, config) {
@@ -456,6 +500,7 @@ function renderCell(args, config) {
     ...args,
 
     config,
+
     view: VIEW,
   });
 }
@@ -463,6 +508,19 @@ function renderCell(args, config) {
 /* ==========================================================================
    Mobile Details
    ========================================================================== */
+
+/*
+ * Mobile summary already contains:
+ *
+ * Company identity
+ * Price
+ * Value
+ *
+ * Therefore expandable details contain only:
+ *
+ * Volume
+ * Time
+ */
 
 function getMobileFields(row, config) {
   const labels = config.labels?.negotiatedDeals || {};
@@ -491,6 +549,10 @@ function getMobileFields(row, config) {
    ========================================================================== */
 
 function renderNegotiatedCard(row, context, config) {
+  /*
+   * Daily total is its own compact summary card.
+   */
+
   if (isTotalRow(row)) {
     return renderNegotiatedDailyTotalCard(row, config);
   }
@@ -504,8 +566,17 @@ function renderNegotiatedCard(row, context, config) {
 
     className: "trading-data-card trading-data-card--negotiated",
 
+    /*
+     * Same composition philosophy as Market Watch:
+     *
+     * LEFT
+     *   logo + company + symbol
+     *
+     * RIGHT
+     *   price + value
+     */
     summary: `
-      ${renderMobileIdentity(row, VIEW)}
+      ${renderMobileIdentity(row, VIEW, config)}
 
       ${renderNegotiatedMobileSummary(row, config)}
     `.trim(),
@@ -521,7 +592,7 @@ function renderNegotiatedCard(row, context, config) {
 }
 
 /* ==========================================================================
-   Mobile Group
+   Mobile Group ID
    ========================================================================== */
 
 function createGroupId(groupKey, index) {
@@ -534,6 +605,10 @@ function createGroupId(groupKey, index) {
   return `trading-negotiated-group-${normalized || index}`;
 }
 
+/* ==========================================================================
+   Mobile Group
+   ========================================================================== */
+
 function renderGroup({ groupKey, cards, groupIndex }) {
   const titleId = createGroupId(groupKey, groupIndex);
 
@@ -545,17 +620,16 @@ function renderGroup({ groupKey, cards, groupIndex }) {
       "
       ${groupKey ? `aria-labelledby="${escapeHtml(titleId)}"` : ""}
     >
-
       ${
         groupKey
           ? `
-            <h3
-              class="data-card-group__title"
-              id="${escapeHtml(titleId)}"
-            >
-              ${escapeHtml(groupKey)}
-            </h3>
-          `
+              <h3
+                class="data-card-group__title"
+                id="${escapeHtml(titleId)}"
+              >
+                ${escapeHtml(groupKey)}
+              </h3>
+            `.trim()
           : ""
       }
 
@@ -567,7 +641,6 @@ function renderGroup({ groupKey, cards, groupIndex }) {
       >
         ${cards}
       </div>
-
     </section>
   `.trim();
 }
@@ -637,11 +710,14 @@ export function createNegotiatedView({ root, config, filters } = {}) {
     initialView: VIEW,
 
     /*
-     * JSP is authoritative.
+     * JSP owns:
      *
-     * This is essential because the JSP already owns:
-     *
-     * Date | Company | Price | Volume | Value | Time
+     * Date
+     * Company
+     * Price
+     * Volume
+     * Value
+     * Time
      */
     headerMode: "existing",
 
@@ -654,22 +730,28 @@ export function createNegotiatedView({ root, config, filters } = {}) {
     },
 
     tableOptions: {
+      /*
+       * Generic Trading defaults first.
+       */
       ...config.tableDefaults,
 
-      ...config.tables?.negotiatedDeals,
-
       /*
-       * Trading uses the design-system .table-responsive wrapper as the
-       * horizontal overflow owner.
+       * Negotiated overrides are authoritative.
+       *
+       * Current contract:
+       *
+       * fixedHeader   = true
+       * fixedColumns  = 0
+       * scrollX       = false
+       *
+       * .table-responsive owns containment/overflow.
        */
-      scrollX: false,
-
-      scrollCollapse: false,
-
-      fixedHeader: false,
-
-      fixedColumns: false,
+      ...config.tables?.negotiatedDeals,
     },
+
+    /* ---------------------------------------------------------------------
+         Row State
+         --------------------------------------------------------------------- */
 
     createdRow(rowElement, row) {
       const total = isTotalRow(row);
@@ -692,16 +774,16 @@ export function createNegotiatedView({ root, config, filters } = {}) {
     initialView: VIEW,
 
     /*
-     * Common cards own their professional skeleton / loading lifecycle.
+     * common/data-view owns skeletons and DataViewCard enhancement.
      */
     renderCard(row, context) {
       return renderNegotiatedCard(row, context, config);
     },
 
-    /*
-     * All normalized rows, including total rows, carry the correct logical
-     * group date.
-     */
+    /* ---------------------------------------------------------------------
+         Date Grouping
+         --------------------------------------------------------------------- */
+
     getGroupKey(row) {
       return row?.__tradingGroupDate || "";
     },
@@ -711,6 +793,10 @@ export function createNegotiatedView({ root, config, filters } = {}) {
     },
 
     renderGroup,
+
+    /* ---------------------------------------------------------------------
+         States
+         --------------------------------------------------------------------- */
 
     emptyMessage: config.labels?.noData || "No data available",
 
@@ -740,16 +826,21 @@ export function createNegotiatedView({ root, config, filters } = {}) {
 
       error: config.labels?.loadError,
 
+      /*
+       * JSP owns the visible Results label.
+       *
+       * Common JS updates only the value node.
+       */
       results: "",
     },
   });
 
   /*
-   * The common controller normally uses rows.length.
+   * Negotiated responses may contain daily total rows.
    *
-   * Negotiated contains daily total rows, so its displayed result count must
-   * use the backend/business count instead.
+   * Use the business/backend count instead of rows.length.
    */
+
   const results = Object.freeze({
     showLoading() {
       baseResults.showLoading();
@@ -788,7 +879,7 @@ export function createNegotiatedView({ root, config, filters } = {}) {
     results,
 
     /*
-     * trading.js explicitly decides when this active view loads.
+     * trading.js owns when the active tab/variant loads.
      */
     autoLoad: false,
 
@@ -812,26 +903,24 @@ export function createNegotiatedView({ root, config, filters } = {}) {
   controller.init();
 
   /* =========================================================================
-     Loading State
+     Busy State
      ========================================================================= */
 
   /*
-   * Common table/cards/results already render their own skeleton/loading
-   * states. This subscription only synchronizes the outer data-view ARIA
-   * state so Trading never leaves cursor:wait behind after the request.
+   * Common table/cards own the visual skeleton state.
+   *
+   * This subscription synchronizes only the outer data-view accessibility
+   * state.
    */
 
   const unsubscribeState = state.subscribe(({ state: snapshot }) => {
-    const loading = Boolean(snapshot.loading);
-
-    root.setAttribute("aria-busy", String(loading));
+    root.setAttribute("aria-busy", String(Boolean(snapshot.loading)));
   });
 
   /*
-   * The JSP may currently ship aria-busy="true".
-   *
-   * The JS lifecycle becomes authoritative immediately after initialization.
+   * JSP no longer owns static aria-busy.
    */
+
   root.setAttribute("aria-busy", "false");
 
   /* =========================================================================
@@ -853,15 +942,41 @@ export function createNegotiatedView({ root, config, filters } = {}) {
       return;
     }
 
+    /*
+     * Important after:
+     *
+     * - initial hidden tab initialization
+     * - returning from Minimum Size
+     * - viewport changes
+     */
+
     requestAnimationFrame(() => {
       try {
         api.columns?.adjust?.();
+
+        api.fixedHeader?.adjust?.();
 
         api.responsive?.recalc?.();
       } catch (error) {
         console.warn("Negotiated table adjustment failed:", error);
       }
     });
+  }
+
+  /* =========================================================================
+     Queries
+     ========================================================================= */
+
+  function getRows() {
+    return controller.getSourceRows?.() || [];
+  }
+
+  function getVisibleRows() {
+    return controller.getVisibleRows?.() || [];
+  }
+
+  function getTable() {
+    return table.getApi?.() || null;
   }
 
   /* =========================================================================
@@ -886,17 +1001,9 @@ export function createNegotiatedView({ root, config, filters } = {}) {
     reload,
     adjust,
 
-    getRows() {
-      return controller.getSourceRows?.() || [];
-    },
-
-    getVisibleRows() {
-      return controller.getVisibleRows?.() || [];
-    },
-
-    getTable() {
-      return table.getApi?.() || null;
-    },
+    getRows,
+    getVisibleRows,
+    getTable,
 
     destroy,
   });
