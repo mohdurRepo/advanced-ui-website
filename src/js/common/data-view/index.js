@@ -5,23 +5,8 @@
 /*
  * Public entry point for reusable data-view application utilities.
  *
- * Page modules should import reusable data-view functionality from this file
- * rather than depending directly on implementation files.
- *
- * Example:
- *
- * import {
- *   applyWatchlistFilter,
- *   createDataCards,
- *   createDataColumnPicker,
- *   createDataColumnVisibility,
- *   createDataFilters,
- *   createDataResults,
- *   createDataSource,
- *   createDataState,
- *   createDataTable,
- *   createDataViewController,
- * } from "../common/data-view/index.js";
+ * Page modules should import reusable functionality from this file rather
+ * than depending directly on implementation files.
  */
 
 /* ==========================================================================
@@ -81,6 +66,23 @@ export {
   renderStandardDataCardField,
   renderStandardDataCardFields,
 } from "./standard-data-card.js";
+
+/* ==========================================================================
+   Standard Company Identity
+   ========================================================================== */
+
+export {
+  bindStandardCompanyLogoFallback,
+  getStandardCompanyCode,
+  getStandardCompanyLogoFallbackUrl,
+  getStandardCompanyLogoUrl,
+  getStandardCompanyName,
+  getStandardCompanyUrl,
+  handleStandardCompanyLogoError,
+  renderStandardCompanyCardIdentity,
+  renderStandardCompanyCell,
+  renderStandardCompanyLogo,
+} from "./standard-company-identity.js";
 
 /* ==========================================================================
    Filters

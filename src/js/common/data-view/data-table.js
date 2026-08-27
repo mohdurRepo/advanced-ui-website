@@ -531,6 +531,9 @@ export function createDataTable(options = {}) {
   const renderCell =
     typeof options.renderCell === "function" ? options.renderCell : null;
 
+  const renderHeader =
+    typeof options.renderHeader === "function" ? options.renderHeader : null;
+
   const createLoadingRows =
     typeof options.createLoadingRows === "function"
       ? options.createLoadingRows
@@ -830,7 +833,56 @@ export function createDataTable(options = {}) {
       return;
     }
 
-    buildSchemaHeader(table, getCurrentColumns(), getCurrentGroups());
+    const columns = getCurrentColumns();
+
+    const groups = getCurrentGroups();
+
+    /* ----------------------------------------------------------------------
+       Caller-Provided Complex Header
+       ---------------------------------------------------------------------- */
+
+    if (renderHeader) {
+      const result = renderHeader({
+        table,
+
+        view: currentView,
+
+        columns: [...columns],
+
+        groups: [...groups],
+
+        context: getContext(),
+      });
+
+      if (result && typeof result.then === "function") {
+        throw new TypeError("Data table renderHeader() must be synchronous.");
+      }
+
+      /*
+       * Returning false requests the standard schema-generated header.
+       *
+       * This lets one table use:
+       *
+       * - the standard header for Negotiated Deals
+       * - a custom three-row header for Minimum Size
+       */
+
+      if (result !== false) {
+        if (!table.tHead || !table.tHead.rows.length) {
+          throw new Error(
+            "Data table renderHeader() must attach a non-empty thead.",
+          );
+        }
+
+        return;
+      }
+    }
+
+    /* ----------------------------------------------------------------------
+       Standard Schema Header
+       ---------------------------------------------------------------------- */
+
+    buildSchemaHeader(table, columns, groups);
   }
 
   /* ========================================================================
