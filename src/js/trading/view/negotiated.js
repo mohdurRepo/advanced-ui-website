@@ -7,9 +7,8 @@
  *
  * Responsibilities:
  *
- * - define the exact six-column Negotiated contract
- * - preserve the JSP-owned table header
- * - build the exact backend request
+ * - preserve the JSP-owned six-column table header
+ * - build the existing backend request
  * - normalize legacy/current response wrappers
  * - preserve daily total rows
  * - render Market Watch-style company identity
@@ -54,15 +53,15 @@ import {
 
 import {
   escapeHtml,
+  formatDate,
   formatMoney,
   formatQuantity,
-  formatTradingDate,
-  getTradingIdentity,
-  isTotalRow,
-  renderMobileIdentity,
+  getCompanyName,
+  getCompanySymbol,
+  isNegotiatedTotalRow,
   renderNegotiatedDailyTotalCard,
-  renderNegotiatedMobileSummary,
-  renderTradingCell,
+  renderTradingCardIdentity,
+  renderTradingCompanyCell,
 } from "../formatters.js";
 
 /* ==========================================================================
@@ -85,146 +84,137 @@ function firstDefined(...values) {
   );
 }
 
+function getRowDate(row) {
+  return firstDefined(
+    row?.strDate,
+    row?.date,
+    row?.tradeDate,
+    row?.transactionDate,
+    row?.dealDate,
+    row?.tradingDate,
+    row?.createdDate,
+    "",
+  );
+}
+
+function getRowPrice(row) {
+  return firstDefined(
+    row?.tradePrice,
+    row?.price,
+    row?.dealPrice,
+    row?.transactionPrice,
+    "",
+  );
+}
+
+function getRowVolume(row) {
+  return firstDefined(
+    row?.tradeVolume,
+    row?.volume,
+    row?.quantity,
+    row?.dealVolume,
+    row?.transactionVolume,
+    row?.shares,
+    "",
+  );
+}
+
+function getRowValue(row) {
+  return firstDefined(
+    row?.turnOver,
+    row?.turnover,
+    row?.tradeValue,
+    row?.value,
+    row?.dealValue,
+    row?.transactionValue,
+    row?.amount,
+    "",
+  );
+}
+
+function getRowTime(row) {
+  return firstDefined(
+    row?.strTime,
+    row?.time,
+    row?.tradeTime,
+    row?.transactionTime,
+    row?.dealTime,
+    "",
+  );
+}
+
 /* ==========================================================================
    Columns
    ========================================================================== */
 
 /*
- * Exact physical body/header contract:
+ * Exact physical table contract:
  *
  * 1 Date
- * 2 Company identity
+ * 2 Company
  * 3 Price
  * 4 Volume
  * 5 Value
  * 6 Time
  *
- * Symbol belongs beneath Company Name.
+ * Company contains:
  *
- * It is supporting identity metadata, not a seventh table column.
+ * [logo] Company Name
+ *        Symbol
  */
 
 function getColumns(config) {
   const labels = config.labels?.negotiatedDeals || {};
 
   return [
-    /* ----------------------------------------------------------------------
-       Date
-       ---------------------------------------------------------------------- */
-
     {
       key: "date",
-
       label: labels.date || "Date",
-
       data: "strDate",
-
-      format: "date",
-
       width: "10%",
-
       className: "table-market__date",
     },
 
-    /* ----------------------------------------------------------------------
-       Company Identity
-       ---------------------------------------------------------------------- */
-
     {
       key: "company",
-
-      label: labels.company || "Company Name",
-
-      data: "company",
-
-      /*
-       * Shared formatter renders:
-       *
-       * [logo] Company Name
-       *        Symbol
-       */
-      format: "identity",
-
-      view: VIEW,
-
+      label: labels.company || "Company",
+      data: null,
       width: "17rem",
-
       className: "table-market__security",
     },
 
-    /* ----------------------------------------------------------------------
-       Price
-       ---------------------------------------------------------------------- */
-
     {
       key: "trade-price",
-
       label: labels.price || "Price",
-
       data: "tradePrice",
-
-      format: "money",
-
       numeric: true,
-
       width: "8rem",
-
       className: "table-market__number table-market__price",
     },
 
-    /* ----------------------------------------------------------------------
-       Volume
-       ---------------------------------------------------------------------- */
-
     {
       key: "trade-volume",
-
       label: labels.volume || "Volume",
-
       data: "tradeVolume",
-
-      format: "quantity",
-
       numeric: true,
-
       width: "10rem",
-
       className: "table-market__number",
     },
-
-    /* ----------------------------------------------------------------------
-       Value
-       ---------------------------------------------------------------------- */
 
     {
       key: "turnover",
-
       label: labels.value || "Value",
-
       data: "turnOver",
-
-      format: "money",
-
       numeric: true,
-
       width: "11rem",
-
       className: "table-market__number",
     },
 
-    /* ----------------------------------------------------------------------
-       Time
-       ---------------------------------------------------------------------- */
-
     {
       key: "time",
-
       label: labels.time || "Time",
-
       data: "strTime",
-
       width: "8rem",
-
       className: "table-market__number",
     },
   ];
@@ -234,24 +224,15 @@ function getColumns(config) {
    Request
    ========================================================================== */
 
-/*
- * Exact existing backend contract.
- */
-
 function buildRequestData(filters, config) {
   const state = filters.getNegotiatedRequestState();
 
   return {
     type: state.type,
-
     sector: state.sector,
-
     company: state.company,
-
     fromDate: state.fromDate,
-
     toDate: state.toDate,
-
     requestLocale: config.locale || "en",
   };
 }
@@ -296,7 +277,7 @@ function getResponseRows(response) {
   }
 
   /*
-   * Legacy DataTables response shape.
+   * Compatibility with the historical DataTables response.
    */
 
   if (Array.isArray(value?.aaData)) {
@@ -313,11 +294,11 @@ function getResponseRows(response) {
 /*
  * Historical daily-total records may omit strDate.
  *
- * Carry the most recent date onto an internal presentation-only property so
- * the total remains inside the correct mobile date group.
+ * Carry the most recent date onto a presentation-only property so the total
+ * remains inside the correct mobile date group.
  */
 
-function normalizeGrouping(rows) {
+function normalizeGrouping(rows, config) {
   let currentDate = "";
 
   return rows.map((row) => {
@@ -325,15 +306,16 @@ function normalizeGrouping(rows) {
       return row;
     }
 
-    const rowDate = formatTradingDate(row.strDate);
+    const rawDate = getRowDate(row);
 
-    if (hasValue(rowDate)) {
+    const rowDate = hasValue(rawDate) ? formatDate(rawDate, config) : "";
+
+    if (hasValue(rowDate) && rowDate !== (config.labels?.notAvailable || "-")) {
       currentDate = rowDate;
     }
 
     return {
       ...row,
-
       __tradingGroupDate: rowDate || currentDate || "",
     };
   });
@@ -363,20 +345,20 @@ function getResponseCount(response, rows) {
   }
 
   /*
-   * Daily summary rows do not represent individual deals.
+   * Daily summary rows do not represent individual negotiated deals.
    */
 
-  return rows.filter((row) => !isTotalRow(row)).length;
+  return rows.filter((row) => !isNegotiatedTotalRow(row)).length;
 }
 
 /* ==========================================================================
    Response Normalization
    ========================================================================== */
 
-function normalizeResponse(response) {
+function normalizeResponse(response, config) {
   const raw = parseResponse(response);
 
-  const rows = normalizeGrouping(getResponseRows(raw));
+  const rows = normalizeGrouping(getResponseRows(raw), config);
 
   return {
     rows,
@@ -403,32 +385,30 @@ function normalizeResponse(response) {
 /*
  * IMPORTANT:
  *
- * The total remains six physical cells.
+ * Keep six physical cells.
  *
- * Do not mutate it into a colspan row because DataTables requires body/header
- * geometry to remain compatible.
+ * Do not turn the total into a colspan row because the DataTable body must
+ * remain geometrically compatible with the JSP-owned six-column header.
  */
 
 function renderTotalCell({ row, column, config }) {
   switch (column.key) {
-    /* ----------------------------------------------------------------------
-       Company / Label
-       ---------------------------------------------------------------------- */
-
     case "company":
       return `
         <span
           class="table-market__summary-label"
         >
           ${escapeHtml(
-            firstDefined(row.label, row.company, config.labels?.total, "Total"),
+            firstDefined(
+              row?.label,
+              row?.company,
+              config.labels?.negotiatedDeals?.total,
+              config.labels?.total,
+              "Total",
+            ),
           )}
         </span>
       `.trim();
-
-    /* ----------------------------------------------------------------------
-       Volume
-       ---------------------------------------------------------------------- */
 
     case "trade-volume":
       return `
@@ -438,20 +418,18 @@ function renderTotalCell({ row, column, config }) {
           ${escapeHtml(
             formatQuantity(
               firstDefined(
-                row.volume,
-                row.totalVolume,
-                row.tradeVolume,
-                row.tradedVolume,
+                row?.totalVolume,
+                row?.volumeTotal,
+                row?.totalQuantity,
+                row?.totalShares,
+                row?.volume,
+                row?.tradeVolume,
               ),
               config,
             ),
           )}
         </span>
       `.trim();
-
-    /* ----------------------------------------------------------------------
-       Value
-       ---------------------------------------------------------------------- */
 
     case "turnover":
       return `
@@ -461,20 +439,18 @@ function renderTotalCell({ row, column, config }) {
           ${escapeHtml(
             formatMoney(
               firstDefined(
-                row.value,
-                row.totalValue,
-                row.turnOver,
-                row.turnover,
+                row?.totalValue,
+                row?.valueTotal,
+                row?.totalAmount,
+                row?.value,
+                row?.turnOver,
+                row?.turnover,
               ),
               config,
             ),
           )}
         </span>
       `.trim();
-
-    /* ----------------------------------------------------------------------
-       Intentionally Empty
-       ---------------------------------------------------------------------- */
 
     case "date":
     case "trade-price":
@@ -489,38 +465,44 @@ function renderTotalCell({ row, column, config }) {
    ========================================================================== */
 
 function renderCell(args, config) {
-  if (isTotalRow(args.row)) {
+  const { row, column } = args;
+
+  if (isNegotiatedTotalRow(row)) {
     return renderTotalCell({
       ...args,
       config,
     });
   }
 
-  return renderTradingCell({
-    ...args,
+  switch (column.key) {
+    case "date":
+      return escapeHtml(formatDate(getRowDate(row), config));
 
-    config,
+    case "company":
+      return renderTradingCompanyCell(row, config);
 
-    view: VIEW,
-  });
+    case "trade-price":
+      return escapeHtml(formatMoney(getRowPrice(row), config));
+
+    case "trade-volume":
+      return escapeHtml(formatQuantity(getRowVolume(row), config));
+
+    case "turnover":
+      return escapeHtml(formatMoney(getRowValue(row), config));
+
+    case "time":
+      return escapeHtml(
+        firstDefined(getRowTime(row), config.labels?.notAvailable, "-"),
+      );
+
+    default:
+      return "";
+  }
 }
 
 /* ==========================================================================
    Mobile Details
    ========================================================================== */
-
-/*
- * Mobile summary already contains:
- *
- * Company identity
- * Price
- * Value
- *
- * Therefore expandable details contain only:
- *
- * Volume
- * Time
- */
 
 function getMobileFields(row, config) {
   const labels = config.labels?.negotiatedDeals || {};
@@ -529,7 +511,7 @@ function getMobileFields(row, config) {
     {
       label: labels.volume || "Volume",
 
-      value: escapeHtml(formatQuantity(row?.tradeVolume, config)),
+      value: formatQuantity(getRowVolume(row), config),
 
       numeric: true,
     },
@@ -537,11 +519,44 @@ function getMobileFields(row, config) {
     {
       label: labels.time || "Time",
 
-      value: escapeHtml(firstDefined(row?.strTime, "-")),
+      value: firstDefined(getRowTime(row), config.labels?.notAvailable, "-"),
 
       numeric: true,
     },
   ];
+}
+
+/* ==========================================================================
+   Mobile Summary
+   ========================================================================== */
+
+function renderNegotiatedMobileSummary(row, config) {
+  const labels = config.labels?.negotiatedDeals || {};
+
+  return `
+    <div
+      class="data-card__quote"
+    >
+      <span
+        class="data-card__symbol"
+      >
+        ${escapeHtml(labels.price || "Price")}
+      </span>
+
+      <span
+        class="data-card__price"
+      >
+        ${escapeHtml(formatMoney(getRowPrice(row), config))}
+      </span>
+
+      <span
+        class="data-card__meta"
+      >
+        ${escapeHtml(labels.value || "Value")}:
+        ${escapeHtml(formatMoney(getRowValue(row), config))}
+      </span>
+    </div>
+  `.trim();
 }
 
 /* ==========================================================================
@@ -553,30 +568,32 @@ function renderNegotiatedCard(row, context, config) {
    * Daily total is its own compact summary card.
    */
 
-  if (isTotalRow(row)) {
+  if (isNegotiatedTotalRow(row)) {
     return renderNegotiatedDailyTotalCard(row, config);
   }
 
-  const identity = getTradingIdentity(row, VIEW);
+  const symbol = getCompanySymbol(row);
+
+  const company = getCompanyName(row, config);
 
   return renderStandardDataCard({
     idPrefix: "trading-negotiated-details",
 
-    rowId: `${identity.code || identity.name || "deal"}-${context.index}`,
+    rowId: `${symbol || company || "deal"}-${context.index}`,
 
     className: "trading-data-card trading-data-card--negotiated",
 
     /*
-     * Same composition philosophy as Market Watch:
+     * LEFT:
      *
-     * LEFT
-     *   logo + company + symbol
+     * logo + company + symbol
      *
-     * RIGHT
-     *   price + value
+     * RIGHT:
+     *
+     * price + value
      */
     summary: `
-      ${renderMobileIdentity(row, VIEW, config)}
+      ${renderTradingCardIdentity(row, config)}
 
       ${renderNegotiatedMobileSummary(row, config)}
     `.trim(),
@@ -690,7 +707,7 @@ export function createNegotiatedView({ root, config, filters } = {}) {
     },
 
     normalizeResponse(response) {
-      const normalized = normalizeResponse(response);
+      const normalized = normalizeResponse(response, config);
 
       lastResultCount = Number(normalized.meta?.total) || 0;
 
@@ -736,16 +753,14 @@ export function createNegotiatedView({ root, config, filters } = {}) {
       ...config.tableDefaults,
 
       /*
-       * View-level configuration.
+       * Negotiated-specific overrides.
        */
       ...config.tables?.negotiatedDeals,
 
       /*
-       * Negotiated is a normal six-column DataTable.
+       * Negotiated remains a normal six-column DataTable.
        *
-       * - FixedHeader: yes
-       * - FixedColumns: no
-       * - horizontal scrolling is owned by .table-responsive
+       * Horizontal scrolling belongs to .table-responsive.
        */
       scrollX: false,
 
@@ -755,12 +770,13 @@ export function createNegotiatedView({ root, config, filters } = {}) {
 
       fixedColumns: false,
     },
+
     /* ---------------------------------------------------------------------
-         Row State
-         --------------------------------------------------------------------- */
+       Row State
+       --------------------------------------------------------------------- */
 
     createdRow(rowElement, row) {
-      const total = isTotalRow(row);
+      const total = isNegotiatedTotalRow(row);
 
       rowElement.classList.toggle("table-total-row", total);
 
@@ -787,8 +803,8 @@ export function createNegotiatedView({ root, config, filters } = {}) {
     },
 
     /* ---------------------------------------------------------------------
-         Date Grouping
-         --------------------------------------------------------------------- */
+       Date Grouping
+       --------------------------------------------------------------------- */
 
     getGroupKey(row) {
       return row?.__tradingGroupDate || "";
@@ -801,8 +817,8 @@ export function createNegotiatedView({ root, config, filters } = {}) {
     renderGroup,
 
     /* ---------------------------------------------------------------------
-         States
-         --------------------------------------------------------------------- */
+       States
+       --------------------------------------------------------------------- */
 
     emptyMessage: config.labels?.noData || "No data available",
 
@@ -834,8 +850,6 @@ export function createNegotiatedView({ root, config, filters } = {}) {
 
       /*
        * JSP owns the visible Results label.
-       *
-       * Common JS updates only the value node.
        */
       results: "",
     },
@@ -879,9 +893,13 @@ export function createNegotiatedView({ root, config, filters } = {}) {
 
   const controller = createDataViewController({
     source,
+
     state,
+
     table,
+
     cards,
+
     results,
 
     /*
@@ -913,10 +931,9 @@ export function createNegotiatedView({ root, config, filters } = {}) {
      ========================================================================= */
 
   /*
-   * Common table/cards own the visual skeleton state.
+   * Common table/cards own their visual loading state.
    *
-   * This subscription synchronizes only the outer data-view accessibility
-   * state.
+   * This subscription synchronizes the outer data-view accessibility state.
    */
 
   const unsubscribeState = state.subscribe(({ state: snapshot }) => {
@@ -1005,10 +1022,13 @@ export function createNegotiatedView({ root, config, filters } = {}) {
     view: VIEW,
 
     reload,
+
     adjust,
 
     getRows,
+
     getVisibleRows,
+
     getTable,
 
     destroy,

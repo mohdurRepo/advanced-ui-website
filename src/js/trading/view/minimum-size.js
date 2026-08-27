@@ -601,7 +601,7 @@ export function createMinimumSizeView({ root, config } = {}) {
      */
 
     tbody.innerHTML = visibleRows
-      .map((row) => renderMinimumSizeDesktopRow(row))
+      .map((row) => renderMinimumSizeDesktopRow(row, config))
       .join("");
 
     /*
