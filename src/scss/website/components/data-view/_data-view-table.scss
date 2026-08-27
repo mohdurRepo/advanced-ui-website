@@ -15,10 +15,36 @@
  * - responsive overflow
  * - fixed columns
  * - DataTables integration
+ *
+ * Important:
+ *
+ * This adapter must NOT become another scroll container.
+ *
+ * Native sticky headers rely on the table's actual scroll/page context.
+ * Horizontal overflow remains owned by .table-responsive.
  */
 
+/* ==========================================================================
+   Table Region
+   ========================================================================== */
+
 .data-view__table {
-  overflow: hidden;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+
+  /*
+   * Do not use:
+   *
+   * overflow: hidden;
+   *
+   * here.
+   *
+   * That creates an additional clipping/scroll context and interferes with
+   * native sticky table headers such as Minimum Size.
+   */
+
+  overflow: visible;
 
   border-radius: inherit;
 }
@@ -32,6 +58,58 @@
   inline-size: 100%;
   max-inline-size: 100%;
   min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Native Table Shell
+   ========================================================================== */
+
+/*
+ * Native tables use .table-responsive as the single horizontal overflow owner.
+ *
+ * Vertical overflow must remain visible so sticky header cells can participate
+ * in the page's vertical scroll.
+ */
+
+.data-view__table .table-shell {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Responsive Table Wrapper
+   ========================================================================== */
+
+.data-view__table .table-responsive {
+  max-inline-size: 100%;
+  min-inline-size: 0;
+
+  /*
+   * Horizontal only.
+   *
+   * Do not introduce vertical scrolling here.
+   */
+
+  overflow-x: auto;
+  overflow-y: visible;
+
+  overscroll-behavior-inline: contain;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ==========================================================================
+   DataTables
+   ========================================================================== */
+
+/*
+ * DataTables owns its generated scroll structure through the dedicated
+ * DataTables integration adapter.
+ *
+ * Do not override dt-scroll-body behavior here.
+ */
+
+.data-view__table > .dt-container {
+  overflow: visible;
 }
 
 /* ==========================================================================

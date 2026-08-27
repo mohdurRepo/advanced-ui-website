@@ -13,6 +13,7 @@
  * - provide client-side search
  * - render standard mobile cards
  * - synchronize common loading / empty / error / results state
+ * - measure the native multi-row sticky header
  * - expose a view API compatible with trading.js
  *
  * This file intentionally has no:
@@ -81,6 +82,17 @@ const VIEW = TRADING_VIEWS.minimumSize;
  */
 
 const MATRIX_COLUMN_COUNT = 5;
+
+/*
+ * CSS custom properties consumed by table-market.scss.
+ *
+ * Keeping these names here avoids repeating string literals throughout the
+ * lifecycle code.
+ */
+
+const STICKY_ROW_2_PROPERTY = "--table-market-sticky-row-2-offset";
+
+const STICKY_ROW_3_PROPERTY = "--table-market-sticky-row-3-offset";
 
 /* ==========================================================================
    Helpers
@@ -267,6 +279,19 @@ export function createMinimumSizeView({ root, config } = {}) {
 
   let destroyed = false;
 
+  /*
+   * Used to collapse multiple layout requests occurring in the same frame.
+   *
+   * Examples:
+   *
+   * - render
+   * - tab activation
+   * - resize
+   * - font completion
+   */
+
+  let adjustmentFrame = null;
+
   /* =========================================================================
      Runtime State
      ========================================================================= */
@@ -421,12 +446,128 @@ export function createMinimumSizeView({ root, config } = {}) {
     }
 
     /*
-     * Search count should reflect the currently visible matrix rows.
+     * Search count reflects the currently visible matrix rows.
      *
      * totalCount remains available through getTotalCount() for diagnostics.
      */
 
     results.showReady(getVisibleCount());
+  }
+
+  /* =========================================================================
+     Sticky Header
+     ========================================================================= */
+
+  /*
+   * The JSP owns the Minimum Size <thead>.
+   *
+   * We therefore measure the real rendered rows rather than reproducing
+   * assumptions about:
+   *
+   * - header text
+   * - localization
+   * - line wrapping
+   * - font metrics
+   * - responsive padding
+   *
+   * table-market.scss consumes these measured offsets.
+   */
+
+  function getHeaderRows() {
+    const head = table.tHead;
+
+    if (!head) {
+      return [];
+    }
+
+    return Array.from(head.rows || []);
+  }
+
+  function clearStickyHeaderOffsets() {
+    table.style.removeProperty(STICKY_ROW_2_PROPERTY);
+
+    table.style.removeProperty(STICKY_ROW_3_PROPERTY);
+  }
+
+  function updateStickyHeaderOffsets() {
+    if (destroyed) {
+      return;
+    }
+
+    const rows = getHeaderRows();
+
+    /*
+     * Minimum Size expects three JSP-owned header rows.
+     *
+     * If markup is incomplete, remove stale measurements and allow the SCSS
+     * fallback values to take over.
+     */
+
+    if (rows.length < 3) {
+      clearStickyHeaderOffsets();
+
+      return;
+    }
+
+    const row1Rect = rows[0].getBoundingClientRect();
+
+    const row2Rect = rows[1].getBoundingClientRect();
+
+    const row1Height = Number(row1Rect.height);
+
+    const row2Height = Number(row2Rect.height);
+
+    if (!Number.isFinite(row1Height) || !Number.isFinite(row2Height)) {
+      clearStickyHeaderOffsets();
+
+      return;
+    }
+
+    /*
+     * Keep browser sub-pixel precision.
+     *
+     * Fractional values are valid and avoid cumulative gaps at browser zoom
+     * levels where line boxes do not resolve to whole CSS pixels.
+     */
+
+    const row2Offset = Math.max(0, row1Height);
+
+    const row3Offset = Math.max(0, row1Height + row2Height);
+
+    table.style.setProperty(STICKY_ROW_2_PROPERTY, `${row2Offset}px`);
+
+    table.style.setProperty(STICKY_ROW_3_PROPERTY, `${row3Offset}px`);
+  }
+
+  /* =========================================================================
+     Scheduled Layout Adjustment
+     ========================================================================= */
+
+  /*
+   * Layout changes can arrive several times during the same browser frame.
+   *
+   * Schedule one measurement instead of forcing repeated synchronous layout
+   * reads.
+   */
+
+  function scheduleAdjustment() {
+    if (destroyed) {
+      return;
+    }
+
+    if (adjustmentFrame !== null) {
+      cancelAnimationFrame(adjustmentFrame);
+    }
+
+    adjustmentFrame = requestAnimationFrame(() => {
+      adjustmentFrame = null;
+
+      if (destroyed) {
+        return;
+      }
+
+      updateStickyHeaderOffsets();
+    });
   }
 
   /* =========================================================================
@@ -442,6 +583,8 @@ export function createMinimumSizeView({ root, config } = {}) {
       tbody.innerHTML = renderMessageRow(
         config.labels?.noData || "No data available",
       );
+
+      scheduleAdjustment();
 
       return;
     }
@@ -460,6 +603,15 @@ export function createMinimumSizeView({ root, config } = {}) {
     tbody.innerHTML = visibleRows
       .map((row) => renderMinimumSizeDesktopRow(row))
       .join("");
+
+    /*
+     * Body rendering may change the intrinsic width of the table.
+     *
+     * That can change header wrapping and therefore the real heights of the
+     * JSP-owned header rows.
+     */
+
+    scheduleAdjustment();
   }
 
   /* =========================================================================
@@ -504,6 +656,8 @@ export function createMinimumSizeView({ root, config } = {}) {
 
       results.showEmpty(message);
 
+      scheduleAdjustment();
+
       return;
     }
 
@@ -537,6 +691,8 @@ export function createMinimumSizeView({ root, config } = {}) {
     cards.showLoading();
 
     results.showLoading();
+
+    scheduleAdjustment();
   }
 
   /* =========================================================================
@@ -565,6 +721,8 @@ export function createMinimumSizeView({ root, config } = {}) {
     cards.showEmpty(message);
 
     results.showEmpty(message);
+
+    scheduleAdjustment();
   }
 
   /* =========================================================================
@@ -596,16 +754,23 @@ export function createMinimumSizeView({ root, config } = {}) {
     cards.showError(message);
 
     results.showError(message);
-  }
 
+    scheduleAdjustment();
+  }
   /* =========================================================================
      Search Render
      ========================================================================= */
 
-  function renderSearchResults() {
-    if (destroyed || status !== "ready") {
+  function renderSearch() {
+    if (destroyed) {
       return;
     }
+
+    /*
+     * Search operates entirely against the already-loaded Minimum Size rows.
+     *
+     * No request is made when the search value changes.
+     */
 
     applySearch();
 
@@ -618,6 +783,8 @@ export function createMinimumSizeView({ root, config } = {}) {
 
       results.showEmpty(message);
 
+      scheduleAdjustment();
+
       return;
     }
 
@@ -629,31 +796,92 @@ export function createMinimumSizeView({ root, config } = {}) {
   }
 
   /* =========================================================================
-     Search Events
+     Search Event
      ========================================================================= */
 
-  function handleSearch() {
+  function handleSearchInput(event) {
     if (destroyed) {
       return;
     }
 
-    searchValue = normalizeSearchValue(search?.value);
+    searchValue = normalizeSearchValue(event?.currentTarget?.value);
 
-    renderSearchResults();
+    renderSearch();
   }
 
-  search?.addEventListener("input", handleSearch, {
-    signal,
-  });
+  if (search) {
+    search.addEventListener("input", handleSearchInput, {
+      signal,
+    });
+  }
+
+  /* =========================================================================
+     Layout Events
+     ========================================================================= */
 
   /*
-   * Native type="search" dispatches "search" when its browser clear control is
-   * used.
+   * The Minimum Size header is localized and can change physical height when:
+   *
+   * - the viewport changes
+   * - browser zoom changes
+   * - responsive padding changes
+   * - fonts finish loading
+   *
+   * Re-measure rather than relying on fixed SCSS heights.
    */
 
-  search?.addEventListener("search", handleSearch, {
+  function handleResize() {
+    if (destroyed) {
+      return;
+    }
+
+    scheduleAdjustment();
+  }
+
+  window.addEventListener("resize", handleResize, {
     signal,
   });
+
+  /* =========================================================================
+     Font Readiness
+     ========================================================================= */
+
+  /*
+   * Web fonts may settle after the initial layout.
+   *
+   * document.fonts is progressive enhancement only; older browsers simply
+   * keep the initial/resize measurements.
+   */
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready
+      .then(() => {
+        if (destroyed) {
+          return;
+        }
+
+        scheduleAdjustment();
+      })
+      .catch(() => {
+        /*
+         * Font readiness must never prevent the view from working.
+         */
+      });
+  }
+
+  /* =========================================================================
+     Initial Header Measurement
+     ========================================================================= */
+
+  /*
+   * Measure the JSP-rendered header immediately after the view has been
+   * created.
+   *
+   * If the tab is initially hidden, trading.js can call adjust() again when
+   * the tab becomes visible.
+   */
+
+  scheduleAdjustment();
 
   /* =========================================================================
      Reload
@@ -667,15 +895,19 @@ export function createMinimumSizeView({ root, config } = {}) {
     showLoading();
 
     try {
-      const response = await source.load();
+      const result = await source.load();
 
       if (destroyed) {
         return [];
       }
 
-      sourceRows = Array.isArray(response.rows) ? [...response.rows] : [];
+      const rows = Array.isArray(result?.rows) ? result.rows : [];
 
-      totalCount = Number(response.meta?.total) || sourceRows.length;
+      sourceRows = rows.slice();
+
+      totalCount = Number.isFinite(Number(result?.meta?.total))
+        ? Number(result.meta.total)
+        : sourceRows.length;
 
       if (!sourceRows.length) {
         showEmpty();
@@ -685,23 +917,24 @@ export function createMinimumSizeView({ root, config } = {}) {
 
       renderReady();
 
-      return [...sourceRows];
+      return sourceRows;
     } catch (error) {
+      if (destroyed) {
+        return [];
+      }
+
       /*
-       * Request cancellation is expected when:
-       *
-       * - the user switches variant quickly
-       * - a newer request replaces an older request
-       * - the page is destroyed
+       * An aborted request during destruction is lifecycle cleanup rather than
+       * a user-visible load failure.
        */
 
       if (error?.name === "AbortError") {
-        throw error;
+        return [];
       }
 
       showError(error);
 
-      throw error;
+      return [];
     }
   }
 
@@ -710,90 +943,82 @@ export function createMinimumSizeView({ root, config } = {}) {
      ========================================================================= */
 
   function adjust() {
-    /*
-     * Native matrix only.
-     *
-     * There is no DataTables width calculation or FixedHeader instance here.
-     *
-     * The design-system .table-responsive wrapper owns any native overflow.
-     */
-
     if (destroyed) {
       return;
     }
 
     /*
-     * Force no layout mutation.
+     * Native matrix only.
      *
-     * Keeping this method allows trading.js to treat every Trading view through
-     * one stable interface.
-     */
-  }
-
-  /* =========================================================================
-     Queries
-     ========================================================================= */
-
-  function getRows() {
-    return [...sourceRows];
-  }
-
-  function getVisibleRows() {
-    return [...visibleRows];
-  }
-
-  function getTable() {
-    /*
-     * No DataTables API.
+     * There is no:
      *
-     * Returning null keeps the same public contract as the other view modules.
+     * - DataTables columns.adjust()
+     * - FixedHeader.adjust()
+     * - FixedColumns relayout
+     *
+     * The only runtime geometry owned by this view is the measured three-row
+     * sticky header.
      */
 
-    return null;
-  }
-
-  function getNativeTable() {
-    return table;
-  }
-
-  function getSearchValue() {
-    return searchValue;
-  }
-
-  function getTotalCount() {
-    return totalCount;
-  }
-
-  function isLoading() {
-    return status === "loading";
+    scheduleAdjustment();
   }
 
   /* =========================================================================
      Search API
      ========================================================================= */
 
-  function setSearchValue(value) {
+  function setSearch(value, { render = true } = {}) {
     if (destroyed) {
       return;
     }
 
-    const normalized = String(value || "");
+    const normalizedValue = normalizeSearchValue(value);
+
+    searchValue = normalizedValue;
 
     if (search) {
-      search.value = normalized;
+      search.value = hasValue(value) ? String(value) : "";
     }
 
-    searchValue = normalizeSearchValue(normalized);
-
-    renderSearchResults();
+    if (render) {
+      renderSearch();
+    }
   }
 
-  function clearSearch() {
-    setSearchValue("");
+  function clearSearch(options = {}) {
+    setSearch("", options);
   }
 
   /* =========================================================================
-     Lifecycle
+     Query API
+     ========================================================================= */
+
+  function getRows() {
+    return sourceRows.slice();
+  }
+
+  function getVisibleRows() {
+    return visibleRows.slice();
+  }
+
+  function getTotalCount() {
+    return totalCount;
+  }
+
+  function getVisibleRowCount() {
+    return visibleRows.length;
+  }
+
+  function getSearch() {
+    return searchValue;
+  }
+
+  function getStatus() {
+    return status;
+  }
+
+  /* =========================================================================
+     Destruction
      ========================================================================= */
 
   function destroy() {
@@ -803,13 +1028,40 @@ export function createMinimumSizeView({ root, config } = {}) {
 
     destroyed = true;
 
+    /*
+     * Remove all listeners registered with this view.
+     */
+
     abortController.abort();
 
-    source.destroy();
+    /*
+     * Cancel any pending measurement frame.
+     */
 
-    cards.destroy();
+    if (adjustmentFrame !== null) {
+      cancelAnimationFrame(adjustmentFrame);
 
-    results.destroy();
+      adjustmentFrame = null;
+    }
+
+    /*
+     * Remove runtime geometry written by this view.
+     *
+     * This leaves table-market.scss defaults authoritative if the DOM remains
+     * mounted after destruction.
+     */
+
+    clearStickyHeaderOffsets();
+
+    /*
+     * Allow common helpers to release their own resources where supported.
+     */
+
+    source.destroy?.();
+
+    cards.destroy?.();
+
+    results.destroy?.();
 
     sourceRows = [];
 
@@ -817,58 +1069,48 @@ export function createMinimumSizeView({ root, config } = {}) {
 
     totalCount = 0;
 
-    tbody.replaceChildren();
-
-    root.removeAttribute("aria-busy");
-
-    table.removeAttribute("aria-busy");
+    status = "destroyed";
   }
 
   /* =========================================================================
-     Public Instance
+     Public API
      ========================================================================= */
 
-  return Object.freeze({
-    view: VIEW,
-
-    /* -----------------------------------------------------------------------
-       Data
-       ----------------------------------------------------------------------- */
+  return {
+    /*
+     * Data lifecycle
+     */
 
     reload,
 
-    /* -----------------------------------------------------------------------
-       Layout
-       ----------------------------------------------------------------------- */
+    /*
+     * Layout lifecycle
+     */
 
     adjust,
 
-    /* -----------------------------------------------------------------------
-       Search
-       ----------------------------------------------------------------------- */
+    /*
+     * Search
+     */
 
-    setSearchValue,
+    setSearch,
     clearSearch,
 
-    /* -----------------------------------------------------------------------
-       Queries
-       ----------------------------------------------------------------------- */
+    /*
+     * Query
+     */
 
     getRows,
     getVisibleRows,
-
-    getTable,
-    getNativeTable,
-
-    getSearchValue,
     getTotalCount,
+    getVisibleRowCount,
+    getSearch,
+    getStatus,
 
-    isLoading,
-
-    /* -----------------------------------------------------------------------
-       Lifecycle
-       ----------------------------------------------------------------------- */
+    /*
+     * Lifecycle
+     */
 
     destroy,
-  });
+  };
 }
