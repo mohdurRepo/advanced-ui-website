@@ -548,12 +548,7 @@ export function createDataTable(options = {}) {
 
   tableOptions.fixedColumns = normalizeFixedColumns(tableOptions.fixedColumns);
 
-  const headerMode =
-    options.headerMode === "existing"
-      ? "existing"
-      : renderHeader
-        ? "custom"
-        : "schema";
+  const headerMode = options.headerMode === "existing" ? "existing" : "schema";
 
   let api = null;
 
