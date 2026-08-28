@@ -233,6 +233,7 @@ function normalizeIdentity(row = {}) {
   const security = isObject(row.security) ? row.security : {};
 
   const companyCode = getFirstString(
+    row.companyRef,
     row.symbolCode,
     row.symbol,
     row.companyCode,
@@ -242,11 +243,13 @@ function normalizeIdentity(row = {}) {
     row.acronym,
     row.acrynom,
 
+    company.companyRef,
     company.symbolCode,
     company.symbol,
     company.companyCode,
     company.code,
 
+    security.companyRef,
     security.symbolCode,
     security.symbol,
     security.securityCode,

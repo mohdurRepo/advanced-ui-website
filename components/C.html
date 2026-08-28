@@ -1214,23 +1214,390 @@
           </section>
         </div>
       </section>
+      <%-- =========================================================================
+          Suspended / Delisted Companies and Funds
+          ========================================================================= --%>
 
-        <%-- =================================================================
-             Company Status — Placeholder
-             ================================================================= --%>
+      <section
+        class="tab-pane"
+        id="issuer-trading-panel-company-status"
+        role="tabpanel"
+        aria-labelledby="issuer-trading-tab-company-status"
+        hidden
+      >
+        <div data-issuer-trading-feature="company-status">
+          <%-- =====================================================================
+              Company Status Filters
+              ===================================================================== --%>
 
-        <section
-          class="tab-pane"
-          id="issuer-trading-panel-company-status"
-          role="tabpanel"
-          aria-labelledby="issuer-trading-tab-company-status"
-          hidden
-        >
-          <%--
-            Suspended, delisted, transformed companies, and funds will be
-            implemented when this tab is reached.
-          --%>
-        </section>
+          <form
+            class="filter-bar filter-bar--connected"
+            aria-labelledby="issuer-trading-tab-company-status"
+            data-company-status-filters
+            novalidate
+          >
+            <div class="filter-bar__inner">
+              <div class="filter-bar__fields grid-4">
+                <%-- ===============================================================
+                    Status Type
+                    =============================================================== --%>
+
+                <div class="filter-bar__field">
+                  <label
+                    class="form-label"
+                    for="company-status-type"
+                  >
+                    <fmt:message key="suspended.company.type" />
+                  </label>
+
+                  <div
+                    class="custom-select"
+                    data-custom-select
+                  >
+                    <div class="form-select-wrap custom-select__fallback">
+                      <select
+                        class="form-select custom-select__native"
+                        id="company-status-type"
+                        name="formType"
+                        data-company-status-type
+                      >
+                        <option
+                          value="Suspension"
+                          <c:if test="${empty requestScope.formType or requestScope.formType eq 'Suspension'}">
+                            selected
+                          </c:if>
+                        >
+                          <fmt:message
+                            key="suspended.company.suspension.dp"
+                          />
+                        </option>
+
+                        <option
+                          value="Delisting"
+                          <c:if test="${requestScope.formType eq 'Delisting'}">
+                            selected
+                          </c:if>
+                        >
+                          <fmt:message
+                            key="suspended.company.delisting.dp"
+                          />
+                        </option>
+
+                        <option
+                          value="Suspension_Funds"
+                          <c:if test="${requestScope.formType eq 'Suspension_Funds'}">
+                            selected
+                          </c:if>
+                        >
+                          <fmt:message
+                            key="suspended.company.suspension.funds.dp"
+                          />
+                        </option>
+
+                        <option
+                          value="Delisted_Funds"
+                          <c:if test="${requestScope.formType eq 'Delisted_Funds'}">
+                            selected
+                          </c:if>
+                        >
+                          <fmt:message
+                            key="suspended.company.delisting.funds.dp"
+                          />
+                        </option>
+                      </select>
+
+                      <span
+                        class="form-select-icon has-icon icon-chevron-down"
+                        aria-hidden="true"
+                      ></span>
+                    </div>
+                  </div>
+                </div>
+
+                <%-- ===============================================================
+                    Time Period
+
+                    This intentionally does not use fieldset/legend.
+                    =============================================================== --%>
+
+                <div class="filter-bar__field">
+                  <span
+                    class="form-label-static"
+                    id="company-status-date-label"
+                  >
+                    <fmt:message
+                      key="issuer.trading.info.v2.section.heading.timeperiod"
+                    />
+                  </span>
+
+                  <div
+                    class="custom-date custom-date--range"
+                    aria-labelledby="company-status-date-label"
+                    data-custom-date-range
+                    data-clearable
+                    data-placeholder="YYYY-MM-DD – YYYY-MM-DD"
+                  >
+                    <div class="custom-date__fallback">
+                      <div class="custom-date__native-range">
+                        <input
+                          class="form-control custom-date__native"
+                          id="company-status-date-from"
+                          name="fromDate"
+                          type="date"
+                          aria-label="<c:out value='${companyStatusDateFromLabel}' />"
+                          data-date-start
+                          data-company-status-date-from
+                        />
+
+                        <input
+                          class="form-control custom-date__native"
+                          id="company-status-date-to"
+                          name="toDate"
+                          type="date"
+                          aria-label="<c:out value='${companyStatusDateToLabel}' />"
+                          data-date-end
+                          data-company-status-date-to
+                        />
+                      </div>
+
+                      <div
+                        class="custom-date__initial-trigger"
+                        aria-hidden="true"
+                      >
+                        <span
+                          class="custom-date__initial-value is-placeholder"
+                        >
+                          YYYY-MM-DD – YYYY-MM-DD
+                        </span>
+
+                        <span
+                          class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                          aria-hidden="true"
+                        ></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <%-- =================================================================
+                  Filter Actions
+                  ================================================================= --%>
+
+              <div class="filter-bar__actions">
+                <button
+                  class="btn btn-outline-primary has-icon icon-sync-refresh"
+                  type="reset"
+                  data-company-status-reset
+                >
+                  <fmt:message
+                    key="issuer.trading.info.v2.search.reset"
+                  />
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <%-- =====================================================================
+              Company Status Results
+
+              Suspension and Suspension Funds:
+              - company identity
+              - suspension period
+              - announcement/reason
+
+              Delisting and Delisted Funds:
+              - company identity
+              - delisting date
+              - announcement/reason
+              ===================================================================== --%>
+
+          <section
+            class="data-view data-view--connected"
+            aria-labelledby="issuer-trading-tab-company-status"
+            aria-busy="false"
+            data-company-status-view
+          >
+            <div class="data-view__workspace">
+              <%-- =================================================================
+                  Desktop and Tablet Table
+                  ================================================================= --%>
+
+              <div class="data-view__table">
+                <div class="data-view__table-block">
+                  <%-- =============================================================
+                      Results Toolbar
+                      ============================================================= --%>
+
+                  <div class="data-view__toolbar">
+                    <div class="data-view__toolbar-start">
+                      <p
+                        class="data-view__result-count"
+                        id="company-status-results"
+                        data-company-status-result-count
+                      >
+                        <strong>
+                          <fmt:message
+                            key="issuer.trading.info.results.msg"
+                          />
+                        </strong>
+
+                        <span data-result-count-value>0</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <%-- =============================================================
+                      Accessible Loading and Result Status
+                      ============================================================= --%>
+
+                  <p
+                    class="visually-hidden"
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true"
+                    data-company-status-status
+                  ></p>
+
+                  <%-- =============================================================
+                      Results Table
+                      ============================================================= --%>
+
+                  <div
+                    class="table-shell"
+                    data-table-shell
+                  >
+                    <div
+                      class="table-responsive custom-scrollbar"
+                      role="region"
+                      tabindex="0"
+                      aria-labelledby="issuer-trading-tab-company-status company-status-results"
+                      data-table-scroll
+                      data-company-status-table-region
+                    >
+                      <table
+                        class="table table-market table-market--watch table-market--company-status table-striped table-hover table-nowrap"
+                        id="company-status-table"
+                        aria-describedby="company-status-results"
+                        aria-busy="false"
+                        data-company-status-table
+                      >
+                        <caption class="visually-hidden">
+                          <fmt:message
+                            key="issuer.trading.info.v2.title.delistedcompanies"
+                          />
+                        </caption>
+
+                        <%-- =======================================================
+                            Accessible Initial Suspension Header
+
+                            JavaScript recreates this header when switching between
+                            suspension and delisting presentations.
+                            ======================================================= --%>
+
+                        <thead>
+                          <tr>
+                            <th
+                              class="table-market__security"
+                              scope="col"
+                              rowspan="2"
+                            >
+                              <fmt:message
+                                key="suspended.company.name"
+                              />
+                            </th>
+
+                            <th
+                              class="table-market__group-heading"
+                              scope="colgroup"
+                              colspan="2"
+                              data-dt-order="disable"
+                            >
+                              <fmt:message
+                                key="suspended.company.period"
+                              />
+                            </th>
+
+                            <th
+                              scope="col"
+                              rowspan="2"
+                            >
+                              <fmt:message
+                                key="suspended.company.reason"
+                              />
+                            </th>
+                          </tr>
+
+                          <tr>
+                            <th
+                              class="table-market__date"
+                              scope="col"
+                            >
+                              <fmt:message
+                                key="suspended.company.period.from"
+                              />
+                            </th>
+
+                            <th
+                              class="table-market__date"
+                              scope="col"
+                            >
+                              <fmt:message
+                                key="suspended.company.period.to"
+                              />
+                            </th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          <%--
+                            JavaScript renders:
+
+                            - company logo, name, and code
+                            - company status indicator
+                            - suspension start and end dates
+                            - delisting date
+                            - announcement/reason link
+                            - alternating row colors
+                            - loading, empty, and error states
+                          --%>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <%-- =================================================================
+                  Mobile Cards
+                  ================================================================= --%>
+
+              <div
+                class="data-view__cards"
+                role="region"
+                aria-labelledby="issuer-trading-tab-company-status"
+                data-company-status-mobile
+              >
+                <div
+                  class="data-view__cards-inner"
+                  aria-busy="false"
+                  data-company-status-cards
+                >
+                  <%--
+                    JavaScript renders:
+
+                    - company logo, name, and code
+                    - company status indicator
+                    - suspension or delisting dates
+                    - announcement/reason link
+                    - loading, empty, and error states
+                  --%>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
 
         <%-- =================================================================
              OTC Trading — Placeholder
@@ -1608,6 +1975,57 @@
               "<fmt:message key='equityright.table.column.header.volume.traded' />",
           },
         },
+
+        /* --------------------------------------------------------------------
+          Suspended / Delisted Companies and Funds
+          -------------------------------------------------------------------- */
+
+        companyStatus: {
+          types: {
+            suspension:
+              "<fmt:message key='suspended.company.suspension.dp' />",
+
+            delisting:
+              "<fmt:message key='suspended.company.delisting.dp' />",
+
+            suspensionFunds:
+              "<fmt:message key='suspended.company.suspension.funds.dp' />",
+
+            delistedFunds:
+              "<fmt:message key='suspended.company.delisting.funds.dp' />",
+          },
+
+          table: {
+            company:
+              "<fmt:message key='suspended.company.name' />",
+
+            period:
+              "<fmt:message key='suspended.company.period' />",
+
+            from:
+              "<fmt:message key='suspended.company.period.from' />",
+
+            to:
+              "<fmt:message key='suspended.company.period.to' />",
+
+            delistingDate:
+              "<fmt:message key='delisted.company.date' />",
+
+            suspensionReason:
+              "<fmt:message key='suspended.company.reason' />",
+
+            delistingReason:
+              "<fmt:message key='delisted.company.reason' />",
+          },
+
+          links: {
+            suspension:
+              "<fmt:message key='suspended.company.link' />",
+
+            delisting:
+              "<fmt:message key='delisted.company.link' />",
+          },
+        },  
 
       },
     };
