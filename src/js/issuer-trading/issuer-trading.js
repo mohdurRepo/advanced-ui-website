@@ -35,6 +35,8 @@ import { createNegotiatedDealsTab } from "./tabs/negotiated-deals/negotiated-dea
 
 import { createAccumulatedLossesTab } from "./tabs/accumulated-losses/accumulated-losses.tab.js";
 
+import { createListedTradableRightsTab } from "./tabs/listed-tradable-rights/listed-tradable-rights.tab.js";
+
 /* ==========================================================================
    Constants
    ========================================================================== */
@@ -98,6 +100,21 @@ const FEATURE_DEFINITIONS = Object.freeze({
 
     create({ root, config }) {
       return createAccumulatedLossesTab({
+        root,
+        config,
+
+        reloadOnActivate: true,
+      });
+    },
+  }),
+
+  "listed-tradable-rights": Object.freeze({
+    selector: '[data-issuer-trading-feature="listed-tradable-rights"]',
+
+    statusSelector: "[data-listed-tradable-rights-status]",
+
+    create({ root, config }) {
+      return createListedTradableRightsTab({
         root,
         config,
 

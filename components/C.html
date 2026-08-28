@@ -844,19 +844,376 @@
           </section>
         </div>
       </section>
-        <%-- =================================================================
-             Listed Tradable Rights — Placeholder
-             ================================================================= --%>
+        <%-- =========================================================================
+          Listed Tradable Rights
+          ========================================================================= --%>
 
-        <section
-          class="tab-pane"
-          id="issuer-trading-panel-listed-tradable-rights"
-          role="tabpanel"
-          aria-labelledby="issuer-trading-tab-listed-tradable-rights"
-          hidden
-        >
-          <%-- Implemented after Accumulated Losses. --%>
-        </section>
+      <section
+        class="tab-pane"
+        id="issuer-trading-panel-listed-tradable-rights"
+        role="tabpanel"
+        aria-labelledby="issuer-trading-tab-listed-tradable-rights"
+        hidden
+      >
+        <div data-issuer-trading-feature="listed-tradable-rights">
+          <%-- =====================================================================
+              Listed Tradable Rights Results
+
+              Desktop and tablet:
+              - sortable market table
+              - grouped two-row header
+              - horizontal scrolling
+              - fixed header
+
+              Mobile:
+              - responsive data cards
+              ===================================================================== --%>
+
+          <section
+            class="data-view"
+            aria-labelledby="issuer-trading-tab-listed-tradable-rights"
+            aria-busy="false"
+            data-listed-tradable-rights-view
+          >
+            <div class="data-view__workspace">
+              <%-- =================================================================
+                  Desktop and Tablet Table
+                  ================================================================= --%>
+
+              <div class="data-view__table">
+                <div class="data-view__table-block">
+                  <%-- =============================================================
+                      Results Toolbar
+                      ============================================================= --%>
+
+                  <div class="data-view__toolbar">
+                    <div class="data-view__toolbar-start">
+                      <p
+                        class="data-view__result-count"
+                        id="listed-tradable-rights-results"
+                        data-listed-tradable-rights-result-count
+                      >
+                        <strong>
+                          <fmt:message
+                            key="issuer.trading.info.results.msg"
+                          />
+                        </strong>
+
+                        <span data-result-count-value>0</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <%-- =============================================================
+                      Accessible Loading and Result Status
+                      ============================================================= --%>
+
+                  <p
+                    class="visually-hidden"
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true"
+                    data-listed-tradable-rights-status
+                  ></p>
+
+                  <%-- =============================================================
+                      Results Table
+                      ============================================================= --%>
+
+                  <div
+                    class="table-shell"
+                    data-table-shell
+                  >
+                    <div
+                      class="table-responsive custom-scrollbar"
+                      role="region"
+                      tabindex="0"
+                      aria-labelledby="issuer-trading-tab-listed-tradable-rights listed-tradable-rights-results"
+                      data-table-scroll
+                      data-listed-tradable-rights-table-region
+                    >
+                      <table
+                        class="table table-market table-market--watch table-market--listed-rights table-striped table-hover table-nowrap"
+                        id="listed-tradable-rights-table"
+                        aria-describedby="listed-tradable-rights-results"
+                        aria-busy="false"
+                        data-listed-tradable-rights-table
+                      >
+                        <caption class="visually-hidden">
+                          <fmt:message
+                            key="issuer.trading.info.v2.title.listedtradable"
+                          />
+                        </caption>
+
+                        <thead>
+                          <%-- =====================================================
+                              Header Groups
+                              ===================================================== --%>
+
+                          <tr>
+                            <th
+                              class="table-market__security"
+                              scope="col"
+                              rowspan="2"
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.tradable.rights"
+                              />
+                            </th>
+
+                            <th
+                              class="table-market__group-heading"
+                              scope="colgroup"
+                              colspan="4"
+                              data-dt-order="disable"
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.last.trade"
+                              />
+                            </th>
+
+                            <th
+                              class="table-market__group-heading"
+                              scope="colgroup"
+                              colspan="3"
+                              data-dt-order="disable"
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.todays"
+                              />
+                            </th>
+
+                            <th
+                              class="table-market__group-heading"
+                              scope="colgroup"
+                              colspan="2"
+                              data-dt-order="disable"
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.cumulative"
+                              />
+                            </th>
+
+                            <th
+                              class="table-market__group-heading"
+                              scope="colgroup"
+                              colspan="2"
+                              data-dt-order="disable"
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.best.bid"
+                              />
+                            </th>
+
+                            <th
+                              class="table-market__group-heading"
+                              scope="colgroup"
+                              colspan="2"
+                              data-dt-order="disable"
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.best.offer"
+                              />
+                            </th>
+                          </tr>
+
+                          <%-- =====================================================
+                              Sortable Column Headings
+                              ===================================================== --%>
+
+                          <tr>
+                            <%-- Last Trade --%>
+
+                            <th
+                              class="table-market__number"
+                              scope="col"
+                              data-numeric
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.price"
+                              />
+                            </th>
+
+                            <th
+                              class="table-market__number"
+                              scope="col"
+                              data-numeric
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.volume"
+                              />
+                            </th>
+
+                            <th
+                              class="table-market__number"
+                              scope="col"
+                              data-numeric
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.change.value"
+                              />
+                            </th>
+
+                            <th
+                              class="table-market__number"
+                              scope="col"
+                              data-numeric
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.change.percent"
+                              />
+                            </th>
+
+                            <%-- Today --%>
+
+                            <th
+                              class="table-market__number"
+                              scope="col"
+                              data-numeric
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.open"
+                              />
+                            </th>
+
+                            <th
+                              class="table-market__number"
+                              scope="col"
+                              data-numeric
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.high"
+                              />
+                            </th>
+
+                            <th
+                              class="table-market__number"
+                              scope="col"
+                              data-numeric
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.low"
+                              />
+                            </th>
+
+                            <%-- Cumulative --%>
+
+                            <th
+                              class="table-market__number"
+                              scope="col"
+                              data-numeric
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.number.of.trades"
+                              />
+                            </th>
+
+                            <th
+                              class="table-market__number"
+                              scope="col"
+                              data-numeric
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.volume.traded"
+                              />
+                            </th>
+
+                            <%-- Best Bid --%>
+
+                            <th
+                              class="table-market__number"
+                              scope="col"
+                              data-numeric
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.price"
+                              />
+                            </th>
+
+                            <th
+                              class="table-market__number"
+                              scope="col"
+                              data-numeric
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.volume"
+                              />
+                            </th>
+
+                            <%-- Best Offer --%>
+
+                            <th
+                              class="table-market__number"
+                              scope="col"
+                              data-numeric
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.price"
+                              />
+                            </th>
+
+                            <th
+                              class="table-market__number"
+                              scope="col"
+                              data-numeric
+                            >
+                              <fmt:message
+                                key="equityright.table.column.header.volume"
+                              />
+                            </th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          <%--
+                            JavaScript renders:
+
+                            - company/right logo
+                            - company/right name and code
+                            - last-trade values
+                            - positive and negative change states
+                            - today’s price range
+                            - cumulative trade values
+                            - best bid and offer
+                            - alternating row colors
+                            - loading, empty, and error states
+                          --%>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <%-- =================================================================
+                  Mobile Cards
+                  ================================================================= --%>
+
+              <div
+                class="data-view__cards"
+                role="region"
+                aria-labelledby="issuer-trading-tab-listed-tradable-rights"
+                data-listed-tradable-rights-mobile
+              >
+                <div
+                  class="data-view__cards-inner"
+                  aria-busy="false"
+                  data-listed-tradable-rights-cards
+                >
+                  <%--
+                    JavaScript renders:
+
+                    - company/right logo, name, and code
+                    - last price and change summary
+                    - expandable trading details
+                    - loading, empty, and error states
+                  --%>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
 
         <%-- =================================================================
              Company Status — Placeholder
@@ -1198,6 +1555,60 @@
             },
           ],
         },
+
+        /* --------------------------------------------------------------------
+          Listed Tradable Rights
+          -------------------------------------------------------------------- */
+
+        listedTradableRights: {
+          table: {
+            tradableRights:
+              "<fmt:message key='equityright.table.column.header.tradable.rights' />",
+
+            lastTrade:
+              "<fmt:message key='equityright.table.column.header.last.trade' />",
+
+            today:
+              "<fmt:message key='equityright.table.column.header.todays' />",
+
+            cumulative:
+              "<fmt:message key='equityright.table.column.header.cumulative' />",
+
+            bestBid:
+              "<fmt:message key='equityright.table.column.header.best.bid' />",
+
+            bestOffer:
+              "<fmt:message key='equityright.table.column.header.best.offer' />",
+
+            price:
+              "<fmt:message key='equityright.table.column.header.price' />",
+
+            volume:
+              "<fmt:message key='equityright.table.column.header.volume' />",
+
+            changeValue:
+              "<fmt:message key='equityright.table.column.header.change.value' />",
+
+            changePercent:
+              "<fmt:message key='equityright.table.column.header.change.percent' />",
+
+            open:
+              "<fmt:message key='equityright.table.column.header.open' />",
+
+            high:
+              "<fmt:message key='equityright.table.column.header.high' />",
+
+            low:
+              "<fmt:message key='equityright.table.column.header.low' />",
+
+            numberOfTrades:
+              "<fmt:message key='equityright.table.column.header.number.of.trades' />",
+
+            volumeTraded:
+              "<fmt:message key='equityright.table.column.header.volume.traded' />",
+          },
+        },
+
       },
     };
   })(window, document);
