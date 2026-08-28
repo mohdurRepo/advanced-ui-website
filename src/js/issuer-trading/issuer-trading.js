@@ -37,6 +37,8 @@ import { createAccumulatedLossesTab } from "./tabs/accumulated-losses/accumulate
 
 import { createListedTradableRightsTab } from "./tabs/listed-tradable-rights/listed-tradable-rights.tab.js";
 
+import { createCompanyStatusTab } from "./tabs/company-status/company-status.tab.js";
+
 /* ==========================================================================
    Constants
    ========================================================================== */
@@ -117,6 +119,24 @@ const FEATURE_DEFINITIONS = Object.freeze({
       return createListedTradableRightsTab({
         root,
         config,
+
+        reloadOnActivate: true,
+      });
+    },
+  }),
+
+  "company-status": Object.freeze({
+    selector: '[data-issuer-trading-feature="company-status"]',
+
+    statusSelector: "[data-company-status-status]",
+
+    create({ root, config }) {
+      return createCompanyStatusTab({
+        root,
+        config,
+
+        autoInit: false,
+        active: false,
 
         reloadOnActivate: true,
       });
