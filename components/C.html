@@ -1610,7 +1610,160 @@
           aria-labelledby="issuer-trading-tab-otc-trading"
           hidden
         >
-          <%-- Implemented after the Company Status tab. --%>
+          <%-- =========================================================================
+            OTC Trading
+            ========================================================================= --%>
+
+        <section
+          class="tab-pane"
+          id="issuer-trading-panel-otc-trading"
+          role="tabpanel"
+          aria-labelledby="issuer-trading-tab-otc-trading"
+          hidden
+        >
+          <div
+            class="stack stack--lg"
+            data-issuer-trading-feature="otc-trading"
+          >
+            <%-- =====================================================================
+                OTC Trading Results
+                ===================================================================== --%>
+
+            <section
+              class="data-view"
+              aria-labelledby="otc-trading-results-title"
+              aria-busy="false"
+              data-otc-trading-view
+            >
+              <div class="data-view__workspace">
+                <%-- =================================================================
+                    Results Toolbar
+                    ================================================================= --%>
+
+                <div class="data-view__toolbar">
+                  <div class="data-view__toolbar-start">
+                    <h2
+                      class="visually-hidden"
+                      id="otc-trading-results-title"
+                    >
+                      <fmt:message
+                        key="issuer.trading.info.v2.title.otcctrading"
+                      />
+                    </h2>
+
+                    <p
+                      class="data-view__result-count"
+                      aria-live="polite"
+                    >
+                      <strong
+                        data-otc-trading-result-count
+                        data-result-count-value
+                      >
+                        0
+                      </strong>
+
+                      <span>
+                        <fmt:message
+                          key="issuer.trading.info.results.msg"
+                        />
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                <%-- =================================================================
+                    Accessible Loading and Result Status
+                    ================================================================= --%>
+
+                <p
+                  class="visually-hidden"
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                  data-otc-trading-status
+                ></p>
+
+                <%-- =================================================================
+                    Desktop Table
+                    ================================================================= --%>
+
+                <div
+                  class="data-view__table"
+                  data-otc-trading-table-region
+                >
+                  <div class="table-shell">
+                    <div class="table-responsive">
+                      <table
+                        class="
+                          table
+                          table-market
+                          table-market--watch
+                          table-market--otc-trading
+                        "
+                        data-otc-trading-table
+                      >
+                        <caption class="visually-hidden">
+                          <fmt:message
+                            key="issuer.trading.info.v2.title.otcctrading"
+                          />
+                        </caption>
+
+                        <thead>
+                          <tr>
+                            <%--
+                              Symbol is intentionally included beneath the company
+                              name through the shared Market Watch identity.
+                            --%>
+
+                            <th scope="col">
+                              <fmt:message key="OTC.Company" />
+                            </th>
+
+                            <th
+                              class="text-end"
+                              scope="col"
+                            >
+                              <fmt:message key="OTC.TradedVolume" />
+                            </th>
+
+                            <th
+                              class="text-center"
+                              scope="col"
+                            >
+                              <fmt:message
+                                key="OTC.LastUpdatePrice"
+                              />
+                            </th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          <%-- JavaScript owns all result rows and states. --%>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                <%-- =================================================================
+                    Mobile Cards
+                    ================================================================= --%>
+
+                <div
+                  class="data-view__cards"
+                  data-otc-trading-mobile
+                >
+                  <div
+                    class="data-card-list"
+                    data-otc-trading-cards
+                  >
+                    <%-- JavaScript owns all cards and states. --%>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
         </section>
       </div>
     </div>
@@ -2027,6 +2180,18 @@
           },
         },  
 
+        otcTrading: {
+          table: {
+            company:
+              "<fmt:message key='OTC.Company' />",
+
+            tradedVolume:
+              "<fmt:message key='OTC.TradedVolume' />",
+
+            lastUpdate:
+              "<fmt:message key='OTC.LastUpdatePrice' />",
+          },
+        },
       },
     };
   })(window, document);

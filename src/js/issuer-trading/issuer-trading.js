@@ -39,6 +39,8 @@ import { createListedTradableRightsTab } from "./tabs/listed-tradable-rights/lis
 
 import { createCompanyStatusTab } from "./tabs/company-status/company-status.tab.js";
 
+import { createOtcTradingTab } from "./tabs/otc-trading/otc-trading.tab.js";
+
 /* ==========================================================================
    Constants
    ========================================================================== */
@@ -132,6 +134,24 @@ const FEATURE_DEFINITIONS = Object.freeze({
 
     create({ root, config }) {
       return createCompanyStatusTab({
+        root,
+        config,
+
+        autoInit: false,
+        active: false,
+
+        reloadOnActivate: true,
+      });
+    },
+  }),
+
+  "otc-trading": Object.freeze({
+    selector: '[data-issuer-trading-feature="otc-trading"]',
+
+    statusSelector: "[data-otc-trading-status]",
+
+    create({ root, config }) {
+      return createOtcTradingTab({
         root,
         config,
 
