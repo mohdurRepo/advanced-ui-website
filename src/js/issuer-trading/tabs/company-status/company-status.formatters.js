@@ -44,14 +44,14 @@ import {
 
 import {
   COMPANY_STATUS_VIEWS,
-  isCompanyStatusSuspensionView,
+  getCompanyStatusView,
 } from "./company-status.filters.js";
 
 /* ==========================================================================
    Constants
    ========================================================================== */
 
-const DEFAULT_EMPTY_VALUE = "-";
+const DEFAULT_EMPTY_VALUE = "—";
 
 const STATUS_PRESENTATIONS = Object.freeze({
   1: Object.freeze({
@@ -79,6 +79,18 @@ const STATUS_PRESENTATIONS = Object.freeze({
 
 function firstDefined(...values) {
   return values.find((value) => value !== undefined && value !== null);
+}
+
+function firstSafeUrl(...values) {
+  for (const value of values) {
+    const url = getSafeUrl(value);
+
+    if (url) {
+      return url;
+    }
+  }
+
+  return "";
 }
 
 function padDatePart(value) {
@@ -118,6 +130,34 @@ function getCompanyCode(row = {}) {
     ),
   );
 }
+
+/* ==========================================================================
+   View Resolution
+   ========================================================================== */
+
+function resolveCompanyStatusView(row = {}) {
+  const directView = normalizeString(row.view).toLowerCase();
+
+  if (directView === COMPANY_STATUS_VIEWS.delisting) {
+    return COMPANY_STATUS_VIEWS.delisting;
+  }
+
+  if (directView === COMPANY_STATUS_VIEWS.suspension) {
+    return COMPANY_STATUS_VIEWS.suspension;
+  }
+
+  return getCompanyStatusView({
+    type: row.formType ?? row.type,
+  });
+}
+
+function isSuspensionRow(row = {}) {
+  return resolveCompanyStatusView(row) === COMPANY_STATUS_VIEWS.suspension;
+}
+
+/* ==========================================================================
+   Company Status
+   ========================================================================== */
 
 function getCompanyStatusCode(row = {}) {
   const status = row.companyStatus;
@@ -169,11 +209,11 @@ function getCompanySearchValue(row = {}, config = {}) {
    ========================================================================== */
 
 /*
- * The legacy Company Status page displays dates as:
+ * Company Status dates follow the legacy presentation:
  *
  * DD-MM-YYYY
  *
- * Both backend formats remain supported:
+ * Both backend formats are supported:
  *
  * - YYYY-MM-DD
  * - DD-MM-YYYY
@@ -245,6 +285,7 @@ export function getCompanyStatusPresentation(row = {}, config = {}) {
 
   return Object.freeze({
     className: presentation.className,
+
     label: getCompanyStatusLabel(row, config),
   });
 }
@@ -318,7 +359,7 @@ function formatCompanyCell(row, type, config) {
 export function getCompanyStatusAnnouncementLabel(row = {}, config = {}) {
   const labels = config.labels?.companyStatus?.links || {};
 
-  if (isCompanyStatusSuspensionView(row)) {
+  if (isSuspensionRow(row)) {
     return normalizeString(labels.suspension, "View");
   }
 
@@ -326,15 +367,19 @@ export function getCompanyStatusAnnouncementLabel(row = {}, config = {}) {
 }
 
 export function getCompanyStatusAnnouncementUrl(row = {}) {
-  return getSafeUrl(
-    firstDefined(row.announcementUrl, row.newsUrl, row.announcementSourceUrl),
+  return firstSafeUrl(
+    row.announcementUrl,
+    row.newsUrl,
+    row.announcementSourceUrl,
   );
 }
 
 function getAnnouncementSearchValue(row = {}, config = {}) {
   return [
     normalizeString(row.reason),
+
     getCompanyStatusAnnouncementLabel(row, config),
+
     getCompanyStatusAnnouncementUrl(row),
   ]
     .filter(Boolean)
@@ -356,8 +401,7 @@ export function renderCompanyStatusAnnouncement(
   const url = getCompanyStatusAnnouncementUrl(row);
 
   /*
-   * If the service supplies a reason without a URL, keep that useful
-   * information visible rather than replacing it with an empty link.
+   * Preserve a service-provided reason when there is no URL.
    */
 
   if (!url) {
@@ -410,9 +454,13 @@ function formatAnnouncementCell(row, type, config, fallback) {
 
 export function createCompanyStatusFormatters(config = {}) {
   const fallback =
-    config.labels?.emptyValue ?? config.labels?.noValue ?? DEFAULT_EMPTY_VALUE;
+    normalizeString(config.labels?.emptyValue) ||
+    normalizeString(config.labels?.noValue) ||
+    DEFAULT_EMPTY_VALUE;
 
   return Object.freeze({
+    emptyValue: fallback,
+
     /* ----------------------------------------------------------------------
        Desktop Table
        ---------------------------------------------------------------------- */
@@ -456,6 +504,7 @@ export function createCompanyStatusFormatters(config = {}) {
     renderCardAnnouncement(row = {}) {
       return renderCompanyStatusAnnouncement(row, config, {
         className: "company-status__announcement-link--card",
+
         fallback,
       });
     },
@@ -477,9 +526,7 @@ export function createCompanyStatusFormatters(config = {}) {
     },
 
     getView(row = {}) {
-      return isCompanyStatusSuspensionView(row)
-        ? COMPANY_STATUS_VIEWS.SUSPENSION
-        : COMPANY_STATUS_VIEWS.DELISTING;
+      return resolveCompanyStatusView(row);
     },
   });
 }

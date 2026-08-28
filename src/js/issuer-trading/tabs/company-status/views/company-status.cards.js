@@ -58,8 +58,7 @@ function isObject(value) {
 
 function isSuspensionView(view) {
   return (
-    normalizeString(view).toLowerCase() ===
-    String(COMPANY_STATUS_VIEWS.SUSPENSION).toLowerCase()
+    normalizeString(view).toLowerCase() === COMPANY_STATUS_VIEWS.suspension
   );
 }
 
@@ -132,7 +131,9 @@ function getTypeLabel(row = {}, labels) {
    ========================================================================== */
 
 function getSummaryDate(row, formatters, labels) {
-  if (!isSuspensionView(formatters.getView(row))) {
+  const view = formatters.getView(row);
+
+  if (!isSuspensionView(view)) {
     return formatters.formatCardDate(row?.delistingDate ?? row?.period?.from);
   }
 
@@ -140,15 +141,15 @@ function getSummaryDate(row, formatters, labels) {
 
   const toDate = formatters.formatCardDate(row?.period?.to);
 
-  if (fromDate === labels.emptyValue && toDate === labels.emptyValue) {
+  if (fromDate === formatters.emptyValue && toDate === formatters.emptyValue) {
     return labels.emptyValue;
   }
 
-  if (fromDate === labels.emptyValue) {
+  if (fromDate === formatters.emptyValue) {
     return toDate;
   }
 
-  if (toDate === labels.emptyValue) {
+  if (toDate === formatters.emptyValue) {
     return fromDate;
   }
 
@@ -275,7 +276,9 @@ export function createCompanyStatusCards(config = {}) {
   function renderCard(input = {}) {
     const row = input.row || {};
 
-    const index = Number(input.index || 0);
+    const parsedIndex = Number(input.index);
+
+    const index = Number.isFinite(parsedIndex) ? parsedIndex : 0;
 
     const view = formatters.getView(row);
 

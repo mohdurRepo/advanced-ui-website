@@ -39,13 +39,17 @@ import { normalizeString } from "../../../shared/trading-formatters.js";
 
 const COLUMN_KEYS = Object.freeze({
   company: "company",
+
   fromDate: "fromDate",
+
   toDate: "toDate",
+
   delistingDate: "delistingDate",
+
   announcement: "announcement",
 });
 
-const DEFAULT_VIEW = COMPANY_STATUS_VIEWS.SUSPENSION;
+const DEFAULT_VIEW = COMPANY_STATUS_VIEWS.suspension;
 
 /* ==========================================================================
    General Helpers
@@ -58,13 +62,13 @@ function isObject(value) {
 function normalizeView(value) {
   const view = normalizeString(value).toLowerCase();
 
-  return view === String(COMPANY_STATUS_VIEWS.DELISTING).toLowerCase()
-    ? COMPANY_STATUS_VIEWS.DELISTING
-    : COMPANY_STATUS_VIEWS.SUSPENSION;
+  return view === COMPANY_STATUS_VIEWS.delisting
+    ? COMPANY_STATUS_VIEWS.delisting
+    : COMPANY_STATUS_VIEWS.suspension;
 }
 
 function isSuspensionView(view) {
-  return normalizeView(view) === COMPANY_STATUS_VIEWS.SUSPENSION;
+  return normalizeView(view) === COMPANY_STATUS_VIEWS.suspension;
 }
 
 function resolveTable(input) {
@@ -139,8 +143,6 @@ function createSuspensionColumns(labels) {
 
       headerClassName: "company-status__date-heading text-center",
 
-      headerGroup: "period",
-
       width: "18%",
     }),
 
@@ -152,8 +154,6 @@ function createSuspensionColumns(labels) {
       className: "company-status__date-cell text-center",
 
       headerClassName: "company-status__date-heading text-center",
-
-      headerGroup: "period",
 
       width: "18%",
     }),
@@ -441,6 +441,7 @@ function createCellRenderer(formatters) {
       case COLUMN_KEYS.delistingDate:
         return formatters.delistingDate(
           row?.delistingDate ?? row?.period?.from,
+
           type,
         );
 
@@ -494,9 +495,9 @@ export function createCompanyStatusTable(config = {}) {
   const formatters = createCompanyStatusFormatters(config);
 
   const columns = Object.freeze({
-    [COMPANY_STATUS_VIEWS.SUSPENSION]: createSuspensionColumns(labels),
+    [COMPANY_STATUS_VIEWS.suspension]: createSuspensionColumns(labels),
 
-    [COMPANY_STATUS_VIEWS.DELISTING]: createDelistingColumns(labels),
+    [COMPANY_STATUS_VIEWS.delisting]: createDelistingColumns(labels),
   });
 
   return Object.freeze({
@@ -507,8 +508,8 @@ export function createCompanyStatusTable(config = {}) {
     },
 
     /*
-     * The table uses its dedicated header renderer because the Period
-     * heading sits between two row-spanning columns.
+     * The table owns its complex header because the Period heading sits
+     * between two row-spanning columns.
      */
 
     getColumnGroups() {
@@ -526,7 +527,14 @@ export function createCompanyStatusTable(config = {}) {
       info: false,
       lengthChange: false,
 
-      order: Object.freeze([[1, "desc"]]),
+      /*
+       * Column index 1 is:
+       *
+       * - From Date in Suspension
+       * - Delisting Date in Delisting
+       */
+
+      order: Object.freeze([Object.freeze([1, "desc"])]),
 
       rowGroup: false,
 
