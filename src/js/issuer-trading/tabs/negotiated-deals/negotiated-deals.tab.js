@@ -381,15 +381,6 @@ export function createNegotiatedDealsTab(options = {}) {
 
   const buildRequestData = createRequestDataBuilder(config);
 
-  const negotiatedDealsView = getViewDefinition(
-    views,
-    NEGOTIATED_DEALS_VIEWS.negotiatedDeals,
-  );
-
-  const cardOptions = isObject(negotiatedDealsView.cardOptions)
-    ? negotiatedDealsView.cardOptions
-    : {};
-
   const bindFilters = createFilterBinder({
     config,
 
@@ -514,8 +505,6 @@ export function createNegotiatedDealsTab(options = {}) {
     getCardGroupLabel,
 
     renderCardGroup,
-
-    cardOptions,
 
     tableOptions: createTableOptions(views),
 
