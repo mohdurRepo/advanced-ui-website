@@ -91,7 +91,7 @@
    Narrow Mobile
    ========================================================================== */
 
-@include ds.respond-down(xs) {
+@include ds.respond-down("sm") {
   .data-view__cards-header {
     --data-view-card-toggle-width: 2.75rem;
 
