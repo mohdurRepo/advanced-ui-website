@@ -271,41 +271,23 @@ function renderMessage({ message, imageUrl = "", isError = false }) {
    Card Summary
    ========================================================================== */
 
-function renderCardSummary(row, values, formatters, labels) {
+function renderCardSummary(row, values, formatters) {
   return `
     <div class="data-card__summary">
-      <div class="data-card__summary-identity">
-        <span class="data-card__quote-label">
-          ${escapeHtml(labels.company)}
-        </span>
-
-        ${formatters.renderCardIdentity(row)}
-      </div>
+      ${formatters.renderCardIdentity(row)}
 
       <div class="data-card__quote">
-        <div class="data-card__quote-item">
-          <span class="data-card__quote-label">
-            ${escapeHtml(labels.price)}
-          </span>
+        <span class="data-card__price">
+          ${escapeHtml(values.lastTrade.price)}
+        </span>
 
-          <span class="data-card__price">
-            ${escapeHtml(values.lastTrade.price)}
-          </span>
-        </div>
-
-        <div class="data-card__quote-item">
-          <span class="data-card__quote-label">
-            ${escapeHtml(labels.changePercent)}
-          </span>
-
-          <span
-            class="data-card__change ${escapeHtml(
-              values.lastTrade.changePercentClass,
-            )}"
-          >
-            ${escapeHtml(values.lastTrade.changePercent)}
-          </span>
-        </div>
+        <span
+          class="data-card__change ${escapeHtml(
+            values.lastTrade.changePercentClass,
+          )}"
+        >
+          ${escapeHtml(values.lastTrade.changePercent)}
+        </span>
       </div>
     </div>
   `.trim();
@@ -491,7 +473,7 @@ export function createListedTradableRightsCards(options = {}) {
 
       className: "data-card--listed-tradable-rights",
 
-      summary: renderCardSummary(row, values, formatters, labels),
+      summary: renderCardSummary(row, values, formatters),
 
       fields,
 

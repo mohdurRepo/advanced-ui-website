@@ -35,6 +35,83 @@
  */
 
 /* ==========================================================================
+   Card Collection Header
+   ========================================================================== */
+
+/*
+ * Optional column labels for compact mobile card collections.
+ *
+ * The inline-end padding reserves the same space used by the card expansion
+ * rail, keeping the value heading aligned with the card quote.
+ */
+
+.data-view__cards-header {
+  --data-view-card-toggle-width: 3rem;
+
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(6.5rem, auto);
+
+  align-items: center;
+
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+
+  padding-block: ds.space(2);
+
+  padding-inline-start: ds.space(3);
+
+  padding-inline-end: calc(var(--data-view-card-toggle-width) + #{ds.space(3)});
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("regular");
+  line-height: var(--line-height-tight);
+}
+
+.data-view__cards-header-start,
+.data-view__cards-header-end {
+  min-inline-size: 0;
+}
+
+.data-view__cards-header-start {
+  text-align: start;
+}
+
+.data-view__cards-header-end {
+  text-align: end;
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Narrow Mobile
+   ========================================================================== */
+
+@include ds.respond-down(xs) {
+  .data-view__cards-header {
+    --data-view-card-toggle-width: 2.75rem;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(4.75rem, auto);
+
+    gap: ds.space(2);
+
+    padding-inline-start: ds.space(2);
+
+    padding-inline-end: calc(
+      var(--data-view-card-toggle-width) + #{ds.space(2)}
+    );
+
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
    Card Collection
    ========================================================================== */
 
