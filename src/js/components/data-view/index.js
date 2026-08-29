@@ -1,14 +1,24 @@
+/* ==========================================================================
+   Data View
+   ========================================================================== */
+
+/* ==========================================================================
+   Imports
+   ========================================================================== */
+
 import { DataViewCard } from "./data-view-card";
+
 import { DataView } from "./data-view";
+
 import { SELECTORS } from "./constants";
 
 /* ==========================================================================
    Generic View Selectors
    ========================================================================== */
 
-const VIEW_SELECTORS = {
+const VIEW_SELECTORS = Object.freeze({
   root: "[data-view-root]",
-};
+});
 
 /* ==========================================================================
    Element Collection
@@ -22,7 +32,7 @@ const VIEW_SELECTORS = {
  * @returns {Element[]}
  */
 function getElements(root, selector) {
-  if (!root) {
+  if (!root || !selector) {
     return [];
   }
 
@@ -39,15 +49,84 @@ function getElements(root, selector) {
   return elements;
 }
 
+/* ==========================================================================
+   Data Card Validation
+   ========================================================================== */
+
 /**
- * Return expandable mobile data cards.
+ * Return the first matching element owned directly by a card.
+ *
+ * This prevents a parent card from accidentally using the toggle or details
+ * region belonging to a nested card.
+ *
+ * @param {Element} card
+ * @param {string} selector
+ * @returns {Element | null}
+ */
+function getOwnedCardElement(card, selector) {
+  if (!(card instanceof Element)) {
+    return null;
+  }
+
+  const element = card.querySelector(selector);
+
+  if (!(element instanceof Element)) {
+    return null;
+  }
+
+  return element.closest(SELECTORS.card) === card ? element : null;
+}
+
+/**
+ * Determine whether a card satisfies the expandable DataViewCard contract.
+ *
+ * Every enhanced card must contain:
+ *
+ * - one owned toggle
+ * - one owned details region
+ *
+ * Static cards intentionally do not participate in this lifecycle.
+ *
+ * @param {Element} card
+ * @returns {boolean}
+ */
+function isExpandableDataCard(card) {
+  return Boolean(
+    getOwnedCardElement(card, SELECTORS.toggle) &&
+    getOwnedCardElement(card, SELECTORS.details),
+  );
+}
+
+/* ==========================================================================
+   Data Card Collection
+   ========================================================================== */
+
+/**
+ * Return all elements carrying the DataViewCard behavior hook.
+ *
+ * This unfiltered collection is used during destruction so an existing
+ * instance can still be destroyed if its markup later becomes incomplete.
  *
  * @param {Document | DocumentFragment | Element | ShadowRoot} root
  * @returns {Element[]}
  */
-function getDataViewCards(root) {
+function getDataViewCardElements(root) {
   return getElements(root, SELECTORS.card);
 }
+
+/**
+ * Return only cards that satisfy the complete expandable-card contract.
+ *
+ * @param {Document | DocumentFragment | Element | ShadowRoot} root
+ * @returns {Element[]}
+ */
+function getExpandableDataViewCards(root) {
+  return getDataViewCardElements(root).filter(isExpandableDataCard);
+}
+
+/* ==========================================================================
+   Generic View Collection
+   ========================================================================== */
 
 /**
  * Return generic view-switching roots.
@@ -60,11 +139,49 @@ function getDataViewRoots(root) {
 }
 
 /* ==========================================================================
+   Invalid Instance Cleanup
+   ========================================================================== */
+
+/**
+ * Destroy an existing DataViewCard instance when its required markup has
+ * subsequently been removed.
+ *
+ * New invalid markup is simply ignored. Existing enhanced markup is cleaned
+ * up safely to prevent stale event listeners.
+ *
+ * @param {Document | DocumentFragment | Element | ShadowRoot} root
+ * @returns {number}
+ */
+function destroyInvalidDataViewCardInstances(root) {
+  let destroyed = 0;
+
+  getDataViewCardElements(root).forEach((element) => {
+    if (isExpandableDataCard(element)) {
+      return;
+    }
+
+    const instance = DataViewCard.getInstance(element);
+
+    if (!instance) {
+      return;
+    }
+
+    instance.destroy();
+
+    destroyed += 1;
+  });
+
+  return destroyed;
+}
+
+/* ==========================================================================
    Expandable Card Initialization
    ========================================================================== */
 
 export function initDataViewCards(root = document) {
-  return getDataViewCards(root)
+  destroyInvalidDataViewCardInstances(root);
+
+  return getExpandableDataViewCards(root)
     .map((element) => DataViewCard.getOrCreateInstance(element))
     .filter(Boolean);
 }
@@ -86,14 +203,16 @@ export function initDataViewSwitchers(root = document) {
 /**
  * Initialize all reusable data-view behavior.
  *
- * This preserves the existing public initializer used by main.js.
+ * This preserves the public initializer used by main.js.
  */
 export function initDataViews(root = document) {
   const cards = initDataViewCards(root);
+
   const views = initDataViewSwitchers(root);
 
   return {
     cards,
+
     views,
   };
 }
@@ -102,8 +221,16 @@ export function initDataViews(root = document) {
    Refresh
    ========================================================================== */
 
+/**
+ * Enhance dynamically rendered data-view content.
+ *
+ * Only complete expandable cards are initialized. Static cards and incomplete
+ * behavior markup are ignored.
+ */
 export function refreshDataViews(root = document) {
-  const cards = getDataViewCards(root)
+  destroyInvalidDataViewCardInstances(root);
+
+  const cards = getExpandableDataViewCards(root)
     .map((element) => {
       const instance = DataViewCard.getInstance(element);
 
@@ -133,6 +260,7 @@ export function refreshDataViews(root = document) {
 
   return {
     cards,
+
     views,
   };
 }
@@ -143,9 +271,15 @@ export function refreshDataViews(root = document) {
 
 export function destroyDataViews(root = document) {
   let destroyedCards = 0;
+
   let destroyedViews = 0;
 
-  getDataViewCards(root).forEach((element) => {
+  /*
+   * Use the unfiltered card collection so instances remain destroyable even
+   * when their required child markup was removed before destruction.
+   */
+
+  getDataViewCardElements(root).forEach((element) => {
     const instance = DataViewCard.getInstance(element);
 
     if (!instance) {
@@ -153,6 +287,7 @@ export function destroyDataViews(root = document) {
     }
 
     instance.destroy();
+
     destroyedCards += 1;
   });
 
@@ -164,12 +299,15 @@ export function destroyDataViews(root = document) {
     }
 
     instance.destroy();
+
     destroyedViews += 1;
   });
 
   return {
     cards: destroyedCards,
+
     views: destroyedViews,
+
     total: destroyedCards + destroyedViews,
   };
 }

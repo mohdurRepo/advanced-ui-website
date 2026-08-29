@@ -8,21 +8,22 @@
  * Responsibilities:
  *
  * - read validated JSP configuration
- * - observe the existing design-system tabs
+ * - listen to the design-system tabs lifecycle
  * - lazily create tab-specific data modules
  * - activate and deactivate data modules
- * - preserve placeholder tabs
+ * - prevent duplicate feature activation
+ * - cancel stale feature work through each feature lifecycle
  * - destroy page resources
  *
  * This module intentionally does not:
  *
- * - implement tab UI behavior
- * - change active tab classes
+ * - implement visual tab behavior
+ * - change tab classes
  * - change ARIA tab state
  * - show or hide tab panels
  * - contain tab-specific business logic
  *
- * Visual tab behavior remains owned by the design-system tabs controller.
+ * Visual tab behavior remains owned by the design-system tabs component.
  */
 
 /* ==========================================================================
@@ -47,7 +48,7 @@ import { createOtcTradingTab } from "./tabs/otc-trading/otc-trading.tab.js";
 
 const DEFAULT_TAB = "negotiated-deals";
 
-const TAB_CHANGE_EVENTS = Object.freeze(["tab:change", "tabs:change"]);
+const TAB_CHANGE_EVENT = "tabs:change";
 
 const TAB_ID_PREFIXES = Object.freeze([
   "issuer-trading-panel-",
@@ -58,13 +59,12 @@ const TAB_ID_PREFIXES = Object.freeze([
 const SELECTORS = Object.freeze({
   root: "[data-issuer-trading]",
 
-  tabs: "[data-tabs]",
+  tabs: '.tabs[data-tabs][data-tabs-id="issuer-trading"]',
 
-  tab: ['[role="tab"][data-tab]', '[role="tab"][data-tab-target]'].join(", "),
+  activeTab:
+    ':scope > .tabs-nav > [role="tab"][data-tab-target][aria-selected="true"]',
 
-  activeTab: '[role="tab"][aria-selected="true"]',
-
-  activePanel: ".tab-pane:not([hidden])",
+  activePanel: ':scope > .tabs-content > [role="tabpanel"]:not([hidden])',
 });
 
 /* ==========================================================================
@@ -72,9 +72,13 @@ const SELECTORS = Object.freeze({
    ========================================================================== */
 
 /*
- * Add future tab modules here only after each tab has been completed.
+ * Every feature is created lazily on its first activation.
  *
- * Tabs without a definition remain valid visual placeholders.
+ * All features use the same lifecycle configuration:
+ *
+ * - no initialization during factory creation
+ * - no automatic activation during factory creation
+ * - reload once when activated after being inactive
  */
 
 const FEATURE_DEFINITIONS = Object.freeze({
@@ -89,7 +93,6 @@ const FEATURE_DEFINITIONS = Object.freeze({
         config,
 
         autoInit: false,
-
         active: false,
 
         reloadOnActivate: true,
@@ -107,6 +110,9 @@ const FEATURE_DEFINITIONS = Object.freeze({
         root,
         config,
 
+        autoInit: false,
+        active: false,
+
         reloadOnActivate: true,
       });
     },
@@ -121,6 +127,9 @@ const FEATURE_DEFINITIONS = Object.freeze({
       return createListedTradableRightsTab({
         root,
         config,
+
+        autoInit: false,
+        active: false,
 
         reloadOnActivate: true,
       });
@@ -165,7 +174,7 @@ const FEATURE_DEFINITIONS = Object.freeze({
 });
 
 /* ==========================================================================
-   Instances
+   Instance Registry
    ========================================================================== */
 
 const instances = new WeakMap();
@@ -178,9 +187,25 @@ function isElement(value) {
   return Boolean(value && value.nodeType === 1);
 }
 
+function isObject(value) {
+  return value !== null && typeof value === "object";
+}
+
+function isAbortError(error) {
+  return error?.name === "AbortError";
+}
+
 function normalizeString(value) {
   return String(value ?? "").trim();
 }
+
+function hasFeatureDefinition(tabKey) {
+  return Object.prototype.hasOwnProperty.call(FEATURE_DEFINITIONS, tabKey);
+}
+
+/* ==========================================================================
+   Tab Key Normalization
+   ========================================================================== */
 
 function normalizeTabKey(value) {
   const normalized = normalizeString(value).replace(/^#/, "");
@@ -189,7 +214,7 @@ function normalizeTabKey(value) {
     return "";
   }
 
-  if (Object.prototype.hasOwnProperty.call(FEATURE_DEFINITIONS, normalized)) {
+  if (hasFeatureDefinition(normalized)) {
     return normalized;
   }
 
@@ -215,6 +240,18 @@ function getTabElementKey(tab) {
   );
 }
 
+function getPanelElementKey(panel) {
+  if (!isElement(panel)) {
+    return "";
+  }
+
+  return normalizeTabKey(panel.dataset.tab || panel.id);
+}
+
+/* ==========================================================================
+   Root Resolution
+   ========================================================================== */
+
 function resolvePageRoot(root) {
   if (isElement(root) && root.matches(SELECTORS.root)) {
     return root;
@@ -227,49 +264,8 @@ function resolvePageRoot(root) {
   return null;
 }
 
-function getInitialTabKey(pageRoot, tabs) {
-  const activeTab = tabs.querySelector(SELECTORS.activeTab);
-
-  const activeTabKey = getTabElementKey(activeTab);
-
-  if (activeTabKey) {
-    return activeTabKey;
-  }
-
-  const activePanel = pageRoot.querySelector(SELECTORS.activePanel);
-
-  const activePanelKey = normalizeTabKey(
-    activePanel?.dataset.tab || activePanel?.id,
-  );
-
-  return activePanelKey || DEFAULT_TAB;
-}
-
-function getEventTabKey(event) {
-  const detailTarget = event?.detail?.target;
-
-  if (isElement(detailTarget)) {
-    return getTabElementKey(detailTarget);
-  }
-
-  return normalizeTabKey(
-    event?.detail?.tabKey ??
-      event?.detail?.tab ??
-      event?.detail?.key ??
-      detailTarget,
-  );
-}
-
-function getClickedTab(event, tabs) {
-  const target = event?.target;
-
-  if (!isElement(target)) {
-    return null;
-  }
-
-  const tab = target.closest(SELECTORS.tab);
-
-  return tab && tabs.contains(tab) ? tab : null;
+function resolveTabsRoot(pageRoot) {
+  return pageRoot.querySelector(SELECTORS.tabs);
 }
 
 function resolveFeatureRoot(pageRoot, definition) {
@@ -279,6 +275,56 @@ function resolveFeatureRoot(pageRoot, definition) {
 
   return pageRoot.querySelector(definition.selector);
 }
+
+/* ==========================================================================
+   Initial Tab
+   ========================================================================== */
+
+function getInitialTabKey(tabs) {
+  const activeTab = tabs.querySelector(SELECTORS.activeTab);
+
+  const activeTabKey = getTabElementKey(activeTab);
+
+  if (activeTabKey) {
+    return activeTabKey;
+  }
+
+  const activePanel = tabs.querySelector(SELECTORS.activePanel);
+
+  const activePanelKey = getPanelElementKey(activePanel);
+
+  return activePanelKey || DEFAULT_TAB;
+}
+
+/* ==========================================================================
+   Event Tab
+   ========================================================================== */
+
+function getEventTabKey(event) {
+  if (!isObject(event?.detail)) {
+    return "";
+  }
+
+  const { tabKey, tab, panel, targetId } = event.detail;
+
+  if (normalizeString(tabKey)) {
+    return normalizeTabKey(tabKey);
+  }
+
+  if (isElement(tab)) {
+    return getTabElementKey(tab);
+  }
+
+  if (isElement(panel)) {
+    return getPanelElementKey(panel);
+  }
+
+  return normalizeTabKey(targetId);
+}
+
+/* ==========================================================================
+   Feature Validation
+   ========================================================================== */
 
 function validateFeature(feature, tabKey) {
   const requiredMethods = ["activate", "deactivate", "destroy", "reload"];
@@ -297,10 +343,19 @@ function validateFeature(feature, tabKey) {
 }
 
 /* ==========================================================================
-   Lifecycle Error
+   Lifecycle Error Reporting
    ========================================================================== */
 
 function reportLifecycleError({ pageRoot, tabKey, error, config }) {
+  /*
+   * Request cancellation is an expected lifecycle outcome during rapid tab
+   * changes and destruction. It must not be presented as a user-facing error.
+   */
+
+  if (isAbortError(error)) {
+    return;
+  }
+
   const definition = FEATURE_DEFINITIONS[tabKey];
 
   const featureRoot = resolveFeatureRoot(pageRoot, definition);
@@ -336,13 +391,13 @@ export function initIssuerTrading(root = document) {
     return null;
   }
 
-  const existing = instances.get(pageRoot);
+  const existingInstance = instances.get(pageRoot);
 
-  if (existing) {
-    return existing;
+  if (existingInstance) {
+    return existingInstance;
   }
 
-  const tabs = pageRoot.querySelector(SELECTORS.tabs);
+  const tabs = resolveTabsRoot(pageRoot);
 
   if (!tabs) {
     throw new Error("Issuer Trading tabs container was not found.");
@@ -354,9 +409,13 @@ export function initIssuerTrading(root = document) {
 
   const abortController = new AbortController();
 
-  let tabStateObserver = null;
-
   let activeTabKey = "";
+
+  let pendingTabKey = "";
+
+  let pendingActivation = null;
+
+  let activationId = 0;
 
   let destroyed = false;
 
@@ -382,7 +441,7 @@ export function initIssuerTrading(root = document) {
     const definition = FEATURE_DEFINITIONS[tabKey];
 
     /*
-     * Tabs without a completed module remain valid placeholders.
+     * Unknown tabs remain valid visual tabs without a data feature.
      */
 
     if (!definition) {
@@ -411,32 +470,82 @@ export function initIssuerTrading(root = document) {
   }
 
   /* ========================================================================
+     Pending Activation
+     ======================================================================== */
+
+  function clearPendingActivation(activation) {
+    if (pendingActivation !== activation) {
+      return;
+    }
+
+    pendingActivation = null;
+
+    pendingTabKey = "";
+  }
+
+  /* ========================================================================
      Feature Activation
      ======================================================================== */
 
-  async function activateFeature(tabKey) {
+  function activateFeature(tabKey) {
     if (destroyed) {
-      return null;
+      return Promise.resolve(null);
     }
 
     const normalizedTabKey = normalizeTabKey(tabKey);
 
     if (!normalizedTabKey) {
-      return null;
+      return Promise.resolve(null);
+    }
+
+    /*
+     * Return the existing promise when the same tab is already being
+     * activated. This prevents parallel loads for one tab.
+     */
+
+    if (normalizedTabKey === pendingTabKey && pendingActivation) {
+      return pendingActivation;
     }
 
     const currentFeature = findFeature(activeTabKey);
 
     /*
-     * A click, an accessibility-state mutation, and an optional custom
-     * tab-change event may all report the same activation.
+     * Selecting the already-active feature is intentionally a no-op.
      *
-     * Ignore duplicates to prevent duplicate service requests.
+     * Reloads remain available through:
+     *
+     * - filter changes
+     * - reset actions
+     * - the public reload() method
      */
 
     if (normalizedTabKey === activeTabKey && currentFeature) {
-      return currentFeature;
+      return Promise.resolve(currentFeature);
     }
+
+    /*
+     * An active placeholder tab also remains a no-op when selected again.
+     */
+
+    if (
+      normalizedTabKey === activeTabKey &&
+      !hasFeatureDefinition(normalizedTabKey)
+    ) {
+      return Promise.resolve(null);
+    }
+
+    /*
+     * Invalidate any earlier activation before changing features.
+     *
+     * An older promise may still settle, but it no longer owns the current
+     * activation and therefore cannot report a stale lifecycle error.
+     */
+
+    const currentActivationId = ++activationId;
+
+    pendingActivation = null;
+
+    pendingTabKey = "";
 
     if (currentFeature && activeTabKey !== normalizedTabKey) {
       currentFeature.deactivate();
@@ -444,35 +553,85 @@ export function initIssuerTrading(root = document) {
 
     activeTabKey = normalizedTabKey;
 
-    const nextFeature = createFeature(normalizedTabKey);
+    let nextFeature;
+
+    try {
+      nextFeature = createFeature(normalizedTabKey);
+    } catch (error) {
+      return Promise.reject(error);
+    }
 
     /*
      * Placeholder tab:
      *
-     * Visual tab behavior remains functional, but no data module is created.
+     * Visual tab behavior remains functional, but there is no data module to
+     * activate.
      */
 
     if (!nextFeature) {
-      return null;
+      return Promise.resolve(null);
     }
 
-    await nextFeature.activate();
+    let activationResult;
 
-    return nextFeature;
+    try {
+      activationResult = nextFeature.activate();
+    } catch (error) {
+      activationResult = Promise.reject(error);
+    }
+
+    const activation = Promise.resolve(activationResult)
+      .then(() => {
+        if (
+          destroyed ||
+          currentActivationId !== activationId ||
+          activeTabKey !== normalizedTabKey
+        ) {
+          return null;
+        }
+
+        return nextFeature;
+      })
+      .catch((error) => {
+        /*
+         * Ignore cancellation and stale activation failures.
+         *
+         * Only the currently owned activation may report a real error.
+         */
+
+        if (
+          destroyed ||
+          currentActivationId !== activationId ||
+          isAbortError(error)
+        ) {
+          return null;
+        }
+
+        throw error;
+      })
+      .finally(() => {
+        clearPendingActivation(activation);
+      });
+
+    pendingTabKey = normalizedTabKey;
+
+    pendingActivation = activation;
+
+    return activation;
   }
 
   /* ========================================================================
-     Safe Feature Activation
+     Safe Activation Request
      ======================================================================== */
 
   function requestFeatureActivation(tabKey) {
     const normalizedTabKey = normalizeTabKey(tabKey);
 
-    if (!normalizedTabKey) {
-      return;
+    if (!normalizedTabKey || destroyed) {
+      return Promise.resolve(null);
     }
 
-    activateFeature(normalizedTabKey).catch((error) => {
+    return activateFeature(normalizedTabKey).catch((error) => {
       reportLifecycleError({
         pageRoot,
 
@@ -482,91 +641,36 @@ export function initIssuerTrading(root = document) {
 
         config,
       });
+
+      return null;
     });
   }
 
   /* ========================================================================
-     Design-System Tab Clicks
-     ======================================================================== */
-
-  function handleTabClick(event) {
-    const tab = getClickedTab(event, tabs);
-
-    if (!tab) {
-      return;
-    }
-
-    /*
-     * This does not alter the visual tab state.
-     *
-     * The design-system controller processes data-tab-target and owns the
-     * corresponding active classes, ARIA state, and panel visibility.
-     */
-
-    requestFeatureActivation(getTabElementKey(tab));
-  }
-
-  tabs.addEventListener("click", handleTabClick, {
-    signal: abortController.signal,
-  });
-
-  /* ========================================================================
-     Optional Tab Change Events
+     Design-System Tab Event
      ======================================================================== */
 
   function handleTabChange(event) {
-    requestFeatureActivation(getEventTabKey(event));
-  }
+    /*
+     * Ignore events emitted by nested tabs inside an Issuer Trading panel.
+     */
 
-  TAB_CHANGE_EVENTS.forEach((eventName) => {
-    tabs.addEventListener(eventName, handleTabChange, {
-      signal: abortController.signal,
-    });
-  });
-
-  /* ========================================================================
-     Accessibility-State Observation
-     ======================================================================== */
-
-  /*
-   * Some design-system controllers activate tabs through keyboard navigation
-   * without dispatching a public custom event.
-   *
-   * Observing aria-selected keeps the data lifecycle synchronized without
-   * duplicating or replacing the visual controller.
-   */
-
-  tabStateObserver = new MutationObserver((mutations) => {
-    const selectionChanged = mutations.some(
-      (mutation) =>
-        mutation.type === "attributes" &&
-        mutation.attributeName === "aria-selected",
-    );
-
-    if (!selectionChanged) {
+    if (event.target !== tabs) {
       return;
     }
 
-    const selectedTab = tabs.querySelector(SELECTORS.activeTab);
+    const tabKey = getEventTabKey(event);
 
-    requestFeatureActivation(getTabElementKey(selectedTab));
+    if (!tabKey) {
+      return;
+    }
+
+    void requestFeatureActivation(tabKey);
+  }
+
+  tabs.addEventListener(TAB_CHANGE_EVENT, handleTabChange, {
+    signal: abortController.signal,
   });
-
-  tabStateObserver.observe(tabs, {
-    subtree: true,
-
-    attributes: true,
-
-    attributeFilter: ["aria-selected"],
-  });
-
-  /* ========================================================================
-     Initial Feature
-     ======================================================================== */
-
-  const initialTabKey = getInitialTabKey(pageRoot, tabs);
-
-  requestFeatureActivation(initialTabKey);
 
   /* ========================================================================
      Public Instance
@@ -580,11 +684,17 @@ export function initIssuerTrading(root = document) {
 
       destroyed = true;
 
+      /*
+       * Invalidate every unresolved activation before destroying features.
+       */
+
+      activationId += 1;
+
+      pendingActivation = null;
+
+      pendingTabKey = "";
+
       abortController.abort();
-
-      tabStateObserver?.disconnect();
-
-      tabStateObserver = null;
 
       featureInstances.forEach((feature) => {
         feature.destroy();
@@ -598,9 +708,15 @@ export function initIssuerTrading(root = document) {
     },
 
     reload() {
+      if (destroyed) {
+        return Promise.resolve(null);
+      }
+
       const feature = findFeature(activeTabKey);
 
-      return feature ? feature.reload() : Promise.resolve(null);
+      return feature
+        ? Promise.resolve(feature.reload())
+        : Promise.resolve(null);
     },
 
     getActiveTab() {
@@ -614,9 +730,27 @@ export function initIssuerTrading(root = document) {
     getFeatures() {
       return new Map(featureInstances);
     },
+
+    isActivating() {
+      return Boolean(pendingActivation);
+    },
   });
 
+  /*
+   * Register the instance before initial activation. This prevents reentrant
+   * initialization if application code reacts synchronously to lifecycle
+   * events.
+   */
+
   instances.set(pageRoot, instance);
+
+  /* ========================================================================
+     Initial Feature
+     ======================================================================== */
+
+  const initialTabKey = getInitialTabKey(tabs);
+
+  void requestFeatureActivation(initialTabKey);
 
   return instance;
 }
