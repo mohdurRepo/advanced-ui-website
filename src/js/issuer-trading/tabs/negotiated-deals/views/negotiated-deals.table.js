@@ -347,7 +347,10 @@ function createRowCallback({ formatters, labels }) {
       return;
     }
 
-    rowElement.classList.add("table-market__summary-row");
+    rowElement.classList.add(
+      "table-market__summary-row",
+      "table-market__summary-row--emphasis",
+    );
 
     const cells = rowElement.cells;
 

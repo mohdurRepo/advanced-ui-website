@@ -9,6 +9,7 @@
  *
  * - render all returned companies
  * - render company image, name, and code
+ * - render accumulated-loss status indicators accessibly
  * - render loading, empty, and error states
  * - preserve accessibility across state changes
  *
@@ -56,6 +57,26 @@ const DEFAULT_LABELS = Object.freeze({
   error: "Unable to load data.",
 });
 
+const STATUS_PRESENTATIONS = Object.freeze({
+  1: Object.freeze({
+    className: "status-state--warning",
+
+    labelKey: "losses20To35",
+  }),
+
+  2: Object.freeze({
+    className: "status-state--caution",
+
+    labelKey: "losses35To50",
+  }),
+
+  3: Object.freeze({
+    className: "status-state--danger",
+
+    labelKey: "losses50More",
+  }),
+});
+
 const SELECTORS = Object.freeze({
   view: "[data-accumulated-losses-view]",
 
@@ -93,13 +114,100 @@ function resolveRequiredElement(root, selector, name) {
 }
 
 function getLabels(config = {}) {
+  const statusLabels =
+    config.labels?.accumulatedLosses?.status || config.labels?.status || {};
+
   return Object.freeze({
     loading: normalizeString(config.labels?.loading) || DEFAULT_LABELS.loading,
 
     noData: normalizeString(config.labels?.noData) || DEFAULT_LABELS.noData,
 
     error: normalizeString(config.labels?.error) || DEFAULT_LABELS.error,
+
+    status: Object.freeze({
+      losses20To35: normalizeString(statusLabels.losses20To35),
+
+      losses35To50: normalizeString(statusLabels.losses35To50),
+
+      losses50More: normalizeString(statusLabels.losses50More),
+    }),
   });
+}
+
+/* ==========================================================================
+   Status Presentation
+   ========================================================================== */
+
+function getStatusValue(row = {}) {
+  const value =
+    row.companyStatus ??
+    row.statusCode ??
+    row.lossStatus ??
+    row.status ??
+    row.raw?.companyStatus ??
+    row.raw?.statusCode ??
+    row.raw?.lossStatus ??
+    row.raw?.status;
+
+  if (isObject(value)) {
+    return value.code ?? value.value ?? value.id ?? "";
+  }
+
+  return value;
+}
+
+function getStatusCode(row = {}) {
+  const value = getStatusValue(row);
+
+  const number = Number(value);
+
+  if (Number.isFinite(number)) {
+    return String(number);
+  }
+
+  return normalizeString(value);
+}
+
+function getStatusPresentation(row, labels) {
+  const definition = STATUS_PRESENTATIONS[getStatusCode(row)];
+
+  if (!definition) {
+    return null;
+  }
+
+  return Object.freeze({
+    className: definition.className,
+
+    label: normalizeString(labels.status?.[definition.labelKey]),
+  });
+}
+
+function renderStatusIndicator(row, labels) {
+  const presentation = getStatusPresentation(row, labels);
+
+  if (!presentation) {
+    return "";
+  }
+
+  const accessibilityAttributes = presentation.label
+    ? `
+        role="img"
+        aria-label="${escapeHtml(presentation.label)}"
+        title="${escapeHtml(presentation.label)}"
+      `.trim()
+    : 'aria-hidden="true"';
+
+  return `
+    <span
+      class="status-state ${escapeHtml(presentation.className)}"
+      ${accessibilityAttributes}
+    >
+      <span
+        class="status-state__indicator"
+        aria-hidden="true"
+      ></span>
+    </span>
+  `.trim();
 }
 
 /* ==========================================================================
@@ -203,7 +311,7 @@ function renderCompanyName(row) {
    Company Result
    ========================================================================== */
 
-function renderCompanyItem(row, config) {
+function renderCompanyItem(row, config, labels) {
   const rowId = normalizeString(row?.id);
 
   const companyCode = getStandardCompanyCode(row) || "—";
@@ -224,6 +332,8 @@ function renderCompanyItem(row, config) {
           <div class="content-item__summary">
             <span class="content-item__symbol">
               ${escapeHtml(companyCode)}
+
+              ${renderStatusIndicator(row, labels)}
             </span>
           </div>
 
@@ -403,7 +513,7 @@ export function createAccumulatedLossesView(options = {}) {
      */
 
     listElement.innerHTML = rows
-      .map((row) => renderCompanyItem(row, config))
+      .map((row) => renderCompanyItem(row, config, labels))
       .join("");
   }
 
