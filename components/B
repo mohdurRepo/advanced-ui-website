@@ -1,626 +1,1064 @@
-<c:if
-	test="${requestScope.marketStatusID == 6 or requestScope.marketStatusID ==1  or requestScope.marketStatusID ==4 }">
-	<c:set var="openCloseAuction" value="true" />
-</c:if>
-
-<%-- =========================================================================
-     Sukuk & Bonds Hero
-     ========================================================================= --%>
-
-<section class="hero-section market-summary-section"
-	aria-labelledby="sukuk-market-watch-title">
-	<div class="hero-section__background" aria-hidden="true"></div>
-
-	<div class="container hero-section__content">
-		<div class="market-summary market-summary--hero">
-
-			<%-- ===================================================================
-           Sukuk & Bonds Identity
-           =================================================================== --%>
-
-			<header class="market-summary__header">
-				<div class="market-summary__brand">
-					<span class="market-summary__brand-icon has-icon icon-tadawul"
-						aria-hidden="true"></span>
-
-					<h1 id="sukuk-market-watch-title" class="market-summary__title">
-						<fmt:message key="sukukAndBonds.marketwatch.title" />
-					</h1>
-				</div>
-			</header>
-
-		</div>
-	</div>
-</section>
-
-<%-- =========================================================================
-     Sukuk & Bonds Filters
-     ========================================================================= --%>
-
-<section class="section sukuk-market-watch-filters"
-	aria-labelledby="sukuk-market-watch-filters-title">
-	<div class="container">
-
-		<form class="filter-bar"
-			aria-labelledby="sukuk-market-watch-filters-title" data-sukuk-filters>
-			<h2 class="visually-hidden" id="sukuk-market-watch-filters-title">
-				<fmt:message key="sukukAndBonds.marketwatch.title" />
-			</h2>
-
-			<%-- ===================================================================
-           Primary Controls
-           =================================================================== --%>
-
-			<div class="filter-bar__inner">
-
-				<div class="filter-bar__fields grid-3">
-
-					<%-- =================================================================
-               Bond Type
-               ================================================================= --%>
-
-					<div class="filter-bar__field">
-
-						<label class="form-label" for="sukuk-bond-type"> <fmt:message
-								key="bonds.market.watch.label.types" />
-						</label>
-
-						<div class="custom-select" data-custom-select>
-							<div class="form-select-wrap custom-select__fallback">
-
-								<select class="form-select custom-select__native"
-									id="sukuk-bond-type" name="sectorParameter"
-									data-sukuk-bond-type>
-									<option value="all"
-										<c:if test="${empty requestScope.selectedSector or requestScope.selectedSector eq 'all'}">
-                      selected
-                    </c:if>>
-										<fmt:message key="bonds.market.watch.label.all.bonds" />
-									</option>
-
-									<c:forEach items="${requestScope.sectorList}" var="sectorItem">
-										<option value="<c:out value='${sectorItem.name}' />"
-											<c:if test="${requestScope.selectedSector eq sectorItem.name}">
-                        selected
-                      </c:if>>
-											<c:out value="${sectorItem.symbol}" />
-										</option>
-									</c:forEach>
-								</select> <span class="form-select-icon has-icon icon-chevron-down"
-									aria-hidden="true"></span>
-
-							</div>
-						</div>
-
-					</div>
-
-					<%-- =================================================================
-               Visible Columns
-               ================================================================= --%>
-
-					<div class="filter-bar__field">
-
-						<span class="form-label-static" id="sukuk-columns-label"> <fmt:message
-								key="show.hide.column" />
-						</span>
-
-						<button class="btn btn-outline-primary filter-bar__columns"
-							type="button" aria-labelledby="sukuk-columns-label"
-							aria-haspopup="menu" aria-expanded="false"
-							aria-controls="sukuk-columns-menu" data-sukuk-columns>
-							<span class="filter-bar__columns-label" data-sukuk-columns-label>
-								<fmt:message key="show.hide.all" />
-							</span> <span
-								class="filter-bar__columns-icon has-icon icon-chevron-down"
-								aria-hidden="true"></span>
-						</button>
-
-						<div class="filter-bar__columns-menu" id="sukuk-columns-menu"
-							aria-label="<fmt:message key='show.hide.column' />"
-							data-sukuk-columns-menu hidden>
-
-							<%-- =============================================================
-                   Column Actions
-                   ============================================================= --%>
-
-							<div class="filter-bar__columns-actions">
-
-								<button type="button" class="filter-bar__columns-action"
-									data-sukuk-columns-action="select-all">
-									<fmt:message key="select.all" />
-								</button>
-
-								<button type="button" class="filter-bar__columns-action"
-									data-sukuk-columns-action="clear-all">
-									<fmt:message key="clear.all" />
-								</button>
-
-							</div>
-
-							<%-- =============================================================
-                   ISIN
-                   ============================================================= --%>
-
-							<label class="filter-bar__columns-option"> <input
-								type="checkbox" checked data-sukuk-column="isin" /> <span>
-									<fmt:message
-										key="sukukAndBonds.all.market.watch.table.column.header.isin" />
-							</span>
-							</label>
-
-							<%-- =============================================================
-                   Coupon Details
-                   ============================================================= --%>
-
-							<label class="filter-bar__columns-option"> <input
-								type="checkbox" checked data-sukuk-column="couponDetails" /> <span>
-									<fmt:message
-										key="sukukAndBonds.all.market.watch.table.column.header.couponDetails" />
-							</span>
-							</label>
-
-							<%-- =============================================================
-                   Maturity
-                   ============================================================= --%>
-
-							<label class="filter-bar__columns-option"> <input
-								type="checkbox" checked data-sukuk-column="maturity" /> <span>
-									<fmt:message
-										key="sukukAndBonds.all.market.watch.table.column.header.maturitydate" />
-							</span>
-							</label>
-
-							<%-- =============================================================
-                   Yield Details
-                   ============================================================= --%>
-
-							<label class="filter-bar__columns-option"> <input
-								type="checkbox" checked data-sukuk-column="yieldDetails" /> <span>
-									<fmt:message
-										key="marketwatch.todaywatch.v2.table.column.header.div.yield" />
-							</span>
-							</label>
-
-							<%-- =============================================================
-                   Price Details
-                   ============================================================= --%>
-
-							<label class="filter-bar__columns-option"> <input
-								type="checkbox" checked data-sukuk-column="priceDetails" /> <span>
-									<fmt:message
-										key="marketwatch.todaywatch.v2.table.column.header.price" />
-							</span>
-							</label>
-
-							<%-- =============================================================
-                   Issue Details
-                   ============================================================= --%>
-
-							<label class="filter-bar__columns-option"> <input
-								type="checkbox" checked data-sukuk-column="issueDetails" /> <span>
-									<fmt:message
-										key="marketwatch.todaywatch.v2.table.column.issue_details" />
-							</span>
-							</label>
-
-							<%-- =============================================================
-                   Coupon Metadata
-                   ============================================================= --%>
-
-							<label class="filter-bar__columns-option"> <input
-								type="checkbox" checked data-sukuk-column="couponMeta" /> <span>
-									<fmt:message
-										key="marketwatch.todaywatch.v2.table.column.couponMeta" />
-							</span>
-							</label>
-
-
-						</div>
-					</div>
-
-				</div>
-			</div>
-
-		</form>
-
-	</div>
-</section>
-
-<%-- =========================================================================
-     Sukuk & Bonds Data View
-     ========================================================================= --%>
-
-<section class="section sukuk-market-watch-results"
-	aria-labelledby="sukuk-market-watch-results-title">
-	<div class="container">
-
-		<h2 class="visually-hidden" id="sukuk-market-watch-results-title">
-			<fmt:message key="sukukAndBonds.marketwatch.title" />
-		</h2>
-
-		<div class="data-view" data-sukuk-data-view>
-
-			<%-- ===================================================================
-           Workspace
-           =================================================================== --%>
-
-			<div class="data-view__workspace">
-
-				<%-- =================================================================
-             Results Toolbar
-             ================================================================= --%>
-
-				<div class="data-view__toolbar">
-
-					<div class="data-view__toolbar-start">
-
-						<p class="data-view__result-count">
-							<strong data-sukuk-result-count>0</strong> <span> <fmt:message
-									key="results" />
-							</span>
-						</p>
-
-					</div>
-
-				</div>
-
-				<%-- =================================================================
-             Desktop Table
-             ================================================================= --%>
-
-				<div class="data-view__table">
-					<div class="data-view__table-block">
-
-						<table class="table table-market sukuk-market-table"
-							data-sukuk-table>
-							<thead>
-
-								<tr>
-
-									<%-- Instrument --%>
-									<th scope="col"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.name" />
-									</th>
-
-									<%-- ISIN --%>
-									<th scope="col"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.isin" />
-									</th>
-
-									<%-- Coupon Type --%>
-									<th scope="col"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.couponType" />
-									</th>
-
-									<%-- Coupon Rate --%>
-									<th scope="col"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.couponrate" />
-									</th>
-
-									<%-- Maturity Date --%>
-									<th scope="col"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.maturitydate" />
-									</th>
-
-									<%-- Instrument Yield --%>
-									<th scope="col"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.instrumentYield" />
-									</th>
-
-									<%-- Bid Yield --%>
-									<th scope="col"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.bidYield" />
-									</th>
-
-									<%-- Ask Yield --%>
-									<th scope="col"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.askYield" />
-									</th>
-
-									<%-- Par Value --%>
-									<th scope="col"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.parValue" />
-									</th>
-
-									<%-- Last Trade Price --%>
-									<th scope="col"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.lastTradePrice" />
-									</th>
-
-									<%-- Bid Price --%>
-									<th scope="col"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.bidPrice" />
-									</th>
-
-									<%-- Ask Price --%>
-									<th scope="col"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.askPrice" />
-									</th>
-
-									<%-- Issuance Amount --%>
-									<th scope="col"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.issuanceAmount" />
-									</th>
-
-									<%-- Issuance Currency --%>
-									<th scope="col"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.issuanceCurrency" />
-									</th>
-
-									<%-- Coupon Frequency --%>
-									<th scope="col"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.couponFrequency" />
-									</th>
-
-									<%-- Day Count Convention --%>
-									<th scope="col"><fmt:message
-											key="sukukAndBonds.all.market.watch.table.column.header.dayCountConvention" />
-									</th>
-
-
-								</tr>
-
-							</thead>
-
-							<tbody></tbody>
-						</table>
-
-					</div>
-				</div>
-
-				<%-- =================================================================
-             Mobile Cards
-             ================================================================= --%>
-
-				<div class="data-view__cards" data-sukuk-mobile-cards></div>
-
-			</div>
-
-		</div>
-
-		<%-- =====================================================================
-         Footnotes
-         ===================================================================== --%>
-
-		<div class="notes">
-			<ul>
-
-				<li><fmt:message key="equity.market.watch.sukukbonds.footnote1" />
-				</li>
-
-				<li><fmt:message key="equity.market.watch.sukukbonds.footnote2" />
-				</li>
-
-				<li><fmt:message key="equity.market.watch.sukukbonds.footnote3" />
-				</li>
-
-			</ul>
-		</div>
-
-	</div>
-</section>
-
-<%-- =========================================================================
-     Sukuk Configuration
-     ========================================================================= --%>
-
-<script>
-  window.SukukConfig = {
-    /* ======================================================================
-       Endpoint
-       ====================================================================== */
-
-    endpoint:
-  "<portlet:resourceURL id='getSukukMarketDetails' />",
-
-    locale:
-      "<c:out value='${pageContext.request.locale.language}' />",
-
-    /* ======================================================================
-       Initial State
-       ====================================================================== */
-
-    initialState: {
-      bondType:
-        "<c:out value='${empty requestScope.selectedSector ? "all" : requestScope.selectedSector}' />",
-
-      visibleGroups: [
-        "isin",
-        "couponDetails",
-        "maturity",
-        "yieldDetails",
-        "priceDetails",
-        "issueDetails",
-        "couponMeta"
-        ],
-    },
-
-    /* ======================================================================
-       Table
-       ====================================================================== */
-
-    table: {
-      autoWidth: false,
-
-      paging: false,
-      searching: false,
-      ordering: false,
-      info: false,
-      lengthChange: false,
-
-      serverSide: false,
-      processing: false,
-
-      scrollX: true,
-      scrollCollapse: true,
-
-      fixedHeader: true,
-      fixedColumns: 1,
-    },
-
-    /* ======================================================================
-       Labels
-       ====================================================================== */
-
-    labels: {
-      loading:
-        "<fmt:message key='loading' />",
-
-      noData:
-        "<fmt:message key='no.data.available' />",
-
-      /* --------------------------------------------------------------------
-         Column Picker
-         -------------------------------------------------------------------- */
-
-      showAll:
-        "<fmt:message key='show.hide.all' />",
-
-      noColumns:
-        "<fmt:message key='show.hide.no.columns' />",
-
-      selectedSuffix:
-        "<fmt:message key='selected' />",
-
-      selectAll:
-        "<fmt:message key='select.all' />",
-
-      clearAll:
-        "<fmt:message key='clear.all' />",
-
-      /* --------------------------------------------------------------------
-         Groups
-         -------------------------------------------------------------------- */
-
-      government:
-        "<fmt:message key='sukukAndBonds.sukuk.governmentSukuk' />",
-
-      corporate:
-        "<fmt:message key='sukukAndBonds.sukuk.corporateSukuk' />",
-
-      /* --------------------------------------------------------------------
-         Mobile
-         -------------------------------------------------------------------- */
-
-      mobile: {
-        showDetails:
-          "Show details",
-
-        hideDetails:
-          "Hide details",
-
-        symbolName:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.name' />",
-
-        price:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.lastTradePrice' />",
-      },
-
-      /* --------------------------------------------------------------------
-         Table / Card Fields
-         -------------------------------------------------------------------- */
-
-      table: {
-        instrument:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.name' />",
-
-        tadawulCode:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.tadawulcode' />",
-
-        isin:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.isin' />",
-
-        couponType:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.couponType' />",
-
-        couponRate:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.couponrate' />",
-
-        maturityDate:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.maturitydate' />",
-
-        instrumentYield:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.instrumentYield' />",
-
-        bidYield:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.bidYield' />",
-
-        askYield:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.askYield' />",
-
-        parValue:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.parValue' />",
-
-        lastTradePrice:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.lastTradePrice' />",
-
-        bidPrice:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.bidPrice' />",
-
-        askPrice:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.askPrice' />",
-
-        issuanceAmount:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.issuanceAmount' />",
-
-        issuanceCurrency:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.issuanceCurrency' />",
-
-        couponFrequency:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.couponFrequency' />",
-
-        dayCountConvention:
-          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.dayCountConvention' />"
-      },
-
-      /* --------------------------------------------------------------------
-         Business-value Labels
-         -------------------------------------------------------------------- */
-
-      values: {
-        perpetualBond:
-          "<fmt:message key='sukukAndBonds.all.market.watch.column.perpetualBond' />",
-
-        floating:
-          "<fmt:message key='bonds.market.watch.label.Floating' />",
-
-        fixed:
-          "<fmt:message key='bonds.market.watch.label.Fixed' />",
-
-        couponFrequency1:
-          "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.1' />",
-
-        couponFrequency2:
-          "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.2' />",
-
-        couponFrequency4:
-          "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.4' />",
-
-        couponFrequency12:
-          "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.12' />",
-
-        couponFrequency0:
-          "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.0' />",
-
-        dayCount7:
-          "<fmt:message key='sukukAndBonds.all.market.watch.dayCountConvention.7' />",
-
-        dayCount2:
-          "<fmt:message key='sukukAndBonds.all.market.watch.dayCountConvention.2' />",
-
-        dayCount3:
-          "<fmt:message key='sukukAndBonds.all.market.watch.dayCountConvention.3' />",
-
-        dayCount0:
-          "<fmt:message key='sukukAndBonds.all.market.watch.dayCountConvention.0' />",
-      },
-    },
+/* =========================================================
+   Dependent Dropdown Manager
+   Shared across platform
+========================================================= */
+ 
+(function (window, document) {
+  "use strict";
+ 
+  /* =========================================================
+     AJAX
+  ========================================================= */
+ 
+  function requestJSON(url, params, method) {
+    method = (method || "GET").toUpperCase();
+ 
+    if (method === "POST") {
+      return fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify(params || {})
+      }).then(handleResponse);
+    }
+ 
+    const qs = new URLSearchParams(params || {}).toString();
+    const fullUrl = qs ? url + (url.includes("?") ? "&" : "?") + qs : url;
+ 
+    return fetch(fullUrl, {
+      method: "GET",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    }).then(handleResponse);
+  }
+ 
+  function handleResponse(res) {
+    if (!res.ok) {
+      throw new Error("HTTP " + res.status);
+    }
+    return res.json();
+  }
+ 
+  /* =========================================================
+     Helpers
+  ========================================================= */
+ 
+  function rebuildDropdown(shell, items, mapFn, placeholder) {
+    if (!shell) return;
+ 
+    const list = shell.querySelector(".form-select-list");
+    const valueEl = shell.querySelector(".form-select-value");
+    const hidden = shell.querySelector("input[type='hidden']");
+ 
+    if (!list) return;
+ 
+    list.innerHTML = "";
+ 
+    if (hidden) hidden.value = "";
+ 
+    if (valueEl) {
+      valueEl.textContent = placeholder || "All";
+      valueEl.classList.add("is-placeholder");
+    }
+ 
+    /* default option */
+ 
+    const defaultOpt = document.createElement("div");
+    defaultOpt.className = "form-select-option";
+    defaultOpt.dataset.value = "";
+    defaultOpt.textContent = placeholder || "All";
+ 
+    list.appendChild(defaultOpt);
+ 
+    /* append items */
+ 
+    (items || []).forEach(function (item) {
+ 
+      const mapped = mapFn ? mapFn(item) : item;
+ 
+      if (!mapped || mapped.value == null) return;
+ 
+      const opt = document.createElement("div");
+ 
+      opt.className = "form-select-option";
+      opt.dataset.value = mapped.value;
+      opt.textContent = mapped.label;
+ 
+      list.appendChild(opt);
+ 
+    });
+  }
+ 
+  function getActiveFilterGroups() {
+    return Array.from(
+      document.querySelectorAll("[data-filters-for].is-active:not([hidden])")
+    );
+  }
+ 
+  function resolveScope(shell) {
+    return (
+      shell.closest("[data-filters-for]") ||
+      shell.closest(".tabs-container") ||
+      document
+    );
+  }
+ 
+  /* =========================================================
+     Dependency Processing
+  ========================================================= */
+ 
+  function processDependency(sourceShell, value) {
+ 
+    const field = sourceShell.dataset.field;
+ 
+    if (!window.DROPDOWN_CONFIG || !window.DROPDOWN_CONFIG[field]) return;
+ 
+    const config = window.DROPDOWN_CONFIG[field];
+ 
+    const scope = resolveScope(sourceShell);
+ 
+    (config.targets || []).forEach(function (targetCfg) {
+ 
+      const targetShell = scope.querySelector(
+        '[data-field="' + targetCfg.field + '"]'
+      );
+ 
+      if (!targetShell) return;
+ 
+      const params =
+        typeof targetCfg.params === "function"
+          ? targetCfg.params(value, sourceShell)
+          : targetCfg.params || {};
+ 
+      /* allow skipping API call */
+ 
+      if (params === false) {
+        console.log("Dropdown dependency skipped:", targetCfg.field);
+        return;
+      }
+ 
+      requestJSON(targetCfg.url, params, targetCfg.method)
+        .then(function (response) {
+ 
+          const items = Array.isArray(response)
+            ? response
+            : response.data || [];
+ 
+          const placeholder =
+            typeof targetCfg.placeholder === "function"
+              ? targetCfg.placeholder(value)
+              : allLabel ;
+ 
+          rebuildDropdown(
+            targetShell,
+            items,
+            targetCfg.map,
+            placeholder
+          );
+ 
+        })
+        .catch(function (err) {
+          console.error("[DropdownManager]", err);
+        });
+ 
+    });
+  }
+ 
+  /* =========================================================
+     Initialize dropdowns when tab opens
+  ========================================================= */
+ 
+  function initializeGroup(group) {
+ 
+    if (!window.DROPDOWN_CONFIG || !group) return;
+ 
+    Object.keys(window.DROPDOWN_CONFIG).forEach(function (field) {
+ 
+      const rule = window.DROPDOWN_CONFIG[field];
+ 
+      if (!rule.init) return;
+ 
+      const shell = group.querySelector('[data-field="' + field + '"]');
+ 
+      if (!shell) return;
+ 
+      if (shell.dataset.ddInitialized) return;
+ 
+      shell.dataset.ddInitialized = "1";
+ 
+      const hidden = shell.querySelector("input[type='hidden']");
+      const value = hidden ? hidden.value : "";
+ 
+      processDependency(shell, value);
+ 
+    });
+  }
+ 
+  /* =========================================================
+     Events
+  ========================================================= */
+ 
+  document.addEventListener("form:select-change", function (e) {
+ 
+    const shell = e.target.closest("[data-select]");
+ 
+    if (!shell) return;
+ 
+    const value = e.detail?.value || "";
+ 
+    processDependency(shell, value);
+ 
+  });
+ 
+  document.addEventListener("DOMContentLoaded", function () {
+ 
+    getActiveFilterGroups().forEach(initializeGroup);
+ 
+  });
+ 
+  document.addEventListener("tab:prepare", function () {
+ 
+    getActiveFilterGroups().forEach(initializeGroup);
+ 
+  });
+ 
+})(window, document);
+
+
+/* datatable-page-utils.js
+ * ======================================================
+ * Reusable page utilities for DataTableCore modules
+ * Works with DataTableCore.render + DataTableCore.plugins
+ * ======================================================
+ */
+ 
+(function (window, document) {
+  "use strict";
+ 
+  function create(config) {
+    var CONFIG = config || {};
+ 
+    function getTableConfig(key) {
+      return (CONFIG.tables && CONFIG.tables[key]) || {};
+    }
+ 
+    function getLabel(value, fallback) {
+      return value || fallback || "";
+    }
+ 
+    function mergeOptions(base, extra) {
+      return Object.assign({}, base || {}, extra || {});
+    }
+ 
+    function getNoDataImageUrl() {
+      return (CONFIG.ui && CONFIG.ui.empty && CONFIG.ui.empty.imageUrl) || "";
+    }
+ 
+    function formatDateDDMMYYYY(dateObj) {
+      var dd = String(dateObj.getDate()).padStart(2, "0");
+      var mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+      var yyyy = dateObj.getFullYear();
+ 
+      return dd + "-" + mm + "-" + yyyy;
+    }
+ 
+    function getDefaultDateRange() {
+      var today = new Date();
+      var from = new Date(today);
+ 
+      from.setMonth(from.getMonth() - 1);
+ 
+      return {
+        fromDate: formatDateDDMMYYYY(from),
+        toDate: formatDateDDMMYYYY(today)
+      };
+    }
+ 
+    function setDefaultDatesInGroup(group) {
+      if (!group) return;
+ 
+      var enabled =
+        CONFIG.defaults &&
+        CONFIG.defaults.dateRange &&
+        CONFIG.defaults.dateRange.enabled !== false;
+ 
+      if (!enabled) return;
+ 
+      var range = getDefaultDateRange();
+ 
+      var fromInput = group.querySelector('[data-filter="fromDate"]');
+      var toInput = group.querySelector('[data-filter="toDate"]');
+ 
+      if (fromInput && !fromInput.value) fromInput.value = range.fromDate;
+      if (toInput && !toInput.value) toInput.value = range.toDate;
+    }
+ 
+    function setDefaultDatesForAllGroups(scope) {
+      (scope || document)
+        .querySelectorAll(".banner-filters__group")
+        .forEach(setDefaultDatesInGroup);
+    }
+ 
+    function ensureTableUi(selector) {
+      var table = document.querySelector(selector);
+      if (!table || !table.id) return null;
+ 
+      var existing = document.querySelector(
+        '[data-table-ui-for="' + table.id + '"]'
+      );
+ 
+      if (existing) {
+        return {
+          wrapper: existing,
+          loader: existing.querySelector("[data-feed-loader]"),
+          empty: existing.querySelector("[data-feed-empty]"),
+          pagination: existing.querySelector("[data-feed-pagination]")
+        };
+      }
+ 
+      var ui = CONFIG.ui || {};
+      var pagination = ui.pagination || {};
+      var paginationClass = getLabel(pagination.className, "feed__pagination");
+ 
+      var wrapper = document.createElement("div");
+      wrapper.setAttribute("data-table-ui-for", table.id);
+ 
+      wrapper.innerHTML =
+        '<div class="feed__loader is-hidden" data-feed-loader>' +
+        '<div class="datatable-loader">' +
+        '<div class="datatable-spinner"></div>' +
+        "<span>" +
+        getLabel(ui.loader && ui.loader.text, "Loading data...") +
+        "</span>" +
+        "</div>" +
+        "</div>" +
+ 
+        '<div class="feed__empty is-hidden" data-feed-empty></div>' +
+ 
+        '<div class="' +
+        paginationClass +
+        ' is-hidden" data-feed-pagination>' +
+        '<div class="feed__page-range" data-feed-range>0–0 of 0</div>' +
+        '<div class="feed__page-controls">' +
+        '<span class="feed__page-label">' +
+        getLabel(pagination.pageText, "Page") +
+        "</span> " +
+        '<select class="feed__select" data-feed-page></select> ' +
+        "<span>" +
+        getLabel(pagination.ofText, "of") +
+        ' <strong data-feed-total-pages>1</strong>' +
+        "</span>" +
+        '<button class="feed__page-btn" data-feed-prev disabled aria-label="' +
+        getLabel(pagination.prevAriaLabel, "Previous page") +
+        '">' +
+        '<span class="se-icon icon-md icon-arrow" aria-hidden="true"></span>' +
+        "</button>" +
+        '<button class="feed__page-btn" data-feed-next disabled aria-label="' +
+        getLabel(pagination.nextAriaLabel, "Next page") +
+        '">' +
+        '<span class="se-icon icon-md icon-arrow" aria-hidden="true"></span>' +
+        "</button>" +
+        "</div>" +
+        "</div>";
+ 
+      table.insertAdjacentElement("afterend", wrapper);
+ 
+      return {
+        wrapper: wrapper,
+        loader: wrapper.querySelector("[data-feed-loader]"),
+        empty: wrapper.querySelector("[data-feed-empty]"),
+        pagination: wrapper.querySelector("[data-feed-pagination]")
+      };
+    }
+ 
+    function getDataTableWrapper(tableEl) {
+      if (!tableEl || !tableEl.id) return null;
+ 
+      return (
+        document.getElementById(tableEl.id + "_wrapper") ||
+        tableEl.closest(".dt-container, .dataTables_wrapper")
+      );
+    }
+ 
+function setTableVisible(tableEl, visible) {
+      if (!tableEl) return;
+ 
+      tableEl.hidden = !visible;
+ 
+      var wrapper = getDataTableWrapper(tableEl);
+ 
+      if (wrapper) {
+        wrapper.hidden = !visible;
+        wrapper.style.display = visible ? "" : "none";
+      }
+    }
+ 
+    function resetPaginationUi(ui) {
+      if (!ui || !ui.wrapper) return;
+ 
+      var range = ui.wrapper.querySelector("[data-feed-range]");
+      var page = ui.wrapper.querySelector("[data-feed-page]");
+      var total = ui.wrapper.querySelector("[data-feed-total-pages]");
+      var prev = ui.wrapper.querySelector("[data-feed-prev]");
+      var next = ui.wrapper.querySelector("[data-feed-next]");
+ 
+      if (range) range.textContent = "0–0 of 0";
+      if (page) page.innerHTML = "";
+      if (total) total.textContent = "1";
+      if (prev) prev.disabled = true;
+      if (next) next.disabled = true;
+    }
+ 
+    function setTableLoading(key, loading) {
+      var table = getTableConfig(key);
+      if (!table.selector) return;
+ 
+      var tableEl = document.querySelector(table.selector);
+      var ui = ensureTableUi(table.selector);
+ 
+      if (!tableEl || !ui) return;
+ 
+      if (ui.loader) ui.loader.classList.toggle("is-hidden", !loading);
+ 
+      if (loading) {
+        if (ui.empty) ui.empty.classList.add("is-hidden");
+        if (ui.pagination) ui.pagination.classList.add("is-hidden");
+        setTableVisible(tableEl, false);
+      }
+    }
+ 
+    function syncEmptyState(selector, rows) {
+        var tableEl = document.querySelector(selector);
+        var ui = ensureTableUi(selector);
+     
+        if (!tableEl || !ui) return;
+     
+        var hasData = Array.isArray(rows) && rows.length > 0;
+     
+        setTableVisible(tableEl, true);
+     
+        if (ui.empty) ui.empty.classList.add("is-hidden");
+        if (ui.pagination) ui.pagination.classList.toggle("is-hidden", !hasData);
+        if (ui.loader) ui.loader.classList.add("is-hidden");
+     
+        if (!hasData) resetPaginationUi(ui);
+    }
+ 
+    function getFixedHeaderFeature(key) {
+      var table = getTableConfig(key);
+      var defaults = CONFIG.defaults && CONFIG.defaults.dataTable;
+ 
+      if (table.fixedHeader !== undefined) return table.fixedHeader;
+      if (defaults && defaults.fixedHeader !== undefined) return defaults.fixedHeader;
+ 
+      return true;
+    }
+ 
+    function tableFeatures(key, selector) {
+      var ui = CONFIG.ui || {};
+      var tableUi = ensureTableUi(selector);
+      var features = {};
+      var fixedHeader = getFixedHeaderFeature(key);
+ 
+      if (fixedHeader !== false) {
+        features.fixedHeader = fixedHeader;
+      }
+ 
+      if (ui.loader && ui.loader.enabled !== false) {
+        features.loader = true;
+      }
+ 
+      if (
+        ui.pagination &&
+        ui.pagination.enabled !== false &&
+        tableUi &&
+        tableUi.pagination
+      ) {
+        features.feedPagination = {
+          container: tableUi.pagination
+        };
+      }
+ 
+      return features;
+    }
+ 
+function tableOptions(key, extra) {
+      var defaults =
+        CONFIG.defaults && CONFIG.defaults.dataTable
+          ? CONFIG.defaults.dataTable
+          : {};
+ 
+      var table = getTableConfig(key);
+ 
+      var options = mergeOptions(
+        mergeOptions(defaults, {
+          pageLength: table.pageLength,
+          lengthMenu: table.lengthMenu,
+          paging: table.paging,
+          ordering: table.ordering
+        }),
+        extra
+      );
+ 
+      /*
+       * FixedHeader is intentionally removed from raw dtOptions.
+       * It is passed through features.fixedHeader so your DataTableCore
+       * fixedHeader plugin owns offset + lifecycle.
+       */
+      delete options.fixedHeader;
+ 
+      return options;
+    }
+ 
+    function adjustTable(key) {
+      var table = getTableConfig(key);
+      if (!table.selector) return;
+ 
+      var instance = window.DataTableCore.getInstance(table.selector);
+      if (!instance) return;
+ 
+      setTimeout(function () {
+        instance.columns.adjust();
+ 
+        if (instance.fixedHeader && instance.fixedHeader.adjust) {
+          instance.fixedHeader.adjust();
+        }
+      }, 0);
+    }
+ 
+    function safeDestroyTable(tableEl) {
+      if (!tableEl) return;
+ 
+      var instance = window.DataTableCore.getInstance(tableEl);
+      if (!instance) return;
+ 
+      try {
+        instance.destroy(false);
+        window.DataTableCore.registry.remove(tableEl);
+      } catch (e) {
+        console.warn("DataTable safe destroy failed:", tableEl, e);
+      }
+    }
+ 
+    function destroyHiddenTables(scope) {
+      (scope || document)
+        .querySelectorAll(
+          ".tab-content__panel[hidden] table, [data-variant][hidden] table"
+        )
+        .forEach(safeDestroyTable);
+    }
+ 
+    function renderTable(key, options) {
+      options = options || {};
+ 
+      var table = getTableConfig(key);
+      var selector = table.selector;
+ 
+      if (!selector) {
+        console.warn("Missing table selector for:", key);
+        return null;
+      }
+ 
+      var rows = Array.isArray(options.data) ? options.data : [];
+      var tableEl = document.querySelector(selector);
+ 
+      setTableLoading(key, false);
+      syncEmptyState(selector, rows);
+ 
+      if (!rows.length) {
+    	    var existing = window.DataTableCore.getInstance(selector);
+    	 
+    	    if (existing) {
+    	        existing.clear();
+    	        existing.page(0).draw(false);
+    	        return existing;
+    	    }
+    	}
+ 
+      if (tableEl) setTableVisible(tableEl, true);
+ 
+      var instance = window.DataTableCore.render({
+        target: selector,
+        columns: options.columns,
+        data: rows,
+        features: tableFeatures(key, selector),
+        dtOptions: tableOptions(key, options.dtOptions),
+        locale: CONFIG.locale || "en"
+      });
+ 
+      adjustTable(key);
+ 
+      return instance;
+    }
+ 
+    function onShow(key) {
+      adjustTable(key);
+    }
+ 
+    function showVariant(panel, key) {
+      if (!panel) return;
+ 
+      panel.querySelectorAll("[data-variant]").forEach(function (variant) {
+        variant.hidden = variant.getAttribute("data-variant") !== key;
+      });
+ 
+      destroyHiddenTables(panel);
+    }
+ 
+    function safeCell(value) {
+      return value == null ? "" : value;
+    }
+ 
+    function safeUrl(url) {
+      return url && url !== "0" ? url : "";
+    }
+ 
+    function linkRenderer(label, url, className) {
+      if (!label) return "";
+ 
+      var href = safeUrl(url);
+ 
+      if (!href) return safeCell(label);
+ 
+      return (
+        '<a class="' +
+        (className || "") +
+        '" href="' +
+        href +
+        '">' +
+        safeCell(label) +
+        "</a>"
+      );
+    }
+ 
+    function formatQuantitySafe(value) {
+      if (value == null || value === "") return "";
+ 
+      var num = parseFloat(String(value).replace(/,/g, ""));
+ 
+      if (isNaN(num)) return value;
+ 
+      return typeof num.formatQuantity === "function"
+        ? num.formatQuantity()
+        : num.toLocaleString();
+    }
+ 
+    function formatMoneySafe(value) {
+      if (value == null || value === "" || Number(value) === 0) return "-";
+      if (Number(value) === -1) return "";
+ 
+      var num = parseFloat(String(value).replace(/,/g, ""));
+ 
+      if (isNaN(num)) return value;
+ 
+      return typeof num.formatMoney === "function"
+        ? num.formatMoney()
+        : num.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          });
+    }
+ 
+    function resetSelectUi(select) {
+      if (!select) return;
+ 
+      var hidden = select.querySelector("[data-filter]");
+      var valueBox = select.querySelector(".form-select-value");
+ 
+      if (!hidden) return;
+ 
+      var defaultValue = hidden.getAttribute("data-default") || hidden.value;
+      var option = select.querySelector(
+        '.form-select-option[data-value="' + defaultValue + '"]'
+      );
+ 
+      hidden.value = defaultValue;
+ 
+      select.querySelectorAll(".form-select-option").forEach(function (opt) {
+    	  opt.removeAttribute("data-selected");
+    	  opt.classList.remove("is-selected", "is-focused");
+    	});
+    	 
+    	if (option) {
+    	  option.setAttribute("data-selected", "true");
+    	  option.classList.add("is-selected");
+    	 
+    	  if (valueBox) {
+    	    valueBox.innerHTML = option.innerHTML;
+    	    valueBox.classList.remove("is-placeholder");
+    	  }
+    	}
+    }
+ 
+    function resetFilterGroup(group) {
+      if (!group) return;
+ 
+      var range = getDefaultDateRange();
+ 
+      var from = group.querySelector('[data-filter="fromDate"]');
+      var to = group.querySelector('[data-filter="toDate"]');
+ 
+      if (from) from.value = range.fromDate;
+      if (to) to.value = range.toDate;
+ 
+      group.querySelectorAll("[data-select]").forEach(resetSelectUi);
+ 
+      group.querySelectorAll("[data-filter]").forEach(function (el) {
+        el.dispatchEvent(
+          new Event("change", {
+            bubbles: true
+          })
+        );
+      });
+ 
+      group.dispatchEvent(
+        new CustomEvent("filters:reset", {
+          bubbles: true,
+          detail: {
+            group: group
+          }
+        })
+      );
+    }
+ 
+    function bindResetFilters(scope) {
+      (scope || document).addEventListener("click", function (e) {
+        var btn = e.target.closest("[data-reset-filters]");
+        if (!btn) return;
+ 
+        var group = btn.closest(".banner-filters__group");
+        resetFilterGroup(group);
+      });
+    }
+ 
+    function bindDateStartBlock(scope) {
+      (scope || document).addEventListener(
+        "change",
+        function (e) {
+          if (!e.target.matches('[data-date-start][data-filter="fromDate"]')) {
+            return;
+          }
+ 
+          e.stopImmediatePropagation();
+        },
+        true
+      );
+    }
+ 
+    return {
+      getTableConfig: getTableConfig,
+      getDefaultDateRange: getDefaultDateRange,
+      setDefaultDatesForAllGroups: setDefaultDatesForAllGroups,
+ 
+      ensureTableUi: ensureTableUi,
+      setTableLoading: setTableLoading,
+      renderTable: renderTable,
+      onShow: onShow,
+      showVariant: showVariant,
+      destroyHiddenTables: destroyHiddenTables,
+ 
+      safeCell: safeCell,
+      safeUrl: safeUrl,
+      linkRenderer: linkRenderer,
+      formatQuantitySafe: formatQuantitySafe,
+      formatMoneySafe: formatMoneySafe,
+ 
+      resetFilterGroup: resetFilterGroup,
+      bindResetFilters: bindResetFilters,
+      bindDateStartBlock: bindDateStartBlock
+    };
+  }
+ 
+  window.DataTablePageUtils = {
+    create: create
   };
-</script>
-
-<%-- =========================================================================
-     Sukuk Entry Module
-     ========================================================================= --%>
-
-<script type="module"
-	src="${pageContext.request.contextPath}/js/pages/sukuk/sukuk.js"></script>
+})(window, document);
+ /* derivative-negotiated-datatables.js
+* ======================================================
+* Derivative Negotiated Deals module
+* Single table, no tabs
+* Requires:
+* - DataTableCore
+* - DataTablePageUtils
+* - dropdown-update.js
+* ======================================================
+*/
+ 
+(function (window, document) {
+  "use strict";
+  var zebraIndex = 0;
+  var CONFIG = window.DERIVATIVE_NEGOTIATED_DATATABLE_CONFIG || {};
+  var U = window.DataTablePageUtils.create(CONFIG);
+ 
+  var TABLE_KEY = "negotiatedDeals";
+  var refreshTimer = null;
+  var isLoading = false;
+ 
+  function getTotalLabel() {
+	  return CONFIG.labels && CONFIG.labels.total
+	    ? CONFIG.labels.total
+	    : "Total";
+	}
+  
+  function normalizeResponse(response) {
+    if (!response) return [];
+ 
+    if (typeof response === "string") {
+      try {
+        return normalizeResponse(JSON.parse(response));
+      } catch (e) {
+        console.error("[DerivativeNegotiated] Invalid JSON response:", response);
+        return [];
+      }
+    }
+ 
+    if (Array.isArray(response)) return response;
+    if (Array.isArray(response.data)) return response.data;
+    if (Array.isArray(response.rows)) return response.rows;
+ 
+    return [];
+  }
+ 
+  function getFilters(scope) {
+    var root = scope || document;
+    var out = {};
+ 
+    root.querySelectorAll("[data-filter]").forEach(function (el) {
+      var key = el.dataset.filter;
+      if (!key) return;
+ 
+      if (el.type === "checkbox") {
+        out[key] = el.checked ? el.value : "";
+      } else if (el.type === "radio") {
+        if (el.checked) out[key] = el.value;
+      } else {
+        out[key] = el.value;
+      }
+    });
+ 
+    return out;
+  }
+ 
+  function buildUrl(url, params) {
+    if (!params || !Object.keys(params).length) return url;
+ 
+    var qs = new URLSearchParams(params).toString();
+ 
+    return url + (url.indexOf("?") > -1 ? "&" : "?") + qs;
+  }
+ 
+  function updateResultCount(rows) {
+    var selector =
+      CONFIG.resultCounters && CONFIG.resultCounters.negotiatedDeals
+        ? CONFIG.resultCounters.negotiatedDeals
+        : "#derivativeNegotiatedResultsId";
+ 
+    var el = document.querySelector(selector);
+    if (!el) return;
+ 
+    if (Array.isArray(rows) && rows.length && rows[0].count != null) {
+      el.textContent = rows[0].count;
+      return;
+    }
+ 
+    el.textContent = Array.isArray(rows) ? rows.length : 0;
+  }
+ 
+  function parseDateSafe(value) {
+    if (!value || String(value).indexOf("/") === -1) return U.safeCell(value);
+ 
+    var date = new Date(value);
+    if (isNaN(date.getTime())) return U.safeCell(value);
+ 
+    var dd = String(date.getDate()).padStart(2, "0");
+    var mm = String(date.getMonth() + 1).padStart(2, "0");
+    var yyyy = date.getFullYear();
+ 
+    return dd + "-" + mm + "-" + yyyy;
+  }
+ 
+  function moneyOrDash(value) {
+    if (value == null || value === "" || Number(value) === 0) return "-";
+    if (Number(value) === -1) return "";
+ 
+    return U.formatMoneySafe(value);
+  }
+ 
+  function quantityOrDash(value) {
+    if (value == null || value === "" || Number(value) === 0) return "-";
+ 
+    return U.formatQuantitySafe(value);
+  }
+ 
+  function getRequestParams(filters) {
+    var range = U.getDefaultDateRange();
+ 
+    return {
+      fromDate: filters.fromDate || range.fromDate,
+      toDate: filters.toDate || range.toDate,
+      contract: filters.contract || "All",
+      sector: filters.category || "All",
+      requestLocale: CONFIG.locale || "en"
+    };
+  }
+  zebraIndex = 0;
+  function renderTable(rows) {
+    U.renderTable(TABLE_KEY, {
+      data: rows,
+      columns: [
+        {
+          data: "strDate",
+          className: "dt-nowrap",
+          render: function (d, t, r) {
+            return r && r.rowType === "total" ? "" : parseDateSafe(d);
+          }
+        },
+        {
+          data: "company",
+          className: "align",
+          render: function (d, t, r) {
+            if (r && r.rowType === "total") {
+            	return '<strong class="table-total-label">' + getTotalLabel() + '</strong>';
+            	}
+ 
+            return U.linkRenderer(d, r.companyURL, "ellipsis");
+          }
+        },
+        {
+          data: "tradePrice",
+          className: "numeric",
+          render: function (d, t, r) {
+            return r && r.rowType === "total" ? "" : moneyOrDash(d);
+          }
+        },
+        {
+          data: "tradeVolume",
+          className: "numeric",
+          render: quantityOrDash
+        },
+        {
+          data: "turnOver",
+          className: "numeric",
+          render: U.formatMoneySafe
+        },
+        {
+          data: "strTime",
+          className: "dt-nowrap",
+          render: function (d, t, r) {
+            return r && r.rowType === "total" ? "" : U.safeCell(d);
+          }
+        }
+      ],
+      dtOptions: {
+        paging: true,
+        pageLength: 25,
+        lengthMenu: [25, 50, 100],
+        ordering: false,
+        searching: false,
+        info: false,
+        dom: "rt",
+        scrollX: true,
+        scrollCollapse: true,
+ 
+        createdRow: function (row, data) {
+        	  if (data && data.rowType === "total") {
+        	    row.classList.add("table-total-row");
+        	    return;
+        	  }
+        	 
+        	  if (zebraIndex % 2 === 0) {
+        		    row.classList.add("is-odd");
+        		  } else {
+        		    row.classList.add("is-even");
+        		  }
+        	 
+        	  zebraIndex++;
+        	},
+ 
+        initComplete: function () {
+          updateResultCount(rows);
+        }
+      }
+    });
+ 
+    updateResultCount(rows);
+    U.onShow(TABLE_KEY);
+  }
+ 
+  function loadData() {
+    if (isLoading) return;
+ 
+    var filterRoot = document.querySelector(CONFIG.filtersSelector) || document;
+    var filters = getFilters(filterRoot);
+    var params = getRequestParams(filters);
+ 
+    isLoading = true;
+    U.setTableLoading(TABLE_KEY, true);
+ 
+    fetch(buildUrl(CONFIG.urls.negotiatedDeals, params), {
+      method: "GET",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (response) {
+        var rows = normalizeResponse(response);
+        renderTable(rows);
+      })
+      .catch(function (err) {
+        console.error("[DerivativeNegotiated]", err);
+        renderTable([]);
+      })
+      .finally(function () {
+        isLoading = false;
+        U.setTableLoading(TABLE_KEY, false);
+      });
+  }
+ 
+  function scheduleLoad() {
+    clearTimeout(refreshTimer);
+ 
+    refreshTimer = setTimeout(function () {
+      loadData();
+    }, 200);
+  }
+ 
+  function bindFilters(scope) {
+    var root = scope || document;
+ 
+    root.addEventListener("form:select-change", scheduleLoad);
+ 
+    root.addEventListener("change", function (e) {
+      if (e.target && e.target.matches("[data-filter]")) {
+        scheduleLoad();
+      }
+    });
+ 
+    root.addEventListener("filters:reset", scheduleLoad);
+  }
+ 
+  function initDerivativeNegotiated() {
+    var filterRoot = document.querySelector(CONFIG.filtersSelector) || document;
+ 
+    if (!window.DataTableCore || !window.DataTablePageUtils) {
+      return;
+    }
+ 
+    U.setDefaultDatesForAllGroups(document);
+    U.bindResetFilters(filterRoot);
+    U.bindDateStartBlock(filterRoot);
+ 
+    bindFilters(filterRoot);
+ 
+    loadData();
+  }
+ 
+  document.addEventListener("DOMContentLoaded", initDerivativeNegotiated);
+})(window, document);
