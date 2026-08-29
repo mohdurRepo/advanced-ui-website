@@ -59,6 +59,10 @@ function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+function getLabel(value, fallback) {
+  return normalizeString(value) || fallback;
+}
+
 function normalizeView(value) {
   const view = normalizeString(value).toLowerCase();
 
@@ -100,19 +104,19 @@ function getLabels(config = {}) {
   const table = config.labels?.companyStatus?.table || {};
 
   return Object.freeze({
-    company: normalizeString(table.company, "Company"),
+    company: getLabel(table.company, "Company"),
 
-    period: normalizeString(table.period, "Period"),
+    period: getLabel(table.period, "Period"),
 
-    from: normalizeString(table.from, "From"),
+    from: getLabel(table.from, "From"),
 
-    to: normalizeString(table.to, "To"),
+    to: getLabel(table.to, "To"),
 
-    delistingDate: normalizeString(table.delistingDate, "Delisting Date"),
+    delistingDate: getLabel(table.delistingDate, "Delisting Date"),
 
-    suspensionReason: normalizeString(table.suspensionReason, "Reason"),
+    suspensionReason: getLabel(table.suspensionReason, "Reason"),
 
-    delistingReason: normalizeString(table.delistingReason, "Reason"),
+    delistingReason: getLabel(table.delistingReason, "Reason"),
   });
 }
 
@@ -170,6 +174,7 @@ function createSuspensionColumns(labels) {
       width: "30%",
 
       orderable: false,
+
       searchable: false,
     }),
   ]);
@@ -213,6 +218,7 @@ function createDelistingColumns(labels) {
       width: "30%",
 
       orderable: false,
+
       searchable: false,
     }),
   ]);
@@ -228,6 +234,7 @@ function createHeaderCell({
   scope = "col",
   rowSpan = 0,
   colSpan = 0,
+  orderable = true,
 }) {
   const cell = document.createElement("th");
 
@@ -243,6 +250,17 @@ function createHeaderCell({
 
   if (colSpan > 0) {
     cell.colSpan = colSpan;
+  }
+
+  /*
+   * DataTables reads this attribute before creating its ordering listeners.
+   *
+   * Structural group headings and non-orderable business columns must not
+   * receive ordering icons or click handlers.
+   */
+
+  if (!orderable) {
+    cell.setAttribute("data-dt-order", "disable");
   }
 
   const labelElement = document.createElement("span");
@@ -275,8 +293,11 @@ function replaceTableHeader(table, thead) {
    ========================================================================== */
 
 /*
- * Company |          Period          | Reason
- *         |     From     |     To     |
+ * Company |      Suspension Period      | Announcement
+ *         |       From       |    To     |
+ *
+ * The Suspension Period heading is structural and therefore non-orderable.
+ * Sorting remains available on Company, From, and To.
  */
 
 function renderSuspensionHeader(table, labels) {
@@ -298,12 +319,18 @@ function renderSuspensionHeader(table, labels) {
     createHeaderCell({
       label: labels.period,
 
-      className:
-        "company-status__period-heading table-group-heading text-center",
+      className: [
+        "company-status__period-heading",
+        "table-market__group-heading",
+        "table-group-heading",
+        "text-center",
+      ].join(" "),
 
       scope: "colgroup",
 
       colSpan: 2,
+
+      orderable: false,
     }),
 
     createHeaderCell({
@@ -312,6 +339,8 @@ function renderSuspensionHeader(table, labels) {
       className: "company-status__announcement-heading text-center",
 
       rowSpan: 2,
+
+      orderable: false,
     }),
   );
 
@@ -341,7 +370,9 @@ function renderSuspensionHeader(table, labels) {
    ========================================================================== */
 
 /*
- * Company | Delisting Date | Reason
+ * Company | Delisting Date | Announcement
+ *
+ * Company and Delisting Date remain sortable. Announcement does not.
  */
 
 function renderDelistingHeader(table, labels) {
@@ -366,6 +397,8 @@ function renderDelistingHeader(table, labels) {
       label: labels.delistingReason,
 
       className: "company-status__announcement-heading text-center",
+
+      orderable: false,
     }),
   );
 
@@ -522,9 +555,13 @@ export function createCompanyStatusTable(config = {}) {
 
     tableOptions: Object.freeze({
       paging: false,
+
       searching: false,
+
       ordering: true,
+
       info: false,
+
       lengthChange: false,
 
       /*

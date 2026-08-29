@@ -1301,6 +1301,9 @@
           </section>
         </div>
       </section>
+
+
+
       <%-- =========================================================================
           Suspended / Delisted Companies and Funds
           ========================================================================= --%>
@@ -1481,6 +1484,66 @@
                     key="issuer.trading.info.v2.search.reset"
                   />
                 </button>
+              </div>
+            </div>
+            <%-- =====================================================================
+                Accumulated Loss Status Legend
+                ===================================================================== --%>
+
+            <div class="filter-bar__secondary">
+              <div class="filter-bar__secondary-content">
+                <div
+                  class="filter-bar__legend"
+                  role="list"
+                >
+                  <span
+                    class="filter-bar__legend-item"
+                    role="listitem"
+                  >
+                    <span
+                      class="filter-bar__legend-indicator filter-bar__legend-indicator--danger"
+                      aria-hidden="true"
+                    ></span>
+
+                    <span>
+                      <fmt:message
+                        key="marketwatch.todaywatch.accumulated.losses.50.more"
+                      />
+                    </span>
+                  </span>
+
+                  <span
+                    class="filter-bar__legend-item"
+                    role="listitem"
+                  >
+                    <span
+                      class="filter-bar__legend-indicator filter-bar__legend-indicator--warning"
+                      aria-hidden="true"
+                    ></span>
+
+                    <span>
+                      <fmt:message
+                        key="marketwatch.todaywatch.accumulated.losses.35.to.50"
+                      />
+                    </span>
+                  </span>
+
+                  <span
+                    class="filter-bar__legend-item"
+                    role="listitem"
+                  >
+                    <span
+                      class="filter-bar__legend-indicator filter-bar__legend-indicator--attention"
+                      aria-hidden="true"
+                    ></span>
+
+                    <span>
+                      <fmt:message
+                        key="marketwatch.todaywatch.accumulated.losses.20.to.35"
+                      />
+                    </span>
+                  </span>
+                </div>
               </div>
             </div>
           </form>

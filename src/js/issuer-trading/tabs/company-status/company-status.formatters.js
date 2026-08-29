@@ -8,7 +8,7 @@
  * Responsibilities:
  *
  * - render the standard company identity
- * - render the company-status indicator
+ * - render semantic accumulated-loss indicators
  * - preserve the legacy DD-MM-YYYY date presentation
  * - provide stable date sorting values
  * - render suspension and delisting links safely
@@ -53,24 +53,34 @@ import {
 
 const DEFAULT_EMPTY_VALUE = "—";
 
+const DEFAULT_ANNOUNCEMENT_LABEL = "View";
+
 const STATUS_PRESENTATIONS = Object.freeze({
   1: Object.freeze({
-    className: "table-market__status table-market__status--warning ylwSymbol",
+    modifierClassName: "status-state--attention",
 
     labelKey: "losses20To35",
   }),
 
   2: Object.freeze({
-    className: "table-market__status table-market__status--caution orgSymbol",
+    modifierClassName: "status-state--warning",
 
     labelKey: "losses35To50",
   }),
 
   3: Object.freeze({
-    className: "table-market__status table-market__status--danger redSymbol",
+    modifierClassName: "status-state--danger",
 
     labelKey: "losses50More",
   }),
+});
+
+const EMPTY_STATUS_PRESENTATION = Object.freeze({
+  className: "",
+
+  modifierClassName: "",
+
+  label: "",
 });
 
 /* ==========================================================================
@@ -79,6 +89,18 @@ const STATUS_PRESENTATIONS = Object.freeze({
 
 function firstDefined(...values) {
   return values.find((value) => value !== undefined && value !== null);
+}
+
+function firstString(...values) {
+  for (const value of values) {
+    const normalized = normalizeString(value);
+
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return "";
 }
 
 function firstSafeUrl(...values) {
@@ -114,20 +136,16 @@ function getDateSortKey(value) {
 }
 
 function getCompanyName(row = {}) {
-  return normalizeString(
-    firstDefined(row.companyName, row.acrynomName, row.name, row.company),
-  );
+  return firstString(row.companyName, row.acrynomName, row.name, row.company);
 }
 
 function getCompanyCode(row = {}) {
-  return normalizeString(
-    firstDefined(
-      row.companyCode,
-      row.companyRef,
-      row.symbolCode,
-      row.companySymbol,
-      row.symbol,
-    ),
+  return firstString(
+    row.companyCode,
+    row.companyRef,
+    row.symbolCode,
+    row.companySymbol,
+    row.symbol,
   );
 }
 
@@ -156,27 +174,42 @@ function isSuspensionRow(row = {}) {
 }
 
 /* ==========================================================================
-   Company Status
+   Accumulated-Loss Status Resolution
    ========================================================================== */
 
 function getCompanyStatusCode(row = {}) {
   const status = row.companyStatus;
 
-  const value =
+  const nestedStatus =
     status && typeof status === "object"
-      ? firstDefined(status.code, status.value)
-      : status;
+      ? firstString(status.code, status.value, status.raw)
+      : normalizeString(status);
 
-  const number = Number(value);
+  const rawValue = firstString(
+    nestedStatus,
+    row.statusCode,
+    row.companyStatusCode,
+    row.status,
+  );
 
-  return Number.isFinite(number) ? String(number) : normalizeString(value);
+  if (!rawValue) {
+    return "";
+  }
+
+  const numericValue = Number(rawValue);
+
+  if (Number.isFinite(numericValue)) {
+    return String(numericValue);
+  }
+
+  return rawValue;
 }
 
 function getCompanyStatusLabel(row = {}, config = {}) {
   const status = row.companyStatus;
 
   if (status && typeof status === "object") {
-    const directLabel = normalizeString(status.label);
+    const directLabel = firstString(status.label, status.name, status.title);
 
     if (directLabel) {
       return directLabel;
@@ -191,7 +224,13 @@ function getCompanyStatusLabel(row = {}, config = {}) {
     return "";
   }
 
-  return normalizeString(config.labels?.status?.[presentation.labelKey]);
+  const statusLabels = {
+    ...(config.labels?.status || {}),
+
+    ...(config.labels?.companyStatus?.status || {}),
+  };
+
+  return normalizeString(statusLabels[presentation.labelKey]);
 }
 
 function getCompanySearchValue(row = {}, config = {}) {
@@ -268,27 +307,32 @@ function formatDateCell(value, type, fallback) {
 }
 
 /* ==========================================================================
-   Status Indicator
+   Status Presentation
    ========================================================================== */
 
 export function getCompanyStatusPresentation(row = {}, config = {}) {
   const statusCode = getCompanyStatusCode(row);
 
-  const presentation = STATUS_PRESENTATIONS[statusCode];
+  const definition = STATUS_PRESENTATIONS[statusCode];
 
-  if (!presentation) {
-    return Object.freeze({
-      className: "",
-      label: "",
-    });
+  if (!definition) {
+    return EMPTY_STATUS_PRESENTATION;
   }
 
+  const modifierClassName = definition.modifierClassName;
+
   return Object.freeze({
-    className: presentation.className,
+    className: ["status-state", modifierClassName].join(" "),
+
+    modifierClassName,
 
     label: getCompanyStatusLabel(row, config),
   });
 }
+
+/* ==========================================================================
+   Status Indicator
+   ========================================================================== */
 
 export function renderCompanyStatusIndicator(row = {}, config = {}) {
   const presentation = getCompanyStatusPresentation(row, config);
@@ -299,6 +343,7 @@ export function renderCompanyStatusIndicator(row = {}, config = {}) {
 
   const accessibilityAttributes = presentation.label
     ? `
+        role="img"
         aria-label="${escapeHtml(presentation.label)}"
         title="${escapeHtml(presentation.label)}"
       `.trim()
@@ -308,7 +353,12 @@ export function renderCompanyStatusIndicator(row = {}, config = {}) {
     <span
       class="${escapeHtml(presentation.className)}"
       ${accessibilityAttributes}
-    ></span>
+    >
+      <span
+        class="status-state__indicator"
+        aria-hidden="true"
+      ></span>
+    </span>
   `.trim();
 }
 
@@ -360,10 +410,10 @@ export function getCompanyStatusAnnouncementLabel(row = {}, config = {}) {
   const labels = config.labels?.companyStatus?.links || {};
 
   if (isSuspensionRow(row)) {
-    return normalizeString(labels.suspension, "View");
+    return normalizeString(labels.suspension) || DEFAULT_ANNOUNCEMENT_LABEL;
   }
 
-  return normalizeString(labels.delisting, "View");
+  return normalizeString(labels.delisting) || DEFAULT_ANNOUNCEMENT_LABEL;
 }
 
 export function getCompanyStatusAnnouncementUrl(row = {}) {
@@ -416,8 +466,11 @@ export function renderCompanyStatusAnnouncement(
 
   const className = [
     "company-status__announcement-link",
+
     "has-icon",
+
     "icon-arrow-up-right",
+
     options.className || "",
   ]
     .filter(Boolean)
