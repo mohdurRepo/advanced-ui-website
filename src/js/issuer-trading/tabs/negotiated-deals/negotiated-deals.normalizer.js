@@ -342,6 +342,18 @@ function isValidDateParts(parts) {
   );
 }
 
+function getFirstValidDate(...values) {
+  for (const value of values) {
+    const normalized = normalizeString(value);
+
+    if (normalized && isValidDateParts(getDateParts(normalized))) {
+      return normalized;
+    }
+  }
+
+  return "";
+}
+
 function getDateKey(value) {
   const parts = getDateParts(value);
 
@@ -442,7 +454,7 @@ function isTotalRow(row = {}) {
 function normalizeDealRow(row, index) {
   const company = normalizeCompany(row);
 
-  const tradeDate = getFirstString(
+  const tradeDate = getFirstValidDate(
     row.tradeDate,
     row.strDate,
     row.date,
@@ -600,8 +612,10 @@ export function normalizeNegotiatedDealsRowsResponse(response) {
 
     const dealRow = normalizeDealRow(rawRow, index);
 
-    if (dealRow.tradeDate) {
-      previousDate = dealRow.tradeDate;
+    const validTradeDate = getFirstValidDate(dealRow.tradeDate);
+
+    if (validTradeDate) {
+      previousDate = validTradeDate;
     }
 
     rows.push(dealRow);

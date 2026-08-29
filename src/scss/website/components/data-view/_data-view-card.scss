@@ -210,6 +210,39 @@
 }
 
 /* ==========================================================================
+   Labeled Summary Identity
+   ========================================================================== */
+
+/*
+ * Allows compact card summaries to identify the left-side content while
+ * keeping the standard company logo, name, and code presentation unchanged.
+ *
+ * This aligns with the labeled quote items displayed on the inline-end side.
+ */
+
+.data-card__summary-identity {
+  display: flex;
+
+  align-items: flex-start;
+
+  flex-direction: column;
+
+  gap: 0.125rem;
+
+  min-inline-size: 0;
+}
+
+.data-card__summary-identity > .data-card__quote-label {
+  inline-size: 100%;
+
+  text-align: start;
+}
+
+.data-card__summary-identity > .data-card__identity {
+  inline-size: 100%;
+}
+
+/* ==========================================================================
    Favorite
    ========================================================================== */
 
@@ -454,8 +487,9 @@
  * Change %
  * +1.25%
  *
- * Individual page renderers may intentionally omit labels for a more compact
- * summary, as Negotiated Deals does.
+ *
+ * Individual page renderers may include or omit labels depending on the
+ * amount of context already available in the card.
  */
 
 .data-card__quote {

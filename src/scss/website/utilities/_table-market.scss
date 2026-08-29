@@ -1010,6 +1010,49 @@ html[data-contrast="high"] {
 }
 
 /* ==========================================================================
+   Emphasized Summary / Total Row
+   ========================================================================== */
+
+/*
+ * Strong summary treatment for totals that should visually match a group
+ * band, while preserving the quieter default summary style elsewhere.
+ */
+
+.table-market tbody .table-market__summary-row--emphasis {
+  background: var(--table-market-group-bg);
+  color: var(--table-market-group-color);
+}
+
+.table-market tbody .table-market__summary-row--emphasis > th,
+.table-market tbody .table-market__summary-row--emphasis > td {
+  border-block-start-color: var(--color-border-strong);
+  border-block-end-color: var(--color-border-strong);
+
+  background: var(--table-market-group-bg);
+  color: var(--table-market-group-color);
+
+  font-weight: ds.font-weight("bold");
+}
+
+.table-market .table-market__summary-row--emphasis .table-market__summary-label,
+.table-market
+  .table-market__summary-row--emphasis
+  .table-market__summary-value {
+  color: inherit;
+}
+
+/* Preserve the emphasized total treatment in hover-enabled tables. */
+
+.table-market.table-hover tbody .table-market__summary-row--emphasis:hover > th,
+.table-market.table-hover
+  tbody
+  .table-market__summary-row--emphasis:hover
+  > td {
+  background: var(--table-market-group-bg);
+  color: var(--table-market-group-color);
+}
+
+/* ==========================================================================
    Selected Row
    ========================================================================== */
 
