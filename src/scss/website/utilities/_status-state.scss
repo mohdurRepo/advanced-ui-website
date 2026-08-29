@@ -7,19 +7,19 @@
 /*
  * Reusable semantic status presentation.
  *
- * Use this utility for:
+ * Suitable for:
  *
  * - company and security statuses
  * - accumulated-loss severity
- * - legends and keys
  * - content feeds
  * - cards
  * - tables
  * - summaries
+ * - filter-bar legend indicators
  *
- * This utility intentionally represents semantic severity rather than
- * financial price movement. Positive/negative price changes remain owned by
- * price-state.
+ * Status State represents semantic condition or severity.
+ *
+ * Financial price movement remains owned by price-state.
  */
 
 /* ==========================================================================
@@ -40,37 +40,75 @@
 }
 
 /* ==========================================================================
-   Semantic Variants
+   Success
    ========================================================================== */
 
 .status-state--success {
-  --status-state-color: var(
-    --color-status-success,
-    var(--color-market-positive, #15803d)
-  );
+  --status-state-color: var(--color-success);
 }
+
+/* ==========================================================================
+   Information
+   ========================================================================== */
 
 .status-state--info {
-  --status-state-color: var(--color-status-info, var(--color-primary));
+  --status-state-color: var(--color-info);
 }
+
+/* ==========================================================================
+   Attention
+   ========================================================================== */
+
+/*
+ * Low-severity attention state.
+ *
+ * Accumulated Losses:
+ *
+ * 20%–35%
+ */
+
+.status-state--attention {
+  --status-state-color: var(--color-attention);
+}
+
+/* ==========================================================================
+   Warning
+   ========================================================================== */
+
+/*
+ * Medium-severity warning state.
+ *
+ * Accumulated Losses:
+ *
+ * 35%–50%
+ */
 
 .status-state--warning {
-  --status-state-color: var(--color-status-warning, #a16207);
+  --status-state-color: var(--color-warning);
 }
 
-.status-state--caution {
-  --status-state-color: var(--color-status-caution, #c2410c);
-}
+/* ==========================================================================
+   Danger
+   ========================================================================== */
+
+/*
+ * High-severity danger state.
+ *
+ * Accumulated Losses:
+ *
+ * 50% or more
+ */
 
 .status-state--danger {
-  --status-state-color: var(
-    --color-status-danger,
-    var(--color-market-negative, #c62828)
-  );
+  --status-state-color: var(--color-danger);
 }
 
+/* ==========================================================================
+   Neutral
+   ========================================================================== */
+
 .status-state--neutral {
-  --status-state-color: var(--color-status-neutral, var(--color-text-muted));
+  --status-state-color: var(--color-text-muted);
 }
 
 /* ==========================================================================
@@ -85,7 +123,7 @@
   inline-size: 0.625rem;
   block-size: 0.625rem;
 
-  border-radius: 50%;
+  border-radius: var(--radius-pill);
 
   background: currentColor;
 }
@@ -97,70 +135,10 @@
 .status-state__label {
   min-inline-size: 0;
 
+  color: inherit;
+
   font-size: var(--text-sm);
   line-height: var(--line-height-normal);
-}
-
-/* ==========================================================================
-   Status Legend
-   ========================================================================== */
-
-.status-legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-
-  gap: ds.space(2) ds.space(5);
-
-  margin: 0;
-  padding: 0;
-
-  list-style: none;
-}
-
-.status-legend__item {
-  display: flex;
-  align-items: center;
-
-  min-inline-size: 0;
-}
-
-/*
- * Legend text remains the normal content color.
- * Only the indicator communicates the configured status color.
- */
-
-.status-legend .status-state__label {
-  color: var(--color-text);
-}
-
-/* ==========================================================================
-   Filter Integration
-   ========================================================================== */
-
-.status-legend--filter {
-  padding-block: ds.space(3);
-  padding-inline: ds.space(4);
-
-  border-block-start: 1px solid var(--color-border);
-
-  background: var(--color-surface);
-}
-
-/* ==========================================================================
-   Mobile
-   ========================================================================== */
-
-@include ds.respond-down(sm) {
-  .status-legend {
-    align-items: flex-start;
-
-    gap: ds.space(2) ds.space(4);
-  }
-
-  .status-legend--filter {
-    padding-inline: ds.space(3);
-  }
 }
 
 /* ==========================================================================
@@ -172,10 +150,21 @@ html[data-contrast="high"] {
     outline: 2px solid currentColor;
     outline-offset: 1px;
   }
+}
 
-  .status-legend--filter {
-    border-block-start-width: 2px;
-    border-block-start-color: currentColor;
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .status-state {
+    --status-state-color: CanvasText;
+  }
+
+  .status-state__indicator {
+    border: 1px solid CanvasText;
+
+    background: CanvasText;
   }
 }
 
@@ -184,13 +173,13 @@ html[data-contrast="high"] {
    ========================================================================== */
 
 @media print {
+  .status-state {
+    --status-state-color: #000000;
+  }
+
   .status-state__indicator {
     border: 1px solid currentColor;
 
     background: currentColor;
-  }
-
-  .status-legend--filter {
-    border-color: #000000;
   }
 }

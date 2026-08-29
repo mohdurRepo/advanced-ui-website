@@ -49,8 +49,8 @@ html[data-theme="dark"] {
   --color-on-accent: #{ds.brand("navy")};
 
   /* ==========================================================================
-     Status
-     ========================================================================== */
+   Status
+   ========================================================================== */
 
   --color-success: #4ade80;
   --color-success-hover: #86efac;
@@ -60,6 +60,15 @@ html[data-theme="dark"] {
   --color-info-hover: #bae6fd;
   --color-on-info: #{ds.brand("navy")};
 
+  /*
+ * A slightly lighter attention color preserves separation and visibility
+ * against dark surfaces.
+ */
+
+  --color-attention: #fde68a;
+  --color-attention-hover: #fef3c7;
+  --color-on-attention: #{ds.brand("navy")};
+
   --color-warning: #fbbf24;
   --color-warning-hover: #facc15;
   --color-on-warning: #{ds.brand("navy")};
@@ -67,7 +76,6 @@ html[data-theme="dark"] {
   --color-danger: #f87171;
   --color-danger-hover: #fca5a5;
   --color-on-danger: #{ds.brand("navy")};
-
   /* ==========================================================================
      Neutral Actions
      ========================================================================== */

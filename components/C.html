@@ -774,55 +774,59 @@
                 />
               </span>
 
-              <ul
-                class="status-legend status-legend--filter"
+              <div
+                class="filter-bar__legend"
+                role="list"
                 aria-labelledby="accumulated-losses-status-legend-title"
               >
-                <li class="status-legend__item">
-                  <span class="status-state status-state--danger">
-                    <span
-                      class="status-state__indicator"
-                      aria-hidden="true"
-                    ></span>
+                <span
+                  class="filter-bar__legend-item"
+                  role="listitem"
+                >
+                  <span
+                    class="filter-bar__legend-indicator filter-bar__legend-indicator--danger"
+                    aria-hidden="true"
+                  ></span>
 
-                    <span class="status-state__label">
-                      <fmt:message
-                        key="issuer.trading.info.v2.accumulated.losses.50.more"
-                      />
-                    </span>
+                  <span>
+                    <fmt:message
+                      key="issuer.trading.info.v2.accumulated.losses.50.more"
+                    />
                   </span>
-                </li>
+                </span>
 
-                <li class="status-legend__item">
-                  <span class="status-state status-state--caution">
-                    <span
-                      class="status-state__indicator"
-                      aria-hidden="true"
-                    ></span>
+                <span
+                  class="filter-bar__legend-item"
+                  role="listitem"
+                >
+                  <span
+                    class="filter-bar__legend-indicator filter-bar__legend-indicator--warning"
+                    aria-hidden="true"
+                  ></span>
 
-                    <span class="status-state__label">
-                      <fmt:message
-                        key="issuer.trading.info.v2.accumulated.losses.35.to.50"
-                      />
-                    </span>
+                  <span>
+                    <fmt:message
+                      key="issuer.trading.info.v2.accumulated.losses.35.to.50"
+                    />
                   </span>
-                </li>
+                </span>
 
-                <li class="status-legend__item">
-                  <span class="status-state status-state--warning">
-                    <span
-                      class="status-state__indicator"
-                      aria-hidden="true"
-                    ></span>
+                <span
+                  class="filter-bar__legend-item"
+                  role="listitem"
+                >
+                  <span
+                    class="filter-bar__legend-indicator filter-bar__legend-indicator--attention"
+                    aria-hidden="true"
+                  ></span>
 
-                    <span class="status-state__label">
-                      <fmt:message
-                        key="issuer.trading.info.v2.accumulated.losses.20.to.35"
-                      />
-                    </span>
+                  <span>
+                    <fmt:message
+                      key="issuer.trading.info.v2.accumulated.losses.20.to.35"
+                    />
                   </span>
-                </li>
-              </ul>
+                </span>
+              </div>
             </form>
 
             <%-- ======================================================================

@@ -59,13 +59,13 @@ const DEFAULT_LABELS = Object.freeze({
 
 const STATUS_PRESENTATIONS = Object.freeze({
   1: Object.freeze({
-    className: "status-state--warning",
+    className: "status-state--attention",
 
     labelKey: "losses20To35",
   }),
 
   2: Object.freeze({
-    className: "status-state--caution",
+    className: "status-state--warning",
 
     labelKey: "losses35To50",
   }),
