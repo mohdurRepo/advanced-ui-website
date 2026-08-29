@@ -14,6 +14,7 @@
  * - cancel requests when a tab is deactivated
  * - manage company-logo fallback behavior
  * - support tab-specific filter bindings
+ * - coordinate active table/card presentations
  * - support complete destruction
  *
  * Individual tabs remain responsible for:
@@ -82,6 +83,18 @@ function resolveElement(root, value) {
   }
 
   return null;
+}
+
+function isElementVisible(element) {
+  if (
+    typeof Element === "undefined" ||
+    !(element instanceof Element) ||
+    !element.isConnected
+  ) {
+    return false;
+  }
+
+  return element.getClientRects().length > 0;
 }
 
 function normalizeRows(rows) {
@@ -401,12 +414,20 @@ export function createTradingTab(options = {}) {
 
   const initialView = resolveView(initialFilterState);
 
+  const tableElement = resolveElement(root, selectors.table);
+
+  if (!tableElement) {
+    throw new Error(`Trading tab "${key}" table element was not found.`);
+  }
+
   const table = createDataTable({
     root,
 
-    table: selectors.table,
+    table: tableElement,
 
     initialView,
+
+    active: isElementVisible(tableElement),
 
     headerMode: options.headerMode || "schema",
 
@@ -492,12 +513,42 @@ export function createTradingTab(options = {}) {
      Cards
      ======================================================================== */
 
+  const cardsContainer = resolveElement(root, selectors.cards);
+
+  if (!cardsContainer) {
+    throw new Error(`Trading tab "${key}" cards container was not found.`);
+  }
+
+  const cardOptions = isPlainObject(options.cardOptions)
+    ? options.cardOptions
+    : {};
+
   const cards = createDataCards({
+    /*
+     * Presentation-specific performance options are applied first so the
+     * required factory dependencies below cannot be replaced accidentally.
+     */
+
+    ...cardOptions,
+
     root,
 
-    container: selectors.cards,
+    container: cardsContainer,
 
     initialView,
+
+    /*
+     * Do not construct the mobile card tree while its presentation is hidden.
+     * createDataCards keeps the latest rows and renders them when activated.
+     */
+
+    active: isElementVisible(cardsContainer),
+
+    /*
+     * Breakpoint activity is coordinated once by this factory.
+     */
+
+    autoActivate: false,
 
     getGroupKey: options.getCardGroupKey,
 
@@ -762,6 +813,76 @@ export function createTradingTab(options = {}) {
 
   let unbindFeatureFilters = null;
 
+  let presentationFrame = null;
+
+  /* ========================================================================
+     Presentation Activity
+     ======================================================================== */
+
+  function syncPresentationActivity() {
+    if (destroyed) {
+      return null;
+    }
+
+    const shouldRenderTable = active && isElementVisible(tableElement);
+
+    const shouldRenderCards = active && isElementVisible(cardsContainer);
+
+    /*
+     * Deactivate the hidden presentation before activating the visible one.
+     * This prevents the controller from materializing both representations
+     * during the same breakpoint transition.
+     */
+
+    if (shouldRenderTable) {
+      cards.setActive?.(false);
+
+      table.setActive?.(true);
+    } else if (shouldRenderCards) {
+      table.setActive?.(false);
+
+      cards.setActive?.(true);
+    } else {
+      table.setActive?.(false);
+
+      cards.setActive?.(false);
+    }
+
+    return Object.freeze({
+      cards: shouldRenderCards,
+
+      table: shouldRenderTable,
+    });
+  }
+
+  function schedulePresentationSync() {
+    if (destroyed || !initialized || presentationFrame !== null) {
+      return;
+    }
+
+    presentationFrame = window.requestAnimationFrame(() => {
+      presentationFrame = null;
+
+      syncPresentationActivity();
+    });
+  }
+
+  function bindPresentationActivity() {
+    window.addEventListener("resize", schedulePresentationSync, {
+      passive: true,
+    });
+  }
+
+  function destroyPresentationActivity() {
+    window.removeEventListener("resize", schedulePresentationSync);
+
+    if (presentationFrame !== null) {
+      window.cancelAnimationFrame(presentationFrame);
+
+      presentationFrame = null;
+    }
+  }
+
   /* ========================================================================
      Shared State
      ======================================================================== */
@@ -836,6 +957,10 @@ export function createTradingTab(options = {}) {
 
     bindFeatureFilters();
 
+    bindPresentationActivity();
+
+    syncPresentationActivity();
+
     options.onInit?.(createContext());
 
     return instance;
@@ -858,7 +983,7 @@ export function createTradingTab(options = {}) {
       type: "activate",
     });
 
-    table.adjust();
+    syncPresentationActivity();
 
     options.onActivate?.(createContext());
 
@@ -878,6 +1003,13 @@ export function createTradingTab(options = {}) {
     }
 
     active = false;
+
+    /*
+     * Stop hidden table and queued card work before cancelling or restoring
+     * the most recently completed rows.
+     */
+
+    syncPresentationActivity();
 
     const cancelled = source.cancel();
 
@@ -911,6 +1043,10 @@ export function createTradingTab(options = {}) {
 
     init();
 
+    if (active) {
+      syncPresentationActivity();
+    }
+
     return controller.reload();
   }
 
@@ -923,10 +1059,17 @@ export function createTradingTab(options = {}) {
       return;
     }
 
-    destroyed = true;
     active = false;
 
+    table.setActive?.(false);
+
+    cards.setActive?.(false);
+
+    destroyed = true;
+
     source.cancel();
+
+    destroyPresentationActivity();
 
     destroyFeatureFilters();
 

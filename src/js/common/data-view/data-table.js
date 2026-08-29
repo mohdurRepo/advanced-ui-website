@@ -14,6 +14,7 @@
  * - manage row data
  * - manage loading / empty / error states
  * - manage column-group visibility
+ * - defer rendering while the table presentation is inactive
  * - expose configurable DataTables capabilities
  * - coordinate layout refreshes
  *
@@ -564,6 +565,11 @@ export function createDataTable(options = {}) {
   };
 
   let layoutFrame = null;
+
+  let active = typeof options.active === "boolean" ? options.active : true;
+
+  let needsSync = true;
+
   let destroyed = false;
 
   /* ========================================================================
@@ -596,14 +602,14 @@ export function createDataTable(options = {}) {
      ======================================================================== */
 
   function scheduleLayoutRefresh() {
-    if (destroyed || layoutFrame !== null) {
+    if (destroyed || !active || layoutFrame !== null) {
       return;
     }
 
     layoutFrame = window.requestAnimationFrame(() => {
       layoutFrame = null;
 
-      if (destroyed || !api) {
+      if (destroyed || !active || !api) {
         return;
       }
 
@@ -890,7 +896,9 @@ export function createDataTable(options = {}) {
      ======================================================================== */
 
   function createInstance() {
-    if (destroyed) {
+    if (destroyed || !active) {
+      needsSync = true;
+
       return;
     }
 
@@ -899,6 +907,8 @@ export function createDataTable(options = {}) {
     buildHeader();
 
     api = new DataTable(table, buildDataTableOptions());
+
+    needsSync = false;
   }
 
   /* ========================================================================
@@ -922,6 +932,12 @@ export function createDataTable(options = {}) {
       return;
     }
 
+    if (!active) {
+      needsSync = true;
+
+      return;
+    }
+
     destroyInstance();
     createInstance();
   }
@@ -941,6 +957,12 @@ export function createDataTable(options = {}) {
 
     table.setAttribute("aria-busy", "false");
 
+    if (!active) {
+      needsSync = true;
+
+      return;
+    }
+
     if (!api) {
       createInstance();
 
@@ -955,6 +977,8 @@ export function createDataTable(options = {}) {
     if (tableOptions.serverSide) {
       options.onServerSideRows?.(rows, api, getContext());
 
+      needsSync = false;
+
       return;
     }
 
@@ -965,6 +989,8 @@ export function createDataTable(options = {}) {
     }
 
     api.draw(false);
+
+    needsSync = false;
 
     scheduleLayoutRefresh();
 
@@ -988,6 +1014,12 @@ export function createDataTable(options = {}) {
 
     table.setAttribute("aria-busy", "true");
 
+    if (!active) {
+      needsSync = true;
+
+      return;
+    }
+
     if (!api) {
       createInstance();
 
@@ -1003,6 +1035,8 @@ export function createDataTable(options = {}) {
     api.rows.add(createLoadingRows(options.loadingRowCount || 6, getContext()));
 
     api.draw(false);
+
+    needsSync = false;
 
     scheduleLayoutRefresh();
   }
@@ -1026,6 +1060,12 @@ export function createDataTable(options = {}) {
 
     table.setAttribute("aria-busy", "false");
 
+    if (!active) {
+      needsSync = true;
+
+      return;
+    }
+
     if (!api) {
       createInstance();
 
@@ -1038,6 +1078,8 @@ export function createDataTable(options = {}) {
 
     api.clear();
     api.draw(false);
+
+    needsSync = false;
 
     scheduleLayoutRefresh();
   }
@@ -1065,6 +1107,12 @@ export function createDataTable(options = {}) {
 
     table.setAttribute("aria-busy", "false");
 
+    if (!active) {
+      needsSync = true;
+
+      return;
+    }
+
     if (!api) {
       createInstance();
 
@@ -1077,6 +1125,8 @@ export function createDataTable(options = {}) {
 
     api.clear();
     api.draw(false);
+
+    needsSync = false;
 
     scheduleLayoutRefresh();
   }
@@ -1098,7 +1148,9 @@ export function createDataTable(options = {}) {
 
     visibleGroups = groups;
 
-    if (!api) {
+    if (!active || !api) {
+      needsSync = true;
+
       return true;
     }
 
@@ -1133,6 +1185,8 @@ export function createDataTable(options = {}) {
 
     options.onVisibilityChange?.(visibleGroups, api, getContext());
 
+    needsSync = false;
+
     return changed;
   }
 
@@ -1163,6 +1217,14 @@ export function createDataTable(options = {}) {
       visibleGroups = unique(nextVisibleGroups);
     }
 
+    if (!active) {
+      needsSync = true;
+
+      options.onViewChange?.(currentView, api, getContext());
+
+      return true;
+    }
+
     /*
      * Different schemas require one clean DataTables recreation.
      */
@@ -1179,7 +1241,7 @@ export function createDataTable(options = {}) {
      ======================================================================== */
 
   function adjust() {
-    if (!api) {
+    if (!active || !api) {
       return;
     }
 
@@ -1189,7 +1251,7 @@ export function createDataTable(options = {}) {
   }
 
   function redraw(resetPaging = false) {
-    if (!api) {
+    if (!active || !api) {
       return;
     }
 
@@ -1199,7 +1261,7 @@ export function createDataTable(options = {}) {
   }
 
   function reload() {
-    if (!api || !api.ajax) {
+    if (!active || !api || !api.ajax) {
       return;
     }
 
@@ -1207,7 +1269,7 @@ export function createDataTable(options = {}) {
   }
 
   function search(value) {
-    if (!api || typeof api.search !== "function") {
+    if (!active || !api || typeof api.search !== "function") {
       return;
     }
 
@@ -1215,7 +1277,7 @@ export function createDataTable(options = {}) {
   }
 
   function setPageLength(length) {
-    if (!api) {
+    if (!active || !api) {
       return;
     }
 
@@ -1226,6 +1288,62 @@ export function createDataTable(options = {}) {
     }
 
     api.page.len(normalized).draw(false);
+  }
+
+  /* ========================================================================
+     Presentation Activity
+     ======================================================================== */
+
+  function syncInstance() {
+    if (destroyed || !active) {
+      return;
+    }
+
+    if (!api) {
+      createInstance();
+
+      return;
+    }
+
+    if (needsSync) {
+      recreate();
+
+      return;
+    }
+
+    adjust();
+  }
+
+  function setActive(nextActive) {
+    if (destroyed) {
+      return false;
+    }
+
+    const normalizedActive = Boolean(nextActive);
+
+    if (normalizedActive === active) {
+      if (active) {
+        syncInstance();
+      }
+
+      return false;
+    }
+
+    active = normalizedActive;
+
+    if (!active) {
+      if (layoutFrame !== null) {
+        window.cancelAnimationFrame(layoutFrame);
+
+        layoutFrame = null;
+      }
+
+      return true;
+    }
+
+    syncInstance();
+
+    return true;
   }
 
   /* ========================================================================
@@ -1248,6 +1366,10 @@ export function createDataTable(options = {}) {
     return api;
   }
 
+  function isActive() {
+    return active;
+  }
+
   function getState() {
     return Object.freeze({
       view: currentView,
@@ -1262,7 +1384,11 @@ export function createDataTable(options = {}) {
           }
         : null,
 
+      active,
+
       initialized: Boolean(api),
+
+      synchronized: !needsSync,
     });
   }
 
@@ -1290,7 +1416,7 @@ export function createDataTable(options = {}) {
      Initialization
      ======================================================================== */
 
-  if (options.autoInit !== false) {
+  if (options.autoInit !== false && active) {
     createInstance();
   }
 
@@ -1308,11 +1434,14 @@ export function createDataTable(options = {}) {
     getView,
     getVisibleGroups,
 
+    isActive,
+
     recreate,
     redraw,
     reload,
 
     search,
+    setActive,
     setPageLength,
 
     setRows,
