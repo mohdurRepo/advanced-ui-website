@@ -33,6 +33,8 @@ import {
 
 import {
   escapeHtml,
+  formatDate,
+  formatInputDate,
   normalizeString,
 } from "../../../shared/trading-formatters.js";
 
@@ -49,20 +51,15 @@ const VIEW_KEY = "negotiatedDeals";
 
 const COLUMN_KEYS = Object.freeze({
   date: "tradeDate",
-
   company: "company",
-
   price: "price",
-
   volume: "volume",
-
   value: "value",
-
   time: "tradeTime",
 });
 
 /* ==========================================================================
-   General Helpers
+   Helpers
    ========================================================================== */
 
 function isObject(value) {
@@ -73,15 +70,11 @@ function createSafeId(value, fallback = "group") {
   const normalized = normalizeString(value)
     .replace(/[^a-z0-9_-]/gi, "-")
     .replace(/-+/g, "-")
-    .replace(/^-+|-+$/g, "")
+    .replace(/^-|-$/g, "")
     .toLowerCase();
 
   return normalized || fallback;
 }
-
-/* ==========================================================================
-   Labels
-   ========================================================================== */
 
 function getTableLabels(config = {}) {
   const labels = config.labels?.negotiatedDeals?.table || {};
@@ -113,10 +106,6 @@ function getMobileLabels(config = {}) {
   });
 }
 
-/* ==========================================================================
-   Company Identity Options
-   ========================================================================== */
-
 function getCompanyIdentityOptions(config = {}) {
   return Object.freeze({
     logoUrlTemplate: normalizeString(config.assets?.companyLogoUrlTemplate),
@@ -124,10 +113,6 @@ function getCompanyIdentityOptions(config = {}) {
     logoFallbackUrl: normalizeString(config.assets?.companyLogoFallbackUrl),
   });
 }
-
-/* ==========================================================================
-   Loading Cell
-   ========================================================================== */
 
 function renderLoadingCell() {
   return `
@@ -137,10 +122,6 @@ function renderLoadingCell() {
     ></span>
   `.trim();
 }
-
-/* ==========================================================================
-   Time Value
-   ========================================================================== */
 
 function renderTimeValue(value, rawValue) {
   const normalizedRawValue = normalizeString(rawValue);
@@ -290,13 +271,9 @@ function createCellRenderer({ formatters, labels }) {
     if (isNegotiatedDealsTotalRow(row)) {
       return renderTotalCell({
         column,
-
         row,
-
         type,
-
         formatters,
-
         labels,
       });
     }
@@ -352,18 +329,7 @@ function createRowCallback({ formatters, labels }) {
       return;
     }
 
-    /*
-     * The base summary class provides structural total-row styling.
-     *
-     * The emphasized modifier allows this page to use the stronger group-band
-     * background without changing every summary row in the table system.
-     */
-
-    rowElement.classList.add(
-      "table-market__summary-row",
-
-      "table-market__summary-row--emphasis",
-    );
+    rowElement.classList.add("table-market__summary-row");
 
     const cells = rowElement.cells;
 
@@ -383,15 +349,10 @@ function createRowCallback({ formatters, labels }) {
 
     const ariaLabel = [
       labels.total,
-
       summary.date,
-
       labels.volume,
-
       summary.volume,
-
       labels.value,
-
       summary.value,
     ]
       .filter(Boolean)
@@ -408,39 +369,8 @@ function createRowCallback({ formatters, labels }) {
 function renderCompanyIdentity(row, config) {
   return renderStandardCompanyCardIdentity(
     row,
-
     getCompanyIdentityOptions(config),
   );
-}
-
-/* ==========================================================================
-   Labeled Mobile Summary
-   ========================================================================== */
-
-function renderSummaryIdentity(identity, label) {
-  return `
-    <div class="data-card__summary-identity">
-      <span class="data-card__quote-label">
-        ${escapeHtml(label)}
-      </span>
-
-      ${identity}
-    </div>
-  `.trim();
-}
-
-function renderQuoteItem({ label, value, valueClassName }) {
-  return `
-    <span class="data-card__quote-item">
-      <span class="data-card__quote-label">
-        ${escapeHtml(label)}
-      </span>
-
-      <span class="${escapeHtml(valueClassName)}">
-        ${escapeHtml(value)}
-      </span>
-    </span>
-  `.trim();
 }
 
 /* ==========================================================================
@@ -460,24 +390,16 @@ function renderDealCard({
   const identity = renderCompanyIdentity(row, config);
 
   const summary = `
-    ${renderSummaryIdentity(identity, labels.company)}
+    ${identity}
 
     <div class="data-card__quote">
-      ${renderQuoteItem({
-        label: labels.price,
+      <span class="data-card__price">
+        ${escapeHtml(values.price)}
+      </span>
 
-        value: values.price,
-
-        valueClassName: "data-card__price",
-      })}
-
-      ${renderQuoteItem({
-        label: labels.value,
-
-        value: values.value,
-
-        valueClassName: "data-card__change",
-      })}
+      <span class="data-card__change">
+        ${escapeHtml(values.value)}
+      </span>
     </div>
   `.trim();
 
@@ -502,11 +424,7 @@ function renderDealCard({
       {
         label: labels.time,
 
-        value: renderTimeValue(
-          values.time,
-
-          values.timeValue,
-        ),
+        value: renderTimeValue(values.time, values.timeValue),
 
         numeric: true,
       },
@@ -535,21 +453,13 @@ function renderTotalCard({ row, index, formatters, labels }) {
     </div>
 
     <div class="data-card__quote">
-      ${renderQuoteItem({
-        label: labels.volume,
+      <span class="data-card__price">
+        ${escapeHtml(values.volume)}
+      </span>
 
-        value: values.volume,
-
-        valueClassName: "data-card__price",
-      })}
-
-      ${renderQuoteItem({
-        label: labels.value,
-
-        value: values.value,
-
-        valueClassName: "data-card__change",
-      })}
+      <span class="data-card__change">
+        ${escapeHtml(values.value)}
+      </span>
     </div>
   `.trim();
 
@@ -558,7 +468,7 @@ function renderTotalCard({ row, index, formatters, labels }) {
 
     idPrefix: "negotiated-deal-total",
 
-    className: "data-card--summary trading-daily-total-card",
+    className: "data-card--summary",
 
     summary,
 
@@ -579,7 +489,6 @@ function createCardRenderer({ config, formatters, labels, mobileLabels }) {
         index: context.index,
 
         formatters,
-
         labels,
       });
     }
@@ -590,11 +499,8 @@ function createCardRenderer({ config, formatters, labels, mobileLabels }) {
       index: context.index,
 
       config,
-
       formatters,
-
       labels,
-
       mobileLabels,
     });
   };
@@ -610,21 +516,13 @@ function getCardGroupKey(row = {}) {
 
 function createCardGroupLabel(formatters) {
   return function getCardGroupLabel(_groupKey, rows = []) {
-    /*
-     * Prefer a real deal row. A legacy total row can contain presentation
-     * markup in its source date field and must not define the group heading.
-     */
+    const firstRow = rows.find((row) => normalizeString(row.tradeDate));
 
-    const firstDealRow = rows.find(
-      (row) =>
-        !isNegotiatedDealsTotalRow(row) && normalizeString(row.tradeDate),
-    );
-
-    if (!firstDealRow) {
+    if (!firstRow) {
       return "";
     }
 
-    return formatters.getCardValues(firstDealRow).date;
+    return formatters.getCardValues(firstRow).date;
   };
 }
 
@@ -672,23 +570,18 @@ export function createNegotiatedDealsView(config = {}) {
 
   const renderCell = createCellRenderer({
     formatters,
-
     labels,
   });
 
   const createdRow = createRowCallback({
     formatters,
-
     labels,
   });
 
   const renderCard = createCardRenderer({
     config,
-
     formatters,
-
     labels,
-
     mobileLabels,
   });
 
@@ -700,22 +593,16 @@ export function createNegotiatedDealsView(config = {}) {
     columns,
 
     renderCell,
-
     renderCard,
 
     getCardGroupKey,
-
     getCardGroupLabel: getGroupLabel,
-
     renderCardGroup,
 
     tableOptions: Object.freeze({
       paging: false,
-
       searching: false,
-
       ordering: false,
-
       info: false,
 
       rowGroup: false,
