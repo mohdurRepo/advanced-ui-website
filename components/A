@@ -1,918 +1,332 @@
-<script>
-	var marketStatus = '${requestScope.marketStatusID}';
-</script>
+<portlet:renderURL var="negotiatedDealsRenderURL">
+	<portlet:param
+		name="<%=IssuerTradingInformationConstants.ACTION_TARGET%>"
+		value="<%=IssuerTradingInformationConstants.NEGOTIATED_DEALS_SEARCH_ACTION%>" />
+</portlet:renderURL>
 
-<c:set var="openCloseAuction" value="false" />
-
-<c:if
-	test="${requestScope.marketStatusID == 6 or requestScope.marketStatusID ==1   }">
-	<c:set var="openCloseAuction" value="true" />
-</c:if>
-
-<!-- =========================================================================
-       Market Watch Hero
-       ========================================================================= -->
-
-
-<section class="hero-section surface-hero"
-	aria-labelledby="nomu-page-title"
-	aria-describedby="nomu-page-description">
-	<div class="hero-section__background" aria-hidden="true"></div>
-
-	<div class="container hero-section__content">
-		<header class="hero-intro">
-			<div class="hero-intro__header">
-				<div class="hero-intro__brand">
-					<span class="hero-intro__icon has-icon icon-tadawul"
-						aria-hidden="true"></span>
-
-					<h2 id="nomu-page-title" class="hero-intro__title"><fmt:message key="marketwatch.todaywatch.v2.title" /></h2>
-				</div>
-
-				<p id="nomu-page-description" class="hero-intro__description"><fmt:message key="marketwatch.todaywatch.v2.desc" /></p></p>
-			</div>
-		</header>
-	</div>
-</section>
-
-
-<!-- ==========================================================================
-     Market Watch Filters
-     ========================================================================== -->
-
-<section
-  class="section market-watch-filters"
-  aria-labelledby="market-watch-filters-title"
->
-  <div class="container">
-    <form
-      class="filter-bar"
-      data-market-watch-filters
-      aria-labelledby="market-watch-filters-title"
-      novalidate
-    >
-      <h2 class="visually-hidden" id="market-watch-filters-title">
-        <fmt:message key="marketwatch.todaywatch.v2.filter.heading" />
-      </h2>
-
-      <div class="filter-bar__inner">
-        <!-- ================================================================
-             Filter Fields
-             ================================================================ -->
-
-        <div class="filter-bar__fields grid-3">
-          <!-- Industry Group -->
-
-          <div class="filter-bar__field">
-            <label class="form-label" for="market-watch-industry">
-              <fmt:message key="marketwatch.todaywatch.v2.label.sector" />
+<input type="hidden" id="requestLocale" name="requestLocale"
+       value="${pageContext.request.locale.language}" />
+ 
+<section class="app-container hero-banner-section">
+  <div class="profile-banner animate__animated animate__fadeIn">
+    <div class="profile-banner--pattern">
+      <div class="row">
+ 
+        <div class="col-12">
+          <h2>
+            <svg class="pc-icon pr-3 link-icon me-3" width="40" height="40"
+                 style="color:#fff;fill:#fff">
+              <use xlink:href="#tadawul-arrow-icon"></use>
+            </svg>
+ 
+            <label style="color:#FFFFFF">
+              <fmt:message key="issuer.trading.info.v2.title.negotiated" />
             </label>
-
-            <div
-              class="custom-select"
-              data-custom-select
-              data-searchable
-            >
-              <div class="form-select-wrap custom-select__fallback">
-                <select
-                  class="form-select custom-select__native"
-                  id="market-watch-industry"
-                  name="industry"
-                  data-market-watch-industry
-                >
-                  <option
-                    value="all"
-                    <c:if test="${empty requestScope.selectedSector or requestScope.selectedSector eq 'all'}">selected</c:if>
-                  >
-                    <fmt:message
-                      key="marketwatch.todaywatch.v2.label.all.sectors"
-                    />
-                  </option>
-
-                  <c:forEach
-                    items="${requestScope.sectorList}"
-                    var="sectorItem"
-                  >
-                    <option
-                      value="<c:out value='${sectorItem.modifiedId}' />"
-                      <c:if test="${requestScope.selectedSector eq sectorItem.modifiedId}">selected</c:if>
-                    >
-                      <c:out value="${sectorItem.modifiedName}" />
-                    </option>
-                  </c:forEach>
-                </select>
-
-                <span
-                  class="form-select-icon has-icon icon-chevron-down"
-                  aria-hidden="true"
-                ></span>
+          </h2>
+ 
+          <p style="color:#FFFFFF">
+            <fmt:message key="issuer.trading.info.v2.description" />
+          </p>
+        </div>
+ 
+        <section class="banner-filters" id="derivativeNegotiatedFilters">
+          <div class="banner-filters__group is-active">
+ 
+            <div class="row mt-2">
+ 
+              <!-- Category -->
+              <div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+                <div class="form-field">
+                  <label class="form-label">
+                    <fmt:message key="issuer.trading.info.v2.section.heading.category" />
+                  </label>
+ 
+                  <div class="form-control-shell is-select"
+                       tabindex="0"
+                       data-select
+                       data-field="category">
+ 
+                    <div class="form-select-value is-placeholder">
+                      <fmt:message key="derivative.allContractCombo" />
+                    </div>
+ 
+                    <input type="hidden"
+                           name="category"
+                           data-filter="category"
+                           value="All"
+                           data-default="All" />
+ 
+                    <span class="form-suffix form-select-arrow" aria-hidden="true"></span>
+ 
+                    <div class="form-popover">
+                      <div class="form-select-panel">
+                        <div class="form-select-list">
+ 
+                          <div class="form-select-option"
+                               data-value="All"
+                               data-selected="true">
+                            <fmt:message key="derivative.allContractCombo" />
+                          </div>
+ 
+                          <c:forEach items="${requestScope.contractsresultlBean.allSectors}"
+                                     var="sectors">
+                            <div class="form-select-option"
+                                 data-value="${sectors.symbol}">
+                              ${sectors.name}
+                            </div>
+                          </c:forEach>
+ 
+                        </div>
+                      </div>
+                    </div>
+ 
+                  </div>
+                </div>
               </div>
+ 
+              <!-- Contract -->
+              <div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+                <div class="form-field">
+                  <label class="form-label">
+                    <fmt:message key="derivative.selectContractssLabel" />
+                  </label>
+ 
+                  <div class="form-control-shell is-select"
+                       tabindex="0"
+                       data-select
+                       data-field="contract">
+ 
+                    <div class="form-select-value is-placeholder">
+                      <fmt:message key="derivative.allContractCombo" />
+                    </div>
+ 
+                    <input type="hidden"
+                           name="contract"
+                           data-filter="contract"
+                           value="All"
+                           data-default="All" />
+ 
+                    <span class="form-suffix form-select-arrow" aria-hidden="true"></span>
+ 
+                    <div class="form-popover">
+                      <div class="form-select-panel">
+                        <div class="form-select-list">
+ 
+                          <div class="form-select-option"
+                               data-value="All"
+                               data-selected="true">
+                            <fmt:message key="derivative.allContractCombo" />
+                          </div>
+ 
+                          <c:forEach items="${requestScope.contractsresultlBean.companyList}"
+                                     var="contracts">
+                            <div class="form-select-option"
+                                 data-value="${contracts.symbol}"
+                                 <c:if test="${requestScope.contract eq contracts.symbol}">
+                                   data-selected="true"
+                                 </c:if>>
+                              ${contracts.longName}
+                            </div>
+                          </c:forEach>
+ 
+                        </div>
+                      </div>
+                    </div>
+ 
+                  </div>
+                </div>
+              </div>
+ 
+              <!-- Date Range -->
+              <div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+                <div class="form-field">
+                  <label class="form-label">
+                    <fmt:message key="issuer.trading.info.v2.section.heading.timeperiod" />
+                  </label>
+ 
+                  <div class="form-control-shell form-date-range is-date"
+                       data-date-range>
+                    <input type="text"
+                           name="fromDate"
+                           data-filter="fromDate"
+                           class="form-date-input"
+                           placeholder="DD-MM-YYYY"
+                           readonly
+                           data-date-start />
+ 
+                    <span class="form-date-range-separator" aria-hidden="true">-</span>
+ 
+                    <input type="text"
+                           name="toDate"
+                           data-filter="toDate"
+                           class="form-date-input"
+                           placeholder="DD-MM-YYYY"
+                           readonly
+                           data-date-end />
+ 
+                    <span class="form-suffix form-date-icon"></span>
+                  </div>
+                </div>
+              </div>
+ 
+              <!-- Reset -->
+              <div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+                <div class="form-field d-flex justify-content-lg-end align-items-end h-100">
+                  <button type="button"
+                          class="se-btn se-btn--banner"
+                          data-reset-filters>
+                    <span>
+                      <fmt:message key="issuer.trading.info.v2.search.reset" />
+                    </span>
+                    <span class="se-btn__icon se-btn__icon--refresh se-icon icon-custom-refresh-cycle icon-md"></span>
+                  </button>
+                </div>
+              </div>
+ 
             </div>
           </div>
-
-          <!-- Table View -->
-
-          <div class="filter-bar__field">
-            <label class="form-label" for="market-watch-table-view">
-              <fmt:message key="marketwatch.todaywatch.v2.label.tableview" />
-            </label>
-
-            <div class="custom-select" data-custom-select>
-              <div class="form-select-wrap custom-select__fallback">
-                <select
-                  class="form-select custom-select__native"
-                  id="market-watch-table-view"
-                  name="tableView"
-                  data-market-watch-table-view
-                >
-                  <option
-                    value="1"
-                    <c:if test="${empty requestScope.selectedTableView or requestScope.selectedTableView eq '1'}">selected</c:if>
-                  >
-                    <fmt:message
-                      key="marketwatch.todaywatch.v2.label.tableview.default"
-                    />
-                  </option>
-
-                  <c:forEach
-                    items="${requestScope.tableViewList}"
-                    var="tableViewItem"
-                  >
-                    <option
-                      value="<c:out value='${tableViewItem.modifiedId}' />"
-                      <c:if test="${requestScope.selectedTableView eq tableViewItem.modifiedId}">selected</c:if>
-                    >
-                      <c:out value="${tableViewItem.modifiedName}" />
-                    </option>
-                  </c:forEach>
-                </select>
-
-                <span
-                  class="form-select-icon has-icon icon-chevron-down"
-                  aria-hidden="true"
-                ></span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Show / Hide Columns -->
-
-          <div class="filter-bar__field">
-            <span
-              class="form-label-static"
-              id="market-watch-columns-label"
-            >
-              <fmt:message key="show.hide.column" />
-            </span>
-
-            <button
-              class="btn btn-outline-primary filter-bar__columns"
-              type="button"
-              aria-labelledby="market-watch-columns-label"
-              aria-controls="market-watch-columns-menu"
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              data-market-watch-columns
-            >
-              <span
-                class="filter-bar__columns-label"
-                data-market-watch-columns-label
-              >
-                <fmt:message key="show.hide.all" />
-              </span>
-
-              <span
-                class="filter-bar__columns-icon has-icon icon-chevron-down"
-                aria-hidden="true"
-              ></span>
-            </button>
-
-            <div
-              class="filter-bar__columns-menu"
-              id="market-watch-columns-menu"
-              role="dialog"
-              aria-labelledby="market-watch-columns-label"
-              data-market-watch-columns-menu
-              hidden
-            >
-              <div class="filter-bar__columns-actions">
-                <button
-                  class="filter-bar__columns-action"
-                  type="button"
-                  data-market-watch-columns-action="select-all"
-                >
-                  <fmt:message key="select.all" />
-                </button>
-
-                <button
-                  class="filter-bar__columns-action"
-                  type="button"
-                  data-market-watch-columns-action="clear-all"
-                >
-                  <fmt:message key="clear.all" />
-                </button>
-              </div>
-
-              <div class="filter-bar__columns-options">
-                <label class="filter-bar__columns-option">
-                  <input
-                    type="checkbox"
-                    checked
-                    data-market-watch-column="range"
-                  />
-                  <span>
-                    <fmt:message
-                      key="marketwatch.todaywatch.v2.table.column.header.D52WeekRange"
-                    />
-                  </span>
-                </label>
-
-                <label class="filter-bar__columns-option">
-                  <input
-                    type="checkbox"
-                    checked
-                    data-market-watch-column="last-trade"
-                  />
-                  <span>
-                    <fmt:message
-                      key="marketwatch.todaywatch.v2.table.column.header.last.trade"
-                    />
-                  </span>
-                </label>
-
-                <label class="filter-bar__columns-option">
-                  <input
-                    type="checkbox"
-                    checked
-                    data-market-watch-column="cumulative"
-                  />
-                  <span>
-                    <fmt:message
-                      key="derivatives.market.watch.table.column.header.cumulative"
-                    />
-                  </span>
-                </label>
-
-                <label class="filter-bar__columns-option">
-                  <input
-                    type="checkbox"
-                    checked
-                    data-market-watch-column="trading"
-                  />
-                  <span>
-                    <fmt:message
-                      key="marketwatch.todaywatch.v2.table.column.header.today"
-                    />
-                  </span>
-                </label>
-
-                <label class="filter-bar__columns-option">
-                  <input
-                    type="checkbox"
-                    checked
-                    data-market-watch-column="best-bid"
-                  />
-                  <span>
-                    <fmt:message
-                      key="marketwatch.market.watch.table.column.header.best.bid"
-                    />
-                  </span>
-                </label>
-
-                <label class="filter-bar__columns-option">
-                  <input
-                    type="checkbox"
-                    checked
-                    data-market-watch-column="best-offer"
-                  />
-                  <span>
-                    <fmt:message
-                      key="derivatives.market.watch.table.column.header.best.offer"
-                    />
-                  </span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Watchlist -->
-
-        <div class="filter-bar__actions">
-          <label class="form-switch">
-            <input
-              class="form-switch-input"
-              type="checkbox"
-              name="watchlistOnly"
-              value="true"
-              role="switch"
-              data-market-watch-watchlist
-            />
-
-            <span class="form-switch-label">
-              <fmt:message key="marketwatch.todaywatch.v2.label.watchlist.only" />
-            </span>
-          </label>
-        </div>
-      </div>
-
-      <!-- ================================================================
-           Market Legend
-           ================================================================ -->
-
-      <div class="filter-bar__secondary">
-        <div
-          class="filter-bar__secondary-content"
-          aria-label="Accumulated loss indicators"
-          role="list"
-        >
-          <div class="filter-bar__legend">
-            <span class="filter-bar__legend-item" role="listitem">
-              <span
-                class="filter-bar__legend-indicator filter-bar__legend-indicator--danger"
-                aria-hidden="true"
-              ></span>
-
-              <span>
-                <fmt:message
-                  key="marketwatch.todaywatch.accumulated.losses.50.more"
-                />
-              </span>
-            </span>
-
-            <span class="filter-bar__legend-item" role="listitem">
-              <span
-                class="filter-bar__legend-indicator filter-bar__legend-indicator--warning"
-                aria-hidden="true"
-              ></span>
-
-              <span>
-                <fmt:message
-                  key="marketwatch.todaywatch.accumulated.losses.35.to.50"
-                />
-              </span>
-            </span>
-
-            <span class="filter-bar__legend-item" role="listitem">
-              <span
-                class="filter-bar__legend-indicator filter-bar__legend-indicator--primary"
-                aria-hidden="true"
-              ></span>
-
-              <span>
-                <fmt:message
-                  key="marketwatch.todaywatch.accumulated.losses.20.to.35"
-                />
-              </span>
-            </span>
-          </div>
-        </div>
-      </div>
-    </form>
-  </div>
-</section>
-
-<!-- ==========================================================================
-     Market Watch Data
-     ========================================================================== -->
-
-<section class="section-none market-watch" aria-label="Market Watch data">
-  <div class="container">
-    <div class="data-view">
-      <div class="data-view__workspace">
-        <!-- =================================================================
-             Desktop / Tablet Table
-             ================================================================= -->
-
-        <div class="data-view__table">
-          <div class="table-shell" data-table-shell>
-            <section
-              class="table-responsive custom-scrollbar"
-              tabindex="0"
-              role="region"
-              aria-label="Market prices by sector"
-              data-market-watch-table-region
-            >
-              <table
-                id="market-watch-table"
-                class="table table-market table-market--watch table-hover table-nowrap"
-                data-market-watch-table
-                aria-busy="true"
-              >
-                <caption class="visually-hidden">
-                  Market prices grouped by sector
-                </caption>
-
-                <!-- =========================================================
-                     Overview Header
-
-                     This is the accessible no-JavaScript fallback. The table
-                     module recreates this same two-row header when switching
-                     between Overview, Price Data, and Performance views.
-                     ========================================================= -->
-
-                <thead>
-                  <tr>
-                    <th
-                      rowspan="2"
-                      class="table-market__security"
-                      scope="col"
-                      data-market-watch-column="company"
-                    >
-                      <fmt:message
-                        key="marketwatch.todaywatch.v2.table.column.header.company.name"
-                      />
-                    </th>
-
-                    <th
-                      rowspan="2"
-                      class="table-market__range"
-                      scope="col"
-                      data-market-watch-column-group="range"
-                    >
-                      <fmt:message
-                        key="marketwatch.todaywatch.v2.table.column.header.D52WeekRange"
-                      />
-                    </th>
-
-                    <th
-                      colspan="4"
-                      class="table-market__group-heading"
-                      scope="colgroup"
-                      data-market-watch-group-heading="last-trade"
-                    >
-                      <fmt:message
-                        key="marketwatch.todaywatch.v2.table.column.header.last.trade"
-                      />
-                    </th>
-
-                    <th
-                      colspan="2"
-                      class="table-market__group-heading"
-                      scope="colgroup"
-                      data-market-watch-group-heading="cumulative"
-                    >
-                      <fmt:message
-                        key="derivatives.market.watch.table.column.header.cumulative"
-                      />
-                    </th>
-
-                    <th
-                      colspan="3"
-                      class="table-market__group-heading"
-                      scope="colgroup"
-                      data-market-watch-group-heading="trading"
-                    >
-                      <fmt:message
-                        key="marketwatch.todaywatch.v2.table.column.header.today"
-                      />
-                    </th>
-
-                    <th
-                      colspan="2"
-                      class="table-market__group-heading"
-                      scope="colgroup"
-                      data-market-watch-group-heading="best-bid"
-                    >
-                      <fmt:message
-                        key="marketwatch.market.watch.table.column.header.best.bid"
-                      />
-                    </th>
-
-                    <th
-                      colspan="2"
-                      class="table-market__group-heading"
-                      scope="colgroup"
-                      data-market-watch-group-heading="best-offer"
-                    >
-                      <fmt:message
-                        key="derivatives.market.watch.table.column.header.best.offer"
-                      />
-                    </th>
-                  </tr>
-
-                  <tr>
-                    <th
-                      class="table-market__number"
-                      scope="col"
-                      data-market-watch-column-group="last-trade"
-                    >
-                      <fmt:message
-                        key="marketwatch.todaywatch.v2.table.column.header.price"
-                      />
-                    </th>
-
-                    <th
-                      class="table-market__number"
-                      scope="col"
-                      data-market-watch-column-group="last-trade"
-                    >
-                      <fmt:message
-                        key="marketwatch.todaywatch.v2.table.column.header.volume"
-                      />
-                    </th>
-
-                    <th
-                      class="table-market__number"
-                      scope="col"
-                      data-market-watch-column-group="last-trade"
-                    >
-                      <span class="table-market__column-label">
-                        <fmt:message
-                          key="marketwatch.todaywatch.v2.table.column.header.change.value"
-                        />
-                      </span>
-                    </th>
-
-                    <th
-                      class="table-market__number"
-                      scope="col"
-                      data-market-watch-column-group="last-trade"
-                    >
-                      <span class="table-market__column-label">
-                        <fmt:message
-                          key="marketwatch.todaywatch.v2.table.column.header.change.percent"
-                        />
-                      </span>
-                    </th>
-
-                    <th
-                      class="table-market__number"
-                      scope="col"
-                      data-market-watch-column-group="cumulative"
-                    >
-                      <span class="table-market__column-label">
-                        <fmt:message
-                          key="marketwatch.todaywatch.v2.table.column.header.number.of.trades"
-                        />
-                      </span>
-                    </th>
-
-                    <th
-                      class="table-market__number"
-                      scope="col"
-                      data-market-watch-column-group="cumulative"
-                    >
-                      <span class="table-market__column-label">
-                        <fmt:message
-                          key="marketwatch.todaywatch.v2.table.column.header.volume.traded"
-                        />
-                      </span>
-                    </th>
-
-                    <th
-                      class="table-market__number"
-                      scope="col"
-                      data-market-watch-column-group="trading"
-                    >
-                      <fmt:message
-                        key="derivatives.market.watch.table.column.header.open"
-                      />
-                    </th>
-
-                    <th
-                      class="table-market__number"
-                      scope="col"
-                      data-market-watch-column-group="trading"
-                    >
-                      <fmt:message
-                        key="derivatives.market.watch.table.column.header.high"
-                      />
-                    </th>
-
-                    <th
-                      class="table-market__number"
-                      scope="col"
-                      data-market-watch-column-group="trading"
-                    >
-                      <fmt:message
-                        key="derivatives.market.watch.table.column.header.low"
-                      />
-                    </th>
-
-                    <th
-                      class="table-market__number"
-                      scope="col"
-                      data-market-watch-column-group="best-bid"
-                    >
-                      <fmt:message
-                        key="marketwatch.todaywatch.v2.table.column.header.price"
-                      />
-                    </th>
-
-                    <th
-                      class="table-market__number"
-                      scope="col"
-                      data-market-watch-column-group="best-bid"
-                    >
-                      <fmt:message
-                        key="marketwatch.todaywatch.v2.table.column.header.volume"
-                      />
-                    </th>
-
-                    <th
-                      class="table-market__number"
-                      scope="col"
-                      data-market-watch-column-group="best-offer"
-                    >
-                      <fmt:message
-                        key="marketwatch.todaywatch.v2.table.column.header.price"
-                      />
-                    </th>
-
-                    <th
-                      class="table-market__number"
-                      scope="col"
-                      data-market-watch-column-group="best-offer"
-                    >
-                      <fmt:message
-                        key="marketwatch.todaywatch.v2.table.column.header.volume"
-                      />
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  <!-- market-watch-table.js renders skeleton, sector, company,
-                       empty, and error rows. -->
-                </tbody>
-              </table>
-            </section>
-
-            <!-- =============================================================
-                 Horizontal Scroll Navigation
-                 ============================================================== -->
-
-            <button
-              type="button"
-              class="table-scroll-jump has-icon icon-chevron-right-bold icon-md icon-flip-rtl"
-              data-table-scroll-jump
-              data-table-scroll-direction="end"
-              aria-label="Jump to last columns"
-              title="Jump to last columns"
-              hidden
-            >
-              <span class="visually-hidden">Jump to last columns</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- =================================================================
-             Mobile Cards
-             ================================================================= -->
-
-        <div
-          class="data-view__cards"
-          aria-label="Market Watch securities"
-          data-market-watch-mobile
-        >
-          <div
-            class="data-view__cards-inner"
-            data-market-watch-mobile-cards
-            aria-busy="true"
-          >
-            <!-- market-watch-mobile.js renders skeleton, sector, company,
-                 empty, and error cards. -->
-          </div>
-        </div>
+        </section>
+ 
       </div>
     </div>
   </div>
+ 
+  <div class="intro-section">
+    <section class="app-container mt-5">
+ 
+      <div class="resultBox">
+        <div class="resultFst">
+          <div class="resultShow">
+            <fmt:message key="issuer.trading.info.results.msg" />:
+            <span id="derivativeNegotiatedResultsId">0</span>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="tradingTable historicalTable">
+        <table id="derivativeNegotiatedTable"
+               class="table table-striped table-bordered"
+               cellspacing="0"
+               width="100%">
+          <thead>
+            <tr>
+              <th><fmt:message key="issuer.trading.info.v2.table.heading.date" /></th>
+              <th><fmt:message key="derivative.selectContractssLabel" /></th>
+              <th><fmt:message key="issuer.trading.info.v2.table.heading.price" /></th>
+              <th><fmt:message key="issuer.trading.info.v2.table.heading.volumetraded" /></th>
+              <th><fmt:message key="issuer.trading.info.v2.table.heading.valuetraded" /></th>
+              <th><fmt:message key="issuer.trading.info.v2.table.heading.time" /></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+ 
+    </section>
+  </div>
 </section>
-
-<!-- ==========================================================================
-     Market Watch Page Configuration
-     ========================================================================== -->
-
-<c:set
-  var="marketWatchIsAuction"
-  value="${requestScope.marketStatusID == 1 or requestScope.marketStatusID == 6}"
-/>
-
+ 
 <script>
-  window.MarketWatchConfig = {
-    /* ======================================================================
-       Endpoint
-       ====================================================================== */
+window.DROPDOWN_CONFIG = {
+  category: {
+    targets: [
+      {
+        field: "contract",
+        url: '<portlet:resourceURL id="getContractsByCategory" />',
+        method: "GET",
+        params: function (categoryValue) {
+          return {
+            format: "json",
+            category: categoryValue
+          }
+        },
+        map: function (item) {
+          return {
+            value: item.symbol,
+            label: item.longName
+          };
+        }
+      }
+    ]
+  }
+};
+</script>
+ 
+<script>
+window.allLabel= "<fmt:message key="derivative.allContractCombo" />";
 
-    endpoint:
-      "<portlet:resourceURL id='getMainNomucMarketDetails'></portlet:resourceURL>",
+window.DERIVATIVE_NEGOTIATED_DATATABLE_CONFIG = {
+  locale: document.querySelector("#requestLocale")?.value || "en",
+ 
+  filtersSelector: "#derivativeNegotiatedFilters",
 
-    locale:
-      "<c:out value='${pageContext.request.locale.language}' />",
-
-    /* ======================================================================
-       Market
-       ====================================================================== */
-
-    market: {
-      statusId:
-        "<c:out value='${requestScope.marketStatusID}' />",
-
-      isAuction:
-        ${marketWatchIsAuction},
+  labels: {
+	  total: '<fmt:message key="issuer.trading.info.v2.total" />'
+	},
+  ui: {
+    loader: {
+      enabled: true,
+      text: '<fmt:message key="datatable.loading" />'
     },
-
-    /* ======================================================================
-       Assets
-       ====================================================================== */
-
-    assets: {
-      /*
-       * Replace this host when the production company-image endpoint is final.
-       *
-       * `{companyCode}` is replaced by market-watch-formatters.js.
-       */
-      companyLogoUrlTemplate:
-       "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/{companyCode}.png",
-
-      /*
-       * Stable fallback used when:
-       *
-       * - company code is unavailable
-       * - company image fails
-       */
-      companyLogoFallbackUrl:
-        "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/default.png",
+ 
+    empty: {
+      text: '<fmt:message key="datatable.no.data" />',
+      imageUrl: "${pageContext.request.contextPath}/images/no-data.png"
     },
-
-    /* ======================================================================
-       Initial State
-       ====================================================================== */
-
-    initialState: {
-      industry:
-        "<c:out value='${empty requestScope.selectedSector ? "all" : requestScope.selectedSector}' />",
-
-      tableView:
-        "<c:out value='${empty requestScope.selectedTableView ? "1" : requestScope.selectedTableView}' />",
-
-      watchlistOnly: false,
-
-      visibleGroups: [
-        "range",
-        "last-trade",
-        "cumulative",
-        "trading",
-        "best-bid",
-        "best-offer",
-      ],
+ 
+    pagination: {
+      enabled: true,
+      className: "feed__pagination",
+      pageText: '<fmt:message key="pagination.page" />',
+      ofText: '<fmt:message key="pagination.of" />',
+      prevAriaLabel: '<fmt:message key="pagination.previous" />',
+      nextAriaLabel: '<fmt:message key="pagination.next" />'
+    }
+  },
+ 
+  defaults: {
+    dateRange: {
+      enabled: true,
+      mode: "lastMonthToToday",
+      format: "dd-MM-yyyy"
     },
-
-    /* ======================================================================
-       Table
-       ====================================================================== */
-
-    table: {
-      autoWidth: false,
-
-      paging: false,
+ 
+    dataTable: {
+      paging: true,
+      pageLength: 25,
+      lengthMenu: [25, 50, 100],
       searching: false,
       ordering: false,
       info: false,
-      lengthChange: false,
-
-      serverSide: false,
-      processing: false,
-
-      scrollX: true,
-      scrollCollapse: true,
-
-      fixedHeader: true,
-      fixedColumns: 1,
-    },
-
-    /* ======================================================================
-       Labels
-       ====================================================================== */
-
-    labels: {
-      loading:
-        "<fmt:message key='loading' />",
-
-      noData:
-        "<fmt:message key='no.data.available' />",
-
-      marketOrder:
-        "<fmt:message key='marketwatch.todaywatch.v2.marketOrder' />",
-
-      /* --------------------------------------------------------------------
-         Column Picker
-         -------------------------------------------------------------------- */
-
-      showAll:
-        "<fmt:message key='show.hide.all' />",
-
-      noColumns:
-        "<fmt:message key='show.hide.no.columns' />",
-
-      selectedSuffix:
-        "<fmt:message key='selected' />",
-
-      /* --------------------------------------------------------------------
-         Mobile
-         -------------------------------------------------------------------- */
-
-      mobile: {
-        showDetails:
-          "<fmt:message key='marketwatch.todaywatch.v2.mobile.show.details' />",
-
-        hideDetails:
-          "<fmt:message key='marketwatch.todaywatch.v2.mobile.hide.details' />",
-      },
-
-      /* --------------------------------------------------------------------
-         Table
-         -------------------------------------------------------------------- */
-
-      table: {
-        company:
-          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.company.name' />",
-
-        range:
-          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.D52WeekRange' />",
-
-        lastTrade:
-          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.last.trade' />",
-
-        cumulative:
-          "<fmt:message key='derivatives.market.watch.table.column.header.cumulative' />",
-
-        trading:
-          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.today' />",
-
-        bestBid:
-          "<fmt:message key='marketwatch.market.watch.table.column.header.best.bid' />",
-
-        bestOffer:
-          "<fmt:message key='derivatives.market.watch.table.column.header.best.offer' />",
-
-        price:
-          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.price' />",
-
-        volume:
-          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.volume' />",
-
-        changeValue:
-          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.change.value' />",
-
-        changePercent:
-          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.change.percent' />",
-
-        numberOfTrades:
-          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.number.of.trades' />",
-
-        volumeTraded:
-          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.volume.traded' />",
-
-        open:
-          "<fmt:message key='derivatives.market.watch.table.column.header.open' />",
-
-        high:
-          "<fmt:message key='derivatives.market.watch.table.column.header.high' />",
-
-        low:
-          "<fmt:message key='derivatives.market.watch.table.column.header.low' />",
-
-        marketCap:
-          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.market.cap' />",
-
-        per:
-          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.per' />",
-
-        yield:
-          "<fmt:message key='marketwatch.todaywatch.v2.table.column.header.yield' />",
-
-        sector:
-          "Sector",
-
-        symbol:
-          "Symbol",
-      },
-
-      /* --------------------------------------------------------------------
-         Company Status
-         -------------------------------------------------------------------- */
-
-      status: {
-        losses20To35:
-          "<fmt:message key='marketwatch.todaywatch.accumulated.losses.20.to.35' />",
-
-        losses35To50:
-          "<fmt:message key='marketwatch.todaywatch.accumulated.losses.35.to.50' />",
-
-        losses50More:
-          "<fmt:message key='marketwatch.todaywatch.accumulated.losses.50.more' />",
-      },
-    },
-  };
+      dom: "rt",
+      deferRender: true,
+      autoWidth: false,
+      fixedHeader: true
+    }
+  },
+ 
+  urls: {
+    negotiatedDeals: '<portlet:resourceURL id="getDerivativeNegotiatedDetails" />'
+  },
+ 
+  tables: {
+    negotiatedDeals: {
+      selector: "#derivativeNegotiatedTable",
+      paging: true,
+      pageLength: 25,
+      lengthMenu: [25, 50, 100],
+      ordering: false,
+      fixedHeader: true
+    }
+  },
+ 
+  resultCounters: {
+    negotiatedDeals: "#derivativeNegotiatedResultsId"
+  }
+};
 </script>
-
-<%-- =========================================================================
-     Market Watch Entry Module
-     ========================================================================= --%>
-
-<script
-  type="module"
-  src="${pageContext.request.contextPath}/js/pages/market-watch/market-watch.js"
-></script>
+ 
+<script src="${pageContext.request.contextPath}/js/dropdown-update.js"></script>
+<script src="${pageContext.request.contextPath}/js/custom-trading/datatable-page-utils.js"></script>
+<script src="${pageContext.request.contextPath}/js/custom-trading/derivative-trading-datatables.js"></script>
+ 
