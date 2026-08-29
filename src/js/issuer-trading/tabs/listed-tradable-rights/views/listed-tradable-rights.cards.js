@@ -8,7 +8,8 @@
  * Responsibilities:
  *
  * - render the standard Market Watch company identity
- * - render last-trade price and change summary
+ * - label the company and quote summary clearly
+ * - render last-trade price and percentage change
  * - render expandable trading details
  * - render loading, empty, and error states
  * - initialize the existing design-system Data Card behavior
@@ -49,6 +50,12 @@ const SELECTORS = Object.freeze({
 });
 
 const DEFAULT_LABELS = Object.freeze({
+  company: "Company",
+
+  price: "Price",
+
+  changePercent: "Change %",
+
   showDetails: "More details",
 
   hideDetails: "Less details",
@@ -59,7 +66,7 @@ const DEFAULT_LABELS = Object.freeze({
 });
 
 /* ==========================================================================
-   Helpers
+   General Helpers
    ========================================================================== */
 
 function isObject(value) {
@@ -68,6 +75,18 @@ function isObject(value) {
 
 function isElement(value) {
   return Boolean(value && value.nodeType === 1);
+}
+
+function getFirstLabel(...values) {
+  for (const value of values) {
+    const normalized = normalizeString(value);
+
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return "";
 }
 
 function getRootElement(root) {
@@ -90,19 +109,59 @@ function resolveRequiredElement(root, selector, name) {
   return element;
 }
 
-function getLabels(config = {}) {
+/* ==========================================================================
+   Labels
+   ========================================================================== */
+
+function getLabels(config = {}, formatterLabels = {}) {
+  const listedTradableRights = config.labels?.listedTradableRights || {};
+
+  const table = listedTradableRights.table || {};
+
+  const mobile = listedTradableRights.mobile || {};
+
+  const cards = listedTradableRights.cards || {};
+
   return Object.freeze({
+    company:
+      getFirstLabel(
+        cards.company,
+        cards.symbolAndCompany,
+        mobile.company,
+        mobile.symbolAndCompany,
+        table.company,
+        formatterLabels.company,
+      ) || DEFAULT_LABELS.company,
+
+    price:
+      getFirstLabel(
+        cards.price,
+        mobile.price,
+        table.price,
+        table.lastTradePrice,
+        formatterLabels.price,
+        formatterLabels.lastTradePrice,
+      ) || DEFAULT_LABELS.price,
+
+    changePercent:
+      getFirstLabel(
+        cards.changePercent,
+        mobile.changePercent,
+        table.changePercent,
+        formatterLabels.changePercent,
+      ) || DEFAULT_LABELS.changePercent,
+
     showDetails:
-      normalizeString(config.labels?.mobile?.showDetails) ||
+      getFirstLabel(mobile.showDetails, config.labels?.mobile?.showDetails) ||
       DEFAULT_LABELS.showDetails,
 
     hideDetails:
-      normalizeString(config.labels?.mobile?.hideDetails) ||
+      getFirstLabel(mobile.hideDetails, config.labels?.mobile?.hideDetails) ||
       DEFAULT_LABELS.hideDetails,
 
-    noData: normalizeString(config.labels?.noData) || DEFAULT_LABELS.noData,
+    noData: getFirstLabel(config.labels?.noData) || DEFAULT_LABELS.noData,
 
-    error: normalizeString(config.labels?.error) || DEFAULT_LABELS.error,
+    error: getFirstLabel(config.labels?.error) || DEFAULT_LABELS.error,
   });
 }
 
@@ -118,32 +177,40 @@ function renderLoadingCard() {
     >
       <div class="data-card__main">
         <div class="data-card__summary">
-          <div class="data-card__identity">
-            <span class="data-card__logo">
-              <span
-                class="table-skeleton table-skeleton-md"
-              ></span>
+          <div class="data-card__summary-identity">
+            <span class="data-card__quote-label">
+              <span class="table-skeleton table-skeleton-sm"></span>
             </span>
 
-            <div class="data-card__identity-content">
-              <span
-                class="table-skeleton table-skeleton-lg"
-              ></span>
+            <div class="data-card__identity">
+              <span class="data-card__logo">
+                <span class="table-skeleton table-skeleton-md"></span>
+              </span>
 
-              <span
-                class="table-skeleton table-skeleton-sm"
-              ></span>
+              <div class="data-card__identity-content">
+                <span class="table-skeleton table-skeleton-lg"></span>
+
+                <span class="table-skeleton table-skeleton-sm"></span>
+              </div>
             </div>
           </div>
 
           <div class="data-card__quote">
-            <span
-              class="table-skeleton table-skeleton-md"
-            ></span>
+            <div class="data-card__quote-item">
+              <span class="data-card__quote-label">
+                <span class="table-skeleton table-skeleton-sm"></span>
+              </span>
 
-            <span
-              class="table-skeleton table-skeleton-sm"
-            ></span>
+              <span class="table-skeleton table-skeleton-md"></span>
+            </div>
+
+            <div class="data-card__quote-item">
+              <span class="data-card__quote-label">
+                <span class="table-skeleton table-skeleton-sm"></span>
+              </span>
+
+              <span class="table-skeleton table-skeleton-sm"></span>
+            </div>
           </div>
         </div>
       </div>
@@ -204,25 +271,41 @@ function renderMessage({ message, imageUrl = "", isError = false }) {
    Card Summary
    ========================================================================== */
 
-function renderCardSummary(row, values, formatters) {
-  const identity = formatters.renderCardIdentity(row);
-
+function renderCardSummary(row, values, formatters, labels) {
   return `
     <div class="data-card__summary">
-      ${identity}
+      <div class="data-card__summary-identity">
+        <span class="data-card__quote-label">
+          ${escapeHtml(labels.company)}
+        </span>
+
+        ${formatters.renderCardIdentity(row)}
+      </div>
 
       <div class="data-card__quote">
-        <span class="data-card__price">
-          ${escapeHtml(values.lastTrade.price)}
-        </span>
+        <div class="data-card__quote-item">
+          <span class="data-card__quote-label">
+            ${escapeHtml(labels.price)}
+          </span>
 
-        <span
-          class="data-card__change ${escapeHtml(
-            values.lastTrade.changePercentClass,
-          )}"
-        >
-          ${escapeHtml(values.lastTrade.changePercent)}
-        </span>
+          <span class="data-card__price">
+            ${escapeHtml(values.lastTrade.price)}
+          </span>
+        </div>
+
+        <div class="data-card__quote-item">
+          <span class="data-card__quote-label">
+            ${escapeHtml(labels.changePercent)}
+          </span>
+
+          <span
+            class="data-card__change ${escapeHtml(
+              values.lastTrade.changePercentClass,
+            )}"
+          >
+            ${escapeHtml(values.lastTrade.changePercent)}
+          </span>
+        </div>
       </div>
     </div>
   `.trim();
@@ -374,7 +457,7 @@ export function createListedTradableRightsCards(options = {}) {
   const formatters =
     options.formatters || createListedTradableRightsFormatters(config);
 
-  const labels = getLabels(config);
+  const labels = getLabels(config, formatters.labels);
 
   const regionElement = resolveRequiredElement(
     root,
@@ -408,7 +491,7 @@ export function createListedTradableRightsCards(options = {}) {
 
       className: "data-card--listed-tradable-rights",
 
-      summary: renderCardSummary(row, values, formatters),
+      summary: renderCardSummary(row, values, formatters, labels),
 
       fields,
 
