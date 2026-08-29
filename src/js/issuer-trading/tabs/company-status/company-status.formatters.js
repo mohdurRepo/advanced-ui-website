@@ -367,23 +367,15 @@ export function renderCompanyStatusIndicator(row = {}, config = {}) {
    ========================================================================== */
 
 export function renderCompanyStatusCompanyCell(row = {}, config = {}) {
-  return `
-    <div class="company-status__company">
-      ${renderStandardCompanyCell(row, config)}
-
-      ${renderCompanyStatusIndicator(row, config)}
-    </div>
-  `.trim();
+  return renderStandardCompanyCell(row, config, {
+    metadata: renderCompanyStatusIndicator(row, config),
+  });
 }
 
 export function renderCompanyStatusCardIdentity(row = {}, config = {}) {
-  return `
-    <div class="company-status__card-identity">
-      ${renderStandardCompanyCardIdentity(row, config)}
-
-      ${renderCompanyStatusIndicator(row, config)}
-    </div>
-  `.trim();
+  return renderStandardCompanyCardIdentity(row, config, {
+    metadata: renderCompanyStatusIndicator(row, config),
+  });
 }
 
 function formatCompanyCell(row, type, config) {

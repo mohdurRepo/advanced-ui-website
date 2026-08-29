@@ -1486,9 +1486,7 @@
                 </button>
               </div>
             </div>
-            <%-- =====================================================================
-                Accumulated Loss Status Legend
-                ===================================================================== --%>
+            
 
             <div class="filter-bar__secondary">
               <div class="filter-bar__secondary-content">
@@ -1507,7 +1505,7 @@
 
                     <span>
                       <fmt:message
-                        key="marketwatch.todaywatch.accumulated.losses.50.more"
+                        key="issuer.trading.info.v2.accumulated.losses.50.more"
                       />
                     </span>
                   </span>
@@ -1523,7 +1521,7 @@
 
                     <span>
                       <fmt:message
-                        key="marketwatch.todaywatch.accumulated.losses.35.to.50"
+                        key="issuer.trading.info.v2.accumulated.losses.35.to.50"
                       />
                     </span>
                   </span>
@@ -1539,7 +1537,7 @@
 
                     <span>
                       <fmt:message
-                        key="marketwatch.todaywatch.accumulated.losses.20.to.35"
+                        key="issuer.trading.info.v2.accumulated.losses.20.to.35"
                       />
                     </span>
                   </span>
@@ -2270,6 +2268,21 @@
         },
 
         /* --------------------------------------------------------------------
+          Accumulated-Loss Status
+          -------------------------------------------------------------------- */
+
+        status: {
+          losses20To35:
+            "<fmt:message key='issuer.trading.info.v2.accumulated.losses.20.to.35' />",
+
+          losses35To50:
+            "<fmt:message key='issuer.trading.info.v2.accumulated.losses.35.to.50' />",
+
+          losses50More:
+            "<fmt:message key='issuer.trading.info.v2.accumulated.losses.50.more' />",
+        },
+
+        /* --------------------------------------------------------------------
           Suspended / Delisted Companies and Funds
           -------------------------------------------------------------------- */
 
@@ -2285,7 +2298,7 @@
               "<fmt:message key='suspended.company.suspension.funds.dp' />",
 
             delistedFunds:
-              "<fmt:message key='suspended.company.delisting.funds.dp' />",
+              "<fmt:message key='suspended.company.delisting.funds.dp' />",              
           },
 
           table: {

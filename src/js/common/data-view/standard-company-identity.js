@@ -369,20 +369,33 @@ export function renderStandardCompanyLogo(row = {}, config = {}, options = {}) {
    Desktop Identity Text
    ========================================================================== */
 
-function renderDesktopIdentityText(row = {}) {
+function renderDesktopIdentityText(row = {}, options = {}) {
   const companyName = getStandardCompanyName(row);
 
   const companyCode = getStandardCompanyCode(row);
 
   const companyUrl = getStandardCompanyUrl(row);
 
-  const codeMarkup = companyCode
-    ? `
-        <span class="table-market__symbol">
-          ${escapeHtml(companyCode)}
-        </span>
-      `.trim()
-    : "";
+  const metadata = String(options.metadata || "").trim();
+
+  const codeMarkup =
+    companyCode || metadata
+      ? `
+          <span class="table-market__identity-code">
+            ${
+              companyCode
+                ? `
+                    <span class="table-market__symbol">
+                      ${escapeHtml(companyCode)}
+                    </span>
+                  `.trim()
+                : ""
+            }
+
+            ${metadata}
+          </span>
+        `.trim()
+      : "";
 
   const content = `
     <span class="table-market__name">
@@ -409,23 +422,19 @@ function renderDesktopIdentityText(row = {}) {
     </a>
   `.trim();
 }
-
 /* ==========================================================================
    Desktop Table Identity
    ========================================================================== */
-
-export function renderStandardCompanyCell(row = {}, config = {}) {
+export function renderStandardCompanyCell(row = {}, config = {}, options = {}) {
   return `
     <div class="table-market__security-cell">
       ${renderStandardCompanyLogo(row, config, {
         className: "table-market__logo",
-
         fallbackClassName: "table-market__logo-fallback",
-
         size: 40,
       })}
 
-      ${renderDesktopIdentityText(row)}
+      ${renderDesktopIdentityText(row, options)}
     </div>
   `.trim();
 }
@@ -434,20 +443,33 @@ export function renderStandardCompanyCell(row = {}, config = {}) {
    Mobile Identity Text
    ========================================================================== */
 
-function renderMobileIdentityText(row = {}) {
+function renderMobileIdentityText(row = {}, options = {}) {
   const companyName = getStandardCompanyName(row);
 
   const companyCode = getStandardCompanyCode(row);
 
   const companyUrl = getStandardCompanyUrl(row);
 
-  const codeMarkup = companyCode
-    ? `
-        <span class="data-card__symbol">
-          ${escapeHtml(companyCode)}
-        </span>
-      `.trim()
-    : "";
+  const metadata = String(options.metadata || "").trim();
+
+  const codeMarkup =
+    companyCode || metadata
+      ? `
+          <span class="data-card__identity-code">
+            ${
+              companyCode
+                ? `
+                    <span class="data-card__symbol">
+                      ${escapeHtml(companyCode)}
+                    </span>
+                  `.trim()
+                : ""
+            }
+
+            ${metadata}
+          </span>
+        `.trim()
+      : "";
 
   const content = `
     <div class="data-card__identity-content">
@@ -477,18 +499,20 @@ function renderMobileIdentityText(row = {}) {
    Mobile Card Identity
    ========================================================================== */
 
-export function renderStandardCompanyCardIdentity(row = {}, config = {}) {
+export function renderStandardCompanyCardIdentity(
+  row = {},
+  config = {},
+  options = {},
+) {
   return `
     <div class="data-card__identity">
       ${renderStandardCompanyLogo(row, config, {
         className: "data-card__logo",
-
         fallbackClassName: "data-card__logo-fallback",
-
         size: 44,
       })}
 
-      ${renderMobileIdentityText(row)}
+      ${renderMobileIdentityText(row, options)}
     </div>
   `.trim();
 }

@@ -246,6 +246,40 @@
 }
 
 /* ==========================================================================
+   Identity Metadata
+   ========================================================================== */
+
+/*
+ * Supporting company identity line:
+ *
+ * Symbol • semantic status
+ */
+
+.table-market__identity-code {
+  display: inline-flex;
+  align-items: center;
+
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+
+  color: var(--color-text-muted);
+
+  line-height: var(--line-height-normal);
+}
+
+.table-market__identity-code .table-market__symbol {
+  min-inline-size: 0;
+}
+
+.table-market__identity-code .status-state {
+  flex: 0 0 auto;
+}
+
+.data-card__identity-code .status-state {
+  flex: 0 0 auto;
+}
+/* ==========================================================================
    Company Logo
    ========================================================================== */
 
