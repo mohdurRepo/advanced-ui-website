@@ -1,332 +1,773 @@
-<portlet:renderURL var="negotiatedDealsRenderURL">
-	<portlet:param
-		name="<%=IssuerTradingInformationConstants.ACTION_TARGET%>"
-		value="<%=IssuerTradingInformationConstants.NEGOTIATED_DEALS_SEARCH_ACTION%>" />
-</portlet:renderURL>
+<%-- =========================================================================
+    Accessible Date Labels
+    ========================================================================= --%>
 
-<input type="hidden" id="requestLocale" name="requestLocale"
-       value="${pageContext.request.locale.language}" />
- 
-<section class="app-container hero-banner-section">
-  <div class="profile-banner animate__animated animate__fadeIn">
-    <div class="profile-banner--pattern">
-      <div class="row">
- 
-        <div class="col-12">
-          <h2>
-            <svg class="pc-icon pr-3 link-icon me-3" width="40" height="40"
-                 style="color:#fff;fill:#fff">
-              <use xlink:href="#tadawul-arrow-icon"></use>
-            </svg>
- 
-            <label style="color:#FFFFFF">
-              <fmt:message key="issuer.trading.info.v2.title.negotiated" />
-            </label>
-          </h2>
- 
-          <p style="color:#FFFFFF">
-            <fmt:message key="issuer.trading.info.v2.description" />
-          </p>
+<fmt:message
+  key="suspended.company.period.from"
+  var="derivativeNegotiatedDateFromLabel"
+/>
+
+<fmt:message
+  key="suspended.company.period.to"
+  var="derivativeNegotiatedDateToLabel"
+/>
+
+<%-- =========================================================================
+    Derivative Negotiated Deals Hero
+    ========================================================================= --%>
+
+<section
+  class="hero-section surface-hero"
+  aria-labelledby="derivative-negotiated-page-title"
+  aria-describedby="derivative-negotiated-page-description"
+>
+  <div
+    class="hero-section__background"
+    aria-hidden="true"
+  ></div>
+
+  <div class="container hero-section__content">
+    <header class="hero-intro">
+      <div class="hero-intro__header">
+        <div class="hero-intro__brand">
+          <span
+            class="hero-intro__icon has-icon icon-tadawul"
+            aria-hidden="true"
+          ></span>
+
+          <h1
+            class="hero-intro__title"
+            id="derivative-negotiated-page-title"
+          >
+            <fmt:message
+              key="issuer.trading.info.v2.title.negotiated"
+            />
+          </h1>
         </div>
- 
-        <section class="banner-filters" id="derivativeNegotiatedFilters">
-          <div class="banner-filters__group is-active">
- 
-            <div class="row mt-2">
- 
-              <!-- Category -->
-              <div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
-                <div class="form-field">
-                  <label class="form-label">
-                    <fmt:message key="issuer.trading.info.v2.section.heading.category" />
-                  </label>
- 
-                  <div class="form-control-shell is-select"
-                       tabindex="0"
-                       data-select
-                       data-field="category">
- 
-                    <div class="form-select-value is-placeholder">
-                      <fmt:message key="derivative.allContractCombo" />
-                    </div>
- 
-                    <input type="hidden"
-                           name="category"
-                           data-filter="category"
-                           value="All"
-                           data-default="All" />
- 
-                    <span class="form-suffix form-select-arrow" aria-hidden="true"></span>
- 
-                    <div class="form-popover">
-                      <div class="form-select-panel">
-                        <div class="form-select-list">
- 
-                          <div class="form-select-option"
-                               data-value="All"
-                               data-selected="true">
-                            <fmt:message key="derivative.allContractCombo" />
-                          </div>
- 
-                          <c:forEach items="${requestScope.contractsresultlBean.allSectors}"
-                                     var="sectors">
-                            <div class="form-select-option"
-                                 data-value="${sectors.symbol}">
-                              ${sectors.name}
-                            </div>
-                          </c:forEach>
- 
-                        </div>
-                      </div>
-                    </div>
- 
-                  </div>
-                </div>
+
+        <p
+          class="hero-intro__description"
+          id="derivative-negotiated-page-description"
+        >
+          <fmt:message
+            key="issuer.trading.info.v2.description"
+          />
+        </p>
+      </div>
+    </header>
+  </div>
+</section>
+
+<%-- =========================================================================
+    Derivative Negotiated Deals
+    ========================================================================= --%>
+
+<section
+  class="section derivative-negotiated"
+  aria-labelledby="derivative-negotiated-page-title"
+  data-derivative-negotiated
+>
+  <div class="container">
+    <%-- =====================================================================
+        Filters
+        ===================================================================== --%>
+
+    <form
+      class="filter-bar filter-bar--connected"
+      aria-labelledby="derivative-negotiated-page-title"
+      data-derivative-negotiated-filters
+      novalidate
+    >
+      <div class="filter-bar__inner">
+        <div class="filter-bar__fields grid-4">
+          <%-- ===============================================================
+              Category
+              =============================================================== --%>
+
+          <div class="filter-bar__field">
+            <label
+              class="form-label"
+              for="derivative-negotiated-category"
+            >
+              <fmt:message
+                key="issuer.trading.info.v2.section.heading.category"
+              />
+            </label>
+
+            <div
+              class="custom-select"
+              data-custom-select
+              data-searchable
+            >
+              <div class="form-select-wrap custom-select__fallback">
+                <select
+                  class="form-select custom-select__native"
+                  id="derivative-negotiated-category"
+                  name="category"
+                  data-derivative-negotiated-category
+                >
+                  <option
+                    value="All"
+                    <c:if test="${empty requestScope.category or requestScope.category eq 'All'}">
+                      selected
+                    </c:if>
+                  >
+                    <fmt:message
+                      key="derivative.allContractCombo"
+                    />
+                  </option>
+
+                  <c:forEach
+                    items="${requestScope.contractsresultlBean.allSectors}"
+                    var="category"
+                  >
+                    <option
+                      value="<c:out value='${category.symbol}' />"
+                      <c:if test="${requestScope.category eq category.symbol}">
+                        selected
+                      </c:if>
+                    >
+                      <c:out value="${category.name}" />
+                    </option>
+                  </c:forEach>
+                </select>
+
+                <span
+                  class="form-select-icon has-icon icon-chevron-down"
+                  aria-hidden="true"
+                ></span>
               </div>
- 
-              <!-- Contract -->
-              <div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
-                <div class="form-field">
-                  <label class="form-label">
-                    <fmt:message key="derivative.selectContractssLabel" />
-                  </label>
- 
-                  <div class="form-control-shell is-select"
-                       tabindex="0"
-                       data-select
-                       data-field="contract">
- 
-                    <div class="form-select-value is-placeholder">
-                      <fmt:message key="derivative.allContractCombo" />
-                    </div>
- 
-                    <input type="hidden"
-                           name="contract"
-                           data-filter="contract"
-                           value="All"
-                           data-default="All" />
- 
-                    <span class="form-suffix form-select-arrow" aria-hidden="true"></span>
- 
-                    <div class="form-popover">
-                      <div class="form-select-panel">
-                        <div class="form-select-list">
- 
-                          <div class="form-select-option"
-                               data-value="All"
-                               data-selected="true">
-                            <fmt:message key="derivative.allContractCombo" />
-                          </div>
- 
-                          <c:forEach items="${requestScope.contractsresultlBean.companyList}"
-                                     var="contracts">
-                            <div class="form-select-option"
-                                 data-value="${contracts.symbol}"
-                                 <c:if test="${requestScope.contract eq contracts.symbol}">
-                                   data-selected="true"
-                                 </c:if>>
-                              ${contracts.longName}
-                            </div>
-                          </c:forEach>
- 
-                        </div>
-                      </div>
-                    </div>
- 
-                  </div>
-                </div>
-              </div>
- 
-              <!-- Date Range -->
-              <div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
-                <div class="form-field">
-                  <label class="form-label">
-                    <fmt:message key="issuer.trading.info.v2.section.heading.timeperiod" />
-                  </label>
- 
-                  <div class="form-control-shell form-date-range is-date"
-                       data-date-range>
-                    <input type="text"
-                           name="fromDate"
-                           data-filter="fromDate"
-                           class="form-date-input"
-                           placeholder="DD-MM-YYYY"
-                           readonly
-                           data-date-start />
- 
-                    <span class="form-date-range-separator" aria-hidden="true">-</span>
- 
-                    <input type="text"
-                           name="toDate"
-                           data-filter="toDate"
-                           class="form-date-input"
-                           placeholder="DD-MM-YYYY"
-                           readonly
-                           data-date-end />
- 
-                    <span class="form-suffix form-date-icon"></span>
-                  </div>
-                </div>
-              </div>
- 
-              <!-- Reset -->
-              <div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
-                <div class="form-field d-flex justify-content-lg-end align-items-end h-100">
-                  <button type="button"
-                          class="se-btn se-btn--banner"
-                          data-reset-filters>
-                    <span>
-                      <fmt:message key="issuer.trading.info.v2.search.reset" />
-                    </span>
-                    <span class="se-btn__icon se-btn__icon--refresh se-icon icon-custom-refresh-cycle icon-md"></span>
-                  </button>
-                </div>
-              </div>
- 
             </div>
           </div>
-        </section>
- 
+
+          <%-- ===============================================================
+              Contract
+
+              Contract options are refreshed when Category changes.
+              JavaScript owns the loading, cancellation, and option refresh
+              lifecycle after page initialization.
+              =============================================================== --%>
+
+          <div class="filter-bar__field">
+            <label
+              class="form-label"
+              for="derivative-negotiated-contract"
+            >
+              <fmt:message
+                key="derivative.selectContractssLabel"
+              />
+            </label>
+
+            <div
+              class="custom-select"
+              data-custom-select
+              data-searchable
+            >
+              <div class="form-select-wrap custom-select__fallback">
+                <select
+                  class="form-select custom-select__native"
+                  id="derivative-negotiated-contract"
+                  name="contract"
+                  data-derivative-negotiated-contract
+                >
+                  <option
+                    value="All"
+                    <c:if test="${empty requestScope.contract or requestScope.contract eq 'All'}">
+                      selected
+                    </c:if>
+                  >
+                    <fmt:message
+                      key="derivative.allContractCombo"
+                    />
+                  </option>
+
+                  <c:forEach
+                    items="${requestScope.contractsresultlBean.companyList}"
+                    var="contract"
+                  >
+                    <option
+                      value="<c:out value='${contract.symbol}' />"
+                      <c:if test="${requestScope.contract eq contract.symbol}">
+                        selected
+                      </c:if>
+                    >
+                      <c:out value="${contract.longName}" />
+                    </option>
+                  </c:forEach>
+                </select>
+
+                <span
+                  class="form-select-icon has-icon icon-chevron-down"
+                  aria-hidden="true"
+                ></span>
+              </div>
+            </div>
+          </div>
+
+          <%-- ===============================================================
+              Time Period
+
+              This intentionally uses a static label and does not use
+              fieldset/legend.
+              =============================================================== --%>
+
+          <div class="filter-bar__field">
+            <span
+              class="form-label-static"
+              id="derivative-negotiated-date-label"
+            >
+              <fmt:message
+                key="issuer.trading.info.v2.section.heading.timeperiod"
+              />
+            </span>
+
+            <div
+              class="custom-date custom-date--range"
+              aria-labelledby="derivative-negotiated-date-label"
+              data-custom-date-range
+              data-clearable
+              data-placeholder="YYYY-MM-DD – YYYY-MM-DD"
+            >
+              <div class="custom-date__fallback">
+                <div class="custom-date__native-range">
+                  <input
+                    class="form-control custom-date__native"
+                    id="derivative-negotiated-date-from"
+                    name="fromDate"
+                    type="date"
+                    aria-label="<c:out value='${derivativeNegotiatedDateFromLabel}' />"
+                    data-date-start
+                    data-derivative-negotiated-date-from
+                  />
+
+                  <input
+                    class="form-control custom-date__native"
+                    id="derivative-negotiated-date-to"
+                    name="toDate"
+                    type="date"
+                    aria-label="<c:out value='${derivativeNegotiatedDateToLabel}' />"
+                    data-date-end
+                    data-derivative-negotiated-date-to
+                  />
+                </div>
+
+                <div
+                  class="custom-date__initial-trigger"
+                  aria-hidden="true"
+                >
+                  <span
+                    class="custom-date__initial-value is-placeholder"
+                  >
+                    YYYY-MM-DD – YYYY-MM-DD
+                  </span>
+
+                  <span
+                    class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                    aria-hidden="true"
+                  ></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <%-- =================================================================
+            Filter Actions
+            ================================================================= --%>
+
+        <div class="filter-bar__actions">
+          <button
+            class="btn btn-outline-primary has-icon icon-sync-refresh"
+            type="reset"
+            data-derivative-negotiated-reset
+          >
+            <fmt:message
+              key="issuer.trading.info.v2.search.reset"
+            />
+          </button>
+        </div>
       </div>
-    </div>
-  </div>
- 
-  <div class="intro-section">
-    <section class="app-container mt-5">
- 
-      <div class="resultBox">
-        <div class="resultFst">
-          <div class="resultShow">
-            <fmt:message key="issuer.trading.info.results.msg" />:
-            <span id="derivativeNegotiatedResultsId">0</span>
+    </form>
+
+    <%-- =========================================================================
+    Derivative Negotiated Deals Results
+    ========================================================================= --%>
+
+    <section
+      class="data-view data-view--connected"
+      aria-labelledby="derivative-negotiated-page-title"
+      aria-busy="false"
+      data-derivative-negotiated-view
+    >
+      <div class="data-view__workspace">
+        <%-- =====================================================================
+            Results Toolbar
+            ===================================================================== --%>
+
+        <div class="data-view__toolbar">
+          <div class="data-view__toolbar-start">
+            <p
+              class="data-view__result-count"
+              id="derivative-negotiated-results"
+              aria-live="polite"
+            >
+              <strong>
+                <fmt:message
+                  key="issuer.trading.info.results.msg"
+                />
+              </strong>
+
+              <span
+                data-derivative-negotiated-result-count
+                data-result-count-value
+              >
+                0
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <%-- =====================================================================
+            Accessible Loading and Result Status
+            ===================================================================== --%>
+
+        <p
+          class="visually-hidden"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          data-derivative-negotiated-status
+        ></p>
+
+        <%-- =====================================================================
+            Desktop and Tablet Table
+            ===================================================================== --%>
+
+        <div
+          class="data-view__table"
+          data-derivative-negotiated-table-region
+        >
+          <div class="data-view__table-block">
+            <div
+              class="table-shell"
+              data-table-shell
+            >
+              <div
+                class="table-responsive custom-scrollbar"
+                role="region"
+                tabindex="0"
+                aria-labelledby="derivative-negotiated-page-title"
+                aria-describedby="derivative-negotiated-results"
+                data-table-scroll
+              >
+                <table
+                  class="
+                    table
+                    table-market
+                    table-market--watch
+                    table-market--derivative-negotiated
+                    table-striped
+                    table-hover
+                    table-nowrap
+                  "
+                  id="derivative-negotiated-table"
+                  aria-describedby="derivative-negotiated-results"
+                  aria-busy="false"
+                  data-derivative-negotiated-table
+                >
+                  <caption class="visually-hidden">
+                    <fmt:message
+                      key="issuer.trading.info.v2.title.negotiated"
+                    />
+                  </caption>
+
+                  <thead>
+                    <tr>
+                      <th
+                        class="table-market__date"
+                        scope="col"
+                      >
+                        <fmt:message
+                          key="issuer.trading.info.v2.table.heading.date"
+                        />
+                      </th>
+
+                      <th
+                        class="table-market__security"
+                        scope="col"
+                      >
+                        <fmt:message
+                          key="derivative.selectContractssLabel"
+                        />
+                      </th>
+
+                      <th
+                        class="table-cell-numeric"
+                        scope="col"
+                        data-numeric
+                      >
+                        <fmt:message
+                          key="issuer.trading.info.v2.table.heading.price"
+                        />
+                      </th>
+
+                      <th
+                        class="table-cell-numeric"
+                        scope="col"
+                        data-numeric
+                      >
+                        <fmt:message
+                          key="issuer.trading.info.v2.table.heading.volumetraded"
+                        />
+                      </th>
+
+                      <th
+                        class="table-cell-numeric"
+                        scope="col"
+                        data-numeric
+                      >
+                        <fmt:message
+                          key="issuer.trading.info.v2.table.heading.valuetraded"
+                        />
+                      </th>
+
+                      <th
+                        class="table-market__time text-center"
+                        scope="col"
+                      >
+                        <fmt:message
+                          key="issuer.trading.info.v2.table.heading.time"
+                        />
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <%--
+                      JavaScript renders:
+
+                      - negotiated transaction rows
+                      - daily total rows
+                      - alternating row presentation
+                      - loading rows
+                      - empty state
+                      - error state
+                    --%>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <%-- =====================================================================
+            Mobile Cards
+            ===================================================================== --%>
+
+        <div
+          class="data-view__cards"
+          role="region"
+          aria-labelledby="derivative-negotiated-page-title"
+          data-derivative-negotiated-mobile
+        >
+          <%-- ===================================================================
+              Mobile Column Labels
+              =================================================================== --%>
+
+          <div
+            class="data-view__cards-header"
+            aria-hidden="true"
+          >
+            <span class="data-view__cards-header-start">
+              <fmt:message
+                key="derivative.selectContractssLabel"
+              />
+            </span>
+
+            <span class="data-view__cards-header-end">
+              <fmt:message
+                key="issuer.trading.info.v2.table.heading.price"
+              />
+              /
+              <fmt:message
+                key="issuer.trading.info.v2.table.heading.valuetraded"
+              />
+            </span>
+          </div>
+
+          <%-- ===================================================================
+              Grouped Mobile Results
+              =================================================================== --%>
+
+          <div
+            class="data-view__cards-inner"
+            aria-busy="false"
+            data-derivative-negotiated-cards
+          >
+            <%--
+              JavaScript renders:
+
+              - one group for each transaction date
+              - contract logo, name, and code
+              - price and value-traded summary
+              - volume and time details
+              - one daily total card after each date group
+              - loading, empty, and error states
+            --%>
           </div>
         </div>
       </div>
- 
-      <div class="tradingTable historicalTable">
-        <table id="derivativeNegotiatedTable"
-               class="table table-striped table-bordered"
-               cellspacing="0"
-               width="100%">
-          <thead>
-            <tr>
-              <th><fmt:message key="issuer.trading.info.v2.table.heading.date" /></th>
-              <th><fmt:message key="derivative.selectContractssLabel" /></th>
-              <th><fmt:message key="issuer.trading.info.v2.table.heading.price" /></th>
-              <th><fmt:message key="issuer.trading.info.v2.table.heading.volumetraded" /></th>
-              <th><fmt:message key="issuer.trading.info.v2.table.heading.valuetraded" /></th>
-              <th><fmt:message key="issuer.trading.info.v2.table.heading.time" /></th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
- 
     </section>
   </div>
 </section>
- 
+<%-- =========================================================================
+     Derivative Negotiated Page Configuration
+     ========================================================================= --%>
+
 <script>
-window.DROPDOWN_CONFIG = {
-  category: {
-    targets: [
-      {
-        field: "contract",
-        url: '<portlet:resourceURL id="getContractsByCategory" />',
-        method: "GET",
-        params: function (categoryValue) {
-          return {
-            format: "json",
-            category: categoryValue
-          }
-        },
-        map: function (item) {
-          return {
-            value: item.symbol,
-            label: item.longName
-          };
-        }
+  (function initializeDerivativeNegotiatedPage(window, document) {
+    "use strict";
+
+    /* ======================================================================
+       Date Filter Initialization
+       ====================================================================== */
+
+    /*
+     * Native input[type="date"] requires YYYY-MM-DD.
+     *
+     * This affects only the filter controls. Dates returned by the service
+     * remain unchanged and are not reformatted here.
+     */
+
+    function padDatePart(value) {
+      return String(value).padStart(2, "0");
+    }
+
+    function formatInputDate(date) {
+      return [
+        date.getFullYear(),
+        padDatePart(date.getMonth() + 1),
+        padDatePart(date.getDate()),
+      ].join("-");
+    }
+
+    function subtractOneCalendarMonth(date) {
+      var year = date.getFullYear();
+
+      var month = date.getMonth();
+
+      var day = date.getDate();
+
+      var lastDayOfPreviousMonth = new Date(
+        year,
+        month,
+        0,
+      ).getDate();
+
+      return new Date(
+        year,
+        month - 1,
+        Math.min(day, lastDayOfPreviousMonth),
+      );
+    }
+
+    function getDefaultDateRange() {
+      var today = new Date();
+
+      return {
+        from: formatInputDate(subtractOneCalendarMonth(today)),
+
+        to: formatInputDate(today),
+      };
+    }
+
+    function initializeDateRange() {
+      var form = document.querySelector(
+        "[data-derivative-negotiated-filters]",
+      );
+
+      if (!form) {
+        return;
       }
-    ]
-  }
-};
-</script>
- 
-<script>
-window.allLabel= "<fmt:message key="derivative.allContractCombo" />";
 
-window.DERIVATIVE_NEGOTIATED_DATATABLE_CONFIG = {
-  locale: document.querySelector("#requestLocale")?.value || "en",
- 
-  filtersSelector: "#derivativeNegotiatedFilters",
+      var fromInput = form.querySelector(
+        "[data-derivative-negotiated-date-from]",
+      );
 
-  labels: {
-	  total: '<fmt:message key="issuer.trading.info.v2.total" />'
-	},
-  ui: {
-    loader: {
-      enabled: true,
-      text: '<fmt:message key="datatable.loading" />'
-    },
- 
-    empty: {
-      text: '<fmt:message key="datatable.no.data" />',
-      imageUrl: "${pageContext.request.contextPath}/images/no-data.png"
-    },
- 
-    pagination: {
-      enabled: true,
-      className: "feed__pagination",
-      pageText: '<fmt:message key="pagination.page" />',
-      ofText: '<fmt:message key="pagination.of" />',
-      prevAriaLabel: '<fmt:message key="pagination.previous" />',
-      nextAriaLabel: '<fmt:message key="pagination.next" />'
+      var toInput = form.querySelector(
+        "[data-derivative-negotiated-date-to]",
+      );
+
+      if (!fromInput || !toInput) {
+        return;
+      }
+
+      var defaultRange = getDefaultDateRange();
+
+      if (!fromInput.value) {
+        fromInput.value = defaultRange.from;
+      }
+
+      if (!toInput.value) {
+        toInput.value = defaultRange.to;
+      }
+
+      /*
+       * Make the default one-month range the native reset state.
+       *
+       * form.reset() will therefore restore the one-month range instead of
+       * clearing both date controls.
+       */
+
+      fromInput.defaultValue = fromInput.value;
+
+      toInput.defaultValue = toInput.value;
+
+      /*
+       * Keep the date display correct before the shared CustomDate component
+       * completes its progressive enhancement.
+       */
+
+      var initialValue = form.querySelector(
+        ".custom-date__initial-value",
+      );
+
+      if (initialValue && fromInput.value && toInput.value) {
+        initialValue.textContent =
+          fromInput.value + " \u2013 " + toInput.value;
+
+        initialValue.classList.remove("is-placeholder");
+      }
     }
-  },
- 
-  defaults: {
-    dateRange: {
-      enabled: true,
-      mode: "lastMonthToToday",
-      format: "dd-MM-yyyy"
-    },
- 
-    dataTable: {
-      paging: true,
-      pageLength: 25,
-      lengthMenu: [25, 50, 100],
-      searching: false,
-      ordering: false,
-      info: false,
-      dom: "rt",
-      deferRender: true,
-      autoWidth: false,
-      fixedHeader: true
-    }
-  },
- 
-  urls: {
-    negotiatedDeals: '<portlet:resourceURL id="getDerivativeNegotiatedDetails" />'
-  },
- 
-  tables: {
-    negotiatedDeals: {
-      selector: "#derivativeNegotiatedTable",
-      paging: true,
-      pageLength: 25,
-      lengthMenu: [25, 50, 100],
-      ordering: false,
-      fixedHeader: true
-    }
-  },
- 
-  resultCounters: {
-    negotiatedDeals: "#derivativeNegotiatedResultsId"
-  }
-};
+
+    /*
+     * Run immediately so the shared CustomDate component reads the initialized
+     * native values when the design system starts.
+     */
+
+    initializeDateRange();
+
+    /* ======================================================================
+       Public Configuration
+       ====================================================================== */
+
+    window.DerivativeNegotiatedConfig = {
+      /* ====================================================================
+         Locale
+         ==================================================================== */
+
+      locale:
+        "<c:out value='${pageContext.request.locale.language}' />",
+
+      /* ====================================================================
+         Endpoints
+         ==================================================================== */
+
+      endpoints: {
+        contractsByCategory:
+          "<portlet:resourceURL id='getContractsByCategory' />",
+
+        negotiatedDeals:
+          "<portlet:resourceURL id='getDerivativeNegotiatedDetails' />",
+      },
+
+      /* ====================================================================
+         Assets
+         ==================================================================== */
+
+      assets: {
+        /*
+         * Keep {companyCode} in the configured template.
+         *
+         * The company identity renderer replaces it with the company code
+         * from each normalized result row.
+         */
+
+        companyLogoUrlTemplate:
+          "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/{companyCode}.png",
+
+        companyLogoFallbackUrl:
+          "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/default.png",
+
+        noDataImageUrl:
+          "${pageContext.request.contextPath}/images/no-data.png",
+      },
+
+      /* ====================================================================
+         Labels
+         ==================================================================== */
+
+      labels: {
+        loading:
+          "<fmt:message key='datatable.loading' />",
+
+        noData:
+          "<fmt:message key='datatable.no.data' />",
+
+        error:
+          "<fmt:message key='an-unexpected-system-error-occurred' />",
+
+        results:
+          "<fmt:message key='issuer.trading.info.results.msg' />",
+
+        total:
+          "<fmt:message key='issuer.trading.info.v2.total' />",
+
+        emptyValue: "\u2014",
+
+        /* ------------------------------------------------------------------
+           Filter Options
+           ------------------------------------------------------------------ */
+
+        filters: {
+          allCategories:
+            "<fmt:message key='derivative.allContractCombo' />",
+
+          allContracts:
+            "<fmt:message key='derivative.allContractCombo' />",
+        },
+
+        /* ------------------------------------------------------------------
+           Table and Card Labels
+           ------------------------------------------------------------------ */
+
+        table: {
+          date:
+            "<fmt:message key='issuer.trading.info.v2.table.heading.date' />",
+
+          contract:
+            "<fmt:message key='derivative.selectContractssLabel' />",
+
+          price:
+            "<fmt:message key='issuer.trading.info.v2.table.heading.price' />",
+
+          volume:
+            "<fmt:message key='issuer.trading.info.v2.table.heading.volumetraded' />",
+
+          value:
+            "<fmt:message key='issuer.trading.info.v2.table.heading.valuetraded' />",
+
+          time:
+            "<fmt:message key='issuer.trading.info.v2.table.heading.time' />",
+        },
+
+        /* ------------------------------------------------------------------
+           Mobile Cards
+           ------------------------------------------------------------------ */
+
+        mobile: {
+          showDetails:
+            "<fmt:message key='marketwatch.todaywatch.v2.mobile.show.details' />",
+
+          hideDetails:
+            "<fmt:message key='marketwatch.todaywatch.v2.mobile.hide.details' />",
+        },
+      },
+    };
+  })(window, document);
 </script>
- 
-<script src="${pageContext.request.contextPath}/js/dropdown-update.js"></script>
-<script src="${pageContext.request.contextPath}/js/custom-trading/datatable-page-utils.js"></script>
-<script src="${pageContext.request.contextPath}/js/custom-trading/derivative-trading-datatables.js"></script>
- 
+
+<script
+  type="module"
+  src="${pageContext.request.contextPath}/js/pages/derivative-negotiated/derivative-negotiated.js"
+></script>
