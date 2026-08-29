@@ -3,14 +3,14 @@
    ========================================================================== */
 
 /*
- * Mobile card presentation for OTC Trading.
+ * Compact mobile presentation for OTC Trading.
  *
  * Responsibilities:
  *
  * - render the standard Market Watch company identity
- * - expose traded volume in the card summary
- * - render the service-provided last-update value
- * - provide a valid expandable DataViewCard structure
+ * - render traded volume and last-update price
+ * - use the shared mobile column heading from JSP
+ * - avoid unnecessary expandable-card behavior
  *
  * This module intentionally has no:
  *
@@ -19,9 +19,6 @@
  * - request code
  * - response normalization
  * - breakpoint logic
- *
- * Expand and collapse behavior remains owned by the shared DataViewCard
- * component.
  */
 
 /* ==========================================================================
@@ -32,10 +29,7 @@ import { renderStandardDataCard } from "../../../../../common/data-view/index.js
 
 import { createOtcTradingFormatters } from "../otc-trading.formatters.js";
 
-import {
-  escapeHtml,
-  normalizeString,
-} from "../../../shared/trading-formatters.js";
+import { escapeHtml } from "../../../shared/trading-formatters.js";
 
 /* ==========================================================================
    Constants
@@ -52,65 +46,37 @@ function isObject(value) {
 }
 
 /* ==========================================================================
-   Labels
-   ========================================================================== */
-
-function getLabels(config = {}) {
-  const table = config.labels?.otcTrading?.table || {};
-
-  const mobile = config.labels?.mobile || {};
-
-  return Object.freeze({
-    tradedVolume: normalizeString(table.tradedVolume, "Traded Volume"),
-
-    lastUpdate: normalizeString(table.lastUpdate, "Last Update"),
-
-    showDetails: normalizeString(mobile.showDetails) || "More details",
-
-    hideDetails: normalizeString(mobile.hideDetails) || "Less details",
-  });
-}
-
-/* ==========================================================================
    Card Summary
    ========================================================================== */
 
-function renderCardSummary(row, values, formatters, labels) {
+function renderCardSummary(row, values, formatters) {
   return `
-    <div class="otc-trading-card__summary">
+    <div class="data-card__summary">
       ${formatters.renderCardIdentity(row)}
 
-      <div class="otc-trading-card__primary-value">
-        <span class="otc-trading-card__primary-label">
-          ${escapeHtml(labels.tradedVolume)}
+      <div class="data-card__quote">
+        <span
+          class="
+            data-card__value
+            data-card__value--numeric
+            otc-trading-card__volume
+          "
+        >
+          ${escapeHtml(values.tradedVolume)}
         </span>
 
-        <strong class="otc-trading-card__volume">
-          ${values.tradedVolume}
-        </strong>
+        <span
+          class="
+            data-card__value
+            data-card__value--numeric
+            otc-trading-card__last-update
+          "
+        >
+          ${escapeHtml(values.lastUpdate)}
+        </span>
       </div>
     </div>
   `.trim();
-}
-
-/* ==========================================================================
-   Card Fields
-   ========================================================================== */
-
-function createCardFields(values, labels) {
-  return [
-    {
-      label: labels.lastUpdate,
-
-      value: values.lastUpdate,
-
-      className: "otc-trading-card__last-update-field",
-
-      valueClassName: "otc-trading-card__last-update-value",
-
-      fullWidth: true,
-    },
-  ];
 }
 
 /* ==========================================================================
@@ -123,8 +89,6 @@ export function createOtcTradingCards(config = {}) {
       "createOtcTradingCards requires a configuration object.",
     );
   }
-
-  const labels = getLabels(config);
 
   const formatters = createOtcTradingFormatters(config);
 
@@ -140,17 +104,15 @@ export function createOtcTradingCards(config = {}) {
     return renderStandardDataCard({
       rowId: row.id || `${VIEW_KEY}-${index + 1}`,
 
-      idPrefix: "otc-trading-details",
+      idPrefix: "otc-trading-item",
 
-      className: "data-card--otc-trading",
+      className: ["data-card--compact", "data-card--otc-trading"].join(" "),
 
-      summary: renderCardSummary(row, values, formatters, labels),
+      summary: renderCardSummary(row, values, formatters),
 
-      fields: createCardFields(values, labels),
+      fields: [],
 
-      moreLabel: labels.showDetails,
-
-      lessLabel: labels.hideDetails,
+      expandable: false,
     });
   }
 

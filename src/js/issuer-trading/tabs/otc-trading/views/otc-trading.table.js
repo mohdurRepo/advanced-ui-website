@@ -53,6 +53,10 @@ function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+function getLabel(value, fallback) {
+  return normalizeString(value) || fallback;
+}
+
 /* ==========================================================================
    Labels
    ========================================================================== */
@@ -61,11 +65,11 @@ function getLabels(config = {}) {
   const table = config.labels?.otcTrading?.table || {};
 
   return Object.freeze({
-    company: normalizeString(table.company, "Company"),
+    company: getLabel(table.company, "Company"),
 
-    tradedVolume: normalizeString(table.tradedVolume, "Traded Volume"),
+    tradedVolume: getLabel(table.tradedVolume, "Traded Volume"),
 
-    lastUpdate: normalizeString(table.lastUpdate, "Last Update"),
+    lastUpdate: getLabel(table.lastUpdate, "Last Update Price"),
   });
 }
 
@@ -82,7 +86,7 @@ function createColumns(labels) {
 
       className: "otc-trading__company-cell",
 
-      headerClassName: "otc-trading__company-heading",
+      headerClassName: "otc-trading__company-heading table-market__security",
 
       width: "50%",
     }),
@@ -92,9 +96,18 @@ function createColumns(labels) {
 
       label: labels.tradedVolume,
 
-      className: "otc-trading__volume-cell numeric text-end",
+      className: [
+        "otc-trading__volume-cell",
+        "table-cell-numeric",
+        "numeric",
+        "text-end",
+      ].join(" "),
 
-      headerClassName: "otc-trading__volume-heading text-end",
+      headerClassName: [
+        "otc-trading__volume-heading",
+        "table-cell-numeric",
+        "text-end",
+      ].join(" "),
 
       width: "25%",
     }),
@@ -104,9 +117,18 @@ function createColumns(labels) {
 
       label: labels.lastUpdate,
 
-      className: "otc-trading__last-update-cell text-center",
+      className: [
+        "otc-trading__last-update-cell",
+        "table-cell-numeric",
+        "numeric",
+        "text-end",
+      ].join(" "),
 
-      headerClassName: "otc-trading__last-update-heading text-center",
+      headerClassName: [
+        "otc-trading__last-update-heading",
+        "table-cell-numeric",
+        "text-end",
+      ].join(" "),
 
       width: "25%",
     }),
@@ -169,7 +191,7 @@ function createdRow(rowElement, row) {
     return;
   }
 
-  rowElement.dataset.rowType = "otc-trading";
+  rowElement.dataset.rowType = VIEW_KEY;
 
   rowElement.classList.add("otc-trading__result-row");
 }
@@ -220,9 +242,10 @@ export function createOtcTradingTable(config = {}) {
       info: true,
 
       /*
-       * The endpoint returns the complete result set. Paging, ordering, and
-       * page-size changes remain client-side and never trigger another API
-       * request.
+       * The endpoint returns the complete result set.
+       *
+       * Paging, ordering, and page-size changes remain client-side and do
+       * not trigger additional API requests.
        */
 
       serverSide: false,
@@ -234,8 +257,7 @@ export function createOtcTradingTable(config = {}) {
       order: Object.freeze([Object.freeze([0, "asc"])]),
 
       /*
-       * Explicitly expose the DataTables controls. The shared table defaults
-       * disable generated UI for tabs that provide their own controls.
+       * Expose only the DataTables controls required by this tab.
        */
 
       layout: Object.freeze({

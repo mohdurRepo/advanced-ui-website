@@ -1748,8 +1748,7 @@
       </section>
 
 
-        
-          <%-- =========================================================================
+        <%-- =========================================================================
             OTC Trading
             ========================================================================= --%>
 
@@ -1760,10 +1759,7 @@
           aria-labelledby="issuer-trading-tab-otc-trading"
           hidden
         >
-          <div
-            class="stack stack--lg"
-            data-issuer-trading-feature="otc-trading"
-          >
+          <div data-issuer-trading-feature="otc-trading">
             <%-- =====================================================================
                 OTC Trading Results
                 ===================================================================== --%>
@@ -1792,19 +1788,20 @@
 
                     <p
                       class="data-view__result-count"
+                      id="otc-trading-results-summary"
                       aria-live="polite"
                     >
-                      <strong
+                      <strong>
+                        <fmt:message
+                          key="issuer.trading.info.results.msg"
+                        />
+                      </strong>
+
+                      <span
                         data-otc-trading-result-count
                         data-result-count-value
                       >
                         0
-                      </strong>
-
-                      <span>
-                        <fmt:message
-                          key="issuer.trading.info.results.msg"
-                        />
                       </span>
                     </p>
                   </div>
@@ -1823,63 +1820,97 @@
                 ></p>
 
                 <%-- =================================================================
-                    Desktop Table
+                    Desktop and Tablet Table
                     ================================================================= --%>
 
                 <div
                   class="data-view__table"
                   data-otc-trading-table-region
                 >
-                  <div class="table-shell">
-                    <div class="table-responsive">
-                      <table
-                        class="
-                          table
-                          table-market
-                          table-market--watch
-                          table-market--otc-trading
-                        "
-                        data-otc-trading-table
+                  <div class="data-view__table-block">
+                    <div
+                      class="table-shell"
+                      data-table-shell
+                    >
+                      <div
+                        class="table-responsive custom-scrollbar"
+                        role="region"
+                        tabindex="0"
+                        aria-labelledby="otc-trading-results-title"
+                        aria-describedby="otc-trading-results-summary"
+                        data-table-scroll
                       >
-                        <caption class="visually-hidden">
-                          <fmt:message
-                            key="issuer.trading.info.v2.title.otcctrading"
-                          />
-                        </caption>
+                        <table
+                          class="
+                            table
+                            table-market
+                            table-market--watch
+                            table-market--otc-trading
+                            table-striped
+                            table-hover
+                            table-nowrap
+                          "
+                          id="otc-trading-table"
+                          aria-describedby="otc-trading-results-summary"
+                          aria-busy="false"
+                          data-otc-trading-table
+                        >
+                          <caption class="visually-hidden">
+                            <fmt:message
+                              key="issuer.trading.info.v2.title.otcctrading"
+                            />
+                          </caption>
 
-                        <thead>
-                          <tr>
+                          <thead>
+                            <tr>
+                              <%-- ===================================================
+                                  Company identity includes:
+
+                                  - company logo
+                                  - company name
+                                  - company code
+                                  =================================================== --%>
+
+                              <th
+                                class="table-market__security"
+                                scope="col"
+                              >
+                                <fmt:message key="OTC.Company" />
+                              </th>
+
+                              <th
+                                class="table-cell-numeric"
+                                scope="col"
+                                data-numeric
+                              >
+                                <fmt:message key="OTC.TradedVolume" />
+                              </th>
+
+                              <th
+                                class="table-cell-numeric"
+                                scope="col"
+                                data-numeric
+                              >
+                                <fmt:message
+                                  key="OTC.LastUpdatePrice"
+                                />
+                              </th>
+                            </tr>
+                          </thead>
+
+                          <tbody>
                             <%--
-                              Symbol is intentionally included beneath the company
-                              name through the shared Market Watch identity.
+                              JavaScript renders:
+
+                              - loading rows
+                              - result rows
+                              - empty state
+                              - error state
+                              - alternating row presentation
                             --%>
-
-                            <th scope="col">
-                              <fmt:message key="OTC.Company" />
-                            </th>
-
-                            <th
-                              class="text-end"
-                              scope="col"
-                            >
-                              <fmt:message key="OTC.TradedVolume" />
-                            </th>
-
-                            <th
-                              class="text-center"
-                              scope="col"
-                            >
-                              <fmt:message
-                                key="OTC.LastUpdatePrice"
-                              />
-                            </th>
-                          </tr>
-                        </thead>
-
-                        <tbody>
-                          <%-- JavaScript owns all result rows and states. --%>
-                        </tbody>
-                      </table>
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1890,13 +1921,48 @@
 
                 <div
                   class="data-view__cards"
+                  role="region"
+                  aria-labelledby="otc-trading-results-title"
                   data-otc-trading-mobile
                 >
+                  <%-- ===============================================================
+                      Mobile Column Labels
+                      =============================================================== --%>
+
                   <div
-                    class="data-card-list"
+                    class="data-view__cards-header"
+                    aria-hidden="true"
+                  >
+                    <span class="data-view__cards-header-start">
+                      <fmt:message key="OTC.Company" />
+                    </span>
+
+                    <span class="data-view__cards-header-end">
+                      <fmt:message key="OTC.TradedVolume" />
+                      /
+                      <fmt:message key="OTC.LastUpdatePrice" />
+                    </span>
+                  </div>
+
+                  <%-- ===============================================================
+                      Mobile Results
+                      =============================================================== --%>
+
+                  <div
+                    class="data-view__cards-inner"
+                    aria-busy="false"
                     data-otc-trading-cards
                   >
-                    <%-- JavaScript owns all cards and states. --%>
+                    <%--
+                      JavaScript renders:
+
+                      - company identity
+                      - traded volume
+                      - last updated price
+                      - loading cards
+                      - empty state
+                      - error state
+                    --%>
                   </div>
                 </div>
               </div>
