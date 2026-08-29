@@ -59,7 +59,7 @@ const TAB_ID_PREFIXES = Object.freeze([
 const SELECTORS = Object.freeze({
   root: "[data-issuer-trading]",
 
-  tabs: '.tabs[data-tabs][data-tabs-id="issuer-trading"]',
+  tabs: ".tabs[data-tabs]",
 
   activeTab:
     ':scope > .tabs-nav > [role="tab"][data-tab-target][aria-selected="true"]',
@@ -265,6 +265,10 @@ function resolvePageRoot(root) {
 }
 
 function resolveTabsRoot(pageRoot) {
+  if (pageRoot.matches(SELECTORS.tabs)) {
+    return pageRoot;
+  }
+
   return pageRoot.querySelector(SELECTORS.tabs);
 }
 
