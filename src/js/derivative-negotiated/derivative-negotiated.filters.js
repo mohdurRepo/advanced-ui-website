@@ -19,7 +19,8 @@
  *
  * - endpoint URLs
  * - request implementation
- * - contract-option request logic
+ * - Contract-option request logic
+ * - Contract loading / disabled-state ownership
  * - response normalization
  * - table or card rendering
  */
@@ -74,6 +75,22 @@ function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+function isElement(value) {
+  return Boolean(value && value.nodeType === 1);
+}
+
+function isFormElement(value) {
+  return isElement(value) && value.tagName === "FORM";
+}
+
+function isSelectElement(value) {
+  return isElement(value) && value.tagName === "SELECT";
+}
+
+function isInputElement(value) {
+  return isElement(value) && value.tagName === "INPUT";
+}
+
 function normalizeString(value) {
   return String(value ?? "").trim();
 }
@@ -107,8 +124,15 @@ function requireElement(root, selector, description) {
 }
 
 function dispatchControlChange(element) {
+  if (!isElement(element)) {
+    return;
+  }
+
+  const EventConstructor =
+    element.ownerDocument?.defaultView?.Event ?? window.Event;
+
   element.dispatchEvent(
-    new Event("change", {
+    new EventConstructor("change", {
       bubbles: true,
     }),
   );
@@ -141,13 +165,25 @@ function subtractOneCalendarMonth(date) {
 
   const day = date.getDate();
 
+  /*
+   * Clamp month-end dates correctly.
+   *
+   * Examples:
+   *
+   * March 31 -> February 28 / 29
+   * May 31   -> April 30
+   */
+
   const lastDayOfPreviousMonth = new Date(year, month, 0).getDate();
 
   return new Date(year, month - 1, Math.min(day, lastDayOfPreviousMonth));
 }
 
-function createDefaultDateRange() {
-  const today = new Date();
+function createDefaultDateRange(now = new Date()) {
+  const today =
+    now instanceof Date && !Number.isNaN(now.getTime())
+      ? new Date(now.getTime())
+      : new Date();
 
   return Object.freeze({
     fromDate: formatInputDate(subtractOneCalendarMonth(today)),
@@ -206,8 +242,10 @@ export function validateDerivativeNegotiatedFilters(state = {}) {
   }
 
   /*
-   * YYYY-MM-DD strings sort chronologically, so no Date conversion or
-   * timezone adjustment is necessary here.
+   * Native date controls use YYYY-MM-DD.
+   *
+   * Strings in that exact format sort chronologically, so no Date conversion,
+   * timezone conversion, min attribute, or max attribute is necessary.
    */
 
   if (fromDate > toDate) {
@@ -230,7 +268,7 @@ export function validateDerivativeNegotiatedFilters(state = {}) {
    ========================================================================== */
 
 /*
- * The native date controls use YYYY-MM-DD.
+ * Native date controls use YYYY-MM-DD.
  *
  * The legacy service expects DD-MM-YYYY.
  */
@@ -292,31 +330,31 @@ export function createDerivativeNegotiatedFilters(options = {}) {
     "To Date filter",
   );
 
-  if (!(form instanceof HTMLFormElement)) {
+  if (!isFormElement(form)) {
     throw new TypeError(
       "Derivative Negotiated filters require a form element.",
     );
   }
 
-  if (!(categoryElement instanceof HTMLSelectElement)) {
+  if (!isSelectElement(categoryElement)) {
     throw new TypeError(
       "Derivative Negotiated Category filter must be a select element.",
     );
   }
 
-  if (!(contractElement instanceof HTMLSelectElement)) {
+  if (!isSelectElement(contractElement)) {
     throw new TypeError(
       "Derivative Negotiated Contract filter must be a select element.",
     );
   }
 
-  if (!(fromDateElement instanceof HTMLInputElement)) {
+  if (!isInputElement(fromDateElement)) {
     throw new TypeError(
       "Derivative Negotiated From Date filter must be an input element.",
     );
   }
 
-  if (!(toDateElement instanceof HTMLInputElement)) {
+  if (!isInputElement(toDateElement)) {
     throw new TypeError(
       "Derivative Negotiated To Date filter must be an input element.",
     );
@@ -332,13 +370,19 @@ export function createDerivativeNegotiatedFilters(options = {}) {
 
   let synchronizing = false;
 
-  let contractLoading = false;
-
   /* ========================================================================
      Default Values
      ======================================================================== */
 
   const generatedDefaultRange = createDefaultDateRange();
+
+  /*
+   * The JSP initializes the one-month date range before CustomDate enhancement
+   * and stores those values as native defaultValue values.
+   *
+   * Prefer those server/page-owned defaults so form reset and this controller
+   * always agree.
+   */
 
   const defaultDateRange = Object.freeze({
     fromDate:
@@ -369,26 +413,16 @@ export function createDerivativeNegotiatedFilters(options = {}) {
   let previousState = getState();
 
   /* ========================================================================
-     Date State
+     Date Validity
      ======================================================================== */
 
-  function syncDateConstraints() {
-    const fromDate = normalizeString(fromDateElement.value);
-
-    const toDate = normalizeString(toDateElement.value);
-
-    if (isValidInputDate(toDate)) {
-      fromDateElement.max = toDate;
-    } else {
-      fromDateElement.removeAttribute("max");
-    }
-
-    if (isValidInputDate(fromDate)) {
-      toDateElement.min = fromDate;
-    } else {
-      toDateElement.removeAttribute("min");
-    }
-  }
+  /*
+   * Deliberately do not set native min/max attributes here.
+   *
+   * Issuer Trading allows unrestricted calendar navigation and validates the
+   * selected range after selection. Keeping the same behavior also prevents
+   * browser date pickers from disabling previous years/months.
+   */
 
   function syncDateValidity(validation) {
     const invalid = !validation.valid;
@@ -397,11 +431,13 @@ export function createDerivativeNegotiatedFilters(options = {}) {
       fromDateElement.setAttribute("aria-invalid", "true");
 
       toDateElement.setAttribute("aria-invalid", "true");
-    } else {
-      fromDateElement.removeAttribute("aria-invalid");
 
-      toDateElement.removeAttribute("aria-invalid");
+      return;
     }
+
+    fromDateElement.removeAttribute("aria-invalid");
+
+    toDateElement.removeAttribute("aria-invalid");
   }
 
   function getValidation() {
@@ -414,7 +450,7 @@ export function createDerivativeNegotiatedFilters(options = {}) {
 
   /* ========================================================================
      Request Parameters
-     ======================================================================== */
+     ========================================================================== */
 
   function getRequestParams() {
     const state = getState();
@@ -434,6 +470,12 @@ export function createDerivativeNegotiatedFilters(options = {}) {
 
       contract: state.contract,
 
+      /*
+       * UI terminology is Category.
+       *
+       * The negotiated-deals service contract uses sector.
+       */
+
       sector: state.category,
 
       requestLocale: normalizeString(config.locale) || DEFAULT_LOCALE,
@@ -442,7 +484,7 @@ export function createDerivativeNegotiatedFilters(options = {}) {
 
   /* ========================================================================
      Notifications
-     ======================================================================== */
+     ========================================================================== */
 
   function notify({ reason, field = "", force = false }) {
     if (destroyed) {
@@ -498,7 +540,7 @@ export function createDerivativeNegotiatedFilters(options = {}) {
 
   /* ========================================================================
      Programmatic Synchronization
-     ======================================================================== */
+     ========================================================================== */
 
   function setControlValue(element, value, { dispatch = true } = {}) {
     element.value = value;
@@ -506,7 +548,16 @@ export function createDerivativeNegotiatedFilters(options = {}) {
     if (dispatch) {
       dispatchControlChange(element);
     }
+
+    return element.value;
   }
+
+  /*
+   * Contract options themselves belong to derivative-negotiated.contracts.js.
+   *
+   * This function only synchronizes the selected value with the options that
+   * currently exist.
+   */
 
   function setContractValue(value, { notifyChange = false } = {}) {
     const normalizedValue = normalizeAllValue(value);
@@ -534,34 +585,8 @@ export function createDerivativeNegotiatedFilters(options = {}) {
     return contractElement.value;
   }
 
-  function setContractLoading(loading) {
-    contractLoading = Boolean(loading);
-
-    contractElement.disabled = contractLoading;
-
-    const customSelect = contractElement.closest("[data-custom-select]");
-
-    if (customSelect) {
-      customSelect.classList.toggle("is-disabled", contractLoading);
-
-      if (contractLoading) {
-        customSelect.setAttribute("aria-busy", "true");
-
-        customSelect.setAttribute("aria-disabled", "true");
-      } else {
-        customSelect.removeAttribute("aria-busy");
-
-        customSelect.removeAttribute("aria-disabled");
-      }
-    }
-
-    return contractLoading;
-  }
-
   function sync() {
     previousState = getState();
-
-    syncDateConstraints();
 
     getValidation();
 
@@ -570,12 +595,20 @@ export function createDerivativeNegotiatedFilters(options = {}) {
 
   /* ========================================================================
      Reset
-     ======================================================================== */
+     ========================================================================== */
 
   function reset({ notifyChange = true } = {}) {
     if (destroyed) {
       return null;
     }
+
+    /*
+     * Programmatic change events are still dispatched so enhanced design-system
+     * controls can synchronize their visual presentation.
+     *
+     * The local form listener ignores them while synchronizing=true, preventing
+     * duplicate filter notifications.
+     */
 
     synchronizing = true;
 
@@ -588,8 +621,6 @@ export function createDerivativeNegotiatedFilters(options = {}) {
     setControlValue(toDateElement, defaultDateRange.toDate);
 
     synchronizing = false;
-
-    syncDateConstraints();
 
     const detail = notifyChange
       ? notify({
@@ -610,7 +641,7 @@ export function createDerivativeNegotiatedFilters(options = {}) {
 
   /* ========================================================================
      Events
-     ======================================================================== */
+     ========================================================================== */
 
   function getFieldName(element) {
     if (element === categoryElement) {
@@ -644,17 +675,16 @@ export function createDerivativeNegotiatedFilters(options = {}) {
     }
 
     /*
-     * A newly selected Category invalidates the previously selected Contract.
+     * A newly selected Category invalidates the Contract selected for the
+     * previous Category.
      *
-     * Reset the native Contract value immediately. contracts.js will then
-     * replace its available options before the results request is sent.
+     * Reset the native value immediately. contracts.js then replaces the
+     * available options before the page coordinator requests results.
      */
 
     if (field === DERIVATIVE_NEGOTIATED_FILTER_FIELDS.category) {
       setContractValue(ALL_VALUE);
     }
-
-    syncDateConstraints();
 
     notify({
       reason: "change",
@@ -671,7 +701,7 @@ export function createDerivativeNegotiatedFilters(options = {}) {
 
   /* ========================================================================
      Lifecycle
-     ======================================================================== */
+     ========================================================================== */
 
   function init() {
     if (initialized || destroyed) {
@@ -679,8 +709,6 @@ export function createDerivativeNegotiatedFilters(options = {}) {
     }
 
     initialized = true;
-
-    syncDateConstraints();
 
     getValidation();
 
@@ -706,14 +734,12 @@ export function createDerivativeNegotiatedFilters(options = {}) {
 
     subscribers.clear();
 
-    setContractLoading(false);
-
     initialized = false;
   }
 
   /* ========================================================================
      Public Instance
-     ======================================================================== */
+     ========================================================================== */
 
   const instance = Object.freeze({
     init,
@@ -734,12 +760,6 @@ export function createDerivativeNegotiatedFilters(options = {}) {
 
     setContractValue,
 
-    setContractLoading,
-
-    isContractLoading() {
-      return contractLoading;
-    },
-
     isInitialized() {
       return initialized;
     },
@@ -748,6 +768,10 @@ export function createDerivativeNegotiatedFilters(options = {}) {
       return destroyed;
     },
   });
+
+  /* ========================================================================
+     Automatic Initialization
+     ========================================================================== */
 
   if (options.autoInit !== false) {
     init();
