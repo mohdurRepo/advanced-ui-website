@@ -31,7 +31,7 @@ import { COMPANY_STATUS_VIEWS } from "../company-status.filters.js";
 
 import { createCompanyStatusFormatters } from "../company-status.formatters.js";
 
-import { normalizeString } from "../../../../shared/trading/trading-formatters.js";
+import { normalizeString } from "../../../shared/trading/trading-formatters.js";
 
 /* ==========================================================================
    Constants

@@ -37,7 +37,7 @@ import {
   formatQuantity,
   getDisplayValue,
   normalizeString,
-} from "../../../../shared/trading/trading-formatters.js";
+} from "../../../shared/trading/trading-formatters.js";
 
 /* ==========================================================================
    Constants

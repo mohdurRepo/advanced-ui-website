@@ -35,7 +35,7 @@ import {
 import {
   escapeHtml,
   normalizeString,
-} from "../../../../shared/trading/trading-formatters.js";
+} from "../../../shared/trading/trading-formatters.js";
 
 import { createListedTradableRightsFormatters } from "../listed-tradable-rights.formatters.js";
 
