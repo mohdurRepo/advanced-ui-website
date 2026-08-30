@@ -1,0 +1,1661 @@
+<%@page session="false" contentType="text/html"
+	pageEncoding="ISO-8859-1"
+	import="java.util.*,javax.portlet.*,sa.com.tadawul.eportal.issuer.financial.calendars.v2.portlet.*"%>
+<%@ taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet"%>
+<%@taglib
+	uri="http://www.ibm.com/xmlns/prod/websphere/portal/v6.1/portlet-client-model"
+	prefix="portlet-client-model"%>
+<%@page
+	import="sa.com.tadawul.eportal.issuer.financial.calendars.v2.constants.IssuerFinancialCalendarsConstants"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<%@taglib uri="/WEB-INF/tld/portal.tld" prefix="wps"%>
+
+<fmt:setBundle
+	basename="sa.com.tadawul.eportal.issuer.financial.calendars.v2.portlet.nl.IssuerFinancialCalendarsV2PortletResource" />
+<%@page
+	import="sa.com.tadawul.eportal.issuer.financial.calendars.v2.constants.DividendsParamsIfc"%>
+<%@ page
+	import="sa.com.tadawul.eportal.issuer.financial.calendars.v2.constants.CorpAnnInfoConstant"%>
+<%@ page
+	import="sa.com.tadawul.eportal.issuer.financial.calendars.v2.constants.CalendarType"%>
+
+<portlet:defineObjects />
+<portlet-client-model:init>
+	<portlet-client-model:require module="ibm.portal.xml.*" />
+	<portlet-client-model:require module="ibm.portal.portlet.*" />
+</portlet-client-model:init>
+
+
+<!-- ============================= -->
+<!-- Determine Active Tab -->
+<!-- ============================= -->
+<c:set var="calendarType" value="${calendarType}" />
+<c:set var="dividends" value="<%=CalendarType.DIVIDENDS_CALENDAR%>" />
+<c:set var="generalMeetings"
+	value="<%=CalendarType.GEN_ASSEMBLY_MEETINGS_CALENDAR%>" />
+<c:set var="boards"
+	value="<%=CalendarType.DIRECTORS_SESSIONS_CALENDAR%>" />
+<c:set var="corporateActions"
+	value="<%=CalendarType.CORPORATE_ACTIONS_CALENDAR%>" />
+
+
+<c:set var="activeTab" value="" />
+
+<c:choose>
+
+	<c:when test="${calendarType == dividends}">
+		<c:set var="activeTab" value="dividends" />
+	</c:when>
+
+
+	<c:when test="${calendarType == generalMeetings}">
+		<c:set var="activeTab" value="generalMeetings" />
+	</c:when>
+
+	<c:when test="${calendarType == boards}">
+		<c:set var="activeTab" value="boards" />
+	</c:when>
+
+	<c:when test="${calendarType == corporateActions}">
+		<c:set var="activeTab" value="corporateActions" />
+	</c:when>
+
+</c:choose>
+
+
+<section class="app-container hero-banner-section">
+	<div class="profile-banner animate__animated animate__fadeIn">
+		<div class="profile-banner--pattern">
+
+			<div class="row">
+
+				<div class="col-12">
+					<h2>
+						<svg class="pc-icon pr-3 link-icon me-3" width="40" height="40"
+							style="color: #fff; fill: #fff">
+                            <use xlink:href="#tadawul-arrow-icon"></use>
+                        </svg>
+
+						<label style="color: #FFFFFF"> <fmt:message
+								key="issuer.financial.calendars.v2.title" />
+						</label>
+					</h2>
+				</div>
+
+
+				<!-- TABS CONTAINER -->
+				<section class="tabs-container" data-tabs
+					data-tabs-id="financialCalendars"
+					data-content-target="#financial-content">
+
+
+					<!-- TABS NAVIGATION -->
+					<div class="tabs" role="tablist"
+						aria-label="Issuer Financial Calendars Tabs">
+
+						<!-- Dividends -->
+						<button
+							class="tabs__item ${activeTab == 'dividends' ? 'is-active' : ''}"
+							type="button" role="tab" id="financial-tab-dividends"
+							aria-selected="${activeTab == 'dividends'}"
+							aria-controls="financial-panel-dividends" data-tab="dividends">
+
+							<fmt:message key="issuer.financial.calendars.v2.title.dividends" />
+
+						</button>
+
+						<!-- General Meetings -->
+						<button
+							class="tabs__item ${activeTab == 'generalMeetings' ? 'is-active' : ''}"
+							type="button" role="tab" id="financial-tab-generalMeetings"
+							aria-selected="${activeTab == 'generalMeetings'}"
+							aria-controls="financial-panel-generalMeetings"
+							data-tab="generalMeetings" tabindex="-1">
+
+							<fmt:message
+								key="issuer.financial.calendars.v2.title.generalmeetings" />
+
+						</button>
+
+						<!-- Board Sessions -->
+						<button
+							class="tabs__item ${activeTab == 'boards' ? 'is-active' : ''}"
+							type="button" role="tab" id="financial-tab-boardSessions"
+							aria-selected="${activeTab == 'boards'}"
+							aria-controls="financial-panel-boardSessions" data-tab="boards"
+							tabindex="-1">
+
+							<fmt:message
+								key="issuer.financial.calendars.v2.title.boraddirectorssessions" />
+
+						</button>
+
+						<!-- Corporate Actions -->
+						<button
+							class="tabs__item ${activeTab == 'corporateActions' ? 'is-active' : ''}"
+							type="button" role="tab" id="financial-tab-corporateActions"
+							aria-selected="${activeTab == 'corporateActions'}"
+							aria-controls="financial-panel-corporateActions"
+							data-tab="corporateActions" tabindex="-1">
+
+							<fmt:message
+								key="issuer.financial.calendars.v2.title.corporateactions" />
+
+						</button>
+
+						<span class="tabs__underline" aria-hidden="true"></span>
+
+					</div>
+
+
+					<!-- FILTERS -->
+					<div class="banner-filters" data-filters>
+
+
+						<!-- DIVIDENDS FILTERS -->
+						<div class="banner-filters__group is-active"
+							data-filters-for="dividends">
+
+							<div class="row">
+
+								<!-- MARKET -->
+								<div class="col-12 col-md-3 col-sm-6">
+									<div class="form-field">
+
+										<label class="form-label"> <fmt:message
+												key="generalassemblymeeting.markettype" />
+										</label>
+
+										<div class="form-control-shell is-select" data-select
+											data-field="market">
+
+											<div class="form-select-value"></div>
+
+											<input type="hidden" id="marketsList" name="marketsListId"
+												data-filter="marketsListId" value="M" /><span
+												class="form-suffix form-select-arrow"></span>
+
+											<div class="form-popover">
+												<div class="form-select-panel">
+													<div class="form-select-list">
+
+														<div class="form-select-option" data-value="M"
+															data-selected="true">
+															<fmt:message
+																key="generalassemblymeeting.label.market.main" />
+														</div>
+
+														<div class="form-select-option" data-value="S">
+															<fmt:message
+																key="generalassemblymeeting.label.market.nomu" />
+														</div>
+
+													</div>
+												</div>
+											</div>
+
+										</div>
+									</div>
+								</div>
+
+
+								<!-- SECTOR -->
+								<div class="col-12 col-md-3 col-sm-6">
+
+									<div class="form-field">
+
+										<label class="form-label"> <fmt:message
+												key="dividends.sector" />
+										</label>
+
+										<div class="form-control-shell is-select" data-select
+											data-field="sector">
+
+											<div class="form-select-value"></div>
+
+											<input type="hidden" id="sector" name="sector"
+												data-filter="sector" value="" /> <span
+												class="form-suffix form-select-arrow"></span>
+
+											<div class="form-popover">
+												<div class="form-select-panel">
+													<div class="form-select-list">
+
+														<div class="form-select-option" data-value=""
+															data-selected="true">
+															<fmt:message
+																key="generalassemblymeeting.archived.view.all.sectors" />
+														</div>
+
+														<!-- populated dynamically -->
+
+													</div>
+												</div>
+											</div>
+
+										</div>
+									</div>
+
+								</div>
+
+
+								<!-- SYMBOL / COMPANY -->
+								<div class="col-12 col-md-3 col-sm-6">
+
+									<div class="form-field">
+
+										<label class="form-label"> <fmt:message
+												key="issuer.financial.calendars.v2.table.search" />
+										</label>
+
+										<div class="form-control-shell">
+
+											<input type="text" id="symbolorcompany"
+												name="symbolorcompany" value="${requestScope.bySymbol}" class="form-input"
+												data-filter="symbolorcompany" />
+
+										</div>
+
+									</div>
+
+								</div>
+
+
+								<!-- PERIOD -->
+								<div class="col-12 col-md-3 col-sm-6">
+
+									<div class="form-field">
+
+										<label class="form-label"> <fmt:message
+												key="dividends.period" />
+										</label>
+
+										<div class="form-control-shell is-select" data-select
+											data-field="period">
+
+											<div class="form-select-value"></div>
+
+											<input type="hidden" id="period" name="period"
+												data-filter="period" value="CUSTOM" /> <span
+												class="form-suffix form-select-arrow"></span>
+
+											<div class="form-popover">
+												<div class="form-select-panel">
+													<div class="form-select-list">
+
+														<div class="form-select-option" data-value="CUSTOM"
+															data-selected="true">
+															<fmt:message key="dividends.customPeriod" />
+														</div>
+
+														<div class="form-select-option" data-value="7">
+															<fmt:message key="dividends.oneWeek" />
+														</div>
+
+														<div class="form-select-option" data-value="14">
+															<fmt:message key="dividends.twoWeeks" />
+														</div>
+
+														<div class="form-select-option" data-value="30">
+															<fmt:message key="dividends.oneMonth" />
+														</div>
+
+														<div class="form-select-option" data-value="90">
+															<fmt:message key="dividends.threeMonths" />
+														</div>
+
+														<div class="form-select-option" data-value="180">
+															<fmt:message key="dividends.sixMonths" />
+														</div>
+
+														<div class="form-select-option" data-value="270">
+															<fmt:message key="dividends.nineMonths" />
+														</div>
+
+														<div class="form-select-option" data-value="365">
+															<fmt:message key="dividends.oneYear" />
+														</div>
+
+														<div class="form-select-option" data-value="730">
+															<fmt:message key="dividends.twoYears" />
+														</div>
+
+														<div class="form-select-option" data-value="1095">
+															<fmt:message key="dividends.threeYears" />
+														</div>
+
+														<div class="form-select-option" data-value="1825">
+															<fmt:message key="dividends.fiveYears" />
+														</div>
+
+													</div>
+												</div>
+											</div>
+
+										</div>
+									</div>
+
+								</div>
+
+
+								<!-- Date Range -->
+								<div class="col-12 col-md-3 col-sm-6">
+									<div class="form-field">
+										<label class="form-label"> <fmt:message
+												key="issuer.financial.calendars.v2.table.search.timeperiod" />
+										</label>
+
+										<div class="form-control-shell form-date-range is-date"
+											data-date-range>
+											<input type="text" id="drp_start" name="start"
+												data-filter="start" class="form-date-input"
+												placeholder="Start date" readonly data-date-start /> <span
+												class="form-date-range-separator" aria-hidden="true">-</span>
+											<input type="text" id="drp_end" name="end" data-filter="end"
+												class="form-date-input" placeholder="End date" readonly
+												data-date-end /> <span class="form-suffix form-date-icon"></span>
+										</div>
+									</div>
+								</div>
+
+
+
+
+
+							</div>
+						</div>
+
+
+						<!-- GENERAL MEETINGS FILTERS -->
+						<div class="banner-filters__group"
+							data-filters-for="generalMeetings">
+
+							<div class="row g-3">
+
+								<!-- MARKET -->
+								<div class="col-12 col-md-3 col-sm-6">
+									<div class="form-field">
+
+										<label class="form-label"> <fmt:message
+												key="generalassemblymeeting.markettype" />
+										</label>
+
+										<div class="form-control-shell is-select" data-select
+											data-field="market">
+
+											<div class="form-select-value"></div>
+
+											<input type="hidden" data-filter="marketsListId" value="M" />
+
+											<span class="form-suffix form-select-arrow"></span>
+
+											<div class="form-popover">
+												<div class="form-select-panel">
+													<div class="form-select-list">
+
+														<div class="form-select-option" data-value="M"
+															data-selected="true">
+															<fmt:message
+																key="generalassemblymeeting.label.market.main" />
+														</div>
+
+														<div class="form-select-option" data-value="S">
+															<fmt:message
+																key="generalassemblymeeting.label.market.nomu" />
+														</div>
+
+													</div>
+												</div>
+											</div>
+
+										</div>
+									</div>
+								</div>
+
+
+								<!-- SECTOR -->
+								<div class="col-12 col-md-3 col-sm-6">
+									<div class="form-field">
+
+										<label class="form-label"> <fmt:message
+												key="generalassemblymeeting.archived.view.sector" />
+										</label>
+
+										<div class="form-control-shell is-select" data-select
+											data-field="sector">
+
+											<div class="form-select-value"></div>
+
+											<input type="hidden" data-filter="sector" value="" /> <span
+												class="form-suffix form-select-arrow"></span>
+
+											<div class="form-popover">
+												<div class="form-select-panel">
+													<div class="form-select-list">
+
+														<div class="form-select-option" data-value=""
+															data-selected="true">
+															<fmt:message
+																key="generalassemblymeeting.archived.view.all.sectors" />
+														</div>
+
+													</div>
+												</div>
+											</div>
+
+										</div>
+									</div>
+								</div>
+
+
+								<!-- COMPANY -->
+								<div class="col-12 col-md-3 col-sm-6">
+
+									<div class="form-field">
+
+										<label class="form-label"> <fmt:message
+												key="issuer.financial.calendars.v2.table.search" />
+										</label>
+
+										<div class="form-control-shell">
+
+											<input type="text" class="form-input"
+												data-filter="companySymbol" placeholder="" />
+
+										</div>
+
+									</div>
+
+								</div>
+
+
+								<!-- TYPE -->
+								<div class="col-12 col-md-3 col-sm-6">
+
+									<div class="form-field">
+
+										<label class="form-label"> <fmt:message
+												key="generalassemblymeeting.archived.view.type" />
+										</label>
+
+										<div class="form-control-shell is-select" data-select
+											data-field="type">
+
+											<div class="form-select-value"></div>
+
+											<input type="hidden" data-filter="type" value="" /> <span
+												class="form-suffix form-select-arrow"></span>
+
+											<div class="form-popover">
+												<div class="form-select-panel">
+													<div class="form-select-list">
+
+														<div class="form-select-option" data-value=""
+															data-selected="true">
+															<fmt:message
+																key="generalassemblymeeting.archived.view.select.type" />
+														</div>
+
+														<div class="form-select-option" data-value="Ordinary">
+															<fmt:message
+																key="generalassemblymeeting.archived.view.type.ordinary" />
+														</div>
+
+														<div class="form-select-option" data-value="Extraordinary">
+															<fmt:message
+																key="generalassemblymeeting.archived.view.type.extra.ordinary" />
+														</div>
+
+														<div class="form-select-option"
+															data-value="Extraordinary - Corporate Actions">
+															<fmt:message
+																key="generalassemblymeeting.archived.view.type.extra.ordinary.corporate.actions" />
+														</div>
+
+													</div>
+												</div>
+											</div>
+
+										</div>
+
+									</div>
+
+								</div>
+
+
+								<!-- STATUS -->
+								<div class="col-12 col-md-3 col-sm-6">
+
+									<div class="form-field">
+
+										<label class="form-label"> <fmt:message
+												key="generalassemblymeeting.archived.view.status" />
+										</label>
+
+										<div class="form-control-shell is-select" data-select
+											data-field="status">
+
+											<div class="form-select-value"></div>
+
+											<input type="hidden" data-filter="status" value="" /> <span
+												class="form-suffix form-select-arrow"></span>
+
+											<div class="form-popover">
+												<div class="form-select-panel">
+													<div class="form-select-list">
+
+														<div class="form-select-option" data-value=""
+															data-selected="true">
+															<fmt:message
+																key="generalassemblymeeting.archived.view.select.status" />
+														</div>
+
+														<div class="form-select-option" data-value="Convening">
+															<fmt:message
+																key="generalassemblymeeting.archived.view.status.convening" />
+														</div>
+
+														<div class="form-select-option" data-value="Non-Convening">
+															<fmt:message
+																key="generalassemblymeeting.archived.view.status.non.convening" />
+														</div>
+
+													</div>
+												</div>
+											</div>
+
+										</div>
+
+									</div>
+
+								</div>
+
+
+								<!-- Date Range -->
+								<div class="col-12 col-md-3 col-sm-6">
+									<div class="form-field">
+										<label class="form-label"> <fmt:message
+												key="issuer.financial.calendars.v2.table.search.timeperiod" />
+										</label>
+
+										<div class="form-control-shell form-date-range is-date"
+											data-date-range>
+											<input type="text" name="fromDate" data-filter="fromDate"
+												class="form-date-input" placeholder="Start date" readonly
+												data-date-start /> <span class="form-date-range-separator"
+												aria-hidden="true">-</span> <input type="text" name="toDate"
+												data-filter="toDate" class="form-date-input"
+												placeholder="End date" readonly data-date-end /> <span
+												class="form-suffix form-date-icon"></span>
+										</div>
+									</div>
+								</div>
+
+
+
+
+
+							</div>
+
+						</div>
+
+
+						<!-- BOARD SESSIONS FILTERS -->
+						<div class="banner-filters__group" data-filters-for="boards">
+
+							<div class="row">
+
+								<!-- MARKET -->
+								<div class="col-12 col-md-3 col-sm-6">
+
+									<div class="form-field">
+
+										<label class="form-label"> <fmt:message
+												key="generalassemblymeeting.markettype" />
+										</label>
+
+										<div class="form-control-shell is-select" data-select
+											data-field="market">
+
+											<div class="form-select-value"></div>
+
+											<input type="hidden" data-filter="marketsListId" value="M" />
+
+											<span class="form-suffix form-select-arrow"></span>
+
+											<div class="form-popover">
+												<div class="form-select-panel">
+													<div class="form-select-list">
+
+														<div class="form-select-option" data-value="M"
+															data-selected="true">
+															<fmt:message
+																key="generalassemblymeeting.label.market.main" />
+														</div>
+
+														<div class="form-select-option" data-value="S">
+															<fmt:message
+																key="generalassemblymeeting.label.market.nomu" />
+														</div>
+
+													</div>
+												</div>
+											</div>
+
+										</div>
+
+									</div>
+								</div>
+
+
+								<!-- COMPANY SEARCH -->
+
+								<div class="col-12 col-md-3 col-sm-6">
+
+									<div class="form-field">
+
+										<label class="form-label"> <fmt:message
+												key="issuer.financial.calendars.v2.table.search" />
+										</label>
+
+										<div class="form-control-shell">
+
+											<input type="text" class="form-input"
+												data-filter="companySymbol" placeholder="" />
+
+										</div>
+
+									</div>
+
+								</div>
+
+
+								<!-- Date Range -->
+								<div class="col-12 col-md-3 col-sm-6">
+									<div class="form-field">
+										<label class="form-label"> <fmt:message
+												key="issuer.financial.calendars.v2.table.search.timeperiod" />
+										</label>
+
+										<div class="form-control-shell form-date-range is-date"
+											data-date-range>
+											<input type="text" name="fromDate" data-filter="fromDate"
+												class="form-date-input" placeholder="Start date" readonly
+												data-date-start /> <span class="form-date-range-separator"
+												aria-hidden="true">-</span> <input type="text" name="toDate"
+												data-filter="toDate" class="form-date-input"
+												placeholder="End date" readonly data-date-end /> <span
+												class="form-suffix form-date-icon"></span>
+										</div>
+									</div>
+								</div>
+								
+								
+
+								
+
+							</div>
+
+						</div>
+
+
+						<!-- CORPORATE ACTIONS FILTERS -->
+						<div class="banner-filters__group"
+							data-filters-for="corporateActions">
+
+							<div class="row">
+
+								<!-- MARKET -->
+								<div class="col-12 col-md-3 col-sm-6">
+
+									<div class="form-field">
+
+										<label class="form-label"> <fmt:message
+												key="generalassemblymeeting.markettype" />
+										</label>
+
+										<div class="form-control-shell is-select" data-select
+											data-field="market">
+
+											<div class="form-select-value"></div>
+
+											<input type="hidden" data-filter="marketsListId" value="M" />
+
+											<span class="form-suffix form-select-arrow"></span>
+
+											<div class="form-popover">
+												<div class="form-select-panel">
+													<div class="form-select-list">
+
+														<div class="form-select-option" data-value="M"
+															data-selected="true">
+															<fmt:message
+																key="generalassemblymeeting.label.market.main" />
+														</div>
+
+														<div class="form-select-option" data-value="S">
+															<fmt:message
+																key="generalassemblymeeting.label.market.nomu" />
+														</div>
+
+													</div>
+												</div>
+											</div>
+
+										</div>
+
+									</div>
+								</div>
+
+
+								<!-- COMPANY SEARCH -->
+
+								<div class="col-12 col-md-3 col-sm-6">
+
+									<div class="form-field">
+
+										<label class="form-label"> <fmt:message
+												key="issuer.financial.calendars.v2.table.search" />
+										</label>
+
+										<div class="form-control-shell">
+
+											<input type="text" class="form-input"
+												data-filter="companySymbol" value="${requestScope.bySymbol}" placeholder="" />
+
+										</div>
+
+									</div>
+
+								</div>
+
+
+								<!-- Date Range -->
+								<div class="col-12 col-md-3 col-sm-6">
+									<div class="form-field">
+										<label class="form-label"> <fmt:message
+												key="issuer.financial.calendars.v2.table.search.timeperiod" />
+										</label>
+
+										<div class="form-control-shell form-date-range is-date"
+											data-date-range>
+											<input type="text" name="start" data-filter="start"
+												class="form-date-input" placeholder="Start date" readonly
+												data-date-start /> <span class="form-date-range-separator"
+												aria-hidden="true">-</span> <input type="text" name="end"
+												data-filter="end" class="form-date-input"
+												placeholder="End date" readonly data-date-end /> <span
+												class="form-suffix form-date-icon"></span>
+										</div>
+									</div>
+								</div>
+
+								
+							</div>
+
+						</div>
+
+					</div>
+				</section>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<!-- CONTENT AREA -->
+	<div class="intro-section">
+
+		
+
+
+		<section class="app-container mt-5">
+
+			<section id="financial-content" class="tab-content">
+
+
+				<!-- DIVIDENDS PANEL -->
+
+
+				<section class="tab-content__panel is-active"
+					id="financial-panel-dividends" data-tab="dividends" role="tabpanel">
+
+					<table id="dividendsTable" class="table">
+
+						<thead>
+
+							<tr>
+
+								<th><fmt:message
+										key="issuer.financial.calendars.v2.table.heading.symbol" /></th>
+
+								<th><fmt:message
+										key="issuer.financial.calendars.v2.table.heading.company" /></th>
+
+								<th class="text-center"><fmt:message
+										key="issuer.financial.calendars.v2.table.heading.announcementdate" />
+								</th>
+
+								<th class="text-center"><fmt:message
+										key="issuer.financial.calendars.v2.table.heading.duedate" /></th>
+
+								<th class="text-center"><fmt:message
+										key="issuer.financial.calendars.v2.table.heading.distributionmethod" />
+								</th>
+
+								<th class="text-center"><fmt:message
+										key="issuer.financial.calendars.v2.table.heading.distributiondate" />
+								</th>
+
+								<th class="text-center"><fmt:message
+										key="issuer.financial.calendars.v2.table.heading.amount" /></th>
+
+							</tr>
+
+						</thead>
+
+						<tbody></tbody>
+
+					</table>
+
+				</section>
+
+
+				<!-- GENERAL MEETINGS PANEL -->
+				<section class="tab-content__panel"
+					id="financial-panel-generalMeetings" data-tab="generalMeetings"
+					role="tabpanel">
+
+					<div class="table-responsive">
+
+						<table id="generalMeetingsTable" class="table" data-dt>
+
+							<thead>
+
+								<tr>
+
+									<th><fmt:message
+											key="issuer.financial.calendars.v2.table.heading.symbol" /></th>
+
+									<th><fmt:message
+											key="generalassemblymeeting.current.view.company.name" /></th>
+
+									<th class="text-center"><fmt:message
+											key="generalassemblymeeting.current.view.type.of.assembly" />
+									</th>
+
+									<th class="text-center"><fmt:message
+											key="generalassemblymeeting.current.view.date" /></th>
+
+									<th class="text-center"><fmt:message
+											key="generalassemblymeeting.current.view.time" /></th>
+
+									<th class="text-center"><fmt:message
+											key="generalassemblymeeting.current.view.site" /></th>
+
+									<th class="text-center"><fmt:message
+											key="generalassemblymeeting.current.view.status" /></th>
+
+								</tr>
+
+							</thead>
+
+							<tbody></tbody>
+
+						</table>
+
+					</div>
+
+				</section>
+
+				<!-- BOARD SESSIONS PANEL -->
+				<section class="tab-content__panel"
+					id="financial-panel-boardSessions" data-tab="boards"
+					role="tabpanel">
+
+					<div class="table-responsive">
+
+						<table id="boardsTable" class="table" data-dt>
+
+							<thead>
+
+								<tr>
+
+									<th><fmt:message
+											key="issuer.financial.calendars.v2.table.heading.symbol" /></th>
+
+									<th><fmt:message key="bod.company.name" /></th>
+
+									<th class="text-center"><fmt:message key="bod.start.date" /></th>
+
+									<th class="text-center"><fmt:message key="bod.end.date" /></th>
+
+									<th class="text-center"><fmt:message key="bod.session.type" /></th>
+ 
+									<th class="text-center"><fmt:message key="bod.noof.members" /></th>
+
+									<th class="text-center"><fmt:message key="bod.start.date" /></th>
+
+									<th class="text-center"><fmt:message key="bod.end.date" /></th>
+
+								</tr>
+
+							</thead>
+
+							<tbody></tbody>
+
+						</table>
+
+					</div>
+
+				</section>
+
+
+				<!-- CORPORATE ACTIONS PANEL -->
+
+				<section class="tab-content__panel"
+					id="financial-panel-corporateActions" data-tab="corporateActions"
+					role="tabpanel">
+
+					<div class="table-responsive">
+
+						<table id="corporateActionsTable" class="table" data-dt>
+
+							<thead>
+
+								<tr>
+
+									<th><fmt:message key="corpAction.company.symbol" /></th>
+
+									<th><fmt:message key="corpAction.company.name" /></th>
+
+									<th><fmt:message key="corpAction.announceDate" /></th>
+
+									<th><fmt:message key="corpAction.issueType" /></th>
+
+									<th><fmt:message key="corpAction.dueDate" /></th>
+
+									<th><fmt:message key="corpAction.newCap" /></th>
+
+									<th><fmt:message key="corpAction.prevCap" /></th>
+
+								</tr>
+
+							</thead>
+
+							<tbody></tbody>
+
+						</table>
+
+					</div>
+
+				</section>
+
+			</section>
+
+		</section>
+
+	</div>
+
+</section>
+
+<script>
+    window.CALENDAR_TYPE_MAP = {
+        dividends: "<%=CalendarType.DIVIDENDS_CALENDAR%>",
+        generalMeetings: "<%=CalendarType.GEN_ASSEMBLY_MEETINGS_CALENDAR%>",
+        boards: "<%=CalendarType.DIRECTORS_SESSIONS_CALENDAR%>",
+        corporateActions: "<%=CalendarType.CORPORATE_ACTIONS_CALENDAR%>"
+	};
+</script>
+<script>
+	/* =========================================================
+	 DEPENDENT DROPDOWN CONFIG
+	 ========================================================= */
+
+	window.DROPDOWN_CONFIG = {
+
+		market : {
+			init : true,
+
+			targets : [ {
+
+				field : "sector",
+
+				url : "<portlet:resourceURL id='getSectors1'/>",
+
+				method : "GET",
+
+				params : function(marketValue) {
+
+					return {
+						marketsListId : marketValue || "M"
+					};
+
+				},
+
+				map : function(item) {
+
+					return {
+						value : item.id,
+						label : item.name
+					};
+
+				},
+
+				placeholder : function(marketValue) {
+
+					return marketValue === "S" ? '<fmt:message key="generalassemblymeeting.sector.default.value"/>'
+							: '<fmt:message key="generalassemblymeeting.archived.view.all.sectors"/>';
+
+				}
+
+			} ]
+
+		}
+
+	};
+</script>
+
+
+<script>
+	(function() {
+
+		"use strict";
+
+		/* =========================================================
+		 Helpers
+		 ========================================================= */
+
+		function ensurePagination(target) {
+			const table = document.querySelector(target);
+			if (!table || !table.id)
+				return null;
+
+			let pagination = document
+					.querySelector('[data-feed-pagination-for="' + table.id
+							+ '"]');
+
+			if (pagination)
+				return pagination;
+
+			pagination = document.createElement("div");
+			pagination.className = "feed__pagination";
+			pagination.setAttribute("data-feed-pagination-for", table.id);
+
+			pagination.innerHTML = '<div class="feed__page-range" data-feed-range></div>'
+					+ '<div class="feed__page-controls">'
+					+ '<span class="feed__page-label">Page</span> '
+					+ '<select class="feed__select" data-feed-page></select> '
+					+ '<span>of <strong data-feed-total-pages>1</strong></span>'
+					+ '<button class="feed__page-btn" data-feed-prev disabled aria-label="Previous page">'
+					+ '<span class="se-icon icon-md icon-arrow" aria-hidden="true"></span>'
+					+ '</button>'
+					+ '<button class="feed__page-btn" data-feed-next disabled aria-label="Next page">'
+					+ '<span class="se-icon icon-md icon-arrow" aria-hidden="true"></span>'
+					+ '</button>' + '</div>';
+
+			table.insertAdjacentElement("afterend", pagination);
+
+			return pagination;
+		}
+
+		function normalizeResponse(response) {
+
+			if (!response)
+				return [];
+
+			if (typeof response === "string") {
+				try {
+					return normalizeResponse(JSON.parse(response));
+				} catch (e) {
+					return [];
+				}
+			}
+
+			if (Array.isArray(response))
+				return response;
+
+			if (Array.isArray(response.data))
+				return response.data;
+
+			return [];
+		}
+
+		function formatDate(d) {
+			return String(d.getDate()).padStart(2, "0") + "-"
+					+ String(d.getMonth() + 1).padStart(2, "0") + "-"
+					+ d.getFullYear();
+		}
+
+		/* =========================================================
+		 Default 5-Year Date Range
+		 ========================================================= */
+
+		function setDefaultDatesForGroup(group) {
+
+			const today = new Date();
+			const start = new Date();
+
+			start.setFullYear(today.getFullYear() - 5);
+
+			const startInput = group.querySelector("[data-date-start]");
+			const endInput = group.querySelector("[data-date-end]");
+
+			if (startInput && !startInput.value) {
+				startInput.value = formatDate(start);
+			}
+
+			if (endInput && !endInput.value) {
+				endInput.value = formatDate(today);
+			}
+		}
+
+		function initializeDefaultDates() {
+
+			document.querySelectorAll("[data-filters-for]").forEach(
+					setDefaultDatesForGroup);
+
+		}
+
+		/* =========================================================
+		 DataTable Options (shared)
+		 ========================================================= */
+
+		const defaultTableOptions = {
+			paging : true,
+			pageLength : 25,
+			lengthMenu : [ 25, 50, 100 ],
+			fixedHeader : true,
+			scrollX : false,
+			ordering : true,
+			searching : false,
+			info : false,
+			dom : "rt"
+		};
+
+		/* =========================================================
+		 Safe Table Renderer
+		 ========================================================= */
+
+		function renderTable(target, columns, rows) {
+			const pagination = ensurePagination(target);
+			const instance = DataTableCore.getInstance(target);
+
+			const options = Object.assign({}, defaultTableOptions);
+
+			if (pagination) {
+				options.dom = "rt";
+			}
+
+			const features = pagination ? {
+				feedPagination : {
+					container : pagination
+				}
+			} : {};
+
+			if (instance) {
+				DataTableCore.setData(target, rows);
+			} else {
+				DataTableCore.render({
+					target : target,
+					columns : columns,
+					data : rows,
+					features : features,
+					dtOptions : options
+				});
+			}
+
+			DataTableCore.onShow(target);
+		}
+
+		/* =========================================================
+		 TABLE COLUMNS
+		 ========================================================= */
+
+		const dividendsColumns = [
+
+				{
+					data : "symbol",
+					className : "align"
+				},
+
+				{
+					data : "company",
+					className : "align",
+					render : function(d, t, r) {
+
+						if (!r.companyUrl)
+							return d;
+
+						return '<a class="ellipsis" href="'+r.companyUrl+'">'
+								+ d + '</a>';
+
+					}
+				},
+
+				{
+					data : "announcedDate",
+					className : "text-center",
+				}, {
+					data : "dueDate",
+					className : "text-center",
+				}, {
+					data : "distributionWay",
+					className : "text-center",
+				}, {
+					data : "distributionDate",
+					className : "text-center",
+				},
+
+				{
+					data : "amountValue",
+					className : "text-center",
+					render : function(data) {
+						return '<span class="sar-symbol">^</span>' + data;
+					}
+				}
+
+		];
+
+		const generalMeetingsColumns = [
+
+				{
+					data : "compSymbolCode",
+					className : "align"
+				},
+
+				{
+					data : "companyName",
+					className : "align",
+					render : function(d, t, r) {
+
+						if (!r.companyURL)
+							return d;
+
+						return '<a class="ellipsis" href="'+r.companyURL+'">'
+								+ d + '</a>';
+
+					}
+				},
+
+				{
+					data : "natureOfGenMetng",
+					className : "text-center",
+					render : function(d, t, r) {
+
+						if (!r.annUrl)
+							return d;
+
+						return '<a class="ellipsis" href="'+r.annUrl+'">' + d
+								+ '</a>';
+
+					}
+				},
+
+				{
+					data : "holdingDt",
+					className : "text-center",
+				}, {
+					data : "holdingTime",
+					className : "text-center",
+				}, {
+					data : "holdingSite",
+					className : "text-center",
+				}, {
+					data : "status",
+					className : "text-center",
+				}
+
+		];
+
+		const boardsColumns = [
+
+				{
+					data : "companySymbol",
+					className : "align"
+				},
+
+				{
+					data : "companyName",
+					className : "align",
+					render : function(d, t, r) {
+
+						if (!r.companyURL)
+							return d;
+
+						return '<a class="ellipsis" href="'+r.companyURL+'">'
+								+ d + '</a>';
+
+					}
+				},
+
+				{
+					data : "sessionStartDate",
+					className : "text-center",
+				}, {
+					data : "sessionEndDate",
+					className : "text-center",
+				}, {
+					data : "sessionType",
+					className : "text-center",
+				}, {
+					data : "noofBOD",
+					className : "text-center",
+				}, {
+					data : "appStartDate",
+					className : "text-center",
+				}, {
+					data : "appEndDate",
+					className : "text-center",
+				}
+
+		];
+
+		const corporateActionsColumns = [
+
+				{
+					data : "companySymbol",
+					className : "align"
+				},
+
+				{
+					data : "companyName",
+					className : "align",
+					render : function(d, t, r) {
+
+						if (!r.companyURL)
+							return d;
+
+						return '<a class="ellipsis" href="'+r.companyURL+'">'
+								+ d + '</a>';
+
+					}
+				},
+
+				{
+					data : "announceDate",
+					className : "text-center",
+				}, {
+					data : "issueTypeDesc",
+					className : "text-center",
+				}, {
+					data : "dueDate",
+					className : "text-center",
+				},
+
+				{
+					data : "newCApitalWithCurrency",
+					className : "text-center",
+					render : function(data) {
+
+						if (!data)
+							return "";
+
+						const parts = data.split(":");
+						const currency = parts[0];
+						const value = parts[1];
+
+						if (currency === "SAR") {
+							return '<span class="riyal-symbol">'+ value +'</span>';
+						}
+
+						return currency + " " + value;
+					}
+				},
+
+				{
+					data : "prevCApitalWithCurrency",
+					className : "text-center",
+					render : function(data) {
+
+						if (!data)
+							return "";
+
+						const parts = data.split(":");
+						const currency = parts[0];
+						const value = parts[1];
+
+						if (currency === "SAR") {
+							return '<span class="riyal-symbol">'+ value +'</span>';
+						}
+
+						return currency + " " + value;
+					}
+				}
+
+		];
+
+		/* =========================================================
+		 PAGE INIT
+		 ========================================================= */
+
+		document
+				.addEventListener(
+						"DOMContentLoaded",
+						function() {
+
+							initializeDefaultDates();
+
+							const container = document
+									.querySelector('[data-tabs-id="financialCalendars"]');
+
+							if (!container || !window.TabsFeatureEngine
+									|| !window.DataTableCore) {
+								return;
+							}
+
+							TabsFeatureEngine
+									.mount(
+											container,
+											{
+
+												debounceMs : 300,
+												loadOnMount : false,
+
+												tabs : {
+
+													/* =====================================================
+													 DIVIDENDS
+													 ===================================================== */
+
+													dividends : {
+
+														getUrl : function() {
+															return '<portlet:resourceURL id="getDividendsDetails"/>';
+														},
+
+														getParams : function(
+																ctx) {
+
+															return {
+																calendarType : window.CALENDAR_TYPE_MAP.dividends,
+
+																symbolorcompany : ctx.filters.symbolorcompany
+																		|| "",
+																start : ctx.filters.start
+																		|| "",
+																end : ctx.filters.end
+																		|| "",
+																marketsListId : ctx.filters.marketsListId
+																		|| "M",
+																sector : ctx.filters.sector
+																		|| "",
+																period : ctx.filters.period
+																		|| "CUSTOM",
+																bySymbol : ctx.filters.symbolorcompany
+																		|| "",
+																market : ctx.filters.marketsListId
+																		|| "M"
+
+															};
+
+														},
+
+														normalize : normalizeResponse,
+
+														render : function(ctx) {
+
+															renderTable(
+																	"#dividendsTable",
+																	dividendsColumns,
+																	ctx.rows);
+
+														}
+
+													},
+
+													/* =====================================================
+													 GENERAL MEETINGS
+													 ===================================================== */
+
+													generalMeetings : {
+
+														getUrl : function() {
+															return '<portlet:resourceURL id="getGenAssemblyDetails"/>';
+														},
+
+														getParams : function(
+																ctx) {
+
+															return {
+																calendarType : window.CALENDAR_TYPE_MAP.generalMeetings,
+																searchType : "searchData",
+																marketsListId : ctx.filters.marketsListId
+																		|| "M",
+																fromDate : ctx.filters.fromDate
+																		|| "",
+																toDate : ctx.filters.toDate
+																		|| "",
+																companySymbol : ctx.filters.companySymbol
+																		|| "",
+																sector : ctx.filters.sector
+																		|| "",
+																type : ctx.filters.type
+																		|| "",
+																status : ctx.filters.status
+																		|| "",
+																bySymbol : ctx.filters.companySymbol
+																		|| "",
+																market : ctx.filters.marketsListId
+																		|| "M"
+
+															};
+
+														},
+
+														normalize : normalizeResponse,
+
+														render : function(ctx) {
+
+															renderTable(
+																	"#generalMeetingsTable",
+																	generalMeetingsColumns,
+																	ctx.rows);
+
+														}
+
+													},
+
+													/* =====================================================
+													 BOARDS
+													 ===================================================== */
+
+													boards : {
+
+														getUrl : function() {
+															return '<portlet:resourceURL id="getDirSessionDetails"/>';
+														},
+
+														getParams : function(
+																ctx) {
+
+															return {
+																calendarType : window.CALENDAR_TYPE_MAP.boards,
+
+																searchType : "searchData",
+																marketsListId : ctx.filters.marketsListId
+																		|| "M",
+																fromDate : ctx.filters.fromDate
+																		|| "",
+																toDate : ctx.filters.toDate
+																		|| "",
+																companySymbol : ctx.filters.companySymbol
+																		|| ""
+
+															};
+
+														},
+
+														normalize : normalizeResponse,
+
+														render : function(ctx) {
+
+															renderTable(
+																	"#boardsTable",
+																	boardsColumns,
+																	ctx.rows);
+
+														}
+
+													},
+
+													/* =====================================================
+													 CORPORATE ACTIONS
+													 ===================================================== */
+
+													corporateActions : {
+
+														getUrl : function() {
+															return '<portlet:resourceURL id="getCorpDetails"/>';
+														},
+
+														getParams : function(
+																ctx) {
+
+															return {
+																calendarType : window.CALENDAR_TYPE_MAP.corporateActions,
+
+																searchType : "searchData",
+																marketsListId : ctx.filters.marketsListId
+																		|| "M",
+																companySymbol : ctx.filters.companySymbol
+																		|| "",
+																start : ctx.filters.start
+																		|| "",
+																end : ctx.filters.end
+																		|| ""
+
+															};
+
+														},
+
+														normalize : normalizeResponse,
+
+														render : function(ctx) {
+
+															renderTable(
+																	"#corporateActionsTable",
+																	corporateActionsColumns,
+																	ctx.rows);
+
+														}
+
+													}
+
+												}
+
+											});
+
+						});
+
+	})();
+</script>
+<script src="${pageContext.request.contextPath}/js/tabs.controller.js"></script>
+<script src="${pageContext.request.contextPath}/js/dropdown-update.js"></script>
+<script
+	src="${pageContext.request.contextPath}/js/tabbed-feature.manager.js"></script>
+
+
+
