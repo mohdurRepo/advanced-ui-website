@@ -47,11 +47,10 @@ import {
   getDisplayValue,
   getInstrumentName,
   getInstrumentReference,
+  getSukukGroup,
   renderMobileIdentity,
   renderMobilePrice,
 } from "../sukuk.formatters.js";
-
-import { getSukukGroup } from "./sukuk.table.js";
 
 /* ==========================================================================
    Constants
@@ -153,8 +152,7 @@ export function renderSukukCard(
   );
 
   /*
-   * Same composition used by the
-   * current Sukuk implementation:
+   * Current Sukuk mobile summary:
    *
    * identity
    * quote
@@ -195,7 +193,7 @@ export function createSukukCards({
   root = document,
   config = {},
   view = "1",
-  visibleGroups = [],
+  getVisibleGroups = () => [],
 } = {}) {
   return createDataCards({
     root,
@@ -209,7 +207,7 @@ export function createSukukCards({
     },
 
     renderCard(row, context) {
-      return renderSukukCard(row, context, config, visibleGroups, view);
+      return renderSukukCard(row, context, config, getVisibleGroups(), view);
     },
 
     emptyMessage: config.labels?.noData || "No data available",

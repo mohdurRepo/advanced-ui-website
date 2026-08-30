@@ -104,8 +104,7 @@ function getAvailableGroups(config) {
 function buildRequestData(config, state) {
   return {
     /*
-     * Preserve the existing
-     * backend contract.
+     * Preserve the existing backend contract.
      */
 
     sectorParameter: state.bondType || "all",
@@ -138,9 +137,8 @@ function handleFavorite(event, scope) {
   const instrumentRef = button.dataset.instrumentRef || "";
 
   /*
-   * Preserve the existing
-   * website-level watchlist
-   * integration.
+   * Preserve the existing website-level
+   * watchlist integration.
    */
 
   if (typeof window.showAddToWatchListPopup === "function") {
@@ -148,8 +146,7 @@ function handleFavorite(event, scope) {
   }
 
   /*
-   * Also expose the existing
-   * page-level event.
+   * Preserve the existing page-level event.
    */
 
   button.dispatchEvent(
@@ -301,7 +298,17 @@ export function initSukuk(root = document) {
 
     view: SUKUK_VIEW,
 
-    visibleGroups: columnVisibility.getVisibleGroups(),
+    /*
+     * Important:
+     *
+     * Resolve visible groups at render time so
+     * mobile cards remain synchronized with the
+     * column picker.
+     */
+
+    getVisibleGroups() {
+      return columnVisibility.getVisibleGroups();
+    },
   });
 
   /* ========================================================================
@@ -354,9 +361,8 @@ export function initSukuk(root = document) {
     },
 
     /*
-     * Keep the DOM picker
-     * synchronized with common
-     * column-visibility state.
+     * Keep the DOM picker synchronized
+     * with common visibility state.
      */
 
     onViewSync() {
@@ -390,10 +396,12 @@ export function initSukuk(root = document) {
   };
 
   /*
-   * Favorite controls exist
-   * in both desktop and mobile
-   * views, so keep one delegated
-   * page-level handler.
+   * Favorite buttons are rendered in both:
+   *
+   * - desktop Instrument cells
+   * - mobile card identities
+   *
+   * Keep one delegated handler.
    */
 
   scope.addEventListener(
@@ -407,10 +415,9 @@ export function initSukuk(root = document) {
   );
 
   /*
-   * Reload after an external
-   * watchlist update so the
-   * server-returned favorite state
-   * remains authoritative.
+   * Reload after external watchlist changes so
+   * server-returned favorite state remains
+   * authoritative.
    */
 
   scope.addEventListener(

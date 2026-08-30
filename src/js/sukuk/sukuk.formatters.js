@@ -13,6 +13,7 @@
  * - favorite-button rendering
  * - Sukuk-specific yield formatting
  * - Sukuk-specific price formatting
+ * - Sukuk group formatting
  * - coupon-type formatting
  * - maturity / perpetual-bond formatting
  * - coupon-frequency formatting
@@ -80,10 +81,6 @@ function isSafeHref(value) {
  *
  * Price:
  *   2 decimal places
- *
- * Do not use the generic shared formatPrice() here because Market Watch
- * preserves backend-provided price presentation, while Sukuk explicitly
- * requires fixed decimal precision.
  */
 
 export function formatYield(value) {
@@ -222,15 +219,6 @@ export function renderFavoriteButton(row = {}, options = {}) {
    Desktop Instrument Text
    ========================================================================== */
 
-/*
- * Preserve the current Sukuk hierarchy:
- *
- * Name
- * Code
- *
- * The Market Watch design-system classes are intentionally reused.
- */
-
 function renderInstrumentText(row = {}) {
   const code = getInstrumentCode(row);
 
@@ -272,15 +260,6 @@ function renderInstrumentText(row = {}) {
    Desktop Instrument Cell
    ========================================================================== */
 
-/*
- * Match Market Watch's first-column structure:
- *
- * favorite
- * identity
- *
- * There is no separate Watchlist table column.
- */
-
 export function renderInstrument(row = {}) {
   return `
     <div class="table-market__security-cell">
@@ -303,7 +282,8 @@ export function formatDateIso(value) {
   const text = normalizeString(value);
 
   /*
-   * Preserve backend ISO dates without timezone conversion.
+   * Preserve backend ISO dates
+   * without timezone conversion.
    */
 
   if (/^\d{4}-\d{2}-\d{2}/.test(text)) {
@@ -350,6 +330,22 @@ export function isTrueLike(value) {
 
 function getValueLabels(config = {}) {
   return isObject(config.labels?.values) ? config.labels.values : {};
+}
+
+/* ==========================================================================
+   Sukuk Group
+   ========================================================================== */
+
+export function getSukukGroup(row = {}, config = {}) {
+  const bondType = String(row.bondType ?? "")
+    .trim()
+    .toUpperCase();
+
+  if (bondType === "G") {
+    return config.labels?.government || "Government Sukuk";
+  }
+
+  return config.labels?.corporate || "Corporate Sukuk";
 }
 
 /* ==========================================================================
@@ -474,15 +470,6 @@ export function getLastPrice(row = {}) {
    Mobile Identity
    ========================================================================== */
 
-/*
- * Preserve Sukuk's current mobile hierarchy:
- *
- * favorite
- *
- * CODE
- * Name
- */
-
 export function renderMobileIdentity(row = {}) {
   const code = getInstrumentCode(row);
 
@@ -543,11 +530,6 @@ export function renderMobilePrice(row = {}) {
 /* ==========================================================================
    Shared Re-exports
    ========================================================================== */
-
-/*
- * Preserve the existing Sukuk formatter public API while the rest of the
- * module is migrated to the project-level shared formatter.
- */
 
 export {
   escapeHtml,

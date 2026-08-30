@@ -9,7 +9,6 @@
  *
  * - table cell rendering
  * - loading skeleton rendering
- * - Sukuk group resolution
  * - row-group rendering
  * - Data View table composition
  *
@@ -23,6 +22,10 @@
  * - favorite event handling
  * - page startup
  */
+
+/* ==========================================================================
+   Imports
+   ========================================================================== */
 
 import { createDataTable } from "../../../common/data-view/index.js";
 
@@ -42,6 +45,7 @@ import {
   getColumnValue,
   getDisplayValue,
   getInstrumentName,
+  getSukukGroup,
   renderInstrument,
 } from "../sukuk.formatters.js";
 
@@ -57,12 +61,8 @@ export const SUKUK_TABLE_SELECTOR = "[data-sukuk-table]";
 
 export function renderSukukTableCell({ row, column, type, config = {} }) {
   /*
-   * Preserve raw/backend-oriented values for DataTables
-   * sort, type and filter requests.
-   *
-   * Searching / ordering are currently disabled, but
-   * keeping this behavior preserves the existing table
-   * contract.
+   * Keep raw/backend-oriented values available
+   * for DataTables sorting/type/filter operations.
    */
 
   if (type === "sort" || type === "type" || type === "filter") {
@@ -125,22 +125,6 @@ export function renderSukukTableCell({ row, column, type, config = {} }) {
     default:
       return escapeHtml(getDisplayValue(value));
   }
-}
-
-/* ==========================================================================
-   Sukuk Group
-   ========================================================================== */
-
-export function getSukukGroup(row = {}, config = {}) {
-  const bondType = String(row.bondType ?? "")
-    .trim()
-    .toUpperCase();
-
-  if (bondType === "G") {
-    return config.labels?.government || "Government Sukuk";
-  }
-
-  return config.labels?.corporate || "Corporate Sukuk";
 }
 
 /* ==========================================================================
@@ -218,14 +202,12 @@ export function createSukukTable({
       });
     },
 
-    /*
-     * Shared defaults belong at project level.
-     *
-     * Row grouping remains Sukuk-specific.
-     */
-
     tableOptions: createMarketTableOptions({
       ...config.table,
+
+      /*
+       * Sukuk-specific grouping.
+       */
 
       rowGroup: {},
     }),

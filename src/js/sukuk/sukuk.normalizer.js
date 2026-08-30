@@ -9,7 +9,7 @@
  *
  * - accept supported backend response shapes
  * - normalize row identity fields
- * - normalize total count metadata
+ * - normalize total-count metadata
  * - normalize last-updated metadata
  * - preserve the original backend response
  *
@@ -21,6 +21,10 @@
  * - filter state
  * - rendering
  */
+
+/* ==========================================================================
+   Imports
+   ========================================================================== */
 
 import {
   getInstrumentName,
@@ -56,7 +60,11 @@ export function getSukukResponseRows(response) {
    ========================================================================== */
 
 export function normalizeSukukRow(row) {
-  if (!row || typeof row !== "object" || Array.isArray(row)) {
+  /*
+   * Preserve the original normalization contract.
+   */
+
+  if (!row || typeof row !== "object") {
     return null;
   }
 
