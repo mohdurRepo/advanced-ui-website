@@ -40,7 +40,7 @@ import {
   getSafeUrl,
   normalizeString,
   parseDateParts,
-} from "../../../../shared/trading/trading-formatters.js";
+} from "../../../shared/trading/trading-formatters.js";
 
 import {
   COMPANY_STATUS_VIEWS,

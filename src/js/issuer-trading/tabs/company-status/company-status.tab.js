@@ -40,12 +40,12 @@ import {
 
 import { getIssuerTradingEndpoint } from "../../issuer-trading-config.js";
 
-import { createTradingTableOptions } from "../../shared/trading-table-options.js";
+import { createTradingTableOptions } from "../../../shared/trading/trading-table-options.js";
 
 import {
   formatRequestDate,
   normalizeString,
-} from "../../../../shared/trading/trading-formatters.js";
+} from "../../../shared/trading/trading-formatters.js";
 
 import {
   bindCompanyStatusFilters,

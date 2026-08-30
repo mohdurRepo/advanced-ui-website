@@ -31,7 +31,7 @@ import { createDataTable } from "../../../../../common/data-view/index.js";
 
 import { createTradingTableOptions } from "../../../../shared/trading/trading-table-options.js";
 
-import { createListedTradableRightsFormatters } from "../../../../shared/trading/trading-formatters.js";
+import { createListedTradableRightsFormatters } from "../listed-tradable-rights.formatters.js";
 
 /* ==========================================================================
    Constants

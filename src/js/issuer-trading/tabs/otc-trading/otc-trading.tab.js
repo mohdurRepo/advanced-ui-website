@@ -32,7 +32,7 @@
 
 import { createTradingTab } from "../../shared/create-trading-tab.js";
 
-import { normalizeString } from "../../../../shared/trading/trading-formatters.js";
+import { normalizeString } from "../../../shared/trading/trading-formatters.js";
 
 import { normalizeOtcTradingResponse } from "./otc-trading.normalizer.js";
 
