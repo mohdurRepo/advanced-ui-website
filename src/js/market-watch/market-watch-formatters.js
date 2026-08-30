@@ -10,15 +10,15 @@
  * - number formatting
  * - auction formatting
  * - price-change state
- * - company status
+ * - accumulated-loss status presentation
  * - favorite-button rendering
  * - 52-week range rendering
  * - desktop company identity composition
  * - mobile company identity composition
  * - mobile quote rendering
  *
- * Standard company identity is delegated to the shared data-view identity
- * renderer.
+ * Standard company identity and logo rendering are delegated to the shared
+ * data-view company identity renderer.
  *
  * This module intentionally has no:
  *
@@ -41,11 +41,43 @@ import {
 } from "../../common/data-view/index.js";
 
 /* ==========================================================================
+   Constants
+   ========================================================================== */
+
+const STATUS_PRESENTATIONS = Object.freeze({
+  1: Object.freeze({
+    className: "status-state--attention",
+
+    labelKey: "losses20To35",
+  }),
+
+  2: Object.freeze({
+    className: "status-state--warning",
+
+    labelKey: "losses35To50",
+  }),
+
+  3: Object.freeze({
+    className: "status-state--danger",
+
+    labelKey: "losses50More",
+  }),
+});
+
+/* ==========================================================================
    Internal Helpers
    ========================================================================== */
 
 function firstDefined(...values) {
   return values.find((value) => value !== undefined && value !== null);
+}
+
+function isObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function normalizeString(value) {
+  return String(value ?? "").trim();
 }
 
 function getLocale(config = {}) {
@@ -57,7 +89,7 @@ function isAuction(config = {}) {
 }
 
 function isSafeHref(value) {
-  const href = String(value || "").trim();
+  const href = normalizeString(value);
 
   if (!href) {
     return false;
@@ -71,9 +103,7 @@ function isFavoriteActive(value) {
     return true;
   }
 
-  const normalized = String(value ?? "")
-    .trim()
-    .toLowerCase();
+  const normalized = normalizeString(value).toLowerCase();
 
   return (
     normalized === "1" ||
@@ -110,6 +140,8 @@ export function toNumber(value) {
   }
 
   const normalized = String(value)
+    .replace(/[٠-٩]/g, (digit) => "٠١٢٣٤٥٦٧٨٩".indexOf(digit))
+    .replace(/[۰-۹]/g, (digit) => "۰۱۲۳۴۵۶۷۸۹".indexOf(digit))
     .replaceAll(",", "")
     .replaceAll("٬", "")
     .replaceAll("−", "-")
@@ -136,11 +168,11 @@ export function isZeroLike(value) {
    ========================================================================== */
 
 export function getDisplayValue(value, fallback = "-") {
-  if (value == null || String(value).trim() === "") {
+  if (value == null || normalizeString(value) === "") {
     return fallback;
   }
 
-  return String(value).trim();
+  return normalizeString(value);
 }
 
 /* ==========================================================================
@@ -234,58 +266,133 @@ export function formatAuctionQuantity(value, config = {}) {
 
 export function formatMarketOrder(value, config = {}) {
   if (isAuction(config) && isZeroLike(value)) {
-    return config.labels?.marketOrder || "MO";
+    return normalizeString(config.labels?.marketOrder) || "MO";
   }
 
   return getDisplayValue(value);
 }
 
 /* ==========================================================================
-   Company Status
+   Company Status Resolution
+   ========================================================================== */
+
+/*
+ * Market Watch can receive company status in several forms:
+ *
+ * companyStatus: 1
+ *
+ * companyStatus: "1"
+ *
+ * companyStatus: {
+ *   code: "1",
+ *   value: 1
+ * }
+ *
+ * Some normalizers also preserve the original service row under `raw`.
+ */
+
+function getCompanyStatusValue(row = {}) {
+  const value =
+    row.companyStatus ??
+    row.statusCode ??
+    row.companyStatusCode ??
+    row.lossStatus ??
+    row.status ??
+    row.raw?.companyStatus ??
+    row.raw?.statusCode ??
+    row.raw?.companyStatusCode ??
+    row.raw?.lossStatus ??
+    row.raw?.status;
+
+  if (isObject(value)) {
+    return value.code ?? value.value ?? value.id ?? value.raw ?? "";
+  }
+
+  return value;
+}
+
+function getCompanyStatusCode(row = {}) {
+  const value = getCompanyStatusValue(row);
+
+  const number = Number(value);
+
+  if (Number.isFinite(number)) {
+    return String(number);
+  }
+
+  return normalizeString(value);
+}
+
+function getCompanyStatusLabels(config = {}) {
+  return {
+    ...(isObject(config.labels?.status) ? config.labels.status : {}),
+
+    ...(isObject(config.labels?.marketWatch?.status)
+      ? config.labels.marketWatch.status
+      : {}),
+  };
+}
+
+/* ==========================================================================
+   Company Status Presentation
    ========================================================================== */
 
 export function getCompanyStatus(row = {}, config = {}) {
-  const labels = config.labels?.status || {};
+  const statusCode = getCompanyStatusCode(row);
 
-  const status = Number(
-    row.companyStatus?.code ??
-      row.companyStatus?.value ??
-      row.companyStatus ??
-      row.statusCode ??
-      row.companyStatusCode,
-  );
+  const definition = STATUS_PRESENTATIONS[statusCode];
 
-  switch (status) {
-    case 1:
-      return {
-        className:
-          "table-market__status table-market__status--warning ylwSymbol",
+  if (!definition) {
+    return Object.freeze({
+      code: statusCode,
 
-        title: labels.losses20To35 || "",
-      };
+      className: "",
 
-    case 2:
-      return {
-        className:
-          "table-market__status table-market__status--caution orgSymbol",
-
-        title: labels.losses35To50 || "",
-      };
-
-    case 3:
-      return {
-        className:
-          "table-market__status table-market__status--danger redSymbol",
-
-        title: labels.losses50More || "",
-      };
-
-    default:
-      return {
-        className: "",
-        title: "",
-      };
+      label: "",
+    });
   }
+
+  const labels = getCompanyStatusLabels(config);
+
+  return Object.freeze({
+    code: statusCode,
+
+    className: definition.className,
+
+    label: normalizeString(labels[definition.labelKey]),
+  });
+}
+
+/* ==========================================================================
+   Company Status Indicator
+   ========================================================================== */
+
+export function renderCompanyStatusIndicator(row = {}, config = {}) {
+  const presentation = getCompanyStatus(row, config);
+
+  if (!presentation.className) {
+    return "";
+  }
+
+  const accessibilityAttributes = presentation.label
+    ? `
+        role="img"
+        aria-label="${escapeHtml(presentation.label)}"
+        title="${escapeHtml(presentation.label)}"
+      `.trim()
+    : 'aria-hidden="true"';
+
+  return `
+    <span
+      class="status-state ${escapeHtml(presentation.className)}"
+      ${accessibilityAttributes}
+    >
+      <span
+        class="status-state__indicator"
+        aria-hidden="true"
+      ></span>
+    </span>
+  `.trim();
 }
 
 /* ==========================================================================
@@ -293,33 +400,40 @@ export function getCompanyStatus(row = {}, config = {}) {
    ========================================================================== */
 
 /*
- * These helpers remain exported because Market Watch business behavior such as
- * watchlist actions, card identifiers, filtering, and integrations can depend
- * on the canonical company values.
+ * These values remain exported because Market Watch integrations,
+ * watchlist actions, card identifiers, filtering, and table rendering can
+ * depend on them.
  *
- * Visual identity rendering itself is owned by the shared company renderer.
+ * Visual identity rendering is delegated to the shared company identity.
  */
 
 export function getCompanyReference(row = {}) {
-  return String(
-    firstDefined(row.companyRef, row.companySymbol, row.symbol, ""),
-  ).trim();
+  return normalizeString(
+    firstDefined(
+      row.companyRef,
+      row.companySymbol,
+      row.symbol,
+      row.companyCode,
+      "",
+    ),
+  );
 }
 
 export function getCompanyCode(row = {}) {
-  return String(
+  return normalizeString(
     firstDefined(
       row.companyCode,
       row.companyRef,
       row.companySymbol,
       row.symbol,
+      row.securityCode,
       "",
     ),
-  ).trim();
+  );
 }
 
 export function getCompanyName(row = {}) {
-  return String(
+  return normalizeString(
     firstDefined(
       row.acrynomName,
       row.acronymName,
@@ -328,13 +442,19 @@ export function getCompanyName(row = {}) {
       row.name,
       "-",
     ),
-  ).trim();
+  );
 }
 
 export function getCompanySymbol(row = {}) {
-  return String(
-    firstDefined(row.companySymbol, row.symbol, row.companyRef, ""),
-  ).trim();
+  return normalizeString(
+    firstDefined(
+      row.companySymbol,
+      row.symbol,
+      row.companyRef,
+      row.companyCode,
+      "",
+    ),
+  );
 }
 
 export function getCompanyUrl(row = {}) {
@@ -350,7 +470,7 @@ export function getCompanyUrl(row = {}) {
     return "";
   }
 
-  return String(value).trim();
+  return normalizeString(value);
 }
 
 /* ==========================================================================
@@ -364,7 +484,8 @@ export function renderFavoriteButton(row = {}, options = {}) {
 
   const companyName = getCompanyName(row);
 
-  const className = options.className || "table-market__favorite";
+  const className =
+    normalizeString(options.className) || "table-market__favorite";
 
   const iconClass = active ? "icon-star-filled" : "icon-star-outline";
 
@@ -390,41 +511,14 @@ export function renderFavoriteButton(row = {}, options = {}) {
 }
 
 /* ==========================================================================
-   Status Markup
-   ========================================================================== */
-
-function renderCompanyStatus(status) {
-  if (!status.className) {
-    return "";
-  }
-
-  const accessibilityAttributes = status.title
-    ? `
-        role="img"
-        aria-label="${escapeHtml(status.title)}"
-        title="${escapeHtml(status.title)}"
-      `.trim()
-    : 'aria-hidden="true"';
-
-  return `
-    <span
-      class="${escapeHtml(status.className)}"
-      ${accessibilityAttributes}
-    ></span>
-  `.trim();
-}
-
-/* ==========================================================================
    Desktop Company Identity
    ========================================================================== */
 
 export function renderCompanyCell(row = {}, config = {}) {
-  const status = getCompanyStatus(row, config);
-
   return renderStandardCompanyCell(row, config, {
     leading: renderFavoriteButton(row),
 
-    nameMetadata: renderCompanyStatus(status),
+    nameMetadata: renderCompanyStatusIndicator(row, config),
   });
 }
 
@@ -527,7 +621,7 @@ export function renderChange(value, numericValue, options = {}) {
     : getDisplayValue(value);
 
   return `
-    <span class="${className}">
+    <span class="${escapeHtml(className)}">
       ${escapeHtml(displayValue)}
     </span>
   `.trim();
@@ -538,14 +632,12 @@ export function renderChange(value, numericValue, options = {}) {
    ========================================================================== */
 
 export function renderMobileIdentity(row = {}, config = {}) {
-  const status = getCompanyStatus(row, config);
-
   return renderStandardCompanyCardIdentity(row, config, {
     leading: renderFavoriteButton(row, {
       className: "data-card__favorite",
     }),
 
-    nameMetadata: renderCompanyStatus(status),
+    nameMetadata: renderCompanyStatusIndicator(row, config),
   });
 }
 
