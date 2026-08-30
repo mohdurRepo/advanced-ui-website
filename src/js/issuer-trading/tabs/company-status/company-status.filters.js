@@ -33,7 +33,7 @@
    Imports
    ========================================================================== */
 
-import { formatInputDate } from "../../../shared/trading/trading-formatters.js";
+import { formatInputDate } from "../../../../shared/trading/trading-formatters.js";
 
 /* ==========================================================================
    Constants

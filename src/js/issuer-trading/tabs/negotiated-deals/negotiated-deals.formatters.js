@@ -42,7 +42,7 @@ import {
   getDateSortValue,
   getDisplayValue,
   normalizeString,
-} from "../../../shared/trading/trading-formatters.js";
+} from "../../../../shared/trading/trading-formatters.js";
 
 import { renderStandardCompanyCell } from "../../../../common/data-view/index.js";
 

@@ -44,7 +44,7 @@ import {
   createDataViewController,
 } from "../../common/data-view/index.js";
 
-import { createTradingTableOptions } from "../issuer-trading/shared/trading-table-options.js";
+import { createTradingTableOptions } from "../shared/trading/trading-table-options.js";
 
 import { getDerivativeNegotiatedConfig } from "./derivative-negotiated.config.js";
 
