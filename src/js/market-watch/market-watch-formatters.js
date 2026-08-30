@@ -203,25 +203,43 @@ export function getCompanyStatus(row = {}, config = {}) {
   const definition = STATUS_PRESENTATIONS[statusCode];
 
   if (!definition) {
-    return Object.freeze({
+    return {
       code: statusCode,
       className: "",
       label: "",
-    });
+    };
   }
 
   const labels = getCompanyStatusLabels(config);
 
-  return Object.freeze({
+  return {
     code: statusCode,
+
     className: definition.className,
+
     label: normalizeString(labels[definition.labelKey]),
-  });
+  };
 }
 
 /* ==========================================================================
    Company Status Indicator
    ========================================================================== */
+
+/*
+ * Required working markup:
+ *
+ * <span
+ *   class="status-state status-state--attention"
+ *   role="img"
+ *   aria-label="..."
+ *   title="..."
+ * >
+ *   <span
+ *     class="status-state__indicator"
+ *     aria-hidden="true"
+ *   ></span>
+ * </span>
+ */
 
 export function renderCompanyStatusIndicator(row = {}, config = {}) {
   const presentation = getCompanyStatus(row, config);
@@ -290,7 +308,9 @@ export function getCompanyName(row = {}) {
         row.companyName,
         row.longName,
         row.shortName,
+
         typeof row.company === "string" ? row.company : null,
+
         row.name,
         row.securityName,
         "",
@@ -429,11 +449,11 @@ export function renderRange(row = {}, config = {}) {
 
   const marker = hasMarker
     ? `
-        <span
-          class="table-market__range-marker"
-          aria-hidden="true"
-        ></span>
-      `.trim()
+          <span
+            class="table-market__range-marker"
+            aria-hidden="true"
+          ></span>
+        `.trim()
     : "";
 
   return `
@@ -541,8 +561,8 @@ export function renderMobileQuote(row = {}, config = {}) {
    ========================================================================== */
 
 /*
- * Existing Market Watch files may continue importing these from this module
- * while the migration to pages/shared is completed.
+ * Keep these exports available to existing Market Watch modules while
+ * migration to the project-level shared formatter is completed.
  */
 
 export {
