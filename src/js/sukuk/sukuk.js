@@ -2,53 +2,72 @@
    Sukuk & Bonds
    ========================================================================== */
 
+/*
+ * Sukuk & Bonds page composition.
+ *
+ * Responsibilities:
+ *
+ * - page initialization
+ * - common Data View composition
+ * - state
+ * - column visibility
+ * - column picker
+ * - data source
+ * - results
+ * - controller
+ * - favorite/watchlist events
+ * - public API
+ * - startup
+ *
+ * Page-specific presentation is delegated to:
+ *
+ * - sukuk.config.js
+ * - sukuk.columns.js
+ * - sukuk.filters.js
+ * - sukuk.formatters.js
+ * - sukuk.normalizer.js
+ * - views/sukuk.table.js
+ * - views/sukuk.cards.js
+ */
+
+/* ==========================================================================
+   Common Data View
+   ========================================================================== */
+
 import {
-  createDataCards,
   createDataColumnPicker,
   createDataColumnVisibility,
-  createDataFilters,
   createDataResults,
   createDataSource,
   createDataState,
-  createDataTable,
   createDataViewController,
-  renderStandardDataCard,
-} from "../common/data-view/index.js";
+} from "../../common/data-view/index.js";
+
+/* ==========================================================================
+   Sukuk Modules
+   ========================================================================== */
 
 import {
-  getColumnGroups,
-  getColumns,
-  getDefaultVisibleGroups,
-  getMobileColumns,
-} from "./sukuk-schema.js";
+  getConfiguredVisibleGroups,
+  getSukukConfig,
+  SUKUK_VIEW,
+} from "./sukuk.config.js";
 
-import {
-  escapeHtml,
-  formatCouponFrequency,
-  formatCouponType,
-  formatDayCountConvention,
-  formatMaturity,
-  formatPrice,
-  formatQuantity,
-  formatYield,
-  getColumnValue,
-  getDisplayValue,
-  getInstrumentName,
-  getInstrumentReference,
-  renderInstrument,
-  renderMobileIdentity,
-  renderMobilePrice,
-} from "./sukuk-formatters.js";
+import { getColumnGroups, getDefaultVisibleGroups } from "./sukuk.columns.js";
+
+import { createSukukFilters } from "./sukuk.filters.js";
+
+import { normalizeSukukResponse } from "./sukuk.normalizer.js";
+
+import { createSukukTable } from "./views/sukuk.table.js";
+
+import { createSukukCards } from "./views/sukuk.cards.js";
 
 /* ==========================================================================
    Constants
    ========================================================================== */
 
-const VIEW = "1";
-
 const SELECTORS = {
-  bondType: "[data-sukuk-bond-type]",
-
   columnsTrigger: "[data-sukuk-columns]",
 
   columnsMenu: "[data-sukuk-columns-menu]",
@@ -59,110 +78,23 @@ const SELECTORS = {
 
   columnAction: "[data-sukuk-columns-action]",
 
-  table: "[data-sukuk-table]",
-
-  cards: "[data-sukuk-mobile-cards]",
-
   resultCount: "[data-sukuk-result-count]",
 
   favorite: "[data-sukuk-favorite]",
 };
 
+/* ==========================================================================
+   Instances
+   ========================================================================== */
+
 const instances = new WeakMap();
 
 /* ==========================================================================
-   Configuration
+   Column Groups
    ========================================================================== */
-
-function getConfig() {
-  const config = window.SukukConfig;
-
-  if (!config) {
-    throw new Error("SukukConfig is required.");
-  }
-
-  return config;
-}
-
-/* ==========================================================================
-   Helpers
-   ========================================================================== */
-
-function cleanLabel(value, fallback = "") {
-  return String(value ?? fallback)
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<[^>]*>/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
 function getAvailableGroups(config) {
-  return getColumnGroups(config, VIEW).map((group) => group.id);
-}
-
-/* ==========================================================================
-   Response Normalization
-   ========================================================================== */
-
-function getResponseRows(response) {
-  if (Array.isArray(response)) {
-    return response;
-  }
-
-  if (Array.isArray(response?.data)) {
-    return response.data;
-  }
-
-  if (Array.isArray(response?.rows)) {
-    return response.rows;
-  }
-
-  if (Array.isArray(response?.results)) {
-    return response.results;
-  }
-
-  return [];
-}
-
-function normalizeRow(row) {
-  if (!row || typeof row !== "object") {
-    return null;
-  }
-
-  return {
-    ...row,
-
-    instrumentRef: getInstrumentReference(row),
-
-    instrumentName: getInstrumentName(row),
-  };
-}
-
-function normalizeResponse(response) {
-  const rows = getResponseRows(response).map(normalizeRow).filter(Boolean);
-
-  const total = Number(
-    response?.total ??
-      response?.recordsTotal ??
-      response?.recordsFiltered ??
-      rows.length,
-  );
-
-  return {
-    rows,
-
-    meta: {
-      total: Number.isFinite(total) ? total : rows.length,
-
-      updatedAt:
-        response?.updatedAt ??
-        response?.lastUpdated ??
-        response?.timestamp ??
-        null,
-    },
-
-    raw: response,
-  };
+  return getColumnGroups(config, SUKUK_VIEW).map((group) => group.id);
 }
 
 /* ==========================================================================
@@ -172,243 +104,14 @@ function normalizeResponse(response) {
 function buildRequestData(config, state) {
   return {
     /*
-     * Preserve the existing backend contract.
+     * Preserve the existing
+     * backend contract.
      */
+
     sectorParameter: state.bondType || "all",
 
     requestLocale: config.locale || "en",
   };
-}
-
-/* ==========================================================================
-   Table Cell Rendering
-   ========================================================================== */
-
-function renderTableCell({ row, column, type, config }) {
-  /*
-   * Keep raw values available for future searching / ordering even though
-   * those DataTables features are currently disabled.
-   */
-
-  if (type === "sort" || type === "type" || type === "filter") {
-    if (column.type === "instrument") {
-      return getInstrumentName(row);
-    }
-
-    return getDisplayValue(getColumnValue(row, column, ""), "");
-  }
-
-  /* ------------------------------------------------------------------------
-     Loading
-     ------------------------------------------------------------------------ */
-
-  if (row?.__dataViewState === "loading") {
-    const size =
-      column.type === "instrument" ? "table-skeleton-lg" : "table-skeleton-md";
-
-    return `
-      <span
-        class="table-skeleton ${size}"
-        aria-hidden="true"
-      ></span>
-    `.trim();
-  }
-
-  /* ------------------------------------------------------------------------
-     Display
-     ------------------------------------------------------------------------ */
-
-  const value = getColumnValue(row, column, "");
-
-  switch (column.type) {
-    case "instrument":
-      return renderInstrument(row);
-
-    case "coupon-type":
-      return escapeHtml(formatCouponType(value, config));
-
-    case "maturity":
-      return escapeHtml(formatMaturity(row, config));
-
-    case "yield":
-      return escapeHtml(formatYield(value));
-
-    case "price":
-      return escapeHtml(formatPrice(value));
-
-    case "quantity":
-      return escapeHtml(formatQuantity(value, config));
-
-    case "coupon-frequency":
-      return escapeHtml(formatCouponFrequency(value, config));
-
-    case "day-count-convention":
-      return escapeHtml(formatDayCountConvention(value, config));
-
-    case "display-value":
-    case "text":
-    default:
-      return escapeHtml(getDisplayValue(value));
-  }
-}
-
-/* ==========================================================================
-   Sukuk Group
-   ========================================================================== */
-
-function getSukukGroup(row, config) {
-  const bondType = String(row?.bondType ?? "")
-    .trim()
-    .toUpperCase();
-
-  if (bondType === "G") {
-    return config.labels?.government || "Government Sukuk";
-  }
-
-  return config.labels?.corporate || "Corporate Sukuk";
-}
-
-/* ==========================================================================
-   Row Group Renderer
-   ========================================================================== */
-
-function renderSukukGroup({ groupName, groupRows, visibleColumnCount }) {
-  const loading = groupRows
-    .data()
-    .toArray()
-    .some((row) => row?.__dataViewState === "loading");
-
-  if (loading) {
-    return null;
-  }
-
-  const row = document.createElement("tr");
-
-  row.className = "table-market__group-row table-group-row";
-
-  const label = document.createElement("th");
-
-  label.scope = "rowgroup";
-
-  label.className =
-    "table-market__group-label table-group-label table-group-label-sticky";
-
-  label.textContent = groupName || "";
-
-  const fill = document.createElement("td");
-
-  fill.className = "table-market__group-fill table-group-fill";
-
-  fill.colSpan = Math.max(1, visibleColumnCount - 1);
-
-  fill.setAttribute("aria-hidden", "true");
-
-  row.append(label, fill);
-
-  return row;
-}
-
-/* ==========================================================================
-   Mobile Field Rendering
-   ========================================================================== */
-
-function renderMobileFieldValue(column, row, config) {
-  const value = getColumnValue(row, column, "");
-
-  switch (column.type) {
-    case "coupon-type":
-      return escapeHtml(formatCouponType(value, config));
-
-    case "maturity":
-      return escapeHtml(formatMaturity(row, config));
-
-    case "yield":
-      return escapeHtml(formatYield(value));
-
-    case "price":
-      return escapeHtml(formatPrice(value));
-
-    case "quantity":
-      return escapeHtml(formatQuantity(value, config));
-
-    case "coupon-frequency":
-      return escapeHtml(formatCouponFrequency(value, config));
-
-    case "day-count-convention":
-      return escapeHtml(formatDayCountConvention(value, config));
-
-    case "display-value":
-    case "text":
-    default:
-      return escapeHtml(getDisplayValue(value));
-  }
-}
-
-/* ==========================================================================
-   Mobile Detail Columns
-   ========================================================================== */
-
-function getMobileDetailColumns(config, visibleGroups) {
-  /*
-   * Last Trade Price is already presented in the card summary.
-   */
-  const summaryColumns = new Set(["last-trade-price"]);
-
-  return getMobileColumns(config, VIEW, visibleGroups).filter(
-    (column) => !summaryColumns.has(column.key),
-  );
-}
-
-/* ==========================================================================
-   Mobile Card
-   ========================================================================== */
-
-function renderSukukCard(row, context, config, visibleGroups) {
-  const instrumentName = getInstrumentName(row);
-
-  const instrumentRef = getInstrumentReference(row);
-
-  const fields = getMobileDetailColumns(config, visibleGroups).map(
-    (column) => ({
-      label: cleanLabel(column.label, column.key),
-
-      value: renderMobileFieldValue(column, row, config),
-
-      numeric: ["yield", "price", "quantity"].includes(column.type),
-    }),
-  );
-
-  /*
-   * Same composition pattern as Market Watch:
-   *
-   * identity
-   * quote
-   */
-  const summary = `
-    ${renderMobileIdentity(row)}
-
-    ${renderMobilePrice(row)}
-  `;
-
-  return renderStandardDataCard({
-    idPrefix: "sukuk-card-details",
-
-    rowId: `${instrumentRef || "instrument"}-${context.index}`,
-
-    summary,
-
-    fields,
-
-    moreLabel: `${cleanLabel(
-      config.labels?.mobile?.showDetails,
-      "Show details",
-    )} ${instrumentName}`,
-
-    lessLabel: `${cleanLabel(
-      config.labels?.mobile?.hideDetails,
-      "Hide details",
-    )} ${instrumentName}`,
-  });
 }
 
 /* ==========================================================================
@@ -435,21 +138,27 @@ function handleFavorite(event, scope) {
   const instrumentRef = button.dataset.instrumentRef || "";
 
   /*
-   * Preserve the existing website-level watchlist integration.
+   * Preserve the existing
+   * website-level watchlist
+   * integration.
    */
+
   if (typeof window.showAddToWatchListPopup === "function") {
     window.showAddToWatchListPopup(instrumentRef);
   }
 
   /*
-   * Also expose a page-level event for integrations that prefer events.
+   * Also expose the existing
+   * page-level event.
    */
+
   button.dispatchEvent(
     new CustomEvent("sukuk:favorite-request", {
       bubbles: true,
 
       detail: {
         instrumentRef,
+
         button,
       },
     }),
@@ -469,7 +178,7 @@ export function initSukuk(root = document) {
     return existing;
   }
 
-  const config = getConfig();
+  const config = getSukukConfig();
 
   /* ========================================================================
      State
@@ -479,6 +188,7 @@ export function initSukuk(root = document) {
     loading: false,
 
     sourceRows: [],
+
     visibleRows: [],
 
     meta: {},
@@ -490,20 +200,8 @@ export function initSukuk(root = document) {
      Filters
      ======================================================================== */
 
-  const filters = createDataFilters({
+  const filters = createSukukFilters({
     root: scope,
-
-    fields: {
-      bondType: {
-        selector: SELECTORS.bondType,
-
-        effect: "reload",
-
-        normalize(value) {
-          return value || "all";
-        },
-      },
-    },
   });
 
   /* ========================================================================
@@ -512,14 +210,12 @@ export function initSukuk(root = document) {
 
   const availableGroups = getAvailableGroups(config);
 
-  const configuredGroups = config.initialState?.visibleGroups;
+  const configuredGroups = getConfiguredVisibleGroups(config);
 
-  const initialVisibleGroups = Array.isArray(configuredGroups)
-    ? configuredGroups
-    : getDefaultVisibleGroups();
+  const initialVisibleGroups = configuredGroups ?? getDefaultVisibleGroups();
 
   const columnVisibility = createDataColumnVisibility({
-    initialView: VIEW,
+    initialView: SUKUK_VIEW,
 
     availableGroups,
 
@@ -577,111 +273,35 @@ export function initSukuk(root = document) {
       return buildRequestData(config, filterState);
     },
 
-    normalizeResponse,
+    normalizeResponse: normalizeSukukResponse,
   });
 
   /* ========================================================================
      Table
      ======================================================================== */
 
-  const table = createDataTable({
+  const table = createSukukTable({
     root: scope,
 
-    table: SELECTORS.table,
+    config,
 
-    initialView: VIEW,
+    view: SUKUK_VIEW,
 
     visibleGroups: columnVisibility.getVisibleGroups(),
-
-    getColumns() {
-      return getColumns(config, VIEW);
-    },
-
-    getColumnGroups() {
-      return getColumnGroups(config, VIEW);
-    },
-
-    renderCell(args) {
-      return renderTableCell({
-        ...args,
-
-        config,
-      });
-    },
-
-    tableOptions: {
-      autoWidth: config.table?.autoWidth ?? false,
-
-      paging: config.table?.paging ?? false,
-
-      pageLength: config.table?.pageLength ?? 25,
-
-      lengthChange: config.table?.lengthChange ?? false,
-
-      searching: config.table?.searching ?? false,
-
-      ordering: config.table?.ordering ?? false,
-
-      info: config.table?.info ?? false,
-
-      serverSide: config.table?.serverSide ?? false,
-
-      processing: config.table?.processing ?? false,
-
-      scrollX: config.table?.scrollX !== false,
-
-      scrollCollapse: config.table?.scrollCollapse !== false,
-
-      fixedHeader: config.table?.fixedHeader ?? true,
-
-      fixedColumns: config.table?.fixedColumns ?? 1,
-
-      rowGroup: {},
-
-      layout: {
-        topStart: null,
-        topEnd: null,
-        bottomStart: null,
-        bottomEnd: null,
-      },
-    },
-
-    getRowGroup(row) {
-      return getSukukGroup(row, config);
-    },
-
-    renderRowGroupStart(args) {
-      return renderSukukGroup(args);
-    },
   });
 
   /* ========================================================================
      Cards
      ======================================================================== */
 
-  const cards = createDataCards({
+  const cards = createSukukCards({
     root: scope,
 
-    container: SELECTORS.cards,
+    config,
 
-    initialView: VIEW,
+    view: SUKUK_VIEW,
 
-    getGroupKey(row) {
-      return getSukukGroup(row, config);
-    },
-
-    renderCard(row, context) {
-      return renderSukukCard(
-        row,
-        context,
-        config,
-        columnVisibility.getVisibleGroups(),
-      );
-    },
-
-    emptyMessage: config.labels?.noData || "No data available",
-
-    errorMessage: config.labels?.loadError || "Unable to load Sukuk data.",
+    visibleGroups: columnVisibility.getVisibleGroups(),
   });
 
   /* ========================================================================
@@ -712,15 +332,21 @@ export function initSukuk(root = document) {
 
   const controller = createDataViewController({
     source,
+
     state,
+
     filters,
+
     columnVisibility,
+
     table,
+
     cards,
+
     results,
 
     getView() {
-      return VIEW;
+      return SUKUK_VIEW;
     },
 
     getAvailableGroups() {
@@ -728,8 +354,11 @@ export function initSukuk(root = document) {
     },
 
     /*
-     * Keep the DOM picker synchronized with the common visibility state.
+     * Keep the DOM picker
+     * synchronized with common
+     * column-visibility state.
      */
+
     onViewSync() {
       columnPicker.refresh();
     },
@@ -761,28 +390,36 @@ export function initSukuk(root = document) {
   };
 
   /*
-   * Favorite controls are rendered inside both:
-   *
-   * - the first desktop Instrument column
-   * - the mobile card identity
+   * Favorite controls exist
+   * in both desktop and mobile
+   * views, so keep one delegated
+   * page-level handler.
    */
+
   scope.addEventListener(
     "click",
+
     (event) => {
       handleFavorite(event, scope);
     },
+
     eventOptions,
   );
 
   /*
-   * Reload after an external watchlist update so the server-returned star
-   * state remains authoritative.
+   * Reload after an external
+   * watchlist update so the
+   * server-returned favorite state
+   * remains authoritative.
    */
+
   scope.addEventListener(
     "sukuk:watchlist-updated",
+
     () => {
       controller.reload();
     },
+
     eventOptions,
   );
 

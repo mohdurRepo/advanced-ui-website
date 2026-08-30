@@ -1,9 +1,9 @@
 /* ==========================================================================
-   Sukuk Schema
+   Sukuk Columns
    ========================================================================== */
 
 /*
- * Single source of truth for Sukuk & Bonds presentation schema.
+ * Single source of truth for Sukuk & Bonds presentation columns.
  *
  * Responsibilities:
  *
@@ -167,18 +167,19 @@ function createColumns(config = {}) {
       /*
        * Always-visible first column.
        *
-       * Instrument rendering follows the Market Watch hierarchy:
-       *
-       * code
-       * name
+       * Instrument rendering is handled
+       * by sukuk.formatters.js.
        */
+
       type: "instrument",
 
       className: "table-market__security",
 
       /*
-       * Identity is already shown in the mobile summary.
+       * Identity is already shown
+       * in the mobile summary.
        */
+
       mobile: false,
     }),
 
@@ -266,9 +267,11 @@ function createColumns(config = {}) {
       label: cleanLabel(labels.instrumentYield, "Instrument Yield"),
 
       /*
-       * Preserve the existing backend spelling while supporting the
-       * correctly spelled alias as a fallback.
+       * Preserve the existing backend
+       * spelling while supporting the
+       * correctly spelled alias.
        */
+
       data: "lastTadeYield",
 
       fallbackData: ["lastTradeYield"],
@@ -452,8 +455,8 @@ export function getColumns(config = {}, view = DEFAULT_VIEW) {
   /*
    * Sukuk currently has one presentation schema.
    *
-   * Keep the view argument for compatibility with the common Data View
-   * contract and possible future schemas.
+   * Keep the view argument for compatibility
+   * with the common Data View contract.
    */
 
   void view;
@@ -492,8 +495,11 @@ export function getVisibleColumns(
 
   return getColumns(config, view).filter((item) => {
     /*
-     * Ungrouped columns, such as Instrument/Name, are always visible.
+     * Ungrouped columns,
+     * such as Instrument,
+     * are always visible.
      */
+
     if (!item.visibilityGroup) {
       return true;
     }

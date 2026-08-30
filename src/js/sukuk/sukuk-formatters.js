@@ -7,18 +7,23 @@
  *
  * Responsibilities:
  *
- * - escaping
- * - backend field aliases
- * - number formatting
+ * - Sukuk backend field aliases
  * - instrument identity
  * - instrument links
  * - favorite-button rendering
+ * - Sukuk-specific yield formatting
+ * - Sukuk-specific price formatting
  * - coupon-type formatting
  * - maturity / perpetual-bond formatting
  * - coupon-frequency formatting
  * - day-count-convention formatting
+ * - schema value resolution
  * - desktop instrument-cell rendering
  * - mobile identity / price rendering
+ *
+ * Generic formatting helpers come from:
+ *
+ * ../shared/market-data-formatters.js
  *
  * This module intentionally has no:
  *
@@ -31,28 +36,30 @@
  */
 
 /* ==========================================================================
-   Generic Helpers
+   Imports
    ========================================================================== */
 
-export function hasValue(value) {
-  return value !== null && value !== undefined && String(value).trim() !== "";
-}
+import {
+  escapeHtml,
+  formatDecimal,
+  formatQuantity,
+  getDisplayValue,
+  getFirstValue,
+  hasValue,
+  normalizeString,
+  toNumber,
+} from "../shared/market-data-formatters.js";
 
-export function escapeHtml(value) {
-  if (value == null) {
-    return "";
-  }
+/* ==========================================================================
+   Internal Helpers
+   ========================================================================== */
 
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+function isObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 function isSafeHref(value) {
-  const href = String(value || "").trim();
+  const href = normalizeString(value);
 
   if (!href) {
     return false;
@@ -61,58 +68,23 @@ function isSafeHref(value) {
   return !/^(?:javascript|data|vbscript):/i.test(href);
 }
 
-export function getFirstValue(row, keys = [], fallback = "") {
-  const source = row && typeof row === "object" ? row : {};
-
-  for (const key of keys) {
-    if (key && hasValue(source[key])) {
-      return source[key];
-    }
-  }
-
-  return fallback;
-}
-
-export function getDisplayValue(value, fallback = "-") {
-  return hasValue(value) ? String(value).trim() : fallback;
-}
-
 /* ==========================================================================
-   Numeric Conversion
+   Sukuk Number Formatting
    ========================================================================== */
 
-export function toNumber(value) {
-  if (value == null || value === "") {
-    return null;
-  }
-
-  const normalized = String(value)
-    .replaceAll(",", "")
-    .replace(/[^0-9.+-]/g, "")
-    .trim();
-
-  if (!normalized || normalized === "+" || normalized === "-") {
-    return null;
-  }
-
-  const number = Number(normalized);
-
-  return Number.isFinite(number) ? number : null;
-}
-
-/* ==========================================================================
-   Number Formatting
-   ========================================================================== */
-
-export function formatDecimal(value, decimals) {
-  const number = toNumber(value);
-
-  if (number === null) {
-    return getDisplayValue(value);
-  }
-
-  return number.toFixed(decimals);
-}
+/*
+ * Preserve the existing Sukuk presentation:
+ *
+ * Yield:
+ *   4 decimal places
+ *
+ * Price:
+ *   2 decimal places
+ *
+ * Do not use the generic shared formatPrice() here because Market Watch
+ * preserves backend-provided price presentation, while Sukuk explicitly
+ * requires fixed decimal precision.
+ */
 
 export function formatYield(value) {
   return formatDecimal(value, 4);
@@ -122,47 +94,12 @@ export function formatPrice(value) {
   return formatDecimal(value, 2);
 }
 
-export function formatQuantity(value, config = {}) {
-  const displayValue = getDisplayValue(value);
-
-  if (displayValue === "-") {
-    return displayValue;
-  }
-
-  /*
-   * Preserve backend-provided abbreviated values such as:
-   *
-   * 7.84M
-   * 900K
-   */
-  if (/[a-z]/i.test(displayValue)) {
-    return displayValue;
-  }
-
-  const number = toNumber(value);
-
-  if (number === null) {
-    return displayValue;
-  }
-
-  try {
-    return new Intl.NumberFormat(
-      config.locale || document.documentElement.lang || "en",
-      {
-        maximumFractionDigits: 20,
-      },
-    ).format(number);
-  } catch {
-    return displayValue;
-  }
-}
-
 /* ==========================================================================
    Instrument Identity
    ========================================================================== */
 
 export function getInstrumentCode(row = {}) {
-  return String(
+  return normalizeString(
     getFirstValue(
       row,
       [
@@ -176,11 +113,12 @@ export function getInstrumentCode(row = {}) {
       ],
       "-",
     ),
-  ).trim();
+    "-",
+  );
 }
 
 export function getInstrumentName(row = {}) {
-  return String(
+  return normalizeString(
     getFirstValue(
       row,
       [
@@ -192,7 +130,8 @@ export function getInstrumentName(row = {}) {
       ],
       "-",
     ),
-  ).trim();
+    "-",
+  );
 }
 
 export function getInstrumentUrl(row = {}) {
@@ -206,7 +145,7 @@ export function getInstrumentUrl(row = {}) {
     return "";
   }
 
-  return String(value).trim();
+  return normalizeString(value);
 }
 
 export function getInstrumentReference(row = {}) {
@@ -224,9 +163,7 @@ function isFavoriteActive(value) {
     return true;
   }
 
-  const normalized = String(value ?? "")
-    .trim()
-    .toLowerCase();
+  const normalized = normalizeString(value).toLowerCase();
 
   return (
     normalized === "1" ||
@@ -255,7 +192,8 @@ export function renderFavoriteButton(row = {}, options = {}) {
 
   const instrumentName = getInstrumentName(row);
 
-  const className = options.className || "table-market__favorite";
+  const className =
+    normalizeString(options.className) || "table-market__favorite";
 
   const iconClass = active ? "icon-star-filled" : "icon-star-outline";
 
@@ -273,7 +211,7 @@ export function renderFavoriteButton(row = {}, options = {}) {
       aria-pressed="${String(active)}"
     >
       <span
-        class="has-icon ${iconClass}"
+        class="has-icon ${escapeHtml(iconClass)}"
         aria-hidden="true"
       ></span>
     </button>
@@ -285,18 +223,19 @@ export function renderFavoriteButton(row = {}, options = {}) {
    ========================================================================== */
 
 /*
- * Keep the exact visual hierarchy requested:
+ * Preserve the current Sukuk hierarchy:
  *
- * CODE
  * Name
+ * Code
  *
- * We deliberately use the same table-market classes as Market Watch so the
- * design system can provide the same typography and spacing.
+ * The Market Watch design-system classes are intentionally reused.
  */
 
 function renderInstrumentText(row = {}) {
   const code = getInstrumentCode(row);
+
   const name = getInstrumentName(row);
+
   const url = getInstrumentUrl(row);
 
   const content = `
@@ -304,8 +243,10 @@ function renderInstrumentText(row = {}) {
       ${escapeHtml(name)}
     </span>
 
-    <span class="table-market__symbol">
-      ${escapeHtml(code)}
+    <span class="table-market__identity-code">
+      <span class="table-market__symbol">
+        ${escapeHtml(code)}
+      </span>
     </span>
   `.trim();
 
@@ -326,6 +267,7 @@ function renderInstrumentText(row = {}) {
     </a>
   `.trim();
 }
+
 /* ==========================================================================
    Desktop Instrument Cell
    ========================================================================== */
@@ -341,9 +283,7 @@ function renderInstrumentText(row = {}) {
 
 export function renderInstrument(row = {}) {
   return `
-    <div
-      class="table-market__security-cell"
-    >
+    <div class="table-market__security-cell">
       ${renderFavoriteButton(row)}
 
       ${renderInstrumentText(row)}
@@ -360,11 +300,12 @@ export function formatDateIso(value) {
     return "-";
   }
 
-  const text = String(value).trim();
+  const text = normalizeString(value);
 
   /*
    * Preserve backend ISO dates without timezone conversion.
    */
+
   if (/^\d{4}-\d{2}-\d{2}/.test(text)) {
     return text.slice(0, 10);
   }
@@ -393,9 +334,7 @@ export function isTrueLike(value) {
     return true;
   }
 
-  const normalized = String(value ?? "")
-    .trim()
-    .toLowerCase();
+  const normalized = normalizeString(value).toLowerCase();
 
   return (
     normalized === "true" ||
@@ -410,7 +349,7 @@ export function isTrueLike(value) {
    ========================================================================== */
 
 function getValueLabels(config = {}) {
-  return config.labels?.values || {};
+  return isObject(config.labels?.values) ? config.labels.values : {};
 }
 
 /* ==========================================================================
@@ -420,12 +359,12 @@ function getValueLabels(config = {}) {
 export function formatCouponType(value, config = {}) {
   const labels = getValueLabels(config);
 
-  switch (String(value ?? "")) {
+  switch (normalizeString(value)) {
     case "4":
-      return labels.floating || "Floating";
+      return normalizeString(labels.floating) || "Floating";
 
     case "1":
-      return labels.fixed || "Fixed";
+      return normalizeString(labels.fixed) || "Fixed";
 
     default:
       return "-";
@@ -436,11 +375,11 @@ export function formatCouponType(value, config = {}) {
    Maturity
    ========================================================================== */
 
-export function formatMaturity(row, config = {}) {
+export function formatMaturity(row = {}, config = {}) {
   const labels = getValueLabels(config);
 
-  if (isTrueLike(row?.isPerpetualBond)) {
-    return labels.perpetualBond || "Perpetual Bond";
+  if (isTrueLike(row.isPerpetualBond)) {
+    return normalizeString(labels.perpetualBond) || "Perpetual Bond";
   }
 
   return formatDateIso(
@@ -456,18 +395,18 @@ export function formatCouponFrequency(value, config = {}) {
   const labels = getValueLabels(config);
 
   const map = {
-    1: labels.couponFrequency1 || "Annual",
+    1: normalizeString(labels.couponFrequency1) || "Annual",
 
-    2: labels.couponFrequency2 || "Semi-Annual",
+    2: normalizeString(labels.couponFrequency2) || "Semi-Annual",
 
-    4: labels.couponFrequency4 || "Quarterly",
+    4: normalizeString(labels.couponFrequency4) || "Quarterly",
 
-    12: labels.couponFrequency12 || "Monthly",
+    12: normalizeString(labels.couponFrequency12) || "Monthly",
 
-    0: labels.couponFrequency0 || "-",
+    0: normalizeString(labels.couponFrequency0) || "-",
   };
 
-  return map[String(value ?? "")] || map["0"];
+  return map[normalizeString(value)] || map["0"];
 }
 
 /* ==========================================================================
@@ -478,16 +417,16 @@ export function formatDayCountConvention(value, config = {}) {
   const labels = getValueLabels(config);
 
   const map = {
-    7: labels.dayCount7 || "Convention 7",
+    7: normalizeString(labels.dayCount7) || "Convention 7",
 
-    2: labels.dayCount2 || "Convention 2",
+    2: normalizeString(labels.dayCount2) || "Convention 2",
 
-    3: labels.dayCount3 || "Convention 3",
+    3: normalizeString(labels.dayCount3) || "Convention 3",
 
-    0: labels.dayCount0 || "-",
+    0: normalizeString(labels.dayCount0) || "-",
   };
 
-  return map[String(value ?? "")] || map["0"];
+  return map[normalizeString(value)] || map["0"];
 }
 
 /* ==========================================================================
@@ -536,14 +475,12 @@ export function getLastPrice(row = {}) {
    ========================================================================== */
 
 /*
- * Match Market Watch's mobile identity structure:
+ * Preserve Sukuk's current mobile hierarchy:
  *
- * ★  CODE
- *    Name
+ * favorite
  *
- * Favorite stays at the start of the card.
- * Code begins the text block.
- * Name sits directly below it.
+ * CODE
+ * Name
  */
 
 export function renderMobileIdentity(row = {}) {
@@ -554,18 +491,12 @@ export function renderMobileIdentity(row = {}) {
   const url = getInstrumentUrl(row);
 
   const identityContent = `
-    <div
-      class="data-card__identity-content"
-    >
-      <span
-        class="data-card__symbol"
-      >
+    <div class="data-card__identity-content">
+      <span class="data-card__symbol">
         ${escapeHtml(code)}
       </span>
 
-      <h3
-        class="data-card__title"
-      >
+      <h3 class="data-card__title">
         ${escapeHtml(name)}
       </h3>
     </div>
@@ -573,19 +504,17 @@ export function renderMobileIdentity(row = {}) {
 
   const linkedIdentity = url
     ? `
-        <a
-          class="data-card__security-link"
-          href="${escapeHtml(url)}"
-        >
-          ${identityContent}
-        </a>
-      `.trim()
+          <a
+            class="data-card__security-link"
+            href="${escapeHtml(url)}"
+          >
+            ${identityContent}
+          </a>
+        `.trim()
     : identityContent;
 
   return `
-    <div
-      class="data-card__identity"
-    >
+    <div class="data-card__identity">
       ${renderFavoriteButton(row, {
         className: "data-card__favorite",
       })}
@@ -603,14 +532,29 @@ export function renderMobilePrice(row = {}) {
   const price = formatPrice(getLastPrice(row));
 
   return `
-    <div
-      class="data-card__quote"
-    >
-      <span
-        class="data-card__price"
-      >
+    <div class="data-card__quote">
+      <span class="data-card__price">
         ${escapeHtml(price)}
       </span>
     </div>
   `.trim();
 }
+
+/* ==========================================================================
+   Shared Re-exports
+   ========================================================================== */
+
+/*
+ * Preserve the existing Sukuk formatter public API while the rest of the
+ * module is migrated to the project-level shared formatter.
+ */
+
+export {
+  escapeHtml,
+  formatQuantity,
+  getDisplayValue,
+  getFirstValue,
+  hasValue,
+  normalizeString,
+  toNumber,
+};
