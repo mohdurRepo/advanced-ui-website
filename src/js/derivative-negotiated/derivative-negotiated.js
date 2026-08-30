@@ -7,18 +7,17 @@
  *
  * Responsibilities:
  *
- * - read the validated page configuration
+ * - read validated page configuration
  * - create page state
- * - create the negotiated-deals data source
- * - create filters
  * - coordinate Category -> Contract dependency loading
+ * - create the results data source
  * - create desktop table and mobile cards
- * - activate only the currently visible presentation
- * - coordinate loading / ready / empty / error states
+ * - activate only the visible presentation
+ * - coordinate loading, ready, empty, and error states
  * - perform the initial request
  * - cancel stale requests
  * - bind company-logo fallback handling
- * - completely destroy the page instance
+ * - completely destroy page resources
  *
  * This module intentionally has no:
  *
@@ -26,7 +25,8 @@
  * - cell formatting
  * - table schema definitions
  * - card markup
- * - Contract option normalization
+ * - Contract option rendering
+ * - Contract disabled-state management
  * - date conversion implementation
  */
 
@@ -67,9 +67,7 @@ import { createDerivativeNegotiatedCardsView } from "./views/derivative-negotiat
    Constants
    ========================================================================== */
 
-const PAGE_KEY = "derivativeNegotiated";
-
-const ALL_VALUE = "All";
+const PAGE_KEY = "derivative-negotiated";
 
 const SELECTORS = Object.freeze({
   root: "[data-derivative-negotiated]",
@@ -99,14 +97,12 @@ function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function isElement(value) {
-  return Boolean(
-    value && value.nodeType === 1 && typeof value.matches === "function",
-  );
-}
-
 function resolveRoot(root) {
-  if (isElement(root) && root.matches(SELECTORS.root)) {
+  if (
+    typeof Element !== "undefined" &&
+    root instanceof Element &&
+    root.matches(SELECTORS.root)
+  ) {
     return root;
   }
 
@@ -117,16 +113,20 @@ function resolveRoot(root) {
   return document.querySelector(SELECTORS.root);
 }
 
-function resolveElement(root, selector) {
-  if (!root || !selector) {
+function resolveElement(root, value) {
+  if (!root || !value) {
     return null;
   }
 
-  if (isElement(selector)) {
-    return selector;
+  if (typeof Element !== "undefined" && value instanceof Element) {
+    return value;
   }
 
-  return root.querySelector(selector);
+  if (typeof value === "string") {
+    return root.querySelector(value);
+  }
+
+  return null;
 }
 
 function requireElement(root, selector, description) {
@@ -137,6 +137,18 @@ function requireElement(root, selector, description) {
   }
 
   return element;
+}
+
+function isElementVisible(element) {
+  if (
+    typeof Element === "undefined" ||
+    !(element instanceof Element) ||
+    !element.isConnected
+  ) {
+    return false;
+  }
+
+  return element.getClientRects().length > 0;
 }
 
 function normalizeRows(value) {
@@ -162,38 +174,17 @@ function isAbortError(error) {
 }
 
 /* ==========================================================================
-   Presentation Visibility
-   ========================================================================== */
-
-function isElementVisible(element) {
-  if (!isElement(element) || element.hidden) {
-    return false;
-  }
-
-  const style = window.getComputedStyle(element);
-
-  if (style.display === "none" || style.visibility === "hidden") {
-    return false;
-  }
-
-  return element.getClientRects().length > 0;
-}
-
-/* ==========================================================================
    Results Request Parameters
    ========================================================================== */
 
 /*
- * UI:
+ * Public filter:
  *
- *   Category
+ *   category
  *
- * Service:
+ * Legacy service parameter:
  *
  *   sector
- *
- * The legacy endpoint continues to expect sector even though the new
- * presentation calls the filter Category.
  */
 
 function buildRequestData(filterState = {}, config = {}) {
@@ -208,9 +199,9 @@ function buildRequestData(filterState = {}, config = {}) {
 
     toDate: formatDerivativeNegotiatedServiceDate(filterState.toDate),
 
-    contract: filterState.contract || ALL_VALUE,
+    contract: filterState.contract || "All",
 
-    sector: filterState.category || ALL_VALUE,
+    sector: filterState.category || "All",
 
     requestLocale: config.locale || "en",
   };
@@ -240,24 +231,6 @@ export function createDerivativeNegotiated(options = {}) {
   }
 
   /* ========================================================================
-     Required Markup
-     ======================================================================== */
-
-  const viewElement = requireElement(
-    root,
-    SELECTORS.view,
-    "data-view container",
-  );
-
-  const tableElement = requireElement(root, SELECTORS.table, "desktop table");
-
-  const cardsElement = requireElement(
-    root,
-    SELECTORS.cards,
-    "mobile cards container",
-  );
-
-  /* ========================================================================
      Configuration
      ======================================================================== */
 
@@ -270,7 +243,17 @@ export function createDerivativeNegotiated(options = {}) {
   }
 
   /* ========================================================================
-     Views
+     Required Elements
+     ======================================================================== */
+
+  const viewElement = requireElement(root, SELECTORS.view, "data-view region");
+
+  const tableElement = requireElement(root, SELECTORS.table, "table");
+
+  const cardsElement = requireElement(root, SELECTORS.cards, "cards container");
+
+  /* ========================================================================
+     View Definitions
      ======================================================================== */
 
   const tableView = createDerivativeNegotiatedTableView(config);
@@ -284,7 +267,7 @@ export function createDerivativeNegotiated(options = {}) {
   }
 
   /* ========================================================================
-     State
+     Shared State
      ======================================================================== */
 
   const state = createDataState({
@@ -303,8 +286,6 @@ export function createDerivativeNegotiated(options = {}) {
 
   let stateSnapshot = state.getState();
 
-  let contractsLoading = false;
-
   /* ========================================================================
      Filters
      ======================================================================== */
@@ -317,22 +298,39 @@ export function createDerivativeNegotiated(options = {}) {
     autoInit: false,
   });
 
+  /*
+   * The page owns filter notifications because Category changes must first
+   * refresh the dependent Contract options.
+   *
+   * The controller receives only getState(). It therefore cannot subscribe
+   * independently and accidentally perform a duplicate API request.
+   */
+
+  const controllerFilters = Object.freeze({
+    getState() {
+      return filters.getState();
+    },
+  });
+
   /* ========================================================================
      Contract Dependency
      ======================================================================== */
+
+  /*
+   * derivative-negotiated.contracts.js exclusively owns:
+   *
+   * - Contract loading
+   * - Contract disabled state
+   * - Contract option replacement
+   * - Contract custom-select refresh
+   *
+   * Do not pass an onLoadingChange callback that disables the Contract again.
+   */
 
   const contracts = createDerivativeNegotiatedContracts({
     root,
 
     config,
-
-    onLoadingChange(loading) {
-      contractsLoading = Boolean(loading);
-
-      filters.setContractLoading(contractsLoading);
-
-      syncBusyAttributes();
-    },
   });
 
   /* ========================================================================
@@ -348,10 +346,6 @@ export function createDerivativeNegotiated(options = {}) {
 
     buildRequestData(filterState = {}) {
       const requestData = buildRequestData(filterState, config);
-
-      /*
-       * Invalid dates must never produce a malformed service request.
-       */
 
       if (!requestData) {
         throw new TypeError(
@@ -378,13 +372,14 @@ export function createDerivativeNegotiated(options = {}) {
 
     initialView: PAGE_KEY,
 
-    headerMode: "schema",
-
     /*
-     * Do not construct a hidden DataTable.
+     * Avoid constructing or redrawing the desktop DataTable while the
+     * mobile presentation is visible.
      */
 
     active: isElementVisible(tableElement),
+
+    headerMode: "schema",
 
     getColumns() {
       return tableView.columns;
@@ -417,7 +412,8 @@ export function createDerivativeNegotiated(options = {}) {
 
   const cards = createDataCards({
     /*
-     * Apply progressive rendering and the configured batch size.
+     * Apply performance options such as progressive card rendering before
+     * the required page dependencies.
      */
 
     ...cardOptions,
@@ -429,13 +425,14 @@ export function createDerivativeNegotiated(options = {}) {
     initialView: PAGE_KEY,
 
     /*
-     * Do not construct the hidden mobile card tree on desktop.
+     * Avoid generating the complete mobile card tree while the desktop
+     * presentation is visible.
      */
 
     active: isElementVisible(cardsElement),
 
     /*
-     * Presentation activity is coordinated once by this page.
+     * Breakpoint activity is coordinated by this page module.
      */
 
     autoActivate: false,
@@ -485,8 +482,8 @@ export function createDerivativeNegotiated(options = {}) {
       : null;
 
   /*
-   * Daily total rows are part of the rendered collection but must not increase
-   * the user-visible transaction count.
+   * Daily total rows are rendered but must not increase the visible result
+   * count.
    */
 
   function resolveResultCount(fallbackCount) {
@@ -546,26 +543,6 @@ export function createDerivativeNegotiated(options = {}) {
     : null;
 
   /* ========================================================================
-     Controller Filter Adapter
-     ======================================================================== */
-
-  /*
-   * The page coordinator below is the only filter subscriber.
-   *
-   * The shared controller needs the current filter state when loading but
-   * must not subscribe directly. Otherwise every user action would create:
-   *
-   * 1. a controller-driven request
-   * 2. a page-coordinator-driven request
-   */
-
-  const controllerFilters = Object.freeze({
-    getState() {
-      return filters.getState();
-    },
-  });
-
-  /* ========================================================================
      Data View Controller
      ======================================================================== */
 
@@ -573,6 +550,10 @@ export function createDerivativeNegotiated(options = {}) {
     source,
 
     state,
+
+    /*
+     * Read-only adapter prevents duplicate filter subscriptions.
+     */
 
     filters: controllerFilters,
 
@@ -614,41 +595,35 @@ export function createDerivativeNegotiated(options = {}) {
 
   let dependencyRequestId = 0;
 
+  let presentationFrame = null;
+
   let unsubscribeFilters = null;
 
   let unsubscribeState = null;
 
   let unbindLogoFallback = null;
 
-  let presentationFrame = null;
-
   /* ========================================================================
      Busy State
      ======================================================================== */
 
-  function syncBusyAttributes() {
-    const loading =
-      !destroyed && (Boolean(stateSnapshot.loading) || contractsLoading);
+  /*
+   * Only the overall result region is controlled here.
+   *
+   * The shared Data Table and Data Cards components own their individual
+   * aria-busy values.
+   *
+   * The Contract dependency module owns the Contract select disabled state.
+   */
 
-    const busyValue = String(loading);
-
-    root.setAttribute("aria-busy", busyValue);
-
-    viewElement.setAttribute("aria-busy", busyValue);
-
-    tableElement.setAttribute("aria-busy", busyValue);
-
-    cardsElement.setAttribute("aria-busy", busyValue);
-  }
-
-  function syncBusyState(snapshot) {
+  function syncBusyState(snapshot = state.getState()) {
     stateSnapshot = snapshot;
 
-    syncBusyAttributes();
+    viewElement.setAttribute("aria-busy", String(Boolean(snapshot.loading)));
   }
 
   /* ========================================================================
-     Presentation Activity
+     Responsive Presentation Activity
      ======================================================================== */
 
   function syncPresentationActivity() {
@@ -661,10 +636,10 @@ export function createDerivativeNegotiated(options = {}) {
     const shouldRenderCards = isElementVisible(cardsElement);
 
     /*
-     * Deactivate the hidden presentation first.
+     * Deactivate the hidden presentation before activating the visible one.
      *
-     * This prevents both the desktop DataTable and the complete mobile card
-     * tree from being constructed during the same breakpoint transition.
+     * This prevents thousands of desktop rows and mobile cards from being
+     * materialized during the same breakpoint transition.
      */
 
     if (shouldRenderTable) {
@@ -731,10 +706,8 @@ export function createDerivativeNegotiated(options = {}) {
       source.cancel();
 
       /*
-       * Restore the last completed rows if an in-progress request was
-       * cancelled while the date range became incomplete or invalid.
-       *
-       * This also clears a stale loading state.
+       * An aborted request does not render an error. Restore the last
+       * completed rows so the result region cannot remain in loading state.
        */
 
       controller.render();
@@ -753,16 +726,22 @@ export function createDerivativeNegotiated(options = {}) {
     const currentRequestId = ++dependencyRequestId;
 
     /*
-     * Results belonging to the previous Category must never win while the
-     * Contract options for the new Category are being resolved.
+     * Results from the previous Category must not win while the new Contract
+     * options are loading.
      */
 
-    source.cancel();
+    const cancelled = source.cancel();
+
+    if (cancelled) {
+      controller.render();
+    }
 
     try {
       const contractResult = await contracts.load(filterState.category, {
         /*
-         * Category changes already reset Contract to All.
+         * Category changes normally reset Contract to All. The requested
+         * value is still passed so the dependency module can preserve it
+         * when appropriate.
          */
 
         selectedValue: filterState.contract,
@@ -771,17 +750,22 @@ export function createDerivativeNegotiated(options = {}) {
       if (
         destroyed ||
         currentRequestId !== dependencyRequestId ||
-        contractResult?.stale ||
-        contractResult?.cancelled
+        contractResult?.stale
       ) {
         return null;
       }
 
-      filters.setContractValue(contractResult?.selectedValue || ALL_VALUE, {
+      /*
+       * Synchronize filter state with the value that actually exists in the
+       * newly loaded Contract options.
+       *
+       * This must not emit another filter notification because the current
+       * Category action already owns the reload.
+       */
+
+      filters.setContractValue(contractResult?.selectedValue || "All", {
         notifyChange: false,
       });
-
-      filters.sync();
     } catch (error) {
       if (
         destroyed ||
@@ -792,16 +776,12 @@ export function createDerivativeNegotiated(options = {}) {
       }
 
       /*
-       * contracts.js clears options belonging to the previous Category.
-       *
-       * Continue with Contract=All so Category-level results remain usable.
+       * Contract-option failure must not prevent Category-level results.
        */
 
-      filters.setContractValue(ALL_VALUE, {
+      filters.setContractValue("All", {
         notifyChange: false,
       });
-
-      filters.sync();
     }
 
     if (destroyed || currentRequestId !== dependencyRequestId) {
@@ -835,7 +815,7 @@ export function createDerivativeNegotiated(options = {}) {
     }
 
     /*
-     * Invalid or incomplete date input intentionally does not request data.
+     * An incomplete or invalid date must never create a malformed request.
      */
 
     if (detail.validation && !detail.validation.valid) {
@@ -858,29 +838,25 @@ export function createDerivativeNegotiated(options = {}) {
 
     const currentRequestId = ++dependencyRequestId;
 
-    /*
-     * Refresh Contract options so the client-side dependency becomes
-     * authoritative after initialization.
-     *
-     * Preserve a server-rendered Contract selection when the selected value
-     * is still returned for the initial Category.
-     */
-
     try {
       const contractResult = await contracts.load(initialState.category, {
+        /*
+         * Preserve a server-rendered Contract when it is still returned by
+         * the Category endpoint.
+         */
+
         selectedValue: initialState.contract,
       });
 
       if (
         destroyed ||
         currentRequestId !== dependencyRequestId ||
-        contractResult?.stale ||
-        contractResult?.cancelled
+        contractResult?.stale
       ) {
         return null;
       }
 
-      filters.setContractValue(contractResult?.selectedValue || ALL_VALUE, {
+      filters.setContractValue(contractResult?.selectedValue || "All", {
         notifyChange: false,
       });
 
@@ -895,11 +871,10 @@ export function createDerivativeNegotiated(options = {}) {
       }
 
       /*
-       * Contract-option failure must not prevent the results endpoint from
-       * loading with the remaining valid filters.
+       * Contract-option failure must not prevent the initial results request.
        */
 
-      filters.setContractValue(ALL_VALUE, {
+      filters.setContractValue("All", {
         notifyChange: false,
       });
 
@@ -928,6 +903,11 @@ export function createDerivativeNegotiated(options = {}) {
 
     initialized = true;
 
+    /*
+     * Initialize and synchronize controls before subscribing so setup does
+     * not produce an unintended duplicate request.
+     */
+
     filters.init();
 
     filters.sync();
@@ -936,17 +916,17 @@ export function createDerivativeNegotiated(options = {}) {
       syncBusyState(event.state);
     });
 
+    syncBusyState(state.getState());
+
+    controller.init();
+
     unsubscribeFilters = filters.subscribe(handleFilterChange);
 
     unbindLogoFallback = bindStandardCompanyLogoFallback(root);
 
     bindPresentationActivity();
 
-    controller.init();
-
     syncPresentationActivity();
-
-    syncBusyState(state.getState());
 
     void loadInitialData();
 
@@ -966,15 +946,11 @@ export function createDerivativeNegotiated(options = {}) {
 
     dependencyRequestId += 1;
 
+    destroyPresentationActivity();
+
     source.cancel();
 
     contracts.cancel();
-
-    destroyPresentationActivity();
-
-    table.setActive?.(false);
-
-    cards.setActive?.(false);
 
     unsubscribeFilters?.();
     unsubscribeFilters = null;
@@ -985,33 +961,18 @@ export function createDerivativeNegotiated(options = {}) {
     unbindLogoFallback?.();
     unbindLogoFallback = null;
 
-    /*
-     * The page owns these two feature-specific modules.
-     */
-
     contracts.destroy();
 
     filters.destroy();
 
     /*
-     * The shared controller owns:
-     *
-     * - results source
-     * - state
-     * - table
-     * - cards
-     * - results presentation
+     * The controller destroys the results source, table, cards, results
+     * presenter, and shared data state.
      */
 
     controller.destroy();
 
-    root.setAttribute("aria-busy", "false");
-
     viewElement.setAttribute("aria-busy", "false");
-
-    tableElement.setAttribute("aria-busy", "false");
-
-    cardsElement.setAttribute("aria-busy", "false");
 
     instances.delete(root);
 
@@ -1029,10 +990,6 @@ export function createDerivativeNegotiated(options = {}) {
 
     destroy,
 
-    refreshPresentation() {
-      return syncPresentationActivity();
-    },
-
     getFilters() {
       return filters.getState();
     },
@@ -1042,7 +999,7 @@ export function createDerivativeNegotiated(options = {}) {
     },
 
     getTable() {
-      return table.getApi();
+      return table.getApi?.() || null;
     },
 
     getState() {
@@ -1050,7 +1007,7 @@ export function createDerivativeNegotiated(options = {}) {
     },
 
     isLoading() {
-      return contracts.isLoading() || source.isLoading();
+      return Boolean(source.isLoading?.() || contracts.isLoading?.());
     },
 
     isInitialized() {
@@ -1080,29 +1037,24 @@ export function createDerivativeNegotiated(options = {}) {
    ========================================================================== */
 
 function initializeDerivativeNegotiatedPage() {
-  const root = document.querySelector(SELECTORS.root);
+  document.querySelectorAll(SELECTORS.root).forEach((root) => {
+    try {
+      createDerivativeNegotiated({
+        root,
+      });
+    } catch (error) {
+      console.error("[DerivativeNegotiated]", error);
 
-  if (!root) {
-    return;
-  }
+      root.querySelector(SELECTORS.view)?.setAttribute("aria-busy", "false");
 
-  try {
-    createDerivativeNegotiated({
-      root,
-    });
-  } catch (error) {
-    console.error("[DerivativeNegotiated]", error);
+      const status = root.querySelector(SELECTORS.status);
 
-    root.setAttribute("aria-busy", "false");
-
-    const status = root.querySelector(SELECTORS.status);
-
-    if (status) {
-      status.textContent =
-        window.DerivativeNegotiatedConfig?.labels?.error ||
-        "Unable to initialize Derivative Negotiated Deals.";
+      if (status) {
+        status.textContent =
+          "Unable to initialize Derivative Negotiated Deals.";
+      }
     }
-  }
+  });
 }
 
 if (document.readyState === "loading") {
