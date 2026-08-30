@@ -11,15 +11,21 @@
  * - replace the logo template token for each data row
  * - render the standard desktop table identity
  * - render the standard mobile-card identity
+ * - support optional page-owned leading content
+ * - support optional metadata beside the company code
+ * - support optional metadata beside the company name
  * - apply the configured fallback logo once
  * - fall back to company initials if both images fail
  * - escape rendered business data
  *
  * The rendered visual structure follows Market Watch:
  *
+ * - optional page-owned leading content
  * - company logo
  * - company name
+ * - optional name metadata
  * - company code below the name
+ * - optional code metadata
  *
  * Watchlist controls and page-specific status indicators remain owned by
  * their respective page modules.
@@ -215,13 +221,17 @@ function getLogoConfiguration(config = {}) {
   return {
     logoUrlTemplate: firstSafeUrl(
       normalizedConfig.logoUrlTemplate,
+
       normalizedConfig.companyLogoUrlTemplate,
+
       assets.companyLogoUrlTemplate,
     ),
 
     logoFallbackUrl: firstSafeUrl(
       normalizedConfig.logoFallbackUrl,
+
       normalizedConfig.companyLogoFallbackUrl,
+
       assets.companyLogoFallbackUrl,
     ),
   };
@@ -376,7 +386,29 @@ function renderDesktopIdentityText(row = {}, options = {}) {
 
   const companyUrl = getStandardCompanyUrl(row);
 
+  /*
+   * nameMetadata:
+   *
+   * Appears beside the company name.
+   *
+   * Example:
+   *
+   * Company Name [metadata]
+   */
+
   const nameMetadata = String(options.nameMetadata || "").trim();
+
+  /*
+   * metadata:
+   *
+   * Appears beside the company code.
+   *
+   * Example:
+   *
+   * 2222 [accumulated-loss indicator]
+   *
+   * Market Watch uses this location for companyStatus.
+   */
 
   const metadata = String(options.metadata || "").trim();
 
@@ -426,9 +458,11 @@ function renderDesktopIdentityText(row = {}, options = {}) {
     </a>
   `.trim();
 }
+
 /* ==========================================================================
    Desktop Table Identity
    ========================================================================== */
+
 export function renderStandardCompanyCell(row = {}, config = {}, options = {}) {
   const leading = String(options.leading || "").trim();
 
@@ -438,7 +472,9 @@ export function renderStandardCompanyCell(row = {}, config = {}, options = {}) {
 
       ${renderStandardCompanyLogo(row, config, {
         className: "table-market__logo",
+
         fallbackClassName: "table-market__logo-fallback",
+
         size: 40,
       })}
 
@@ -524,7 +560,9 @@ export function renderStandardCompanyCardIdentity(
 
       ${renderStandardCompanyLogo(row, config, {
         className: "data-card__logo",
+
         fallbackClassName: "data-card__logo-fallback",
+
         size: 44,
       })}
 
@@ -532,6 +570,7 @@ export function renderStandardCompanyCardIdentity(
     </div>
   `.trim();
 }
+
 /* ==========================================================================
    Logo Error Handling
    ========================================================================== */
