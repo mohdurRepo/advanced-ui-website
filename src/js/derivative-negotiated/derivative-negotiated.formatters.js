@@ -10,11 +10,11 @@
  * - provide DataTables-compatible orthogonal renderers
  * - preserve service-provided dates for display
  * - provide normalized values for sorting and filtering
- * - render the Contract identity using the shared data-view renderer
+ * - render Contract identity using the shared data-view renderer
  * - format prices, volumes, values, and times
  * - preserve legacy numeric sentinel behavior
  * - provide normalized values for mobile cards
- * - provide normalized values for daily total presentation
+ * - provide daily total presentation values
  *
  * This module intentionally has no:
  *
@@ -43,7 +43,7 @@ import {
   getDisplayValue,
   normalizeString,
   toNumber,
-} from "../issuer-trading/shared/trading-formatters.js";
+} from "../shared/trading/trading-formatters.js";
 
 /* ==========================================================================
    Constants
@@ -98,14 +98,14 @@ function getTextSortValue(value) {
 }
 
 /* ==========================================================================
-   Time Sorting
+   Time Metadata
    ========================================================================== */
 
-function getTimeSortValue(value) {
+function getTimeParts(value) {
   const normalized = normalizeString(value);
 
   if (!normalized) {
-    return "";
+    return null;
   }
 
   const match = normalized.match(
@@ -113,7 +113,7 @@ function getTimeSortValue(value) {
   );
 
   if (!match) {
-    return normalized;
+    return null;
   }
 
   const hours = Number(match[1]);
@@ -133,10 +133,42 @@ function getTimeSortValue(value) {
     seconds < 0 ||
     seconds > 59
   ) {
-    return normalized;
+    return null;
   }
 
-  return hours * 3600 + minutes * 60 + seconds;
+  return {
+    hours,
+
+    minutes,
+
+    seconds,
+  };
+}
+
+function getTimeSortValue(value) {
+  const parts = getTimeParts(value);
+
+  if (!parts) {
+    return normalizeString(value);
+  }
+
+  return parts.hours * 3600 + parts.minutes * 60 + parts.seconds;
+}
+
+function getMachineTime(value) {
+  const parts = getTimeParts(value);
+
+  if (!parts) {
+    return "";
+  }
+
+  return [
+    String(parts.hours).padStart(2, "0"),
+
+    String(parts.minutes).padStart(2, "0"),
+
+    String(parts.seconds).padStart(2, "0"),
+  ].join(":");
 }
 
 /* ==========================================================================
@@ -200,13 +232,13 @@ function getContractFilterValue(row = {}) {
    ========================================================================== */
 
 /*
- * The legacy Derivative Negotiated service uses numeric sentinel values:
+ * The legacy service uses numeric sentinel values:
  *
- * - 0  -> display the configured empty value
- * - -1 -> display an intentionally empty monetary cell
+ * - 0  -> configured empty value
+ * - -1 -> intentionally empty monetary cell
  *
- * The raw numeric values remain available to DataTables for sorting and
- * filtering. These rules affect display output only.
+ * These rules affect display only. Raw numeric values remain available for
+ * DataTables orthogonal sorting and filtering.
  */
 
 function isLegacyEmptyMoneyValue(value) {
@@ -256,9 +288,10 @@ function formatDisplayMoney(value, settings = {}) {
    ========================================================================== */
 
 /*
- * Preserve the service-provided date for visible presentation.
+ * The visible value is always the exact service-provided date.
  *
- * A normalized YYYY-MM-DD value is used only for semantic <time> metadata.
+ * formatInputDate() is used only to create optional machine-readable metadata.
+ * Failure to parse the date never changes or removes the displayed value.
  */
 
 export function formatDerivativeNegotiatedDate(
@@ -367,8 +400,7 @@ export function formatDerivativeNegotiatedVolume(
   }
 
   /*
-   * Volume is intentionally available for both transaction rows and
-   * service-provided daily total rows.
+   * Volume is available for both transaction rows and service total rows.
    */
 
   return escapeHtml(formatDisplayQuantity(row.volume, settings));
@@ -392,8 +424,7 @@ export function formatDerivativeNegotiatedValue(
   }
 
   /*
-   * Value is intentionally available for both transaction rows and
-   * service-provided daily total rows.
+   * Value is available for both transaction rows and service total rows.
    */
 
   return escapeHtml(formatDisplayMoney(row.value, settings));
@@ -432,8 +463,14 @@ export function formatDerivativeNegotiatedTime(
     fallback: getEmptyValue(settings),
   });
 
+  const machineTime = getMachineTime(rawTime);
+
+  if (!machineTime) {
+    return escapeHtml(displayTime);
+  }
+
   return `
-    <time datetime="${escapeHtml(rawTime)}">
+    <time datetime="${escapeHtml(machineTime)}">
       ${escapeHtml(displayTime)}
     </time>
   `.trim();
@@ -472,6 +509,10 @@ export function getDerivativeNegotiatedCardValues(row = {}, settings = {}) {
 
   return Object.freeze({
     id: normalizeString(row.id),
+
+    /*
+     * Preserve the service-provided display date.
+     */
 
     date: rawDate || getEmptyValue(settings),
 

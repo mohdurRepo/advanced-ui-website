@@ -13,7 +13,7 @@
  * - create filters
  * - coordinate Category -> Contract dependency loading
  * - create desktop table and mobile cards
- * - create result-count and status presentation
+ * - activate only the currently visible presentation
  * - coordinate loading / ready / empty / error states
  * - perform the initial request
  * - cancel stale requests
@@ -69,6 +69,8 @@ import { createDerivativeNegotiatedCardsView } from "./views/derivative-negotiat
 
 const PAGE_KEY = "derivativeNegotiated";
 
+const ALL_VALUE = "All";
+
 const SELECTORS = Object.freeze({
   root: "[data-derivative-negotiated]",
 
@@ -97,9 +99,19 @@ function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+function isElement(value) {
+  return Boolean(
+    value && value.nodeType === 1 && typeof value.matches === "function",
+  );
+}
+
 function resolveRoot(root) {
-  if (root && typeof root.querySelector === "function") {
+  if (isElement(root) && root.matches(SELECTORS.root)) {
     return root;
+  }
+
+  if (root && typeof root.querySelector === "function") {
+    return root.querySelector(SELECTORS.root);
   }
 
   return document.querySelector(SELECTORS.root);
@@ -110,11 +122,21 @@ function resolveElement(root, selector) {
     return null;
   }
 
-  if (typeof Element !== "undefined" && selector instanceof Element) {
+  if (isElement(selector)) {
     return selector;
   }
 
   return root.querySelector(selector);
+}
+
+function requireElement(root, selector, description) {
+  const element = resolveElement(root, selector);
+
+  if (!element) {
+    throw new Error(`Derivative Negotiated ${description} was not found.`);
+  }
+
+  return element;
 }
 
 function normalizeRows(value) {
@@ -140,12 +162,28 @@ function isAbortError(error) {
 }
 
 /* ==========================================================================
+   Presentation Visibility
+   ========================================================================== */
+
+function isElementVisible(element) {
+  if (!isElement(element) || element.hidden) {
+    return false;
+  }
+
+  const style = window.getComputedStyle(element);
+
+  if (style.display === "none" || style.visibility === "hidden") {
+    return false;
+  }
+
+  return element.getClientRects().length > 0;
+}
+
+/* ==========================================================================
    Results Request Parameters
    ========================================================================== */
 
 /*
- * Keep the public service contract here explicit.
- *
  * UI:
  *
  *   Category
@@ -170,9 +208,9 @@ function buildRequestData(filterState = {}, config = {}) {
 
     toDate: formatDerivativeNegotiatedServiceDate(filterState.toDate),
 
-    contract: filterState.contract || "All",
+    contract: filterState.contract || ALL_VALUE,
 
-    sector: filterState.category || "All",
+    sector: filterState.category || ALL_VALUE,
 
     requestLocale: config.locale || "en",
   };
@@ -200,6 +238,24 @@ export function createDerivativeNegotiated(options = {}) {
   if (existing) {
     return existing;
   }
+
+  /* ========================================================================
+     Required Markup
+     ======================================================================== */
+
+  const viewElement = requireElement(
+    root,
+    SELECTORS.view,
+    "data-view container",
+  );
+
+  const tableElement = requireElement(root, SELECTORS.table, "desktop table");
+
+  const cardsElement = requireElement(
+    root,
+    SELECTORS.cards,
+    "mobile cards container",
+  );
 
   /* ========================================================================
      Configuration
@@ -247,6 +303,8 @@ export function createDerivativeNegotiated(options = {}) {
 
   let stateSnapshot = state.getState();
 
+  let contractsLoading = false;
+
   /* ========================================================================
      Filters
      ======================================================================== */
@@ -267,6 +325,14 @@ export function createDerivativeNegotiated(options = {}) {
     root,
 
     config,
+
+    onLoadingChange(loading) {
+      contractsLoading = Boolean(loading);
+
+      filters.setContractLoading(contractsLoading);
+
+      syncBusyAttributes();
+    },
   });
 
   /* ========================================================================
@@ -284,11 +350,7 @@ export function createDerivativeNegotiated(options = {}) {
       const requestData = buildRequestData(filterState, config);
 
       /*
-       * Invalid dates must not produce a malformed service request.
-       *
-       * The page-level reload guard below normally prevents this path.
-       * Throwing here gives us a final protection boundary if source.load()
-       * is called independently.
+       * Invalid dates must never produce a malformed service request.
        */
 
       if (!requestData) {
@@ -312,11 +374,17 @@ export function createDerivativeNegotiated(options = {}) {
   const table = createDataTable({
     root,
 
-    table: SELECTORS.table,
+    table: tableElement,
 
     initialView: PAGE_KEY,
 
     headerMode: "schema",
+
+    /*
+     * Do not construct a hidden DataTable.
+     */
+
+    active: isElementVisible(tableElement),
 
     getColumns() {
       return tableView.columns;
@@ -343,12 +411,34 @@ export function createDerivativeNegotiated(options = {}) {
      Mobile Cards
      ======================================================================== */
 
+  const cardOptions = isObject(cardsView.cardOptions)
+    ? cardsView.cardOptions
+    : {};
+
   const cards = createDataCards({
+    /*
+     * Apply progressive rendering and the configured batch size.
+     */
+
+    ...cardOptions,
+
     root,
 
-    container: SELECTORS.cards,
+    container: cardsElement,
 
     initialView: PAGE_KEY,
+
+    /*
+     * Do not construct the hidden mobile card tree on desktop.
+     */
+
+    active: isElementVisible(cardsElement),
+
+    /*
+     * Presentation activity is coordinated once by this page.
+     */
+
+    autoActivate: false,
 
     getGroupKey: cardsView.getCardGroupKey,
 
@@ -395,8 +485,8 @@ export function createDerivativeNegotiated(options = {}) {
       : null;
 
   /*
-   * Daily total rows are part of the rendered row collection but must not
-   * inflate the user-visible result count.
+   * Daily total rows are part of the rendered collection but must not increase
+   * the user-visible transaction count.
    */
 
   function resolveResultCount(fallbackCount) {
@@ -456,6 +546,26 @@ export function createDerivativeNegotiated(options = {}) {
     : null;
 
   /* ========================================================================
+     Controller Filter Adapter
+     ======================================================================== */
+
+  /*
+   * The page coordinator below is the only filter subscriber.
+   *
+   * The shared controller needs the current filter state when loading but
+   * must not subscribe directly. Otherwise every user action would create:
+   *
+   * 1. a controller-driven request
+   * 2. a page-coordinator-driven request
+   */
+
+  const controllerFilters = Object.freeze({
+    getState() {
+      return filters.getState();
+    },
+  });
+
+  /* ========================================================================
      Data View Controller
      ======================================================================== */
 
@@ -464,7 +574,7 @@ export function createDerivativeNegotiated(options = {}) {
 
     state,
 
-    filters,
+    filters: controllerFilters,
 
     table,
 
@@ -510,28 +620,100 @@ export function createDerivativeNegotiated(options = {}) {
 
   let unbindLogoFallback = null;
 
+  let presentationFrame = null;
+
   /* ========================================================================
      Busy State
      ======================================================================== */
 
+  function syncBusyAttributes() {
+    const loading =
+      !destroyed && (Boolean(stateSnapshot.loading) || contractsLoading);
+
+    const busyValue = String(loading);
+
+    root.setAttribute("aria-busy", busyValue);
+
+    viewElement.setAttribute("aria-busy", busyValue);
+
+    tableElement.setAttribute("aria-busy", busyValue);
+
+    cardsElement.setAttribute("aria-busy", busyValue);
+  }
+
   function syncBusyState(snapshot) {
     stateSnapshot = snapshot;
 
-    const loading = Boolean(snapshot.loading);
+    syncBusyAttributes();
+  }
 
-    root.setAttribute("aria-busy", String(loading));
+  /* ========================================================================
+     Presentation Activity
+     ======================================================================== */
 
-    const viewElement = resolveElement(root, SELECTORS.view);
+  function syncPresentationActivity() {
+    if (destroyed) {
+      return null;
+    }
 
-    const tableElement = resolveElement(root, SELECTORS.table);
+    const shouldRenderTable = isElementVisible(tableElement);
 
-    const cardsElement = resolveElement(root, SELECTORS.cards);
+    const shouldRenderCards = isElementVisible(cardsElement);
 
-    viewElement?.setAttribute("aria-busy", String(loading));
+    /*
+     * Deactivate the hidden presentation first.
+     *
+     * This prevents both the desktop DataTable and the complete mobile card
+     * tree from being constructed during the same breakpoint transition.
+     */
 
-    tableElement?.setAttribute("aria-busy", String(loading));
+    if (shouldRenderTable) {
+      cards.setActive?.(false);
 
-    cardsElement?.setAttribute("aria-busy", String(loading));
+      table.setActive?.(true);
+    } else if (shouldRenderCards) {
+      table.setActive?.(false);
+
+      cards.setActive?.(true);
+    } else {
+      table.setActive?.(false);
+
+      cards.setActive?.(false);
+    }
+
+    return Object.freeze({
+      table: shouldRenderTable,
+
+      cards: shouldRenderCards,
+    });
+  }
+
+  function schedulePresentationSync() {
+    if (destroyed || !initialized || presentationFrame !== null) {
+      return;
+    }
+
+    presentationFrame = window.requestAnimationFrame(() => {
+      presentationFrame = null;
+
+      syncPresentationActivity();
+    });
+  }
+
+  function bindPresentationActivity() {
+    window.addEventListener("resize", schedulePresentationSync, {
+      passive: true,
+    });
+  }
+
+  function destroyPresentationActivity() {
+    window.removeEventListener("resize", schedulePresentationSync);
+
+    if (presentationFrame !== null) {
+      window.cancelAnimationFrame(presentationFrame);
+
+      presentationFrame = null;
+    }
   }
 
   /* ========================================================================
@@ -549,9 +731,13 @@ export function createDerivativeNegotiated(options = {}) {
       source.cancel();
 
       /*
-       * Do not replace the current completed results with an API error merely
-       * because the user temporarily entered an incomplete/invalid date range.
+       * Restore the last completed rows if an in-progress request was
+       * cancelled while the date range became incomplete or invalid.
+       *
+       * This also clears a stale loading state.
        */
+
+      controller.render();
 
       return Promise.resolve(null);
     }
@@ -567,10 +753,8 @@ export function createDerivativeNegotiated(options = {}) {
     const currentRequestId = ++dependencyRequestId;
 
     /*
-     * Cancel the current result request immediately.
-     *
      * Results belonging to the previous Category must never win while the
-     * Contract list for the new Category is still being resolved.
+     * Contract options for the new Category are being resolved.
      */
 
     source.cancel();
@@ -578,10 +762,7 @@ export function createDerivativeNegotiated(options = {}) {
     try {
       const contractResult = await contracts.load(filterState.category, {
         /*
-         * Category changes reset Contract to All.
-         *
-         * Initial page loading may instead explicitly preserve the
-         * server-rendered selected Contract.
+         * Category changes already reset Contract to All.
          */
 
         selectedValue: filterState.contract,
@@ -590,22 +771,17 @@ export function createDerivativeNegotiated(options = {}) {
       if (
         destroyed ||
         currentRequestId !== dependencyRequestId ||
-        contractResult?.stale
+        contractResult?.stale ||
+        contractResult?.cancelled
       ) {
         return null;
       }
 
-      /*
-       * Synchronize the filter state with the value that actually exists in
-       * the newly loaded Contract options.
-       *
-       * Do not emit another filter notification; this operation is already
-       * part of the current Category action.
-       */
-
-      filters.setContractValue(contractResult?.selectedValue || "All", {
+      filters.setContractValue(contractResult?.selectedValue || ALL_VALUE, {
         notifyChange: false,
       });
+
+      filters.sync();
     } catch (error) {
       if (
         destroyed ||
@@ -616,15 +792,16 @@ export function createDerivativeNegotiated(options = {}) {
       }
 
       /*
-       * contracts.js clears stale Contract options when its request fails.
+       * contracts.js clears options belonging to the previous Category.
        *
-       * Continue with Contract=All so Category-level results remain usable
-       * even if the dependent option request failed.
+       * Continue with Contract=All so Category-level results remain usable.
        */
 
-      filters.setContractValue("All", {
+      filters.setContractValue(ALL_VALUE, {
         notifyChange: false,
       });
+
+      filters.sync();
     }
 
     if (destroyed || currentRequestId !== dependencyRequestId) {
@@ -652,22 +829,24 @@ export function createDerivativeNegotiated(options = {}) {
     );
 
     if (categoryChanged) {
-      refreshContractsAndReload(detail.state);
+      void refreshContractsAndReload(detail.state);
 
       return;
     }
 
     /*
-     * Invalid/incomplete date input intentionally does not request data.
+     * Invalid or incomplete date input intentionally does not request data.
      */
 
     if (detail.validation && !detail.validation.valid) {
       source.cancel();
 
+      controller.render();
+
       return;
     }
 
-    reload();
+    void reload();
   }
 
   /* ========================================================================
@@ -680,11 +859,11 @@ export function createDerivativeNegotiated(options = {}) {
     const currentRequestId = ++dependencyRequestId;
 
     /*
-     * The JSP may already contain Contract options, but refreshing them here
-     * makes the client-side dependency authoritative after initialization.
+     * Refresh Contract options so the client-side dependency becomes
+     * authoritative after initialization.
      *
-     * Preserve a server-rendered selected Contract when it is still returned
-     * by the Category endpoint.
+     * Preserve a server-rendered Contract selection when the selected value
+     * is still returned for the initial Category.
      */
 
     try {
@@ -695,12 +874,13 @@ export function createDerivativeNegotiated(options = {}) {
       if (
         destroyed ||
         currentRequestId !== dependencyRequestId ||
-        contractResult?.stale
+        contractResult?.stale ||
+        contractResult?.cancelled
       ) {
         return null;
       }
 
-      filters.setContractValue(contractResult?.selectedValue || "All", {
+      filters.setContractValue(contractResult?.selectedValue || ALL_VALUE, {
         notifyChange: false,
       });
 
@@ -715,11 +895,11 @@ export function createDerivativeNegotiated(options = {}) {
       }
 
       /*
-       * A Contract-option failure should not prevent the negotiated results
-       * endpoint from being requested with the remaining valid filters.
+       * Contract-option failure must not prevent the results endpoint from
+       * loading with the remaining valid filters.
        */
 
-      filters.setContractValue("All", {
+      filters.setContractValue(ALL_VALUE, {
         notifyChange: false,
       });
 
@@ -752,19 +932,23 @@ export function createDerivativeNegotiated(options = {}) {
 
     filters.sync();
 
-    controller.init();
-
     unsubscribeState = state.subscribe((event) => {
       syncBusyState(event.state);
     });
-
-    syncBusyState(state.getState());
 
     unsubscribeFilters = filters.subscribe(handleFilterChange);
 
     unbindLogoFallback = bindStandardCompanyLogoFallback(root);
 
-    loadInitialData();
+    bindPresentationActivity();
+
+    controller.init();
+
+    syncPresentationActivity();
+
+    syncBusyState(state.getState());
+
+    void loadInitialData();
 
     return instance;
   }
@@ -786,6 +970,12 @@ export function createDerivativeNegotiated(options = {}) {
 
     contracts.cancel();
 
+    destroyPresentationActivity();
+
+    table.setActive?.(false);
+
+    cards.setActive?.(false);
+
     unsubscribeFilters?.();
     unsubscribeFilters = null;
 
@@ -795,19 +985,33 @@ export function createDerivativeNegotiated(options = {}) {
     unbindLogoFallback?.();
     unbindLogoFallback = null;
 
+    /*
+     * The page owns these two feature-specific modules.
+     */
+
     contracts.destroy();
 
     filters.destroy();
+
+    /*
+     * The shared controller owns:
+     *
+     * - results source
+     * - state
+     * - table
+     * - cards
+     * - results presentation
+     */
 
     controller.destroy();
 
     root.setAttribute("aria-busy", "false");
 
-    resolveElement(root, SELECTORS.view)?.setAttribute("aria-busy", "false");
+    viewElement.setAttribute("aria-busy", "false");
 
-    resolveElement(root, SELECTORS.table)?.setAttribute("aria-busy", "false");
+    tableElement.setAttribute("aria-busy", "false");
 
-    resolveElement(root, SELECTORS.cards)?.setAttribute("aria-busy", "false");
+    cardsElement.setAttribute("aria-busy", "false");
 
     instances.delete(root);
 
@@ -824,6 +1028,10 @@ export function createDerivativeNegotiated(options = {}) {
     reload,
 
     destroy,
+
+    refreshPresentation() {
+      return syncPresentationActivity();
+    },
 
     getFilters() {
       return filters.getState();
@@ -842,7 +1050,7 @@ export function createDerivativeNegotiated(options = {}) {
     },
 
     isLoading() {
-      return source.isLoading();
+      return contracts.isLoading() || source.isLoading();
     },
 
     isInitialized() {
@@ -890,7 +1098,9 @@ function initializeDerivativeNegotiatedPage() {
     const status = root.querySelector(SELECTORS.status);
 
     if (status) {
-      status.textContent = "Unable to initialize Derivative Negotiated Deals.";
+      status.textContent =
+        window.DerivativeNegotiatedConfig?.labels?.error ||
+        "Unable to initialize Derivative Negotiated Deals.";
     }
   }
 }

@@ -35,7 +35,7 @@ import {
   getDateSortValue,
   normalizeString,
   toNumber,
-} from "../../shared/trading-formatters.js";
+} from "../../../../shared/trading/trading-formatters.js";
 
 /* ==========================================================================
    Constants

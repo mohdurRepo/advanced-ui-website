@@ -45,7 +45,7 @@ import { createTradingTableOptions } from "../../shared/trading-table-options.js
 import {
   formatRequestDate,
   normalizeString,
-} from "../../shared/trading-formatters.js";
+} from "../../../../shared/trading/trading-formatters.js";
 
 import {
   bindCompanyStatusFilters,

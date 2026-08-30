@@ -40,7 +40,7 @@ import {
   getSafeUrl,
   normalizeString,
   parseDateParts,
-} from "../../shared/trading-formatters.js";
+} from "../../../../shared/trading/trading-formatters.js";
 
 import {
   COMPANY_STATUS_VIEWS,
@@ -368,16 +368,15 @@ export function renderCompanyStatusIndicator(row = {}, config = {}) {
 
 export function renderCompanyStatusCompanyCell(row = {}, config = {}) {
   return renderStandardCompanyCell(row, config, {
-    metadata: renderCompanyStatusIndicator(row, config),
+    nameMetadata: renderCompanyStatusIndicator(row, config),
   });
 }
 
 export function renderCompanyStatusCardIdentity(row = {}, config = {}) {
   return renderStandardCompanyCardIdentity(row, config, {
-    metadata: renderCompanyStatusIndicator(row, config),
+    nameMetadata: renderCompanyStatusIndicator(row, config),
   });
 }
-
 function formatCompanyCell(row, type, config) {
   if (type === "sort" || type === "type") {
     return getCompanyName(row) || getCompanyCode(row);

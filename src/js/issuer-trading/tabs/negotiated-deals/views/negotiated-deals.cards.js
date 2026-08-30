@@ -37,7 +37,7 @@ import {
 import {
   escapeHtml,
   normalizeString,
-} from "../../../shared/trading-formatters.js";
+} from "../../../../shared/trading/trading-formatters.js";
 
 import {
   createNegotiatedDealsFormatters,

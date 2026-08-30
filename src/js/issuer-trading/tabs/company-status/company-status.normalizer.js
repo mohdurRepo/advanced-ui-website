@@ -39,7 +39,7 @@ import {
   normalizeCompanyStatusType,
 } from "./company-status.filters.js";
 
-import { getDateSortValue } from "../../shared/trading-formatters.js";
+import { getDateSortValue } from "../../../../shared/trading/trading-formatters.js";
 
 /* ==========================================================================
    Constants

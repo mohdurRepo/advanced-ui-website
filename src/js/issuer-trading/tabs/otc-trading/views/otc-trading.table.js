@@ -27,7 +27,7 @@
 
 import { createOtcTradingFormatters } from "../otc-trading.formatters.js";
 
-import { normalizeString } from "../../../shared/trading-formatters.js";
+import { normalizeString } from "../../../../shared/trading/trading-formatters.js";
 
 /* ==========================================================================
    Constants

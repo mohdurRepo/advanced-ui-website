@@ -46,7 +46,7 @@ import {
 
 import { getIssuerTradingEndpoint } from "../issuer-trading-config.js";
 
-import { createTradingTableOptions } from "./trading-table-options.js";
+import { createTradingTableOptions } from "../../shared/trading/trading-table-options.js";
 
 /* ==========================================================================
    Helpers

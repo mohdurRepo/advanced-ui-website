@@ -8,7 +8,7 @@
  * Responsibilities:
  *
  * - render Contract transaction cards
- * - render one daily total card after each date group
+ * - render one service-provided daily total card after each date group
  * - group rows consecutively by transaction date
  * - render Contract identity using the shared data-view component
  * - expose progressive-rendering preferences
@@ -36,7 +36,7 @@ import {
 import {
   escapeHtml,
   normalizeString,
-} from "../../issuer-trading/shared/trading-formatters.js";
+} from "../../shared/trading/trading-formatters.js";
 
 import {
   createDerivativeNegotiatedFormatters,
@@ -67,6 +67,12 @@ function createSafeId(value, fallback = "group") {
     .toLowerCase();
 
   return normalized || fallback;
+}
+
+function normalizeIndex(value) {
+  const index = Number(value);
+
+  return Number.isFinite(index) && index >= 0 ? index : 0;
 }
 
 /* ==========================================================================
@@ -109,16 +115,16 @@ function getContractIdentityOptions(config = {}) {
   });
 }
 
-function renderContractIdentity(row, config) {
+function renderContractIdentity(row, identityOptions) {
   /*
-   * The canonical row deliberately uses companyCode/companyName/companyUrl
-   * so the shared Market Watch identity renderer can be reused directly.
+   * Canonical rows use companyCode/companyName/companyUrl so the shared
+   * Market Watch identity renderer can be reused directly for Contracts.
    */
 
   return renderStandardCompanyCardIdentity(
     row,
 
-    getContractIdentityOptions(config),
+    identityOptions,
   );
 }
 
@@ -126,16 +132,51 @@ function renderContractIdentity(row, config) {
    Time
    ========================================================================== */
 
-function renderTimeValue(value, rawValue) {
-  const normalizedRawValue = normalizeString(rawValue);
+function getMachineTime(value) {
+  const normalized = normalizeString(value);
 
-  if (!normalizedRawValue) {
-    return escapeHtml(value);
+  const match = normalized.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+
+  if (!match) {
+    return "";
+  }
+
+  const hours = Number(match[1]);
+
+  const minutes = Number(match[2]);
+
+  const seconds = Number(match[3] || 0);
+
+  if (
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59 ||
+    seconds < 0 ||
+    seconds > 59
+  ) {
+    return "";
+  }
+
+  return [
+    String(hours).padStart(2, "0"),
+
+    String(minutes).padStart(2, "0"),
+
+    String(seconds).padStart(2, "0"),
+  ].join(":");
+}
+
+function renderTimeValue(displayValue, rawValue) {
+  const machineTime = getMachineTime(rawValue);
+
+  if (!machineTime) {
+    return escapeHtml(displayValue);
   }
 
   return `
-    <time datetime="${escapeHtml(normalizedRawValue)}">
-      ${escapeHtml(value)}
+    <time datetime="${escapeHtml(machineTime)}">
+      ${escapeHtml(displayValue)}
     </time>
   `.trim();
 }
@@ -162,11 +203,11 @@ function renderSummaryValue({ label, value, valueClassName }) {
    Deal Card
    ========================================================================== */
 
-function renderDealCard({ row, index, config, formatters, labels }) {
+function renderDealCard({ row, index, identityOptions, formatters, labels }) {
   const values = formatters.getCardValues(row);
 
   const summary = `
-    ${renderContractIdentity(row, config)}
+    ${renderContractIdentity(row, identityOptions)}
 
     <div class="data-card__quote">
       ${renderSummaryValue({
@@ -188,7 +229,7 @@ function renderDealCard({ row, index, config, formatters, labels }) {
   `.trim();
 
   return renderStandardDataCard({
-    rowId: row.id || index,
+    rowId: row.id || `derivative-negotiated-${index + 1}`,
 
     idPrefix: "derivative-negotiated-details",
 
@@ -259,12 +300,25 @@ function renderTotalCard({ row, index, formatters, labels }) {
     </div>
   `.trim();
 
+  /*
+   * Total cards intentionally have no details or toggle.
+   *
+   * renderStandardDataCard() therefore creates a valid non-expandable card
+   * that is ignored by DataViewCard enhancement.
+   */
+
   return renderStandardDataCard({
-    rowId: row.id || index,
+    rowId: row.id || `derivative-negotiated-total-${index + 1}`,
 
     idPrefix: "derivative-negotiated-total",
 
-    className: "data-card--summary trading-daily-total-card",
+    className: [
+      "data-card--summary",
+
+      "trading-daily-total-card",
+
+      "data-card--derivative-negotiated-total",
+    ].join(" "),
 
     summary,
 
@@ -276,13 +330,15 @@ function renderTotalCard({ row, index, formatters, labels }) {
    Card Renderer
    ========================================================================== */
 
-function createCardRenderer({ config, formatters, labels }) {
+function createCardRenderer({ identityOptions, formatters, labels }) {
   return function renderCard(row, context = {}) {
+    const index = normalizeIndex(context.index);
+
     if (isDerivativeNegotiatedTotalRow(row)) {
       return renderTotalCard({
         row,
 
-        index: context.index,
+        index,
 
         formatters,
 
@@ -293,9 +349,9 @@ function createCardRenderer({ config, formatters, labels }) {
     return renderDealCard({
       row,
 
-      index: context.index,
+      index,
 
-      config,
+      identityOptions,
 
       formatters,
 
@@ -309,11 +365,11 @@ function createCardRenderer({ config, formatters, labels }) {
    ========================================================================== */
 
 /*
- * Group rows by sequence rather than using a simple Map.
+ * Group rows by sequence instead of merging every matching date through a Map.
  *
- * A service-provided total row belongs to the immediately preceding
- * transaction group. If the same date appears again after a total row, it
- * starts a new group instead of being merged back into the previous one.
+ * A service-provided total row belongs to the immediately preceding date
+ * group. If the same date appears later after a total row, it begins a new
+ * group and is not merged into the completed group.
  */
 
 function createCardGroupKeyResolver() {
@@ -326,10 +382,13 @@ function createCardGroupKeyResolver() {
   let groupClosed = false;
 
   return function getCardGroupKey(row = {}, context = {}) {
-    const index = Number(context.index || 0);
+    const index = normalizeIndex(context.index);
 
     /*
-     * Reset grouping state whenever a new complete collection render starts.
+     * A complete collection render always begins at index zero.
+     *
+     * Reset closure state so refreshes and filter changes cannot reuse the
+     * grouping sequence from an earlier result collection.
      */
 
     if (index === 0) {
@@ -343,7 +402,7 @@ function createCardGroupKeyResolver() {
     }
 
     /*
-     * A total always belongs to the currently open transaction-date group.
+     * A total belongs to the currently open transaction group.
      */
 
     if (isDerivativeNegotiatedTotalRow(row)) {
@@ -376,10 +435,10 @@ function createCardGroupKeyResolver() {
 function createCardGroupLabel(formatters) {
   return function getCardGroupLabel(_groupKey, rows = []) {
     /*
-     * Derive the heading only from a transaction row.
+     * Derive the heading only from an ordinary transaction.
      *
-     * A total row is structural summary data and must never become the date
-     * heading for the group.
+     * A total row is structural summary data and must never become the group
+     * date heading.
      */
 
     const firstDealRow = rows.find(
@@ -401,10 +460,12 @@ function createCardGroupLabel(formatters) {
 
 function createCardGroupRenderer() {
   return function renderCardGroup({ groupKey, groupLabel, cards, groupIndex }) {
+    const normalizedGroupIndex = normalizeIndex(groupIndex);
+
     const groupId = [
       "derivative-negotiated-group",
 
-      Number(groupIndex || 0) + 1,
+      normalizedGroupIndex + 1,
 
       createSafeId(groupKey),
     ].join("-");
@@ -429,6 +490,7 @@ function createCardGroupRenderer() {
         class="data-card-group"
         ${relationship}
         data-data-card-group
+        data-date-group="${escapeHtml(groupKey)}"
       >
         ${heading}
 
@@ -455,8 +517,14 @@ export function createDerivativeNegotiatedCardsView(config = {}) {
 
   const formatters = createDerivativeNegotiatedFormatters(config);
 
+  /*
+   * Build these immutable settings once per view instead of once per card.
+   */
+
+  const identityOptions = getContractIdentityOptions(config);
+
   const renderCard = createCardRenderer({
-    config,
+    identityOptions,
 
     formatters,
 
@@ -481,6 +549,10 @@ export function createDerivativeNegotiatedCardsView(config = {}) {
     renderCardGroup,
 
     cardOptions: Object.freeze({
+      /*
+       * Large responses are rendered over multiple animation frames.
+       */
+
       progressive: true,
 
       batchSize: DEFAULT_BATCH_SIZE,

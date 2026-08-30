@@ -9,11 +9,12 @@
  *
  * - parse legacy response envelopes
  * - normalize negotiated transaction rows
+ * - preserve service-provided display dates
  * - preserve service-provided daily total rows
  * - normalize Contract identity fields
  * - normalize numeric service values
  * - provide stable row identifiers
- * - provide date grouping and sorting metadata
+ * - provide optional date grouping and sorting metadata
  * - provide consistent result metadata
  *
  * This module intentionally has no:
@@ -33,17 +34,37 @@
 
 const RESPONSE_ROW_KEYS = Object.freeze([
   "rows",
+
   "data",
+
   "results",
+
   "items",
+
   "aaData",
+]);
+
+const RESPONSE_METADATA_KEYS = Object.freeze([
+  "data",
+
+  "results",
+
+  "meta",
+
+  "pagination",
+
+  "page",
 ]);
 
 const TOTAL_ROW_TYPES = new Set([
   "total",
+
   "summary",
+
   "subtotal",
+
   "daily-total",
+
   "daily_total",
 ]);
 
@@ -203,20 +224,61 @@ function extractResponseRows(response, depth = 0) {
 }
 
 /* ==========================================================================
-   Date Parsing
+   Response Metadata Objects
+   ========================================================================== */
+
+function collectResponseObjects(
+  response,
+  depth = 0,
+  objects = [],
+  visited = new Set(),
+) {
+  if (depth > MAX_RESPONSE_DEPTH) {
+    return objects;
+  }
+
+  const parsedResponse = parseResponseValue(response);
+
+  if (!isObject(parsedResponse) || visited.has(parsedResponse)) {
+    return objects;
+  }
+
+  visited.add(parsedResponse);
+
+  objects.push(parsedResponse);
+
+  RESPONSE_METADATA_KEYS.forEach((key) => {
+    if (!(key in parsedResponse)) {
+      return;
+    }
+
+    const candidate = parseResponseValue(parsedResponse[key]);
+
+    if (isObject(candidate)) {
+      collectResponseObjects(candidate, depth + 1, objects, visited);
+    }
+  });
+
+  return objects;
+}
+
+/* ==========================================================================
+   Date Metadata
    ========================================================================== */
 
 /*
- * The normalizer does not change the service-provided date used for display.
+ * The exact service-provided date is always preserved for display.
  *
- * Date parsing here exists only to create:
+ * Parsing exists only to create optional metadata:
  *
- * - a stable YYYY-MM-DD grouping key
- * - a numeric sorting value
+ * - stable date grouping key
+ * - numeric sorting value
+ *
+ * An unfamiliar date format must never cause the displayed date to disappear.
  */
 
 function getDateParts(value) {
-  const normalized = normalizeString(value);
+  const normalized = normalizeDigits(normalizeString(value));
 
   if (!normalized) {
     return null;
@@ -225,6 +287,7 @@ function getDateParts(value) {
   /*
    * YYYY-MM-DD
    * YYYY/MM/DD
+   * Optional time or trailing metadata is accepted.
    */
 
   let match = normalized.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:\D.*)?$/);
@@ -232,7 +295,9 @@ function getDateParts(value) {
   if (match) {
     return {
       year: Number(match[1]),
+
       month: Number(match[2]),
+
       day: Number(match[3]),
     };
   }
@@ -240,6 +305,7 @@ function getDateParts(value) {
   /*
    * DD-MM-YYYY
    * DD/MM/YYYY
+   * Optional time or trailing metadata is accepted.
    */
 
   match = normalized.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})(?:\D.*)?$/);
@@ -247,7 +313,9 @@ function getDateParts(value) {
   if (match) {
     return {
       year: Number(match[3]),
+
       month: Number(match[2]),
+
       day: Number(match[1]),
     };
   }
@@ -277,29 +345,22 @@ function isValidDateParts(parts) {
   );
 }
 
-function getFirstValidDate(...values) {
-  for (const value of values) {
-    const normalized = normalizeString(value);
+function getDateKey(value) {
+  const normalized = normalizeString(value);
 
-    if (!normalized) {
-      continue;
-    }
-
-    const parts = getDateParts(normalized);
-
-    if (isValidDateParts(parts)) {
-      return normalized;
-    }
+  if (!normalized) {
+    return "undated";
   }
 
-  return "";
-}
-
-function getDateKey(value) {
-  const parts = getDateParts(value);
+  const parts = getDateParts(normalized);
 
   if (!isValidDateParts(parts)) {
-    return createSafeKey(value, "undated");
+    /*
+     * Preserve consistent grouping for an unfamiliar service format without
+     * changing its displayed value.
+     */
+
+    return createSafeKey(normalized, "undated");
   }
 
   const month = String(parts.month).padStart(2, "0");
@@ -324,18 +385,14 @@ function getDateSortValue(value) {
    ========================================================================== */
 
 /*
- * The legacy service uses company-oriented names for the Contract displayed
- * in the Derivative Negotiated table.
+ * The legacy service uses company-oriented property names for the Contract.
  *
- * Normalize those fields once here so the presentation layer only deals with
- * the Contract model:
+ * Keep the standard company-property names in the canonical row so the shared
+ * Market Watch identity renderers can be reused directly:
  *
  * - companyCode
  * - companyName
  * - companyUrl
- *
- * Keeping the standard company-property names also allows the shared
- * data-view identity renderers to be reused directly.
  */
 
 function normalizeContractIdentity(row = {}) {
@@ -345,24 +402,39 @@ function normalizeContractIdentity(row = {}) {
 
   const companyCode = getFirstString(
     row.companyCode,
+
     row.contractCode,
+
     row.symbol,
+
     row.symbolCode,
+
     row.code,
+
     row.securityCode,
 
     companyObject.companyCode,
+
     companyObject.contractCode,
+
     companyObject.symbol,
+
     companyObject.symbolCode,
+
     companyObject.code,
+
     companyObject.securityCode,
 
     contractObject.companyCode,
+
     contractObject.contractCode,
+
     contractObject.symbol,
+
     contractObject.symbolCode,
+
     contractObject.code,
+
     contractObject.securityCode,
   );
 
@@ -372,20 +444,31 @@ function normalizeContractIdentity(row = {}) {
     typeof row.company === "string" ? row.company : null,
 
     row.contractName,
+
     row.longName,
+
     row.name,
+
     row.securityName,
 
     companyObject.companyName,
+
     companyObject.contractName,
+
     companyObject.longName,
+
     companyObject.name,
+
     companyObject.securityName,
 
     contractObject.companyName,
+
     contractObject.contractName,
+
     contractObject.longName,
+
     contractObject.name,
+
     contractObject.securityName,
 
     companyCode,
@@ -393,24 +476,39 @@ function normalizeContractIdentity(row = {}) {
 
   const companyUrl = getFirstString(
     row.companyURL,
+
     row.companyUrl,
+
     row.contractURL,
+
     row.contractUrl,
+
     row.url,
+
     row.securityUrl,
 
     companyObject.companyURL,
+
     companyObject.companyUrl,
+
     companyObject.contractURL,
+
     companyObject.contractUrl,
+
     companyObject.url,
+
     companyObject.securityUrl,
 
     contractObject.companyURL,
+
     contractObject.companyUrl,
+
     contractObject.contractURL,
+
     contractObject.contractUrl,
+
     contractObject.url,
+
     contractObject.securityUrl,
   );
 
@@ -442,50 +540,93 @@ function isTotalRow(row = {}) {
 }
 
 /* ==========================================================================
+   Service Date Extraction
+   ========================================================================== */
+
+function getServiceDate(row = {}) {
+  /*
+   * Do not validate or reformat this value.
+   *
+   * The service controls the visible legacy-compatible date presentation.
+   */
+
+  return getFirstString(
+    row.tradeDate,
+
+    row.strDate,
+
+    row.date,
+
+    row.transactionDate,
+
+    row.dealDate,
+  );
+}
+
+/* ==========================================================================
    Transaction Row
    ========================================================================== */
 
 function normalizeDealRow(row, index) {
   const company = normalizeContractIdentity(row);
 
-  const tradeDate = getFirstValidDate(
-    row.tradeDate,
-    row.strDate,
-    row.date,
-    row.transactionDate,
-    row.dealDate,
-  );
+  const tradeDate = getServiceDate(row);
 
   const tradeTime = getFirstString(
     row.tradeTime,
+
     row.strTime,
+
     row.time,
+
     row.transactionTime,
+
     row.dealTime,
   );
 
   const price = normalizeNumericValue(
-    getFirstValue(row.price, row.tradePrice, row.dealPrice),
+    getFirstValue(
+      row.price,
+
+      row.tradePrice,
+
+      row.dealPrice,
+    ),
   );
 
   const volume = normalizeNumericValue(
-    getFirstValue(row.volume, row.tradeVolume, row.tradedVolume, row.quantity),
+    getFirstValue(
+      row.volume,
+
+      row.tradeVolume,
+
+      row.tradedVolume,
+
+      row.quantity,
+    ),
   );
 
   const value = normalizeNumericValue(
     getFirstValue(
       row.value,
+
       row.turnOver,
+
       row.turnover,
+
       row.tradeValue,
+
       row.tradedValue,
     ),
   );
 
   const sourceId = getFirstString(
     row.id,
+
     row.tradeId,
+
     row.dealId,
+
     row.transactionId,
   );
 
@@ -495,9 +636,13 @@ function normalizeDealRow(row, index) {
     sourceId ||
     [
       "derivative-deal",
+
       dateKey,
+
       createSafeKey(company.companyCode, "contract"),
+
       createSafeKey(tradeTime, "time"),
+
       index,
     ].join("-");
 
@@ -506,9 +651,17 @@ function normalizeDealRow(row, index) {
 
     rowType: "deal",
 
+    /*
+     * Exact service-provided display values.
+     */
+
     tradeDate,
 
     tradeTime,
+
+    /*
+     * Optional machine metadata.
+     */
 
     dateKey,
 
@@ -538,25 +691,22 @@ function normalizeTotalRow(row, index, previousDate = "") {
   /*
    * Some legacy total rows omit their date.
    *
-   * When that happens, associate the total with the immediately preceding
-   * transaction date without calculating any financial totals client-side.
+   * Associate those rows with the immediately preceding transaction date
+   * without calculating financial totals on the client.
    */
 
-  const tradeDate =
-    getFirstValidDate(
-      row.tradeDate,
-      row.strDate,
-      row.date,
-      row.transactionDate,
-      row.dealDate,
-    ) || previousDate;
+  const tradeDate = getServiceDate(row) || previousDate;
 
   const volume = normalizeNumericValue(
     getFirstValue(
       row.volume,
+
       row.tradeVolume,
+
       row.tradedVolume,
+
       row.totalVolume,
+
       row.quantity,
     ),
   );
@@ -564,10 +714,15 @@ function normalizeTotalRow(row, index, previousDate = "") {
   const value = normalizeNumericValue(
     getFirstValue(
       row.value,
+
       row.turnOver,
+
       row.turnover,
+
       row.tradeValue,
+
       row.tradedValue,
+
       row.totalValue,
     ),
   );
@@ -604,116 +759,10 @@ function normalizeTotalRow(row, index, previousDate = "") {
 }
 
 /* ==========================================================================
-   Response Metadata
+   Row Collection Normalization
    ========================================================================== */
 
-function findExplicitTotal(response, rawRows) {
-  const parsedResponse = parseResponseValue(response);
-
-  const candidates = [];
-
-  if (isObject(parsedResponse)) {
-    candidates.push(
-      parsedResponse.total,
-      parsedResponse.count,
-      parsedResponse.recordsTotal,
-      parsedResponse.recordsFiltered,
-      parsedResponse.totalCount,
-    );
-
-    if (isObject(parsedResponse.meta)) {
-      candidates.push(
-        parsedResponse.meta.total,
-        parsedResponse.meta.count,
-        parsedResponse.meta.totalCount,
-      );
-    }
-  }
-
-  /*
-   * The legacy Derivative Negotiated implementation reads count from the
-   * first service row.
-   */
-
-  if (isObject(rawRows[0])) {
-    candidates.push(
-      rawRows[0].count,
-      rawRows[0].totalCount,
-      rawRows[0].recordsTotal,
-    );
-  }
-
-  for (const candidate of candidates) {
-    const total = normalizeNumericValue(candidate);
-
-    if (total !== null && total >= 0) {
-      return total;
-    }
-  }
-
-  return null;
-}
-
-function findUpdatedAt(response) {
-  const parsedResponse = parseResponseValue(response);
-
-  if (!isObject(parsedResponse)) {
-    return null;
-  }
-
-  return (
-    getFirstValue(
-      parsedResponse.updatedAt,
-      parsedResponse.lastUpdated,
-      parsedResponse.timestamp,
-
-      parsedResponse.meta?.updatedAt,
-      parsedResponse.meta?.lastUpdated,
-      parsedResponse.meta?.timestamp,
-    ) ?? null
-  );
-}
-
-function createResponseMeta({ response, rawRows, rows }) {
-  const dealRows = rows.filter((row) => row.rowType === "deal");
-
-  const summaryRows = rows.filter((row) => row.rowType === "total");
-
-  const dateGroups = new Set(
-    dealRows.map((row) => row.dateKey).filter(Boolean),
-  );
-
-  const explicitTotal = findExplicitTotal(response, rawRows);
-
-  return Object.freeze({
-    /*
-     * Prefer a total explicitly supplied by the service.
-     *
-     * Fall back to the number of transaction rows. Daily total rows are
-     * presentation summaries and therefore do not increase the result count.
-     */
-
-    total: explicitTotal !== null ? explicitTotal : dealRows.length,
-
-    recordCount: dealRows.length,
-
-    summaryCount: summaryRows.length,
-
-    groupCount: dateGroups.size,
-
-    rowCount: rows.length,
-
-    updatedAt: findUpdatedAt(response),
-  });
-}
-
-/* ==========================================================================
-   Public Row Normalization
-   ========================================================================== */
-
-export function normalizeDerivativeNegotiatedRows(response) {
-  const rawRows = extractResponseRows(response);
-
+function normalizeRawRows(rawRows = []) {
   const rows = [];
 
   let previousDate = "";
@@ -742,38 +791,122 @@ export function normalizeDerivativeNegotiatedRows(response) {
 }
 
 /* ==========================================================================
+   Response Metadata
+   ========================================================================== */
+
+function findExplicitTotal(response, rawRows) {
+  const candidates = [];
+
+  collectResponseObjects(response).forEach((responseObject) => {
+    candidates.push(
+      responseObject.total,
+
+      responseObject.count,
+
+      responseObject.recordsTotal,
+
+      responseObject.recordsFiltered,
+
+      responseObject.totalCount,
+    );
+  });
+
+  /*
+   * The legacy Derivative Negotiated implementation also reads count from the
+   * first service row.
+   */
+
+  if (isObject(rawRows[0])) {
+    candidates.push(
+      rawRows[0].count,
+
+      rawRows[0].totalCount,
+
+      rawRows[0].recordsTotal,
+    );
+  }
+
+  for (const candidate of candidates) {
+    const total = normalizeNumericValue(candidate);
+
+    if (total !== null && total >= 0) {
+      return total;
+    }
+  }
+
+  return null;
+}
+
+function findUpdatedAt(response) {
+  const candidates = [];
+
+  collectResponseObjects(response).forEach((responseObject) => {
+    candidates.push(
+      responseObject.updatedAt,
+
+      responseObject.lastUpdated,
+
+      responseObject.timestamp,
+    );
+  });
+
+  return getFirstValue(...candidates) ?? null;
+}
+
+function createResponseMeta({ response, rawRows, rows }) {
+  const dealRows = rows.filter((row) => row.rowType === "deal");
+
+  const summaryRows = rows.filter((row) => row.rowType === "total");
+
+  const dateGroups = new Set(
+    dealRows.map((row) => row.dateKey).filter(Boolean),
+  );
+
+  const explicitTotal = findExplicitTotal(response, rawRows);
+
+  return Object.freeze({
+    /*
+     * Prefer a total explicitly supplied by the service.
+     *
+     * Daily total rows are presentation summaries and do not increase the
+     * user-visible result count.
+     */
+
+    total: explicitTotal !== null ? explicitTotal : dealRows.length,
+
+    recordCount: dealRows.length,
+
+    summaryCount: summaryRows.length,
+
+    groupCount: dateGroups.size,
+
+    rowCount: rows.length,
+
+    updatedAt: findUpdatedAt(response),
+  });
+}
+
+/* ==========================================================================
+   Public Row Normalization
+   ========================================================================== */
+
+export function normalizeDerivativeNegotiatedRows(response) {
+  const rawRows = extractResponseRows(response);
+
+  return normalizeRawRows(rawRows);
+}
+
+/* ==========================================================================
    Public Response Normalization
    ========================================================================== */
 
 export function normalizeDerivativeNegotiatedResponse(response) {
   const rawRows = extractResponseRows(response);
 
-  const rows = [];
-
-  let previousDate = "";
-
-  rawRows.forEach((rawRow, index) => {
-    if (!isObject(rawRow)) {
-      return;
-    }
-
-    if (isTotalRow(rawRow)) {
-      rows.push(normalizeTotalRow(rawRow, index, previousDate));
-
-      return;
-    }
-
-    const row = normalizeDealRow(rawRow, index);
-
-    if (row.tradeDate) {
-      previousDate = row.tradeDate;
-    }
-
-    rows.push(row);
-  });
+  const rows = normalizeRawRows(rawRows);
 
   return Object.freeze({
-    rows: Object.freeze(rows),
+    rows,
 
     meta: createResponseMeta({
       response,

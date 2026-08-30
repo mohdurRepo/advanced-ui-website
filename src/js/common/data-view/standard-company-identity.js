@@ -376,6 +376,8 @@ function renderDesktopIdentityText(row = {}, options = {}) {
 
   const companyUrl = getStandardCompanyUrl(row);
 
+  const nameMetadata = String(options.nameMetadata || "").trim();
+
   const metadata = String(options.metadata || "").trim();
 
   const codeMarkup =
@@ -400,6 +402,8 @@ function renderDesktopIdentityText(row = {}, options = {}) {
   const content = `
     <span class="table-market__name">
       ${escapeHtml(companyName)}
+
+      ${nameMetadata}
     </span>
 
     ${codeMarkup}
@@ -426,8 +430,12 @@ function renderDesktopIdentityText(row = {}, options = {}) {
    Desktop Table Identity
    ========================================================================== */
 export function renderStandardCompanyCell(row = {}, config = {}, options = {}) {
+  const leading = String(options.leading || "").trim();
+
   return `
     <div class="table-market__security-cell">
+      ${leading}
+
       ${renderStandardCompanyLogo(row, config, {
         className: "table-market__logo",
         fallbackClassName: "table-market__logo-fallback",
@@ -449,6 +457,8 @@ function renderMobileIdentityText(row = {}, options = {}) {
   const companyCode = getStandardCompanyCode(row);
 
   const companyUrl = getStandardCompanyUrl(row);
+
+  const nameMetadata = String(options.nameMetadata || "").trim();
 
   const metadata = String(options.metadata || "").trim();
 
@@ -475,6 +485,8 @@ function renderMobileIdentityText(row = {}, options = {}) {
     <div class="data-card__identity-content">
       <h3 class="data-card__title">
         ${escapeHtml(companyName)}
+
+        ${nameMetadata}
       </h3>
 
       ${codeMarkup}
@@ -504,8 +516,12 @@ export function renderStandardCompanyCardIdentity(
   config = {},
   options = {},
 ) {
+  const leading = String(options.leading || "").trim();
+
   return `
     <div class="data-card__identity">
+      ${leading}
+
       ${renderStandardCompanyLogo(row, config, {
         className: "data-card__logo",
         fallbackClassName: "data-card__logo-fallback",
@@ -516,7 +532,6 @@ export function renderStandardCompanyCardIdentity(
     </div>
   `.trim();
 }
-
 /* ==========================================================================
    Logo Error Handling
    ========================================================================== */

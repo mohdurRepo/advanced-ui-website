@@ -12,7 +12,7 @@
  * - render service-provided daily total cells
  * - identify and decorate total rows
  * - provide stable DataTables row identifiers
- * - expose table-specific DataTables options
+ * - expose client-side DataTables paging
  *
  * This module intentionally has no:
  *
@@ -31,7 +31,7 @@
 import {
   escapeHtml,
   normalizeString,
-} from "../../issuer-trading/shared/trading-formatters.js";
+} from "../../shared/trading/trading-formatters.js";
 
 import {
   createDerivativeNegotiatedFormatters,
@@ -43,6 +43,8 @@ import {
    ========================================================================== */
 
 const VIEW_KEY = "derivativeNegotiated";
+
+const DEFAULT_PAGE_LENGTH = 25;
 
 const COLUMN_KEYS = Object.freeze({
   date: "tradeDate",
@@ -95,13 +97,15 @@ function getTableLabels(config = {}) {
 }
 
 /* ==========================================================================
-   Loading Cell
+   Loading Cells
    ========================================================================== */
 
-function renderLoadingCell() {
+function renderLoadingCell(columnKey) {
+  const size = columnKey === COLUMN_KEYS.contract ? "lg" : "md";
+
   return `
     <span
-      class="table-skeleton table-skeleton-md"
+      class="table-skeleton table-skeleton-${size}"
       aria-hidden="true"
     ></span>
   `.trim();
@@ -112,8 +116,8 @@ function renderLoadingCell() {
    ========================================================================== */
 
 function createColumns(labels) {
-  return [
-    {
+  return Object.freeze([
+    Object.freeze({
       key: COLUMN_KEYS.date,
 
       label: labels.date,
@@ -125,9 +129,11 @@ function createColumns(labels) {
       orderable: false,
 
       searchable: false,
-    },
 
-    {
+      width: "13%",
+    }),
+
+    Object.freeze({
       key: COLUMN_KEYS.contract,
 
       label: labels.contract,
@@ -139,9 +145,11 @@ function createColumns(labels) {
       orderable: false,
 
       searchable: false,
-    },
 
-    {
+      width: "29%",
+    }),
+
+    Object.freeze({
       key: COLUMN_KEYS.price,
 
       label: labels.price,
@@ -153,9 +161,11 @@ function createColumns(labels) {
       orderable: false,
 
       searchable: false,
-    },
 
-    {
+      width: "13%",
+    }),
+
+    Object.freeze({
       key: COLUMN_KEYS.volume,
 
       label: labels.volume,
@@ -167,9 +177,11 @@ function createColumns(labels) {
       orderable: false,
 
       searchable: false,
-    },
 
-    {
+      width: "15%",
+    }),
+
+    Object.freeze({
       key: COLUMN_KEYS.value,
 
       label: labels.value,
@@ -181,9 +193,11 @@ function createColumns(labels) {
       orderable: false,
 
       searchable: false,
-    },
 
-    {
+      width: "20%",
+    }),
+
+    Object.freeze({
       key: COLUMN_KEYS.time,
 
       label: labels.time,
@@ -195,12 +209,14 @@ function createColumns(labels) {
       orderable: false,
 
       searchable: false,
-    },
-  ];
+
+      width: "10%",
+    }),
+  ]);
 }
 
 /* ==========================================================================
-   Total Cell
+   Total Cells
    ========================================================================== */
 
 function renderTotalCell({ column, row, type, formatters, labels }) {
@@ -261,11 +277,11 @@ function renderTotalCell({ column, row, type, formatters, labels }) {
 function createCellRenderer({ formatters, labels }) {
   return function renderCell({ row, column, type }) {
     /*
-     * Loading rows are created by the shared data-view table layer.
+     * Loading rows are provided by the shared Data Table layer.
      */
 
     if (row?.__dataViewState === "loading") {
-      return renderLoadingCell();
+      return renderLoadingCell(column.key);
     }
 
     if (isDerivativeNegotiatedTotalRow(row)) {
@@ -378,7 +394,7 @@ function createRowCallback({ formatters, labels }) {
     }
 
     /* ======================================================================
-       Loading
+       Loading Row
        ====================================================================== */
 
     if (row?.__dataViewState === "loading") {
@@ -398,20 +414,25 @@ function createRowCallback({ formatters, labels }) {
     }
 
     /* ======================================================================
-       Ordinary Transaction
+       Transaction Row
        ====================================================================== */
 
     if (!isDerivativeNegotiatedTotalRow(row)) {
+      rowElement.classList.add("derivative-negotiated__result-row");
+
       return;
     }
 
     /* ======================================================================
-       Daily Total
+       Daily Total Row
        ====================================================================== */
 
     rowElement.classList.add(
       "table-market__summary-row",
+
       "table-market__summary-row--emphasis",
+
+      "derivative-negotiated__total-row",
     );
 
     const cells = rowElement.cells;
@@ -420,7 +441,7 @@ function createRowCallback({ formatters, labels }) {
      * Column order:
      *
      * 0 Date
-     * 1 Contract / Total label
+     * 1 Contract / Total
      * 2 Price
      * 3 Volume
      * 4 Value
@@ -466,6 +487,30 @@ function getRowId(row) {
 }
 
 /* ==========================================================================
+   DataTables Layout
+   ========================================================================== */
+
+function createDataTablesLayout() {
+  return Object.freeze({
+    /*
+     * Allow the user to select 25, 50, or 100 rows.
+     */
+
+    topStart: "pageLength",
+
+    topEnd: null,
+
+    /*
+     * DataTables owns the current-page status and paging controls.
+     */
+
+    bottomStart: "info",
+
+    bottomEnd: "paging",
+  });
+}
+
+/* ==========================================================================
    Public Factory
    ========================================================================== */
 
@@ -503,28 +548,46 @@ export function createDerivativeNegotiatedTableView(config = {}) {
 
     tableOptions: Object.freeze({
       /*
-       * Preserve the legacy page size behavior.
+       * The endpoint returns the complete collection.
        *
-       * Shared DataTables configuration will continue to own scrollX,
-       * FixedHeader, layout, deferRender, responsive, and other generic
-       * presentation defaults.
+       * Paging and page-size changes therefore remain client-side and must not
+       * call the results endpoint again.
        */
+
+      serverSide: false,
 
       paging: true,
 
-      pageLength: 25,
+      pageLength: DEFAULT_PAGE_LENGTH,
 
-      lengthMenu: Object.freeze([25, 50, 100]),
+      lengthMenu: Object.freeze([
+        25,
 
-      searching: false,
+        50,
+
+        100,
+      ]),
+
+      lengthChange: true,
+
+      info: true,
+
+      layout: createDataTablesLayout(),
+
+      /*
+       * Preserve the exact service row order so each daily total remains after
+       * its corresponding transaction group.
+       */
 
       ordering: false,
 
-      info: false,
-
-      lengthChange: false,
+      searching: false,
 
       rowGroup: false,
+
+      deferRender: true,
+
+      autoWidth: false,
 
       createdRow,
 

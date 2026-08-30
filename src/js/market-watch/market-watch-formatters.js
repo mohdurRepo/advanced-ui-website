@@ -7,17 +7,18 @@
  *
  * Responsibilities:
  *
- * - escaping
  * - number formatting
  * - auction formatting
  * - price-change state
- * - company identity
  * - company status
- * - logo rendering
  * - favorite-button rendering
  * - 52-week range rendering
- * - desktop company cell rendering
- * - mobile identity / quote rendering
+ * - desktop company identity composition
+ * - mobile company identity composition
+ * - mobile quote rendering
+ *
+ * Standard company identity is delegated to the shared data-view identity
+ * renderer.
  *
  * This module intentionally has no:
  *
@@ -27,7 +28,17 @@
  * - watchlist filtering
  * - breakpoint logic
  * - event listeners
+ * - company-logo fallback lifecycle
  */
+
+/* ==========================================================================
+   Imports
+   ========================================================================== */
+
+import {
+  renderStandardCompanyCardIdentity,
+  renderStandardCompanyCell,
+} from "../../common/data-view/index.js";
 
 /* ==========================================================================
    Internal Helpers
@@ -43,27 +54,6 @@ function getLocale(config = {}) {
 
 function isAuction(config = {}) {
   return Boolean(config.market?.isAuction ?? config.openCloseAuction);
-}
-
-function getInitials(value) {
-  return String(value || "")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0))
-    .join("")
-    .toUpperCase();
-}
-
-function normalizeSize(value, fallback = 40) {
-  const size = Number(value);
-
-  if (!Number.isFinite(size) || size <= 0) {
-    return fallback;
-  }
-
-  return size;
 }
 
 function isSafeHref(value) {
@@ -121,6 +111,8 @@ export function toNumber(value) {
 
   const normalized = String(value)
     .replaceAll(",", "")
+    .replaceAll("٬", "")
+    .replaceAll("−", "-")
     .replace(/[^0-9.+-]/g, "")
     .trim();
 
@@ -255,7 +247,13 @@ export function formatMarketOrder(value, config = {}) {
 export function getCompanyStatus(row = {}, config = {}) {
   const labels = config.labels?.status || {};
 
-  const status = Number(row.companyStatus);
+  const status = Number(
+    row.companyStatus?.code ??
+      row.companyStatus?.value ??
+      row.companyStatus ??
+      row.statusCode ??
+      row.companyStatusCode,
+  );
 
   switch (status) {
     case 1:
@@ -291,8 +289,16 @@ export function getCompanyStatus(row = {}, config = {}) {
 }
 
 /* ==========================================================================
-   Company Identity
+   Company Identity Values
    ========================================================================== */
+
+/*
+ * These helpers remain exported because Market Watch business behavior such as
+ * watchlist actions, card identifiers, filtering, and integrations can depend
+ * on the canonical company values.
+ *
+ * Visual identity rendering itself is owned by the shared company renderer.
+ */
 
 export function getCompanyReference(row = {}) {
   return String(
@@ -314,7 +320,14 @@ export function getCompanyCode(row = {}) {
 
 export function getCompanyName(row = {}) {
   return String(
-    firstDefined(row.acrynomName, row.companyName, row.company, row.name, "-"),
+    firstDefined(
+      row.acrynomName,
+      row.acronymName,
+      row.companyName,
+      row.company,
+      row.name,
+      "-",
+    ),
   ).trim();
 }
 
@@ -325,99 +338,19 @@ export function getCompanySymbol(row = {}) {
 }
 
 export function getCompanyUrl(row = {}) {
-  const value = firstDefined(row.companyUrl, row.companyURL, "");
+  const value = firstDefined(
+    row.companyUrl,
+    row.companyURL,
+    row.pageUrl,
+    row.url,
+    "",
+  );
 
   if (!isSafeHref(value)) {
     return "";
   }
 
   return String(value).trim();
-}
-
-/* ==========================================================================
-   Company Logo
-   ========================================================================== */
-
-export function getCompanyLogoFallbackUrl(config = {}) {
-  return String(config.assets?.companyLogoFallbackUrl || "").trim();
-}
-
-export function getCompanyLogoUrl(row = {}, config = {}) {
-  const directUrl = firstDefined(
-    row.companyLogoUrl,
-    row.logoUrl,
-    row.imageUrl,
-    row.companyImageUrl,
-  );
-
-  if (directUrl != null && String(directUrl).trim()) {
-    return String(directUrl).trim();
-  }
-
-  const template = String(config.assets?.companyLogoUrlTemplate || "").trim();
-
-  const companyCode = getCompanyCode(row);
-
-  if (!template || !companyCode) {
-    return getCompanyLogoFallbackUrl(config);
-  }
-
-  return template.replace("{companyCode}", encodeURIComponent(companyCode));
-}
-
-export function renderCompanyLogo(
-  row = {},
-  config = {},
-  className = "table-market__logo",
-  options = {},
-) {
-  const logoUrl = getCompanyLogoUrl(row, config);
-
-  const fallbackUrl = getCompanyLogoFallbackUrl(config);
-
-  const companyName = getCompanyName(row);
-
-  const size = normalizeSize(options.size, 40);
-
-  const initials = getInitials(companyName);
-
-  if (!logoUrl) {
-    return `
-      <span
-        class="${escapeHtml(className)}"
-        aria-hidden="true"
-      >
-        <span
-          class="${escapeHtml(`${className}-fallback`)}"
-        >
-          ${escapeHtml(initials)}
-        </span>
-      </span>
-    `.trim();
-  }
-
-  const fallbackAttribute =
-    fallbackUrl && fallbackUrl !== logoUrl
-      ? `
-        data-market-watch-logo-fallback="${escapeHtml(fallbackUrl)}"
-      `.trim()
-      : "";
-
-  return `
-    <span
-      class="${escapeHtml(className)}"
-    >
-      <img
-        src="${escapeHtml(logoUrl)}"
-        alt=""
-        width="${size}"
-        height="${size}"
-        loading="lazy"
-        data-market-watch-logo
-        ${fallbackAttribute}
-      />
-    </span>
-  `.trim();
 }
 
 /* ==========================================================================
@@ -465,10 +398,18 @@ function renderCompanyStatus(status) {
     return "";
   }
 
+  const accessibilityAttributes = status.title
+    ? `
+        role="img"
+        aria-label="${escapeHtml(status.title)}"
+        title="${escapeHtml(status.title)}"
+      `.trim()
+    : 'aria-hidden="true"';
+
   return `
     <span
       class="${escapeHtml(status.className)}"
-      aria-hidden="true"
+      ${accessibilityAttributes}
     ></span>
   `.trim();
 }
@@ -477,74 +418,14 @@ function renderCompanyStatus(status) {
    Desktop Company Identity
    ========================================================================== */
 
-function renderCompanyText(row = {}, config = {}) {
+export function renderCompanyCell(row = {}, config = {}) {
   const status = getCompanyStatus(row, config);
 
-  const companyName = getCompanyName(row);
+  return renderStandardCompanyCell(row, config, {
+    leading: renderFavoriteButton(row),
 
-  const companySymbol = getCompanySymbol(row);
-
-  const companyUrl = getCompanyUrl(row);
-
-  const statusMarkup = renderCompanyStatus(status);
-
-  const symbolMarkup = companySymbol
-    ? `
-        <span
-          class="table-market__symbol"
-        >
-          ${escapeHtml(companySymbol)}
-        </span>
-      `.trim()
-    : "";
-
-  const content = `
-    <span class="table-market__name">
-      ${escapeHtml(companyName)}
-
-      ${statusMarkup}
-    </span>
-
-    ${symbolMarkup}
-  `.trim();
-
-  if (!companyUrl) {
-    return `
-      <span
-        class="table-market__security-link"
-      >
-        ${content}
-      </span>
-    `.trim();
-  }
-
-  const titleAttribute = status.title
-    ? `title="${escapeHtml(status.title)}"`
-    : "";
-
-  return `
-    <a
-      class="table-market__security-link"
-      href="${escapeHtml(companyUrl)}"
-      ${titleAttribute}
-    >
-      ${content}
-    </a>
-  `.trim();
-}
-
-export function renderCompanyCell(row = {}, config = {}) {
-  return `
-    <div
-      class="table-market__security-cell"
-    >
-      ${renderFavoriteButton(row)}
-
-      ${renderCompanyLogo(row, config)}
-
-      ${renderCompanyText(row, config)}
-    </div>
-  `.trim();
+    nameMetadata: renderCompanyStatus(status),
+  });
 }
 
 /* ==========================================================================
@@ -619,9 +500,7 @@ export function renderRange(row = {}, config = {}) {
         ${marker}
       </div>
 
-      <div
-        class="table-market__range-values"
-      >
+      <div class="table-market__range-values">
         <span>
           ${escapeHtml(getDisplayValue(low))}
         </span>
@@ -648,9 +527,7 @@ export function renderChange(value, numericValue, options = {}) {
     : getDisplayValue(value);
 
   return `
-    <span
-      class="${className}"
-    >
+    <span class="${className}">
       ${escapeHtml(displayValue)}
     </span>
   `.trim();
@@ -663,71 +540,13 @@ export function renderChange(value, numericValue, options = {}) {
 export function renderMobileIdentity(row = {}, config = {}) {
   const status = getCompanyStatus(row, config);
 
-  const companyName = getCompanyName(row);
+  return renderStandardCompanyCardIdentity(row, config, {
+    leading: renderFavoriteButton(row, {
+      className: "data-card__favorite",
+    }),
 
-  const companySymbol = getCompanySymbol(row);
-
-  const companyUrl = getCompanyUrl(row);
-
-  const statusMarkup = renderCompanyStatus(status);
-
-  const symbolMarkup = companySymbol
-    ? `
-        <span
-          class="data-card__symbol"
-        >
-          ${escapeHtml(companySymbol)}
-        </span>
-      `.trim()
-    : "";
-
-  const identityContent = `
-    <div
-      class="data-card__identity-content"
-    >
-      ${symbolMarkup}
-
-      <h3
-        class="data-card__title"
-      >
-        ${escapeHtml(companyName)}
-
-        ${statusMarkup}
-      </h3>
-    </div>
-  `.trim();
-
-  const titleAttribute = status.title
-    ? `title="${escapeHtml(status.title)}"`
-    : "";
-
-  const linkedIdentity = companyUrl
-    ? `
-        <a
-          class="data-card__security-link"
-          href="${escapeHtml(companyUrl)}"
-          ${titleAttribute}
-        >
-          ${identityContent}
-        </a>
-      `.trim()
-    : identityContent;
-
-  return `
-    <div
-      class="data-card__identity"
-    >
-      ${renderFavoriteButton(row, {
-        className: "data-card__favorite",
-      })}
-
-      ${renderCompanyLogo(row, config, "data-card__logo", {
-        size: 44,
-      })}
-
-      ${linkedIdentity}
-    </div>
-  `.trim();
+    nameMetadata: renderCompanyStatus(status),
+  });
 }
 
 /* ==========================================================================
@@ -756,18 +575,12 @@ export function renderMobileQuote(row = {}, config = {}) {
   });
 
   return `
-    <div
-      class="data-card__quote"
-    >
-      <span
-        class="data-card__price"
-      >
+    <div class="data-card__quote">
+      <span class="data-card__price">
         ${escapeHtml(price)}
       </span>
 
-      <span
-        class="data-card__change"
-      >
+      <span class="data-card__change">
         ${change}
         ${percent}
       </span>

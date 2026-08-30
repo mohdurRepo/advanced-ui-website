@@ -38,7 +38,7 @@ import { createTradingTab } from "../../shared/create-trading-tab.js";
 import {
   formatRequestDate,
   normalizeString,
-} from "../../shared/trading-formatters.js";
+} from "../../../../shared/trading/trading-formatters.js";
 
 import {
   bindNegotiatedDealsFilters,
