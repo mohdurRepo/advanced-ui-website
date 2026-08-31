@@ -43,8 +43,7 @@ import {
   createDataViewController,
 } from "../../../common/data-view/index.js";
 
-import { createTradingTableOptions } from "../../shared/trading/trading-table-options.js";
-
+import { createFinancialCalendarTableOptions } from "./financial-calendar-table-options.js";
 import { createFinancialCalendarFilters } from "./financial-calendar-filters.js";
 
 /* ==========================================================================
@@ -559,7 +558,7 @@ export function createFinancialCalendarTab(options = {}) {
             })
         : null,
 
-    tableOptions: createTradingTableOptions(options.tableOptions),
+    tableOptions: createFinancialCalendarTableOptions(options.tableOptions),
 
     loadingRowCount: options.loadingRowCount || 6,
 

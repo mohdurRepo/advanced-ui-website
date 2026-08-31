@@ -8,9 +8,12 @@
  * Principles:
  *
  * - Physical ticker geometry is always LTR.
- * - Page direction controls travel direction only:
+ * - Page direction controls ticker travel direction:
  *     LTR -> travels left
  *     RTL -> travels right
+ * - Individual ticker-item content follows the page direction:
+ *     LTR -> logo, company, price, change
+ *     RTL -> visually read from the right as logo, company, price, change
  * - Company names use dir="auto".
  * - Financial values remain LTR.
  * - Animation uses requestAnimationFrame.
@@ -153,11 +156,11 @@ function getSafeUrl(
 }
 
 /**
- * Logo URLs use the same URL validation as normal links.
+ * Logo URLs use the same basic URL validation as normal links.
  *
- * This protects against malformed/javascript/data URLs, but note that no
- * client-side code can prevent DevTools from reporting the initial request
- * when a syntactically valid remote hostname does not resolve.
+ * This prevents malformed/javascript/data URLs from being assigned to an
+ * image. A syntactically valid remote hostname can still fail at the browser
+ * networking layer; that failure is handled by the image fallback chain.
  */
 function getSafeLogoUrl(value) {
   return getSafeUrl(value, "");
@@ -167,21 +170,27 @@ function getSafeLogoUrl(value) {
    Initials
    ========================================================================== */
 
-function getCompanyInitials(companyName) {
+function getCompanyInitials(companyName, language) {
   const words = String(companyName || "")
     .trim()
     .split(/\s+/u)
     .filter(Boolean);
 
   if (!words.length) {
-    return "";
+    return isArabicLanguage(language) ? "م ح" : "SA";
   }
 
-  return words
+  const initials = words
     .slice(0, 2)
     .map((word) => Array.from(word)[0] || "")
     .filter(Boolean)
     .join(" ");
+
+  if (initials) {
+    return initials;
+  }
+
+  return isArabicLanguage(language) ? "م ح" : "SA";
 }
 
 /* ==========================================================================
@@ -332,8 +341,11 @@ class MarketTicker {
     }
 
     this.render();
+
     this.updateSpeed();
+
     this.bindEvents();
+
     this.configureMotion();
 
     this.root.classList.add("is-ready");
@@ -378,7 +390,8 @@ class MarketTicker {
 
   render() {
     /*
-     * Do not retain stale rendered DOM if the controller is re-rendered.
+     * Do not retain stale rendered DOM if the
+     * controller is ever re-rendered.
      */
     this.viewport?.remove();
 
@@ -390,7 +403,8 @@ class MarketTicker {
     this.viewport.dataset.marketTickerViewport = "";
 
     /*
-     * Physical coordinate origin is always LTR.
+     * Physical coordinate origin must always
+     * remain LTR.
      */
     this.viewport.dir = "ltr";
 
@@ -398,6 +412,9 @@ class MarketTicker {
 
     this.track.dataset.marketTickerTrack = "";
 
+    /*
+     * Track geometry is always physical LTR.
+     */
     this.track.dir = "ltr";
 
     this.sourceList = this.createList(this.data);
@@ -405,19 +422,26 @@ class MarketTicker {
     this.sourceList.dataset.marketTickerList = "";
 
     /*
-     * The list also remains physically LTR.
-     * Individual company names use dir="auto".
+     * Lists also remain physical LTR.
+     *
+     * Individual links receive this.direction
+     * separately.
      */
     this.sourceList.dir = "ltr";
 
     this.track.append(this.sourceList);
+
     this.viewport.append(this.track);
+
     this.root.append(this.viewport);
   }
 
   createList(items) {
     const list = createElement("ul", "market-ticker__list");
 
+    /*
+     * Preserve physical list geometry.
+     */
     list.dir = "ltr";
 
     const fragment = document.createDocumentFragment();
@@ -458,22 +482,34 @@ class MarketTicker {
         .join(", "),
     );
 
-    /*
-     * Company logo.
-     */
+    /* ------------------------------------------------------------------------
+       Company Logo
+       ------------------------------------------------------------------------ */
+
     link.append(this.createLogo(item, companyName));
 
-    /*
-     * Company name.
-     */
+    /* ------------------------------------------------------------------------
+       Company Name
+       ------------------------------------------------------------------------ */
+
     const name = createElement("span", "market-ticker__name", companyName);
 
+    /*
+     * Arabic and English names resolve their own
+     * text direction independently.
+     */
     name.dir = "auto";
 
-    /*
-     * Price.
-     */
+    /* ------------------------------------------------------------------------
+       Price
+       ------------------------------------------------------------------------ */
+
     const priceElement = createElement("data", "market-ticker__price", price);
+
+    /*
+     * Financial values always use LTR semantics.
+     */
+    priceElement.dir = "ltr";
 
     const numericPrice = parseNumber(item.price);
 
@@ -481,17 +517,20 @@ class MarketTicker {
       priceElement.value = String(numericPrice);
     }
 
-    /*
-     * Change.
-     */
+    /* ------------------------------------------------------------------------
+       Change
+       ------------------------------------------------------------------------ */
+
     const changeElement = createElement(
       "span",
       ["market-ticker__change", state.className].join(" "),
     );
 
+    changeElement.dir = "ltr";
+
     /*
-     * Neutral values intentionally do not
-     * receive a trending icon.
+     * Neutral values intentionally receive no
+     * trending icon.
      */
     if (state.iconClass) {
       const directionIcon = createElement(
@@ -500,7 +539,7 @@ class MarketTicker {
           "market-ticker__direction",
           "has-icon",
           state.iconClass,
-          "icon-sm",
+          "icon-md",
         ].join(" "),
       );
 
@@ -511,7 +550,11 @@ class MarketTicker {
 
     const changeValue = createElement("data", "", change);
 
+    changeValue.dir = "ltr";
+
     const percentageValue = createElement("data", "", `(${changePercent}%)`);
+
+    percentageValue.dir = "ltr";
 
     const numericChange = parseNumber(item.change);
 
@@ -535,6 +578,28 @@ class MarketTicker {
   }
 
   /* ========================================================================
+     Item Direction
+     ======================================================================== */
+
+  /**
+   * Update only ticker-item content direction.
+   *
+   * Viewport, track, source list, and cloned lists
+   * deliberately remain physical LTR.
+   */
+  updateItemDirections() {
+    if (!this.sourceList) {
+      return;
+    }
+
+    const links = this.sourceList.querySelectorAll(".market-ticker__link");
+
+    for (const link of links) {
+      link.dir = this.direction;
+    }
+  }
+
+  /* ========================================================================
      Company Logo
      ======================================================================== */
 
@@ -548,6 +613,12 @@ class MarketTicker {
       "market-ticker__logo-initials",
       getCompanyInitials(companyName, this.language),
     );
+
+    /*
+     * The initials themselves follow their language.
+     * This also preserves the visible Arabic spacing.
+     */
+    initials.dir = isArabicLanguage(this.language) ? "rtl" : "ltr";
 
     shell.append(initials);
 
@@ -571,8 +642,12 @@ class MarketTicker {
 
     image.alt = "";
 
-    image.width = 32;
-    image.height = 32;
+    /*
+     * Matches the 2.5rem desktop ticker logo shell.
+     * CSS remains responsible for responsive sizing.
+     */
+    image.width = 40;
+    image.height = 40;
 
     image.decoding = "async";
     image.loading = "eager";
@@ -617,9 +692,11 @@ class MarketTicker {
     image.remove();
 
     /*
-     * Primary logo failed:
+     * Primary company logo failed:
      *
-     * logo -> /no-image.png
+     * company logo
+     *       ↓
+     * /no-image.png
      */
     if (stage === "primary" && !fallbackLogoUnavailable) {
       this.appendLogoImage(shell, FALLBACK_LOGO_URL, "fallback");
@@ -630,8 +707,9 @@ class MarketTicker {
     /*
      * /no-image.png also failed.
      *
-     * Remember this once so later companies go
-     * directly to their initials.
+     * Remember this once so subsequent broken
+     * company logos can use their initials without
+     * repeatedly requesting the unavailable fallback.
      */
     if (stage === "fallback") {
       fallbackLogoUnavailable = true;
@@ -640,8 +718,8 @@ class MarketTicker {
     }
 
     /*
-     * Initials are already present underneath,
-     * so removing the image reveals them.
+     * Initials already exist underneath the image.
+     * Removing the failed image reveals them.
      */
   }
 
@@ -666,7 +744,8 @@ class MarketTicker {
   /**
    * cloneNode() does not copy event listeners.
    *
-   * Reconnect logo failure handling on every presentation clone.
+   * Reconnect logo failure handling on every
+   * presentation clone.
    */
   bindCloneLogoImages(clone) {
     const images = clone.querySelectorAll(".market-ticker__logo-image");
@@ -681,8 +760,8 @@ class MarketTicker {
       }
 
       /*
-       * If the shared fallback is already known
-       * to be unavailable, do not request it again.
+       * If the shared fallback is already known to
+       * be unavailable, do not request it again.
        */
       if (
         image.dataset.marketTickerLogoStage === "fallback" &&
@@ -734,6 +813,10 @@ class MarketTicker {
     const fragment = document.createDocumentFragment();
 
     for (let index = 1; index < totalCopies; index += 1) {
+      /*
+       * cloneNode(true) carries the explicit dir
+       * attribute from each source link.
+       */
       const clone = this.sourceList.cloneNode(true);
 
       clone.dataset.marketTickerClone = "";
@@ -744,6 +827,9 @@ class MarketTicker {
 
       clone.setAttribute("inert", "");
 
+      /*
+       * Clone-list geometry remains physical LTR.
+       */
       clone.dir = "ltr";
 
       for (const link of clone.querySelectorAll("a")) {
@@ -757,7 +843,6 @@ class MarketTicker {
 
     this.track.append(fragment);
   }
-
   rebuildCopies({ restorePosition = false } = {}) {
     if (this.destroyed || !this.sourceList || !this.viewport) {
       return;
@@ -782,7 +867,7 @@ class MarketTicker {
 
     /*
      * Reduced motion uses only the accessible
-     * source list and manual scrolling.
+     * source list and manual horizontal scrolling.
      */
     if (this.reducedMotion) {
       this.position = 0;
@@ -820,8 +905,8 @@ class MarketTicker {
     }
 
     /*
-     * Keep the position inside one source-list
-     * cycle after resize/font changes.
+     * Keep position inside one complete
+     * source-list cycle.
      */
     let offset = this.position % this.sourceWidth;
 
@@ -830,9 +915,10 @@ class MarketTicker {
     }
 
     /*
-     * LTR may safely start at zero.
-     * RTL must begin one complete source width
-     * to the left so it can travel right.
+     * LTR can safely start at zero.
+     *
+     * RTL begins one source width to the left
+     * so it can travel physically right.
      */
     if (this.direction === "rtl" && offset === 0) {
       offset = -this.sourceWidth;
@@ -841,9 +927,9 @@ class MarketTicker {
     this.position = offset;
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Speed
-     ======================================================================== */
+     ========================================================================== */
 
   updateSpeed() {
     const computedSpeed = Number.parseFloat(
@@ -856,9 +942,9 @@ class MarketTicker {
         : DEFAULT_SPEED;
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Animation
-     ======================================================================== */
+     ========================================================================== */
 
   applyPosition() {
     if (!this.track) {
@@ -887,8 +973,8 @@ class MarketTicker {
     }
 
     /*
-     * Clamp long browser frames so returning from
-     * a suspended tab cannot create a large jump.
+     * Clamp long frames so restoring a suspended
+     * tab cannot cause a large visual jump.
      */
     const elapsed = Math.min(
       (timestamp - this.lastTimestamp) / 1000,
@@ -897,6 +983,12 @@ class MarketTicker {
 
     const distance = this.speed * elapsed;
 
+    /*
+     * Page direction affects travel only.
+     *
+     * RTL -> right
+     * LTR -> left
+     */
     if (this.direction === "rtl") {
       this.position += distance;
 
@@ -944,9 +1036,9 @@ class MarketTicker {
     this.lastTimestamp = null;
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Pause State
-     ======================================================================== */
+     ========================================================================== */
 
   setPaused(reason, paused) {
     if (paused) {
@@ -968,9 +1060,9 @@ class MarketTicker {
     this.startAnimation();
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Interaction
-     ======================================================================== */
+     ========================================================================== */
 
   handlePointerEnter() {
     this.setPaused("pointer", true);
@@ -1008,9 +1100,9 @@ class MarketTicker {
     this.savePosition();
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Measurement
-     ======================================================================== */
+     ========================================================================== */
 
   handleResize() {
     if (this.destroyed || this.resizeFrameId !== null) {
@@ -1018,8 +1110,8 @@ class MarketTicker {
     }
 
     /*
-     * Collapse all ResizeObserver notifications from
-     * the current frame into one measurement.
+     * Collapse ResizeObserver notifications from the
+     * current frame into one measurement pass.
      */
     this.resizeFrameId = window.requestAnimationFrame(() => {
       this.resizeFrameId = null;
@@ -1050,9 +1142,13 @@ class MarketTicker {
         this.direction = nextDirection;
 
         /*
-         * Direction affects movement only.
-         * The DOM geometry remains LTR.
+         * Only stock-entry content changes
+         * direction.
+         *
+         * Viewport / track / list stay LTR.
          */
+        this.updateItemDirections();
+
         this.setInitialPosition();
       }
 
@@ -1062,9 +1158,9 @@ class MarketTicker {
     });
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Reduced Motion
-     ======================================================================== */
+     ========================================================================== */
 
   configureMotion() {
     const wasReduced = this.reducedMotion;
@@ -1081,6 +1177,7 @@ class MarketTicker {
       this.removeCopies();
 
       this.position = 0;
+
       this.applyPosition();
 
       this.viewport.scrollLeft = 0;
@@ -1091,17 +1188,17 @@ class MarketTicker {
     this.pauseReasons.delete("reduced-motion");
 
     /*
-     * Restore the last ticker position only during
-     * initial setup / transition out of reduced motion.
+     * Restore position only during initial setup
+     * or transition out of reduced-motion mode.
      */
     this.rebuildCopies({
       restorePosition: wasReduced || this.sourceWidth === 0,
     });
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Position Persistence
-     ======================================================================== */
+     ========================================================================== */
 
   getPositionStorageKey() {
     const source =
@@ -1115,10 +1212,6 @@ class MarketTicker {
       return null;
     }
 
-    /*
-     * Convert current physical offset to one normalised
-     * cycle in the range [0, 1).
-     */
     let offset = -this.position % this.sourceWidth;
 
     if (offset < 0) {
@@ -1143,8 +1236,8 @@ class MarketTicker {
       sessionStorage.setItem(this.getPositionStorageKey(), String(progress));
     } catch {
       /*
-       * Storage may be blocked.
-       * Ticker operation must not depend on it.
+       * Storage may be unavailable.
+       * Ticker functionality must not depend on it.
        */
     }
   }
@@ -1205,9 +1298,9 @@ class MarketTicker {
     this.positionSaveTimer = null;
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Observers / Events
-     ======================================================================== */
+     ========================================================================== */
 
   bindEvents() {
     this.viewport.addEventListener("pointerenter", this.handlePointerEnter);
@@ -1253,8 +1346,7 @@ class MarketTicker {
     });
 
     /*
-     * ResizeObserver only watches the viewport.
-     * Presentation clones are intentionally not observed.
+     * Watch only the viewport dimensions.
      */
     if ("ResizeObserver" in window) {
       this.resizeObserver = new ResizeObserver(this.handleResize);
@@ -1271,8 +1363,8 @@ class MarketTicker {
     }
 
     /*
-     * Stop animation when the ticker itself is outside
-     * the visible viewport.
+     * Stop animation while outside the visible
+     * browser viewport.
      */
     if ("IntersectionObserver" in window) {
       const bounds = this.root.getBoundingClientRect();
@@ -1295,32 +1387,66 @@ class MarketTicker {
     }
 
     /*
-     * Observe only settings that actually affect ticker
-     * mechanics. Theme/accent are intentionally excluded.
+     * Observe only attributes that affect ticker
+     * mechanics.
+     *
+     * Theme and accent are deliberately excluded.
      */
     this.preferenceObserver = new MutationObserver((mutations) => {
       const attributes = new Set(
         mutations.map((mutation) => mutation.attributeName),
       );
 
+      /* --------------------------------------------------------------
+             Speed
+             -------------------------------------------------------------- */
+
       if (attributes.has("data-ticker-speed")) {
         this.updateSpeed();
       }
+
+      /* --------------------------------------------------------------
+             Direction
+             -------------------------------------------------------------- */
 
       if (attributes.has("dir")) {
         const nextDirection = getDirection();
 
         if (nextDirection !== this.direction) {
+          /*
+           * Save using the previous direction's
+           * storage key first.
+           */
           this.savePosition();
 
           this.direction = nextDirection;
 
+          /*
+           * Critical separation:
+           *
+           * viewport -> LTR
+           * track    -> LTR
+           * list     -> LTR
+           *
+           * item link -> page direction
+           */
+          this.updateItemDirections();
+
           this.setInitialPosition();
+
+          /*
+           * New clones inherit the updated dir
+           * attribute from source links.
+           */
           this.rebuildCopies({
             restorePosition: true,
           });
         }
       }
+
+      /* --------------------------------------------------------------
+             Language
+             -------------------------------------------------------------- */
 
       if (attributes.has("lang")) {
         this.language = getLanguage();
@@ -1328,17 +1454,23 @@ class MarketTicker {
         this.updateFormatters();
 
         /*
-         * Source content is server/localisation owned.
-         * We don't rebuild company text from another
-         * language dataset here, but measurements may
-         * change after the page language changes.
+         * Company text itself remains
+         * server/localisation owned.
          */
         this.rebuildCopies();
       }
 
+      /* --------------------------------------------------------------
+             Motion
+             -------------------------------------------------------------- */
+
       if (attributes.has("data-motion")) {
         this.configureMotion();
       }
+
+      /* --------------------------------------------------------------
+             Visibility
+             -------------------------------------------------------------- */
 
       if (attributes.has("data-ticker-visibility")) {
         const hidden =
@@ -1354,6 +1486,7 @@ class MarketTicker {
 
     this.preferenceObserver.observe(document.documentElement, {
       attributes: true,
+
       attributeFilter: [
         "data-motion",
         "data-ticker-speed",
@@ -1373,9 +1506,9 @@ class MarketTicker {
     this.startPositionPersistence();
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Fonts
-     ======================================================================== */
+     ========================================================================== */
 
   waitForFonts() {
     if (!document.fonts?.ready) {
@@ -1392,15 +1525,15 @@ class MarketTicker {
       })
       .catch(() => {
         /*
-         * A font failure must never prevent the ticker
-         * from operating with its fallback font.
+         * Font loading failure must not prevent
+         * ticker operation.
          */
       });
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Cleanup
-     ======================================================================== */
+     ========================================================================== */
 
   destroy() {
     if (this.destroyed) {
@@ -1408,14 +1541,15 @@ class MarketTicker {
     }
 
     /*
-     * Save before marking destroyed because savePosition()
-     * intentionally ignores destroyed controllers.
+     * Save before setting destroyed because
+     * savePosition() ignores destroyed controllers.
      */
     this.savePosition();
 
     this.destroyed = true;
 
     this.stopAnimation();
+
     this.stopPositionPersistence();
 
     if (this.resizeFrameId !== null) {
@@ -1425,7 +1559,9 @@ class MarketTicker {
     }
 
     this.resizeObserver?.disconnect();
+
     this.intersectionObserver?.disconnect();
+
     this.preferenceObserver?.disconnect();
 
     for (const cleanup of this.cleanups) {
