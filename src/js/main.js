@@ -40,6 +40,7 @@ import { initExchangePerformance } from "./components/exchange-performance";
    ========================================================================== */
 
 import { initTables } from "./components/table";
+import { initMarketTicker } from "./components/market-ticker";
 import { initMarketOverview } from "./components/market-overview";
 import { initMarketCharts } from "./components/market-chart";
 import { initIndicesHeatmap } from "./components/market-summary";
@@ -140,6 +141,7 @@ function initApp() {
    * is not present on the current page.
    */
   initTables();
+  initMarketTicker();
   initMarketOverview();
   initMarketCharts();
   initIndicesHeatmap();

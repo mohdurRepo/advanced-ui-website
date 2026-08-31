@@ -6,16 +6,28 @@
 
 /**
  * Creates a content region with a sticky supporting region.
+ *
+ * The content column remains flexible.
+ * The aside width is controlled through local custom properties so page
+ * layouts can use semantic modifiers without recreating the grid.
  */
 
 .sticky-layout {
+  --sticky-layout-content: minmax(0, 1fr);
+  --sticky-layout-aside-min: 18rem;
+  --sticky-layout-aside-max: 22rem;
+  --sticky-layout-gap: var(--space-8, 2rem);
+
   display: grid;
+
   grid-template-columns:
-    minmax(0, 1fr)
-    minmax(18rem, 22rem);
+    var(--sticky-layout-content)
+    minmax(var(--sticky-layout-aside-min), var(--sticky-layout-aside-max));
 
   align-items: start;
-  gap: var(--space-8, 2rem);
+
+  gap: var(--sticky-layout-gap);
+
   min-width: 0;
 }
 
@@ -42,23 +54,34 @@
 
 .sticky-layout__sticky {
   position: sticky;
+
   top: var(--sticky-offset, 2rem);
 }
 
 /* ==========================================================================
-   Width
+   Width Variants
    ========================================================================== */
 
 .sticky-layout--compact {
-  grid-template-columns:
-    minmax(0, 1fr)
-    minmax(16rem, 18rem);
+  --sticky-layout-aside-min: 16rem;
+  --sticky-layout-aside-max: 18rem;
 }
 
 .sticky-layout--wide {
-  grid-template-columns:
-    minmax(0, 1fr)
-    minmax(20rem, 26rem);
+  --sticky-layout-aside-min: 20rem;
+  --sticky-layout-aside-max: 26rem;
+}
+
+/**
+ * Wider supporting region for layouts where both regions carry substantial
+ * content, such as forms paired with maps, address details, or comparable
+ * information panels.
+ */
+
+.sticky-layout--balanced {
+  --sticky-layout-content: minmax(0, 3fr);
+  --sticky-layout-aside-min: 24rem;
+  --sticky-layout-aside-max: 2fr;
 }
 
 /* ==========================================================================
@@ -78,11 +101,10 @@
    ========================================================================== */
 
 @include ds.respond-down("lg") {
-  .sticky-layout,
-  .sticky-layout--compact,
-  .sticky-layout--wide {
+  .sticky-layout {
+    --sticky-layout-gap: var(--space-6, 1.5rem);
+
     grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-6, 1.5rem);
   }
 
   .sticky-layout__content,
@@ -109,6 +131,6 @@
 
 @include ds.respond-down("sm") {
   .sticky-layout {
-    gap: var(--space-4, 1rem);
+    --sticky-layout-gap: var(--space-4, 1rem);
   }
 }

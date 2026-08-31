@@ -1,0 +1,735 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Market Ticker
+   ========================================================================== */
+
+/**
+ * Persistent market-information ticker.
+ *
+ * Architecture:
+ *
+ * - The ticker remains a dark branded surface in every page theme.
+ * - Page theme/accent changes do not alter ticker presentation.
+ * - Viewport, track, and list use a physical LTR coordinate system.
+ * - JavaScript controls travel direction:
+ *     LTR page -> ticker travels left
+ *     RTL page -> ticker travels right
+ * - Company names determine their own text direction with dir="auto".
+ * - Financial values remain LTR.
+ */
+
+.market-ticker {
+  /* ========================================================================
+     Surface
+     ======================================================================== */
+
+  --market-ticker-bg: #{ds.brand("navy")};
+  --market-ticker-surface-alt: #073548;
+  --market-ticker-hover: rgb(255 255 255 / 0.08);
+
+  --market-ticker-color: #{ds.brand("white")};
+  --market-ticker-muted: rgb(255 255 255 / 0.72);
+
+  --market-ticker-border: rgb(255 255 255 / 0.14);
+  --market-ticker-border-strong: rgb(255 255 255 / 0.28);
+
+  --market-ticker-accent: #{ds.brand("teal")};
+  --market-ticker-focus: #{ds.brand("white")};
+
+  /* ========================================================================
+     Local Semantic Contract
+     ======================================================================== */
+
+  --color-surface: var(--market-ticker-bg);
+  --color-surface-alt: var(--market-ticker-surface-alt);
+  --color-surface-hover: var(--market-ticker-hover);
+
+  --color-text: var(--market-ticker-color);
+  --color-heading: var(--market-ticker-color);
+  --color-text-muted: var(--market-ticker-muted);
+
+  --color-border: var(--market-ticker-border);
+  --color-border-strong: var(--market-ticker-border-strong);
+
+  --color-market-positive: #4ade80;
+  --color-market-negative: #fb7185;
+  --color-market-neutral: var(--market-ticker-muted);
+
+  --focus-ring: var(--market-ticker-focus);
+
+  /* ========================================================================
+     Component Configuration
+     ======================================================================== */
+
+  --market-ticker-block-size: 3.5rem;
+  --market-ticker-logo-size: 2rem;
+
+  --market-ticker-item-gap: var(--space-4, #{ds.space(4)});
+
+  --market-ticker-list-gap: var(--space-6, #{ds.space(6)});
+
+  --market-ticker-padding-inline: var(--space-4, #{ds.space(4)});
+
+  /*
+   * Pixels per second.
+   *
+   * JavaScript reads this custom property.
+   */
+  --market-ticker-speed: 48;
+
+  position: relative;
+
+  isolation: isolate;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  border-block: 1px solid var(--market-ticker-border);
+
+  background: var(--market-ticker-bg);
+
+  color: var(--market-ticker-color);
+
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   Speed Preference
+   ========================================================================== */
+
+html[data-ticker-speed="slow"] .market-ticker {
+  --market-ticker-speed: 32;
+}
+
+html[data-ticker-speed="normal"] .market-ticker {
+  --market-ticker-speed: 48;
+}
+
+html[data-ticker-speed="fast"] .market-ticker {
+  --market-ticker-speed: 64;
+}
+
+/* ==========================================================================
+   Visibility Preference
+   ========================================================================== */
+
+html[data-ticker-visibility="hidden"] .market-ticker {
+  display: none;
+}
+
+/* ==========================================================================
+   Viewport
+   ========================================================================== */
+
+/**
+ * IMPORTANT:
+ *
+ * The page itself may be RTL, but the ticker animation uses physical X
+ * coordinates.
+ *
+ * The viewport therefore establishes an LTR coordinate system so an Arabic
+ * page cannot change the physical origin of the overflowing track.
+ */
+
+.market-ticker__viewport {
+  position: relative;
+
+  direction: ltr;
+
+  min-inline-size: 0;
+  block-size: var(--market-ticker-block-size);
+
+  overflow: hidden;
+
+  touch-action: pan-y;
+}
+
+/* ==========================================================================
+   Viewport Edge Fades
+   ========================================================================== */
+
+/**
+ * Physical left/right positioning is intentional.
+ *
+ * These are viewport decorations rather than language-direction indicators.
+ */
+
+.market-ticker__viewport::before,
+.market-ticker__viewport::after {
+  content: "";
+
+  position: absolute;
+  z-index: 2;
+
+  top: 0;
+  bottom: 0;
+
+  inline-size: clamp(1rem, 3vw, 3rem);
+
+  pointer-events: none;
+}
+
+.market-ticker__viewport::before {
+  left: 0;
+
+  background: linear-gradient(to right, var(--market-ticker-bg), transparent);
+}
+
+.market-ticker__viewport::after {
+  right: 0;
+
+  background: linear-gradient(to left, var(--market-ticker-bg), transparent);
+}
+
+/* ==========================================================================
+   Track
+   ========================================================================== */
+
+/**
+ * The track always uses the same physical geometry:
+ *
+ * [clone][source][clone][clone]...
+ *
+ * JavaScript changes only movement velocity:
+ *
+ * LTR -> negative X
+ * RTL -> positive X
+ */
+
+.market-ticker__track {
+  display: flex;
+  align-items: stretch;
+
+  direction: ltr;
+
+  inline-size: max-content;
+  min-inline-size: 100%;
+  block-size: 100%;
+
+  transform: translate3d(0, 0, 0);
+
+  will-change: auto;
+}
+
+.market-ticker.is-ready .market-ticker__track {
+  will-change: transform;
+}
+
+.market-ticker.is-paused .market-ticker__track {
+  will-change: auto;
+}
+
+/* ==========================================================================
+   List
+   ========================================================================== */
+
+/**
+ * Lists also remain physically LTR.
+ *
+ * This prevents flex item ordering and max-content geometry from changing
+ * when the document is RTL.
+ */
+
+.market-ticker__list {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: stretch;
+
+  direction: ltr;
+
+  gap: var(--market-ticker-list-gap);
+
+  min-inline-size: max-content;
+
+  margin: 0;
+
+  padding-block: 0;
+
+  padding-inline: var(--market-ticker-padding-inline);
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Item
+   ========================================================================== */
+
+.market-ticker__item {
+  position: relative;
+
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+
+  min-inline-size: max-content;
+}
+
+/* ==========================================================================
+   Tadawul Separator
+   ========================================================================== */
+
+/**
+ * Decorative filled Tadawul icon.
+ *
+ * The separator is positioned physically because ticker geometry itself is
+ * physical rather than logical.
+ *
+ * With a flex gap of G:
+ *
+ * item edge ---- G/2 ---- icon ---- G/2 ---- next item
+ */
+
+.market-ticker__item::after {
+  content: "";
+
+  position: absolute;
+
+  /*
+   * Put the separator anchor halfway through the physical gap.
+   */
+  right: calc(0rem - (var(--market-ticker-list-gap) / 2));
+
+  top: 50%;
+
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+
+  background-color: var(--market-ticker-accent);
+
+  mask: url("/assets/icons/tadawul-icon.svg") center / contain no-repeat;
+
+  -webkit-mask: url("/assets/icons/tadawul-icon.svg") center / contain no-repeat;
+
+  /*
+   * `right` above positions the icon edge at the midpoint.
+   * Translate half its width to center the actual icon on that point.
+   */
+  transform: translate(50%, -50%);
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Link
+   ========================================================================== */
+
+.market-ticker__link {
+  display: inline-flex;
+  align-items: center;
+
+  gap: var(--market-ticker-item-gap);
+
+  min-inline-size: 0;
+  min-block-size: 2.75rem;
+
+  padding-inline: var(--space-1, #{ds.space(1)});
+
+  border-radius: var(--radius-sm);
+
+  color: inherit;
+
+  text-decoration: none;
+
+  white-space: nowrap;
+
+  @include ds.transition((background-color, color), "fast");
+}
+
+.market-ticker__link:hover {
+  background: var(--market-ticker-hover);
+}
+
+.market-ticker__link:focus-visible {
+  @include ds.focus-ring;
+
+  position: relative;
+  z-index: 3;
+}
+
+/* ==========================================================================
+   Company Logo
+   ========================================================================== */
+
+.market-ticker__logo {
+  flex: 0 0 auto;
+
+  inline-size: var(--market-ticker-logo-size);
+
+  block-size: var(--market-ticker-logo-size);
+
+  overflow: hidden;
+
+  border-radius: var(--radius-pill);
+
+  background: var(--market-ticker-surface-alt);
+
+  object-fit: contain;
+}
+
+/* ==========================================================================
+   Company Name
+   ========================================================================== */
+
+/**
+ * JavaScript applies dir="auto" to this element.
+ *
+ * Therefore Arabic and English company names can coexist while ticker
+ * geometry remains physical LTR.
+ */
+
+.market-ticker__name {
+  max-inline-size: 12rem;
+
+  overflow: hidden;
+
+  color: var(--market-ticker-color);
+
+  font-size: var(--text-sm);
+
+  font-weight: ds.font-weight("medium");
+
+  line-height: var(--line-height-tight);
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Price
+   ========================================================================== */
+
+.market-ticker__price {
+  color: var(--market-ticker-muted);
+
+  direction: ltr;
+
+  font-size: var(--text-sm);
+
+  font-weight: ds.font-weight("medium");
+
+  font-variant-numeric: tabular-nums;
+
+  line-height: var(--line-height-tight);
+
+  text-align: end;
+
+  unicode-bidi: isolate;
+}
+
+/* ==========================================================================
+   Change
+   ========================================================================== */
+
+/**
+ * Financial state presentation comes from the website semantic utilities:
+ *
+ * .price-up
+ * .price-down
+ * .price-neutral
+ */
+
+.market-ticker__change {
+  display: inline-flex;
+  align-items: center;
+
+  direction: ltr;
+
+  gap: var(--space-1, #{ds.space(1)});
+
+  min-inline-size: max-content;
+
+  font-size: var(--text-sm);
+
+  font-weight: ds.font-weight("medium");
+
+  line-height: var(--line-height-tight);
+
+  white-space: nowrap;
+
+  unicode-bidi: isolate;
+}
+
+/* ==========================================================================
+   Direction Icon
+   ========================================================================== */
+
+.market-ticker__direction {
+  --icon-size: 0.75rem;
+
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: var(--icon-size);
+
+  block-size: var(--icon-size);
+
+  color: currentColor;
+}
+
+/* ==========================================================================
+   Financial Data
+   ========================================================================== */
+
+.market-ticker__change data {
+  color: inherit;
+
+  direction: ltr;
+
+  font-variant-numeric: tabular-nums;
+
+  unicode-bidi: isolate;
+}
+
+/* ==========================================================================
+   Initialization Fallback
+   ========================================================================== */
+
+/**
+ * Before JavaScript finishes initialization, content remains horizontally
+ * accessible rather than being permanently clipped.
+ */
+
+.market-ticker:not(.is-ready) .market-ticker__viewport {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.market-ticker:not(.is-ready) .market-ticker__track {
+  min-inline-size: max-content;
+}
+
+/* ==========================================================================
+   Medium Screens
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .market-ticker {
+    --market-ticker-block-size: 3.25rem;
+    --market-ticker-logo-size: 1.75rem;
+
+    --market-ticker-item-gap: var(--space-3, #{ds.space(3)});
+
+    --market-ticker-list-gap: var(--space-5, #{ds.space(5)});
+
+    --market-ticker-padding-inline: var(--space-3, #{ds.space(3)});
+  }
+
+  .market-ticker__name {
+    max-inline-size: 9rem;
+  }
+}
+
+/* ==========================================================================
+   Small Screens
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .market-ticker {
+    --market-ticker-block-size: 3rem;
+    --market-ticker-logo-size: 1.5rem;
+
+    --market-ticker-item-gap: var(--space-2, #{ds.space(2)});
+
+    --market-ticker-list-gap: var(--space-4, #{ds.space(4)});
+
+    --market-ticker-padding-inline: var(--space-3, #{ds.space(3)});
+  }
+
+  .market-ticker__name {
+    max-inline-size: 7rem;
+
+    font-size: var(--text-xs);
+  }
+
+  .market-ticker__price,
+  .market-ticker__change {
+    font-size: var(--text-xs);
+  }
+
+  .market-ticker__direction {
+    --icon-size: 0.6875rem;
+  }
+
+  .market-ticker__item::after {
+    inline-size: 0.8125rem;
+    block-size: 0.8125rem;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion — System Preference
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .market-ticker__viewport {
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scroll-behavior: auto;
+
+    scrollbar-gutter: stable;
+
+    touch-action: pan-x pan-y;
+  }
+
+  .market-ticker__track,
+  .market-ticker.is-ready .market-ticker__track {
+    transform: none !important;
+
+    will-change: auto;
+  }
+
+  .market-ticker__viewport::before,
+  .market-ticker__viewport::after {
+    display: none;
+  }
+
+  .market-ticker__link {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion — Application Preference
+   ========================================================================== */
+
+html[data-motion="reduce"] {
+  .market-ticker__viewport {
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scroll-behavior: auto;
+
+    scrollbar-gutter: stable;
+
+    touch-action: pan-x pan-y;
+  }
+
+  .market-ticker__track,
+  .market-ticker.is-ready .market-ticker__track {
+    transform: none !important;
+
+    will-change: auto;
+  }
+
+  .market-ticker__viewport::before,
+  .market-ticker__viewport::after {
+    display: none;
+  }
+
+  .market-ticker__link {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .market-ticker {
+  --market-ticker-bg: var(--color-bg);
+
+  --market-ticker-surface-alt: var(--color-bg);
+
+  --market-ticker-hover: transparent;
+
+  --market-ticker-color: var(--color-text);
+
+  --market-ticker-muted: var(--color-text);
+
+  --market-ticker-border: var(--color-border-strong);
+
+  --market-ticker-border-strong: var(--color-border-strong);
+
+  --market-ticker-accent: currentColor;
+
+  --market-ticker-focus: currentColor;
+
+  --color-market-positive: currentColor;
+
+  --color-market-negative: currentColor;
+
+  --color-market-neutral: currentColor;
+
+  color-scheme: normal;
+}
+
+html[data-contrast="high"] .market-ticker__viewport::before,
+html[data-contrast="high"] .market-ticker__viewport::after {
+  display: none;
+}
+
+html[data-contrast="high"] .market-ticker__item::after {
+  background-color: currentColor;
+}
+
+html[data-contrast="high"] .market-ticker__logo {
+  outline: 1px solid currentColor;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .market-ticker {
+    --market-ticker-bg: Canvas;
+
+    --market-ticker-surface-alt: Canvas;
+
+    --market-ticker-hover: transparent;
+
+    --market-ticker-color: CanvasText;
+
+    --market-ticker-muted: CanvasText;
+
+    --market-ticker-border: CanvasText;
+
+    --market-ticker-border-strong: CanvasText;
+
+    --market-ticker-accent: CanvasText;
+
+    --market-ticker-focus: Highlight;
+
+    --color-market-positive: CanvasText;
+
+    --color-market-negative: CanvasText;
+
+    --color-market-neutral: CanvasText;
+
+    forced-color-adjust: auto;
+
+    color-scheme: normal;
+  }
+
+  .market-ticker__viewport::before,
+  .market-ticker__viewport::after {
+    display: none;
+  }
+
+  .market-ticker__item::after {
+    background-color: CanvasText;
+  }
+
+  .market-ticker__logo {
+    outline: 1px solid CanvasText;
+  }
+
+  .market-ticker__link:focus-visible {
+    outline-color: Highlight;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .market-ticker {
+    display: none;
+  }
+}
