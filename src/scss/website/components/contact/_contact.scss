@@ -1,98 +1,34 @@
 @use "../../../design-system/abstracts" as ds;
 
 /* ==========================================================================
-   Contact
+   Contact Information
    ========================================================================== */
 
 /**
  * Contact-specific presentation only.
  *
- * Structural page layout is provided by:
+ * Reused from existing system:
  *
- * - container
- * - sticky-layout
- * - sticky-layout--balanced
+ * - account-page
+ * - account-page__panel
+ * - account-page__benefits
+ * - account-page__benefits-title
+ * - account-form
+ * - account-verification
+ * - form
+ * - buttons
  * - stack
- * - cluster
+ * - sticky-layout
  *
- * Forms, buttons, icons, surfaces, and accessibility behavior remain owned
- * by their existing design-system / website components.
+ * This file owns only the location/contact-information content that does not
+ * exist on Register.
  */
-
-.contact-page {
-  --contact-panel-bg: var(--color-surface);
-  --contact-panel-border: var(--color-border);
-  --contact-divider: var(--color-border);
-
-  --contact-panel-radius: var(--radius-lg);
-  --contact-panel-padding: var(--space-6, #{ds.space(6)});
-
-  --contact-map-ratio: 16 / 9;
-  --contact-map-bg: var(--color-surface-alt);
-
-  --contact-icon-color: var(--color-accent);
-
-  min-inline-size: 0;
-}
-
-/* ==========================================================================
-   Panels
-   ========================================================================== */
-
-/**
- * Both left and right regions use the same local surface treatment.
- *
- * The two columns remain separate panels inside the shared page container,
- * matching the established registration composition.
- */
-
-.contact-panel {
-  min-inline-size: 0;
-
-  padding: var(--contact-panel-padding);
-
-  border: 1px solid var(--contact-panel-border);
-
-  border-radius: var(--contact-panel-radius);
-
-  background: var(--contact-panel-bg);
-
-  color: var(--color-text);
-
-  box-shadow: var(--shadow-sm);
-}
-
-/* ==========================================================================
-   Contact Form
-   ========================================================================== */
-
-.contact-form {
-  min-inline-size: 0;
-}
-
-/* ==========================================================================
-   Message
-   ========================================================================== */
-
-.contact-form__message {
-  min-block-size: 10rem;
-
-  resize: vertical;
-}
-
-/* ==========================================================================
-   Contact Information
-   ========================================================================== */
-
-.contact-information {
-  min-inline-size: 0;
-}
 
 /* ==========================================================================
    Heading
    ========================================================================== */
 
-.contact-information__header {
+.contact-information__heading {
   display: flex;
   align-items: center;
 
@@ -104,24 +40,10 @@
 .contact-information__heading-icon {
   flex: 0 0 auto;
 
-  inline-size: 1.75rem;
-  block-size: 1.75rem;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
 
-  color: var(--contact-icon-color);
-}
-
-.contact-information__title {
-  min-inline-size: 0;
-
-  margin: 0;
-
-  color: var(--color-heading);
-
-  font-size: var(--text-xl);
-
-  font-weight: ds.font-weight("bold");
-
-  line-height: var(--line-height-tight);
+  color: var(--color-primary);
 }
 
 /* ==========================================================================
@@ -129,16 +51,17 @@
    ========================================================================== */
 
 /**
- * Fixed media boundary.
+ * Constrained media frame.
  *
- * This wrapper owns the available width and clips anything rendered inside.
- * It is safe for:
+ * The current implementation uses an image.
+ * Later this same frame can safely contain:
  *
- * - current placeholder image
- * - future iframe
+ * - iframe
  * - Google Maps
- * - other map providers
- * - canvas based maps
+ * - canvas
+ * - injected map provider root
+ *
+ * without affecting sticky-layout width.
  */
 
 .contact-information__map {
@@ -148,21 +71,21 @@
   max-inline-size: 100%;
   min-inline-size: 0;
 
-  aspect-ratio: var(--contact-map-ratio);
+  aspect-ratio: 16 / 9;
 
   overflow: hidden;
 
-  border: 1px solid var(--contact-panel-border);
+  border: 1px solid var(--color-border);
 
   border-radius: var(--radius-sm);
 
-  background: var(--contact-map-bg);
+  background: var(--color-surface-alt);
 
   isolation: isolate;
 }
 
 /* ==========================================================================
-   Placeholder Image
+   Location Image
    ========================================================================== */
 
 .contact-information__map-image {
@@ -178,12 +101,12 @@
 }
 
 /* ==========================================================================
-   Future Map Providers
+   Future Map Integration
    ========================================================================== */
 
 /**
- * A future iframe, canvas, or injected map root can replace the image without
- * changing the surrounding contact layout.
+ * This allows the location image to be replaced later without changing the
+ * component dimensions.
  */
 
 .contact-information__map > :is(iframe, canvas, [data-contact-map]) {
@@ -206,12 +129,6 @@
   overflow: hidden;
 }
 
-/*
- * Common third-party map implementations generate large nested children.
- * Those elements are allowed to render internally but cannot change the
- * dimensions of the component itself.
- */
-
 .contact-information__map > [data-contact-map] {
   contain: layout paint;
 }
@@ -227,15 +144,15 @@
 
   min-inline-size: 0;
 
-  border-block-end: 1px solid var(--contact-divider);
+  padding-block-end: var(--space-4, #{ds.space(4)});
+
+  border-block-end: 1px solid var(--color-border);
 }
 
-.contact-information__address-block {
+.contact-information__address address {
   min-inline-size: 0;
 
   margin: 0;
-
-  padding-block: var(--space-1, #{ds.space(1)}) var(--space-5, #{ds.space(5)});
 
   color: var(--color-text);
 
@@ -248,10 +165,10 @@
   overflow-wrap: anywhere;
 }
 
-.contact-information__address-block + .contact-information__address-block {
-  padding-inline-start: var(--space-5, #{ds.space(5)});
+.contact-information__address address + address {
+  padding-inline-start: var(--space-4, #{ds.space(4)});
 
-  border-inline-start: 1px solid var(--contact-divider);
+  border-inline-start: 1px solid var(--color-border);
 }
 
 /* ==========================================================================
@@ -267,30 +184,29 @@
 }
 
 /* ==========================================================================
-   Contact Detail Item
+   Detail Item
    ========================================================================== */
 
 .contact-details__item {
   display: grid;
 
   grid-template-columns:
-    minmax(9rem, 0.85fr)
-    minmax(0, 1.15fr);
+    minmax(9rem, 0.9fr)
+    minmax(0, 1.1fr);
 
   align-items: center;
 
   gap: var(--space-4, #{ds.space(4)});
 
   min-inline-size: 0;
-  min-block-size: 3.5rem;
 
   padding-block: var(--space-3, #{ds.space(3)});
 
-  border-block-end: 1px solid var(--contact-divider);
+  border-block-end: 1px solid var(--color-border);
 }
 
 /* ==========================================================================
-   Contact Detail Label
+   Detail Label
    ========================================================================== */
 
 .contact-details__label {
@@ -306,10 +222,12 @@
   font-size: var(--text-sm);
 
   font-weight: ds.font-weight("medium");
+
+  line-height: var(--line-height-normal);
 }
 
 /* ==========================================================================
-   Contact Detail Icon
+   Detail Icon
    ========================================================================== */
 
 .contact-details__icon {
@@ -322,7 +240,7 @@
 }
 
 /* ==========================================================================
-   Contact Detail Value
+   Detail Value
    ========================================================================== */
 
 .contact-details__value {
@@ -362,7 +280,7 @@
 }
 
 /* ==========================================================================
-   Working Hours
+   Work Hours
    ========================================================================== */
 
 .contact-information__hours {
@@ -379,10 +297,6 @@
   min-inline-size: 0;
 }
 
-/* ==========================================================================
-   Working Hours Icon
-   ========================================================================== */
-
 .contact-information__hours-icon {
   flex: 0 0 auto;
 
@@ -394,11 +308,7 @@
   color: var(--color-text-muted);
 }
 
-/* ==========================================================================
-   Working Hours Text
-   ========================================================================== */
-
-.contact-information__hours-text {
+.contact-information__hours p {
   min-inline-size: 0;
 
   margin: 0;
@@ -412,7 +322,7 @@
   overflow-wrap: anywhere;
 }
 
-.contact-information__hours-text strong {
+.contact-information__hours strong {
   color: var(--color-text);
 
   font-weight: ds.font-weight("semibold");
@@ -423,19 +333,10 @@
    ========================================================================== */
 
 @include ds.respond-down("lg") {
-  .contact-page {
-    --contact-panel-padding: var(--space-5, #{ds.space(5)});
-  }
-
-  /*
-   * sticky-layout already becomes a single-column layout at this breakpoint.
-   * No page-level grid override is required here.
-   */
-
   .contact-details__item {
     grid-template-columns:
-      minmax(8rem, 0.8fr)
-      minmax(0, 1.2fr);
+      minmax(8rem, 0.85fr)
+      minmax(0, 1.15fr);
   }
 }
 
@@ -444,22 +345,20 @@
    ========================================================================== */
 
 @include ds.respond-down("md") {
-  .contact-page {
-    --contact-panel-padding: var(--space-4, #{ds.space(4)});
-  }
-
   .contact-information__address {
     grid-template-columns: minmax(0, 1fr);
+
+    padding-block-end: 0;
   }
 
-  .contact-information__address-block {
+  .contact-information__address address {
     padding-block: var(--space-4, #{ds.space(4)});
   }
 
-  .contact-information__address-block + .contact-information__address-block {
+  .contact-information__address address + address {
     padding-inline-start: 0;
 
-    border-block-start: 1px solid var(--contact-divider);
+    border-block-start: 1px solid var(--color-border);
 
     border-inline-start: 0;
   }
@@ -476,14 +375,13 @@
    ========================================================================== */
 
 @include ds.respond-down("sm") {
-  .contact-page {
-    --contact-panel-padding: var(--space-3, #{ds.space(3)});
-
-    --contact-map-ratio: 4 / 3;
+  .contact-information__map {
+    aspect-ratio: 4 / 3;
   }
 
-  .contact-information__title {
-    font-size: var(--text-lg);
+  .contact-information__heading-icon {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
   }
 }
 
@@ -492,17 +390,15 @@
    ========================================================================== */
 
 html[data-contrast="high"] {
-  .contact-panel {
-    border-width: 2px;
-
-    border-color: var(--color-border-strong);
-
-    box-shadow: none;
-  }
-
   .contact-information__map {
     border-width: 2px;
 
+    border-color: var(--color-border-strong);
+  }
+
+  .contact-information__address,
+  .contact-information__address address + address,
+  .contact-details__item {
     border-color: var(--color-border-strong);
   }
 
@@ -518,16 +414,6 @@ html[data-contrast="high"] {
    ========================================================================== */
 
 @media (forced-colors: active) {
-  .contact-panel {
-    border-color: CanvasText;
-
-    background: Canvas;
-
-    color: CanvasText;
-
-    box-shadow: none;
-  }
-
   .contact-information__map {
     border-color: CanvasText;
 
@@ -560,16 +446,6 @@ html[data-motion="reduce"] {
    ========================================================================== */
 
 @media print {
-  .contact-panel {
-    border: 1px solid #000;
-
-    background: transparent;
-
-    color: #000;
-
-    box-shadow: none;
-  }
-
   .contact-information__map {
     display: none;
   }

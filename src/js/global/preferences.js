@@ -1,4 +1,8 @@
 /* ==========================================================================
+   Display Preferences
+   ========================================================================== */
+
+/* ==========================================================================
    Configuration
    ========================================================================== */
 
@@ -8,14 +12,26 @@ const STORAGE_KEYS = {
   fontSize: "se-font-size",
   contrast: "se-contrast",
   motion: "se-motion",
+
+  tickerVisibility: "se-ticker-visibility",
+
+  tickerSpeed: "se-ticker-speed",
 };
 
 const OPTIONS = {
   theme: ["light", "dark", "system"],
+
   accent: ["blue", "navy", "teal"],
+
   fontSize: ["-2", "-1", "0", "1", "2"],
+
   contrast: ["normal", "high"],
+
   motion: ["normal", "reduce"],
+
+  tickerVisibility: ["visible", "hidden"],
+
+  tickerSpeed: ["slow", "normal", "fast"],
 };
 
 const DEFAULTS = {
@@ -24,6 +40,10 @@ const DEFAULTS = {
   fontSize: "0",
   contrast: "normal",
   motion: "normal",
+
+  tickerVisibility: "visible",
+
+  tickerSpeed: "normal",
 };
 
 const FONT_SIZE_LABELS = {
@@ -64,6 +84,7 @@ function readStorage(key) {
 function writeStorage(key, value) {
   try {
     window.localStorage.setItem(key, value);
+
     return true;
   } catch {
     return false;
@@ -74,12 +95,16 @@ function removeStorage(key) {
   try {
     window.localStorage.removeItem(key);
   } catch {
-    // Preferences still work for the current page session.
+    /*
+     * Preferences still work for the
+     * current page session.
+     */
   }
 }
 
 function getStoredPreference(name) {
   const key = STORAGE_KEYS[name];
+
   const value = readStorage(key);
 
   return isValidPreference(name, value) ? value : DEFAULTS[name];
@@ -109,6 +134,7 @@ function finishPreferenceUpdate() {
   themeSwitchFrame = window.requestAnimationFrame(() => {
     themeSwitchFrame = window.requestAnimationFrame(() => {
       root.classList.remove("is-theme-switching");
+
       themeSwitchFrame = null;
     });
   });
@@ -116,8 +142,9 @@ function finishPreferenceUpdate() {
 
 function applyPreferences(preferences) {
   /*
-   * Prevent all theme-aware components from animating while their CSS
-   * custom properties are being replaced.
+   * Prevent theme-aware components from
+   * transitioning while semantic values
+   * are being updated.
    */
   root.classList.add("is-theme-switching");
 
@@ -132,6 +159,18 @@ function applyPreferences(preferences) {
   root.setAttribute("data-contrast", preferences.contrast);
 
   root.setAttribute("data-motion", preferences.motion);
+
+  /*
+   * Market ticker preferences.
+   *
+   * The ticker controller observes these
+   * attributes directly. There is no
+   * dependency from preferences.js to the
+   * ticker module.
+   */
+  root.setAttribute("data-ticker-visibility", preferences.tickerVisibility);
+
+  root.setAttribute("data-ticker-speed", preferences.tickerSpeed);
 
   finishPreferenceUpdate();
 }
@@ -169,6 +208,7 @@ function emitPreferencesReset(preferences) {
 export function getPreferences() {
   return Object.keys(DEFAULTS).reduce((preferences, name) => {
     preferences[name] = getStoredPreference(name);
+
     return preferences;
   }, {});
 }
@@ -185,6 +225,7 @@ export function setPreference(name, value) {
   const preferences = getPreferences();
 
   applyPreferences(preferences);
+
   syncPreferencesUI(preferences);
 
   emitPreferenceChange(name, value, preferences);
@@ -263,6 +304,7 @@ export function resetPreferences() {
   const preferences = getPreferences();
 
   applyPreferences(preferences);
+
   syncPreferencesUI(preferences);
 
   emitPreferencesReset(preferences);
@@ -271,7 +313,7 @@ export function resetPreferences() {
 }
 
 /* ==========================================================================
-   UI Synchronization
+   UI State
    ========================================================================== */
 
 function setPressedState(button, isPressed) {
@@ -306,6 +348,7 @@ function syncFontControls(preferences) {
   const currentIndex = OPTIONS.fontSize.indexOf(preferences.fontSize);
 
   const minimumIndex = 0;
+
   const maximumIndex = OPTIONS.fontSize.length - 1;
 
   document.querySelectorAll("[data-font-decrease]").forEach((button) => {
@@ -328,7 +371,9 @@ function syncFontControls(preferences) {
 
 function syncPreferencesUI(preferences = getPreferences()) {
   syncChoiceButtons(preferences);
+
   syncToggleButtons(preferences);
+
   syncFontControls(preferences);
 }
 
@@ -337,9 +382,13 @@ function syncPreferencesUI(preferences = getPreferences()) {
    ========================================================================== */
 
 function handlePreferenceClick(event) {
-  const choiceButton = event.target.closest(
-    "[data-preference][data-preference-set]",
-  );
+  const target = event.target;
+
+  if (!(target instanceof Element)) {
+    return;
+  }
+
+  const choiceButton = target.closest("[data-preference][data-preference-set]");
 
   if (choiceButton) {
     const name = choiceButton.getAttribute("data-preference");
@@ -347,38 +396,43 @@ function handlePreferenceClick(event) {
     const value = choiceButton.getAttribute("data-preference-set");
 
     setPreference(name, value);
+
     return;
   }
 
-  const toggleButton = event.target.closest("[data-preference-toggle]");
+  const toggleButton = target.closest("[data-preference-toggle]");
 
   if (toggleButton) {
     toggleBinaryPreference(toggleButton);
+
     return;
   }
 
-  if (event.target.closest("[data-font-decrease]")) {
+  if (target.closest("[data-font-decrease]")) {
     decreaseFontSize();
+
     return;
   }
 
-  if (event.target.closest("[data-font-increase]")) {
+  if (target.closest("[data-font-increase]")) {
     increaseFontSize();
+
     return;
   }
 
-  if (event.target.closest("[data-font-reset]")) {
+  if (target.closest("[data-font-reset]")) {
     resetFontSize();
+
     return;
   }
 
-  if (event.target.closest("[data-preferences-reset]")) {
+  if (target.closest("[data-preferences-reset]")) {
     resetPreferences();
   }
 }
 
 /* ==========================================================================
-   System Preference Changes
+   System Theme
    ========================================================================== */
 
 function handleSystemThemeChange() {
@@ -388,9 +442,20 @@ function handleSystemThemeChange() {
     return;
   }
 
+  /*
+   * Only the resolved theme changes.
+   * Do not emit a preferencechange event
+   * because the user's selected preference
+   * remains "system".
+   */
   applyPreferences(preferences);
+
   syncPreferencesUI(preferences);
 }
+
+/* ==========================================================================
+   Cross-tab Synchronization
+   ========================================================================== */
 
 function handleStorageChange(event) {
   if (event.storageArea !== window.localStorage) {
@@ -404,6 +469,7 @@ function handleStorageChange(event) {
   const preferences = getPreferences();
 
   applyPreferences(preferences);
+
   syncPreferencesUI(preferences);
 }
 
@@ -421,6 +487,7 @@ export function initPreferences() {
   const preferences = getPreferences();
 
   applyPreferences(preferences);
+
   syncPreferencesUI(preferences);
 
   document.addEventListener("click", handlePreferenceClick);

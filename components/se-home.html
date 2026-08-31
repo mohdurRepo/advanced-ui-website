@@ -1275,7 +1275,7 @@
           "change": -0.2,
           "changePercent": -2.33,
           "url": "/company-profile/4080",
-          "logo": "https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/4080.png"
+          "logo": "images/4080.png"
         },
         {
           "symbol": "3001",
@@ -1284,7 +1284,7 @@
           "change": 0.36,
           "changePercent": 1.12,
           "url": "/company-profile/3001",
-          "logo": "https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/3001.png"
+          "logo": "images/3001.png"
         },
         {
           "symbol": "6010",
@@ -1293,7 +1293,7 @@
           "change": 0.02,
           "changePercent": 0.13,
           "url": "/company-profile/6010",
-          "logo": "https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/6010.png"
+          "logo": "images/6010.png"
         },
         {
           "symbol": "3008",
@@ -1302,7 +1302,7 @@
           "change": 0.22,
           "changePercent": 1.77,
           "url": "/company-profile/3008",
-          "logo": "https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/3008.png"
+          "logo": "images/3008.png"
         },
         {
           "symbol": "6040",
@@ -1311,7 +1311,7 @@
           "change": 0.23,
           "changePercent": 2.54,
           "url": "/company-profile/6040",
-          "logo": "https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/6040.png"
+          "logo": "images/6040.png"
         },
         {
           "symbol": "2222",
@@ -1320,7 +1320,7 @@
           "change": -0.15,
           "changePercent": -0.54,
           "url": "/company-profile/2222",
-          "logo": "https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/2222.png"
+          "logo": "images/2222.png"
         },
         {
           "symbol": "1120",
@@ -1329,7 +1329,7 @@
           "change": 0,
           "changePercent": 0,
           "url": "/company-profile/1120",
-          "logo": "https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/1120.png"
+          "logo": "images/1120.png"
         }
       ]
     </script>
@@ -8935,6 +8935,110 @@
                 </button>
 
                 <span class="preferences-accent-option__label"> Teal </span>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- Market Ticker -->
+
+          <fieldset class="preferences-group">
+            <legend class="preferences-label">Market ticker</legend>
+
+            <p class="preferences-help">
+              Control whether the market ticker is shown and how quickly it
+              moves.
+            </p>
+
+            <div class="preferences-toggle-list">
+              <button
+                class="preferences-toggle-option"
+                type="button"
+                data-preference-toggle="tickerVisibility"
+                data-preference-on="visible"
+                data-preference-off="hidden"
+                aria-pressed="false"
+              >
+                <span
+                  class="preferences-toggle-option__icon has-icon icon-trending-up"
+                  aria-hidden="true"
+                ></span>
+
+                <span class="preferences-toggle-option__content">
+                  <strong>Show market ticker</strong>
+
+                  <small>
+                    Display live market information across the website.
+                  </small>
+                </span>
+
+                <span
+                  class="preferences-toggle-option__control"
+                  aria-hidden="true"
+                ></span>
+              </button>
+            </div>
+
+            <div class="preferences-subgroup">
+              <span class="preferences-subgroup__label"> Ticker speed </span>
+
+              <div
+                class="preferences-choice-grid"
+                role="group"
+                aria-label="Market ticker speed"
+              >
+                <button
+                  class="preferences-choice"
+                  type="button"
+                  data-preference="tickerSpeed"
+                  data-preference-set="slow"
+                  aria-pressed="false"
+                >
+                  <span class="preferences-choice__content">
+                    <strong>Slow</strong>
+                    <small>Move more slowly</small>
+                  </span>
+
+                  <span
+                    class="preferences-choice__check has-icon icon-check"
+                    aria-hidden="true"
+                  ></span>
+                </button>
+
+                <button
+                  class="preferences-choice"
+                  type="button"
+                  data-preference="tickerSpeed"
+                  data-preference-set="normal"
+                  aria-pressed="false"
+                >
+                  <span class="preferences-choice__content">
+                    <strong>Normal</strong>
+                    <small>Default speed</small>
+                  </span>
+
+                  <span
+                    class="preferences-choice__check has-icon icon-check"
+                    aria-hidden="true"
+                  ></span>
+                </button>
+
+                <button
+                  class="preferences-choice"
+                  type="button"
+                  data-preference="tickerSpeed"
+                  data-preference-set="fast"
+                  aria-pressed="false"
+                >
+                  <span class="preferences-choice__content">
+                    <strong>Fast</strong>
+                    <small>Move more quickly</small>
+                  </span>
+
+                  <span
+                    class="preferences-choice__check has-icon icon-check"
+                    aria-hidden="true"
+                  ></span>
+                </button>
               </div>
             </div>
           </fieldset>

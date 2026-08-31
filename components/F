@@ -353,3 +353,272 @@ class MarqueeTicker {
     this._updateLogo();
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+<c:set
+  var="tickerData"
+  value="${siteToolHelper.getInstance().getTickerData()}"
+/>
+
+<c:set
+  var="localeLang"
+  value="${pageContext.request.locale.language}"
+/>
+
+<section
+  class="market-ticker"
+  data-market-ticker
+  data-market-ticker-source="market-ticker-data"
+  aria-label="${localeLang eq 'ar' ? 'شريط أسعار السوق' : 'Market ticker'}"
+>
+</section>
+
+<script
+  id="market-ticker-data"
+  type="application/json"
+>
+[
+<c:forEach
+  items="${tickerData}"
+  var="stock"
+  varStatus="status"
+>
+  {
+    "symbol": "${stock.pk_rf_company}",
+    "name": "${localeLang eq 'ar' ? stock.companyShortNameAr : stock.companyShortNameEn}",
+    "price": "${stock.lastTradePrice}",
+    "change": "${stock.change}",
+    "changePercent": "${stock.changePercent}",
+
+    "url": "<portal:urlGeneration
+      contentNode='com.tadawul.hidden.company.profile.v3'
+      portletMode='view'
+      portletParameterType='render'
+      layoutNode='com.tadawul.v3.company.profile.node.v3'
+      keepNavigationalState='false'
+    >
+      <portal:urlParam
+        name='companySymbol'
+        value='${stock.pk_rf_company}'
+      />
+      <% wpsURL.write(out); %>
+    </portal:urlGeneration>",
+
+    "logo": "https://betauat.saudiexchange.sa/Resources/SEMOBILELOGOS/${stock.pk_rf_company}.png"
+  }<c:if test="${!status.last}">,</c:if>
+</c:forEach>
+]
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const REFRESH_INTERVAL = 60000;
+
+  function refreshTickerDetails() {
+    $.ajax({
+      type: "GET",
+      url: "/api",
+      dataType: "json",
+
+      success: function (data) {
+        if (
+          !data ||
+          !Array.isArray(data.tickerStockData)
+        ) {
+          return;
+        }
+
+        data.tickerStockData.forEach((stock) => {
+          const symbol = String(
+            stock.pk_rf_company || ""
+          ).trim();
+
+          if (!symbol) {
+            return;
+          }
+
+          const price = parseFloat(
+            stock.lastTradePrice
+          );
+
+          const change = parseFloat(
+            stock.change
+          );
+
+          const changePercent = parseFloat(
+            stock.changePercent
+          );
+
+          const priceDisplay =
+            price === 0 ||
+            stock.lastTradePrice === "-"
+              ? "-"
+              : stock.lastTradePrice;
+
+          const changeDisplay =
+            changePercent === 0 ||
+            stock.changePercent === "-"
+              ? "- (- %)"
+              : `${stock.change} (${stock.changePercent}%)`;
+
+          const stateClass =
+            changePercent < 0
+              ? "price-down"
+              : changePercent > 0
+                ? "price-up"
+                : "price-neutral";
+
+          const iconClass =
+            changePercent < 0
+              ? "icon-trending-down"
+              : changePercent > 0
+                ? "icon-trending-up"
+                : "";
+
+          /*
+           * Update source item and all ticker clones.
+           */
+          const items = document.querySelectorAll(
+            `[data-market-ticker-symbol="${CSS.escape(symbol)}"]`
+          );
+
+          items.forEach((item) => {
+            const priceElement =
+              item.querySelector(
+                ".market-ticker__price"
+              );
+
+            const changeElement =
+              item.querySelector(
+                ".market-ticker__change"
+              );
+
+            if (priceElement) {
+              priceElement.textContent =
+                priceDisplay;
+
+              if (
+                Number.isFinite(price)
+              ) {
+                priceElement.value =
+                  String(price);
+              }
+            }
+
+            if (!changeElement) {
+              return;
+            }
+
+            changeElement.classList.remove(
+              "price-up",
+              "price-down",
+              "price-neutral"
+            );
+
+            changeElement.classList.add(
+              stateClass
+            );
+
+            let directionIcon =
+              changeElement.querySelector(
+                ".market-ticker__direction"
+              );
+
+            if (iconClass) {
+              if (!directionIcon) {
+                directionIcon =
+                  document.createElement(
+                    "span"
+                  );
+
+                directionIcon.className =
+                  `market-ticker__direction has-icon ${iconClass} icon-md`;
+
+                directionIcon.setAttribute(
+                  "aria-hidden",
+                  "true"
+                );
+
+                changeElement.prepend(
+                  directionIcon
+                );
+              } else {
+                directionIcon.classList.remove(
+                  "icon-trending-up",
+                  "icon-trending-down"
+                );
+
+                directionIcon.classList.add(
+                  iconClass
+                );
+              }
+            } else {
+              directionIcon?.remove();
+            }
+
+            const values =
+              changeElement.querySelectorAll(
+                "data"
+              );
+
+            if (values[0]) {
+              values[0].textContent =
+                Number.isFinite(change)
+                  ? stock.change
+                  : "-";
+
+              if (
+                Number.isFinite(change)
+              ) {
+                values[0].value =
+                  String(change);
+              }
+            }
+
+            if (values[1]) {
+              values[1].textContent =
+                changePercent === 0 ||
+                stock.changePercent === "-"
+                  ? "(- %)"
+                  : `(${stock.changePercent}%)`;
+
+              if (
+                Number.isFinite(
+                  changePercent
+                )
+              ) {
+                values[1].value =
+                  String(changePercent);
+              }
+            }
+          });
+        });
+      },
+
+      error: function () {
+        console.warn(
+          "Failed to update ticker data."
+        );
+      },
+
+      complete: function () {
+        window.setTimeout(
+          refreshTickerDetails,
+          REFRESH_INTERVAL
+        );
+      }
+    });
+  }
+
+  refreshTickerDetails();
+});
+</script>

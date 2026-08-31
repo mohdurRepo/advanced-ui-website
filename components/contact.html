@@ -1228,7 +1228,7 @@
      ========================================================================== -->
 
       <section
-        class="section contact-page surface-market"
+        class="section account-page"
         aria-labelledby="contact-form-title"
       >
         <div class="container">
@@ -1238,201 +1238,53 @@
            ==================================================================== -->
 
             <div class="sticky-layout__content">
-              <div class="contact-panel">
+              <div class="account-page__panel">
                 <form
-                  class="form contact-form stack stack--lg"
+                  class="form account-form stack stack--xl"
                   action="/contact-us"
                   method="post"
                   novalidate
                 >
                   <!-- ==============================================================
-                 Accessible Form Heading
+                 Form Introduction
                  ============================================================== -->
 
-                  <header class="visually-hidden">
-                    <h2 id="contact-form-title">Contact Saudi Exchange</h2>
+                  <header class="account-page__header stack stack--sm">
+                    <h2 id="contact-form-title" class="account-page__title">
+                      Contact Us
+                    </h2>
+
+                    <p class="account-page__description">
+                      Our team is available to support you. Please fill out the
+                      form below and someone will respond to your query.
+                    </p>
+
+                    <p class="account-page__required-note">
+                      Fields marked with
+                      <span class="form-required" aria-hidden="true">*</span>
+                      are required.
+                    </p>
                   </header>
 
                   <!-- ==============================================================
-                 First Name
+                 Contact Information
                  ============================================================== -->
 
-                  <div class="form-group">
-                    <label class="form-label" for="contact-first-name">
-                      First Name
-                      <span class="form-required" aria-hidden="true">*</span>
-                    </label>
-
-                    <input
-                      class="form-control"
-                      id="contact-first-name"
-                      name="firstName"
-                      type="text"
-                      autocomplete="given-name"
-                      maxlength="100"
-                      placeholder="Enter your name"
-                      required
-                    />
-                  </div>
-
-                  <!-- ==============================================================
-                 Email Address
-                 ============================================================== -->
-
-                  <div class="form-group">
-                    <label class="form-label" for="contact-email">
-                      E-Mail Address
-                      <span class="form-required" aria-hidden="true">*</span>
-                    </label>
-
-                    <input
-                      class="form-control"
-                      id="contact-email"
-                      name="email"
-                      type="email"
-                      inputmode="email"
-                      autocomplete="email"
-                      autocapitalize="none"
-                      spellcheck="false"
-                      maxlength="254"
-                      placeholder="Enter your e-mail"
-                      required
-                    />
-                  </div>
-
-                  <!-- ==============================================================
-                 Type Of Query
-                 ============================================================== -->
-
-                  <div class="form-group">
-                    <label class="form-label" for="contact-query-type">
-                      Type Of Query
-                      <span class="form-required" aria-hidden="true">*</span>
-                    </label>
-
-                    <select
-                      class="form-control"
-                      id="contact-query-type"
-                      name="queryType"
-                      required
-                      data-custom-select
-                    >
-                      <option value="">Select query type</option>
-
-                      <option value="general">General Enquiries</option>
-
-                      <option value="market">Market Enquiries</option>
-
-                      <option value="listing">Listing Enquiries</option>
-
-                      <option value="technical">Technical Support</option>
-
-                      <option value="media">Media Enquiries</option>
-
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-
-                  <!-- ==============================================================
-                 Subject
-                 ============================================================== -->
-
-                  <div class="form-group">
-                    <label class="form-label" for="contact-subject">
-                      Subject
-                      <span class="form-required" aria-hidden="true">*</span>
-                    </label>
-
-                    <input
-                      class="form-control"
-                      id="contact-subject"
-                      name="subject"
-                      type="text"
-                      maxlength="200"
-                      placeholder="Type your subject"
-                      required
-                    />
-                  </div>
-
-                  <!-- ==============================================================
-                 Message
-                 ============================================================== -->
-
-                  <div class="form-group">
-                    <label class="form-label" for="contact-message">
-                      Message
-                      <span class="form-required" aria-hidden="true">*</span>
-                    </label>
-
-                    <textarea
-                      class="form-control contact-form__message"
-                      id="contact-message"
-                      name="message"
-                      rows="7"
-                      maxlength="4000"
-                      placeholder="Type your message"
-                      required
-                    ></textarea>
-                  </div>
-
-                  <!-- ==============================================================
-                 Security Verification
-                 ============================================================== -->
-
-                  <fieldset class="form-fieldset">
-                    <legend class="visually-hidden">
-                      Security Verification
+                  <fieldset class="form-fieldset account-form__section">
+                    <legend class="account-form__section-title">
+                      Your Information
                     </legend>
 
-                    <div class="account-verification">
-                      <!-- Security Code -->
+                    <p class="account-form__section-description">
+                      Enter your contact details and tell us how we can help.
+                    </p>
 
-                      <div class="form-group account-verification__challenge">
-                        <span
-                          class="form-label-static"
-                          id="contact-security-code-label"
-                        >
-                          Security Code
-                          <span class="form-required" aria-hidden="true"
-                            >*</span
-                          >
-                        </span>
+                    <div class="form-fieldset-body stack stack--md">
+                      <!-- First Name -->
 
-                        <div
-                          class="account-verification__media"
-                          aria-labelledby="contact-security-code-label"
-                        >
-                          <img
-                            class="account-verification__image"
-                            src="/captcha"
-                            alt="Security verification code"
-                            width="260"
-                            height="48"
-                            data-captcha-image
-                          />
-
-                          <button
-                            class="account-verification__refresh"
-                            type="button"
-                            aria-label="Generate a new security code"
-                            data-captcha-refresh
-                          >
-                            <span
-                              class="has-icon icon-sync-refresh"
-                              aria-hidden="true"
-                            ></span>
-                          </button>
-                        </div>
-                      </div>
-
-                      <!-- Verification Input -->
-
-                      <div class="form-group account-verification__input">
-                        <label
-                          class="form-label"
-                          for="contact-verification-code"
-                        >
-                          Verify Code
+                      <div class="form-group">
+                        <label class="form-label" for="contact-first-name">
+                          First Name
                           <span class="form-required" aria-hidden="true"
                             >*</span
                           >
@@ -1440,16 +1292,196 @@
 
                         <input
                           class="form-control"
-                          id="contact-verification-code"
-                          name="verificationCode"
+                          id="contact-first-name"
+                          name="firstName"
                           type="text"
-                          autocomplete="off"
-                          autocapitalize="characters"
-                          spellcheck="false"
-                          maxlength="10"
-                          placeholder="Enter the characters"
+                          autocomplete="given-name"
+                          maxlength="100"
+                          placeholder="Enter your name"
                           required
                         />
+                      </div>
+
+                      <!-- Email -->
+
+                      <div class="form-group">
+                        <label class="form-label" for="contact-email">
+                          E-Mail Address
+                          <span class="form-required" aria-hidden="true"
+                            >*</span
+                          >
+                        </label>
+
+                        <input
+                          class="form-control"
+                          id="contact-email"
+                          name="email"
+                          type="email"
+                          inputmode="email"
+                          autocomplete="email"
+                          autocapitalize="none"
+                          spellcheck="false"
+                          maxlength="254"
+                          placeholder="Enter your e-mail"
+                          required
+                        />
+                      </div>
+
+                      <!-- Query Type -->
+
+                      <div class="form-group">
+                        <label class="form-label" for="contact-query-type">
+                          Type Of Query
+                          <span class="form-required" aria-hidden="true"
+                            >*</span
+                          >
+                        </label>
+
+                        <select
+                          class="form-control"
+                          id="contact-query-type"
+                          name="queryType"
+                          required
+                          data-custom-select
+                        >
+                          <option value="">Select query type</option>
+
+                          <option value="general">General Enquiries</option>
+
+                          <option value="market">Market Enquiries</option>
+
+                          <option value="listing">Listing Enquiries</option>
+
+                          <option value="technical">Technical Support</option>
+
+                          <option value="media">Media Enquiries</option>
+
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+
+                      <!-- Subject -->
+
+                      <div class="form-group">
+                        <label class="form-label" for="contact-subject">
+                          Subject
+                          <span class="form-required" aria-hidden="true"
+                            >*</span
+                          >
+                        </label>
+
+                        <input
+                          class="form-control"
+                          id="contact-subject"
+                          name="subject"
+                          type="text"
+                          maxlength="200"
+                          placeholder="Type your subject"
+                          required
+                        />
+                      </div>
+
+                      <!-- Message -->
+
+                      <div class="form-group">
+                        <label class="form-label" for="contact-message">
+                          Message
+                          <span class="form-required" aria-hidden="true"
+                            >*</span
+                          >
+                        </label>
+
+                        <textarea
+                          class="form-control"
+                          id="contact-message"
+                          name="message"
+                          rows="7"
+                          maxlength="4000"
+                          placeholder="Type your message"
+                          required
+                        ></textarea>
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <!-- ==============================================================
+                 Security Verification
+                 ============================================================== -->
+
+                  <fieldset class="form-fieldset account-form__section">
+                    <legend class="account-form__section-title">
+                      Security Verification
+                    </legend>
+
+                    <p class="account-form__section-description">
+                      Enter the characters shown in the security image.
+                    </p>
+
+                    <div class="form-fieldset-body">
+                      <div class="account-verification">
+                        <!-- Security Image -->
+
+                        <div class="form-group account-verification__challenge">
+                          <span
+                            class="form-label-static"
+                            id="contact-security-code-label"
+                          >
+                            Security Code
+                          </span>
+
+                          <div
+                            class="account-verification__media"
+                            aria-labelledby="contact-security-code-label"
+                          >
+                            <img
+                              class="account-verification__image"
+                              src="/captcha"
+                              alt="Security verification code"
+                              width="260"
+                              height="48"
+                              data-captcha-image
+                            />
+
+                            <button
+                              class="account-verification__refresh"
+                              type="button"
+                              aria-label="Generate a new security code"
+                              data-captcha-refresh
+                            >
+                              <span
+                                class="has-icon icon-sync-refresh"
+                                aria-hidden="true"
+                              ></span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <!-- Verification Input -->
+
+                        <div class="form-group account-verification__input">
+                          <label
+                            class="form-label"
+                            for="contact-verification-code"
+                          >
+                            Verify Code
+                            <span class="form-required" aria-hidden="true"
+                              >*</span
+                            >
+                          </label>
+
+                          <input
+                            class="form-control"
+                            id="contact-verification-code"
+                            name="verificationCode"
+                            type="text"
+                            autocomplete="off"
+                            autocapitalize="characters"
+                            spellcheck="false"
+                            maxlength="10"
+                            placeholder="Enter the characters"
+                            required
+                          />
+                        </div>
                       </div>
                     </div>
                   </fieldset>
@@ -1466,10 +1498,10 @@
                   ></div>
 
                   <!-- ==============================================================
-                 Action
+                 Actions
                  ============================================================== -->
 
-                  <div class="cluster">
+                  <div class="account-page__actions">
                     <button
                       class="btn btn-primary btn-rounded has-icon icon-chevron-right-bold icon-end icon-flip-rtl"
                       type="submit"
@@ -1482,7 +1514,7 @@
             </div>
 
             <!-- ====================================================================
-           Contact Information
+           Address & Location
            ==================================================================== -->
 
             <aside
@@ -1491,28 +1523,28 @@
             >
               <div class="sticky-layout__sticky">
                 <section
-                  class="contact-panel contact-information stack stack--lg"
+                  class="account-page__benefits contact-information stack stack--lg"
                 >
-                  <!-- ==============================================================
-                 Heading
-                 ============================================================== -->
+                  <!-- Heading -->
 
-                  <header class="contact-information__header">
-                    <span
-                      class="contact-information__heading-icon has-icon icon-tadawul"
-                      aria-hidden="true"
-                    ></span>
+                  <header class="stack stack--sm">
+                    <div class="contact-information__heading">
+                      <span
+                        class="contact-information__heading-icon has-icon icon-tadawul"
+                        aria-hidden="true"
+                      ></span>
 
-                    <h2
-                      class="contact-information__title"
-                      id="contact-information-title"
-                    >
-                      Address &amp; Location
-                    </h2>
+                      <h2
+                        class="account-page__benefits-title"
+                        id="contact-information-title"
+                      >
+                        Address &amp; Location
+                      </h2>
+                    </div>
                   </header>
 
                   <!-- ==============================================================
-                 Location Image / Future Map
+                 Location Image
                  ============================================================== -->
 
                   <div class="contact-information__map">
@@ -1530,13 +1562,13 @@
                  ============================================================== -->
 
                   <div class="contact-information__address">
-                    <address class="contact-information__address-block">
+                    <address>
                       6897 King Fahd Road - Al Ulaya
                       <br />
                       Riyadh 12211-3388
                     </address>
 
-                    <address class="contact-information__address-block">
+                    <address>
                       Unit Number: 15
                       <br />
                       Kingdom Of Saudi Arabia
@@ -1548,8 +1580,6 @@
                  ============================================================== -->
 
                   <dl class="contact-details">
-                    <!-- Customer Care -->
-
                     <div class="contact-details__item">
                       <dt class="contact-details__label">
                         <span
@@ -1567,8 +1597,6 @@
                       </dd>
                     </div>
 
-                    <!-- Email -->
-
                     <div class="contact-details__item">
                       <dt class="contact-details__label">
                         <span
@@ -1585,8 +1613,6 @@
                         </a>
                       </dd>
                     </div>
-
-                    <!-- WhatsApp -->
 
                     <div class="contact-details__item">
                       <dt class="contact-details__label">
@@ -1609,8 +1635,6 @@
                       </dd>
                     </div>
 
-                    <!-- Fax -->
-
                     <div class="contact-details__item">
                       <dt class="contact-details__label">
                         <span
@@ -1628,7 +1652,7 @@
                   </dl>
 
                   <!-- ==============================================================
-                 Working Hours
+                 Work Hours
                  ============================================================== -->
 
                   <div class="contact-information__hours">
@@ -1637,7 +1661,7 @@
                       aria-hidden="true"
                     ></span>
 
-                    <p class="contact-information__hours-text">
+                    <p>
                       <strong>Work Hours:</strong>
                       From Sunday To Thursday, 8:00 A.M. To 4:00 P.M.
 
