@@ -36,7 +36,7 @@ import {
   formatRequestDate,
   normalizeString,
   parseDateParts,
-} from "../../shared/trading/trading-formatters.js";
+} from "./financial-calendar-utils.js";
 
 /* ==========================================================================
    Constants

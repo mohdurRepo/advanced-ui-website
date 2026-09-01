@@ -13,6 +13,10 @@
    Imports
    ========================================================================== */
 
+/* ==========================================================================
+   Imports
+   ========================================================================== */
+
 import {
   renderStandardCompanyCardIdentity,
   renderStandardCompanyCell,
@@ -29,7 +33,7 @@ import {
   normalizeString,
   renderLink,
   toNumber,
-} from "../../shared/trading/trading-formatters.js";
+} from "./financial-calendar-utils.js";
 
 /* ==========================================================================
    Constants

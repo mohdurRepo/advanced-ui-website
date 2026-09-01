@@ -33,7 +33,7 @@
 
 import { createDataSource } from "../../../common/data-view/index.js";
 
-import { normalizeString } from "../../shared/trading/trading-formatters.js";
+import { normalizeString } from "./financial-calendar-utils.js";
 
 /* ==========================================================================
    Constants
