@@ -50,6 +50,7 @@
   color: var(--color-text);
 
   @include ds.transition((border-color, box-shadow), "fast");
+  
 }
 
 /* ==========================================================================
