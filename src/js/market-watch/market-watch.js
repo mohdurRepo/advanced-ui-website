@@ -3,22 +3,22 @@
    ========================================================================== */
 
 /*
- * Market Watch page composition.
+ * Market Watch page coordinator.
  *
  * Responsibilities:
  *
- * - page initialization
- * - common Data View composition
- * - state
- * - data source
- * - results
- * - controller
- * - favorite/watchlist events
- * - logo fallback events
- * - public API
- * - startup
+ * - initialize the page
+ * - compose common Data View modules
+ * - create shared state
+ * - create data source
+ * - connect filters / column visibility
+ * - connect table / mobile cards
+ * - connect result count
+ * - coordinate Market Watch views
+ * - handle favorite and logo events
+ * - expose lifecycle/public API
  *
- * Page-specific behavior is delegated to:
+ * Page-specific logic belongs in:
  *
  * - market-watch.config.js
  * - market-watch.columns.js
@@ -27,16 +27,6 @@
  * - market-watch.normalizer.js
  * - views/market-watch.table.js
  * - views/market-watch.cards.js
- *
- * This module intentionally does not own:
- *
- * - column definitions
- * - filter definitions
- * - column-picker configuration
- * - request parameter mapping
- * - response normalization
- * - table-cell rendering
- * - mobile-card rendering
  */
 
 /* ==========================================================================
@@ -80,10 +70,12 @@ import { createMarketWatchTableView } from "./views/market-watch.table.js";
 import { createMarketWatchCardsView } from "./views/market-watch.cards.js";
 
 /* ==========================================================================
-   Constants
+   Selectors
    ========================================================================== */
 
 const SELECTORS = Object.freeze({
+  mobileCards: "[data-market-watch-mobile-cards]",
+
   resultCount: "[data-market-watch-result-count]",
 
   favorite: "[data-market-watch-favorite]",
@@ -98,7 +90,7 @@ const SELECTORS = Object.freeze({
 const instances = new WeakMap();
 
 /* ==========================================================================
-   Favorite Action
+   Favorite
    ========================================================================== */
 
 function handleFavorite(event, scope) {
@@ -121,7 +113,7 @@ function handleFavorite(event, scope) {
   const companyRef = button.dataset.companyRef || "";
 
   /*
-   * Preserve the existing website-level watchlist integration.
+   * Existing website-level watchlist integration.
    */
 
   if (typeof window.showAddToWatchListPopup === "function") {
@@ -129,7 +121,7 @@ function handleFavorite(event, scope) {
   }
 
   /*
-   * Preserve the existing page-level integration event.
+   * Also expose a page-level event for integrations that use events.
    */
 
   button.dispatchEvent(
@@ -167,7 +159,7 @@ function handleLogoError(event, scope) {
   const fallbackUrl = image.dataset.marketWatchLogoFallback;
 
   /*
-   * Try the configured fallback once.
+   * Try the configured fallback only once.
    */
 
   if (fallbackUrl && !image.dataset.marketWatchLogoFallbackApplied) {
@@ -179,7 +171,7 @@ function handleLogoError(event, scope) {
   }
 
   /*
-   * The original image and fallback both failed.
+   * Original image and fallback both failed.
    */
 
   image
@@ -190,11 +182,15 @@ function handleLogoError(event, scope) {
 }
 
 /* ==========================================================================
-   Public API
+   Public Factory
    ========================================================================== */
 
 export function initMarketWatch(root = document) {
   const scope = root;
+
+  /* ========================================================================
+     Existing Instance
+     ======================================================================== */
 
   const existing = instances.get(scope);
 
@@ -225,7 +221,7 @@ export function initMarketWatch(root = document) {
   });
 
   /* ========================================================================
-     Filters / Column Visibility / Column Picker
+     Filters / Visibility / Column Picker
      ======================================================================== */
 
   const filterView = createMarketWatchFilters({
@@ -244,6 +240,8 @@ export function initMarketWatch(root = document) {
     filters,
 
     columnVisibility,
+
+    columnPicker,
 
     initialView,
   } = filterView;
@@ -279,7 +277,7 @@ export function initMarketWatch(root = document) {
   });
 
   /* ========================================================================
-     Cards
+     Mobile Cards
      ======================================================================== */
 
   const cards = createMarketWatchCardsView({
@@ -291,16 +289,21 @@ export function initMarketWatch(root = document) {
 
     renderStandardDataCard,
 
+    /*
+     * IMPORTANT:
+     *
+     * This matches the existing JSP:
+     *
+     *   data-market-watch-mobile-cards
+     *
+     * Do not use [data-market-watch-cards] here.
+     */
+
+    container: SELECTORS.mobileCards,
+
     initialView,
 
     getVisibleGroups() {
-      /*
-       * Resolve visibility at render time.
-       *
-       * Market Watch can change table view and column groups without
-       * recreating the page coordinator.
-       */
-
       return filterView.getVisibleGroups();
     },
   });
@@ -319,10 +322,7 @@ export function initMarketWatch(root = document) {
 
         labels: {
           /*
-           * The JSP already renders the surrounding "Results" label.
-           *
-           * Keep the data-results helper responsible only for the numeric
-           * value when the supplied element is the numeric node itself.
+           * JSP already renders the "Results" text beside this numeric node.
            */
 
           results: "",
@@ -354,12 +354,12 @@ export function initMarketWatch(root = document) {
     results,
 
     /* ----------------------------------------------------------------------
-       View
+       Current Market Watch View
        ---------------------------------------------------------------------- */
 
     getView({ filters: filterState }) {
       /*
-       * Unlike Sukuk, Market Watch intentionally has multiple schemas:
+       * Market Watch intentionally supports multiple views:
        *
        * 1 -> Overview
        * 2 -> Price Data / Trading
@@ -370,34 +370,30 @@ export function initMarketWatch(root = document) {
     },
 
     /* ----------------------------------------------------------------------
-       Available Column Groups
+       View-Specific Column Groups
        ---------------------------------------------------------------------- */
 
     getAvailableGroups(view) {
-      /*
-       * Each Market Watch view exposes its own set of optional groups.
-       */
-
       return getMarketWatchAvailableGroups(config, view);
     },
 
     /* ----------------------------------------------------------------------
-       DOM Column Picker Synchronization
+       Column Picker Synchronization
        ---------------------------------------------------------------------- */
 
     onViewSync() {
       /*
-       * createDataViewController owns view/visibility synchronization.
+       * The controller updates column visibility first.
        *
-       * The Market Watch filter module only needs to refresh its DOM adapter
-       * after that synchronization is complete.
+       * Refresh the DOM picker afterwards so unavailable/visible groups match
+       * the newly selected Market Watch view.
        */
 
       filterView.refreshColumnPicker();
     },
 
     /* ----------------------------------------------------------------------
-       Client-Side Watchlist
+       Client-Side Watchlist Filter
        ---------------------------------------------------------------------- */
 
     rowProcessors: [
@@ -406,7 +402,7 @@ export function initMarketWatch(root = document) {
     ],
 
     /* ----------------------------------------------------------------------
-       Empty State
+       Empty Message
        ---------------------------------------------------------------------- */
 
     getEmptyMessage(context) {
@@ -422,12 +418,13 @@ export function initMarketWatch(root = document) {
     },
 
     /* ----------------------------------------------------------------------
-       Error State
+       Error Message
        ---------------------------------------------------------------------- */
 
     getErrorMessage(error) {
       return (
         error?.response?.message ||
+        error?.message ||
         config.labels?.loadError ||
         config.labels?.noData ||
         "Unable to load market data."
@@ -452,12 +449,12 @@ export function initMarketWatch(root = document) {
      ------------------------------------------------------------------------ */
 
   /*
-   * Favorite buttons are rendered in both:
+   * Favorite buttons are dynamically rendered in:
    *
-   * - desktop company cells
-   * - mobile card identities
+   * - desktop table
+   * - mobile cards
    *
-   * Keep one delegated handler.
+   * One delegated handler is enough.
    */
 
   scope.addEventListener(
@@ -475,10 +472,7 @@ export function initMarketWatch(root = document) {
      ------------------------------------------------------------------------ */
 
   /*
-   * Image error events do not bubble.
-   *
-   * Capture them once at the page root rather than adding one listener for
-   * every dynamically rendered company logo.
+   * Image error events do not bubble, therefore capture is required.
    */
 
   scope.addEventListener(
@@ -500,9 +494,11 @@ export function initMarketWatch(root = document) {
      ------------------------------------------------------------------------ */
 
   /*
-   * Reload after the website-level watchlist integration reports a successful
-   * add/remove operation so the server-returned favorite state remains
-   * authoritative.
+   * Existing integration can dispatch this after a successful watchlist
+   * update.
+   *
+   * Reload so favorite/watchlist state comes back from the authoritative
+   * source.
    */
 
   scope.addEventListener(
@@ -527,27 +523,28 @@ export function initMarketWatch(root = document) {
 
   const instance = Object.freeze({
     destroy() {
+      /*
+       * Remove page-level delegated listeners.
+       */
+
       abortController.abort();
 
       /*
-       * The Market Watch filter composition owns:
+       * Column picker is owned by the Market Watch filter composition but is
+       * not owned by createDataViewController.
        *
-       * - filters
-       * - column visibility
-       * - column picker
-       */
-
-      filterView.destroy();
-
-      /*
-       * The controller owns the composed Data View lifecycle:
+       * The controller itself destroys:
        *
        * - source
-       * - state
+       * - filters
+       * - column visibility
        * - table
        * - cards
        * - results
+       * - shared state
        */
+
+      columnPicker.destroy?.();
 
       controller.destroy();
 
@@ -576,6 +573,12 @@ export function initMarketWatch(root = document) {
 
     getColumnVisibility() {
       return columnVisibility;
+    },
+
+    getView() {
+      return normalizeMarketWatchView(
+        filters.getValue("tableView") || initialView,
+      );
     },
   });
 
