@@ -2,18 +2,13 @@
    Theoretical Opening
    ========================================================================== */
 
-/*
- * Shared page composition for:
- *
- * - Theoretical Opening
- * - Nomu Theoretical Opening
- */
-
 /* ==========================================================================
    Imports
    ========================================================================== */
 
 import {
+  createDataColumnPicker,
+  createDataColumnVisibility,
   createDataResults,
   createDataSource,
   createDataState,
@@ -26,6 +21,11 @@ import { createTheoreticalOpeningFilters } from "./theoretical-opening.filters.j
 
 import { normalizeTheoreticalOpeningResponse } from "./theoretical-opening.normalizer.js";
 
+import {
+  getColumnGroups,
+  getDefaultVisibleGroups,
+} from "./theoretical-opening.columns.js";
+
 import { createTheoreticalOpeningTable } from "./views/theoretical-opening.table.js";
 
 import { createTheoreticalOpeningCards } from "./views/theoretical-opening.cards.js";
@@ -37,28 +37,34 @@ import { createTheoreticalOpeningCards } from "./views/theoretical-opening.cards
 const THEORETICAL_OPENING_VIEW = "1";
 
 const SELECTORS = Object.freeze({
+  columnsTrigger: "[data-theoretical-opening-columns]",
+
+  columnsMenu: "[data-theoretical-opening-columns-menu]",
+
+  columnsLabel: "[data-theoretical-opening-columns-label]",
+
+  columnInput: "[data-theoretical-opening-column]",
+
+  columnAction: "[data-theoretical-opening-columns-action]",
+
   resultCount: "[data-theoretical-opening-result-count]",
 });
 
 const instances = new WeakMap();
 
 /* ==========================================================================
-   Request Data
+   Column Groups
    ========================================================================== */
 
-/*
- * IMPORTANT:
- *
- * HTML:
- *
- *   name="sectorParameter"
- *
- * Backend request:
- *
- *   sector
- *
- * These intentionally remain different.
- */
+function getAvailableGroups(config) {
+  return getColumnGroups(config, THEORETICAL_OPENING_VIEW).map(
+    (group) => group.id,
+  );
+}
+
+/* ==========================================================================
+   Request
+   ========================================================================== */
 
 export function buildTheoreticalOpeningRequestData(
   config = {},
@@ -76,7 +82,7 @@ export function buildTheoreticalOpeningRequestData(
 }
 
 /* ==========================================================================
-   Public Factory
+   Page Initialization
    ========================================================================== */
 
 export function initTheoreticalOpeningPage({
@@ -85,10 +91,6 @@ export function initTheoreticalOpeningPage({
 } = {}) {
   const scope = root;
 
-  /* ------------------------------------------------------------------------
-     Existing Instance
-     ------------------------------------------------------------------------ */
-
   const existing = instances.get(scope);
 
   if (existing) {
@@ -96,7 +98,7 @@ export function initTheoreticalOpeningPage({
   }
 
   /* ========================================================================
-     Configuration
+     Config
      ======================================================================== */
 
   const config = getTheoreticalOpeningConfig(configName);
@@ -125,23 +127,78 @@ export function initTheoreticalOpeningPage({
     root: scope,
   });
 
-  /*
-   * The common filter component reads the selected
-   * value directly from the JSP <select>.
-   *
-   * Do not create a second local sector state here.
-   */
+  /* ========================================================================
+     Column Visibility
+     ======================================================================== */
+
+  const availableGroups = getAvailableGroups(config);
+
+  const configuredGroups = config.initialState?.visibleGroups;
+
+  const initialVisibleGroups = Array.isArray(configuredGroups)
+    ? configuredGroups
+    : getDefaultVisibleGroups();
+
+  const columnVisibility = createDataColumnVisibility({
+    initialView: THEORETICAL_OPENING_VIEW,
+
+    availableGroups,
+
+    visibleGroups: initialVisibleGroups,
+  });
 
   /* ========================================================================
-     Data Source
+     Column Picker
+     ======================================================================== */
+
+  const hasColumnPicker = Boolean(
+    scope.querySelector(SELECTORS.columnsTrigger),
+  );
+
+  const columnPicker = hasColumnPicker
+    ? createDataColumnPicker({
+        root: scope,
+
+        visibility: columnVisibility,
+
+        trigger: SELECTORS.columnsTrigger,
+
+        menu: SELECTORS.columnsMenu,
+
+        label: SELECTORS.columnsLabel,
+
+        inputs: SELECTORS.columnInput,
+
+        inputSelector: SELECTORS.columnInput,
+
+        actionSelector: SELECTORS.columnAction,
+
+        optionSelector: ".filter-bar__columns-option",
+
+        getGroupId(input) {
+          return input.dataset.theoreticalOpeningColumn || "";
+        },
+
+        getActionType(action) {
+          return action.dataset.theoreticalOpeningColumnsAction || "";
+        },
+
+        labels: {
+          all: config.labels?.showAll || "Show All",
+
+          none: config.labels?.noColumns || "No Columns",
+
+          selectedSuffix: config.labels?.selectedSuffix || "Selected",
+        },
+      })
+    : null;
+
+  /* ========================================================================
+     Source
      ======================================================================== */
 
   const source = createDataSource({
     endpoint: config.endpoint,
-
-    /*
-     * Exact legacy backend behavior.
-     */
 
     method: "POST",
 
@@ -157,7 +214,7 @@ export function initTheoreticalOpeningPage({
   });
 
   /* ========================================================================
-     Desktop Table
+     Table
      ======================================================================== */
 
   const table = createTheoreticalOpeningTable({
@@ -166,10 +223,12 @@ export function initTheoreticalOpeningPage({
     config,
 
     view: THEORETICAL_OPENING_VIEW,
+
+    visibleGroups: columnVisibility.getVisibleGroups(),
   });
 
   /* ========================================================================
-     Mobile Cards
+     Cards
      ======================================================================== */
 
   const cards = createTheoreticalOpeningCards({
@@ -178,6 +237,10 @@ export function initTheoreticalOpeningPage({
     config,
 
     view: THEORETICAL_OPENING_VIEW,
+
+    getVisibleGroups() {
+      return columnVisibility.getVisibleGroups();
+    },
   });
 
   /* ========================================================================
@@ -193,8 +256,6 @@ export function initTheoreticalOpeningPage({
         count: resultCountElement,
 
         labels: {
-          loading: config.labels?.loading || "Loading...",
-
           results: config.labels?.results || "Results",
 
           empty: config.labels?.noData || "No data available",
@@ -218,6 +279,8 @@ export function initTheoreticalOpeningPage({
 
     filters,
 
+    columnVisibility,
+
     table,
 
     cards,
@@ -228,9 +291,13 @@ export function initTheoreticalOpeningPage({
       return THEORETICAL_OPENING_VIEW;
     },
 
-    /*
-     * This module only has one presentation schema.
-     */
+    getAvailableGroups() {
+      return getAvailableGroups(config);
+    },
+
+    onViewSync() {
+      columnPicker?.refresh();
+    },
 
     reloadOnViewChange: false,
 
@@ -252,7 +319,7 @@ export function initTheoreticalOpeningPage({
   });
 
   /* ========================================================================
-     Initialization
+     Init
      ======================================================================== */
 
   controller.init();
@@ -263,6 +330,8 @@ export function initTheoreticalOpeningPage({
 
   const instance = Object.freeze({
     destroy() {
+      columnPicker?.destroy();
+
       controller.destroy();
 
       instances.delete(scope);
@@ -288,6 +357,10 @@ export function initTheoreticalOpeningPage({
       return table.getApi();
     },
 
+    getColumnVisibility() {
+      return columnVisibility;
+    },
+
     getState() {
       return state.getState();
     },
@@ -303,18 +376,8 @@ export function initTheoreticalOpeningPage({
 }
 
 /* ==========================================================================
-   Normal Theoretical Opening Startup
+   Normal Page Startup
    ========================================================================== */
-
-/*
- * theoretical-opening.js is loaded directly by the
- * normal Theoretical Opening JSP.
- *
- * It is also imported by the Nomu entry file.
- *
- * Therefore only automatically initialize when
- * window.TheoreticalOpeningConfig exists.
- */
 
 function start() {
   if (typeof window === "undefined" || !window.TheoreticalOpeningConfig) {

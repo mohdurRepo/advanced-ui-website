@@ -2,43 +2,24 @@
    Theoretical Opening Columns
    ========================================================================== */
 
-/*
- * Single source of truth for Theoretical Opening presentation columns.
- *
- * Responsibilities:
- *
- * - define desktop table columns
- * - define mobile card fields
- * - provide stable column metadata
- * - provide column lookup helpers
- *
- * This module intentionally has no:
- *
- * - DOM queries
- * - DataTables lifecycle
- * - API calls
- * - response normalization
- * - rendering
- */
-
 /* ==========================================================================
    Constants
    ========================================================================== */
 
 const DEFAULT_VIEW = "1";
 
+const GROUP_ORDER = Object.freeze(["previous-close", "top", "tov"]);
+
 const WIDTHS = Object.freeze({
-  "company-name": "40%",
-  "prev-close": "20%",
-  top: "20%",
-  tov: "20%",
+  company: "15.5rem",
+  previousClose: "9rem",
+  top: "8rem",
+  tov: "8rem",
 });
 
-/*
- * ==========================================================================
- * Helpers
- * ==========================================================================
- */
+/* ==========================================================================
+   Helpers
+   ========================================================================== */
 
 function cleanLabel(value, fallback = "") {
   return String(value ?? fallback)
@@ -66,23 +47,43 @@ function sizedColumn(width, definition = {}) {
   });
 }
 
-/*
- * ==========================================================================
- * Columns Definition
- * ==========================================================================
- */
+/* ==========================================================================
+   Column Groups
+   ========================================================================== */
+
+function createGroups(config = {}) {
+  const labels = getLabels(config);
+
+  return {
+    "previous-close": {
+      id: "previous-close",
+
+      label: cleanLabel(labels.previousClose, "Previous Close"),
+    },
+
+    top: {
+      id: "top",
+
+      label: cleanLabel(labels.top, "TOP"),
+    },
+
+    tov: {
+      id: "tov",
+
+      label: cleanLabel(labels.tov, "TOV"),
+    },
+  };
+}
+
+/* ==========================================================================
+   Columns
+   ========================================================================== */
 
 function createColumns(config = {}) {
   const labels = getLabels(config);
 
   return [
-    /*
-     * ----------------------------------------------------------------------
-     * Company Name & Symbol
-     * ----------------------------------------------------------------------
-     */
-
-    sizedColumn(WIDTHS["company-name"], {
+    sizedColumn(WIDTHS.company, {
       key: "companyName",
 
       label: cleanLabel(labels.companyName || labels.company, "Company"),
@@ -93,16 +94,15 @@ function createColumns(config = {}) {
 
       className: "table-market__security",
 
+      /*
+       * Company identity is always visible.
+       * It is not controlled by Show Columns.
+       */
+
       mobile: false,
     }),
 
-    /*
-     * ----------------------------------------------------------------------
-     * Previous Close
-     * ----------------------------------------------------------------------
-     */
-
-    sizedColumn(WIDTHS["prev-close"], {
+    sizedColumn(WIDTHS.previousClose, {
       key: "previousClose",
 
       label: cleanLabel(labels.previousClose, "Previous Close"),
@@ -111,16 +111,12 @@ function createColumns(config = {}) {
 
       type: "price",
 
+      group: "previous-close",
+
       className: "table-market__number",
     }),
 
-    /*
-     * ----------------------------------------------------------------------
-     * TOP
-     * ----------------------------------------------------------------------
-     */
-
-    sizedColumn(WIDTHS["top"], {
+    sizedColumn(WIDTHS.top, {
       key: "top",
 
       label: cleanLabel(labels.top, "TOP"),
@@ -129,16 +125,12 @@ function createColumns(config = {}) {
 
       type: "price",
 
+      group: "top",
+
       className: "table-market__number",
     }),
 
-    /*
-     * ----------------------------------------------------------------------
-     * TOV
-     * ----------------------------------------------------------------------
-     */
-
-    sizedColumn(WIDTHS["tov"], {
+    sizedColumn(WIDTHS.tov, {
       key: "tov",
 
       label: cleanLabel(labels.tov, "TOV"),
@@ -147,16 +139,28 @@ function createColumns(config = {}) {
 
       type: "quantity",
 
+      group: "tov",
+
       className: "table-market__number",
     }),
   ];
 }
 
-/*
- * ==========================================================================
- * Public Columns API
- * ==========================================================================
- */
+/* ==========================================================================
+   Public API
+   ========================================================================== */
+
+export function getColumnGroups(config = {}, view = DEFAULT_VIEW) {
+  void view;
+
+  const groups = createGroups(config);
+
+  return GROUP_ORDER.map((groupId) => groups[groupId]).filter(Boolean);
+}
+
+export function getDefaultVisibleGroups() {
+  return [...GROUP_ORDER];
+}
 
 export function getColumns(config = {}, view = DEFAULT_VIEW) {
   void view;

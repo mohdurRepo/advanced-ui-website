@@ -8,8 +8,9 @@
 
 import {
   createDataCards,
+  renderStandardCompanyCardIdentity,
   renderStandardDataCard,
-} from "../../common/data-view/index.js";
+} from "../../../common/data-view/index.js";
 
 import { getMobileColumns } from "../theoretical-opening.columns.js";
 
@@ -58,69 +59,36 @@ function getCompanyCode(row = {}) {
    Identity
    ========================================================================== */
 
-function renderMobileIdentity(row = {}) {
-  const companyName = getCompanyName(row);
-
-  const companyCode = getCompanyCode(row);
-
-  const companyUrl = String(row.companyUrl ?? "").trim();
-
-  const companyNameHtml =
-    companyUrl && companyUrl !== "#"
-      ? `
-        <a href="${escapeHtml(companyUrl)}">
-          ${escapeHtml(companyName)}
-        </a>
-      `.trim()
-      : escapeHtml(companyName);
-
-  return `
-    <div class="data-card__security">
-
-      <div class="data-card__security-name">
-        ${companyNameHtml}
-      </div>
-
-      <div class="data-card__security-symbol">
-        ${escapeHtml(companyCode)}
-      </div>
-
-    </div>
-  `.trim();
+function renderMobileIdentity(row, config) {
+  return renderStandardCompanyCardIdentity(row, config);
 }
 
 /* ==========================================================================
-   Summary
+   TOP / TOV Summary
    ========================================================================== */
 
-function renderMobileSummary(row, config = {}) {
+function renderMobileQuote(row, config = {}) {
   const top = formatTOP(row.top);
 
   const tov = formatTOV(row.tov, config);
 
   return `
-    <div class="data-card__summary">
+    <div class="data-card__quote">
 
-      ${renderMobileIdentity(row)}
+      <span class="data-card__price">
+        ${escapeHtml(top)}
+      </span>
 
-      <div class="data-card__quote">
-
-        <div class="data-card__quote-primary">
-          ${escapeHtml(top)}
-        </div>
-
-        <div class="data-card__quote-secondary">
-          ${escapeHtml(tov)}
-        </div>
-
-      </div>
+      <span class="data-card__change">
+        ${escapeHtml(tov)}
+      </span>
 
     </div>
   `.trim();
 }
 
 /* ==========================================================================
-   Field Rendering
+   Mobile Values
    ========================================================================== */
 
 export function renderTheoreticalOpeningMobileFieldValue(
@@ -131,10 +99,6 @@ export function renderTheoreticalOpeningMobileFieldValue(
   const value = row[column.data];
 
   switch (column?.key || column?.type) {
-    case "company":
-    case "companyName":
-      return renderMobileIdentity(row);
-
     case "previousClose":
       return escapeHtml(formatPreviousClose(value));
 
@@ -156,8 +120,17 @@ export function renderTheoreticalOpeningMobileFieldValue(
 export function getTheoreticalOpeningMobileDetailColumns(
   config = {},
   view = "1",
+  visibleGroups = [],
 ) {
-  return getMobileColumns(config, view);
+  const visibleSet = new Set(visibleGroups);
+
+  return getMobileColumns(config, view).filter((column) => {
+    if (!column.group) {
+      return true;
+    }
+
+    return visibleSet.has(column.group);
+  });
 }
 
 /* ==========================================================================
@@ -169,27 +142,36 @@ export function renderTheoreticalOpeningCard(
   context,
   config = {},
   view = "1",
+  visibleGroups = [],
 ) {
   const companyName = getCompanyName(row);
 
   const companyCode = getCompanyCode(row);
 
-  const fields = getTheoreticalOpeningMobileDetailColumns(config, view).map(
-    (column) => ({
-      label: cleanLabel(column.label, column.key),
+  const fields = getTheoreticalOpeningMobileDetailColumns(
+    config,
+    view,
+    visibleGroups,
+  ).map((column) => ({
+    label: cleanLabel(column.label, column.key),
 
-      value: renderTheoreticalOpeningMobileFieldValue(column, row, config),
+    value: renderTheoreticalOpeningMobileFieldValue(column, row, config),
 
-      numeric: NUMERIC_COLUMN_TYPES.includes(column.type),
-    }),
-  );
+    numeric: NUMERIC_COLUMN_TYPES.includes(column.type),
+  }));
+
+  const summary = `
+    ${renderMobileIdentity(row, config)}
+
+    ${renderMobileQuote(row, config)}
+  `.trim();
 
   return renderStandardDataCard({
     idPrefix: "theoretical-opening-card-details",
 
     rowId: `${companyCode || "company"}-${context.index}`,
 
-    summary: renderMobileSummary(row, config),
+    summary,
 
     fields,
 
@@ -213,6 +195,7 @@ export function createTheoreticalOpeningCards({
   root = document,
   config = {},
   view = "1",
+  getVisibleGroups = () => [],
 } = {}) {
   return createDataCards({
     root,
@@ -226,7 +209,13 @@ export function createTheoreticalOpeningCards({
     },
 
     renderCard(row, context) {
-      return renderTheoreticalOpeningCard(row, context, config, view);
+      return renderTheoreticalOpeningCard(
+        row,
+        context,
+        config,
+        view,
+        getVisibleGroups(),
+      );
     },
 
     emptyMessage: config.labels?.noData || "No data available",
