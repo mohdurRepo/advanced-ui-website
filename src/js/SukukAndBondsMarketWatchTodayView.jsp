@@ -1,0 +1,650 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+	pageEncoding="ISO-8859-1" session="false"%>
+<%@ page
+	import="sa.com.tadawul.eportal.marketwatch.todaywatch.v2.constants.SukukAndBondsConstants"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<%@taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet"%>
+<%@taglib uri="/WEB-INF/tld/portal.tld" prefix="portal"%>
+<%@taglib uri="/WEB-INF/tld/portal.tld" prefix="wps"%>
+<head>
+<meta content="initial-scale=1, maximum-scale=1, user-scalable=0"
+	name="viewport" />
+<meta name="viewport" content="width=device-width" />
+
+</head>
+<fmt:setBundle
+	basename="sa.com.tadawul.eportal.marketwatch.todaywatch.v2.nl.MarketWatchTodaywatchV2PortletResource" />
+<portlet:defineObjects />
+
+<portlet:renderURL var="getMarketWatchBySector">
+	<portlet:param name="<%=SukukAndBondsConstants.ACTION_TARGET%>"
+		value="<%=SukukAndBondsConstants.MARKET_WATCH_BY_SECTOR_ACTION%>" />
+</portlet:renderURL>
+<c:set var="openCloseAuction" value="false" />
+<c:if
+	test="${requestScope.marketStatusID == 6 or requestScope.marketStatusID ==1  or requestScope.marketStatusID ==4 }">
+	<c:set var="openCloseAuction" value="true" />
+</c:if>
+
+<%-- =========================================================================
+     Sukuk & Bonds Hero
+     ========================================================================= --%>
+
+<section class="hero-section market-summary-section"
+	aria-labelledby="sukuk-market-watch-title">
+	<div class="hero-section__background" aria-hidden="true"></div>
+
+	<div class="container hero-section__content">
+		<div class="market-summary market-summary--hero">
+
+			<%-- ===================================================================
+           Sukuk & Bonds Identity
+           =================================================================== --%>
+
+			<header class="market-summary__header">
+				<div class="market-summary__brand">
+					<span class="market-summary__brand-icon has-icon icon-tadawul"
+						aria-hidden="true"></span>
+
+					<h1 id="sukuk-market-watch-title" class="market-summary__title">
+						<fmt:message key="sukukAndBonds.marketwatch.title" />
+					</h1>
+				</div>
+			</header>
+
+		</div>
+	</div>
+</section>
+
+<%-- =========================================================================
+     Sukuk & Bonds Filters
+     ========================================================================= --%>
+
+<section class="section sukuk-market-watch-filters pb-0"
+	aria-labelledby="sukuk-market-watch-filters-title">
+	<div class="container">
+
+		<form class="filter-bar filter-bar--connected"
+			aria-labelledby="sukuk-market-watch-filters-title" data-sukuk-filters>
+			<h2 class="visually-hidden" id="sukuk-market-watch-filters-title">
+				<fmt:message key="sukukAndBonds.marketwatch.title" />
+			</h2>
+
+			<%-- ===================================================================
+           Primary Controls
+           =================================================================== --%>
+
+			<div class="filter-bar__inner">
+
+				<div class="filter-bar__fields grid-3">
+
+					<%-- =================================================================
+               Bond Type
+               ================================================================= --%>
+
+					<div class="filter-bar__field">
+
+						<label class="form-label" for="sukuk-bond-type"> <fmt:message
+								key="bonds.market.watch.label.types" />
+						</label>
+
+						<div class="custom-select" data-custom-select>
+							<div class="form-select-wrap custom-select__fallback">
+
+								<select class="form-select custom-select__native"
+									id="sukuk-bond-type" name="sectorParameter"
+									data-sukuk-bond-type>
+									<option value="all"
+										<c:if test="${empty requestScope.selectedSector or requestScope.selectedSector eq 'all'}">
+                      selected
+                    </c:if>>
+										<fmt:message key="bonds.market.watch.label.all.bonds" />
+									</option>
+
+									<c:forEach items="${requestScope.sectorList}" var="sectorItem">
+										<option value="<c:out value='${sectorItem.name}' />"
+											<c:if test="${requestScope.selectedSector eq sectorItem.name}">
+                        selected
+                      </c:if>>
+											<c:out value="${sectorItem.symbol}" />
+										</option>
+									</c:forEach>
+								</select> <span class="form-select-icon has-icon icon-chevron-down"
+									aria-hidden="true"></span>
+
+							</div>
+						</div>
+
+					</div>
+
+					<%-- =================================================================
+               Visible Columns
+               ================================================================= --%>
+
+					<div class="filter-bar__field">
+
+						<span class="form-label-static" id="sukuk-columns-label"> <fmt:message
+								key="show.hide.column" />
+						</span>
+
+						<button class="btn btn-outline-primary filter-bar__columns"
+							type="button" aria-labelledby="sukuk-columns-label"
+							aria-haspopup="menu" aria-expanded="false"
+							aria-controls="sukuk-columns-menu" data-sukuk-columns>
+							<span class="filter-bar__columns-label" data-sukuk-columns-label>
+								<fmt:message key="show.hide.all" />
+							</span> <span
+								class="filter-bar__columns-icon has-icon icon-chevron-down"
+								aria-hidden="true"></span>
+						</button>
+
+						<div class="filter-bar__columns-menu" id="sukuk-columns-menu"
+							aria-label="<fmt:message key='show.hide.column' />"
+							data-sukuk-columns-menu hidden>
+
+							<%-- =============================================================
+                   Column Actions
+                   ============================================================= --%>
+
+							<div class="filter-bar__columns-actions">
+
+								<button type="button" class="filter-bar__columns-action"
+									data-sukuk-columns-action="select-all">
+									<fmt:message key="select.all" />
+								</button>
+
+								<button type="button" class="filter-bar__columns-action"
+									data-sukuk-columns-action="clear-all">
+									<fmt:message key="clear.all" />
+								</button>
+
+							</div>
+
+							<%-- =============================================================
+                   ISIN
+                   ============================================================= --%>
+
+							<label class="filter-bar__columns-option"> <input
+								type="checkbox" checked data-sukuk-column="isin" /> <span>
+									<fmt:message
+										key="sukukAndBonds.all.market.watch.table.column.header.isin" />
+							</span>
+							</label>
+
+							<%-- =============================================================
+                   Coupon Details
+                   ============================================================= --%>
+
+							<label class="filter-bar__columns-option"> <input
+								type="checkbox" checked data-sukuk-column="couponDetails" /> <span>
+									<fmt:message
+										key="sukukAndBonds.all.market.watch.table.column.header.couponDetails" />
+							</span>
+							</label>
+
+							<%-- =============================================================
+                   Maturity
+                   ============================================================= --%>
+
+							<label class="filter-bar__columns-option"> <input
+								type="checkbox" checked data-sukuk-column="maturity" /> <span>
+									<fmt:message
+										key="sukukAndBonds.all.market.watch.table.column.header.maturitydate" />
+							</span>
+							</label>
+
+							<%-- =============================================================
+                   Yield Details
+                   ============================================================= --%>
+
+							<label class="filter-bar__columns-option"> <input
+								type="checkbox" checked data-sukuk-column="yieldDetails" /> <span>
+									<fmt:message
+										key="marketwatch.todaywatch.v2.table.column.header.div.yield" />
+							</span>
+							</label>
+
+							<%-- =============================================================
+                   Price Details
+                   ============================================================= --%>
+
+							<label class="filter-bar__columns-option"> <input
+								type="checkbox" checked data-sukuk-column="priceDetails" /> <span>
+									<fmt:message
+										key="marketwatch.todaywatch.v2.table.column.header.price" />
+							</span>
+							</label>
+
+							<%-- =============================================================
+                   Issue Details
+                   ============================================================= --%>
+
+							<label class="filter-bar__columns-option"> <input
+								type="checkbox" checked data-sukuk-column="issueDetails" /> <span>
+									<fmt:message
+										key="marketwatch.todaywatch.v2.table.column.issue_details" />
+							</span>
+							</label>
+
+							<%-- =============================================================
+                   Coupon Metadata
+                   ============================================================= --%>
+
+							<label class="filter-bar__columns-option"> <input
+								type="checkbox" checked data-sukuk-column="couponMeta" /> <span>
+									<fmt:message
+										key="marketwatch.todaywatch.v2.table.column.couponMeta" />
+							</span>
+							</label>
+
+
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+		</form>
+
+	</div>
+</section>
+
+<%-- =========================================================================
+     Sukuk & Bonds Data View
+     ========================================================================= --%>
+
+<section class="section sukuk-market-watch-results pt-0"
+	aria-labelledby="sukuk-market-watch-results-title">
+	<div class="container">
+
+		<h2 class="visually-hidden" id="sukuk-market-watch-results-title">
+			<fmt:message key="sukukAndBonds.marketwatch.title" />
+		</h2>
+
+		<div class="data-view data-view--connected" data-sukuk-data-view>
+
+			<%-- ===================================================================
+           Workspace
+           =================================================================== --%>
+
+			<div class="data-view__workspace">
+
+				<%-- =================================================================
+             Results Toolbar
+             ================================================================= --%>
+
+				<div class="data-view__toolbar">
+
+					<div class="data-view__toolbar-start">
+
+						<p class="data-view__result-count">
+							<strong data-sukuk-result-count>0</strong> <span> <fmt:message
+									key="results" />
+							</span>
+						</p>
+
+					</div>
+
+				</div>
+
+				<%-- =================================================================
+             Desktop Table
+             ================================================================= --%>
+
+				<div class="data-view__table">
+					<div class="data-view__table-block">
+
+						<table class="table table-market sukuk-market-table"
+							data-sukuk-table>
+							<thead>
+
+								<tr>
+
+									<%-- Instrument --%>
+									<th scope="col"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.name" />
+									</th>
+
+									<%-- ISIN --%>
+									<th scope="col"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.isin" />
+									</th>
+
+									<%-- Coupon Type --%>
+									<th scope="col"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.couponType" />
+									</th>
+
+									<%-- Coupon Rate --%>
+									<th scope="col"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.couponrate" />
+									</th>
+
+									<%-- Maturity Date --%>
+									<th scope="col"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.maturitydate" />
+									</th>
+
+									<%-- Instrument Yield --%>
+									<th scope="col"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.instrumentYield" />
+									</th>
+
+									<%-- Bid Yield --%>
+									<th scope="col"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.bidYield" />
+									</th>
+
+									<%-- Ask Yield --%>
+									<th scope="col"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.askYield" />
+									</th>
+
+									<%-- Par Value --%>
+									<th scope="col"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.parValue" />
+									</th>
+
+									<%-- Last Trade Price --%>
+									<th scope="col"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.lastTradePrice" />
+									</th>
+
+									<%-- Bid Price --%>
+									<th scope="col"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.bidPrice" />
+									</th>
+
+									<%-- Ask Price --%>
+									<th scope="col"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.askPrice" />
+									</th>
+
+									<%-- Issuance Amount --%>
+									<th scope="col"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.issuanceAmount" />
+									</th>
+
+									<%-- Issuance Currency --%>
+									<th scope="col"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.issuanceCurrency" />
+									</th>
+
+									<%-- Coupon Frequency --%>
+									<th scope="col"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.couponFrequency" />
+									</th>
+
+									<%-- Day Count Convention --%>
+									<th scope="col"><fmt:message
+											key="sukukAndBonds.all.market.watch.table.column.header.dayCountConvention" />
+									</th>
+
+
+								</tr>
+
+							</thead>
+
+							<tbody></tbody>
+						</table>
+
+					</div>
+				</div>
+
+				<%-- =================================================================
+             Mobile Cards
+             ================================================================= --%>
+
+				<div class="data-view__cards" data-sukuk-mobile-cards></div>
+
+			</div>
+
+		</div>
+
+		<%-- =====================================================================
+         Footnotes
+         ===================================================================== --%>
+
+		<div class="notes">
+			<ul>
+
+				<li><fmt:message key="equity.market.watch.sukukbonds.footnote1" />
+				</li>
+
+				<li><fmt:message key="equity.market.watch.sukukbonds.footnote2" />
+				</li>
+
+				<li><fmt:message key="equity.market.watch.sukukbonds.footnote3" />
+				</li>
+
+			</ul>
+		</div>
+
+	</div>
+</section>
+
+<%-- =========================================================================
+     Sukuk Configuration
+     ========================================================================= --%>
+
+<script>
+  window.SukukConfig = {
+    /* ======================================================================
+       Endpoint
+       ====================================================================== */
+
+    endpoint:
+  "<portlet:resourceURL id='getSukukMarketDetails' />",
+
+    locale:
+      "<c:out value='${pageContext.request.locale.language}' />",
+
+    /* ======================================================================
+       Initial State
+       ====================================================================== */
+
+    initialState: {
+      bondType:
+        "<c:out value='${empty requestScope.selectedSector ? "all" : requestScope.selectedSector}' />",
+
+      visibleGroups: [
+        "isin",
+        "couponDetails",
+        "maturity",
+        "yieldDetails",
+        "priceDetails",
+        "issueDetails",
+        "couponMeta"
+        ],
+    },
+
+    /* ======================================================================
+       Table
+       ====================================================================== */
+
+    table: {
+      autoWidth: false,
+
+      paging: false,
+      searching: false,
+      ordering: false,
+      info: false,
+      lengthChange: false,
+
+      serverSide: false,
+      processing: false,
+
+      scrollX: true,
+      scrollCollapse: true,
+
+      fixedHeader: true,
+      fixedColumns: 1,
+    },
+
+    /* ======================================================================
+       Labels
+       ====================================================================== */
+
+    labels: {
+      loading:
+        "<fmt:message key='loading' />",
+
+      noData:
+        "<fmt:message key='no.data.available' />",
+
+      /* --------------------------------------------------------------------
+         Column Picker
+         -------------------------------------------------------------------- */
+
+      showAll:
+        "<fmt:message key='show.hide.all' />",
+
+      noColumns:
+        "<fmt:message key='show.hide.no.columns' />",
+
+      selectedSuffix:
+        "<fmt:message key='selected' />",
+
+      selectAll:
+        "<fmt:message key='select.all' />",
+
+      clearAll:
+        "<fmt:message key='clear.all' />",
+
+      /* --------------------------------------------------------------------
+         Groups
+         -------------------------------------------------------------------- */
+
+      government:
+        "<fmt:message key='sukukAndBonds.sukuk.governmentSukuk' />",
+
+      corporate:
+        "<fmt:message key='sukukAndBonds.sukuk.corporateSukuk' />",
+
+      /* --------------------------------------------------------------------
+         Mobile
+         -------------------------------------------------------------------- */
+
+      mobile: {
+        showDetails:
+          "Show details",
+
+        hideDetails:
+          "Hide details",
+
+        symbolName:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.name' />",
+
+        price:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.lastTradePrice' />",
+      },
+
+      /* --------------------------------------------------------------------
+         Table / Card Fields
+         -------------------------------------------------------------------- */
+
+      table: {
+        instrument:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.name' />",
+
+        tadawulCode:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.tadawulcode' />",
+
+        isin:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.isin' />",
+
+        couponType:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.couponType' />",
+
+        couponRate:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.couponrate' />",
+
+        maturityDate:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.maturitydate' />",
+
+        instrumentYield:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.instrumentYield' />",
+
+        bidYield:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.bidYield' />",
+
+        askYield:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.askYield' />",
+
+        parValue:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.parValue' />",
+
+        lastTradePrice:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.lastTradePrice' />",
+
+        bidPrice:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.bidPrice' />",
+
+        askPrice:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.askPrice' />",
+
+        issuanceAmount:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.issuanceAmount' />",
+
+        issuanceCurrency:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.issuanceCurrency' />",
+
+        couponFrequency:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.couponFrequency' />",
+
+        dayCountConvention:
+          "<fmt:message key='sukukAndBonds.all.market.watch.table.column.header.dayCountConvention' />"
+      },
+
+      /* --------------------------------------------------------------------
+         Business-value Labels
+         -------------------------------------------------------------------- */
+
+      values: {
+        perpetualBond:
+          "<fmt:message key='sukukAndBonds.all.market.watch.column.perpetualBond' />",
+
+        floating:
+          "<fmt:message key='bonds.market.watch.label.Floating' />",
+
+        fixed:
+          "<fmt:message key='bonds.market.watch.label.Fixed' />",
+
+        couponFrequency1:
+          "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.1' />",
+
+        couponFrequency2:
+          "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.2' />",
+
+        couponFrequency4:
+          "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.4' />",
+
+        couponFrequency12:
+          "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.12' />",
+
+        couponFrequency0:
+          "<fmt:message key='sukukAndBonds.all.market.watch.couponFrequency.0' />",
+
+        dayCount7:
+          "<fmt:message key='sukukAndBonds.all.market.watch.dayCountConvention.7' />",
+
+        dayCount2:
+          "<fmt:message key='sukukAndBonds.all.market.watch.dayCountConvention.2' />",
+
+        dayCount3:
+          "<fmt:message key='sukukAndBonds.all.market.watch.dayCountConvention.3' />",
+
+        dayCount0:
+          "<fmt:message key='sukukAndBonds.all.market.watch.dayCountConvention.0' />",
+      },
+    },
+  };
+</script>
+
+<%-- =========================================================================
+     Sukuk Entry Module
+     ========================================================================= --%>
+
+<script type="module"
+	src="${pageContext.request.contextPath}/js/pages/sukuk/sukuk.js"></script>
