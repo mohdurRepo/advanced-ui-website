@@ -7,6 +7,7 @@
  *
  * - create the mobile card collection
  * - render one Theoretical Opening card per row
+ * - group cards by sector
  * - reuse the common standard company identity
  * - reuse the standard data-card renderer
  *
@@ -43,6 +44,12 @@ function getCardsSelector(variant) {
     : "[data-theoretical-opening-cards]";
 }
 
+function getCardIdPrefix(variant) {
+  return variant === "nomu"
+    ? "nomu-theoretical-opening-card-details"
+    : "theoretical-opening-card-details";
+}
+
 function cleanLabel(value, fallback = "") {
   return String(value ?? fallback)
     .replace(/<br\s*\/?>/gi, " ")
@@ -57,17 +64,13 @@ function createRowId(row, index) {
     row?.companyRef ??
     row?.symbol ??
     row?.companyName ??
-    index;
+    "row";
 
   return `${String(identifier).trim() || "row"}-${index}`;
 }
 
-/* ==========================================================================
-   Summary
-   ========================================================================== */
-
-function renderSummary(row, config) {
-  return renderStandardCompanyCardIdentity(row, config);
+function getSectorName(row) {
+  return String(row?.sectorName ?? "").trim() || "Other";
 }
 
 /* ==========================================================================
@@ -105,20 +108,20 @@ function createFields(row, config) {
 }
 
 /* ==========================================================================
-   Card
+   Card Rendering
    ========================================================================== */
 
-function renderCard(row, context, config) {
+function renderCard(row, context, config, variant) {
   const showDetails = config.labels?.mobile?.showDetails || "Show details";
 
   const hideDetails = config.labels?.mobile?.hideDetails || "Hide details";
 
   return renderStandardDataCard({
-    idPrefix: "theoretical-opening-card-details",
+    idPrefix: getCardIdPrefix(variant),
 
     rowId: createRowId(row, context.index),
 
-    summary: renderSummary(row, config),
+    summary: renderStandardCompanyCardIdentity(row, config),
 
     fields: createFields(row, config),
 
@@ -146,8 +149,20 @@ export function createTheoreticalOpeningCards({
 
     container: getCardsSelector(variant),
 
-    renderCard(row, context) {
-      return renderCard(row, context, config);
+    /*
+     * The common cards renderer preserves group order based on the incoming
+     * rows, so we do not need to manually split or rebuild the response.
+     */
+    getGroupKey(row) {
+      return getSectorName(row);
     },
+
+    renderCard(row, context) {
+      return renderCard(row, context, config, variant);
+    },
+
+    emptyMessage: config.labels?.noData || "No data available",
+
+    errorMessage: config.labels?.loadError || "Unable to load data.",
   });
 }

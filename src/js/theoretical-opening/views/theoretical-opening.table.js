@@ -9,6 +9,7 @@
  * - connect Theoretical Opening columns to createDataTable()
  * - render page-specific values
  * - reuse the common standard company identity
+ * - group rows by sector
  *
  * Shared by:
  *
@@ -46,20 +47,23 @@ function getTableSelector(variant) {
     : "[data-theoretical-opening-table]";
 }
 
+function createTableOptions(config) {
+  return {
+    ...(config.table || {}),
+
+    rowGroup: {
+      dataSrc: "sectorName",
+    },
+
+    ordering: false,
+  };
+}
+
 /* ==========================================================================
    Rendering
    ========================================================================== */
 
 function renderCell({ row, column, type, config }) {
-  /*
-   * Company identity is rendered from the complete row because common
-   * identity needs:
-   *
-   * - company name
-   * - company code
-   * - company URL
-   * - company logo configuration
-   */
   if (column.id === "companyName") {
     if (type !== "display") {
       return row?.companyName ?? "";
@@ -120,6 +124,6 @@ export function createTheoreticalOpeningTable({
       });
     },
 
-    tableOptions: config.table,
+    tableOptions: createTableOptions(config),
   });
 }
