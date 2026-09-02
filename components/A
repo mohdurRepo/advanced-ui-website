@@ -1,8 +1,10 @@
 <%-- =========================================================================
-Home Discovery Search
+Home Discovery Search Temporary validation: id="searchForm" added to verify
+legacy submitSearch() dependency.
 ========================================================================= --%>
 
 <form
+  id="searchForm"
   class="home-discovery-search"
   role="search"
   aria-label="Search companies, news, and market updates"
@@ -55,7 +57,6 @@ Home Discovery Search
       hidden
     >
       <span class="home-discovery-search__loading" aria-hidden="true"></span>
-
       <span>Searching companies</span>
     </div>
 
@@ -68,7 +69,6 @@ Home Discovery Search
         class="home-discovery-search__state-icon has-icon icon-search"
         aria-hidden="true"
       ></span>
-
       <span>No matching companies found.</span>
     </div>
 
@@ -82,7 +82,6 @@ Home Discovery Search
         class="home-discovery-search__state-icon has-icon icon-info-warning"
         aria-hidden="true"
       ></span>
-
       <span>Company search is currently unavailable.</span>
     </div>
   </div>
