@@ -16,9 +16,9 @@
  *   ↓
  * window.searchableSymbols
  *   ↓
- * "company-search:data" event
+ * "company-search:data"
  *   ↓
- * shared company-search store
+ * Company Search
  *   ↓
  * modal + home search
  *
@@ -31,7 +31,8 @@
  * - Modal and home search share one company collection.
  * - Portal owns document.documentElement.lang.
  * - Portal owns document.documentElement.dir.
- * - The generic modal controller owns modal open/close behavior.
+ * - Generic modal owns modal open/close behavior.
+ * - Portal window.submitSearch() owns final navigation.
  */
 
 const HOME_RESULT_LIMIT = 8;
@@ -41,6 +42,9 @@ const FALLBACK_LOGO_URL = "/no-image.png";
 const DATA_EVENT = "company-search:data";
 const ERROR_EVENT = "company-search:error";
 
+/**
+ * Exact legacy market priority.
+ */
 const MARKET_ORDER = Object.freeze({
   M: 1,
   S: 2,
@@ -89,15 +93,14 @@ const CSS = Object.freeze({
 let initialized = false;
 
 /**
- * Keep the original Portal records untouched.
+ * Original Portal records.
  *
- * The existing Portal submitSearch() integration expects
- * window.searchableSymbols itself.
+ * We do not mutate these.
  */
 let rawCompanies = [];
 
 /**
- * Normalized company objects used internally.
+ * Normalized records used internally by the component.
  */
 let companies = [];
 
@@ -108,10 +111,8 @@ let modalActiveIndex = -1;
 let homeActiveIndex = -1;
 
 /**
- * Same fallback principle as Market Ticker.
- *
- * If /no-image.png fails once during the page lifecycle,
- * do not keep requesting it for every failed company logo.
+ * If the shared fallback image itself fails once,
+ * do not keep requesting it for every result.
  */
 let fallbackLogoUnavailable = false;
 
@@ -150,7 +151,7 @@ let homeError = null;
 /**
  * Portal owns <html lang>.
  *
- * Company Search only reads it.
+ * We only read it.
  */
 function getLanguage() {
   const language = document.documentElement.lang || "en";
@@ -213,14 +214,6 @@ function setHidden(element, hidden) {
    Safe URLs
    ========================================================================== */
 
-/**
- * Same URL protection principle as Market Ticker.
- *
- * - empty values rejected
- * - malformed URLs rejected
- * - javascript:/data: rejected
- * - HTTP/HTTPS accepted
- */
 function getSafeUrl(value, fallback = "") {
   if (typeof value !== "string" || !value.trim()) {
     return fallback;
@@ -248,37 +241,19 @@ function getSafeLogoUrl(value) {
    ========================================================================== */
 
 /**
- * Real legacy Portal /api fields:
+ * Actual legacy Portal /api fields:
  *
- * {
- *   companyNameEN,
- *   companyNameAR,
- *   symbol,
- *   isin,
- *   tradingNameEn,
- *   tradingNameAr,
- *   sectorNameEn,
- *   sectorNameAr,
- *   market_type,
- *   ...
- * }
+ * companyNameEN
+ * companyNameAR
+ * symbol
+ * isin
+ * tradingNameEn
+ * tradingNameAr
+ * sectorNameEn
+ * sectorNameAr
+ * market_type
  *
- * We normalize those once here.
- *
- * Everything below this boundary uses:
- *
- * {
- *   symbol,
- *   isin,
- *   nameEn,
- *   nameAr,
- *   tradingNameEn,
- *   tradingNameAr,
- *   sectorEn,
- *   sectorAr,
- *   market,
- *   logo
- * }
+ * Normalize once at the boundary.
  */
 function normalizeCompany(source, index) {
   if (!source || typeof source !== "object") {
@@ -306,10 +281,10 @@ function normalizeCompany(source, index) {
     .toUpperCase();
 
   /**
-   * Do not invent a Portal image property.
+   * The legacy code supplied so far does not prove a
+   * different company-image property.
    *
-   * We keep `logo` strict until the actual /api object
-   * confirms the property name.
+   * Keep this strict rather than guessing aliases.
    */
   const logo = String(source.logo ?? "").trim();
 
@@ -343,6 +318,20 @@ function normalizeCompany(source, index) {
    Search Index
    ========================================================================== */
 
+/**
+ * Match the fields indexed by the legacy Bloodhound
+ * implementation:
+ *
+ * - companyNameEN
+ * - companyNameAR
+ * - symbol
+ * - isin
+ * - tradingNameEn
+ * - tradingNameAr
+ * - sectorNameEn
+ * - sectorNameAr
+ * - numeric-only ISIN
+ */
 function buildSearchIndex(company) {
   const values = [
     company.nameEn,
@@ -368,13 +357,12 @@ function buildSearchIndex(company) {
     }
 
     /**
-     * Preserve complete values so phrases
-     * remain searchable.
+     * Keep the complete field value.
      */
     tokens.add(normalized);
 
     /**
-     * Also index searchable pieces.
+     * Also index individual searchable pieces.
      */
     for (const token of normalized.split(/[\s\-_./()]+/gu)) {
       if (token) {
@@ -383,10 +371,6 @@ function buildSearchIndex(company) {
     }
   }
 
-  /**
-   * Legacy company search also indexed a
-   * numeric-only representation of ISIN.
-   */
   const numericIsin = numericOnly(company.isin);
 
   if (numericIsin) {
@@ -420,11 +404,9 @@ function setCompanies(source) {
    ========================================================================== */
 
 /**
- * Portal/JSP owns:
+ * JSP owns the /api request and publishes the response as:
  *
  * window.searchableSymbols
- *
- * This module deliberately performs no /api request.
  */
 function getPortalCompanies() {
   return Array.isArray(window.searchableSymbols)
@@ -509,6 +491,13 @@ function companyInitials(company) {
    Query Tokenization
    ========================================================================== */
 
+/**
+ * Legacy query tokenizer behavior:
+ *
+ * - normalized whole query
+ * - numeric-only variant
+ * - alphanumeric pieces
+ */
 function tokenizeQuery(query) {
   const normalized = normalizeText(query);
 
@@ -544,31 +533,25 @@ function matchesQuery(company, tokens) {
 }
 
 /* ==========================================================================
-   Ranking
+   Legacy Ranking
    ========================================================================== */
 
 /**
- * Exact legacy market ordering:
+ * Exact legacy market order:
  *
- * M → S → E → F → D → B → O → Others
+ * M → S → E → F → D → B → O → unknown
  */
 function marketRank(company) {
   return MARKET_ORDER[company.market] ?? 99;
 }
 
 /**
- * Mirror the legacy rankQuery() behavior.
+ * Legacy rankQuery() ranks matches by the query's position
+ * inside:
  *
- * Within the same market:
+ * localized company name + symbol + ISIN
  *
- * localized name + symbol + ISIN
- *               ↓
- * query position
- *
- * A match at position 0 comes first.
- *
- * When positions are equal, alphabetical localized
- * name is handled by sortCompanies().
+ * Position 0 therefore wins over a later occurrence.
  */
 function queryRank(company, query) {
   const normalizedQuery = normalizeText(query);
@@ -590,27 +573,30 @@ function queryRank(company, query) {
 
 function sortCompanies(items, query = "") {
   return [...items].sort((a, b) => {
-    /**
-     * 1. Market.
-     */
+    /* --------------------------------------------------------------------
+         1. Market priority
+         -------------------------------------------------------------------- */
+
     const marketDifference = marketRank(a) - marketRank(b);
 
     if (marketDifference !== 0) {
       return marketDifference;
     }
 
-    /**
-     * 2. Legacy query position.
-     */
+    /* --------------------------------------------------------------------
+         2. Query position
+         -------------------------------------------------------------------- */
+
     const queryDifference = queryRank(a, query) - queryRank(b, query);
 
     if (queryDifference !== 0) {
       return queryDifference;
     }
 
-    /**
-     * 3. Localized company name.
-     */
+    /* --------------------------------------------------------------------
+         3. Localized company name
+         -------------------------------------------------------------------- */
+
     return companyName(a).localeCompare(companyName(b), getLanguage(), {
       sensitivity: "base",
       numeric: true,
@@ -631,9 +617,9 @@ function searchCompanies(query, { limit = Infinity } = {}) {
    ========================================================================== */
 
 /**
- * Same fallback chain as Market Ticker:
+ * Fallback chain:
  *
- * company logo
+ * company image
  *   ↓ fails
  * /no-image.png
  *   ↓ fails
@@ -645,7 +631,7 @@ function createLogo(company, { rootClass, imageClass, initialsClass, size }) {
   root.setAttribute("aria-hidden", "true");
 
   /**
-   * Initials permanently exist underneath the image.
+   * Initials always exist underneath the image.
    */
   const initials = createElement(
     "span",
@@ -660,10 +646,10 @@ function createLogo(company, { rootClass, imageClass, initialsClass, size }) {
   const logoUrl = getSafeLogoUrl(company.logo);
 
   /**
-   * No primary company logo.
+   * No company logo available.
    *
-   * Try the shared fallback image before
-   * revealing initials permanently.
+   * Try /no-image.png unless we already know that the
+   * shared fallback failed earlier on this page.
    */
   if (!logoUrl) {
     if (!fallbackLogoUnavailable) {
@@ -690,6 +676,9 @@ function appendLogoImage(root, source, stage, imageClass, size) {
 
   image.dataset.companyLogoStage = stage;
 
+  /**
+   * Register error handling before assigning src.
+   */
   image.addEventListener(
     "error",
     () => {
@@ -700,9 +689,6 @@ function appendLogoImage(root, source, stage, imageClass, size) {
     },
   );
 
-  /**
-   * Listener must exist before assigning src.
-   */
   image.src = source;
 
   root.append(image);
@@ -718,9 +704,9 @@ function handleLogoError(image, root, imageClass, size) {
   image.remove();
 
   /**
-   * Company image failed.
+   * Primary company image failed.
    *
-   * Try /no-image.png.
+   * Try the shared no-image asset.
    */
   if (stage === "primary" && !fallbackLogoUnavailable) {
     appendLogoImage(root, FALLBACK_LOGO_URL, "fallback", imageClass, size);
@@ -738,8 +724,8 @@ function handleLogoError(image, root, imageClass, size) {
   }
 
   /**
-   * Initials already exist underneath.
-   * Removing the failed image reveals them.
+   * The initials already exist underneath, so removing
+   * the failed image reveals them automatically.
    */
 }
 
@@ -754,11 +740,42 @@ function removeFallbackLogoImages() {
 }
 
 /* ==========================================================================
-   Company Selection
+   Legacy Portal Submission
    ========================================================================== */
 
 /**
- * Exact legacy Portal integration:
+ * Central Portal integration.
+ *
+ * This intentionally mirrors the old form mechanism:
+ *
+ * window.submitSearch(
+ *   query,
+ *   window.searchableSymbols
+ * );
+ *
+ * Both modal and home forms use this function.
+ *
+ * A clicked result also uses it, but passes the selected
+ * company's symbol instead of the raw input value.
+ */
+function submitPortalSearch(value) {
+  const query = String(value ?? "").trim();
+
+  if (!query) {
+    return;
+  }
+
+  if (typeof window.submitSearch === "function") {
+    window.submitSearch(query, window.searchableSymbols);
+
+    return;
+  }
+
+  console.warn("CompanySearch: window.submitSearch is not available.");
+}
+
+/**
+ * Exact legacy selected-result behavior:
  *
  * window.submitSearch(
  *   item.symbol,
@@ -766,17 +783,11 @@ function removeFallbackLogoImages() {
  * );
  */
 function selectCompany(company) {
-  if (!company) {
+  if (!company?.symbol) {
     return;
   }
 
-  if (typeof window.submitSearch === "function") {
-    window.submitSearch(company.symbol, window.searchableSymbols);
-
-    return;
-  }
-
-  console.warn("CompanySearch: window.submitSearch is not available.", company);
+  submitPortalSearch(company.symbol);
 }
 
 /* ==========================================================================
@@ -784,11 +795,10 @@ function selectCompany(company) {
    ========================================================================== */
 
 /**
- * Modal visual structure:
+ * Compact visual structure:
  *
- * [logo]  Company Name
- *         Symbol                 ISIN
- *         Sector
+ * [logo]  Company Name                     >
+ *         Symbol  ISIN  Sector
  */
 function createModalResult(company, index) {
   const item = createElement("li", "company-search__item");
@@ -814,7 +824,7 @@ function createModalResult(company, index) {
   }
 
   /* ------------------------------------------------------------------------
-     Company Logo
+     Logo
      ------------------------------------------------------------------------ */
 
   button.append(
@@ -830,7 +840,7 @@ function createModalResult(company, index) {
   );
 
   /* ------------------------------------------------------------------------
-     Company Content
+     Content
      ------------------------------------------------------------------------ */
 
   const content = createElement("span", "company-search__content");
@@ -850,7 +860,7 @@ function createModalResult(company, index) {
   content.append(name);
 
   /* ------------------------------------------------------------------------
-     Symbol + ISIN
+     Symbol + ISIN + Sector
      ------------------------------------------------------------------------ */
 
   const meta = createElement("span", "company-search__meta");
@@ -877,19 +887,9 @@ function createModalResult(company, index) {
     meta.append(isin);
   }
 
-  if (meta.childElementCount) {
-    content.append(meta);
-  }
-
-  /* ------------------------------------------------------------------------
-     Sector
-     ------------------------------------------------------------------------ */
-
   const sector = companySector(company);
 
   if (sector) {
-    const secondary = createElement("span", "company-search__secondary");
-
     const sectorElement = createElement(
       "span",
       "company-search__sector",
@@ -898,9 +898,11 @@ function createModalResult(company, index) {
 
     sectorElement.dir = "auto";
 
-    secondary.append(sectorElement);
+    meta.append(sectorElement);
+  }
 
-    content.append(secondary);
+  if (meta.childElementCount) {
+    content.append(meta);
   }
 
   button.append(content);
@@ -919,7 +921,7 @@ function createModalResult(company, index) {
   button.append(indicator);
 
   /* ------------------------------------------------------------------------
-     Selection
+     Legacy Result Selection
      ------------------------------------------------------------------------ */
 
   button.addEventListener("click", () => {
@@ -936,10 +938,18 @@ function createModalResult(company, index) {
    ========================================================================== */
 
 /**
- * Home discovery keeps its existing compact presentation.
+ * Home discovery remains compact and uses its own
+ * website-specific presentation.
  *
- * We are intentionally not forcing the modal's new
- * name → meta → sector layout onto the home component.
+ * It shares:
+ *
+ * - normalized company data
+ * - ranking
+ * - search
+ * - logo fallback
+ * - Portal selection
+ *
+ * It does not inherit the modal result layout.
  */
 function createHomeResult(company, index) {
   const item = createElement("li", "home-discovery-search__item");
@@ -964,6 +974,10 @@ function createHomeResult(company, index) {
     button.classList.add(CSS.active);
   }
 
+  /* ------------------------------------------------------------------------
+     Logo
+     ------------------------------------------------------------------------ */
+
   button.append(
     createLogo(company, {
       rootClass: "home-discovery-search__logo",
@@ -975,6 +989,10 @@ function createHomeResult(company, index) {
       size: 40,
     }),
   );
+
+  /* ------------------------------------------------------------------------
+     Content
+     ------------------------------------------------------------------------ */
 
   const content = createElement("span", "home-discovery-search__content");
 
@@ -1038,6 +1056,10 @@ function createHomeResult(company, index) {
 
   button.append(content);
 
+  /* ------------------------------------------------------------------------
+     Action Indicator
+     ------------------------------------------------------------------------ */
+
   const indicator = createElement(
     "span",
     "home-discovery-search__indicator has-icon icon-chevron-right",
@@ -1046,6 +1068,10 @@ function createHomeResult(company, index) {
   indicator.setAttribute("aria-hidden", "true");
 
   button.append(indicator);
+
+  /* ------------------------------------------------------------------------
+     Legacy Result Selection
+     ------------------------------------------------------------------------ */
 
   button.addEventListener("click", () => {
     selectCompany(company);
@@ -1234,7 +1260,7 @@ function clearHomeResults() {
 }
 
 /* ==========================================================================
-   Active Results
+   Active Result Helpers
    ========================================================================== */
 
 function setModalActiveIndex(index) {
@@ -1306,8 +1332,7 @@ function filterModal() {
 /**
  * The generic modal controller owns opening and closing.
  *
- * This function only decides which company-search state
- * should be visible after the modal has been triggered.
+ * Company Search only prepares its content.
  */
 function loadModalCompanies() {
   if (!companies.length) {
@@ -1383,7 +1408,7 @@ function refreshVisibleHomeResults() {
    ========================================================================== */
 
 /**
- * JSP publishes fresh data with:
+ * JSP publishes:
  *
  * window.dispatchEvent(
  *   new CustomEvent("company-search:data", {
@@ -1397,39 +1422,34 @@ function onCompanySearchData(event) {
   const source = getCompaniesFromEvent(event);
 
   /**
-   * Keep the Portal global authoritative.
+   * Keep the Portal global authoritative because the
+   * legacy submitSearch() integration expects it.
    */
-  if (Array.isArray(source)) {
-    window.searchableSymbols = source;
+  window.searchableSymbols = source;
 
-    setCompanies(source);
-  }
+  setCompanies(source);
 
   /**
-   * If the modal is currently open, immediately
-   * refresh whatever query is visible.
+   * If the modal is already open when the AJAX response
+   * arrives, immediately replace the loading state with
+   * the correct results.
    */
   if (modal && modal.getAttribute("aria-hidden") === "false") {
-    if (companies.length) {
-      filterModal();
-    } else {
-      renderModalResults([]);
-    }
+    filterModal();
   }
 
   /**
-   * Re-run only an already-visible home query.
+   * If the user already typed into the home search while
+   * the API was loading, refresh that visible query.
    */
   refreshVisibleHomeResults();
 }
 
-/**
- * The actual request failure belongs to JSP.
- *
- * This module only reflects an error when no usable
- * company collection exists.
- */
 function onCompanySearchError() {
+  /**
+   * Do not replace usable data with an error if the Portal
+   * already supplied a company collection.
+   */
   if (companies.length) {
     return;
   }
@@ -1444,7 +1464,7 @@ function onCompanySearchError() {
 }
 
 /* ==========================================================================
-   Modal Keyboard
+   Modal Keyboard Navigation
    ========================================================================== */
 
 function onModalKeyDown(event) {
@@ -1496,17 +1516,33 @@ function onModalKeyDown(event) {
       break;
 
     case "Enter":
+      /**
+       * Selecting an explicitly highlighted result matches
+       * legacy Typeahead selection:
+       *
+       * submitSearch(
+       *   item.symbol,
+       *   window.searchableSymbols
+       * )
+       */
       if (modalActiveIndex >= 0 && modalMatches[modalActiveIndex]) {
         event.preventDefault();
 
         selectCompany(modalMatches[modalActiveIndex]);
       }
 
+      /**
+       * If there is no explicitly selected result,
+       * do NOT prevent Enter here.
+       *
+       * The form submit handler below receives the typed
+       * query exactly like the legacy `.search` form.
+       */
+
       break;
 
     /**
-     * Escape intentionally remains owned
-     * by the generic modal controller.
+     * Escape remains owned by the generic modal.
      */
     default:
       break;
@@ -1514,7 +1550,7 @@ function onModalKeyDown(event) {
 }
 
 /* ==========================================================================
-   Home Keyboard
+   Home Keyboard Navigation
    ========================================================================== */
 
 function onHomeKeyDown(event) {
@@ -1566,19 +1602,21 @@ function onHomeKeyDown(event) {
       break;
 
     case "Enter":
+      /**
+       * Explicit keyboard result selection behaves like
+       * selecting a legacy Typeahead suggestion.
+       */
       if (homeActiveIndex >= 0 && homeMatches[homeActiveIndex]) {
         event.preventDefault();
 
         selectCompany(homeMatches[homeActiveIndex]);
-
-        return;
       }
 
-      if (homeMatches.length === 1) {
-        event.preventDefault();
-
-        selectCompany(homeMatches[0]);
-      }
+      /**
+       * Otherwise allow the form's submit event to run.
+       * The raw typed query is submitted exactly like
+       * the old search form.
+       */
 
       break;
 
@@ -1596,47 +1634,38 @@ function onHomeKeyDown(event) {
    Form Submission
    ========================================================================== */
 
+/**
+ * Exact legacy form behavior:
+ *
+ * var q = ($input.val() || '').trim();
+ *
+ * if (!q) return;
+ *
+ * window.submitSearch(
+ *   q,
+ *   window.searchableSymbols
+ * );
+ *
+ * We intentionally do NOT:
+ *
+ * - replace the query with the first match
+ * - require exactly one result
+ * - manufacture a route
+ * - navigate directly
+ *
+ * Portal submitSearch() remains authoritative.
+ */
+
 function onModalSubmit(event) {
   event.preventDefault();
 
-  if (modalActiveIndex >= 0 && modalMatches[modalActiveIndex]) {
-    selectCompany(modalMatches[modalActiveIndex]);
-
-    return;
-  }
-
-  /**
-   * If exactly one company remains, Enter selects it.
-   */
-  if (modalMatches.length === 1) {
-    selectCompany(modalMatches[0]);
-  }
+  submitPortalSearch(modalInput?.value);
 }
 
 function onHomeSubmit(event) {
   event.preventDefault();
 
-  const query = homeInput?.value.trim();
-
-  if (!query) {
-    return;
-  }
-
-  if (homeActiveIndex >= 0 && homeMatches[homeActiveIndex]) {
-    selectCompany(homeMatches[homeActiveIndex]);
-
-    return;
-  }
-
-  /**
-   * Preserve the old Typeahead autoselect behavior:
-   *
-   * when the user submits text without manually choosing
-   * a row, use the highest-ranked current match.
-   */
-  if (homeMatches.length) {
-    selectCompany(homeMatches[0]);
-  }
+  submitPortalSearch(homeInput?.value);
 }
 
 /* ==========================================================================
@@ -1657,23 +1686,24 @@ function onDocumentPointerDown(event) {
    Modal Trigger
    ========================================================================== */
 
+/**
+ * The trigger already contains:
+ *
+ * data-modal-open="companySearchModal"
+ *
+ * Therefore the generic modal controller owns opening.
+ *
+ * We only:
+ *
+ * - prepare search results
+ * - focus the input after opening
+ */
 function onModalTriggerClick() {
-  /**
-   * Generic modal owns:
-   *
-   * - open
-   * - close
-   * - backdrop
-   * - Escape
-   * - focus containment
-   *
-   * Company Search owns only the result/search state.
-   */
   loadModalCompanies();
 
   /**
-   * Let the generic modal finish opening before
-   * focusing the company input.
+   * Allow the generic modal controller to complete its
+   * opening work before moving focus.
    */
   window.requestAnimationFrame(() => {
     window.requestAnimationFrame(() => {
@@ -1729,9 +1759,17 @@ function resolveDom() {
    ========================================================================== */
 
 function bindEvents() {
+  /* ------------------------------------------------------------------------
+     Modal Trigger
+     ------------------------------------------------------------------------ */
+
   modalTriggers.forEach((trigger) => {
     trigger.addEventListener("click", onModalTriggerClick);
   });
+
+  /* ------------------------------------------------------------------------
+     Modal Search
+     ------------------------------------------------------------------------ */
 
   modalInput?.addEventListener("input", filterModal);
 
@@ -1739,31 +1777,50 @@ function bindEvents() {
 
   modalForm?.addEventListener("submit", onModalSubmit);
 
+  /* ------------------------------------------------------------------------
+     Home Search
+     ------------------------------------------------------------------------ */
+
   homeInput?.addEventListener("input", searchHome);
 
   homeInput?.addEventListener("keydown", onHomeKeyDown);
 
   homeForm?.addEventListener("submit", onHomeSubmit);
 
+  /* ------------------------------------------------------------------------
+     Home Dismissal
+     ------------------------------------------------------------------------ */
+
   document.addEventListener("pointerdown", onDocumentPointerDown);
 
-  /**
-   * Portal/JSP data bridge.
-   */
+  /* ------------------------------------------------------------------------
+     Portal / JSP Data Bridge
+     ------------------------------------------------------------------------ */
+
   window.addEventListener(DATA_EVENT, onCompanySearchData);
 
   window.addEventListener(ERROR_EVENT, onCompanySearchError);
 }
 
 /* ==========================================================================
-   Initial State
+   Initial UI State
    ========================================================================== */
 
 function initializeState() {
   clearElement(modalList);
   clearElement(homeList);
 
+  modalMatches = [];
+  homeMatches = [];
+
+  modalActiveIndex = -1;
+  homeActiveIndex = -1;
+
   updateModalCount(0);
+
+  /* ------------------------------------------------------------------------
+     Modal
+     ------------------------------------------------------------------------ */
 
   setHidden(modalResults, true);
 
@@ -1772,6 +1829,10 @@ function initializeState() {
   setHidden(modalEmpty, true);
 
   setHidden(modalError, true);
+
+  /* ------------------------------------------------------------------------
+     Home
+     ------------------------------------------------------------------------ */
 
   setHidden(homeResults, true);
 
@@ -1793,6 +1854,10 @@ export function initCompanySearch() {
 
   resolveDom();
 
+  /**
+   * Do nothing on pages that contain neither company
+   * search surface.
+   */
   if (!modal && !homeForm) {
     return;
   }
@@ -1800,15 +1865,21 @@ export function initCompanySearch() {
   initialized = true;
 
   /**
-   * Race-safe Portal initialization:
+   * Race-safe Portal initialization.
    *
-   * Case A:
-   * JSP AJAX completed before Vite initializes.
-   * -> window.searchableSymbols is read immediately.
+   * Case A
+   * ------
+   * JSP AJAX completed before Vite initialized.
    *
-   * Case B:
-   * Vite initializes first.
-   * -> "company-search:data" supplies the collection later.
+   * window.searchableSymbols already contains the
+   * company collection, so read it immediately.
+   *
+   * Case B
+   * ------
+   * Vite initialized before JSP AJAX completed.
+   *
+   * The "company-search:data" listener receives the
+   * collection later.
    */
   initializeCompanyData();
 
