@@ -3,34 +3,10 @@
    ========================================================================== */
 
 /*
- * Theoretical Opening page composition.
- *
- * Responsibilities:
- *
- * - configuration
- * - request data construction
- * - shared state
- * - filters
- * - data source
- * - desktop table composition
- * - mobile cards composition
- * - result count
- * - Data View controller
- * - lifecycle
- * - public page API
- * - normal-page startup
- *
- * This module is shared by:
+ * Shared page composition for:
  *
  * - Theoretical Opening
  * - Nomu Theoretical Opening
- *
- * This module intentionally has no:
- *
- * - column picker
- * - column visibility
- * - favorite handling
- * - watchlist handling
  */
 
 /* ==========================================================================
@@ -71,35 +47,36 @@ const instances = new WeakMap();
    ========================================================================== */
 
 /*
- * Important:
+ * IMPORTANT:
  *
- * The HTML select is allowed to keep:
+ * HTML:
  *
  *   name="sectorParameter"
  *
- * for JSP / legacy markup compatibility.
- *
- * The backend request contract remains:
+ * Backend request:
  *
  *   sector
- *   requestLocale
  *
- * Do not rename `sector` to `sectorParameter`.
+ * These intentionally remain different.
  */
 
 export function buildTheoreticalOpeningRequestData(
   config = {},
   filterState = {},
 ) {
+  const sector = String(
+    filterState.sector ?? config.initialState?.sector ?? "All",
+  ).trim();
+
   return {
-    sector: filterState.sector || config.initialState?.sector || "All",
+    sector: sector || "All",
 
     requestLocale: config.locale || "en",
   };
 }
 
 /* ==========================================================================
-   Public Page Factory
+   Public Factory
    ========================================================================== */
 
 export function initTheoreticalOpeningPage({
@@ -149,20 +126,11 @@ export function initTheoreticalOpeningPage({
   });
 
   /*
-   * Ensure the common filter state starts with the configuration value
-   * supplied by the JSP.
+   * The common filter component reads the selected
+   * value directly from the JSP <select>.
    *
-   * Normally the DOM select already contains this value, but keeping the
-   * initial state here makes the page contract explicit.
+   * Do not create a second local sector state here.
    */
-
-  const initialFilterState = filters.getState();
-
-  if (!initialFilterState?.sector && typeof filters.setState === "function") {
-    filters.setState({
-      sector: config.initialState?.sector || "All",
-    });
-  }
 
   /* ========================================================================
      Data Source
@@ -172,10 +140,7 @@ export function initTheoreticalOpeningPage({
     endpoint: config.endpoint,
 
     /*
-     * The legacy Theoretical Opening endpoint uses POST.
-     *
-     * This must remain explicit because the common source can otherwise
-     * default to another HTTP method.
+     * Exact legacy backend behavior.
      */
 
     method: "POST",
@@ -264,9 +229,7 @@ export function initTheoreticalOpeningPage({
     },
 
     /*
-     * There is only one fixed view.
-     *
-     * No view change should cause another request.
+     * This module only has one presentation schema.
      */
 
     reloadOnViewChange: false,
@@ -344,14 +307,13 @@ export function initTheoreticalOpeningPage({
    ========================================================================== */
 
 /*
- * The normal Theoretical Opening page loads this file directly.
+ * theoretical-opening.js is loaded directly by the
+ * normal Theoretical Opening JSP.
  *
- * Nomu imports this module from:
+ * It is also imported by the Nomu entry file.
  *
- *   nomu-theoretical-opening.js
- *
- * Therefore this startup must only execute when the normal page's runtime
- * configuration exists.
+ * Therefore only automatically initialize when
+ * window.TheoreticalOpeningConfig exists.
  */
 
 function start() {

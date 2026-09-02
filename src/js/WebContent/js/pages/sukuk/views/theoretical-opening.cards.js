@@ -2,25 +2,6 @@
    Theoretical Opening Cards View
    ========================================================================== */
 
-/*
- * Theoretical Opening mobile card presentation.
- *
- * Responsibilities:
- *
- * - mobile field formatting
- * - mobile detail-column selection
- * - mobile card composition
- * - Data View cards composition
- *
- * This module intentionally has no:
- *
- * - API requests
- * - response normalization
- * - filter binding
- * - desktop table rendering
- * - page startup
- */
-
 /* ==========================================================================
    Imports
    ========================================================================== */
@@ -74,7 +55,7 @@ function getCompanyCode(row = {}) {
 }
 
 /* ==========================================================================
-   Mobile Identity
+   Identity
    ========================================================================== */
 
 function renderMobileIdentity(row = {}) {
@@ -84,27 +65,20 @@ function renderMobileIdentity(row = {}) {
 
   const companyUrl = String(row.companyUrl ?? "").trim();
 
-  const name =
+  const companyNameHtml =
     companyUrl && companyUrl !== "#"
       ? `
-          <a
-            href="${escapeHtml(companyUrl)}"
-            class="data-card__security-name"
-          >
-            ${escapeHtml(companyName)}
-          </a>
-        `.trim()
-      : `
-          <span class="data-card__security-name">
-            ${escapeHtml(companyName)}
-          </span>
-        `.trim();
+        <a href="${escapeHtml(companyUrl)}">
+          ${escapeHtml(companyName)}
+        </a>
+      `.trim()
+      : escapeHtml(companyName);
 
   return `
     <div class="data-card__security">
 
-      <div class="data-card__security-name-wrap">
-        ${name}
+      <div class="data-card__security-name">
+        ${companyNameHtml}
       </div>
 
       <div class="data-card__security-symbol">
@@ -116,7 +90,7 @@ function renderMobileIdentity(row = {}) {
 }
 
 /* ==========================================================================
-   Mobile Summary
+   Summary
    ========================================================================== */
 
 function renderMobileSummary(row, config = {}) {
@@ -146,7 +120,7 @@ function renderMobileSummary(row, config = {}) {
 }
 
 /* ==========================================================================
-   Mobile Field Rendering
+   Field Rendering
    ========================================================================== */
 
 export function renderTheoreticalOpeningMobileFieldValue(
@@ -176,7 +150,7 @@ export function renderTheoreticalOpeningMobileFieldValue(
 }
 
 /* ==========================================================================
-   Mobile Detail Columns
+   Detail Columns
    ========================================================================== */
 
 export function getTheoreticalOpeningMobileDetailColumns(
@@ -187,7 +161,7 @@ export function getTheoreticalOpeningMobileDetailColumns(
 }
 
 /* ==========================================================================
-   Mobile Card
+   Card
    ========================================================================== */
 
 export function renderTheoreticalOpeningCard(
@@ -210,14 +184,12 @@ export function renderTheoreticalOpeningCard(
     }),
   );
 
-  const summary = renderMobileSummary(row, config);
-
   return renderStandardDataCard({
     idPrefix: "theoretical-opening-card-details",
 
     rowId: `${companyCode || "company"}-${context.index}`,
 
-    summary,
+    summary: renderMobileSummary(row, config),
 
     fields,
 
@@ -234,7 +206,7 @@ export function renderTheoreticalOpeningCard(
 }
 
 /* ==========================================================================
-   Cards Factory
+   Factory
    ========================================================================== */
 
 export function createTheoreticalOpeningCards({

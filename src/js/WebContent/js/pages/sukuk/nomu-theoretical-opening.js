@@ -3,27 +3,11 @@
    ========================================================================== */
 
 /*
- * Nomu Theoretical Opening entry module.
+ * Nomu-specific entry point.
  *
- * Responsibilities:
- *
- * - verify Nomu runtime configuration exists
- * - initialize the shared Theoretical Opening page
- * - pass the Nomu-specific runtime config name
- *
- * All actual page behavior is implemented in:
+ * All shared behavior lives in:
  *
  *   theoretical-opening.js
- *
- * This module intentionally has no:
- *
- * - request logic
- * - filters
- * - state
- * - table rendering
- * - card rendering
- * - response normalization
- * - Data View controller composition
  */
 
 /* ==========================================================================

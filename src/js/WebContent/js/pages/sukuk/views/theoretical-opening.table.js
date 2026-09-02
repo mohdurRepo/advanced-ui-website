@@ -2,25 +2,6 @@
    Theoretical Opening Table View
    ========================================================================== */
 
-/*
- * Theoretical Opening desktop table presentation.
- *
- * Responsibilities:
- *
- * - create the desktop DataTable view
- * - render table cells
- * - apply Theoretical Opening formatting rules
- * - group rows by sector
- *
- * This module intentionally has no:
- *
- * - request execution
- * - filter state
- * - response normalization
- * - mobile card rendering
- * - page startup
- */
-
 /* ==========================================================================
    Imports
    ========================================================================== */
@@ -47,7 +28,7 @@ export const THEORETICAL_OPENING_TABLE_SELECTOR =
   "[data-theoretical-opening-table]";
 
 /* ==========================================================================
-   Company Rendering
+   Company
    ========================================================================== */
 
 function renderCompany(row = {}) {
@@ -57,39 +38,38 @@ function renderCompany(row = {}) {
 
   const companyUrl = String(row.companyUrl ?? "").trim();
 
-  const companyContent =
+  const nameContent =
     companyUrl && companyUrl !== "#"
       ? `
-          <a
-            href="${escapeHtml(companyUrl)}"
-            class="stock-name"
-          >
-            ${escapeHtml(companyName)}
-          </a>
-        `.trim()
-      : `
-          <span class="stock-name">
-            ${escapeHtml(companyName)}
-          </span>
-        `.trim();
+        <a href="${escapeHtml(companyUrl)}">
+          ${escapeHtml(companyName)}
+        </a>
+      `.trim()
+      : escapeHtml(companyName);
+
+  /*
+   * Preserve the legacy company structure:
+   *
+   * company-name-value
+   *   stock-name
+   *   stock-number
+   */
 
   return `
     <div class="company-name-value">
-
       <div class="stock-name">
-        ${companyContent}
+        ${nameContent}
       </div>
 
       <div class="stock-number">
         ${escapeHtml(companyCode)}
       </div>
-
     </div>
   `.trim();
 }
 
 /* ==========================================================================
-   Table Cell Rendering
+   Cell Rendering
    ========================================================================== */
 
 export function renderTheoreticalOpeningTableCell({
@@ -98,11 +78,6 @@ export function renderTheoreticalOpeningTableCell({
   type,
   config = {},
 }) {
-  /*
-   * Keep plain normalized values available to DataTables
-   * for sort / type / filter operations.
-   */
-
   if (type === "sort" || type === "type" || type === "filter") {
     if (column.type === "company" || column.key === "companyName") {
       return getDisplayValue(row.companyName, "");
@@ -112,7 +87,7 @@ export function renderTheoreticalOpeningTableCell({
   }
 
   /* ------------------------------------------------------------------------
-     Loading State
+     Loading
      ------------------------------------------------------------------------ */
 
   if (row?.__dataViewState === "loading") {
@@ -130,7 +105,7 @@ export function renderTheoreticalOpeningTableCell({
   }
 
   /* ------------------------------------------------------------------------
-     Display State
+     Display
      ------------------------------------------------------------------------ */
 
   const value = row[column.data];
@@ -155,7 +130,7 @@ export function renderTheoreticalOpeningTableCell({
 }
 
 /* ==========================================================================
-   Row Group Renderer
+   Row Group
    ========================================================================== */
 
 export function renderTheoreticalOpeningGroup({
@@ -199,7 +174,7 @@ export function renderTheoreticalOpeningGroup({
 }
 
 /* ==========================================================================
-   Table Factory
+   Factory
    ========================================================================== */
 
 export function createTheoreticalOpeningTable({
@@ -228,9 +203,28 @@ export function createTheoreticalOpeningTable({
     tableOptions: createTheoreticalOpeningTableOptions({
       ...config.table,
 
+      /*
+       * Always preserve Theoretical Opening
+       * grouping regardless of JSP overrides.
+       */
+
       rowGroup: {
         dataSrc: "sectorName",
       },
+
+      ordering: false,
+
+      searching: false,
+
+      paging: false,
+
+      info: false,
+
+      autoWidth: false,
+
+      responsive: false,
+
+      deferRender: true,
     }),
 
     getRowGroup(row) {

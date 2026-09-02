@@ -3,26 +3,10 @@
    ========================================================================== */
 
 /*
- * DataTables defaults shared by:
+ * Shared between:
  *
  * - Theoretical Opening
  * - Nomu Theoretical Opening
- *
- * Responsibilities:
- *
- * - provide consistent DataTables defaults
- * - allow page-level overrides
- * - safely merge layout configuration
- * - ignore null / undefined overrides
- *
- * This module intentionally has no:
- *
- * - DOM queries
- * - column definitions
- * - row grouping rules
- * - cell rendering
- * - page-specific behavior
- * - DataTables lifecycle
  */
 
 /* ==========================================================================
@@ -31,8 +15,11 @@
 
 const DEFAULT_LAYOUT = Object.freeze({
   topStart: null,
+
   topEnd: null,
+
   bottomStart: null,
+
   bottomEnd: null,
 });
 
@@ -40,21 +27,24 @@ export const THEORETICAL_OPENING_TABLE_OPTIONS = Object.freeze({
   autoWidth: false,
 
   paging: false,
+
   pageLength: 25,
+
   lengthChange: false,
 
   searching: false,
+
   ordering: false,
+
   info: false,
 
   serverSide: false,
+
   processing: false,
 
-  scrollX: true,
-  scrollCollapse: true,
+  responsive: false,
 
-  fixedHeader: true,
-  fixedColumns: 1,
+  deferRender: true,
 
   layout: DEFAULT_LAYOUT,
 });
@@ -76,7 +66,7 @@ function getDefinedOverrides(overrides = {}) {
 }
 
 /* ==========================================================================
-   Public Factory
+   Factory
    ========================================================================== */
 
 export function createTheoreticalOpeningTableOptions(overrides = {}) {

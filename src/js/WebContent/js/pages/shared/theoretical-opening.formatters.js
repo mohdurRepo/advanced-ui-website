@@ -2,37 +2,6 @@
    Theoretical Opening Formatters
    ========================================================================== */
 
-/*
- * Formatting helpers for:
- *
- * - Previous Close
- * - TOP
- * - TOV
- * - company display values
- *
- * Responsibilities:
- *
- * - string normalization
- * - HTML escaping
- * - empty-value handling
- * - numeric conversion
- * - zero detection
- * - locale-aware number formatting
- * - Previous Close formatting
- * - TOP formatting
- * - TOV formatting
- *
- * This module intentionally has no:
- *
- * - DOM queries
- * - request logic
- * - API response normalization
- * - DataTables lifecycle
- * - filter state
- * - card rendering
- * - table rendering
- */
-
 /* ==========================================================================
    Constants
    ========================================================================== */
@@ -42,7 +11,7 @@ const DEFAULT_LOCALE = "en";
 const DEFAULT_EMPTY_VALUE = "-";
 
 /* ==========================================================================
-   String Helpers
+   String
    ========================================================================== */
 
 export function normalizeString(value, fallback = "") {
@@ -69,7 +38,7 @@ export function escapeHtml(value) {
 }
 
 /* ==========================================================================
-   Value Helpers
+   Values
    ========================================================================== */
 
 export function hasValue(value) {
@@ -81,7 +50,7 @@ export function getDisplayValue(value, fallback = DEFAULT_EMPTY_VALUE) {
 }
 
 /* ==========================================================================
-   Numeric Conversion
+   Numeric
    ========================================================================== */
 
 export function toNumber(value) {
@@ -134,7 +103,7 @@ export function getFormattingLocale(config = {}) {
 }
 
 /* ==========================================================================
-   Number Formatting
+   Generic Number
    ========================================================================== */
 
 export function formatNumber(value, config = {}, options = {}) {
@@ -162,11 +131,16 @@ export function formatPreviousClose(value) {
     return DEFAULT_EMPTY_VALUE;
   }
 
+  /*
+   * Legacy behavior:
+   * preserve the supplied display value.
+   */
+
   return getDisplayValue(value);
 }
 
 /* ==========================================================================
-   Theoretical Opening Price - TOP
+   TOP
    ========================================================================== */
 
 export function formatTOP(value) {
@@ -174,11 +148,16 @@ export function formatTOP(value) {
     return DEFAULT_EMPTY_VALUE;
   }
 
+  /*
+   * Legacy behavior:
+   * preserve the supplied display value.
+   */
+
   return getDisplayValue(value);
 }
 
 /* ==========================================================================
-   Theoretical Opening Volume - TOV
+   TOV
    ========================================================================== */
 
 export function formatTOV(value, config = {}) {
@@ -189,11 +168,11 @@ export function formatTOV(value, config = {}) {
   const displayValue = getDisplayValue(value);
 
   /*
-   * Preserve service-provided abbreviated values
-   * if the backend ever returns them:
+   * Preserve already-formatted backend values,
+   * for example:
    *
-   * 7.84M
    * 900K
+   * 7.84M
    */
 
   if (/[a-z]/i.test(displayValue)) {
