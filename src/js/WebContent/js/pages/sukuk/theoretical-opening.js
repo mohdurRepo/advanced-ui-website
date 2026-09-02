@@ -18,7 +18,7 @@ import {
   createDataSource,
   createDataState,
   createDataViewController,
-} from "../common/data-view/index.js";
+} from "../../common/data-view/index.js";
 
 import { getTheoreticalOpeningConfig } from "./theoretical-opening.config.js";
 

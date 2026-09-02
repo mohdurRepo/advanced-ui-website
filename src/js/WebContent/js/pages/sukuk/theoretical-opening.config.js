@@ -1,128 +1,89 @@
 /* ==========================================================================
-   Theoretical Opening Columns
+   Theoretical Opening Configuration
    ========================================================================== */
-
-/*
- * Single source of truth for Theoretical Opening columns.
- */
-
-/* ==========================================================================
-   Constants
-   ========================================================================== */
-
-const DEFAULT_VIEW = "1";
-
-const WIDTHS = Object.freeze({
-  companyName: "40%",
-  previousClose: "20%",
-  top: "20%",
-  tov: "20%",
-});
 
 /* ==========================================================================
    Helpers
    ========================================================================== */
 
-function cleanLabel(value, fallback = "") {
-  return String(value ?? fallback)
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<[^>]*>/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+function isObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function getLabels(config = {}) {
-  return config.labels?.table || {};
+function normalizeString(value, fallback = "") {
+  const normalized = String(value ?? "").trim();
+
+  return normalized || fallback;
 }
 
-function column(definition = {}) {
+function normalizeObject(value) {
+  return isObject(value) ? value : {};
+}
+
+/* ==========================================================================
+   Raw Configuration
+   ========================================================================== */
+
+export function getTheoreticalOpeningRawConfig(
+  configName = "TheoreticalOpeningConfig",
+) {
+  if (typeof window === "undefined") {
+    throw new Error(
+      "Theoretical Opening configuration requires a browser environment.",
+    );
+  }
+
+  const config = window[configName];
+
+  if (!config || !isObject(config)) {
+    throw new Error(`${configName} is required.`);
+  }
+
+  return config;
+}
+
+/* ==========================================================================
+   Configuration Normalization
+   ========================================================================== */
+
+export function normalizeTheoreticalOpeningConfig(config = {}) {
+  const source = normalizeObject(config);
+
+  const initialState = normalizeObject(source.initialState);
+
   return {
-    mobile: true,
-    ...definition,
+    ...source,
+
+    endpoint: normalizeString(source.endpoint),
+
+    locale: normalizeString(source.locale, "en"),
+
+    labels: normalizeObject(source.labels),
+
+    table: normalizeObject(source.table),
+
+    initialState: {
+      ...initialState,
+
+      sector: normalizeString(initialState.sector, "All"),
+    },
   };
 }
 
-function sizedColumn(width, definition = {}) {
-  return column({
-    width,
-    ...definition,
-  });
-}
-
 /* ==========================================================================
-   Columns
+   Public Configuration
    ========================================================================== */
 
-function createColumns(config = {}) {
-  const labels = getLabels(config);
+export function getTheoreticalOpeningConfig(
+  configName = "TheoreticalOpeningConfig",
+) {
+  const config = normalizeTheoreticalOpeningConfig(
+    getTheoreticalOpeningRawConfig(configName),
+  );
 
-  return [
-    sizedColumn(WIDTHS.companyName, {
-      key: "companyName",
+  if (!config.endpoint) {
+    throw new Error(`${configName}.endpoint is required.`);
+  }
 
-      label: cleanLabel(labels.companyName || labels.company, "Company"),
-
-      data: "companyName",
-
-      type: "company",
-
-      className: "table-market__security",
-
-      mobile: false,
-    }),
-
-    sizedColumn(WIDTHS.previousClose, {
-      key: "previousClose",
-
-      label: cleanLabel(labels.previousClose, "Previous Close"),
-
-      data: "previousClose",
-
-      type: "price",
-
-      className: "table-market__number",
-    }),
-
-    sizedColumn(WIDTHS.top, {
-      key: "top",
-
-      label: cleanLabel(labels.top, "TOP"),
-
-      data: "top",
-
-      type: "price",
-
-      className: "table-market__number",
-    }),
-
-    sizedColumn(WIDTHS.tov, {
-      key: "tov",
-
-      label: cleanLabel(labels.tov, "TOV"),
-
-      data: "tov",
-
-      type: "quantity",
-
-      className: "table-market__number",
-    }),
-  ];
-}
-
-/* ==========================================================================
-   Public API
-   ========================================================================== */
-
-export function getColumns(config = {}, view = DEFAULT_VIEW) {
-  void view;
-
-  return createColumns(config);
-}
-
-export function getMobileColumns(config = {}, view = DEFAULT_VIEW) {
-  return getColumns(config, view).filter((item) => item.mobile !== false);
-}
-
-export function getColumnByKey(config = {}, view = DEFAULT_VIEW, key) {
-  return getColumns(config, view).find((item) => item.key === key) || null;
+  return config;
 }
