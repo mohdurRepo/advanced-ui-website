@@ -30,302 +30,435 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@ taglib prefix="portlet" uri="http://java.sun.com/portlet_2_0"%>
 <script>
-	var marketStatus = '${requestScope.marketStatusID}';
+  var marketStatus = '${requestScope.marketStatusID}';
 </script>
 
-<c:set var="openCloseAuction" value="false" />
+<c:set
+  var="openCloseAuction"
+  value="false"
+/>
 
 <c:if
-	test="${requestScope.marketStatusID == 6 or requestScope.marketStatusID ==1   }">
-	<c:set var="openCloseAuction" value="true" />
+  test="${requestScope.marketStatusID == 6
+    or requestScope.marketStatusID == 1}"
+>
+  <c:set
+    var="openCloseAuction"
+    value="true"
+  />
 </c:if>
 
+
 <%-- =========================================================================
-     Sukuk & Bonds Hero
+     Nomu Theoretical Opening Hero
      ========================================================================= --%>
 
-<section class="hero-section surface-hero"
-	aria-labelledby="nomu-page-title"
-	aria-describedby="nomu-page-description">
-	<div class="hero-section__background" aria-hidden="true"></div>
+<section
+  class="hero-section surface-hero"
+  aria-labelledby="theoretical-opening-title"
+  aria-describedby="theoretical-opening-description"
+>
+  <div
+    class="hero-section__background"
+    aria-hidden="true"
+  ></div>
 
-	<div class="container hero-section__content">
-		<header class="hero-intro">
-			<div class="hero-intro__header">
-				<div class="hero-intro__brand">
-					<span class="hero-intro__icon has-icon icon-tadawul"
-						aria-hidden="true"></span>
+  <div class="container hero-section__content">
 
-					<h2 id="nomu-page-title" class="hero-intro__title">
-						<fmt:message key="theoretical.title" />
-					</h2>
-				</div>
+    <header class="hero-intro">
 
-				<p id="nomu-page-description" class="hero-intro__description">
-					<fmt:message key="trading.calendar.description" />
-				</p>
-				</p>
-			</div>
-		</header>
-	</div>
+      <div class="hero-intro__header">
+
+        <div class="hero-intro__brand">
+
+          <span
+            class="hero-intro__icon has-icon icon-tadawul"
+            aria-hidden="true"
+          ></span>
+
+          <h1
+            id="theoretical-opening-title"
+            class="hero-intro__title"
+          >
+            <fmt:message key="theoretical.title" />
+          </h1>
+
+        </div>
+
+
+        <p
+          id="theoretical-opening-description"
+          class="hero-intro__description"
+        >
+          <fmt:message key="trading.calendar.description" />
+        </p>
+
+      </div>
+
+    </header>
+
+  </div>
 </section>
 
+
 <%-- =========================================================================
-     Sukuk & Bonds Filters
+     Nomu Theoretical Opening Filters
      ========================================================================= --%>
 
-<section class="section sukuk-market-watch-filters pb-0"
-	aria-labelledby="sukuk-market-watch-filters-title">
-	<div class="container">
+<section
+  class="section theoretical-opening-filters pb-0"
+  aria-labelledby="theoretical-opening-filters-title"
+>
+  <div class="container">
 
-		<form class="filter-bar filter-bar--connected"
-			aria-labelledby="sukuk-market-watch-filters-title" data-sukuk-filters>
-			<h2 class="visually-hidden" id="sukuk-market-watch-filters-title">
-				<fmt:message key="sukukAndBonds.marketwatch.title" />
-			</h2>
+    <form
+      class="filter-bar filter-bar--connected"
+      aria-labelledby="theoretical-opening-filters-title"
+      data-theoretical-opening-filters
+    >
 
-			<%-- ===================================================================
+      <h2
+        id="theoretical-opening-filters-title"
+        class="visually-hidden"
+      >
+        <fmt:message key="theoretical.title" />
+      </h2>
+
+
+      <%-- ===================================================================
            Primary Controls
            =================================================================== --%>
 
+      <div class="filter-bar__inner">
+
+        <div class="filter-bar__fields grid-3">
 
 
-			<div class="filter-bar__inner">
-				<!-- ================================================================
-             Filter Fields
-             ================================================================ -->
+          <%-- ===============================================================
+               Sector
+               =============================================================== --%>
 
-				<div class="filter-bar__fields grid-3">
-					<!-- Industry Group -->
+          <div class="filter-bar__field">
 
-					<div class="filter-bar__field">
-						<label class="form-label" for="sukuk-bond-type"> <fmt:message
-								key="trading.calendar.label.sector" />
-						</label>
-
-						<div class="custom-select" data-custom-select data-searchable>
-							<div class="form-select-wrap custom-select__fallback">
-								<select class="form-select custom-select__native"
-									id="sukuk-bond-type" name="industry"
-									data-sukuk-bond-type>
-									<option value="all"
-										<c:if test="${empty requestScope.selectedSector or requestScope.selectedSector eq 'all'}">selected</c:if>>
-										<fmt:message key="trading.calendar.label.all.sectors" />
-									</option>
-
-									<c:forEach items="${requestScope.sectorList}" var="sectorItem">
-										<option value="<c:out value='${sectorItem.modifiedId}' />"
-											<c:if test="${requestScope.selectedSector eq sectorItem.modifiedId}">selected</c:if>>
-											<c:out value="${sectorItem.modifiedName}" />
-										</option>
-									</c:forEach>
-								</select> <span class="form-select-icon has-icon icon-chevron-down"
-									aria-hidden="true"></span>
-							</div>
-						</div>
-					</div>
-
-					<%-- =================================================================
-               Visible Columns
-               ================================================================= --%>
-
-					<div class="filter-bar__field">
-
-						<span class="form-label-static" id="sukuk-columns-label"> <fmt:message
-								key="show.hide.column" />
-						</span>
-
-						<button class="btn btn-outline-primary filter-bar__columns"
-							type="button" aria-labelledby="sukuk-columns-label"
-							aria-haspopup="menu" aria-expanded="false"
-							aria-controls="sukuk-columns-menu" data-sukuk-columns>
-							<span class="filter-bar__columns-label" data-sukuk-columns-label>
-								<fmt:message key="show.hide.all" />
-							</span> <span
-								class="filter-bar__columns-icon has-icon icon-chevron-down"
-								aria-hidden="true"></span>
-						</button>
-
-						<div class="filter-bar__columns-menu" id="sukuk-columns-menu"
-							aria-label="<fmt:message key='show.hide.column' />"
-							data-sukuk-columns-menu hidden>
-
-							<%-- =============================================================
-                   Column Actions
-                   ============================================================= --%>
-
-							<div class="filter-bar__columns-actions">
-
-								<button type="button" class="filter-bar__columns-action"
-									data-sukuk-columns-action="select-all">
-									<fmt:message key="select.all" />
-								</button>
-
-								<button type="button" class="filter-bar__columns-action"
-									data-sukuk-columns-action="clear-all">
-									<fmt:message key="clear.all" />
-								</button>
-
-							</div>
-
-							<%-- =============================================================
-                   Previous Close
-                   ============================================================= --%>
-
-							<label class="filter-bar__columns-option"> <input
-								type="checkbox" checked data-sukuk-column="prev-close" /> <span>
-									<fmt:message key="company.Previous.Close" />
-							</span>
-							</label>
-
-							<%-- =============================================================
-                   TOP
-                   ============================================================= --%>
-
-							<label class="filter-bar__columns-option"> <input
-								type="checkbox" checked data-sukuk-column="top" /> <span>
-									<fmt:message key="company.top" />
-							</span>
-							</label>
-
-							<%-- =============================================================
-                   TOV
-                   ============================================================= --%>
-
-							<label class="filter-bar__columns-option"> <input
-								type="checkbox" checked data-sukuk-column="tov" /> <span>
-									<fmt:message key="company.tov" />
-							</span>
-							</label>
+            <label
+              class="form-label"
+              for="theoretical-opening-sector"
+            >
+              <fmt:message key="trading.calendar.label.sector" />
+            </label>
 
 
+            <div
+              class="custom-select"
+              data-custom-select
+              data-searchable
+            >
+
+              <div
+                class="form-select-wrap custom-select__fallback"
+              >
+
+                <select
+                  id="theoretical-opening-sector"
+                  class="form-select custom-select__native"
+                  name="sectorParameter"
+                  data-theoretical-opening-sector
+                >
+
+                  <option
+                    value="All"
+                    <c:if
+                      test="${empty requestScope.selectedSector
+                        or requestScope.selectedSector eq 'All'}"
+                    >
+                      selected
+                    </c:if>
+                  >
+                    <fmt:message
+                      key="trading.calendar.label.all.sectors"
+                    />
+                  </option>
 
 
-						</div>
-					</div>
+                  <c:forEach
+                    items="${requestScope.sectorList}"
+                    var="sectorItem"
+                  >
 
-				</div>
-			</div>
+                    <option
+                      value="<c:out value='${sectorItem.modifiedId}' />"
+                      <c:if
+                        test="${requestScope.selectedSector eq sectorItem.modifiedId}"
+                      >
+                        selected
+                      </c:if>
+                    >
+                      <c:out
+                        value="${sectorItem.modifiedName}"
+                      />
+                    </option>
 
-		</form>
+                  </c:forEach>
 
-	</div>
+                </select>
+
+
+                <span
+                  class="form-select-icon has-icon icon-chevron-down"
+                  aria-hidden="true"
+                ></span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </form>
+
+  </div>
 </section>
 
+
 <%-- =========================================================================
-     Sukuk & Bonds Data View
+     Nomu Theoretical Opening Data View
      ========================================================================= --%>
 
-<section class="section sukuk-market-watch-results pt-0"
-	aria-labelledby="sukuk-market-watch-results-title">
-	<div class="container">
+<section
+  class="section theoretical-opening-results pt-0"
+  aria-labelledby="theoretical-opening-results-title"
+>
+  <div class="container">
 
-		<h2 class="visually-hidden" id="sukuk-market-watch-results-title">
-			<fmt:message key="sukukAndBonds.marketwatch.title" />
-		</h2>
+    <h2
+      id="theoretical-opening-results-title"
+      class="visually-hidden"
+    >
+      <fmt:message key="theoretical.title" />
+    </h2>
 
-		<div class="data-view data-view--connected" data-sukuk-data-view>
 
-			<%-- ===================================================================
+    <div
+      class="data-view data-view--connected"
+      data-theoretical-opening-data-view
+    >
+
+
+      <%-- ===================================================================
            Workspace
            =================================================================== --%>
 
-			<div class="data-view__workspace">
+      <div class="data-view__workspace">
 
 
+        <%-- =================================================================
+             Results Toolbar
+             ================================================================= --%>
 
-				<%-- =================================================================
+        <div class="data-view__toolbar">
+
+          <div class="data-view__toolbar-start">
+
+            <p class="data-view__result-count">
+
+              <strong
+                data-theoretical-opening-result-count
+              >
+                0
+              </strong>
+
+              <span>
+                <fmt:message key="results" />
+              </span>
+
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <%-- =================================================================
              Desktop Table
              ================================================================= --%>
 
-				<div class="data-view__table">
-					<div class="data-view__table-block">
+        <div class="data-view__table">
 
-						<table class="table table-market sukuk-market-table"
-							data-sukuk-table>
-							<thead>
+          <div class="data-view__table-block">
 
-								<tr>
+            <table
+              id="theoreticalTableId"
+              class="table table-market theoretical-opening-table"
+              data-theoretical-opening-table
+            >
 
-									<%-- Instrument --%>
-									<th scope="col"><fmt:message key="companyNameCol" /></th>
+              <thead>
 
-									<%-- Previous Close --%>
-									<th scope="col"><fmt:message key="company.Previous.Close" />
-									</th>
-
-									<%-- TOP --%>
-									<th scope="col"><fmt:message key="company.top" /></th>
-
-									<%-- TOV --%>
-									<th scope="col"><fmt:message key="company.tov" /></th>
+                <tr>
 
 
+                  <%-- =======================================================
+                       Company
+                       ======================================================= --%>
+
+                  <th scope="col">
+                    <fmt:message
+                      key="theoretical.nomutable.column.header.company.name"
+                    />
+                  </th>
 
 
-								</tr>
+                  <%-- =======================================================
+                       Previous Close
+                       ======================================================= --%>
 
-							</thead>
+                  <th
+                    scope="col"
+                    class="table-market__number"
+                  >
+                    <fmt:message
+                      key="theoretical.nomutable.column.header.company.Previous.Close"
+                    />
+                  </th>
 
-							<tbody></tbody>
-						</table>
 
-					</div>
-				</div>
+                  <%-- =======================================================
+                       TOP
+                       ======================================================= --%>
 
-				<%-- =================================================================
+                  <th
+                    scope="col"
+                    class="table-market__number"
+                  >
+                    <fmt:message
+                      key="theoretical.nomutable.column.header.company.top"
+                    />
+                  </th>
+
+
+                  <%-- =======================================================
+                       TOV
+                       ======================================================= --%>
+
+                  <th
+                    scope="col"
+                    class="table-market__number"
+                  >
+                    <fmt:message
+                      key="theoretical.nomutable.column.header.company.tov"
+                    />
+                  </th>
+
+                </tr>
+
+              </thead>
+
+              <tbody></tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+
+        <%-- =================================================================
              Mobile Cards
              ================================================================= --%>
 
-				<div class="data-view__cards" data-sukuk-mobile-cards></div>
+        <div
+          id="theoreticalMobileView"
+          class="data-view__cards"
+          data-theoretical-opening-mobile-cards
+        ></div>
 
-			</div>
 
-		</div>
-	</div>
+      </div>
+
+    </div>
+
+
+    <%-- =====================================================================
+         Footnotes
+         ===================================================================== --%>
+
+    <div class="notes">
+
+      <ul>
+
+        <c:if
+          test="${pageContext.request.locale.language eq 'en'}"
+        >
+          <li>
+            <fmt:message key="top.note1" />
+          </li>
+        </c:if>
+
+
+        <li>
+          <fmt:message key="top.note2" />
+        </li>
+
+
+        <li>
+          <fmt:message key="top.note3" />
+        </li>
+
+
+        <li>
+          <fmt:message
+            key="top.market.watch.prices.delayed"
+          />
+        </li>
+
+      </ul>
+
+    </div>
+
+  </div>
 </section>
-
 <%-- =========================================================================
-     Sukuk Configuration
+     Nomu Theoretical Opening Configuration
      ========================================================================= --%>
 
 <script>
-  window.SukukConfig = {
+  window.NomuTheoreticalOpeningConfig = {
+
     /* ======================================================================
        Endpoint
        ====================================================================== */
 
     endpoint:
-  "<portlet:resourceURL id='getNomukTheoreticalOpeningDetails' />",
+      "<portlet:resourceURL id='getNomukTheoreticalOpeningDetails' />",
+
+
+    /* ======================================================================
+       Locale
+       ====================================================================== */
 
     locale:
       "<c:out value='${pageContext.request.locale.language}' />",
+
 
     /* ======================================================================
        Initial State
        ====================================================================== */
 
     initialState: {
-      industry:
-        "<c:out value='${empty requestScope.selectedSector ? "all" : requestScope.selectedSector}' />",
-
-      tableView:
-        "<c:out value='${empty requestScope.selectedTableView ? "1" : requestScope.selectedTableView}' />",
-
-      visibleGroups: [
-        "prev-close",
-        "top",
-        "tov",
-        ],
+      sector:
+        "<c:out value='${empty requestScope.selectedSector ? "All" : requestScope.selectedSector}' />",
     },
+
 
     /* ======================================================================
        Table
        ====================================================================== */
 
     table: {
-    destroy:true,
-    retrieve:true,
       autoWidth: false,
 
       paging: false,
@@ -344,45 +477,51 @@
       fixedColumns: 1,
     },
 
+
     /* ======================================================================
        Labels
        ====================================================================== */
 
     labels: {
+
       loading:
         "<fmt:message key='loading' />",
 
       noData:
         "<fmt:message key='no.data.available' />",
 
+      results:
+        "<fmt:message key='results' />",
+
+      loadError:
+        "<fmt:message key='no.data.available' />",
+
+
       /* --------------------------------------------------------------------
-         Column Picker
+         Mobile
          -------------------------------------------------------------------- */
 
-      showAll:
-        "<fmt:message key='show.hide.all' />",
+      mobile: {
 
-      noColumns:
-        "<fmt:message key='show.hide.no.columns' />",
+        symbolCompany:
+          "<fmt:message key='theoretical.nomutable.column.header.company.name' />",
 
-      selectedSuffix:
-        "<fmt:message key='selected' />",
+        priceVolume:
+          "<fmt:message key='theoretical.nomutable.column.header.company.top' /> / <fmt:message key='theoretical.nomutable.column.header.company.tov' />",
 
-      selectAll:
-        "<fmt:message key='select.all' />",
+      },
 
-      clearAll:
-        "<fmt:message key='clear.all' />",
 
       /* --------------------------------------------------------------------
          Table / Card Fields
          -------------------------------------------------------------------- */
 
       table: {
-        companyName:
+
+        company:
           "<fmt:message key='theoretical.nomutable.column.header.company.name' />",
 
-        prev_close:
+        previousClose:
           "<fmt:message key='theoretical.nomutable.column.header.company.Previous.Close' />",
 
         top:
@@ -391,15 +530,19 @@
         tov:
           "<fmt:message key='theoretical.nomutable.column.header.company.tov' />",
 
-        
       },
+
     },
+
   };
 </script>
 
+
 <%-- =========================================================================
-     Sukuk Entry Module
+     Nomu Theoretical Opening Entry Module
      ========================================================================= --%>
 
-<script type="module"
-	src="${pageContext.request.contextPath}/js/pages/sukuk/sukuk.js"></script>
+<script
+  type="module"
+  src="${pageContext.request.contextPath}/js/pages/theoretical-opening/nomu-theoretical-opening.js"
+></script>

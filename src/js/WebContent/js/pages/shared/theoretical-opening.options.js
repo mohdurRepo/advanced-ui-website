@@ -1,12 +1,12 @@
 /* ==========================================================================
-   Shared Market Table Options
+   Theoretical Opening Table Options
    ========================================================================== */
 
 /*
- * Common DataTables defaults shared by:
+ * DataTables defaults shared by:
  *
- * - Market Watch
- * - Sukuk & Bonds
+ * - Theoretical Opening
+ * - Nomu Theoretical Opening
  *
  * Responsibilities:
  *
@@ -36,7 +36,7 @@ const DEFAULT_LAYOUT = Object.freeze({
   bottomEnd: null,
 });
 
-export const MARKET_TABLE_OPTIONS = Object.freeze({
+export const THEORETICAL_OPENING_TABLE_OPTIONS = Object.freeze({
   autoWidth: false,
 
   paging: false,
@@ -79,7 +79,7 @@ function getDefinedOverrides(overrides = {}) {
    Public Factory
    ========================================================================== */
 
-export function createMarketTableOptions(overrides = {}) {
+export function createTheoreticalOpeningTableOptions(overrides = {}) {
   const normalizedOverrides = getDefinedOverrides(overrides);
 
   const { layout: layoutOverrides, ...optionOverrides } = normalizedOverrides;
@@ -92,7 +92,7 @@ export function createMarketTableOptions(overrides = {}) {
       : {};
 
   return {
-    ...MARKET_TABLE_OPTIONS,
+    ...THEORETICAL_OPENING_TABLE_OPTIONS,
 
     ...optionOverrides,
 

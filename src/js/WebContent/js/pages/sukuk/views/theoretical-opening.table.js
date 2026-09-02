@@ -1,59 +1,124 @@
 /* ==========================================================================
-   Sukuk Table View
+   Theoretical Opening Table View
    ========================================================================== */
 
 /*
-* Sukuk & Bonds desktop table presentation.
-* Refactored to seamlessly support the new 4-column static schema structure.
-*/
+ * Theoretical Opening desktop table presentation.
+ *
+ * Responsibilities:
+ *
+ * - create the desktop DataTable view
+ * - render table cells
+ * - apply Theoretical Opening formatting rules
+ * - group rows by sector
+ *
+ * This module intentionally has no:
+ *
+ * - request execution
+ * - filter state
+ * - response normalization
+ * - mobile card rendering
+ * - page startup
+ */
 
 /* ==========================================================================
    Imports
    ========================================================================== */
 
-import { createDataTable } from "../../../common/data-view/index.js";
-import { createMarketTableOptions } from "../../shared/market-table-options.js";
-import { getColumnGroups, getColumns } from "../sukuk.columns.js";
+import { createDataTable } from "../../common/data-view/index.js";
+
+import { createTheoreticalOpeningTableOptions } from "../shared/theoretical-opening.options.js";
+
+import { getColumns } from "../theoretical-opening.columns.js";
+
 import {
-	  escapeHtml,
-	  getDisplayValue,
-	  getInstrumentName,
-	  renderInstrument,
-	  formatFullNumber,
-	  formatAuctionValue,
-	  formatAuctionQuantity,
-	} from "../sukuk.formatters.js";
+  escapeHtml,
+  formatPreviousClose,
+  formatTOP,
+  formatTOV,
+  getDisplayValue,
+} from "../shared/theoretical-opening.formatters.js";
 
 /* ==========================================================================
    Constants
    ========================================================================== */
 
-export const SUKUK_TABLE_SELECTOR = "[data-sukuk-table]";
+export const THEORETICAL_OPENING_TABLE_SELECTOR =
+  "[data-theoretical-opening-table]";
+
+/* ==========================================================================
+   Company Rendering
+   ========================================================================== */
+
+function renderCompany(row = {}) {
+  const companyName = getDisplayValue(row.companyName, "-");
+
+  const companyCode = getDisplayValue(row.companyCode, "-");
+
+  const companyUrl = String(row.companyUrl ?? "").trim();
+
+  const companyContent =
+    companyUrl && companyUrl !== "#"
+      ? `
+          <a
+            href="${escapeHtml(companyUrl)}"
+            class="stock-name"
+          >
+            ${escapeHtml(companyName)}
+          </a>
+        `.trim()
+      : `
+          <span class="stock-name">
+            ${escapeHtml(companyName)}
+          </span>
+        `.trim();
+
+  return `
+    <div class="company-name-value">
+
+      <div class="stock-name">
+        ${companyContent}
+      </div>
+
+      <div class="stock-number">
+        ${escapeHtml(companyCode)}
+      </div>
+
+    </div>
+  `.trim();
+}
 
 /* ==========================================================================
    Table Cell Rendering
    ========================================================================== */
 
-export function renderSukukTableCell({ row, column, type, config = {} }) {
+export function renderTheoreticalOpeningTableCell({
+  row,
+  column,
+  type,
+  config = {},
+}) {
   /*
-   * Keep raw/backend-oriented values available
-   * for DataTables sorting/type/filter operations.
+   * Keep plain normalized values available to DataTables
+   * for sort / type / filter operations.
    */
+
   if (type === "sort" || type === "type" || type === "filter") {
-    if (column.type === "instrument" || column.key === "companyName") {
-      return getInstrumentName(row);
+    if (column.type === "company" || column.key === "companyName") {
+      return getDisplayValue(row.companyName, "");
     }
-    // Pull the literal mapping straight out of the row data mapping route
-    return getDisplayValue(row[column.data] ?? "", "");
+
+    return getDisplayValue(row[column.data], "");
   }
 
   /* ------------------------------------------------------------------------
      Loading State
      ------------------------------------------------------------------------ */
+
   if (row?.__dataViewState === "loading") {
     const size =
-      (column.type === "instrument" || column.key === "companyName") 
-        ? "table-skeleton-lg" 
+      column.type === "company" || column.key === "companyName"
+        ? "table-skeleton-lg"
         : "table-skeleton-md";
 
     return `
@@ -67,35 +132,37 @@ export function renderSukukTableCell({ row, column, type, config = {} }) {
   /* ------------------------------------------------------------------------
      Display State
      ------------------------------------------------------------------------ */
-  // FIXED: Removed duplicate declaration. Safely extract value from dynamic JSON column target key
+
   const value = row[column.data];
 
   switch (column?.key || column?.type) {
-    case "instrument":
+    case "company":
     case "companyName":
-      return renderInstrument(row);
+      return renderCompany(row);
 
     case "previousClose":
-    case "prev_close":
-      return escapeHtml(formatFullNumber(value));
+      return escapeHtml(formatPreviousClose(value));
 
     case "top":
-      return escapeHtml(formatAuctionValue(value));
+      return escapeHtml(formatTOP(value));
 
     case "tov":
-      return escapeHtml(formatAuctionQuantity(value));
+      return escapeHtml(formatTOV(value, config));
 
     default:
       return escapeHtml(getDisplayValue(value));
   }
 }
 
-
 /* ==========================================================================
    Row Group Renderer
    ========================================================================== */
 
-export function renderSukukGroup({ groupName, groupRows, visibleColumnCount }) {
+export function renderTheoreticalOpeningGroup({
+  groupName,
+  groupRows,
+  visibleColumnCount,
+}) {
   const loading = groupRows
     .data()
     .toArray()
@@ -106,19 +173,28 @@ export function renderSukukGroup({ groupName, groupRows, visibleColumnCount }) {
   }
 
   const row = document.createElement("tr");
+
   row.className = "table-market__group-row table-group-row";
 
   const label = document.createElement("th");
+
   label.scope = "rowgroup";
-  label.className = "table-market__group-label table-group-label table-group-label-sticky";
+
+  label.className =
+    "table-market__group-label table-group-label table-group-label-sticky";
+
   label.textContent = groupName || "Other Sectors";
 
   const fill = document.createElement("td");
+
   fill.className = "table-market__group-fill table-group-fill";
+
   fill.colSpan = Math.max(1, visibleColumnCount - 1);
+
   fill.setAttribute("aria-hidden", "true");
 
   row.append(label, fill);
+
   return row;
 }
 
@@ -126,35 +202,32 @@ export function renderSukukGroup({ groupName, groupRows, visibleColumnCount }) {
    Table Factory
    ========================================================================== */
 
-export function createSukukTable({
+export function createTheoreticalOpeningTable({
   root = document,
   config = {},
-  view = "overview",
-  visibleGroups = [],
+  view = "1",
 } = {}) {
   return createDataTable({
     root,
-    table: SUKUK_TABLE_SELECTOR,
+
+    table: THEORETICAL_OPENING_TABLE_SELECTOR,
+
     initialView: view,
-    visibleGroups,
 
     getColumns() {
       return getColumns(config, view);
     },
 
-    getColumnGroups() {
-      return getColumnGroups(config, view);
-    },
-
     renderCell(args) {
-      return renderSukukTableCell({
+      return renderTheoreticalOpeningTableCell({
         ...args,
         config,
       });
     },
 
-    tableOptions: createMarketTableOptions({
+    tableOptions: createTheoreticalOpeningTableOptions({
       ...config.table,
+
       rowGroup: {
         dataSrc: "sectorName",
       },
@@ -165,7 +238,7 @@ export function createSukukTable({
     },
 
     renderRowGroupStart(args) {
-      return renderSukukGroup(args);
+      return renderTheoreticalOpeningGroup(args);
     },
   });
 }

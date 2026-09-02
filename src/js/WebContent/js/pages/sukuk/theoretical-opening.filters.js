@@ -1,13 +1,13 @@
 /* ==========================================================================
-   Sukuk Filters
+   Theoretical Opening Filters
    ========================================================================== */
 
 /*
- * Sukuk & Bonds filter configuration.
+ * Theoretical Opening filter configuration.
  *
  * Responsibilities:
  *
- * - define Sukuk filter selectors
+ * - define Theoretical Opening filter selectors
  * - define filter normalization
  * - define filter effects
  * - create the common Data View filter controller
@@ -22,7 +22,7 @@
  * - page startup
  */
 
-import { createDataFilters } from "../../common/data-view/index.js";
+import { createDataFilters } from "../common/data-view/index.js";
 
 /*
  * ==========================================================================
@@ -30,8 +30,8 @@ import { createDataFilters } from "../../common/data-view/index.js";
  * ==========================================================================
  */
 
-export const SUKUK_FILTER_SELECTORS = Object.freeze({
-  bondType: "[data-sukuk-bond-type]",
+export const THEORETICAL_OPENING_FILTER_SELECTORS = Object.freeze({
+  sector: "[data-theoretical-opening-sector]",
 });
 
 /*
@@ -40,10 +40,10 @@ export const SUKUK_FILTER_SELECTORS = Object.freeze({
  * ==========================================================================
  */
 
-export function normalizeSukukBondType(value) {
+export function normalizeTheoreticalOpeningSector(value) {
   const normalized = String(value ?? "").trim();
 
-  return normalized || "all";
+  return normalized || "All";
 }
 
 /*
@@ -52,14 +52,14 @@ export function normalizeSukukBondType(value) {
  * ==========================================================================
  */
 
-export function getSukukFilterFields() {
+export function getTheoreticalOpeningFilterFields() {
   return {
-    bondType: {
-      selector: SUKUK_FILTER_SELECTORS.bondType,
+    sector: {
+      selector: THEORETICAL_OPENING_FILTER_SELECTORS.sector,
 
       effect: "reload",
 
-      normalize: normalizeSukukBondType,
+      normalize: normalizeTheoreticalOpeningSector,
     },
   };
 }
@@ -70,10 +70,10 @@ export function getSukukFilterFields() {
  * ==========================================================================
  */
 
-export function createSukukFilters({ root = document } = {}) {
+export function createTheoreticalOpeningFilters({ root = document } = {}) {
   return createDataFilters({
     root,
 
-    fields: getSukukFilterFields(),
+    fields: getTheoreticalOpeningFilterFields(),
   });
 }

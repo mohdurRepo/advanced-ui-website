@@ -53,9 +53,12 @@ import {
   getConfiguredVisibleGroups,
   getSukukConfig,
   SUKUK_VIEW,
-} from "./sukuk.config.js";
+} from "./theoretical-opening.config.js";
 
-import { getColumnGroups, getDefaultVisibleGroups } from "./sukuk.columns.js";
+import {
+  getColumnGroups,
+  getDefaultVisibleGroups,
+} from "./theoretical-opening.columns.js";
 
 import { createSukukFilters } from "./sukuk.filters.js";
 
@@ -81,7 +84,6 @@ const SELECTORS = {
   columnInput: "[data-sukuk-column]",
 
   columnAction: "[data-sukuk-columns-action]",
-
 };
 
 /*
@@ -111,8 +113,8 @@ function getAvailableGroups(config) {
 function buildRequestData(config, state) {
   return {
     /*
-	 * Preserve the existing backend contract.
-	 */
+     * Preserve the existing backend contract.
+     */
 
     sectorParameter: state.industry || "all",
 
@@ -146,16 +148,16 @@ function handleFavorite(event, scope) {
   const instrumentRef = button.dataset.instrumentRef || "";
 
   /*
-	 * Preserve the existing website-level watchlist integration.
-	 */
+   * Preserve the existing website-level watchlist integration.
+   */
 
   if (typeof window.showAddToWatchListPopup === "function") {
     window.showAddToWatchListPopup(instrumentRef);
   }
 
   /*
-	 * Preserve the existing page-level event.
-	 */
+   * Preserve the existing page-level event.
+   */
 
   button.dispatchEvent(
     new CustomEvent("sukuk:favorite-request", {
@@ -188,10 +190,10 @@ export function initSukuk(root = document) {
   const config = getSukukConfig();
 
   /*
-	 * ========================================================================
-	 * State
-	 * ========================================================================
-	 */
+   * ========================================================================
+   * State
+   * ========================================================================
+   */
 
   const state = createDataState({
     loading: false,
@@ -206,20 +208,20 @@ export function initSukuk(root = document) {
   });
 
   /*
-	 * ========================================================================
-	 * Filters
-	 * ========================================================================
-	 */
+   * ========================================================================
+   * Filters
+   * ========================================================================
+   */
 
   const filters = createSukukFilters({
     root: scope,
   });
 
   /*
-	 * ========================================================================
-	 * Column Visibility
-	 * ========================================================================
-	 */
+   * ========================================================================
+   * Column Visibility
+   * ========================================================================
+   */
 
   const availableGroups = getAvailableGroups(config);
 
@@ -236,10 +238,10 @@ export function initSukuk(root = document) {
   });
 
   /*
-	 * ========================================================================
-	 * Column Picker
-	 * ========================================================================
-	 */
+   * ========================================================================
+   * Column Picker
+   * ========================================================================
+   */
 
   const columnPicker = createDataColumnPicker({
     root: scope,
@@ -278,10 +280,10 @@ export function initSukuk(root = document) {
   });
 
   /*
-	 * ========================================================================
-	 * Data Source
-	 * ========================================================================
-	 */
+   * ========================================================================
+   * Data Source
+   * ========================================================================
+   */
 
   const source = createDataSource({
     endpoint: config.endpoint,
@@ -294,10 +296,10 @@ export function initSukuk(root = document) {
   });
 
   /*
-	 * ========================================================================
-	 * Table
-	 * ========================================================================
-	 */
+   * ========================================================================
+   * Table
+   * ========================================================================
+   */
 
   const table = createSukukTable({
     root: scope,
@@ -310,10 +312,10 @@ export function initSukuk(root = document) {
   });
 
   /*
-	 * ========================================================================
-	 * Cards
-	 * ========================================================================
-	 */
+   * ========================================================================
+   * Cards
+   * ========================================================================
+   */
 
   const cards = createSukukCards({
     root: scope,
@@ -323,11 +325,11 @@ export function initSukuk(root = document) {
     view: SUKUK_VIEW,
 
     /*
-	 * Important:
-	 * 
-	 * Resolve visible groups at render time so mobile cards remain synchronized
-	 * with the column picker.
-	 */
+     * Important:
+     *
+     * Resolve visible groups at render time so mobile cards remain synchronized
+     * with the column picker.
+     */
 
     getVisibleGroups() {
       return columnVisibility.getVisibleGroups();
@@ -335,10 +337,10 @@ export function initSukuk(root = document) {
   });
 
   /*
-	 * ========================================================================
-	 * Results
-	 * ========================================================================
-	 */
+   * ========================================================================
+   * Results
+   * ========================================================================
+   */
 
   const resultCountElement = scope.querySelector(SELECTORS.resultCount);
 
@@ -347,7 +349,6 @@ export function initSukuk(root = document) {
         root: scope,
 
         labels: {
-
           empty: config.labels?.noData || "No data available",
 
           error: config.labels?.loadError || "Unable to load Sukuk data.",
@@ -356,10 +357,10 @@ export function initSukuk(root = document) {
     : null;
 
   /*
-	 * ========================================================================
-	 * Controller
-	 * ========================================================================
-	 */
+   * ========================================================================
+   * Controller
+   * ========================================================================
+   */
 
   const controller = createDataViewController({
     source,
@@ -385,8 +386,8 @@ export function initSukuk(root = document) {
     },
 
     /*
-	 * Keep the DOM picker synchronized with common visibility state.
-	 */
+     * Keep the DOM picker synchronized with common visibility state.
+     */
 
     onViewSync() {
       columnPicker.refresh();
@@ -409,10 +410,10 @@ export function initSukuk(root = document) {
   });
 
   /*
-	 * ========================================================================
-	 * Page Events
-	 * ========================================================================
-	 */
+   * ========================================================================
+   * Page Events
+   * ========================================================================
+   */
 
   const abortController = new AbortController();
 
@@ -421,11 +422,11 @@ export function initSukuk(root = document) {
   };
 
   /*
-	 * Favorite buttons are rendered in both: - desktop Instrument cells -
-	 * mobile card identities
-	 * 
-	 * Keep one delegated handler.
-	 */
+   * Favorite buttons are rendered in both: - desktop Instrument cells -
+   * mobile card identities
+   *
+   * Keep one delegated handler.
+   */
 
   scope.addEventListener(
     "click",
@@ -438,9 +439,9 @@ export function initSukuk(root = document) {
   );
 
   /*
-	 * Reload after external watchlist changes so server-returned favorite state
-	 * remains authoritative.
-	 */
+   * Reload after external watchlist changes so server-returned favorite state
+   * remains authoritative.
+   */
 
   scope.addEventListener(
     "sukuk:watchlist-updated",
@@ -453,18 +454,18 @@ export function initSukuk(root = document) {
   );
 
   /*
-	 * ========================================================================
-	 * Initialization
-	 * ========================================================================
-	 */
+   * ========================================================================
+   * Initialization
+   * ========================================================================
+   */
 
   controller.init();
 
   /*
-	 * ========================================================================
-	 * Public Instance
-	 * ========================================================================
-	 */
+   * ========================================================================
+   * Public Instance
+   * ========================================================================
+   */
 
   const instance = Object.freeze({
     destroy() {
