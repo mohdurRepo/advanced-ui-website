@@ -6,7 +6,7 @@
  * Responsibilities:
  *
  * - normalize supported response containers
- * - normalize rows into the feature's canonical field names
+ * - normalize legacy backend aliases into canonical feature fields
  * - expose total / updatedAt metadata
  *
  * Shared by:
@@ -24,11 +24,13 @@ function isObject(value) {
 }
 
 function firstDefined(...values) {
-  return values.find((value) => value !== undefined && value !== null);
+  return values.find(
+    (value) => value !== undefined && value !== null && value !== "",
+  );
 }
 
 /* ==========================================================================
-   Rows
+   Response Rows
    ========================================================================== */
 
 function getResponseRows(response) {
@@ -44,6 +46,10 @@ function getResponseRows(response) {
     return response.data;
   }
 
+  if (isObject(response.data) && Array.isArray(response.data.content)) {
+    return response.data.content;
+  }
+
   if (Array.isArray(response.rows)) {
     return response.rows;
   }
@@ -52,8 +58,20 @@ function getResponseRows(response) {
     return response.results;
   }
 
+  if (Array.isArray(response.result)) {
+    return response.result;
+  }
+
+  if (Array.isArray(response.content)) {
+    return response.content;
+  }
+
   return [];
 }
+
+/* ==========================================================================
+   Row Normalization
+   ========================================================================== */
 
 function normalizeRow(row) {
   if (!isObject(row)) {
@@ -63,13 +81,90 @@ function normalizeRow(row) {
   return {
     ...row,
 
-    companyName: firstDefined(row.companyName, ""),
+    /* ----------------------------------------------------------------------
+       Company Identity
+       ---------------------------------------------------------------------- */
 
-    previousClose: firstDefined(row.previousClose, ""),
+    companyName: firstDefined(
+      row.companyName,
+      row.acrynomName,
+      row.acronymName,
+      row.company,
+      row.name,
+      row.issuerName,
+      "",
+    ),
 
-    top: firstDefined(row.top, ""),
+    companyCode: firstDefined(
+      row.companyCode,
+      row.companySymbol,
+      row.symbol,
+      row.companyRef,
+      row.securityCode,
+      row.issuerCode,
+      "",
+    ),
 
-    tov: firstDefined(row.tov, ""),
+    companyUrl: firstDefined(
+      row.companyUrl,
+      row.companyURL,
+      row.pageUrl,
+      row.url,
+      "",
+    ),
+
+    /* ----------------------------------------------------------------------
+       Sector
+       ---------------------------------------------------------------------- */
+
+    sectorName: firstDefined(
+      row.sectorName,
+      row.sector,
+      row.sectorDescription,
+      "",
+    ),
+
+    /* ----------------------------------------------------------------------
+       Previous Close
+       ---------------------------------------------------------------------- */
+
+    previousClose: firstDefined(
+      row.prev_close,
+      row.previousClose,
+      row.previousClosePrice,
+      row.prevClose,
+      row.previousClosingPrice,
+      row.closePrice,
+      "",
+    ),
+
+    /* ----------------------------------------------------------------------
+       Theoretical Opening Price
+       ---------------------------------------------------------------------- */
+
+    top: firstDefined(
+      row.top,
+      row.TOP,
+      row.theoreticalOpeningPrice,
+      row.theoreticalPrice,
+      row.indicativeOpeningPrice,
+      row.openingPrice,
+      "",
+    ),
+
+    /* ----------------------------------------------------------------------
+       Theoretical Opening Volume
+       ---------------------------------------------------------------------- */
+
+    tov: firstDefined(
+      row.tov,
+      row.TOV,
+      row.theoreticalOpeningVolume,
+      row.theoreticalVolume,
+      row.indicativeOpeningVolume,
+      row.openingVolume,
+      "",
+    ),
   };
 }
 
@@ -86,11 +181,12 @@ function getTotal(response, rows) {
     response.total,
     response.recordsTotal,
     response.recordsFiltered,
+    response.totalElements,
   );
 
-  const number = Number(total);
+  const numericTotal = Number(total);
 
-  return Number.isFinite(number) ? number : rows.length;
+  return Number.isFinite(numericTotal) ? numericTotal : rows.length;
 }
 
 function getUpdatedAt(response) {

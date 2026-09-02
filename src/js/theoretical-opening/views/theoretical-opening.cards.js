@@ -7,6 +7,7 @@
  *
  * - create the mobile card collection
  * - render one Theoretical Opening card per row
+ * - reuse the common standard company identity
  * - reuse the standard data-card renderer
  *
  * Shared by:
@@ -21,12 +22,12 @@
 
 import {
   createDataCards,
+  renderStandardCompanyCardIdentity,
   renderStandardDataCard,
 } from "../../../common/data-view/index.js";
 
 import {
   escapeHtml,
-  formatCompanyName,
   formatPreviousClose,
   formatTop,
   formatTov,
@@ -65,18 +66,8 @@ function createRowId(row, index) {
    Summary
    ========================================================================== */
 
-function renderSummary(row) {
-  const companyName = formatCompanyName(row?.companyName);
-
-  return `
-    <div class="data-card__identity">
-      <div class="data-card__identity-main">
-        <span class="data-card__title">
-          ${escapeHtml(companyName)}
-        </span>
-      </div>
-    </div>
-  `.trim();
+function renderSummary(row, config) {
+  return renderStandardCompanyCardIdentity(row, config);
 }
 
 /* ==========================================================================
@@ -118,8 +109,6 @@ function createFields(row, config) {
    ========================================================================== */
 
 function renderCard(row, context, config) {
-  const companyName = formatCompanyName(row?.companyName);
-
   const showDetails = config.labels?.mobile?.showDetails || "Show details";
 
   const hideDetails = config.labels?.mobile?.hideDetails || "Hide details";
@@ -129,13 +118,13 @@ function renderCard(row, context, config) {
 
     rowId: createRowId(row, context.index),
 
-    summary: renderSummary(row),
+    summary: renderSummary(row, config),
 
     fields: createFields(row, config),
 
-    moreLabel: `${showDetails} ${companyName}`,
+    moreLabel: showDetails,
 
-    lessLabel: `${hideDetails} ${companyName}`,
+    lessLabel: hideDetails,
   });
 }
 

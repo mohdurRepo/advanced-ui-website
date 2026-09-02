@@ -7,7 +7,8 @@
  *
  * - create the desktop table
  * - connect Theoretical Opening columns to createDataTable()
- * - render page-specific cell values
+ * - render page-specific values
+ * - reuse the common standard company identity
  *
  * Shared by:
  *
@@ -19,7 +20,10 @@
    Imports
    ========================================================================== */
 
-import { createDataTable } from "../../../common/data-view/index.js";
+import {
+  createDataTable,
+  renderStandardCompanyCell,
+} from "../../../common/data-view/index.js";
 
 import {
   getColumns,
@@ -27,7 +31,6 @@ import {
 } from "../theoretical-opening.columns.js";
 
 import {
-  formatCompanyName,
   formatPreviousClose,
   formatTop,
   formatTov,
@@ -47,20 +50,31 @@ function getTableSelector(variant) {
    Rendering
    ========================================================================== */
 
-function renderCell({ row, column, type }) {
+function renderCell({ row, column, type, config }) {
+  /*
+   * Company identity is rendered from the complete row because common
+   * identity needs:
+   *
+   * - company name
+   * - company code
+   * - company URL
+   * - company logo configuration
+   */
+  if (column.id === "companyName") {
+    if (type !== "display") {
+      return row?.companyName ?? "";
+    }
+
+    return renderStandardCompanyCell(row, config);
+  }
+
   const value = column.data ? row?.[column.data] : "";
 
-  /*
-   * Keep raw values available for non-display DataTables operations.
-   */
   if (type !== "display") {
     return value ?? "";
   }
 
   switch (column.id) {
-    case "companyName":
-      return formatCompanyName(value);
-
     case "previousClose":
       return formatPreviousClose(value);
 
@@ -99,7 +113,12 @@ export function createTheoreticalOpeningTable({
       return getColumns(config, THEORETICAL_OPENING_VIEW);
     },
 
-    renderCell,
+    renderCell(args) {
+      return renderCell({
+        ...args,
+        config,
+      });
+    },
 
     tableOptions: config.table,
   });

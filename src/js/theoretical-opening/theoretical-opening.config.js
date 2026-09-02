@@ -14,6 +14,7 @@
  * - validate the endpoint
  * - normalize locale / initial state
  * - normalize labels
+ * - preserve company identity asset configuration
  * - expose immutable page configuration
  */
 
@@ -83,13 +84,18 @@ function normalizeInitialState(value) {
 
 function normalizeLabels(value) {
   const labels = isObject(value) ? value : {};
+
   const mobile = isObject(labels.mobile) ? labels.mobile : {};
+
   const table = isObject(labels.table) ? labels.table : {};
 
   return {
     loading: normalizeString(labels.loading) || "Loading...",
 
-    noData: normalizeString(labels.noData) || "No data available",
+    noData:
+      normalizeString(labels.noData) ||
+      normalizeString(labels.noDataAvailable) ||
+      "No data available",
 
     loadError: normalizeString(labels.loadError) || "",
 
@@ -113,7 +119,25 @@ function normalizeLabels(value) {
       top: normalizeString(table.top),
 
       tov: normalizeString(table.tov),
+
+      theoreticalOpening: normalizeString(table.theoreticalOpening),
     },
+  };
+}
+
+/* ==========================================================================
+   Assets
+   ========================================================================== */
+
+function normalizeAssets(value) {
+  if (!isObject(value)) {
+    return {};
+  }
+
+  return {
+    companyLogoUrlTemplate: normalizeString(value.companyLogoUrlTemplate),
+
+    companyLogoFallbackUrl: normalizeString(value.companyLogoFallbackUrl),
   };
 }
 
@@ -126,11 +150,6 @@ function normalizeTableOptions(value) {
     return {};
   }
 
-  /*
-   * Common createDataTable() already owns the default DataTables options.
-   *
-   * Only preserve page-provided overrides here.
-   */
   return {
     ...value,
   };
@@ -158,6 +177,8 @@ export function createTheoreticalOpeningConfig(
     initialState: normalizeInitialState(rawConfig.initialState),
 
     labels: normalizeLabels(rawConfig.labels),
+
+    assets: normalizeAssets(rawConfig.assets),
 
     table: normalizeTableOptions(rawConfig.table),
   };

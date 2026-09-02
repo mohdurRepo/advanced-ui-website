@@ -30,34 +30,66 @@ function createColumns(config) {
   return [
     {
       id: "companyName",
-      data: "companyName",
-      title: labels.companyName || "",
+
+      /*
+       * Company identity needs the complete row:
+       *
+       * - company logo
+       * - company name
+       * - company code
+       * - company URL
+       */
+      data: null,
+
+      title: labels.companyName || "Company Name",
+
       width: "40%",
-      className: "text-start",
+
+      className: "table-market__security",
+
+      orderable: false,
     },
 
     {
       id: "previousClose",
+
       data: "previousClose",
-      title: labels.previousClose || "",
+
+      title: labels.previousClose || "Previous Close",
+
       width: "20%",
-      className: "text-center",
+
+      className: "numeric text-center",
+
+      orderable: false,
     },
 
     {
       id: "top",
+
       data: "top",
-      title: labels.top || "",
+
+      title: labels.top || "TOP",
+
       width: "20%",
-      className: "text-center",
+
+      className: "numeric text-center",
+
+      orderable: false,
     },
 
     {
       id: "tov",
+
       data: "tov",
-      title: labels.tov || "",
+
+      title: labels.tov || "TOV",
+
       width: "20%",
-      className: "text-center",
+
+      className: "numeric text-center",
+
+      orderable: false,
     },
   ];
 }

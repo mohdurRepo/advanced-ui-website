@@ -39,6 +39,12 @@ export function toNumber(value) {
   return Number.isFinite(number) ? number : null;
 }
 
+export function isZeroLike(value) {
+  const number = toNumber(value);
+
+  return number !== null && number === 0;
+}
+
 /* ==========================================================================
    Numeric Formatting
    ========================================================================== */
@@ -56,6 +62,16 @@ export function formatDecimal(value, decimals = 2, fallback = EMPTY_VALUE) {
   });
 }
 
+export function formatQuantity(value, fallback = EMPTY_VALUE) {
+  const number = toNumber(value);
+
+  if (number === null) {
+    return fallback;
+  }
+
+  return number.toLocaleString("en-US");
+}
+
 /* ==========================================================================
    Theoretical Opening Fields
    ========================================================================== */
@@ -65,15 +81,27 @@ export function formatCompanyName(value) {
 }
 
 export function formatPreviousClose(value) {
+  if (!hasValue(value) || isZeroLike(value)) {
+    return EMPTY_VALUE;
+  }
+
   return formatDecimal(value, 2);
 }
 
 export function formatTop(value) {
+  if (!hasValue(value) || isZeroLike(value)) {
+    return EMPTY_VALUE;
+  }
+
   return formatDecimal(value, 2);
 }
 
 export function formatTov(value) {
-  return getDisplayValue(value);
+  if (!hasValue(value) || isZeroLike(value)) {
+    return EMPTY_VALUE;
+  }
+
+  return formatQuantity(value);
 }
 
 /* ==========================================================================
