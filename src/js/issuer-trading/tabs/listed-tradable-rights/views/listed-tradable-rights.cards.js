@@ -3,34 +3,32 @@
    ========================================================================== */
 
 /*
- * Mobile card view for Listed Tradable Rights.
+ * Mobile card presentation for Listed Tradable Rights.
  *
  * Responsibilities:
  *
  * - render the standard Market Watch company identity
- * - label the company and quote summary clearly
  * - render last-trade price and percentage change
  * - render expandable trading details
- * - render loading, empty, and error states
- * - initialize the existing design-system Data Card behavior
+ * - provide Listed Tradable Rights loading markup
+ * - provide Listed Tradable Rights empty/error markup
  *
  * This module intentionally has no:
  *
- * - endpoint code
+ * - DOM queries
+ * - createDataCards() initialization
  * - request lifecycle
  * - response normalization
- * - desktop table logic
- * - breakpoint detection
+ * - busy-state management
+ * - destruction logic
+ * - breakpoint behavior
  */
 
 /* ==========================================================================
    Imports
    ========================================================================== */
 
-import {
-  createDataCards,
-  renderStandardDataCard,
-} from "../../../../../common/data-view/index.js";
+import { renderStandardDataCard } from "../../../../../common/data-view/index.js";
 
 import {
   escapeHtml,
@@ -43,19 +41,11 @@ import { createListedTradableRightsFormatters } from "../listed-tradable-rights.
    Constants
    ========================================================================== */
 
-const SELECTORS = Object.freeze({
-  region: "[data-listed-tradable-rights-mobile]",
+const VIEW_KEY = "listed-tradable-rights";
 
-  cards: "[data-listed-tradable-rights-cards]",
-});
+const DEFAULT_LOADING_CARD_COUNT = 3;
 
 const DEFAULT_LABELS = Object.freeze({
-  company: "Company",
-
-  price: "Price",
-
-  changePercent: "Change %",
-
   showDetails: "More details",
 
   hideDetails: "Less details",
@@ -66,15 +56,11 @@ const DEFAULT_LABELS = Object.freeze({
 });
 
 /* ==========================================================================
-   General Helpers
+   Helpers
    ========================================================================== */
 
 function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-function isElement(value) {
-  return Boolean(value && value.nodeType === 1);
 }
 
 function getFirstLabel(...values) {
@@ -89,68 +75,16 @@ function getFirstLabel(...values) {
   return "";
 }
 
-function getRootElement(root) {
-  if (root && typeof root.querySelector === "function") {
-    return root;
-  }
-
-  throw new TypeError(
-    "Listed Tradable Rights cards require a valid root element.",
-  );
-}
-
-function resolveRequiredElement(root, selector, name) {
-  const element = root.querySelector(selector);
-
-  if (!isElement(element)) {
-    throw new Error(`Listed Tradable Rights ${name} was not found.`);
-  }
-
-  return element;
-}
-
 /* ==========================================================================
    Labels
    ========================================================================== */
 
-function getLabels(config = {}, formatterLabels = {}) {
-  const listedTradableRights = config.labels?.listedTradableRights || {};
+function getLabels(config = {}) {
+  const feature = config.labels?.listedTradableRights || {};
 
-  const table = listedTradableRights.table || {};
-
-  const mobile = listedTradableRights.mobile || {};
-
-  const cards = listedTradableRights.cards || {};
+  const mobile = feature.mobile || {};
 
   return Object.freeze({
-    company:
-      getFirstLabel(
-        cards.company,
-        cards.symbolAndCompany,
-        mobile.company,
-        mobile.symbolAndCompany,
-        table.company,
-        formatterLabels.company,
-      ) || DEFAULT_LABELS.company,
-
-    price:
-      getFirstLabel(
-        cards.price,
-        mobile.price,
-        table.price,
-        table.lastTradePrice,
-        formatterLabels.price,
-        formatterLabels.lastTradePrice,
-      ) || DEFAULT_LABELS.price,
-
-    changePercent:
-      getFirstLabel(
-        cards.changePercent,
-        mobile.changePercent,
-        table.changePercent,
-        formatterLabels.changePercent,
-      ) || DEFAULT_LABELS.changePercent,
-
     showDetails:
       getFirstLabel(mobile.showDetails, config.labels?.mobile?.showDetails) ||
       DEFAULT_LABELS.showDetails,
@@ -179,18 +113,26 @@ function renderLoadingCard() {
         <div class="data-card__summary">
           <div class="data-card__summary-identity">
             <span class="data-card__quote-label">
-              <span class="table-skeleton table-skeleton-sm"></span>
+              <span
+                class="table-skeleton table-skeleton-sm"
+              ></span>
             </span>
 
             <div class="data-card__identity">
               <span class="data-card__logo">
-                <span class="table-skeleton table-skeleton-md"></span>
+                <span
+                  class="table-skeleton table-skeleton-md"
+                ></span>
               </span>
 
               <div class="data-card__identity-content">
-                <span class="table-skeleton table-skeleton-lg"></span>
+                <span
+                  class="table-skeleton table-skeleton-lg"
+                ></span>
 
-                <span class="table-skeleton table-skeleton-sm"></span>
+                <span
+                  class="table-skeleton table-skeleton-sm"
+                ></span>
               </div>
             </div>
           </div>
@@ -198,18 +140,26 @@ function renderLoadingCard() {
           <div class="data-card__quote">
             <div class="data-card__quote-item">
               <span class="data-card__quote-label">
-                <span class="table-skeleton table-skeleton-sm"></span>
+                <span
+                  class="table-skeleton table-skeleton-sm"
+                ></span>
               </span>
 
-              <span class="table-skeleton table-skeleton-md"></span>
+              <span
+                class="table-skeleton table-skeleton-md"
+              ></span>
             </div>
 
             <div class="data-card__quote-item">
               <span class="data-card__quote-label">
-                <span class="table-skeleton table-skeleton-sm"></span>
+                <span
+                  class="table-skeleton table-skeleton-sm"
+                ></span>
               </span>
 
-              <span class="table-skeleton table-skeleton-sm"></span>
+              <span
+                class="table-skeleton table-skeleton-sm"
+              ></span>
             </div>
           </div>
         </div>
@@ -218,8 +168,13 @@ function renderLoadingCard() {
   `.trim();
 }
 
-function renderLoadingCards(count = 3) {
-  const loadingCount = Math.max(1, Number(count) || 3);
+function renderLoadingCards(count = DEFAULT_LOADING_CARD_COUNT) {
+  const parsedCount = Number(count);
+
+  const loadingCount =
+    Number.isFinite(parsedCount) && parsedCount > 0
+      ? Math.floor(parsedCount)
+      : DEFAULT_LOADING_CARD_COUNT;
 
   return `
     <div
@@ -237,20 +192,20 @@ function renderLoadingCards(count = 3) {
 }
 
 /* ==========================================================================
-   Empty and Error States
+   Empty / Error
    ========================================================================== */
 
 function renderMessage({ message, imageUrl = "", isError = false }) {
   const imageMarkup = imageUrl
     ? `
-        <img
-          class="data-view__empty-image"
-          src="${escapeHtml(imageUrl)}"
-          alt=""
-          loading="lazy"
-          aria-hidden="true"
-        />
-      `.trim()
+          <img
+            class="data-view__empty-image"
+            src="${escapeHtml(imageUrl)}"
+            alt=""
+            loading="lazy"
+            aria-hidden="true"
+          />
+        `.trim()
     : "";
 
   return `
@@ -422,60 +377,45 @@ function createCardFields(values, labels) {
 }
 
 /* ==========================================================================
-   Public Cards View
+   Public Factory
    ========================================================================== */
 
-export function createListedTradableRightsCards(options = {}) {
-  if (!isObject(options)) {
+export function createListedTradableRightsCards(config = {}) {
+  if (!isObject(config)) {
     throw new TypeError(
-      "createListedTradableRightsCards requires an options object.",
+      "createListedTradableRightsCards requires a configuration object.",
     );
   }
 
-  const root = getRootElement(options.root);
+  const formatters = createListedTradableRightsFormatters(config);
 
-  const config = isObject(options.config) ? options.config : {};
-
-  const formatters =
-    options.formatters || createListedTradableRightsFormatters(config);
-
-  const labels = getLabels(config, formatters.labels);
-
-  const regionElement = resolveRequiredElement(
-    root,
-    SELECTORS.region,
-    "mobile region",
-  );
-
-  const cardsElement = resolveRequiredElement(
-    root,
-    SELECTORS.cards,
-    "card container",
-  );
+  const labels = getLabels(config);
 
   const noDataImageUrl = normalizeString(config.assets?.noDataImageUrl);
 
-  let destroyed = false;
-
   /* ========================================================================
-     Card Renderer
+     Card
      ======================================================================== */
 
-  function renderCard(row, context = {}) {
-    const values = formatters.getCardValues(row);
+  function renderCard(input = {}) {
+    const row = input.row || {};
 
-    const fields = createCardFields(values, formatters.labels);
+    const parsedIndex = Number(input.index);
+
+    const index = Number.isFinite(parsedIndex) ? parsedIndex : 0;
+
+    const values = formatters.getCardValues(row);
 
     return renderStandardDataCard({
       idPrefix: "listed-tradable-rights-details",
 
-      rowId: values.id || context.index,
+      rowId: values.id || `${VIEW_KEY}-${index + 1}`,
 
       className: "data-card--listed-tradable-rights",
 
       summary: renderCardSummary(row, values, formatters),
 
-      fields,
+      fields: createCardFields(values, formatters.labels),
 
       moreLabel: labels.showDetails,
 
@@ -484,157 +424,42 @@ export function createListedTradableRightsCards(options = {}) {
   }
 
   /* ========================================================================
-     Shared Cards Collection
+     Collection States
      ======================================================================== */
 
-  const cards = createDataCards({
-    root,
-
-    container: cardsElement,
-
-    autoRender: false,
-
-    renderCard,
-
-    renderLoading() {
-      return renderLoadingCards(options.loadingCardCount || 3);
-    },
-
-    renderEmpty(message) {
-      return renderMessage({
-        message: normalizeString(message) || labels.noData,
-
-        imageUrl: noDataImageUrl,
-      });
-    },
-
-    renderError(message) {
-      return renderMessage({
-        message: normalizeString(message) || labels.error,
-
-        isError: true,
-      });
-    },
-
-    emptyMessage: labels.noData,
-
-    errorMessage: labels.error,
-
-    afterRender(context) {
-      options.afterRender?.(context);
-    },
-  });
-
-  /* ========================================================================
-     Busy State
-     ======================================================================== */
-
-  function setBusy(busy) {
-    const value = String(Boolean(busy));
-
-    regionElement.setAttribute("aria-busy", value);
-
-    cardsElement.setAttribute("aria-busy", value);
+  function renderLoading(context = {}) {
+    return renderLoadingCards(context.count ?? DEFAULT_LOADING_CARD_COUNT);
   }
-
-  /* ========================================================================
-     Loading
-     ======================================================================== */
-
-  function renderLoading() {
-    if (destroyed) {
-      return;
-    }
-
-    setBusy(true);
-
-    cards.showLoading();
-  }
-
-  /* ========================================================================
-     Rows
-     ======================================================================== */
-
-  function renderRows(rows = []) {
-    if (destroyed) {
-      return;
-    }
-
-    const normalizedRows = Array.isArray(rows) ? rows : [];
-
-    setBusy(false);
-
-    if (!normalizedRows.length) {
-      renderEmpty();
-
-      return;
-    }
-
-    cards.setRows(normalizedRows);
-  }
-
-  /* ========================================================================
-     Empty
-     ======================================================================== */
 
   function renderEmpty(message = labels.noData) {
-    if (destroyed) {
-      return;
-    }
+    return renderMessage({
+      message: normalizeString(message) || labels.noData,
 
-    setBusy(false);
-
-    cards.showEmpty(normalizeString(message) || labels.noData);
+      imageUrl: noDataImageUrl,
+    });
   }
-
-  /* ========================================================================
-     Error
-     ======================================================================== */
 
   function renderError(message = labels.error) {
-    if (destroyed) {
-      return;
-    }
+    return renderMessage({
+      message: normalizeString(message) || labels.error,
 
-    setBusy(false);
-
-    cards.showError(normalizeString(message) || labels.error);
+      isError: true,
+    });
   }
 
   /* ========================================================================
-     Lifecycle
-     ======================================================================== */
-
-  function destroy() {
-    if (destroyed) {
-      return;
-    }
-
-    destroyed = true;
-
-    setBusy(false);
-
-    cards.destroy();
-  }
-
-  /* ========================================================================
-     Public Instance
+     Definition
      ======================================================================== */
 
   return Object.freeze({
-    destroy,
+    key: VIEW_KEY,
+
+    renderCard,
+
+    renderLoading,
 
     renderEmpty,
+
     renderError,
-    renderLoading,
-    renderRows,
-
-    getRows() {
-      return cards.getRows();
-    },
-
-    getState() {
-      return cards.getState();
-    },
   });
 }

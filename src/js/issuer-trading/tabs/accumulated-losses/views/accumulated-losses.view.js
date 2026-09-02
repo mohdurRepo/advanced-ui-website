@@ -7,7 +7,7 @@
  *
  * Responsibilities:
  *
- * - render all returned companies
+ * - render every returned company
  * - render company image, name, and code
  * - render accumulated-loss status indicators accessibly
  * - render loading, empty, and error states
@@ -49,9 +49,9 @@ import {
 
 const DEFAULT_LOADING_COUNT = 5;
 
-const DEFAULT_LABELS = Object.freeze({
-  loading: "Loading results\u2026",
+const STANDARD_IDENTITY_EMPTY_VALUE = "-";
 
+const DEFAULT_LABELS = Object.freeze({
   noData: "No data available.",
 
   error: "Unable to load data.",
@@ -113,13 +113,29 @@ function resolveRequiredElement(root, selector, name) {
   return element;
 }
 
+function normalizeStandardIdentityValue(value) {
+  const normalized = normalizeString(value);
+
+  return normalized === STANDARD_IDENTITY_EMPTY_VALUE ? "" : normalized;
+}
+
+function getCompanyName(row) {
+  return normalizeStandardIdentityValue(getStandardCompanyName(row));
+}
+
+function getCompanyCode(row) {
+  return normalizeStandardIdentityValue(getStandardCompanyCode(row));
+}
+
+/* ==========================================================================
+   Labels
+   ========================================================================== */
+
 function getLabels(config = {}) {
   const statusLabels =
     config.labels?.accumulatedLosses?.status || config.labels?.status || {};
 
   return Object.freeze({
-    loading: normalizeString(config.labels?.loading) || DEFAULT_LABELS.loading,
-
     noData: normalizeString(config.labels?.noData) || DEFAULT_LABELS.noData,
 
     error: normalizeString(config.labels?.error) || DEFAULT_LABELS.error,
@@ -159,6 +175,10 @@ function getStatusValue(row = {}) {
 function getStatusCode(row = {}) {
   const value = getStatusValue(row);
 
+  if (value === null || value === undefined || value === "") {
+    return "";
+  }
+
   const number = Number(value);
 
   if (Number.isFinite(number)) {
@@ -175,11 +195,11 @@ function getStatusPresentation(row, labels) {
     return null;
   }
 
-  return Object.freeze({
+  return {
     className: definition.className,
 
     label: normalizeString(labels.status?.[definition.labelKey]),
-  });
+  };
 }
 
 function renderStatusIndicator(row, labels) {
@@ -191,10 +211,10 @@ function renderStatusIndicator(row, labels) {
 
   const accessibilityAttributes = presentation.label
     ? `
-        role="img"
-        aria-label="${escapeHtml(presentation.label)}"
-        title="${escapeHtml(presentation.label)}"
-      `.trim()
+          role="img"
+          aria-label="${escapeHtml(presentation.label)}"
+          title="${escapeHtml(presentation.label)}"
+        `.trim()
     : 'aria-hidden="true"';
 
   return `
@@ -215,9 +235,9 @@ function renderStatusIndicator(row, labels) {
    ========================================================================== */
 
 function getCompanyInitials(row = {}) {
-  const companyName = getStandardCompanyName(row);
+  const companyName = getCompanyName(row);
 
-  if (!companyName || companyName === "-") {
+  if (!companyName) {
     return "";
   }
 
@@ -285,7 +305,7 @@ function renderCompanyLogo(row, config) {
    ========================================================================== */
 
 function renderCompanyName(row) {
-  const companyName = getStandardCompanyName(row);
+  const companyName = getCompanyName(row) || STANDARD_IDENTITY_EMPTY_VALUE;
 
   const companyUrl = getStandardCompanyUrl(row);
 
@@ -314,7 +334,7 @@ function renderCompanyName(row) {
 function renderCompanyItem(row, config, labels) {
   const rowId = normalizeString(row?.id);
 
-  const companyCode = getStandardCompanyCode(row) || "—";
+  const companyCode = getCompanyCode(row) || "—";
 
   const rowAttribute = rowId
     ? `data-accumulated-losses-row="${escapeHtml(rowId)}"`
@@ -388,14 +408,14 @@ function renderLoadingItem() {
 function renderMessage({ message, imageUrl = "", isError = false }) {
   const imageMarkup = imageUrl
     ? `
-        <img
-          class="content-feed__empty-image"
-          src="${escapeHtml(imageUrl)}"
-          alt=""
-          loading="lazy"
-          aria-hidden="true"
-        />
-      `.trim()
+          <img
+            class="content-feed__empty-image"
+            src="${escapeHtml(imageUrl)}"
+            alt=""
+            loading="lazy"
+            aria-hidden="true"
+          />
+        `.trim()
     : "";
 
   return `
@@ -508,10 +528,8 @@ export function createAccumulatedLossesView(options = {}) {
     /*
      * Accumulated Losses intentionally has no pagination.
      *
-     * Every company returned by the service is rendered in the same
-     * responsive content-feed list.
+     * Every returned company is rendered in the same responsive content feed.
      */
-
     listElement.innerHTML = rows
       .map((row) => renderCompanyItem(row, config, labels))
       .join("");
@@ -581,8 +599,11 @@ export function createAccumulatedLossesView(options = {}) {
     destroy,
 
     renderEmpty,
+
     renderError,
+
     renderLoading,
+
     renderRows,
 
     getRows() {

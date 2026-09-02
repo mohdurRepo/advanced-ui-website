@@ -7,10 +7,10 @@
  *
  * Responsibilities:
  *
- * - render the standard Market Watch company identity
+ * - render the standard company identity
  * - format traded volume
  * - preserve the service-provided last-update display
- * - provide stable DataTables sorting and filtering values
+ * - provide stable DataTables sorting/filtering values
  * - provide values shared by desktop tables and mobile cards
  *
  * This module intentionally has no:
@@ -27,6 +27,8 @@
    ========================================================================== */
 
 import {
+  getStandardCompanyCode,
+  getStandardCompanyName,
   renderStandardCompanyCardIdentity,
   renderStandardCompanyCell,
 } from "../../../../common/data-view/index.js";
@@ -55,26 +57,10 @@ function firstDefined(...values) {
   return values.find((value) => value !== undefined && value !== null);
 }
 
-function getCompanyName(row = {}) {
-  return normalizeString(
-    firstDefined(row.companyName, row.acrynomName, row.company, row.name),
-  );
-}
-
-function getCompanyCode(row = {}) {
-  return normalizeString(
-    firstDefined(
-      row.companyCode,
-      row.companyRef,
-      row.symbolCode,
-      row.companySymbol,
-      row.symbol,
-    ),
-  );
-}
-
 function getCompanySearchValue(row = {}) {
-  return [getCompanyName(row), getCompanyCode(row)].filter(Boolean).join(" ");
+  return [getStandardCompanyName(row), getStandardCompanyCode(row)]
+    .filter(Boolean)
+    .join(" ");
 }
 
 function getTextSortValue(value) {
@@ -105,8 +91,12 @@ export function formatOtcTradingCompany(
   type = "display",
   config = {},
 ) {
+  const companyName = getStandardCompanyName(row);
+
+  const companyCode = getStandardCompanyCode(row);
+
   if (type === "sort" || type === "type") {
-    return getTextSortValue(getCompanyName(row) || getCompanyCode(row));
+    return getTextSortValue(companyName || companyCode);
   }
 
   if (type === "filter") {
@@ -114,7 +104,7 @@ export function formatOtcTradingCompany(
   }
 
   if (type !== "display") {
-    return getCompanyName(row);
+    return companyName;
   }
 
   return renderStandardCompanyCell(row, config);
@@ -199,11 +189,11 @@ function getLastUpdateSortValue(value) {
 }
 
 /*
- * The visible last-update value must remain exactly as returned by the
- * service. This helper only creates a machine-readable datetime attribute
- * when the value contains a recognized date.
+ * Keep the visible last-update value exactly as supplied by the service.
+ *
+ * This helper only derives a machine-readable datetime attribute when the
+ * display value contains a recognized date.
  */
-
 function getLastUpdateDateTime(value) {
   const rawValue = getLastUpdateRawValue(value);
 
@@ -295,9 +285,15 @@ export function getOtcTradingCardValues(row = {}, config = {}) {
   return Object.freeze({
     id: normalizeString(row.id),
 
-    companyCode: getDisplayValue(getCompanyCode(row), settings.emptyValue),
+    companyCode: getDisplayValue(
+      getStandardCompanyCode(row),
+      settings.emptyValue,
+    ),
 
-    companyName: getDisplayValue(getCompanyName(row), settings.emptyValue),
+    companyName: getDisplayValue(
+      getStandardCompanyName(row),
+      settings.emptyValue,
+    ),
 
     tradedVolume: formatOtcTradingVolume(row.tradedVolume, "display", settings),
 

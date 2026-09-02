@@ -5,13 +5,18 @@
 /*
  * Tab composition for Accumulated Losses.
  *
+ * This feature intentionally does not use createTradingTab().
+ *
+ * Accumulated Losses has one responsive content-feed presentation rather than
+ * separate desktop-table and mobile-card presentations.
+ *
  * Responsibilities:
  *
- * - compose the shared data source, filters, and results utilities
+ * - compose common source, state, filters, and results utilities
  * - build the legacy request parameters
- * - coordinate loading, ready, empty, and error states
  * - coordinate the responsive content-feed view
- * - cancel stale requests
+ * - coordinate loading, ready, empty, and error states
+ * - preserve the last stable presentation during cancellation
  * - support lazy activation and destruction
  *
  * This module intentionally has no:
@@ -19,7 +24,7 @@
  * - company markup
  * - pagination
  * - response-envelope parsing
- * - global tab-navigation behavior
+ * - page-level tab-navigation behavior
  */
 
 /* ==========================================================================
@@ -57,14 +62,18 @@ const ENDPOINT_KEY = "accumulatedLosses";
 
 const DEFAULT_LOCALE = "en";
 
-const SELECTORS = Object.freeze({
+const DEFAULT_EMPTY_MESSAGE = "No data available.";
+
+const DEFAULT_ERROR_MESSAGE = "Unable to load data.";
+
+export const ACCUMULATED_LOSSES_SELECTORS = Object.freeze({
   count: "[data-accumulated-losses-result-count]",
 
   status: "[data-accumulated-losses-status]",
 });
 
 /* ==========================================================================
-   Helpers
+   General Helpers
    ========================================================================== */
 
 function isPlainObject(value) {
@@ -101,12 +110,16 @@ function isAbortError(error) {
   return error?.name === "AbortError";
 }
 
+function getEmptyMessage(config) {
+  return normalizeString(config.labels?.noData, DEFAULT_EMPTY_MESSAGE);
+}
+
 function getErrorMessage(error, config) {
   return (
     normalizeString(error?.response?.message) ||
     normalizeString(error?.message) ||
     normalizeString(config.labels?.error) ||
-    "Unable to load data."
+    DEFAULT_ERROR_MESSAGE
   );
 }
 
@@ -185,6 +198,8 @@ export function createAccumulatedLossesTab(options = {}) {
 
   let initialized = false;
 
+  let initializing = false;
+
   let active = false;
 
   let destroyed = false;
@@ -194,13 +209,13 @@ export function createAccumulatedLossesTab(options = {}) {
   let loadId = 0;
 
   /*
-   * Preserve the last completed presentation while a new request loads.
+   * Preserve the last completed presentation while another request is loading.
    *
-   * If the tab is deactivated during loading, the loading presentation is
-   * replaced with the last stable result.
+   * If the user changes tabs during that request, deactivate() cancels the
+   * request and restores this presentation rather than leaving loading
+   * skeletons visible.
    */
-
-  let lastCompletedRender = {
+  let lastCompletedRender = Object.freeze({
     type: "idle",
 
     rows: [],
@@ -208,10 +223,10 @@ export function createAccumulatedLossesTab(options = {}) {
     count: 0,
 
     message: "",
-  };
+  });
 
   /* ========================================================================
-     Request Data
+     Request
      ======================================================================== */
 
   function buildRequestData(filterState = {}) {
@@ -231,8 +246,20 @@ export function createAccumulatedLossesTab(options = {}) {
   }
 
   /* ========================================================================
-     Stable Presentation Restoration
+     Completed Presentation
      ======================================================================== */
+
+  function setCompletedRender(nextRender) {
+    lastCompletedRender = Object.freeze({
+      type: normalizeString(nextRender?.type, "idle"),
+
+      rows: normalizeRows(nextRender?.rows),
+
+      count: normalizeCount(nextRender?.count),
+
+      message: normalizeString(nextRender?.message),
+    });
+  }
 
   function restoreLastCompletedRender() {
     if (!view || !results) {
@@ -245,28 +272,62 @@ export function createAccumulatedLossesTab(options = {}) {
 
         results.showReady(lastCompletedRender.count);
 
-        break;
+        return;
 
       case "empty":
         view.renderEmpty(lastCompletedRender.message);
 
         results.showEmpty(lastCompletedRender.message);
 
-        break;
+        return;
 
       case "error":
         view.renderError(lastCompletedRender.message);
 
         results.showError(lastCompletedRender.message);
 
-        break;
+        return;
 
       case "idle":
       default:
-        view.renderEmpty(config.labels?.noData);
+        view.renderEmpty(getEmptyMessage(config));
 
         results.reset();
     }
+  }
+
+  /* ========================================================================
+     Initialization Cleanup
+     ======================================================================== */
+
+  function cleanupComponents() {
+    filterBinding?.destroy?.();
+
+    filters?.destroy?.();
+
+    view?.destroy?.();
+
+    results?.destroy?.();
+
+    dataSource?.destroy?.();
+
+    unsubscribeState?.();
+
+    unbindLogoFallback?.();
+
+    filterBinding = null;
+
+    filters = null;
+
+    view = null;
+
+    results = null;
+
+    dataSource = null;
+
+    unsubscribeState = null;
+
+    unbindLogoFallback = null;
   }
 
   /* ========================================================================
@@ -282,114 +343,140 @@ export function createAccumulatedLossesTab(options = {}) {
       return instance;
     }
 
-    initialized = true;
+    if (initializing) {
+      return instance;
+    }
 
-    /* ----------------------------------------------------------------------
-       Filters
-       ---------------------------------------------------------------------- */
+    initializing = true;
 
-    filters = createDataFilters({
-      root,
+    try {
+      /* --------------------------------------------------------------------
+         Filters
+         -------------------------------------------------------------------- */
 
-      fields: createAccumulatedLossesFilterDefinitions(),
+      filters = createDataFilters({
+        root,
 
-      eventTarget: root,
+        fields: createAccumulatedLossesFilterDefinitions(),
 
-      eventName: "accumulated-losses:filters-change",
-    });
+        eventTarget: root,
 
-    /* ----------------------------------------------------------------------
-       Content Feed
-       ---------------------------------------------------------------------- */
+        eventName: `${TAB_KEY}:filters-change`,
+      });
 
-    view = createAccumulatedLossesView({
-      root,
-      config,
-    });
+      /* --------------------------------------------------------------------
+         Responsive Content Feed
+         -------------------------------------------------------------------- */
 
-    /* ----------------------------------------------------------------------
-       Results
-       ---------------------------------------------------------------------- */
+      view = createAccumulatedLossesView({
+        root,
 
-    results = createDataResults({
-      root,
+        config,
+      });
 
-      count: SELECTORS.count,
+      /* --------------------------------------------------------------------
+         Results
+         -------------------------------------------------------------------- */
 
-      status: SELECTORS.status,
+      results = createDataResults({
+        root,
 
-      initialCount: 0,
+        count: ACCUMULATED_LOSSES_SELECTORS.count,
 
-      labels: {
-        /*
-         * The JSP owns the visible Results label.
-         * Only the numeric count should be written into the strong element.
-         */
+        status: ACCUMULATED_LOSSES_SELECTORS.status,
 
-        results: "",
+        initialCount: 0,
 
-        loading: config.labels?.loading,
+        labels: {
+          /*
+           * The visible "Results" text already exists in the JSP.
+           * createDataResults() owns only its value/status updates.
+           */
+          results: "",
 
-        empty: config.labels?.noData,
+          loading: config.labels?.loading,
 
-        error: config.labels?.error,
-      },
-    });
+          empty: config.labels?.noData,
 
-    /* ----------------------------------------------------------------------
-       Data Source
-       ---------------------------------------------------------------------- */
+          error: config.labels?.error,
+        },
+      });
 
-    dataSource = createDataSource({
-      ...(isPlainObject(options.sourceOptions) ? options.sourceOptions : {}),
+      /* --------------------------------------------------------------------
+         Data Source
+         -------------------------------------------------------------------- */
 
-      endpoint: getIssuerTradingEndpoint(config, ENDPOINT_KEY),
+      dataSource = createDataSource({
+        ...(isPlainObject(options.sourceOptions) ? options.sourceOptions : {}),
 
-      method: options.method || "GET",
+        endpoint: getIssuerTradingEndpoint(config, ENDPOINT_KEY),
 
-      buildRequestData,
+        method: options.method || "GET",
 
-      normalizeResponse: normalizeAccumulatedLossesResponse,
-    });
+        buildRequestData,
 
-    /* ----------------------------------------------------------------------
-       Filter Coordination
-       ---------------------------------------------------------------------- */
+        normalizeResponse: normalizeAccumulatedLossesResponse,
+      });
 
-    filterBinding = bindAccumulatedLossesFilters({
-      root,
-      filters,
+      /* --------------------------------------------------------------------
+         Filter Coordination
 
-      onReload() {
-        if (active) {
-          reload();
-        }
-      },
-    });
+         Accumulated Losses does not use createDataViewController(), so its
+         filter binder remains responsible for triggering reloads.
+         -------------------------------------------------------------------- */
 
-    /* ----------------------------------------------------------------------
-       Company Logo Fallback
-       ---------------------------------------------------------------------- */
+      filterBinding = bindAccumulatedLossesFilters({
+        root,
 
-    unbindLogoFallback = bindStandardCompanyLogoFallback(root);
+        filters,
 
-    /* ----------------------------------------------------------------------
-       State Synchronization
-       ---------------------------------------------------------------------- */
+        onReload() {
+          if (active) {
+            reload();
+          }
+        },
+      });
 
-    unsubscribeState = state.subscribe((event) => {
-      syncBusyState(event.state);
-    });
+      /* --------------------------------------------------------------------
+         Company Logo Fallback
+         -------------------------------------------------------------------- */
 
-    syncBusyState(state.getState());
+      unbindLogoFallback = bindStandardCompanyLogoFallback(root);
 
-    options.onInit?.({
-      config,
-      filters: filters.getState(),
-      key: TAB_KEY,
-    });
+      /* --------------------------------------------------------------------
+         State Synchronization
+         -------------------------------------------------------------------- */
 
-    return instance;
+      unsubscribeState = state.subscribe((event) => {
+        syncBusyState(event.state);
+      });
+
+      syncBusyState(state.getState());
+
+      /*
+       * Do not mark initialization complete until all required components have
+       * been created successfully.
+       */
+      initialized = true;
+
+      options.onInit?.({
+        config,
+
+        filters: filters.getState(),
+
+        key: TAB_KEY,
+      });
+
+      return instance;
+    } catch (error) {
+      cleanupComponents();
+
+      initialized = false;
+
+      throw error;
+    } finally {
+      initializing = false;
+    }
   }
 
   /* ========================================================================
@@ -402,6 +489,10 @@ export function createAccumulatedLossesTab(options = {}) {
     }
 
     init();
+
+    if (!filters || !dataSource || !view || !results) {
+      return null;
+    }
 
     const currentLoadId = ++loadId;
 
@@ -431,19 +522,18 @@ export function createAccumulatedLossesTab(options = {}) {
         return null;
       }
 
-      const rows = normalizeRows(response.rows);
+      const rows = normalizeRows(response?.rows);
 
-      const meta = isPlainObject(response.meta) ? response.meta : {};
+      const meta = isPlainObject(response?.meta) ? response.meta : {};
 
       const count = normalizeCount(meta.total, rows.length);
 
       hasLoaded = true;
 
       if (!rows.length) {
-        const emptyMessage =
-          normalizeString(config.labels?.noData) || "No data available.";
+        const emptyMessage = getEmptyMessage(config);
 
-        lastCompletedRender = {
+        setCompletedRender({
           type: "empty",
 
           rows: [],
@@ -451,13 +541,13 @@ export function createAccumulatedLossesTab(options = {}) {
           count: 0,
 
           message: emptyMessage,
-        };
+        });
 
         view.renderEmpty(emptyMessage);
 
         results.showEmpty(emptyMessage);
       } else {
-        lastCompletedRender = {
+        setCompletedRender({
           type: "ready",
 
           rows,
@@ -465,13 +555,12 @@ export function createAccumulatedLossesTab(options = {}) {
           count,
 
           message: "",
-        };
+        });
 
         /*
-         * The view renders every returned company.
-         * Accumulated Losses intentionally has no paging.
+         * No pagination:
+         * every normalized company is rendered by the content-feed.
          */
-
         view.renderRows(rows);
 
         results.showReady(count);
@@ -500,6 +589,8 @@ export function createAccumulatedLossesTab(options = {}) {
         meta,
 
         filters: filterState,
+
+        key: TAB_KEY,
       });
 
       return response;
@@ -510,7 +601,7 @@ export function createAccumulatedLossesTab(options = {}) {
 
       const errorMessage = getErrorMessage(error, config);
 
-      lastCompletedRender = {
+      setCompletedRender({
         type: "error",
 
         rows: [],
@@ -518,7 +609,7 @@ export function createAccumulatedLossesTab(options = {}) {
         count: 0,
 
         message: errorMessage,
-      };
+      });
 
       view.renderError(errorMessage);
 
@@ -543,6 +634,8 @@ export function createAccumulatedLossesTab(options = {}) {
 
       options.onError?.(error, {
         filters: filterState,
+
+        key: TAB_KEY,
       });
 
       return null;
@@ -592,6 +685,7 @@ export function createAccumulatedLossesTab(options = {}) {
 
     options.onActivate?.({
       filters: filters.getState(),
+
       key: TAB_KEY,
     });
 
@@ -612,9 +706,12 @@ export function createAccumulatedLossesTab(options = {}) {
 
     active = false;
 
+    /*
+     * Invalidate any pending completion handler before aborting the request.
+     */
     loadId += 1;
 
-    dataSource.cancel();
+    dataSource?.cancel();
 
     state.setState(
       {
@@ -633,6 +730,7 @@ export function createAccumulatedLossesTab(options = {}) {
 
     options.onDeactivate?.({
       filters: filters.getState(),
+
       key: TAB_KEY,
     });
 
@@ -652,23 +750,12 @@ export function createAccumulatedLossesTab(options = {}) {
 
     active = false;
 
+    /*
+     * Prevent any request already awaiting completion from rendering.
+     */
     loadId += 1;
 
-    if (initialized) {
-      dataSource?.destroy();
-
-      filterBinding?.destroy();
-
-      filters?.destroy();
-
-      view?.destroy();
-
-      results?.destroy();
-
-      unsubscribeState?.();
-
-      unbindLogoFallback?.();
-    }
+    cleanupComponents();
 
     state.destroy();
 
@@ -685,9 +772,13 @@ export function createAccumulatedLossesTab(options = {}) {
 
   const instance = Object.freeze({
     activate,
+
     deactivate,
+
     destroy,
+
     init,
+
     reload,
 
     getFilters() {
@@ -709,9 +800,31 @@ export function createAccumulatedLossesTab(options = {}) {
     hasLoaded() {
       return hasLoaded;
     },
+
+    isActive() {
+      return active;
+    },
+
+    isLoading() {
+      return Boolean(state.getState().loading);
+    },
   });
 
   instances.set(root, instance);
+
+  /*
+   * Keep creation lazy by default.
+   *
+   * issuer-trading.js creates this feature with autoInit:false and activates
+   * it only when its tab becomes active.
+   */
+  if (options.autoInit === true) {
+    init();
+  }
+
+  if (options.active === true) {
+    activate();
+  }
 
   return instance;
 }

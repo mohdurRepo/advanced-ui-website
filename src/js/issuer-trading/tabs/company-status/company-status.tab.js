@@ -3,44 +3,37 @@
    ========================================================================== */
 
 /*
- * Tab composition for Suspended and Delisted Companies and Funds.
+ * Tab composition for:
+ *
+ * - Suspended Companies
+ * - Delisted Companies
+ * - Suspended Funds
+ * - Delisted Funds
  *
  * Responsibilities:
  *
- * - initialize Company Status filters
- * - build the legacy request parameters
- * - coordinate the shared data source and view controller
- * - switch between Suspension and Delisting schemas
- * - coordinate desktop tables and mobile cards
- * - manage lazy activation and request cancellation
- * - support complete destruction
+ * - define the Company Status request contract
+ * - resolve Suspension / Delisting views
+ * - connect Company Status filters
+ * - connect the desktop table definition
+ * - connect the mobile cards definition
+ * - normalize the legacy response
+ * - coordinate lifecycle through createTradingTab()
  *
  * This module intentionally has no:
  *
+ * - shared data-view lifecycle implementation
  * - table cell markup
  * - card markup
  * - response-envelope parsing
- * - global tab-navigation behavior
+ * - page-level tab navigation
  */
 
 /* ==========================================================================
    Imports
    ========================================================================== */
 
-import {
-  bindStandardCompanyLogoFallback,
-  createDataCards,
-  createDataFilters,
-  createDataResults,
-  createDataSource,
-  createDataState,
-  createDataTable,
-  createDataViewController,
-} from "../../../../common/data-view/index.js";
-
-import { getIssuerTradingEndpoint } from "../../issuer-trading-config.js";
-
-import { createTradingTableOptions } from "../../../shared/trading/trading-table-options.js";
+import { createTradingTab } from "../../shared/create-trading-tab.js";
 
 import {
   formatRequestDate,
@@ -71,7 +64,9 @@ const ENDPOINT_KEY = "companyStatus";
 
 const DEFAULT_LOCALE = "en";
 
-const SELECTORS = Object.freeze({
+const DEFAULT_LOADING_ROW_COUNT = 6;
+
+export const COMPANY_STATUS_SELECTORS = Object.freeze({
   table: "[data-company-status-table]",
 
   cards: "[data-company-status-cards]",
@@ -99,20 +94,82 @@ function normalizeRows(rows) {
   return Array.isArray(rows) ? rows : [];
 }
 
-function getErrorMessage(error, config) {
-  return (
-    normalizeString(error?.response?.message) ||
-    normalizeString(error?.message) ||
-    normalizeString(config.labels?.error) ||
-    "Unable to load data."
-  );
+function normalizeLocale(value) {
+  return normalizeString(value) || DEFAULT_LOCALE;
 }
 
 /* ==========================================================================
-   Instances
+   Request Data
    ========================================================================== */
 
-const instances = new WeakMap();
+function createRequestBuilder(config) {
+  const locale = normalizeLocale(config.locale);
+
+  return function buildRequestData(filters = {}) {
+    return {
+      renderType: "Search",
+
+      fromDate: formatRequestDate(filters.fromDate),
+
+      toDate: formatRequestDate(filters.toDate),
+
+      formType: normalizeCompanyStatusType(filters.type),
+
+      requestLocale: locale,
+    };
+  };
+}
+
+/* ==========================================================================
+   Response Normalization
+   ========================================================================== */
+
+function normalizeResponse(response, context = {}) {
+  /*
+   * normalizeCompanyStatusResponse() historically receives the exact request
+   * filters as context.state.
+   *
+   * createTradingTab() exposes those filters explicitly as requestFilters.
+   * Preserve the normalizer contract here so the normalizer does not need to
+   * know anything about the shared trading-tab context structure.
+   */
+  const requestFilters = context.requestFilters || context.filters || {};
+
+  return normalizeCompanyStatusResponse(response, {
+    ...context,
+
+    state: requestFilters,
+
+    filters: requestFilters,
+  });
+}
+
+/* ==========================================================================
+   Filter Binding
+   ========================================================================== */
+
+function createFilterBinder(defaultRange) {
+  return function bindFilters({ root, filters, reload }) {
+    return bindCompanyStatusFilters({
+      root,
+
+      filters,
+
+      defaultRange,
+
+      /*
+       * Normal input/select changes are already handled by the shared
+       * Data View controller through their configured effects.
+       *
+       * onReload() is reserved for explicit form submit and the special case
+       * where Reset is pressed while the form is already at its defaults.
+       */
+      onReload() {
+        return reload();
+      },
+    });
+  };
+}
 
 /* ==========================================================================
    Public Factory
@@ -129,609 +186,207 @@ export function createCompanyStatusTab(options = {}) {
     throw new Error("Company Status requires a valid root element.");
   }
 
-  const existingInstance = instances.get(root);
-
-  if (existingInstance) {
-    return existingInstance;
-  }
-
   const config = options.config;
 
   if (!isPlainObject(config)) {
     throw new TypeError("Company Status requires page configuration.");
   }
 
-  /* ========================================================================
-     State
-     ======================================================================== */
+  /*
+   * Calculate the default range once so:
+   *
+   * - DataFilters reset values
+   * - filter initialization
+   *
+   * use exactly the same dates.
+   */
+  const defaultRange = createCompanyStatusDefaultDateRange();
 
-  const state = createDataState({
-    active: false,
+  const tableDefinition = createCompanyStatusTable(config);
 
-    loading: false,
+  const cardsDefinition = createCompanyStatusCards(config);
 
-    sourceRows: [],
+  const buildRequestData = createRequestBuilder(config);
 
-    visibleRows: [],
-
-    meta: {},
-
-    error: null,
-  });
-
-  /* ========================================================================
-     Component References
-     ======================================================================== */
-
-  let filters = null;
-
-  let filterBinding = null;
-
-  let dataSource = null;
-
-  let table = null;
-
-  let cards = null;
-
-  let results = null;
-
-  let controller = null;
-
-  let unsubscribeState = null;
-
-  let unbindLogoFallback = null;
+  const bindFilters = createFilterBinder(defaultRange);
 
   /* ========================================================================
-     Lifecycle State
+     Shared Trading Tab
      ======================================================================== */
 
-  let initialized = false;
+  return createTradingTab({
+    root,
 
-  let active = false;
+    key: TAB_KEY,
 
-  let destroyed = false;
+    config,
 
-  let hasLoaded = false;
+    selectors: COMPANY_STATUS_SELECTORS,
 
-  /* ========================================================================
-     Request Data
-     ======================================================================== */
-
-  function buildRequestData(filterState = {}) {
-    return {
-      renderType: "Search",
-
-      fromDate: formatRequestDate(filterState.fromDate),
-
-      toDate: formatRequestDate(filterState.toDate),
-
-      formType: normalizeCompanyStatusType(filterState.type),
-
-      requestLocale: normalizeString(config.locale, DEFAULT_LOCALE),
-    };
-  }
-
-  /* ========================================================================
-     View Resolution
-     ======================================================================== */
-
-  function resolveView(filterState = null) {
-    const currentFilters = filterState || filters?.getState?.() || {};
-
-    return getCompanyStatusView(currentFilters);
-  }
-
-  /* ========================================================================
-     Busy State
-     ======================================================================== */
-
-  function syncBusyState(snapshot) {
-    root.setAttribute("aria-busy", String(Boolean(snapshot.loading)));
-  }
-
-  /* ========================================================================
-     Initialization
-     ======================================================================== */
-
-  function init() {
-    if (destroyed) {
-      return null;
-    }
-
-    if (initialized) {
-      return instance;
-    }
-
-    initialized = true;
-
-    /* ----------------------------------------------------------------------
+    /* ======================================================================
        Filters
-       ---------------------------------------------------------------------- */
+       ====================================================================== */
 
-    filters = createDataFilters({
-      root,
+    filters: createCompanyStatusFilterDefinitions({
+      defaultRange,
+    }),
 
-      fields: createCompanyStatusFilterDefinitions(),
+    bindFilters,
 
-      eventTarget: root,
+    /* ======================================================================
+       View
+       ====================================================================== */
 
-      eventName: "company-status:filters-change",
-    });
+    initialView: tableDefinition.initialView,
 
-    /* ----------------------------------------------------------------------
-       Presentation Definitions
-       ---------------------------------------------------------------------- */
+    getView({ filters }) {
+      return getCompanyStatusView(filters);
+    },
 
-    const tableDefinition = createCompanyStatusTable(config);
+    /* ======================================================================
+       Endpoint / Request
+       ====================================================================== */
 
-    const cardsDefinition = createCompanyStatusCards(config);
+    endpointKey: ENDPOINT_KEY,
 
-    const initialView = resolveView(filters.getState());
+    buildRequestData,
 
-    /* ----------------------------------------------------------------------
-       Desktop Table
-       ---------------------------------------------------------------------- */
-
-    table = createDataTable({
-      root,
-
-      table: SELECTORS.table,
-
-      initialView,
-
-      headerMode: "schema",
-
-      getColumns(view) {
-        return tableDefinition.getColumns(view);
-      },
-
-      getColumnGroups(view) {
-        return tableDefinition.getColumnGroups(view);
-      },
-
-      renderHeader: tableDefinition.renderHeader,
-
-      renderCell(cellContext) {
-        return tableDefinition.renderCell(cellContext);
-      },
-
-      tableOptions: createTradingTableOptions({
-        ...tableDefinition.tableOptions,
-
-        ...(isPlainObject(options.tableOptions) ? options.tableOptions : {}),
-      }),
-
-      loadingRowCount: options.loadingRowCount || 6,
-
-      emptyMessage:
-        normalizeString(config.labels?.noData) || "No data available.",
-
-      errorMessage:
-        normalizeString(config.labels?.error) || "Unable to load data.",
-    });
-
-    /* ----------------------------------------------------------------------
-       Mobile Cards
-       ---------------------------------------------------------------------- */
-
-    cards = createDataCards({
-      root,
-
-      container: SELECTORS.cards,
-
-      initialView,
-
-      renderCard(row, cardContext) {
-        return cardsDefinition.renderCard({
-          row,
-
-          ...cardContext,
-        });
-      },
-
-      emptyMessage:
-        normalizeString(config.labels?.noData) || "No data available.",
-
-      errorMessage:
-        normalizeString(config.labels?.error) || "Unable to load data.",
-    });
-
-    /* ----------------------------------------------------------------------
-       Results
-       ---------------------------------------------------------------------- */
-
-    results = createDataResults({
-      root,
-
-      count: SELECTORS.resultCount,
-
-      status: SELECTORS.status,
-
-      initialCount: 0,
-
-      labels: {
-        /*
-         * The visible Results label already exists in the JSP.
-         * Only the numeric value is updated by this component.
-         */
-
-        results: "",
-
-        loading: normalizeString(config.labels?.loading) || "Loading…",
-
-        empty: normalizeString(config.labels?.noData) || "No data available.",
-
-        error: normalizeString(config.labels?.error) || "Unable to load data.",
-      },
-    });
-
-    /* ----------------------------------------------------------------------
-       Data Source
-       ---------------------------------------------------------------------- */
-
-    dataSource = createDataSource({
+    sourceOptions: {
       ...(isPlainObject(options.sourceOptions) ? options.sourceOptions : {}),
-
-      endpoint: getIssuerTradingEndpoint(config, ENDPOINT_KEY),
 
       method: options.method || "GET",
 
-      buildRequestData,
+      dataType: "json",
+    },
 
-      normalizeResponse(response, requestContext) {
-        return normalizeCompanyStatusResponse(response, requestContext);
-      },
-    });
+    /* ======================================================================
+       Response
+       ====================================================================== */
 
-    /* ----------------------------------------------------------------------
-       Filter Adapter
-       ---------------------------------------------------------------------- */
+    normalizeResponse,
 
-    /*
-     * Company Status filter coordination is handled by
-     * bindCompanyStatusFilters().
-     *
-     * The adapter exposes current filter state to the shared controller
-     * without adding a second filter subscription. This prevents duplicate
-     * requests when a date or type changes.
-     */
+    /* ======================================================================
+       Desktop Table
+       ====================================================================== */
 
-    const controllerFilters = Object.freeze({
-      getState() {
-        return filters.getState();
-      },
+    headerMode: "schema",
 
-      destroy() {
-        /*
-         * The real filter controller is destroyed explicitly after its
-         * UI binding has been destroyed.
-         */
-      },
-    });
+    getColumns(view) {
+      return tableDefinition.getColumns(view);
+    },
 
-    /* ----------------------------------------------------------------------
-       View Controller
-       ---------------------------------------------------------------------- */
+    getColumnGroups(view) {
+      return tableDefinition.getColumnGroups(view);
+    },
 
-    controller = createDataViewController({
-      source: dataSource,
+    renderHeader(context) {
+      return tableDefinition.renderHeader(context);
+    },
 
-      state,
+    renderCell(context) {
+      return tableDefinition.renderCell(context);
+    },
 
-      filters: controllerFilters,
+    tableOptions: {
+      ...tableDefinition.tableOptions,
 
-      table,
-      cards,
-      results,
+      ...(isPlainObject(options.tableOptions) ? options.tableOptions : {}),
+    },
 
-      getView() {
-        return resolveView();
-      },
+    /* ======================================================================
+       Mobile Cards
+       ====================================================================== */
 
-      getEmptyMessage() {
-        return normalizeString(config.labels?.noData) || "No data available.";
-      },
+    renderCard(context) {
+      return cardsDefinition.renderCard({
+        row: context.row,
 
-      getErrorMessage(error) {
-        return getErrorMessage(error, config);
-      },
-
-      onDataLoaded(response, context) {
-        hasLoaded = true;
-
-        options.onDataLoaded?.(
-          {
-            rows: normalizeRows(response.rows),
-
-            meta: isPlainObject(response.meta) ? response.meta : {},
-          },
-          context,
-        );
-      },
-
-      onRowsRendered(rows, context) {
-        options.onRowsRendered?.(normalizeRows(rows), context);
-      },
-
-      onViewSync(view, visibleGroups, context) {
-        options.onViewSync?.(view, visibleGroups, context);
-      },
-
-      onError(error, context) {
-        options.onError?.(error, context);
-      },
-
-      autoLoad: false,
-    });
-
-    /* ----------------------------------------------------------------------
-       Filter Coordination
-       ---------------------------------------------------------------------- */
-
-    filterBinding = bindCompanyStatusFilters({
-      root,
-      filters,
-
-      onReload() {
-        if (!active || destroyed) {
-          return;
-        }
-
-        /*
-         * The Type filter can change the complete table schema.
-         * Synchronize the view before beginning the next request.
-         */
-
-        controller.syncView();
-
-        controller.reload();
-      },
-    });
-
-    /* ----------------------------------------------------------------------
-       Company Logo Fallback
-       ---------------------------------------------------------------------- */
-
-    unbindLogoFallback = bindStandardCompanyLogoFallback(root);
-
-    /* ----------------------------------------------------------------------
-       State Synchronization
-       ---------------------------------------------------------------------- */
-
-    unsubscribeState = state.subscribe((event) => {
-      syncBusyState(event.state);
-    });
-
-    syncBusyState(state.getState());
-
-    /* ----------------------------------------------------------------------
-       Controller Initialization
-       ---------------------------------------------------------------------- */
-
-    controller.init();
-
-    options.onInit?.({
-      config,
-
-      filters: filters.getState(),
-
-      key: TAB_KEY,
-
-      view: resolveView(),
-    });
-
-    return instance;
-  }
-
-  /* ========================================================================
-     Reload
-     ======================================================================== */
-
-  function reload() {
-    if (destroyed) {
-      return Promise.resolve(null);
-    }
-
-    init();
-
-    controller.syncView();
-
-    return controller.reload();
-  }
-
-  /* ========================================================================
-     Activation
-     ======================================================================== */
-
-  function activate(settings = {}) {
-    if (destroyed) {
-      return Promise.resolve(null);
-    }
-
-    init();
-
-    active = true;
-
-    state.setState(
-      {
-        active: true,
-      },
-      {
-        type: "activate",
-
-        source: TAB_KEY,
-      },
-    );
-
-    table.adjust();
-
-    options.onActivate?.({
-      filters: filters.getState(),
-
-      key: TAB_KEY,
-
-      view: resolveView(),
-    });
-
-    const shouldReload =
-      settings.reload ?? (!hasLoaded || options.reloadOnActivate !== false);
-
-    return shouldReload ? reload() : Promise.resolve(null);
-  }
-
-  /* ========================================================================
-     Deactivation
-     ======================================================================== */
-
-  function deactivate() {
-    if (destroyed || !initialized || !active) {
-      return false;
-    }
-
-    active = false;
-
-    dataSource.cancel();
-
-    state.setState(
-      {
-        active: false,
-
-        loading: false,
-      },
-      {
-        type: "deactivate",
-
-        source: TAB_KEY,
-      },
-    );
-
-    options.onDeactivate?.({
-      filters: filters.getState(),
-
-      key: TAB_KEY,
-
-      view: resolveView(),
-    });
-
-    return true;
-  }
-
-  /* ========================================================================
-     Destruction
-     ======================================================================== */
-
-  function destroy() {
-    if (destroyed) {
-      return;
-    }
-
-    destroyed = true;
-
-    active = false;
-
-    if (initialized) {
-      dataSource?.cancel();
-
-      /*
-       * Destroy the DOM binding before the filter controller because the
-       * binding may still hold scheduled animation-frame work.
-       */
-
-      filterBinding?.destroy();
-
-      filterBinding = null;
-
-      controller?.destroy();
-
-      controller = null;
-
-      filters?.destroy();
-
-      filters = null;
-
-      unsubscribeState?.();
-
-      unsubscribeState = null;
-
-      unbindLogoFallback?.();
-
-      unbindLogoFallback = null;
-    } else {
-      state.destroy();
-    }
-
-    root.setAttribute("aria-busy", "false");
-
-    instances.delete(root);
-
-    options.onDestroy?.();
-  }
-
-  /* ========================================================================
-     Public Instance
-     ======================================================================== */
-
-  const instance = Object.freeze({
-    activate,
-    deactivate,
-    destroy,
-    init,
-    reload,
-
-    getFilters() {
-      if (filters) {
-        return filters.getState();
-      }
-
-      const defaultDates = createCompanyStatusDefaultDateRange();
-
-      return Object.freeze({
-        type: normalizeCompanyStatusType(),
-
-        fromDate: defaultDates.fromDate,
-
-        toDate: defaultDates.toDate,
+        ...context,
       });
     },
 
-    getRows() {
-      return controller?.getSourceRows?.() || [];
+    /* ======================================================================
+       Lifecycle
+       ====================================================================== */
+
+    loadingRowCount: Number.isFinite(Number(options.loadingRowCount))
+      ? Number(options.loadingRowCount)
+      : DEFAULT_LOADING_ROW_COUNT,
+
+    /*
+     * Changing Company Status type changes the complete table schema.
+     *
+     * The shared controller synchronizes the new view and then reloads using
+     * the newly selected formType.
+     */
+    reloadOnViewChange: true,
+
+    reloadOnActivate: options.reloadOnActivate !== false,
+
+    autoInit: options.autoInit !== false,
+
+    active: options.active === true,
+
+    /* ======================================================================
+       Hooks
+       ====================================================================== */
+
+    onInit: options.onInit,
+
+    onActivate: options.onActivate,
+
+    onDeactivate: options.onDeactivate,
+
+    onDataLoaded(response, controllerContext, context) {
+      /*
+       * Preserve the previous public callback shape:
+       *
+       * {
+       *   rows,
+       *   meta
+       * }
+       */
+      options.onDataLoaded?.(
+        {
+          rows: normalizeRows(response?.rows),
+
+          meta: isPlainObject(response?.meta) ? response.meta : {},
+        },
+
+        controllerContext,
+
+        context,
+      );
     },
 
-    getState() {
-      return state.getState();
+    onRowsRendered(rows, controllerContext, context) {
+      options.onRowsRendered?.(
+        normalizeRows(rows),
+
+        controllerContext,
+
+        context,
+      );
     },
 
-    getTable() {
-      return table?.getApi?.() || null;
+    onViewSync(view, context) {
+      /*
+       * Company Status does not use column visibility groups.
+       *
+       * Keep the former callback's second argument available as an empty
+       * collection for callers that still consume the old signature.
+       */
+      options.onViewSync?.(
+        view,
+
+        [],
+
+        context,
+      );
     },
 
-    getView() {
-      return resolveView();
-    },
+    onError: options.onError,
 
-    hasLoaded() {
-      return hasLoaded;
-    },
-
-    isActive() {
-      return active;
-    },
-
-    isLoading() {
-      return Boolean(dataSource?.isLoading?.());
-    },
+    onDestroy: options.onDestroy,
   });
-
-  instances.set(root, instance);
-
-  if (options.autoInit !== false) {
-    init();
-  }
-
-  if (options.active === true) {
-    activate();
-  }
-
-  return instance;
 }

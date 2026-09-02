@@ -822,23 +822,55 @@ export function createTradingTab(options = {}) {
       return instance;
     }
 
-    initialized = true;
+    let nextUnsubscribeState = null;
+    let nextUnbindLogoFallback = null;
 
-    unsubscribeState = state.subscribe((event) => {
-      syncBusyState(event.state);
-    });
+    try {
+      nextUnsubscribeState = state.subscribe((event) => {
+        syncBusyState(event.state);
+      });
 
-    syncBusyState(state.getState());
+      syncBusyState(state.getState());
 
-    unbindLogoFallback = bindStandardCompanyLogoFallback(root);
+      nextUnbindLogoFallback = bindStandardCompanyLogoFallback(root);
 
-    controller.init();
+      controller.init();
 
-    bindFeatureFilters();
+      bindFeatureFilters();
 
-    options.onInit?.(createContext());
+      /*
+       * Commit shared cleanup references only after initialization succeeds.
+       */
+      unsubscribeState = nextUnsubscribeState;
+      unbindLogoFallback = nextUnbindLogoFallback;
 
-    return instance;
+      initialized = true;
+
+      options.onInit?.(createContext());
+
+      return instance;
+    } catch (error) {
+      /*
+       * bindFeatureFilters() may have completed before a later initialization
+       * step failed.
+       */
+      destroyFeatureFilters();
+
+      nextUnsubscribeState?.();
+      nextUnbindLogoFallback?.();
+
+      /*
+       * controller.init() can partially initialize before throwing.
+       * Returning it to a clean state is safer than caching a broken instance.
+       */
+      controller.destroy();
+
+      root.setAttribute("aria-busy", "false");
+
+      initialized = false;
+
+      throw error;
+    }
   }
 
   /* ========================================================================
@@ -993,16 +1025,24 @@ export function createTradingTab(options = {}) {
   /* ========================================================================
      Registration
      ======================================================================== */
-
   instances.set(root, instance);
 
-  if (options.autoInit !== false) {
-    init();
-  }
+  try {
+    if (options.autoInit !== false) {
+      init();
+    }
 
-  if (options.active === true) {
-    activate();
-  }
+    if (options.active === true) {
+      activate();
+    }
 
-  return instance;
+    return instance;
+  } catch (error) {
+    /*
+     * Never retain an instance whose initial setup failed.
+     */
+    instances.delete(root);
+
+    throw error;
+  }
 }

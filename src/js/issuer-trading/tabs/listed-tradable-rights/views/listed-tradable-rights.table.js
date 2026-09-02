@@ -3,21 +3,22 @@
    ========================================================================== */
 
 /*
- * Desktop and tablet table view for Listed Tradable Rights.
+ * Desktop and tablet presentation for Listed Tradable Rights.
  *
  * Responsibilities:
  *
- * - bind normalized rows to the existing grouped JSP header
- * - configure the 14 DataTables columns
- * - enable column sorting
+ * - define the 14-column table schema
+ * - preserve the existing grouped JSP header
+ * - connect normalized rows to presentation formatters
  * - preserve numeric sorting through orthogonal renderers
- * - render loading, empty, and error states
- * - maintain the FixedHeader layout
+ * - expose Listed Tradable Rights DataTables options
  *
  * This module intentionally has no:
  *
- * - endpoint code
+ * - DOM queries
+ * - DataTables initialization
  * - request lifecycle
+ * - loading / empty / error coordination
  * - response normalization
  * - mobile card rendering
  * - tab activation behavior
@@ -27,21 +28,13 @@
    Imports
    ========================================================================== */
 
-import { createDataTable } from "../../../../../common/data-view/index.js";
-
-import { createTradingTableOptions } from "../../../../shared/trading/trading-table-options.js";
-
 import { createListedTradableRightsFormatters } from "../listed-tradable-rights.formatters.js";
 
 /* ==========================================================================
    Constants
    ========================================================================== */
 
-const SELECTORS = Object.freeze({
-  table: "[data-listed-tradable-rights-table]",
-
-  region: "[data-listed-tradable-rights-table-region]",
-});
+const VIEW_KEY = "listed-tradable-rights";
 
 const COLUMN_CLASSES = Object.freeze({
   identity: "table-market__security",
@@ -69,34 +62,10 @@ function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function isElement(value) {
-  return Boolean(value && value.nodeType === 1);
-}
-
 function normalizeString(value, fallback = "") {
   const normalized = String(value ?? "").trim();
 
   return normalized || fallback;
-}
-
-function getRootElement(root) {
-  if (root && typeof root.querySelector === "function") {
-    return root;
-  }
-
-  throw new TypeError(
-    "Listed Tradable Rights table requires a valid root element.",
-  );
-}
-
-function resolveRequiredElement(root, selector, name) {
-  const element = root.querySelector(selector);
-
-  if (!isElement(element)) {
-    throw new Error(`Listed Tradable Rights ${name} was not found.`);
-  }
-
-  return element;
 }
 
 function isLoadingRow(row = {}) {
@@ -104,7 +73,7 @@ function isLoadingRow(row = {}) {
 }
 
 /* ==========================================================================
-   Loading Cell
+   Loading
    ========================================================================== */
 
 function renderLoadingCell(size = SKELETON_SIZES.price) {
@@ -117,493 +86,331 @@ function renderLoadingCell(size = SKELETON_SIZES.price) {
 }
 
 /* ==========================================================================
-   Column Renderer Adapter
+   Column Factory
    ========================================================================== */
 
-function createColumnRenderer(renderer, skeletonSize) {
-  return function renderColumn({ row, type, meta }) {
-    if (isLoadingRow(row)) {
-      return type === "display" ? renderLoadingCell(skeletonSize) : "";
-    }
+function createColumn({
+  key,
+  className,
+  formatter,
+  skeletonSize,
+  searchable = false,
+}) {
+  return Object.freeze({
+    key,
 
-    return renderer(null, type, row, meta);
-  };
+    className,
+
+    orderable: true,
+
+    searchable,
+
+    /*
+     * Common createDataTable() gives column-level renderers priority over
+     * the page-level renderCell callback.
+     */
+    render({ row, type, meta }) {
+      if (isLoadingRow(row)) {
+        return type === "display" ? renderLoadingCell(skeletonSize) : "";
+      }
+
+      return formatter(null, type, row, meta);
+    },
+  });
 }
 
 /* ==========================================================================
-   Column Definitions
+   Column Schema
    ========================================================================== */
 
 function createColumns(formatters) {
   const table = formatters.table;
 
-  return [
+  return Object.freeze([
     /* ----------------------------------------------------------------------
        Tradable Right Identity
        ---------------------------------------------------------------------- */
 
-    {
+    createColumn({
       key: "identity",
 
       className: COLUMN_CLASSES.identity,
 
-      orderable: true,
+      formatter: table.identity,
+
+      skeletonSize: SKELETON_SIZES.identity,
 
       searchable: true,
-
-      render: createColumnRenderer(table.identity, SKELETON_SIZES.identity),
-    },
+    }),
 
     /* ----------------------------------------------------------------------
        Last Trade
        ---------------------------------------------------------------------- */
 
-    {
+    createColumn({
       key: "last-trade-price",
 
       className: COLUMN_CLASSES.number,
 
-      orderable: true,
+      formatter: table.lastTradePrice,
 
-      searchable: false,
+      skeletonSize: SKELETON_SIZES.price,
+    }),
 
-      render: createColumnRenderer(table.lastTradePrice, SKELETON_SIZES.price),
-    },
-
-    {
+    createColumn({
       key: "last-trade-volume",
 
       className: COLUMN_CLASSES.number,
 
-      orderable: true,
+      formatter: table.lastTradeVolume,
 
-      searchable: false,
+      skeletonSize: SKELETON_SIZES.quantity,
+    }),
 
-      render: createColumnRenderer(
-        table.lastTradeVolume,
-        SKELETON_SIZES.quantity,
-      ),
-    },
-
-    {
+    createColumn({
       key: "change-value",
 
       className: COLUMN_CLASSES.change,
 
-      orderable: true,
+      formatter: table.changeValue,
 
-      searchable: false,
+      skeletonSize: SKELETON_SIZES.change,
+    }),
 
-      render: createColumnRenderer(table.changeValue, SKELETON_SIZES.change),
-    },
-
-    {
+    createColumn({
       key: "change-percent",
 
       className: COLUMN_CLASSES.change,
 
-      orderable: true,
+      formatter: table.changePercent,
 
-      searchable: false,
-
-      render: createColumnRenderer(table.changePercent, SKELETON_SIZES.change),
-    },
+      skeletonSize: SKELETON_SIZES.change,
+    }),
 
     /* ----------------------------------------------------------------------
        Today
        ---------------------------------------------------------------------- */
 
-    {
+    createColumn({
       key: "today-open",
 
       className: COLUMN_CLASSES.number,
 
-      orderable: true,
+      formatter: table.todayOpen,
 
-      searchable: false,
+      skeletonSize: SKELETON_SIZES.price,
+    }),
 
-      render: createColumnRenderer(table.todayOpen, SKELETON_SIZES.price),
-    },
-
-    {
+    createColumn({
       key: "today-high",
 
       className: COLUMN_CLASSES.number,
 
-      orderable: true,
+      formatter: table.todayHigh,
 
-      searchable: false,
+      skeletonSize: SKELETON_SIZES.price,
+    }),
 
-      render: createColumnRenderer(table.todayHigh, SKELETON_SIZES.price),
-    },
-
-    {
+    createColumn({
       key: "today-low",
 
       className: COLUMN_CLASSES.number,
 
-      orderable: true,
+      formatter: table.todayLow,
 
-      searchable: false,
-
-      render: createColumnRenderer(table.todayLow, SKELETON_SIZES.price),
-    },
+      skeletonSize: SKELETON_SIZES.price,
+    }),
 
     /* ----------------------------------------------------------------------
        Cumulative
        ---------------------------------------------------------------------- */
 
-    {
+    createColumn({
       key: "number-of-trades",
 
       className: COLUMN_CLASSES.number,
 
-      orderable: true,
+      formatter: table.numberOfTrades,
 
-      searchable: false,
+      skeletonSize: SKELETON_SIZES.quantity,
+    }),
 
-      render: createColumnRenderer(
-        table.numberOfTrades,
-        SKELETON_SIZES.quantity,
-      ),
-    },
-
-    {
+    createColumn({
       key: "volume-traded",
 
       className: COLUMN_CLASSES.number,
 
-      orderable: true,
+      formatter: table.volumeTraded,
 
-      searchable: false,
-
-      render: createColumnRenderer(table.volumeTraded, SKELETON_SIZES.quantity),
-    },
+      skeletonSize: SKELETON_SIZES.quantity,
+    }),
 
     /* ----------------------------------------------------------------------
        Best Bid
        ---------------------------------------------------------------------- */
 
-    {
+    createColumn({
       key: "bid-price",
 
       className: COLUMN_CLASSES.number,
 
-      orderable: true,
+      formatter: table.bidPrice,
 
-      searchable: false,
+      skeletonSize: SKELETON_SIZES.price,
+    }),
 
-      render: createColumnRenderer(table.bidPrice, SKELETON_SIZES.price),
-    },
-
-    {
+    createColumn({
       key: "bid-volume",
 
       className: COLUMN_CLASSES.number,
 
-      orderable: true,
+      formatter: table.bidVolume,
 
-      searchable: false,
-
-      render: createColumnRenderer(table.bidVolume, SKELETON_SIZES.quantity),
-    },
+      skeletonSize: SKELETON_SIZES.quantity,
+    }),
 
     /* ----------------------------------------------------------------------
        Best Offer
        ---------------------------------------------------------------------- */
 
-    {
+    createColumn({
       key: "offer-price",
 
       className: COLUMN_CLASSES.number,
 
-      orderable: true,
+      formatter: table.offerPrice,
 
-      searchable: false,
+      skeletonSize: SKELETON_SIZES.price,
+    }),
 
-      render: createColumnRenderer(table.offerPrice, SKELETON_SIZES.price),
-    },
-
-    {
+    createColumn({
       key: "offer-volume",
 
       className: COLUMN_CLASSES.number,
 
-      orderable: true,
+      formatter: table.offerVolume,
 
-      searchable: false,
-
-      render: createColumnRenderer(table.offerVolume, SKELETON_SIZES.quantity),
-    },
-  ];
+      skeletonSize: SKELETON_SIZES.quantity,
+    }),
+  ]);
 }
 
 /* ==========================================================================
-   Public Table View
+   Row Behavior
    ========================================================================== */
 
-export function createListedTradableRightsTable(options = {}) {
-  if (!isObject(options)) {
+function createdRow(rowElement, row) {
+  if (!isLoadingRow(row)) {
+    return;
+  }
+
+  rowElement.classList.add("is-loading");
+
+  rowElement.setAttribute("aria-hidden", "true");
+}
+
+/* ==========================================================================
+   Public Factory
+   ========================================================================== */
+
+export function createListedTradableRightsTable(config = {}) {
+  if (!isObject(config)) {
     throw new TypeError(
-      "createListedTradableRightsTable requires an options object.",
+      "createListedTradableRightsTable requires a configuration object.",
     );
   }
 
-  const root = getRootElement(options.root);
-
-  const config = isObject(options.config) ? options.config : {};
-
-  const formatters =
-    options.formatters || createListedTradableRightsFormatters(config);
-
-  const tableElement = resolveRequiredElement(root, SELECTORS.table, "table");
-
-  const regionElement = resolveRequiredElement(
-    root,
-    SELECTORS.region,
-    "table region",
-  );
+  const formatters = createListedTradableRightsFormatters(config);
 
   const columns = createColumns(formatters);
 
   const noDataMessage =
     normalizeString(config.labels?.noData) || "No data available.";
 
-  const errorMessage =
-    normalizeString(config.labels?.error) || "Unable to load data.";
+  return Object.freeze({
+    key: VIEW_KEY,
 
-  let destroyed = false;
-
-  /* ========================================================================
-     DataTables Options
-     ======================================================================== */
-
-  const tableOptions = createTradingTableOptions({
-    paging: false,
-
-    searching: false,
-
-    ordering: true,
+    initialView: VIEW_KEY,
 
     /*
-     * Preserve service order on initial load.
+     * Listed Tradable Rights already has its semantic multi-row grouped
+     * header in the JSP.
      *
-     * A user can sort any leaf column after the table is rendered.
+     * createTradingTab() will pass this through to common createDataTable().
      */
-
-    order: [],
-
-    info: false,
-
-    lengthChange: false,
-
-    scrollX: true,
-
-    scrollCollapse: true,
-
-    fixedHeader: {
-      header: true,
-
-      footer: false,
-    },
-
-    fixedColumns: false,
-
-    rowGroup: false,
-
-    responsive: false,
-
-    language: {
-      emptyTable: noDataMessage,
-
-      zeroRecords: noDataMessage,
-    },
-
-    createdRow(row, data) {
-      if (!isLoadingRow(data)) {
-        return;
-      }
-
-      row.classList.add("is-loading");
-
-      row.setAttribute("aria-hidden", "true");
-    },
-  });
-
-  /* ========================================================================
-     Shared Table
-     ======================================================================== */
-
-  const table = createDataTable({
-    root,
-
-    table: tableElement,
-
-    /*
-     * Preserve the semantic grouped header rendered by the JSP.
-     */
-
     headerMode: "existing",
-
-    autoInit: false,
 
     getColumns() {
       return columns;
     },
 
-    tableOptions,
-
-    loadingRowCount: options.loadingRowCount || 6,
-
-    emptyMessage: noDataMessage,
-
-    errorMessage,
-
-    onDraw(api, context) {
-      options.onDraw?.(api, context);
+    getColumnGroups() {
+      return [];
     },
-
-    onInit(api, context) {
-      options.onInit?.(api, context);
-    },
-  });
-
-  /* ========================================================================
-     Busy State
-     ======================================================================== */
-
-  function setBusy(busy) {
-    const value = String(Boolean(busy));
-
-    regionElement.setAttribute("aria-busy", value);
-
-    tableElement.setAttribute("aria-busy", value);
-  }
-
-  /* ========================================================================
-     Loading
-     ======================================================================== */
-
-  function renderLoading() {
-    if (destroyed) {
-      return;
-    }
-
-    setBusy(true);
-
-    table.showLoading();
-  }
-
-  /* ========================================================================
-     Rows
-     ======================================================================== */
-
-  function renderRows(rows = []) {
-    if (destroyed) {
-      return;
-    }
-
-    const normalizedRows = Array.isArray(rows) ? rows : [];
-
-    setBusy(false);
-
-    if (!normalizedRows.length) {
-      renderEmpty();
-
-      return;
-    }
-
-    table.setRows(normalizedRows);
-  }
-
-  /* ========================================================================
-     Empty
-     ======================================================================== */
-
-  function renderEmpty(message = noDataMessage) {
-    if (destroyed) {
-      return;
-    }
-
-    setBusy(false);
-
-    table.showEmpty(normalizeString(message) || noDataMessage);
-  }
-
-  /* ========================================================================
-     Error
-     ======================================================================== */
-
-  function renderError(message = errorMessage) {
-    if (destroyed) {
-      return;
-    }
-
-    setBusy(false);
-
-    table.showError(normalizeString(message) || errorMessage);
-  }
-
-  /* ========================================================================
-     Layout
-     ======================================================================== */
-
-  function adjust() {
-    if (destroyed) {
-      return;
-    }
 
     /*
-     * The panel may have become visible during the same event cycle.
-     * Waiting one frame allows DataTables and FixedHeader to measure it.
+     * createTradingTab() requires a table-level renderer.
+     *
+     * Normal Listed Tradable Rights columns already own their renderer, so
+     * this remains only a safe fallback.
      */
+    renderCell({ row, column, type, meta }) {
+      if (typeof column?.render === "function") {
+        return column.render({
+          row,
 
-    window.requestAnimationFrame(() => {
-      if (!destroyed) {
-        table.adjust();
+          column,
+
+          type,
+
+          meta,
+        });
       }
-    });
-  }
 
-  /* ========================================================================
-     Lifecycle
-     ======================================================================== */
-
-  function destroy() {
-    if (destroyed) {
-      return;
-    }
-
-    destroyed = true;
-
-    setBusy(false);
-
-    table.destroy();
-  }
-
-  /* ========================================================================
-     Public Instance
-     ======================================================================== */
-
-  return Object.freeze({
-    adjust,
-    destroy,
-
-    renderEmpty,
-    renderError,
-    renderLoading,
-    renderRows,
-
-    getApi() {
-      return table.getApi();
+      return "";
     },
 
-    getRows() {
-      return table.getRows();
-    },
+    tableOptions: Object.freeze({
+      paging: false,
 
-    getState() {
-      return table.getState();
-    },
+      searching: false,
+
+      ordering: true,
+
+      /*
+       * Preserve service order on initial load.
+       *
+       * Users can still sort any leaf column after rendering.
+       */
+      order: Object.freeze([]),
+
+      info: false,
+
+      lengthChange: false,
+
+      scrollX: true,
+
+      scrollCollapse: true,
+
+      fixedHeader: Object.freeze({
+        header: true,
+
+        footer: false,
+      }),
+
+      fixedColumns: false,
+
+      rowGroup: false,
+
+      responsive: false,
+
+      language: Object.freeze({
+        emptyTable: noDataMessage,
+
+        zeroRecords: noDataMessage,
+      }),
+
+      createdRow,
+    }),
   });
 }

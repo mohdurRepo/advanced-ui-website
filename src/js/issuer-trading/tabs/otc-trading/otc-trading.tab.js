@@ -7,23 +7,19 @@
  *
  * Responsibilities:
  *
- * - compose the shared trading-tab lifecycle
- * - build the legacy request parameters
- * - connect response normalization
- * - connect the desktop table
- * - connect the mobile cards
- * - support lazy activation and request cancellation
+ * - select the OTC endpoint
+ * - build the legacy-compatible request payload
+ * - connect normalized data to the desktop table and mobile cards
+ * - delegate data-view lifecycle to createTradingTab()
  *
  * This module intentionally has no:
  *
- * - company markup
- * - table cell markup
- * - card markup
- * - response-envelope parsing
- * - global tab-navigation behavior
- *
- * OTC Trading has no user filters. The endpoint is called with the current
- * request locale when the tab is activated.
+ * - page-level tab navigation
+ * - AJAX implementation
+ * - response field normalization
+ * - table implementation
+ * - card implementation
+ * - shared lifecycle implementation
  */
 
 /* ==========================================================================
@@ -36,9 +32,9 @@ import { normalizeString } from "../../../shared/trading/trading-formatters.js";
 
 import { normalizeOtcTradingResponse } from "./otc-trading.normalizer.js";
 
-import { createOtcTradingTable } from "./views/otc-trading.table.js";
-
 import { createOtcTradingCards } from "./views/otc-trading.cards.js";
+
+import { createOtcTradingTable } from "./views/otc-trading.table.js";
 
 /* ==========================================================================
    Constants
@@ -52,7 +48,9 @@ const VIEW_KEY = "otc-trading";
 
 const DEFAULT_LOCALE = "en";
 
-const SELECTORS = Object.freeze({
+const DEFAULT_LOADING_ROW_COUNT = 6;
+
+export const OTC_TRADING_SELECTORS = Object.freeze({
   table: "[data-otc-trading-table]",
 
   cards: "[data-otc-trading-cards]",
@@ -76,16 +74,8 @@ function isPlainObject(value) {
   return prototype === Object.prototype || prototype === null;
 }
 
-/* ==========================================================================
-   Request Data
-   ========================================================================== */
-
-function createRequestBuilder(config) {
-  return function buildRequestData() {
-    return {
-      requestLocale: normalizeString(config.locale, DEFAULT_LOCALE),
-    };
-  };
+function normalizeLocale(value) {
+  return normalizeString(value) || DEFAULT_LOCALE;
 }
 
 /* ==========================================================================
@@ -109,41 +99,34 @@ export function createOtcTradingTab(options = {}) {
     throw new TypeError("OTC Trading requires page configuration.");
   }
 
+  /* ========================================================================
+     Presentation Definitions
+     ======================================================================== */
+
   const tableDefinition = createOtcTradingTable(config);
 
   const cardsDefinition = createOtcTradingCards(config);
 
-  const sourceOptions = {
-    ...(isPlainObject(options.sourceOptions) ? options.sourceOptions : {}),
-
-    method: options.method || "GET",
-  };
-
-  const tableOptions = {
-    ...tableDefinition.tableOptions,
-
-    ...(isPlainObject(options.tableOptions) ? options.tableOptions : {}),
-  };
+  /* ========================================================================
+     Shared Trading Tab
+     ======================================================================== */
 
   return createTradingTab({
-    key: TAB_KEY,
-
     root,
+
     config,
 
-    selectors: SELECTORS,
+    key: TAB_KEY,
+
+    selectors: OTC_TRADING_SELECTORS,
 
     /*
-     * OTC Trading has no filters.
+     * OTC has no request filters.
      *
-     * The shared filter controller supports an empty field definition and
-     * therefore remains part of the standard tab lifecycle without adding
-     * DOM listeners or reload effects.
+     * createTradingTab() still requires a filter-definition object because
+     * every standard trading tab uses the same controller contract.
      */
-
     filters: Object.freeze({}),
-
-    endpointKey: ENDPOINT_KEY,
 
     initialView: VIEW_KEY,
 
@@ -151,60 +134,134 @@ export function createOtcTradingTab(options = {}) {
       return VIEW_KEY;
     },
 
-    getColumns() {
-      return tableDefinition.getColumns();
+    endpointKey: ENDPOINT_KEY,
+
+    buildRequestData() {
+      return {
+        requestLocale: normalizeLocale(config.locale),
+      };
     },
 
-    getColumnGroups() {
-      return tableDefinition.getColumnGroups();
+    normalizeResponse(response) {
+      return normalizeOtcTradingResponse(response);
+    },
+
+    /* ----------------------------------------------------------------------
+       Desktop Table
+       ---------------------------------------------------------------------- */
+
+    getColumns(view, context) {
+      return tableDefinition.getColumns(view, context);
+    },
+
+    getColumnGroups(view, context) {
+      return tableDefinition.getColumnGroups(view, context);
     },
 
     renderCell(cellContext) {
       return tableDefinition.renderCell(cellContext);
     },
 
-    renderCard(cardContext) {
-      return cardsDefinition.renderCard(cardContext);
+    tableOptions: {
+      ...tableDefinition.tableOptions,
+
+      ...(isPlainObject(options.tableOptions) ? options.tableOptions : {}),
     },
 
-    buildRequestData: createRequestBuilder(config),
+    /* ----------------------------------------------------------------------
+       Mobile Cards
+       ---------------------------------------------------------------------- */
 
-    normalizeResponse(response, context) {
-      return normalizeOtcTradingResponse(response, context);
+    renderCard(context) {
+      return cardsDefinition.renderCard(context);
     },
 
-    headerMode: "schema",
+    /* ----------------------------------------------------------------------
+       Source
+       ---------------------------------------------------------------------- */
 
-    tableOptions,
+    sourceOptions: {
+      ...(isPlainObject(options.sourceOptions) ? options.sourceOptions : {}),
 
-    sourceOptions,
+      method: options.method || "GET",
+    },
 
-    loadingRowCount: options.loadingRowCount || 6,
+    /* ----------------------------------------------------------------------
+       Behavior
+       ---------------------------------------------------------------------- */
 
+    loadingRowCount: options.loadingRowCount || DEFAULT_LOADING_ROW_COUNT,
+
+    /*
+     * OTC has a single fixed presentation, so a view change can never require
+     * another server request.
+     */
     reloadOnViewChange: false,
 
     reloadOnActivate: options.reloadOnActivate !== false,
 
-    autoInit: options.autoInit,
+    /*
+     * Keep the Issuer Trading page genuinely lazy.
+     *
+     * issuer-trading.js passes autoInit:false and activates the feature only
+     * when its tab becomes active.
+     */
+    autoInit: options.autoInit === true,
 
     active: options.active === true,
 
-    onInit: options.onInit,
+    /* ----------------------------------------------------------------------
+       Optional Lifecycle Callbacks
+       ---------------------------------------------------------------------- */
 
-    onActivate: options.onActivate,
+    onInit(context) {
+      options.onInit?.({
+        key: TAB_KEY,
 
-    onDeactivate: options.onDeactivate,
+        config,
 
-    onDataLoaded: options.onDataLoaded,
+        context,
+      });
+    },
 
-    onRowsRendered: options.onRowsRendered,
+    onDataLoaded(rows, meta, context) {
+      options.onDataLoaded?.({
+        rows,
 
-    onTableDraw: options.onTableDraw,
+        meta,
 
-    onCardsRendered: options.onCardsRendered,
+        key: TAB_KEY,
 
-    onError: options.onError,
+        context,
+      });
+    },
 
-    onDestroy: options.onDestroy,
+    onError(error, context) {
+      options.onError?.(error, {
+        key: TAB_KEY,
+
+        context,
+      });
+    },
+
+    onActivate(context) {
+      options.onActivate?.({
+        key: TAB_KEY,
+
+        context,
+      });
+    },
+
+    onDeactivate(context) {
+      options.onDeactivate?.({
+        key: TAB_KEY,
+
+        context,
+      });
+    },
+
+    onDestroy() {
+      options.onDestroy?.();
+    },
   });
 }

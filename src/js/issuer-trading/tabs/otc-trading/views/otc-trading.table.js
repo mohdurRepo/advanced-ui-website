@@ -7,18 +7,19 @@
  *
  * Responsibilities:
  *
- * - define the OTC Trading column schema
+ * - define the three-column OTC schema
  * - connect normalized rows to presentation formatters
- * - enable client-side DataTables pagination
- * - enable sorting
- * - configure row behavior
+ * - render loading cells
+ * - configure DataTables sorting and pagination
+ * - classify rendered rows for styling
  *
  * This module intentionally has no:
  *
- * - request code
+ * - DOM queries
+ * - request lifecycle
  * - response normalization
  * - mobile-card rendering
- * - tab lifecycle code
+ * - tab lifecycle
  */
 
 /* ==========================================================================
@@ -53,86 +54,21 @@ function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function getLabel(value, fallback) {
-  return normalizeString(value) || fallback;
+function isTableRow(value) {
+  /*
+   * Avoid a direct HTMLTableRowElement dependency so this presentation
+   * definition remains safe in tests or environments where DOM constructors
+   * are not exposed globally.
+   */
+  return Boolean(
+    value &&
+    value.nodeType === 1 &&
+    String(value.tagName || "").toUpperCase() === "TR",
+  );
 }
 
-/* ==========================================================================
-   Labels
-   ========================================================================== */
-
-function getLabels(config = {}) {
-  const table = config.labels?.otcTrading?.table || {};
-
-  return Object.freeze({
-    company: getLabel(table.company, "Company"),
-
-    tradedVolume: getLabel(table.tradedVolume, "Traded Volume"),
-
-    lastUpdate: getLabel(table.lastUpdate, "Last Update Price"),
-  });
-}
-
-/* ==========================================================================
-   Column Schema
-   ========================================================================== */
-
-function createColumns(labels) {
-  return Object.freeze([
-    Object.freeze({
-      key: COLUMN_KEYS.company,
-
-      label: labels.company,
-
-      className: "otc-trading__company-cell",
-
-      headerClassName: "otc-trading__company-heading table-market__security",
-
-      width: "50%",
-    }),
-
-    Object.freeze({
-      key: COLUMN_KEYS.tradedVolume,
-
-      label: labels.tradedVolume,
-
-      className: [
-        "otc-trading__volume-cell",
-        "table-cell-numeric",
-        "numeric",
-        "text-end",
-      ].join(" "),
-
-      headerClassName: [
-        "otc-trading__volume-heading",
-        "table-cell-numeric",
-        "text-end",
-      ].join(" "),
-
-      width: "25%",
-    }),
-
-    Object.freeze({
-      key: COLUMN_KEYS.lastUpdate,
-
-      label: labels.lastUpdate,
-
-      className: [
-        "otc-trading__last-update-cell",
-        "table-cell-numeric",
-        "numeric",
-        "text-end",
-      ].join(" "),
-
-      headerClassName: [
-        "otc-trading__last-update-heading",
-        "table-cell-numeric",
-        "text-end",
-      ].join(" "),
-
-      width: "25%",
-    }),
-  ]);
+function normalizeRowId(value) {
+  return normalizeString(value);
 }
 
 /* ==========================================================================
@@ -151,49 +87,111 @@ function renderLoadingCell(columnKey) {
 }
 
 /* ==========================================================================
-   Cell Rendering
+   Columns
    ========================================================================== */
 
-function createCellRenderer(formatters) {
-  return function renderCell({ row, column, type }) {
-    if (row?.__dataViewState === "loading") {
-      return renderLoadingCell(column.key);
-    }
+function createColumns(formatters) {
+  return Object.freeze([
+    Object.freeze({
+      key: COLUMN_KEYS.company,
 
-    switch (column.key) {
-      case COLUMN_KEYS.company:
+      data: null,
+
+      width: "50%",
+
+      className: "table-market__security",
+
+      orderable: true,
+
+      searchable: true,
+
+      render({ row, type }) {
+        if (row?.__dataViewState === "loading") {
+          return renderLoadingCell(COLUMN_KEYS.company);
+        }
+
         return formatters.table.company(null, type, row);
+      },
+    }),
 
-      case COLUMN_KEYS.tradedVolume:
-        return formatters.table.tradedVolume(row?.tradedVolume, type);
+    Object.freeze({
+      key: COLUMN_KEYS.tradedVolume,
 
-      case COLUMN_KEYS.lastUpdate:
-        return formatters.table.lastUpdate(row?.lastUpdate, type);
+      data: "tradedVolume",
 
-      default:
-        return "";
-    }
-  };
+      width: "25%",
+
+      className: "table-market__number text-end",
+
+      orderable: true,
+
+      searchable: false,
+
+      render({ row, type }) {
+        if (row?.__dataViewState === "loading") {
+          return renderLoadingCell(COLUMN_KEYS.tradedVolume);
+        }
+
+        return formatters.table.tradedVolume(row?.tradedVolume, type, row);
+      },
+    }),
+
+    Object.freeze({
+      key: COLUMN_KEYS.lastUpdate,
+
+      data: "lastUpdate",
+
+      width: "25%",
+
+      className: "table-market__date text-center",
+
+      orderable: true,
+
+      searchable: false,
+
+      render({ row, type }) {
+        if (row?.__dataViewState === "loading") {
+          return renderLoadingCell(COLUMN_KEYS.lastUpdate);
+        }
+
+        return formatters.table.lastUpdate(row?.lastUpdate, type, row);
+      },
+    }),
+  ]);
 }
 
 /* ==========================================================================
    Row Behavior
    ========================================================================== */
 
-function createdRow(rowElement, row) {
-  if (!(rowElement instanceof HTMLTableRowElement)) {
-    return;
-  }
+function createRowCallback() {
+  return function createdRow(rowElement, rowData) {
+    if (!isTableRow(rowElement)) {
+      return;
+    }
 
-  if (row?.__dataViewState === "loading") {
-    rowElement.classList.add("table-market__loading-row");
+    if (rowData?.__dataViewState === "loading") {
+      rowElement.classList.add("is-loading");
 
-    return;
-  }
+      rowElement.setAttribute("aria-hidden", "true");
 
-  rowElement.dataset.rowType = VIEW_KEY;
+      return;
+    }
 
-  rowElement.classList.add("otc-trading__result-row");
+    rowElement.classList.remove("is-loading");
+
+    rowElement.removeAttribute("aria-hidden");
+
+    const rowType = normalizeString(rowData?.rowType);
+
+    if (!rowType) {
+      return;
+    }
+
+    rowElement.dataset.rowType = rowType;
+
+    rowElement.classList.add(`table-market__row--${rowType}`);
+  };
 }
 
 /* ==========================================================================
@@ -207,13 +205,15 @@ export function createOtcTradingTable(config = {}) {
     );
   }
 
-  const labels = getLabels(config);
-
   const formatters = createOtcTradingFormatters(config);
 
-  const columns = createColumns(labels);
+  const columns = createColumns(formatters);
+
+  const createdRow = createRowCallback();
 
   return Object.freeze({
+    key: VIEW_KEY,
+
     initialView: VIEW_KEY,
 
     getColumns() {
@@ -224,43 +224,57 @@ export function createOtcTradingTable(config = {}) {
       return [];
     },
 
-    renderCell: createCellRenderer(formatters),
+    renderCell({ row, column, type, meta }) {
+      if (typeof column?.render === "function") {
+        return column.render({
+          row,
+          column,
+          type,
+          meta,
+        });
+      }
+
+      return "";
+    },
 
     tableOptions: Object.freeze({
-      /*
-       * DataTables owns OTC pagination.
-       */
-
       paging: true,
 
       pageLength: DEFAULT_PAGE_LENGTH,
 
-      lengthMenu: Object.freeze([25, 50, 100]),
+      lengthMenu: [25, 50, 100],
 
       lengthChange: true,
 
       info: true,
 
-      /*
-       * The endpoint returns the complete result set.
-       *
-       * Paging, ordering, and page-size changes remain client-side and do
-       * not trigger additional API requests.
-       */
-
-      serverSide: false,
-
       searching: false,
 
       ordering: true,
 
-      order: Object.freeze([Object.freeze([0, "asc"])]),
+      order: [[0, "asc"]],
+
+      serverSide: false,
+
+      scrollX: true,
+
+      scrollCollapse: true,
+
+      fixedHeader: false,
+
+      fixedColumns: false,
+
+      responsive: false,
+
+      rowGroup: false,
 
       /*
-       * Expose only the DataTables controls required by this tab.
+       * DataTables 2 layout.
+       *
+       * Keep the page-length control and information/paging controls while
+       * leaving search disabled.
        */
-
-      layout: Object.freeze({
+      layout: {
         topStart: "pageLength",
 
         topEnd: null,
@@ -268,14 +282,12 @@ export function createOtcTradingTable(config = {}) {
         bottomStart: "info",
 
         bottomEnd: "paging",
-      }),
-
-      rowGroup: false,
+      },
 
       createdRow,
 
       rowId(row) {
-        return normalizeString(row?.id);
+        return normalizeRowId(row?.id);
       },
     }),
   });

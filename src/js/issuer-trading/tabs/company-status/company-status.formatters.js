@@ -21,6 +21,7 @@
  * - request lifecycle
  * - DataTables lifecycle
  * - filter behavior
+ * - company identity normalization
  */
 
 /* ==========================================================================
@@ -28,6 +29,8 @@
    ========================================================================== */
 
 import {
+  getStandardCompanyCode,
+  getStandardCompanyName,
   renderStandardCompanyCardIdentity,
   renderStandardCompanyCell,
 } from "../../../../common/data-view/index.js";
@@ -54,6 +57,8 @@ import {
 const DEFAULT_EMPTY_VALUE = "—";
 
 const DEFAULT_ANNOUNCEMENT_LABEL = "View";
+
+const STANDARD_IDENTITY_EMPTY_VALUE = "-";
 
 const STATUS_PRESENTATIONS = Object.freeze({
   1: Object.freeze({
@@ -115,6 +120,28 @@ function firstSafeUrl(...values) {
   return "";
 }
 
+function normalizeStandardIdentityValue(value) {
+  const normalized = normalizeString(value);
+
+  /*
+   * Standard company identity helpers intentionally use "-" as their visual
+   * fallback.
+   *
+   * Sorting, filtering and accessible-label composition historically treated
+   * a missing Company Status identity as an empty value, so strip that visual
+   * placeholder outside display rendering.
+   */
+  return normalized === STANDARD_IDENTITY_EMPTY_VALUE ? "" : normalized;
+}
+
+function getCompanyName(row = {}) {
+  return normalizeStandardIdentityValue(getStandardCompanyName(row));
+}
+
+function getCompanyCode(row = {}) {
+  return normalizeStandardIdentityValue(getStandardCompanyCode(row));
+}
+
 function padDatePart(value) {
   return String(value).padStart(2, "0");
 }
@@ -133,20 +160,6 @@ function getDateSortKey(value) {
   }
 
   return getDateSortValue(getDateRawValue(value));
-}
-
-function getCompanyName(row = {}) {
-  return firstString(row.companyName, row.acrynomName, row.name, row.company);
-}
-
-function getCompanyCode(row = {}) {
-  return firstString(
-    row.companyCode,
-    row.companyRef,
-    row.symbolCode,
-    row.companySymbol,
-    row.symbol,
-  );
 }
 
 /* ==========================================================================
@@ -252,7 +265,7 @@ function getCompanySearchValue(row = {}, config = {}) {
  *
  * DD-MM-YYYY
  *
- * Both backend formats are supported:
+ * Supported normalized/service values include:
  *
  * - YYYY-MM-DD
  * - DD-MM-YYYY
@@ -343,10 +356,10 @@ export function renderCompanyStatusIndicator(row = {}, config = {}) {
 
   const accessibilityAttributes = presentation.label
     ? `
-        role="img"
-        aria-label="${escapeHtml(presentation.label)}"
-        title="${escapeHtml(presentation.label)}"
-      `.trim()
+          role="img"
+          aria-label="${escapeHtml(presentation.label)}"
+          title="${escapeHtml(presentation.label)}"
+        `.trim()
     : 'aria-hidden="true"';
 
   return `
@@ -377,9 +390,14 @@ export function renderCompanyStatusCardIdentity(row = {}, config = {}) {
     nameMetadata: renderCompanyStatusIndicator(row, config),
   });
 }
+
 function formatCompanyCell(row, type, config) {
+  const companyName = getCompanyName(row);
+
+  const companyCode = getCompanyCode(row);
+
   if (type === "sort" || type === "type") {
-    return getCompanyName(row) || getCompanyCode(row);
+    return companyName || companyCode;
   }
 
   if (type === "filter") {
@@ -387,7 +405,7 @@ function formatCompanyCell(row, type, config) {
   }
 
   if (type !== "display") {
-    return getCompanyName(row);
+    return companyName;
   }
 
   return renderCompanyStatusCompanyCell(row, config);
@@ -442,9 +460,8 @@ export function renderCompanyStatusAnnouncement(
   const url = getCompanyStatusAnnouncementUrl(row);
 
   /*
-   * Preserve a service-provided reason when there is no URL.
+   * Preserve a service-provided reason when no announcement URL exists.
    */
-
   if (!url) {
     return escapeHtml(getDisplayValue(row.reason, fallback));
   }
@@ -457,11 +474,8 @@ export function renderCompanyStatusAnnouncement(
 
   const className = [
     "company-status__announcement-link",
-
     "has-icon",
-
     "icon-arrow-up-right",
-
     options.className || "",
   ]
     .filter(Boolean)

@@ -14,10 +14,10 @@
  *
  * - parse legacy response envelopes
  * - normalize company identity
+ * - normalize company-status information
  * - normalize suspension and delisting dates
  * - provide sortable date values
  * - resolve announcement and news URLs
- * - preserve company status information
  * - provide consistent response metadata
  *
  * This module intentionally has no:
@@ -76,12 +76,22 @@ function normalizeString(value) {
 function getFirstValue(...values) {
   return values.find(
     (value) =>
-      value !== undefined && value !== null && normalizeString(value) !== "",
+      value !== undefined &&
+      value !== null &&
+      (typeof value === "object" || normalizeString(value) !== ""),
   );
 }
 
 function getFirstString(...values) {
-  return normalizeString(getFirstValue(...values));
+  for (const value of values) {
+    const normalized = normalizeString(value);
+
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return "";
 }
 
 function normalizeDigits(value) {
@@ -93,6 +103,10 @@ function normalizeDigits(value) {
 function normalizeNumericValue(value) {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : null;
+  }
+
+  if (value == null || typeof value === "object") {
+    return null;
   }
 
   const normalized = normalizeDigits(value)
@@ -203,21 +217,38 @@ function normalizeCompanyIdentity(row = {}) {
     company.symbolCode,
     company.symbol,
     company.companyCode,
+    company.securityCode,
     company.code,
   );
 
   const companyName = getFirstString(
+    /*
+     * Keep service-specific spelling aliases here.
+     *
+     * Presentation now consumes the normalized companyName field instead of
+     * re-interpreting the backend response.
+     */
+    row.acrynomName,
+    row.acronymName,
     row.companyName,
-    row.name,
     row.longName,
+    row.shortName,
     row.securityName,
+    row.name,
 
     typeof row.company === "string" ? row.company : null,
 
+    company.acrynomName,
+    company.acronymName,
     company.companyName,
-    company.name,
     company.longName,
+    company.shortName,
+    company.securityName,
+    company.name,
 
+    /*
+     * Preserve the previous fallback when a service provides only a code.
+     */
     companyCode,
   );
 
@@ -240,14 +271,18 @@ function normalizeCompanyIdentity(row = {}) {
     row.logoURL,
 
     company.companyLogoUrl,
+    company.companyLogoURL,
     company.logoUrl,
     company.logoURL,
   );
 
   return {
     companyCode,
+
     companyName,
+
     companyUrl,
+
     companyLogoUrl,
   };
 }
@@ -264,16 +299,60 @@ function normalizeCompanyStatus(row = {}) {
     row.companyStatusCode,
   );
 
+  /*
+   * Some service variants return:
+   *
+   * companyStatus: "3"
+   *
+   * while others may already return:
+   *
+   * companyStatus: {
+   *   code: "3",
+   *   value: 3,
+   *   label: "..."
+   * }
+   *
+   * Preserve both shapes.
+   */
+  const statusObject = isObject(rawStatus) ? rawStatus : {};
+
+  const rawCode = getFirstValue(
+    statusObject.code,
+    statusObject.value,
+    statusObject.raw,
+
+    isObject(rawStatus) ? null : rawStatus,
+
+    row.statusCode,
+    row.companyStatusCode,
+    row.status,
+  );
+
+  const code = normalizeString(rawCode);
+
+  const explicitValue = getFirstValue(
+    statusObject.value,
+    statusObject.numericValue,
+  );
+
+  const numericValue = normalizeNumericValue(explicitValue ?? rawCode);
+
+  const label = getFirstString(
+    statusObject.label,
+    statusObject.name,
+    statusObject.title,
+
+    row.companyStatusLabel,
+    row.statusLabel,
+    row.statusName,
+  );
+
   return {
-    code: normalizeString(rawStatus),
+    code,
 
-    value: normalizeNumericValue(rawStatus),
+    value: numericValue,
 
-    label: getFirstString(
-      row.companyStatusLabel,
-      row.statusLabel,
-      row.statusName,
-    ),
+    label,
   };
 }
 
@@ -281,13 +360,23 @@ function normalizeCompanyStatus(row = {}) {
    Date Normalization
    ========================================================================== */
 
+function getDateRawValue(value) {
+  if (isObject(value)) {
+    return getFirstString(value.raw, value.value, value.display, value.date);
+  }
+
+  return normalizeString(value);
+}
+
 function normalizeDate(value) {
-  const raw = normalizeString(value);
+  const raw = getDateRawValue(value);
+
+  const explicitSort = isObject(value) ? normalizeString(value.sort) : "";
 
   return {
     raw,
 
-    sort: getDateSortValue(raw, ""),
+    sort: explicitSort || getDateSortValue(raw, ""),
   };
 }
 
@@ -304,6 +393,9 @@ function normalizeAnnouncement(row, view) {
 
   const newsUrl = getFirstString(row.newsUrl, row.newsURL);
 
+  /*
+   * Legacy service uses "0" to mean that no announcement link exists.
+   */
   const validAnnouncementUrl =
     announcementUrl && announcementUrl !== "0" ? announcementUrl : "";
 
@@ -383,8 +475,11 @@ function normalizeCompanyStatusRow(row, index, context) {
     view: context.view,
 
     companyCode: identity.companyCode,
+
     companyName: identity.companyName,
+
     companyUrl: identity.companyUrl,
+
     companyLogoUrl: identity.companyLogoUrl,
 
     companyStatus,
@@ -396,10 +491,9 @@ function normalizeCompanyStatusRow(row, index, context) {
     },
 
     /*
-     * The legacy delisting response uses fromDate as the effective
-     * delisting date.
+     * The legacy delisting response uses fromDate as the effective delisting
+     * date.
      */
-
     delistingDate: fromDate,
 
     announcementUrl: announcement.resolvedUrl,
@@ -483,8 +577,18 @@ function findUpdatedAt(response) {
    ========================================================================== */
 
 export function normalizeCompanyStatusResponse(response, context = {}) {
+  /*
+   * requestFilters is the preferred createTradingTab() contract.
+   *
+   * state / filters / requestOptions are retained for compatibility with
+   * callers using the normalizer directly.
+   */
   const filterState =
-    context.state ?? context.filters ?? context.requestOptions?.filters ?? {};
+    context.requestFilters ??
+    context.state ??
+    context.filters ??
+    context.requestOptions?.filters ??
+    {};
 
   const formType = normalizeCompanyStatusType(
     filterState.type ?? filterState.formType,

@@ -15,18 +15,12 @@
  * - define and normalize the four legacy form types
  * - resolve the active table/card presentation
  * - provide the default one-calendar-month date range
- * - coordinate filter changes and reset behavior
+ * - initialize missing filter values
+ * - coordinate explicit submit/reset behavior
  * - synchronize enhanced select and date controls
- * - coalesce related control changes into one reload
  *
- * This module intentionally has no:
- *
- * - endpoint URLs
- * - AJAX transport
- * - request parameter formatting
- * - table rendering
- * - card rendering
- * - response normalization
+ * Normal field-change effects are owned by createDataFilters() and the
+ * shared Data View controller.
  */
 
 /* ==========================================================================
@@ -75,8 +69,8 @@ function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function normalizeString(value) {
-  return String(value ?? "").trim();
+function isElement(value) {
+  return Boolean(value && value.nodeType === 1);
 }
 
 function getRootElement(root) {
@@ -91,13 +85,20 @@ function getRootElement(root) {
   throw new TypeError("Company Status filters require a valid root element.");
 }
 
+function normalizeString(value) {
+  return String(value ?? "").trim();
+}
+
 function dispatchControlChange(element) {
-  if (!(element instanceof Element)) {
+  if (!isElement(element)) {
     return;
   }
 
+  const EventConstructor =
+    element.ownerDocument?.defaultView?.Event ?? globalThis.Event;
+
   element.dispatchEvent(
-    new Event("change", {
+    new EventConstructor("change", {
       bubbles: true,
     }),
   );
@@ -145,7 +146,7 @@ export function isCompanyStatusDelistingView(filterState = {}) {
 }
 
 /* ==========================================================================
-   Local Date Helpers
+   Date Helpers
    ========================================================================== */
 
 function padDatePart(value) {
@@ -159,7 +160,9 @@ function formatLocalInputDate(date) {
 
   return [
     date.getFullYear(),
+
     padDatePart(date.getMonth() + 1),
+
     padDatePart(date.getDate()),
   ].join("-");
 }
@@ -172,14 +175,10 @@ function subtractCalendarMonth(date) {
   const day = date.getDate();
 
   /*
-   * Start from the first day of the target month, then clamp the original
-   * day to the number of days available in that month.
+   * Clamp month-end dates correctly.
    *
-   * Example:
-   *
-   * March 31 -> February 28/29
+   * March 31 -> February 28/29.
    */
-
   const targetMonthStart = new Date(year, month - 1, 1);
 
   const lastDayOfTargetMonth = new Date(
@@ -205,16 +204,10 @@ export function createCompanyStatusDefaultDateRange(
       ? new Date(referenceDate.getTime())
       : new Date();
 
-  const toDate = formatLocalInputDate(safeReferenceDate);
-
-  const fromDate = formatLocalInputDate(
-    subtractCalendarMonth(safeReferenceDate),
-  );
-
   return Object.freeze({
-    fromDate,
+    fromDate: formatLocalInputDate(subtractCalendarMonth(safeReferenceDate)),
 
-    toDate,
+    toDate: formatLocalInputDate(safeReferenceDate),
   });
 }
 
@@ -305,14 +298,13 @@ export function bindCompanyStatusFilters(options = {}) {
 
   const filters = options.filters;
 
-  if (
-    !filters ||
-    typeof filters.getState !== "function" ||
-    typeof filters.reset !== "function" ||
-    typeof filters.setState !== "function" ||
-    typeof filters.subscribe !== "function" ||
-    typeof filters.sync !== "function"
-  ) {
+  const requiredMethods = ["getState", "reset", "setState", "sync"];
+
+  const validController = requiredMethods.every(
+    (method) => typeof filters?.[method] === "function",
+  );
+
+  if (!validController) {
     throw new TypeError(
       "Company Status requires a valid data-filter controller.",
     );
@@ -349,8 +341,6 @@ export function bindCompanyStatusFilters(options = {}) {
 
   const abortController = new AbortController();
 
-  let reloadFrame = null;
-
   let destroyed = false;
 
   /* ========================================================================
@@ -361,46 +351,6 @@ export function bindCompanyStatusFilters(options = {}) {
     [typeElement, dateFromElement, dateToElement].forEach(
       dispatchControlChange,
     );
-  }
-
-  /* ========================================================================
-     Reload Coordination
-     ======================================================================== */
-
-  function cancelScheduledReload() {
-    if (reloadFrame === null) {
-      return;
-    }
-
-    window.cancelAnimationFrame(reloadFrame);
-
-    reloadFrame = null;
-  }
-
-  function scheduleReload(source = null) {
-    if (destroyed) {
-      return;
-    }
-
-    cancelScheduledReload();
-
-    reloadFrame = window.requestAnimationFrame(() => {
-      reloadFrame = null;
-
-      if (destroyed) {
-        return;
-      }
-
-      const filterState = filters.getState();
-
-      options.onReload?.({
-        filters: filterState,
-
-        source,
-
-        view: getCompanyStatusView(filterState),
-      });
-    });
   }
 
   /* ========================================================================
@@ -419,6 +369,10 @@ export function bindCompanyStatusFilters(options = {}) {
       toDate: normalizeDateValue(initialState.toDate) || defaultRange.toDate,
     },
     {
+      /*
+       * Initial normalization must not start a request.
+       * Activation owns the first load.
+       */
       notify: false,
     },
   );
@@ -426,27 +380,16 @@ export function bindCompanyStatusFilters(options = {}) {
   filters.sync();
 
   /*
-   * Notify the existing design-system controls after the native values have
-   * been synchronized. DataFilters already owns the same values, so these
-   * events do not create duplicate filter notifications.
+   * Keep CustomSelect / date-control presentation synchronized with the
+   * normalized native values.
+   *
+   * DataFilters already contains these values, so these change events do not
+   * produce another meaningful filter transition.
    */
-
   announceControlUpdates();
 
   /* ========================================================================
-     Filter Changes
-     ======================================================================== */
-
-  const unsubscribe = filters.subscribe((event) => {
-    if (destroyed) {
-      return;
-    }
-
-    scheduleReload(event.source);
-  });
-
-  /* ========================================================================
-     Form Submission
+     Submit
      ======================================================================== */
 
   form.addEventListener(
@@ -454,9 +397,21 @@ export function bindCompanyStatusFilters(options = {}) {
     (event) => {
       event.preventDefault();
 
+      /*
+       * DataFilters already handles normal field changes.
+       *
+       * Submit is an explicit refresh action, therefore refresh even when the
+       * current filter state has not changed.
+       */
       filters.sync();
 
-      scheduleReload(event);
+      options.onReload?.({
+        filters: filters.getState(),
+
+        source: event,
+
+        view: getCompanyStatusView(filters.getState()),
+      });
     },
     {
       signal: abortController.signal,
@@ -472,34 +427,35 @@ export function bindCompanyStatusFilters(options = {}) {
     (event) => {
       event.preventDefault();
 
-      cancelScheduledReload();
-
       const changed = filters.reset({
         type: "reset",
 
+        /*
+         * The Type field controls the complete schema. A changed reset is
+         * therefore treated as a view effect.
+         */
         effect: "view",
 
         source: event,
       });
 
-      /*
-       * Synchronize the enhanced visual controls after the native values have
-       * been reset to:
-       *
-       * - Suspension
-       * - one calendar month ago
-       * - today
-       */
-
       announceControlUpdates();
 
       /*
-       * If the form was already at its defaults, DataFilters emits no change.
-       * Reset still acts as an explicit refresh action.
+       * When reset changed filter state, the shared Data View controller
+       * receives the reset event and performs the required view sync/reload.
+       *
+       * If everything was already at its defaults, reset still acts as an
+       * explicit refresh action.
        */
-
       if (!changed) {
-        scheduleReload(event);
+        options.onReload?.({
+          filters: filters.getState(),
+
+          source: event,
+
+          view: getCompanyStatusView(filters.getState()),
+        });
       }
     },
     {
@@ -532,11 +488,7 @@ export function bindCompanyStatusFilters(options = {}) {
 
     destroyed = true;
 
-    cancelScheduledReload();
-
     abortController.abort();
-
-    unsubscribe();
   }
 
   /* ========================================================================
@@ -545,6 +497,7 @@ export function bindCompanyStatusFilters(options = {}) {
 
   return Object.freeze({
     destroy,
+
     sync,
 
     getDefaultRange() {

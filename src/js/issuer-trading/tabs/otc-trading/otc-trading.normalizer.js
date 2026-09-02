@@ -65,8 +65,26 @@ function firstDefined(...values) {
   return values.find((value) => value !== undefined && value !== null);
 }
 
+function firstMeaningfulValue(...values) {
+  return values.find((value) => {
+    if (value === undefined || value === null) {
+      return false;
+    }
+
+    if (typeof value === "string") {
+      return value.trim() !== "";
+    }
+
+    return true;
+  });
+}
+
 function getFirstString(...values) {
   for (const value of values) {
+    if (value === undefined || value === null || typeof value === "object") {
+      continue;
+    }
+
     const normalized = normalizeString(value);
 
     if (normalized) {
@@ -119,8 +137,7 @@ function createSafeKey(value, fallback = "item") {
  * - a JSON string
  * - a JSON string containing another JSON string
  *
- * Parsing is capped at three levels. This avoids unbounded processing when
- * an invalid service response repeatedly contains encoded values.
+ * Parsing is capped at three levels.
  */
 
 function parseResponseValue(value) {
@@ -158,6 +175,10 @@ function extractArray(value) {
 }
 
 function extractRowsFromObject(response) {
+  /* ------------------------------------------------------------------------
+     Direct collection
+     ------------------------------------------------------------------------ */
+
   for (const key of ROW_COLLECTION_KEYS) {
     if (!Object.prototype.hasOwnProperty.call(response, key)) {
       continue;
@@ -170,23 +191,9 @@ function extractRowsFromObject(response) {
     }
   }
 
-  /*
-   * Support one additional envelope level without recursive traversal.
-   *
-   * Examples:
-   *
-   * {
-   *   data: {
-   *     rows: [...]
-   *   }
-   * }
-   *
-   * {
-   *   response: {
-   *     results: [...]
-   *   }
-   * }
-   */
+  /* ------------------------------------------------------------------------
+     One nested envelope level
+     ------------------------------------------------------------------------ */
 
   for (const outerKey of ROW_COLLECTION_KEYS) {
     const nestedResponse = parseResponseValue(response[outerKey]);
@@ -226,27 +233,49 @@ function extractResponseRows(response) {
    ========================================================================== */
 
 function normalizeCompanyIdentity(row = {}) {
+  const company = isObject(row.company) ? row.company : {};
+
   /*
    * OTC historically exposes `symbol`.
    *
-   * companyRef and symbolCode are accepted first when supplied because they
-   * are normally the stable codes used by the production logo service.
+   * Prefer stable service/security codes when available.
    */
-
   const companyCode = getFirstString(
     row.companyRef,
     row.symbolCode,
     row.symbol,
     row.companyCode,
+    row.securityCode,
     row.code,
+
+    company.companyRef,
+    company.symbolCode,
+    company.symbol,
+    company.companyCode,
+    company.securityCode,
+    company.code,
   );
 
   const companyName = getFirstString(
-    row.companyName,
-    row.company,
-    row.name,
-    row.longName,
     row.acrynomName,
+    row.acronymName,
+    row.companyName,
+    row.longName,
+    row.shortName,
+    row.name,
+
+    typeof row.company === "string" ? row.company : null,
+
+    company.acrynomName,
+    company.acronymName,
+    company.companyName,
+    company.longName,
+    company.shortName,
+    company.name,
+
+    /*
+     * Preserve the previous code-as-name fallback.
+     */
     companyCode,
   );
 
@@ -255,19 +284,35 @@ function normalizeCompanyIdentity(row = {}) {
     row.companyUrl,
     row.pageUrl,
     row.url,
+
+    company.companyURL,
+    company.companyUrl,
+    company.pageUrl,
+    company.url,
   );
 
   const companyLogoUrl = getFirstString(
     row.companyLogoUrl,
+    row.companyLogoURL,
     row.logoUrl,
+    row.logoURL,
     row.imageUrl,
     row.companyImageUrl,
+
+    company.companyLogoUrl,
+    company.companyLogoURL,
+    company.logoUrl,
+    company.logoURL,
+    company.imageUrl,
   );
 
   return {
     companyCode,
+
     companyName,
+
     companyUrl,
+
     companyLogoUrl,
   };
 }
@@ -277,7 +322,15 @@ function normalizeCompanyIdentity(row = {}) {
    ========================================================================== */
 
 function normalizeTradedVolume(row = {}) {
-  const raw = firstDefined(
+  /*
+   * Do not let an empty legacy field hide a populated fallback field.
+   *
+   * Example:
+   *
+   * lastTradeVolume: ""
+   * tradedVolume: "12,500"
+   */
+  const raw = firstMeaningfulValue(
     row.lastTradeVolume,
     row.tradedVolume,
     row.tradeVolume,
@@ -295,8 +348,16 @@ function normalizeTradedVolume(row = {}) {
    Last Update
    ========================================================================== */
 
+function getLastUpdateRawValue(value) {
+  if (isObject(value)) {
+    return getFirstString(value.raw, value.value, value.display, value.date);
+  }
+
+  return normalizeString(value);
+}
+
 function getTimeSortValue(value) {
-  const normalized = normalizeString(value);
+  const normalized = getLastUpdateRawValue(value);
 
   if (!normalized) {
     return "";
@@ -327,13 +388,19 @@ function getTimeSortValue(value) {
 
   return [
     String(hours).padStart(2, "0"),
+
     String(minutes).padStart(2, "0"),
+
     String(seconds).padStart(2, "0"),
   ].join("");
 }
 
 function getLastUpdateSortValue(value) {
-  const normalized = normalizeString(value);
+  if (isObject(value) && normalizeString(value.sort)) {
+    return normalizeString(value.sort);
+  }
+
+  const normalized = getLastUpdateRawValue(value);
 
   if (!normalized) {
     return "";
@@ -351,7 +418,7 @@ function getLastUpdateSortValue(value) {
 }
 
 function normalizeLastUpdate(row = {}) {
-  const raw = getFirstString(
+  const source = firstMeaningfulValue(
     row.lastTradeDate,
     row.lastUpdateDate,
     row.lastUpdated,
@@ -359,10 +426,12 @@ function normalizeLastUpdate(row = {}) {
     row.updatedAt,
   );
 
+  const raw = getLastUpdateRawValue(source);
+
   return {
     raw,
 
-    sort: getLastUpdateSortValue(raw),
+    sort: getLastUpdateSortValue(source),
   };
 }
 
@@ -407,10 +476,10 @@ function normalizeOtcTradingRow(row, index) {
     tradedVolume,
 
     /*
-     * Preserve the exact last-update value returned by the service.
-     * Presentation formatting is handled separately.
+     * Preserve the service-provided last-update display value.
+     *
+     * Presentation formatting remains in otc-trading.formatters.js.
      */
-
     lastUpdate,
 
     raw: row,
@@ -471,7 +540,7 @@ function findUpdatedAt(response) {
   }
 
   return (
-    firstDefined(
+    firstMeaningfulValue(
       parsedResponse.updatedAt,
       parsedResponse.lastUpdated,
       parsedResponse.timestamp,

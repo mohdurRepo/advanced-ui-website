@@ -39,9 +39,11 @@ import {
   formatRequestDate,
   normalizeString,
 } from "../../../shared/trading/trading-formatters.js";
+
 import {
   bindNegotiatedDealsFilters,
   createNegotiatedDealsFilterDefinitions,
+  getDefaultNegotiatedDealsDateRange,
   getNegotiatedDealsView,
   NEGOTIATED_DEALS_TYPES,
   NEGOTIATED_DEALS_VIEWS,
@@ -60,6 +62,8 @@ import { createNegotiatedDealsView } from "./views/negotiated-deals.view.js";
 const TAB_KEY = "negotiated-deals";
 
 const ALL_VALUE = "All";
+
+const DEFAULT_LOCALE = "en";
 
 export const NEGOTIATED_DEALS_SELECTORS = Object.freeze({
   table: "[data-negotiated-deals-table]",
@@ -84,65 +88,11 @@ function normalizeFilterValue(value, fallback = ALL_VALUE) {
 }
 
 function normalizeLocale(value) {
-  return normalizeString(value) || "en";
-}
-
-function normalizeRowId(value) {
-  return normalizeString(value);
+  return normalizeString(value) || DEFAULT_LOCALE;
 }
 
 /* ==========================================================================
-   Default Date Range
-   ========================================================================== */
-
-function getDaysInMonth(year, month) {
-  return new Date(year, month + 1, 0).getDate();
-}
-
-function subtractOneMonth(date) {
-  const year = date.getFullYear();
-
-  const month = date.getMonth() - 1;
-
-  const targetFirstDay = new Date(year, month, 1);
-
-  const targetYear = targetFirstDay.getFullYear();
-
-  const targetMonth = targetFirstDay.getMonth();
-
-  const targetDay = Math.min(
-    date.getDate(),
-
-    getDaysInMonth(targetYear, targetMonth),
-  );
-
-  return new Date(targetYear, targetMonth, targetDay);
-}
-
-function formatInputDateValue(date) {
-  const year = date.getFullYear();
-
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
-function getDefaultDateRange() {
-  const today = new Date();
-
-  const fromDate = subtractOneMonth(today);
-
-  return Object.freeze({
-    fromDate: formatInputDateValue(fromDate),
-
-    toDate: formatInputDateValue(today),
-  });
-}
-
-/* ==========================================================================
-   View Collection
+   Views
    ========================================================================== */
 
 function createViews(config) {
@@ -158,15 +108,13 @@ function getViewDefinition(views, view) {
 }
 
 /* ==========================================================================
-   Endpoint Selection
+   Endpoint
    ========================================================================== */
 
 function getEndpointKey(context = {}) {
-  if (context.view === NEGOTIATED_DEALS_VIEWS.minimumSize) {
-    return "minimumSize";
-  }
-
-  return "negotiatedDeals";
+  return context.view === NEGOTIATED_DEALS_VIEWS.minimumSize
+    ? "minimumSize"
+    : "negotiatedDeals";
 }
 
 /* ==========================================================================
@@ -179,13 +127,23 @@ function createRequestDataBuilder(config) {
   return function buildRequestData(filters = {}) {
     const view = getNegotiatedDealsView(filters);
 
+    /*
+     * Minimum Size uses its own endpoint and requires only locale.
+     */
     if (view === NEGOTIATED_DEALS_VIEWS.minimumSize) {
       return {
         requestLocale: locale,
       };
     }
 
-    const defaultRange = getDefaultDateRange();
+    /*
+     * Date ownership belongs to negotiated-deals.filters.js.
+     *
+     * The filter binding normally initializes these values before the first
+     * request. The fallback protects direct/programmatic loads without
+     * maintaining a second date-range implementation here.
+     */
+    const defaultRange = getDefaultNegotiatedDealsDateRange();
 
     const fromDate = normalizeString(filters.fromDate) || defaultRange.fromDate;
 
@@ -230,7 +188,7 @@ function createCompanySource(config) {
 }
 
 /* ==========================================================================
-   Filter Error Event
+   Filter Errors
    ========================================================================== */
 
 function dispatchFilterError(root, error) {
@@ -267,7 +225,7 @@ function createFilterBinder({ config, onFilterError }) {
           sector,
         });
 
-        return response.rows;
+        return Array.isArray(response?.rows) ? response.rows : [];
       },
 
       onReload() {
@@ -316,12 +274,12 @@ function createTableOptions(views) {
     ...negotiatedView.tableOptions,
 
     /*
-     * DataTables options are created once for the shared table.
+     * One DataTable instance serves both presentations.
      *
-     * Row callbacks therefore dispatch by normalized rowType rather than by
-     * the filter value captured when the table instance was created.
+     * createdRow therefore dispatches using the normalized row type rather
+     * than capturing whichever view happened to be active during table
+     * initialization.
      */
-
     createdRow(rowElement, row, dataIndex, cells) {
       const view =
         row?.rowType === "minimum-size" ? minimumSizeView : negotiatedView;
@@ -330,7 +288,7 @@ function createTableOptions(views) {
     },
 
     rowId(row) {
-      return normalizeRowId(row?.id);
+      return normalizeString(row?.id);
     },
   };
 }
@@ -354,7 +312,7 @@ function getResultCount(rows = [], context = {}) {
 }
 
 /* ==========================================================================
-   Public Tab
+   Public Factory
    ========================================================================== */
 
 export function createNegotiatedDealsTab(options = {}) {
@@ -387,7 +345,7 @@ export function createNegotiatedDealsTab(options = {}) {
   });
 
   /* ========================================================================
-     View Dispatchers
+     View Dispatch
      ======================================================================== */
 
   function resolveView(view) {
@@ -398,72 +356,73 @@ export function createNegotiatedDealsTab(options = {}) {
     return resolveView(view).columns;
   }
 
-  function renderCell(cellContext) {
-    return resolveView(cellContext.view).renderCell(cellContext);
+  function renderCell(context) {
+    return resolveView(context.view).renderCell(context);
   }
 
-  function renderHeader(headerContext) {
-    const view = resolveView(headerContext.view);
+  function renderHeader(context) {
+    const view = resolveView(context.view);
 
     if (typeof view.renderHeader !== "function") {
       /*
-       * Delegate to the common schema-generated header.
+       * Returning false delegates header generation to createDataTable().
        */
-
       return false;
     }
 
-    return view.renderHeader(headerContext);
+    return view.renderHeader(context);
   }
 
-  function renderCard(cardContext) {
-    const view = resolveView(cardContext.view);
+  function renderCard(context) {
+    const view = resolveView(context.view);
 
-    return view.renderCard(cardContext.row, cardContext);
+    return view.renderCard(context.row, context);
   }
 
   /* ========================================================================
-     Mobile Group Dispatchers
+     Card Group Dispatch
      ======================================================================== */
 
-  function getCardGroupKey(row, cardContext) {
-    const view = resolveView(cardContext.view);
+  function getCardGroupKey(row, context) {
+    const view = resolveView(context.view);
 
     if (typeof view.getCardGroupKey !== "function") {
       return null;
     }
 
-    return view.getCardGroupKey(row, cardContext);
+    return view.getCardGroupKey(row, context);
   }
 
-  function getCardGroupLabel(groupKey, rows, groupContext) {
-    const view = resolveView(groupContext.view);
+  function getCardGroupLabel(groupKey, rows, context) {
+    const view = resolveView(context.view);
 
     if (typeof view.getCardGroupLabel !== "function") {
       return "";
     }
 
-    return view.getCardGroupLabel(groupKey, rows, groupContext);
+    return view.getCardGroupLabel(groupKey, rows, context);
   }
 
-  function renderCardGroup(groupContext) {
-    const view = resolveView(groupContext.view);
+  function renderCardGroup(context) {
+    const view = resolveView(context.view);
 
     /*
-     * Minimum Size does not use business grouping. createDataCards still
-     * creates one internal group because the tab supports grouping in its
-     * Negotiated Deals view, so return the cards without an extra wrapper.
+     * Minimum Size has no business grouping.
+     *
+     * Because Negotiated Deals enables card grouping on the shared cards
+     * instance, Minimum Size still passes through one internal group.
+     * Returning its generated cards directly avoids adding an unnecessary
+     * group wrapper.
      */
-
     if (typeof view.renderCardGroup !== "function") {
-      return groupContext.cards;
+      return context.cards;
     }
 
-    return view.renderCardGroup(groupContext);
+    return view.renderCardGroup(context);
   }
 
   /* ========================================================================
-     Trading Tab
+     Shared Trading Tab
      ======================================================================== */
 
   return createTradingTab({
@@ -515,7 +474,7 @@ export function createNegotiatedDealsTab(options = {}) {
       dataType: "json",
     },
 
-    loadingRowCount: 6,
+    loadingRowCount: options.loadingRowCount || 6,
 
     reloadOnViewChange: true,
 
