@@ -1,86 +1,89 @@
-	<%-- =========================================================================
-  Home Discovery Search
-  ========================================================================= --%>
+<%-- =========================================================================
+Home Discovery Search
+========================================================================= --%>
 
-<form class="home-discovery-search" role="search"
-	aria-label="Search companies, news, and market updates" action="#"
-	method="get" data-home-discovery-search>
-	<label class="visually-hidden" for="home-discovery-search-input">
-		Search companies, news, and market updates </label> <span
-		class="home-discovery-search__icon has-icon icon-search"
-		aria-hidden="true"></span> <input
-		id="home-discovery-search-input" class="home-discovery-search__input"
-		type="search" name="q"
-		placeholder="Search companies, news, and updates" autocomplete="off"
-		enterkeyhint="search" spellcheck="false"
-		data-home-discovery-search-input />
+<form
+  class="home-discovery-search"
+  role="search"
+  aria-label="Search companies, news, and market updates"
+  action="#"
+  method="get"
+  data-home-discovery-search
+>
+  <label class="visually-hidden" for="home-discovery-search-input">
+    Search companies, news, and market updates
+  </label>
 
-	<button
-		class="home-discovery-search__submit has-icon icon-chevron-right icon-flip-rtl"
-		type="submit" aria-label="Submit search"></button>
+  <span
+    class="home-discovery-search__icon has-icon icon-search"
+    aria-hidden="true"
+  ></span>
 
-	<div class="home-discovery-search__results"
-		data-home-discovery-search-results hidden>
-		<ul class="home-discovery-search__list"
-			data-home-discovery-search-list></ul>
+  <input
+    id="home-discovery-search-input"
+    class="home-discovery-search__input"
+    type="search"
+    name="q"
+    placeholder="Search companies, news, and updates"
+    autocomplete="off"
+    enterkeyhint="search"
+    spellcheck="false"
+    data-home-discovery-search-input
+  />
 
-		<div class="home-discovery-search__state"
-			data-home-discovery-search-loading role="status" aria-live="polite"
-			hidden>
-			<span class="home-discovery-search__loading" aria-hidden="true"></span>
+  <button
+    class="home-discovery-search__submit has-icon icon-chevron-right icon-flip-rtl"
+    type="submit"
+    aria-label="Submit search"
+  ></button>
 
-			<span> Searching companies </span>
-		</div>
+  <div
+    class="home-discovery-search__results"
+    data-home-discovery-search-results
+    hidden
+  >
+    <ul
+      class="home-discovery-search__list"
+      data-home-discovery-search-list
+    ></ul>
 
-		<div class="home-discovery-search__state"
-			data-home-discovery-search-empty hidden>
-			<span class="home-discovery-search__state-icon has-icon icon-search"
-				aria-hidden="true"></span> <span> No matching
-				companies found. </span>
-		</div>
+    <div
+      class="home-discovery-search__state"
+      data-home-discovery-search-loading
+      role="status"
+      aria-live="polite"
+      hidden
+    >
+      <span class="home-discovery-search__loading" aria-hidden="true"></span>
 
-		<div class="home-discovery-search__state"
-			data-home-discovery-search-error role="alert" hidden>
-			<span
-				class="home-discovery-search__state-icon has-icon icon-info-warning"
-				aria-hidden="true"></span> <span> Company search is
-				currently unavailable. </span>
-		</div>
-	</div>
+      <span>Searching companies</span>
+    </div>
+
+    <div
+      class="home-discovery-search__state"
+      data-home-discovery-search-empty
+      hidden
+    >
+      <span
+        class="home-discovery-search__state-icon has-icon icon-search"
+        aria-hidden="true"
+      ></span>
+
+      <span>No matching companies found.</span>
+    </div>
+
+    <div
+      class="home-discovery-search__state"
+      data-home-discovery-search-error
+      role="alert"
+      hidden
+    >
+      <span
+        class="home-discovery-search__state-icon has-icon icon-info-warning"
+        aria-hidden="true"
+      ></span>
+
+      <span>Company search is currently unavailable.</span>
+    </div>
+  </div>
 </form>
-
-
-<form class="search" role="search" aria-label="Search form company"
-					id="searchForm" action="#" method="POST">
-					<!-- Accessible label (for screen readers only) -->
-					<label class="visually-hidden" for="searchInput">Search
-						form company</label>
-
-					<!-- Search icon (magnifier) -->
-					<span class="search__icon" aria-hidden="true"> <svg
-							class="icon" viewBox="0 0 24 24" focusable="false"
-							aria-hidden="true">
-                      <path
-								d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 9.5 16
-                              c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5
-                              5 1.5-1.5-5-5zM9.5 14C7.01 14 5 11.99
-                              5 9.5S7.01 5 9.5 5 14 7.01 14
-                              9.5 11.99 14 9.5 14z" />
-                    </svg>
-					</span>
-
-					<!-- Input (typeahead attaches here) -->
-					<input type="text" id="searchInput" name="q" class="search__input"
-						 autocomplete="off"
-						inputmode="search" />
-
-					<!-- Submit button (arrow icon) -->
-					<button id="searchCompanyButton" type="submit"
-						class="search__submit" aria-label="Submit search">
-						<svg class="icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                      <path d="M12 4l1.41 1.41L7.83 11H20v2H7.83l5.58 5.59L12 20l-8-8z" />
-                    </svg>
-					</button>
-					<!-- Hidden field to store selected symbol -->
-					<input type="hidden" id="selectedSymbol" name="symbol">
-				</form>
