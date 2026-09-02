@@ -2,6 +2,47 @@
    Market Watch
    ========================================================================== */
 
+/*
+ * Market Watch page composition.
+ *
+ * Responsibilities:
+ *
+ * - page initialization
+ * - common Data View composition
+ * - state
+ * - data source
+ * - results
+ * - controller
+ * - favorite/watchlist events
+ * - logo fallback events
+ * - public API
+ * - startup
+ *
+ * Page-specific behavior is delegated to:
+ *
+ * - market-watch.config.js
+ * - market-watch.columns.js
+ * - market-watch.filters.js
+ * - market-watch.formatters.js
+ * - market-watch.normalizer.js
+ * - views/market-watch.table.js
+ * - views/market-watch.cards.js
+ *
+ * This module intentionally does not own:
+ *
+ * - column definitions
+ * - filter definitions
+ * - column-picker configuration
+ * - request parameter mapping
+ * - response normalization
+ * - table-cell rendering
+ * - mobile-card rendering
+ */
+
+/* ==========================================================================
+   Common Data View
+   ========================================================================== */
+
 import {
   applyWatchlistFilter,
   createDataCards,
@@ -16,455 +57,45 @@ import {
   renderStandardDataCard,
 } from "../../common/data-view/index.js";
 
-import { createMarketTableOptions } from "../shared/market-table-options.js";
+/* ==========================================================================
+   Market Watch Modules
+   ========================================================================== */
+
+import { getMarketWatchConfig } from "./market-watch.config.js";
 
 import {
-  getColumnGroups,
-  getColumns,
-  getMobileColumns,
-} from "./market-watch-schema.js";
+  getMarketWatchAvailableGroups,
+  normalizeMarketWatchView,
+} from "./market-watch.columns.js";
 
 import {
-  escapeHtml,
-  formatAuctionQuantity,
-  formatAuctionValue,
-  formatFullNumber,
-  formatMarketOrder,
-  getCompanyName,
-  getCompanyReference,
-  getDisplayValue,
-  isZeroLike,
-  renderChange,
-  renderCompanyCell,
-  renderMobileIdentity,
-  renderMobileQuote,
-  renderRange,
-} from "./market-watch-formatters.js";
+  buildMarketWatchRequestData,
+  createMarketWatchFilters,
+} from "./market-watch.filters.js";
+
+import { normalizeMarketWatchResponse } from "./market-watch.normalizer.js";
+
+import { createMarketWatchTableView } from "./views/market-watch.table.js";
+
+import { createMarketWatchCardsView } from "./views/market-watch.cards.js";
 
 /* ==========================================================================
    Constants
    ========================================================================== */
 
-const SELECTORS = {
-  industry: "[data-market-watch-industry]",
-
-  tableView: "[data-market-watch-table-view]",
-
-  watchlist: "[data-market-watch-watchlist]",
-
-  columnsTrigger: "[data-market-watch-columns]",
-
-  columnsMenu: "[data-market-watch-columns-menu]",
-
-  columnsLabel: "[data-market-watch-columns-label]",
-
-  columnInput: "[data-market-watch-column]",
-
-  columnAction: "[data-market-watch-columns-action]",
-
-  table: "[data-market-watch-table]",
-
-  cards: "[data-market-watch-mobile-cards]",
-
+const SELECTORS = Object.freeze({
   resultCount: "[data-market-watch-result-count]",
 
   favorite: "[data-market-watch-favorite]",
 
   logo: "[data-market-watch-logo]",
-};
+});
+
+/* ==========================================================================
+   Instances
+   ========================================================================== */
 
 const instances = new WeakMap();
-
-/* ==========================================================================
-   Configuration
-   ========================================================================== */
-
-function getConfig() {
-  const config = window.MarketWatchConfig;
-
-  if (!config) {
-    throw new Error("MarketWatchConfig is required.");
-  }
-
-  return config;
-}
-
-/* ==========================================================================
-   Helpers
-   ========================================================================== */
-
-function cleanLabel(value, fallback = "") {
-  return String(value ?? fallback)
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<[^>]*>/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function getCellValue(row, column) {
-  return column.data ? row?.[column.data] : "";
-}
-
-function getNumericValue(row, column) {
-  return column.numericData
-    ? row?.[column.numericData]
-    : getCellValue(row, column);
-}
-
-function isAuction(config) {
-  return Boolean(config.market?.isAuction ?? config.openCloseAuction);
-}
-
-function renderAuctionFullNumber(value, config) {
-  if (isAuction(config) && isZeroLike(value)) {
-    return "-";
-  }
-
-  return formatFullNumber(value, config);
-}
-
-/* ==========================================================================
-   Response Normalization
-   ========================================================================== */
-
-function getResponseRows(response) {
-  if (Array.isArray(response)) {
-    return response;
-  }
-
-  if (Array.isArray(response?.data)) {
-    return response.data;
-  }
-
-  if (Array.isArray(response?.rows)) {
-    return response.rows;
-  }
-
-  if (Array.isArray(response?.results)) {
-    return response.results;
-  }
-
-  return [];
-}
-
-function normalizeRow(row) {
-  if (!row || typeof row !== "object") {
-    return null;
-  }
-
-  return {
-    ...row,
-
-    companyRef: row.companyRef ?? row.companySymbol ?? row.symbol ?? "",
-
-    companySymbol: row.companySymbol ?? row.symbol ?? row.companyRef ?? "",
-
-    sectorName: row.sectorName ?? row.sector ?? "",
-  };
-}
-
-function normalizeResponse(response) {
-  const rows = getResponseRows(response).map(normalizeRow).filter(Boolean);
-
-  const total = Number(
-    response?.total ??
-      response?.recordsTotal ??
-      response?.recordsFiltered ??
-      rows.length,
-  );
-
-  return {
-    rows,
-
-    meta: {
-      total: Number.isFinite(total) ? total : rows.length,
-
-      updatedAt:
-        response?.updatedAt ??
-        response?.lastUpdated ??
-        response?.timestamp ??
-        null,
-    },
-
-    raw: response,
-  };
-}
-
-/* ==========================================================================
-   Request
-   ========================================================================== */
-
-function buildRequestData(config, state) {
-  return {
-    sectorParameter: state.industry || "all",
-
-    tableViewParameter: String(state.tableView || "1"),
-
-    /*
-     * Watchlist Only is presentation-only.
-     *
-     * Always request the complete data set so disabling Watchlist Only can
-     * restore every source row without another request.
-     */
-
-    iswatchListSelected: "NO",
-
-    requestLocale: config.locale || "en",
-  };
-}
-
-/* ==========================================================================
-   Column Groups
-   ========================================================================== */
-
-function getAvailableGroups(config, view) {
-  return getColumnGroups(config, view).map((group) => group.id);
-}
-
-/* ==========================================================================
-   Table Cell Rendering
-   ========================================================================== */
-
-function renderTableCell({ row, column, type, config }) {
-  /*
-   * Non-display DataTables operations receive the underlying value rather
-   * than presentation markup.
-   */
-
-  if (type === "sort" || type === "type" || type === "filter") {
-    return getDisplayValue(getCellValue(row, column), "");
-  }
-
-  /* ------------------------------------------------------------------------
-     Loading
-     ------------------------------------------------------------------------ */
-
-  if (row?.__dataViewState === "loading") {
-    const size =
-      column.key === "company" || column.type === "range"
-        ? "table-skeleton-lg"
-        : "table-skeleton-md";
-
-    return `
-      <span
-        class="table-skeleton ${size}"
-        aria-hidden="true"
-      ></span>
-    `.trim();
-  }
-
-  /* ------------------------------------------------------------------------
-     Value
-     ------------------------------------------------------------------------ */
-
-  const value = getCellValue(row, column);
-
-  switch (column.type) {
-    case "company":
-      return renderCompanyCell(row, config);
-
-    case "range":
-      return renderRange(row, config);
-
-    case "auction-value":
-      return escapeHtml(formatAuctionValue(value, config));
-
-    case "auction-quantity":
-      return escapeHtml(formatAuctionQuantity(value, config));
-
-    case "auction-full-number":
-      return escapeHtml(renderAuctionFullNumber(value, config));
-
-    case "full-number":
-      return escapeHtml(formatFullNumber(value, config));
-
-    case "market-order":
-      return escapeHtml(formatMarketOrder(value, config));
-
-    case "change":
-      return renderChange(value, getNumericValue(row, column));
-
-    case "percent-change":
-      return renderChange(value, getNumericValue(row, column), {
-        percent: true,
-      });
-
-    case "text":
-    default:
-      return escapeHtml(getDisplayValue(value));
-  }
-}
-
-/* ==========================================================================
-   Sector Group
-   ========================================================================== */
-
-function renderSectorGroup({ groupName, groupRows, visibleColumnCount }) {
-  /*
-   * Loading rows must not produce sector headings.
-   */
-
-  const loading = groupRows
-    .data()
-    .toArray()
-    .some((row) => row?.__dataViewState === "loading");
-
-  if (loading) {
-    return null;
-  }
-
-  const row = document.createElement("tr");
-
-  row.className = "table-market__group-row table-group-row";
-
-  const label = document.createElement("th");
-
-  label.scope = "rowgroup";
-
-  label.className =
-    "table-market__group-label table-group-label table-group-label-sticky";
-
-  label.textContent = groupName || "";
-
-  const fill = document.createElement("td");
-
-  fill.className = "table-market__group-fill table-group-fill";
-
-  fill.colSpan = Math.max(1, visibleColumnCount - 1);
-
-  fill.setAttribute("aria-hidden", "true");
-
-  row.append(label, fill);
-
-  return row;
-}
-
-/* ==========================================================================
-   Mobile Field Labels
-   ========================================================================== */
-
-function getMobileFieldLabel(column, config) {
-  const labels = config.labels?.table || {};
-
-  const fieldLabel = cleanLabel(
-    column.mobileLabel || column.label,
-    column.label,
-  );
-
-  if (column.headerGroup === "best-bid") {
-    return `${cleanLabel(labels.bestBid, "Best Bid")} ${fieldLabel}`;
-  }
-
-  if (column.headerGroup === "best-offer") {
-    return `${cleanLabel(labels.bestOffer, "Best Offer")} ${fieldLabel}`;
-  }
-
-  return fieldLabel;
-}
-
-/* ==========================================================================
-   Mobile Field Values
-   ========================================================================== */
-
-function renderMobileFieldValue(column, row, config) {
-  const value = getCellValue(row, column);
-
-  switch (column.type) {
-    case "range":
-      return renderRange(row, config);
-
-    case "auction-value":
-      return escapeHtml(formatAuctionValue(value, config));
-
-    case "auction-quantity":
-      return escapeHtml(formatAuctionQuantity(value, config));
-
-    case "auction-full-number":
-      return escapeHtml(renderAuctionFullNumber(value, config));
-
-    case "full-number":
-      return escapeHtml(formatFullNumber(value, config));
-
-    case "market-order":
-      return escapeHtml(formatMarketOrder(value, config));
-
-    case "change":
-      return renderChange(value, getNumericValue(row, column));
-
-    case "percent-change":
-      return renderChange(value, getNumericValue(row, column), {
-        percent: true,
-      });
-
-    case "text":
-    default:
-      return escapeHtml(getDisplayValue(value));
-  }
-}
-
-/* ==========================================================================
-   Mobile Detail Schema
-   ========================================================================== */
-
-function getMobileDetailColumns(config, view, visibleGroups) {
-  /*
-   * These values are already rendered in the compact card summary.
-   */
-
-  const summaryColumns = new Set(["last-trade-price", "change-percent"]);
-
-  return getMobileColumns(config, view, visibleGroups).filter(
-    (column) => !summaryColumns.has(column.key),
-  );
-}
-
-/* ==========================================================================
-   Market Watch Card
-   ========================================================================== */
-
-function renderMarketWatchCard(row, context, config, visibleGroups) {
-  const companyName = getCompanyName(row);
-
-  const fields = getMobileDetailColumns(
-    config,
-    context.view,
-    visibleGroups,
-  ).map((column) => ({
-    label: getMobileFieldLabel(column, config),
-
-    value: renderMobileFieldValue(column, row, config),
-
-    fullWidth: column.type === "range",
-
-    numeric: column.type !== "range",
-  }));
-
-  const summary = `
-    ${renderMobileIdentity(row, config)}
-
-    ${renderMobileQuote(row, config)}
-  `;
-
-  return renderStandardDataCard({
-    idPrefix: "market-watch-card-details",
-
-    rowId: `${getCompanyReference(row)}-${context.index}`,
-
-    summary,
-
-    fields,
-
-    moreLabel: `${cleanLabel(
-      config.labels?.mobile?.showDetails,
-      "Show details",
-    )} ${companyName}`,
-
-    lessLabel: `${cleanLabel(
-      config.labels?.mobile?.hideDetails,
-      "Hide details",
-    )} ${companyName}`,
-  });
-}
 
 /* ==========================================================================
    Favorite Action
@@ -490,7 +121,7 @@ function handleFavorite(event, scope) {
   const companyRef = button.dataset.companyRef || "";
 
   /*
-   * Preserve the existing website-level watchlist action.
+   * Preserve the existing website-level watchlist integration.
    */
 
   if (typeof window.showAddToWatchListPopup === "function") {
@@ -498,7 +129,7 @@ function handleFavorite(event, scope) {
   }
 
   /*
-   * Also expose a page-level event for integrations that prefer events.
+   * Preserve the existing page-level integration event.
    */
 
   button.dispatchEvent(
@@ -507,6 +138,7 @@ function handleFavorite(event, scope) {
 
       detail: {
         companyRef,
+
         button,
       },
     }),
@@ -520,7 +152,11 @@ function handleFavorite(event, scope) {
 function handleLogoError(event, scope) {
   const image = event.target;
 
-  if (!(image instanceof HTMLImageElement) || !image.matches(SELECTORS.logo)) {
+  if (!(image instanceof HTMLImageElement)) {
+    return;
+  }
+
+  if (!image.matches(SELECTORS.logo)) {
     return;
   }
 
@@ -531,7 +167,7 @@ function handleLogoError(event, scope) {
   const fallbackUrl = image.dataset.marketWatchLogoFallback;
 
   /*
-   * Attempt the configured fallback only once.
+   * Try the configured fallback once.
    */
 
   if (fallbackUrl && !image.dataset.marketWatchLogoFallbackApplied) {
@@ -543,7 +179,7 @@ function handleLogoError(event, scope) {
   }
 
   /*
-   * The fallback image also failed.
+   * The original image and fallback both failed.
    */
 
   image
@@ -566,7 +202,11 @@ export function initMarketWatch(root = document) {
     return existing;
   }
 
-  const config = getConfig();
+  /* ========================================================================
+     Configuration
+     ======================================================================== */
+
+  const config = getMarketWatchConfig();
 
   /* ========================================================================
      State
@@ -576,6 +216,7 @@ export function initMarketWatch(root = document) {
     loading: false,
 
     sourceRows: [],
+
     visibleRows: [],
 
     meta: {},
@@ -584,112 +225,28 @@ export function initMarketWatch(root = document) {
   });
 
   /* ========================================================================
-     Filters
+     Filters / Column Visibility / Column Picker
      ======================================================================== */
 
-  const filters = createDataFilters({
+  const filterView = createMarketWatchFilters({
     root: scope,
 
-    fields: {
-      industry: {
-        selector: SELECTORS.industry,
+    config,
 
-        effect: "reload",
+    createDataFilters,
 
-        normalize(value) {
-          return value || "all";
-        },
-      },
+    createDataColumnVisibility,
 
-      tableView: {
-        selector: SELECTORS.tableView,
-
-        effect: "view",
-
-        normalize(value) {
-          return String(value || "1");
-        },
-      },
-
-      /*
-       * Authentication is intentionally outside this implementation.
-       *
-       * Watchlist Only filters the already-loaded source rows.
-       */
-
-      watchlistOnly: {
-        selector: SELECTORS.watchlist,
-
-        effect: "client-filter",
-
-        normalize(value) {
-          return Boolean(value);
-        },
-      },
-    },
+    createDataColumnPicker,
   });
 
-  /* ========================================================================
-     Column Visibility
-     ======================================================================== */
+  const {
+    filters,
 
-  const initialView = filters.getValue("tableView") || "1";
+    columnVisibility,
 
-  const initialGroups = getAvailableGroups(config, initialView);
-
-  const columnVisibility = createDataColumnVisibility({
     initialView,
-
-    availableGroups: initialGroups,
-
-    visibleGroups: config.initialState?.visibleGroups || initialGroups,
-  });
-
-  /* ========================================================================
-     Column Picker
-     ======================================================================== */
-
-  const columnPicker = createDataColumnPicker({
-    root: scope,
-
-    visibility: columnVisibility,
-
-    trigger: SELECTORS.columnsTrigger,
-
-    menu: SELECTORS.columnsMenu,
-
-    label: SELECTORS.columnsLabel,
-
-    inputs: SELECTORS.columnInput,
-
-    inputSelector: SELECTORS.columnInput,
-
-    actionSelector: SELECTORS.columnAction,
-
-    optionSelector: ".filter-bar__columns-option",
-
-    /*
-     * Market Watch owns the page-specific DOM attributes.
-     *
-     * The common picker remains page-agnostic.
-     */
-
-    getGroupId(input) {
-      return input.dataset.marketWatchColumn || "";
-    },
-
-    getActionType(action) {
-      return action.dataset.marketWatchColumnsAction || "";
-    },
-
-    labels: {
-      all: config.labels?.showAll || "Show All",
-
-      none: config.labels?.noColumns || "No Columns",
-
-      selectedSuffix: config.labels?.selectedSuffix || "Selected",
-    },
-  });
+  } = filterView;
 
   /* ========================================================================
      Data Source
@@ -699,95 +256,53 @@ export function initMarketWatch(root = document) {
     endpoint: config.endpoint,
 
     buildRequestData(filterState) {
-      return buildRequestData(config, filterState);
+      return buildMarketWatchRequestData(config, filterState);
     },
 
-    normalizeResponse,
+    normalizeResponse: normalizeMarketWatchResponse,
   });
 
   /* ========================================================================
      Table
      ======================================================================== */
 
-  const table = createDataTable({
+  const table = createMarketWatchTableView({
     root: scope,
 
-    table: SELECTORS.table,
+    config,
+
+    createDataTable,
 
     initialView,
 
-    visibleGroups: columnVisibility.getVisibleGroups(),
-
-    getColumns(view) {
-      return getColumns(config, view);
-    },
-
-    getColumnGroups(view) {
-      return getColumnGroups(config, view);
-    },
-
-    renderCell(args) {
-      return renderTableCell({
-        ...args,
-        config,
-      });
-    },
-
-    /*
-     * Shared technical DataTables defaults.
-     *
-     * Market Watch still owns its row-group behavior.
-     */
-
-    tableOptions: createMarketTableOptions({
-      ...config.table,
-
-      rowGroup: {},
-    }),
-
-    getRowGroup(row) {
-      return row.sectorName || "";
-    },
-
-    renderRowGroupStart(args) {
-      return renderSectorGroup(args);
-    },
+    visibleGroups: filterView.getVisibleGroups(),
   });
 
   /* ========================================================================
      Cards
      ======================================================================== */
 
-  const cards = createDataCards({
+  const cards = createMarketWatchCardsView({
     root: scope,
 
-    container: SELECTORS.cards,
+    config,
+
+    createDataCards,
+
+    renderStandardDataCard,
 
     initialView,
 
-    getGroupKey(row) {
-      return row.sectorName || "Other";
+    getVisibleGroups() {
+      /*
+       * Resolve visibility at render time.
+       *
+       * Market Watch can change table view and column groups without
+       * recreating the page coordinator.
+       */
+
+      return filterView.getVisibleGroups();
     },
-
-    renderCard(row, context) {
-      return renderMarketWatchCard(
-        row,
-        context,
-        config,
-        columnVisibility.getVisibleGroups(),
-      );
-    },
-
-    /*
-     * No enhance() callback is required.
-     *
-     * The design-system Data View observer automatically detects and
-     * initializes dynamically inserted [data-data-card] elements.
-     */
-
-    emptyMessage: config.labels?.noData || "No data available",
-
-    errorMessage: config.labels?.loadError || "Unable to load market data.",
   });
 
   /* ========================================================================
@@ -803,7 +318,14 @@ export function initMarketWatch(root = document) {
         count: resultCountElement,
 
         labels: {
-          results: config.labels?.results || "Results",
+          /*
+           * The JSP already renders the surrounding "Results" label.
+           *
+           * Keep the data-results helper responsible only for the numeric
+           * value when the supplied element is the numeric node itself.
+           */
+
+          results: "",
 
           empty: config.labels?.noData || "No data available",
 
@@ -818,45 +340,74 @@ export function initMarketWatch(root = document) {
 
   const controller = createDataViewController({
     source,
+
     state,
+
     filters,
+
     columnVisibility,
+
     table,
+
     cards,
+
     results,
 
+    /* ----------------------------------------------------------------------
+       View
+       ---------------------------------------------------------------------- */
+
     getView({ filters: filterState }) {
-      return filterState.tableView || "1";
+      /*
+       * Unlike Sukuk, Market Watch intentionally has multiple schemas:
+       *
+       * 1 -> Overview
+       * 2 -> Price Data / Trading
+       * 3 -> Performance
+       */
+
+      return normalizeMarketWatchView(filterState.tableView || initialView);
     },
+
+    /* ----------------------------------------------------------------------
+       Available Column Groups
+       ---------------------------------------------------------------------- */
 
     getAvailableGroups(view) {
-      return getAvailableGroups(config, view);
+      /*
+       * Each Market Watch view exposes its own set of optional groups.
+       */
+
+      return getMarketWatchAvailableGroups(config, view);
     },
 
-    /*
-     * View-specific column visibility is synchronized silently by the
-     * controller so the DataTable can change schema without intermediate
-     * redraws.
-     *
-     * Refresh the DOM adapter after the final view state is applied.
-     */
+    /* ----------------------------------------------------------------------
+       DOM Column Picker Synchronization
+       ---------------------------------------------------------------------- */
 
     onViewSync() {
-      columnPicker.refresh();
+      /*
+       * createDataViewController owns view/visibility synchronization.
+       *
+       * The Market Watch filter module only needs to refresh its DOM adapter
+       * after that synchronization is complete.
+       */
+
+      filterView.refreshColumnPicker();
     },
 
-    /* --------------------------------------------------------------------
-         Watchlist
-         -------------------------------------------------------------------- */
+    /* ----------------------------------------------------------------------
+       Client-Side Watchlist
+       ---------------------------------------------------------------------- */
 
     rowProcessors: [
       (rows, context) =>
         applyWatchlistFilter(rows, Boolean(context.filters.watchlistOnly)),
     ],
 
-    /* --------------------------------------------------------------------
-         Empty
-         -------------------------------------------------------------------- */
+    /* ----------------------------------------------------------------------
+       Empty State
+       ---------------------------------------------------------------------- */
 
     getEmptyMessage(context) {
       if (context.filters.watchlistOnly) {
@@ -870,9 +421,9 @@ export function initMarketWatch(root = document) {
       return config.labels?.noData || "No data available";
     },
 
-    /* --------------------------------------------------------------------
-         Error
-         -------------------------------------------------------------------- */
+    /* ----------------------------------------------------------------------
+       Error State
+       ---------------------------------------------------------------------- */
 
     getErrorMessage(error) {
       return (
@@ -896,8 +447,17 @@ export function initMarketWatch(root = document) {
     signal: abortController.signal,
   };
 
+  /* ------------------------------------------------------------------------
+     Favorite
+     ------------------------------------------------------------------------ */
+
   /*
-   * Favorite controls exist in both desktop table rows and mobile cards.
+   * Favorite buttons are rendered in both:
+   *
+   * - desktop company cells
+   * - mobile card identities
+   *
+   * Keep one delegated handler.
    */
 
   scope.addEventListener(
@@ -910,8 +470,15 @@ export function initMarketWatch(root = document) {
     eventOptions,
   );
 
+  /* ------------------------------------------------------------------------
+     Logo Error
+     ------------------------------------------------------------------------ */
+
   /*
-   * Image error events do not bubble, so use capture.
+   * Image error events do not bubble.
+   *
+   * Capture them once at the page root rather than adding one listener for
+   * every dynamically rendered company logo.
    */
 
   scope.addEventListener(
@@ -923,13 +490,19 @@ export function initMarketWatch(root = document) {
 
     {
       ...eventOptions,
+
       capture: true,
     },
   );
 
+  /* ------------------------------------------------------------------------
+     Watchlist Updated
+     ------------------------------------------------------------------------ */
+
   /*
-   * Existing watchlist integration may dispatch this after a successful
-   * add/remove operation.
+   * Reload after the website-level watchlist integration reports a successful
+   * add/remove operation so the server-returned favorite state remains
+   * authoritative.
    */
 
   scope.addEventListener(
@@ -956,7 +529,25 @@ export function initMarketWatch(root = document) {
     destroy() {
       abortController.abort();
 
-      columnPicker.destroy();
+      /*
+       * The Market Watch filter composition owns:
+       *
+       * - filters
+       * - column visibility
+       * - column picker
+       */
+
+      filterView.destroy();
+
+      /*
+       * The controller owns the composed Data View lifecycle:
+       *
+       * - source
+       * - state
+       * - table
+       * - cards
+       * - results
+       */
 
       controller.destroy();
 

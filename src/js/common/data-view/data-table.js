@@ -168,16 +168,13 @@ function createHeaderCell({
 
   if (width) {
     cell.style.width = width;
-
     cell.style.minWidth = width;
-
     cell.style.maxWidth = width;
   }
 
   const labelElement = document.createElement("span");
 
   labelElement.className = "table-column-label";
-
   labelElement.textContent = label;
 
   cell.append(labelElement);
@@ -564,6 +561,7 @@ export function createDataTable(options = {}) {
   };
 
   let layoutFrame = null;
+
   let destroyed = false;
 
   /* ========================================================================
@@ -587,6 +585,7 @@ export function createDataTable(options = {}) {
       visibleGroups: [...visibleGroups],
 
       table,
+
       api,
     };
   }
@@ -608,11 +607,17 @@ export function createDataTable(options = {}) {
       }
 
       /*
-       * Existing global table-layout behavior remains responsible for
-       * FixedHeader, FixedColumns, scroll controls, etc.
+       * Do not dispatch a synthetic global resize event here.
+       *
+       * DataTables already owns its column-sizing lifecycle.
+       *
+       * Repeatedly firing resize after every draw can cause scrollX /
+       * FixedColumns layouts to recalculate from an already-adjusted table.
+       * This can make fixed-column widths drift after repeated data reloads.
+       *
+       * A caller that needs page-specific post-layout work can use
+       * onLayoutRefresh.
        */
-
-      window.dispatchEvent(new Event("resize"));
 
       options.onLayoutRefresh?.(api, getContext());
     });
@@ -720,7 +725,9 @@ export function createDataTable(options = {}) {
       result.startRender = (groupRows, groupName, level) =>
         options.renderRowGroupStart({
           groupRows,
+
           groupName,
+
           level,
 
           visibleColumnCount: api?.columns(":visible").count() || 0,
@@ -733,7 +740,9 @@ export function createDataTable(options = {}) {
       result.endRender = (groupRows, groupName, level) =>
         options.renderRowGroupEnd({
           groupRows,
+
           groupName,
+
           level,
 
           visibleColumnCount: api?.columns(":visible").count() || 0,
@@ -780,8 +789,11 @@ export function createDataTable(options = {}) {
 
       columns: createDataTableColumns({
         columns,
+
         visibleGroups,
+
         renderCell,
+
         context,
       }),
 
@@ -796,7 +808,16 @@ export function createDataTable(options = {}) {
 
     generated.drawCallback = function drawCallback(settings) {
       updateEmptyState();
+
       updateHeaderVisibility();
+
+      /*
+       * One post-draw layout hook.
+       *
+       * setRows(), showLoading(), showEmpty(), showError(), redraw(), and
+       * visibility changes all ultimately draw the table, so they do not
+       * schedule another layout refresh themselves.
+       */
 
       scheduleLayoutRefresh();
 
@@ -813,6 +834,11 @@ export function createDataTable(options = {}) {
 
     generated.initComplete = function initComplete(settings, json) {
       updateHeaderVisibility();
+
+      /*
+       * Initialization is not guaranteed to produce another draw after the
+       * DataTables instance is fully ready, so keep the explicit init refresh.
+       */
 
       scheduleLayoutRefresh();
 
@@ -923,6 +949,7 @@ export function createDataTable(options = {}) {
     }
 
     destroyInstance();
+
     createInstance();
   }
 
@@ -964,9 +991,11 @@ export function createDataTable(options = {}) {
       api.rows.add(rows);
     }
 
-    api.draw(false);
+    /*
+     * drawCallback owns the post-draw layout hook.
+     */
 
-    scheduleLayoutRefresh();
+    api.draw(false);
 
     options.onRowsChange?.(rows, api, getContext());
   }
@@ -1002,9 +1031,11 @@ export function createDataTable(options = {}) {
 
     api.rows.add(createLoadingRows(options.loadingRowCount || 6, getContext()));
 
-    api.draw(false);
+    /*
+     * drawCallback owns the post-draw layout hook.
+     */
 
-    scheduleLayoutRefresh();
+    api.draw(false);
   }
 
   /* ========================================================================
@@ -1037,9 +1068,12 @@ export function createDataTable(options = {}) {
     }
 
     api.clear();
-    api.draw(false);
 
-    scheduleLayoutRefresh();
+    /*
+     * drawCallback owns empty-state rendering and post-draw layout work.
+     */
+
+    api.draw(false);
   }
 
   /* ========================================================================
@@ -1076,9 +1110,12 @@ export function createDataTable(options = {}) {
     }
 
     api.clear();
-    api.draw(false);
 
-    scheduleLayoutRefresh();
+    /*
+     * drawCallback owns error-state rendering and post-draw layout work.
+     */
+
+    api.draw(false);
   }
 
   /* ========================================================================
@@ -1117,6 +1154,10 @@ export function createDataTable(options = {}) {
         return;
       }
 
+      /*
+       * Defer redraw until all visibility changes have been applied.
+       */
+
       dataTableColumn.visible(shouldBeVisible, false);
 
       changed = true;
@@ -1125,11 +1166,15 @@ export function createDataTable(options = {}) {
     updateHeaderVisibility();
 
     if (changed) {
+      /*
+       * Visibility changes alter the available table width, so explicitly ask
+       * DataTables to remeasure columns before the single redraw.
+       */
+
       api.columns.adjust();
+
       api.draw(false);
     }
-
-    scheduleLayoutRefresh();
 
     options.onVisibilityChange?.(visibleGroups, api, getContext());
 
@@ -1183,6 +1228,11 @@ export function createDataTable(options = {}) {
       return;
     }
 
+    /*
+     * adjust() does not necessarily trigger a draw, so preserve the explicit
+     * post-layout callback here.
+     */
+
     api.columns.adjust();
 
     scheduleLayoutRefresh();
@@ -1193,9 +1243,11 @@ export function createDataTable(options = {}) {
       return;
     }
 
-    api.draw(resetPaging ? true : false);
+    /*
+     * drawCallback owns the post-draw layout hook.
+     */
 
-    scheduleLayoutRefresh();
+    api.draw(Boolean(resetPaging));
   }
 
   function reload() {
