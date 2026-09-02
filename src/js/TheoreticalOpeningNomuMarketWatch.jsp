@@ -27,437 +27,375 @@
 <fmt:setBundle
 	basename="sa.com.tadawul.eportal.theoretical.marketwatch.v2.nl.TheoreticalOpeningPortletV2PortletResource" />
 
-<section
-    id="nomuTheoreticalOpeningPage"
-    class="app-container hero-banner-section"
->
-    <div class="profile-banner animate__animated animate__fadeIn">
-        <div class="profile-banner--pattern">
-            <div class="row">
- 
-                <div class="col-12">
-                    <input
-                        type="hidden"
-                        id="nomuRequestLocale"
-                        name="requestLocale"
-                        value="<c:out value='${pageContext.request.locale.language}' />"
-                    />
- 
-                    <h2>
-                        <svg
-                            class="pc-icon pr-3 link-icon me-3"
-                            width="40"
-                            height="40"
-                            aria-hidden="true"
-                            style="color: #ffffff; fill: #ffffff;"
-                        >
-                            <use xlink:href="#tadawul-arrow-icon"></use>
-                        </svg>
- 
-                        <span class="text-white">
-                            <fmt:message key="theoretical.title" />
-                        </span>
-                    </h2>
-                </div>
- 
-                <div class="col-12 col-sm-6 col-md-4">
-                    <div class="form-field">
- 
-                        <label
-                            for="nomuTheoreticalSectorsList"
-                            class="form-label"
-                        >
-                            <fmt:message key="selectSectorLabel" />
-                        </label>
- 
-                        <div
-                            id="nomuTheoreticalSectorSelect"
-                            class="form-control-shell is-select is-search"
-                            tabindex="0"
-                            data-select
-                            data-field="sectorParameter"
-                        >
-                            <div class="form-select-value is-placeholder">
-                                <fmt:message key="selectSectorLabel" />
-                            </div>
- 
-                            <input
-                                type="hidden"
-                                id="nomuTheoreticalSectorsList"
-                                name="sectorParameter"
-                                data-filter="sectorParameter"
-                                data-label="<fmt:message key='selectSectorLabel' />"
-                                value="<c:out value='${empty requestScope.selectedSector ? "All" : requestScope.selectedSector}' />"
-                            />
- 
-                            <span
-                                class="form-suffix form-select-arrow"
-                                aria-hidden="true"
-                            ></span>
- 
-                            <div class="form-popover">
-                                <div class="form-select-panel">
- 
-                                    <div class="form-select-search-wrap">
-                                        <input
-                                            type="text"
-                                            class="form-select-search"
-                                            placeholder="<fmt:message key='marketwatch.search.sector' />"
-                                            autocomplete="off"
-                                        />
-                                    </div>
- 
-                                    <div class="form-select-list">
- 
-                                        <div
-                                            class="form-select-option"
-                                            data-value="All"
-                                            <c:if test="${empty requestScope.selectedSector or requestScope.selectedSector eq 'All'}">
-                                                data-selected="true"
-                                            </c:if>
-                                        >
-                                            <fmt:message key="allMarketCombo" />
-                                        </div>
- 
-                                        <c:forEach
-                                            items="${requestScope.sectorList}"
-                                            var="sectorItem"
-                                        >
-                                            <div
-                                                class="form-select-option"
-                                                data-value="<c:out value='${sectorItem.modifiedId}' />"
-                                                <c:if test="${requestScope.selectedSector eq sectorItem.modifiedId}">
-                                                    data-selected="true"
-                                                </c:if>
-                                            >
-                                                <c:out value="${sectorItem.modifiedName}" />
-                                            </div>
-                                        </c:forEach>
- 
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
- 
-                    </div>
-                </div>
- 
-            </div>
-        </div>
-    </div>
- 
-    <div class="intro-section">
-        <div class="app-container">
-            <div class="row">
-                <div class="col-12 mt-4">
- 
-                    <div class="tab-content mt-3">
-                        <div id="NomuMarketPerformance">
- 
-                            <div class="list-view-content">
- 
-                                <!-- Desktop table -->
-                                <div
-                                    id="nomuTheoreticalDesktopView"
-                                    class="table-responsive d-none d-md-block page-view-container"
-                                >
-                                    <table
-                                        id="nomuTheoreticalTableId"
-                                        class="display table"
-                                    >
-                                        <thead>
-                                            <tr>
-                                                <th>
-                                                    <fmt:message key="companyNameCol" />
-                                                </th>
- 
-                                                <th class="text-center">
-                                                    <fmt:message key="company.Previous.Close" />
-                                                </th>
- 
-                                                <th class="text-center">
-                                                    <fmt:message key="company.top" />
-                                                </th>
- 
-                                                <th class="text-center">
-                                                    <fmt:message key="company.tov" />
-                                                </th>
-                                            </tr>
-                                        </thead>
- 
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
- 
-                                <!-- Mobile cards -->
-                                <div
-                                    id="nomuTheoreticalMobileView"
-                                    class="card-view-content open-close-card-view d-block d-md-none page-view-container"
-                                    aria-live="polite"
-                                    aria-busy="false"
-                                ></div>
- 
-                            </div>
-                            
-                            
-                            
-                            
-                            
- <%-- 
-                            <div class="note-bg-color-for-mobile">
- 
-                                <c:if test="${pageContext.request.locale.language eq 'en'}">
-                                    <div class="note-text mt-3">
-                                        <div class="check-icon">
-                                            <svg
-                                                class="pc-icon pr-3 link-icon ml-2"
-                                                width="20"
-                                                height="20"
-                                                aria-hidden="true"
-                                            >
-                                                <use xlink:href="#custom-checkmark-icon"></use>
-                                            </svg>
-                                        </div>
- 
-                                        <span>
-                                            <fmt:message key="top.note1" />
-                                        </span>
-                                    </div>
-                                </c:if>
- 
-                                <div class="note-text mt-2">
-                                    <div class="check-icon">
-                                        <svg
-                                            class="pc-icon pr-3 link-icon ml-2"
-                                            width="20"
-                                            height="20"
-                                            aria-hidden="true"
-                                        >
-                                            <use xlink:href="#custom-checkmark-icon"></use>
-                                        </svg>
-                                    </div>
- 
-                                    <span>
-                                        <fmt:message key="top.note2" />
-                                    </span>
-                                </div>
- 
-                                <div class="note-text">
-                                    <div class="check-icon">
-                                        <svg
-                                            class="pc-icon pr-3 link-icon ml-2"
-                                            width="20"
-                                            height="20"
-                                            aria-hidden="true"
-                                        >
-                                            <use xlink:href="#custom-checkmark-icon"></use>
-                                        </svg>
-                                    </div>
- 
-                                    <span>
-                                        <fmt:message key="top.note3" />
-                                    </span>
-                                </div>
- 
-                                <div class="note-text">
-                                    <div class="check-icon">
-                                        <svg
-                                            class="pc-icon pr-3 link-icon ml-2"
-                                            width="20"
-                                            height="20"
-                                            aria-hidden="true"
-                                        >
-                                            <use xlink:href="#custom-checkmark-icon"></use>
-                                        </svg>
-                                    </div>
- 
-                                    <span>
-                                        <fmt:message key="top.market.watch.prices.delayed" />
-                                    </span>
-                                </div>
- 
-                            </div> --%>
- 
-                        </div>
-                    </div>
- 
-                </div>
-            </div>
-      
-      
-                            <div class="notes  mt-3">
-						<ul>
-						
-						<c:if test="${pageContext.request.locale.language eq 'en'}">
-							<li><svg class="pc-icon pr-3 link-icon ml-2" width="20" height="20">
-					  <use xlink:href="#custom-checkmark-icon"></use>
-					</svg> <fmt:message key="top.note1" /> </li>
-					</c:if>
-					
-					
+<%-- =========================================================================
+     Nomu Theoretical Opening Hero
+     ========================================================================= --%>
 
-							<li><svg class="pc-icon pr-3 link-icon ml-2" width="20" height="20">
-					  <use xlink:href="#custom-checkmark-icon"></use>
-					</svg> <fmt:message key="top.note2" /></li>
-					
-					
-					
-							<li><svg class="pc-icon pr-3 link-icon ml-2" width="20" height="20">
-					  <use xlink:href="#custom-checkmark-icon"></use>
-					</svg> <fmt:message key="top.note3" /></li>
-					
-					
-						<li><svg class="pc-icon pr-3 link-icon ml-2" width="20" height="20">
-					  <use xlink:href="#custom-checkmark-icon"></use>
-					</svg><fmt:message key="top.market.watch.prices.delayed" /></li>
-						
-						
-						
-						</ul>
-					</div>
-      
+<section
+    class="hero-section market-summary-section"
+    aria-labelledby="nomu-theoretical-opening-title"
+>
+    <div
+        class="hero-section__background"
+        aria-hidden="true"
+    ></div>
+
+    <div class="container hero-section__content">
+        <div class="market-summary market-summary--hero">
+
+            <header class="market-summary__header">
+                <div class="market-summary__brand">
+
+                    <span
+                        class="market-summary__brand-icon has-icon icon-tadawul"
+                        aria-hidden="true"
+                    ></span>
+
+                    <h1
+                        id="nomu-theoretical-opening-title"
+                        class="market-summary__title"
+                    >
+                        <fmt:message key="theoretical.title" />
+                    </h1>
+
+                </div>
+            </header>
+
         </div>
     </div>
 </section>
- 
+
+
+<%-- =========================================================================
+     Nomu Theoretical Opening Filters
+     ========================================================================= --%>
+
+<section
+    class="section nomu-theoretical-opening-filters pb-0"
+    aria-labelledby="nomu-theoretical-opening-filters-title"
+>
+    <div class="container">
+
+        <form
+            class="filter-bar filter-bar--connected"
+            aria-labelledby="nomu-theoretical-opening-filters-title"
+            data-nomu-theoretical-opening-filters
+        >
+
+            <h2
+                id="nomu-theoretical-opening-filters-title"
+                class="visually-hidden"
+            >
+                <fmt:message key="theoretical.title" />
+            </h2>
+
+            <div class="filter-bar__inner">
+
+                <div class="filter-bar__fields grid-3">
+
+                    <%-- =====================================================
+                         Sector
+                         ===================================================== --%>
+
+                    <div class="filter-bar__field">
+
+                        <label
+                            class="form-label"
+                            for="nomu-theoretical-opening-sector"
+                        >
+                            <fmt:message key="selectSectorLabel" />
+                        </label>
+
+                        <div
+                            class="custom-select"
+                            data-custom-select
+                        >
+                            <div
+                                class="form-select-wrap custom-select__fallback"
+                            >
+
+                                <select
+                                    id="nomu-theoretical-opening-sector"
+                                    class="form-select custom-select__native"
+                                    name="sectorParameter"
+                                    data-nomu-theoretical-opening-sector
+                                >
+
+                                    <option
+                                        value="All"
+                                        <c:if test="${empty requestScope.selectedSector or requestScope.selectedSector eq 'All'}">
+                                            selected
+                                        </c:if>
+                                    >
+                                        <fmt:message key="allMarketCombo" />
+                                    </option>
+
+                                    <c:forEach
+                                        items="${requestScope.sectorList}"
+                                        var="sectorItem"
+                                    >
+
+                                        <option
+                                            value="<c:out value='${sectorItem.modifiedId}' />"
+                                            <c:if test="${requestScope.selectedSector eq sectorItem.modifiedId}">
+                                                selected
+                                            </c:if>
+                                        >
+                                            <c:out
+                                                value="${sectorItem.modifiedName}"
+                                            />
+                                        </option>
+
+                                    </c:forEach>
+
+                                </select>
+
+                                <span
+                                    class="form-select-icon has-icon icon-chevron-down"
+                                    aria-hidden="true"
+                                ></span>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </form>
+
+    </div>
+</section>
+
+
+<%-- =========================================================================
+     Nomu Theoretical Opening Results
+     ========================================================================= --%>
+
+<section
+    class="section nomu-theoretical-opening-results pt-0"
+    aria-labelledby="nomu-theoretical-opening-results-title"
+>
+    <div class="container">
+
+        <h2
+            id="nomu-theoretical-opening-results-title"
+            class="visually-hidden"
+        >
+            <fmt:message key="theoretical.title" />
+        </h2>
+
+        <div
+            class="data-view data-view--connected"
+            data-nomu-theoretical-opening-data-view
+        >
+
+            <div class="data-view__workspace">
+
+                <%-- =========================================================
+                     Results Toolbar
+                     ========================================================= --%>
+
+                <div class="data-view__toolbar">
+
+                    <div class="data-view__toolbar-start">
+
+                        <p class="data-view__result-count">
+
+                            <strong
+                                data-nomu-theoretical-opening-result-count
+                            >
+                                0
+                            </strong>
+
+                            <span>
+                                <fmt:message key="results" />
+                            </span>
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <%-- =========================================================
+                     Desktop Table
+                     ========================================================= --%>
+
+                <div class="data-view__table">
+
+                    <div class="data-view__table-block">
+
+                        <table
+                            class="table table-market table-hover table-nowrap"
+                            data-nomu-theoretical-opening-table
+                            aria-busy="true"
+                        >
+
+                            <caption class="visually-hidden">
+                                <fmt:message key="theoretical.title" />
+                            </caption>
+
+                            <thead>
+
+                                <tr>
+
+                                    <th scope="col">
+                                        <fmt:message key="companyNameCol" />
+                                    </th>
+
+                                    <th
+                                        scope="col"
+                                        class="text-center"
+                                    >
+                                        <fmt:message
+                                            key="company.Previous.Close"
+                                        />
+                                    </th>
+
+                                    <th
+                                        scope="col"
+                                        class="text-center"
+                                    >
+                                        <fmt:message key="company.top" />
+                                    </th>
+
+                                    <th
+                                        scope="col"
+                                        class="text-center"
+                                    >
+                                        <fmt:message key="company.tov" />
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody></tbody>
+
+                        </table>
+
+                    </div>
+                </div>
+
+
+                <%-- =========================================================
+                     Mobile Cards
+                     ========================================================= --%>
+
+                <div
+                    class="data-view__cards"
+                    data-nomu-theoretical-opening-cards
+                    aria-busy="true"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+        <%-- =================================================================
+             Notes
+             ================================================================= --%>
+
+        <div class="notes">
+
+            <ul>
+
+                <c:if test="${pageContext.request.locale.language eq 'en'}">
+                    <li>
+                        <fmt:message key="top.note1" />
+                    </li>
+                </c:if>
+
+                <li>
+                    <fmt:message key="top.note2" />
+                </li>
+
+                <li>
+                    <fmt:message key="top.note3" />
+                </li>
+
+                <li>
+                    <fmt:message key="top.market.watch.prices.delayed" />
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+</section>
+
+
+<%-- =========================================================================
+     Nomu Theoretical Opening Configuration
+     ========================================================================= --%>
+
 <script>
     window.NomuTheoreticalOpeningConfig = {
-        moduleName:
-            "nomuTheoreticalOpening",
- 
-        moduleKey:
-            "nomuTheoreticalOpening",
- 
-        locale:
-            "<c:out value='${pageContext.request.locale.language}' />",
- 
+
         endpoint:
             "<portlet:resourceURL id='getNomukTheoreticalOpeningDetails' />",
- 
-        ajaxMethod:
-            "POST",
- 
-        initialView:
-            "1",
- 
-        mobileMaxWidth:
-            767.98,
- 
-        resizeDelay:
-            200,
- 
-        selectors: {
-            page:
-                "#nomuTheoreticalOpeningPage",
- 
-            sectorInput:
-                "#nomuTheoreticalSectorsList",
- 
-            table:
-                "#nomuTheoreticalTableId",
- 
-            desktopView:
-                "#nomuTheoreticalDesktopView",
- 
-            mobileView:
-                "#nomuTheoreticalMobileView",
- 
-            mobileContainer:
-                "#nomuTheoreticalMobileView",
- 
-            cardsContainer:
-                "#nomuTheoreticalMobileView"
+
+        locale:
+            "<c:out value='${pageContext.request.locale.language}' />",
+
+        initialState: {
+            sector:
+                "<c:out value='${empty requestScope.selectedSector ? "All" : requestScope.selectedSector}' />"
         },
- 
-        views: {
-            defaultView:
-                "1",
- 
-            targets: {
-                "1":
-                    "#nomuTheoreticalTableId"
-            }
-        },
- 
-        getRequestData:
-            function () {
-                var sectorInput =
-                    document.querySelector(
-                        "#nomuTheoreticalSectorsList"
-                    );
- 
-                var localeInput =
-                    document.querySelector(
-                        "#nomuRequestLocale"
-                    );
- 
-                return {
-                    sector:
-                        sectorInput &&
-                        sectorInput.value
-                            ? sectorInput.value
-                            : "All",
- 
-                    requestLocale:
-                        localeInput &&
-                        localeInput.value
-                            ? localeInput.value
-                            : this.locale
-                };
-            },
- 
+
         labels: {
+
+            loading:
+                "<fmt:message key='loading' />",
+
             noData:
                 "<fmt:message key='noDataAvailable' />",
- 
+
             mobile: {
+                showDetails:
+                    "Show details",
+
+                hideDetails:
+                    "Hide details",
+
                 symbolCompany:
                     "<fmt:message key='companyNameCol' />",
- 
+
                 priceVolume:
                     "<fmt:message key='company.top' /> / <fmt:message key='company.tov' />"
             },
- 
+
             table: {
                 symbol:
                     "<fmt:message key='symbolCol' />",
- 
+
                 companyName:
                     "<fmt:message key='companyNameCol' />",
- 
+
                 previousClose:
                     "<fmt:message key='company.Previous.Close' />",
- 
+
                 top:
                     "<fmt:message key='company.top' />",
- 
+
                 tov:
                     "<fmt:message key='company.tov' />"
             }
         }
     };
 </script>
- 
+
+
+<%-- =========================================================================
+     Nomu Theoretical Opening Entry Module
+     ========================================================================= --%>
+
 <script
-    src="${pageContext.request.contextPath}/js/utility/format-utils.js"
-></script>
- 
-<script
-    src="${pageContext.request.contextPath}/js/utility/select-utils.js"
-></script>
- 
-<script
-    src="${pageContext.request.contextPath}/js/utility/page-view-manager.js"
-></script>
- 
-<script
-    src="${pageContext.request.contextPath}/js/theoretical-opening/theoretical-opening.schema.js"
-></script>
- 
-<script
-    src="${pageContext.request.contextPath}/js/theoretical-opening/theoretical-opening.renderers.js"
-></script>
- 
-<script
-    src="${pageContext.request.contextPath}/js/theoretical-opening/theoretical-opening.page.js"
+    type="module"
+    src="${pageContext.request.contextPath}/js/pages/nomu-theoretical-opening/nomu-theoretical-opening.js"
 ></script>

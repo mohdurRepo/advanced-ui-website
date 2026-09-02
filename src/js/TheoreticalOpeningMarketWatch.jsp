@@ -27,341 +27,331 @@
 <fmt:setBundle
 	basename="sa.com.tadawul.eportal.theoretical.marketwatch.v2.nl.TheoreticalOpeningPortletV2PortletResource" />
 
-<section id="theoreticalOpeningPage"
-	class="app-container hero-banner-section">
-	
-	<div class="profile-banner animate__animated animate__fadeIn">
-		<div class="profile-banner--pattern">
-			<div class="row">
+<%-- =========================================================================
+     Theoretical Opening Hero
+     ========================================================================= --%>
 
-				<div class="col-12">
-					<input type="hidden" id="requestLocale" name="requestLocale"
-						value="<c:out value='${pageContext.request.locale.language}' />" />
+<section
+    class="hero-section market-summary-section"
+    aria-labelledby="theoretical-opening-title"
+>
+    <div
+        class="hero-section__background"
+        aria-hidden="true"
+    ></div>
 
-					<h2>
-						<svg class="pc-icon pr-3 link-icon me-3" width="40" height="40"
-							aria-hidden="true" style="color: #ffffff; fill: #ffffff;">
-                            <use xlink:href="#tadawul-arrow-icon"></use>
-                        </svg>
+    <div class="container hero-section__content">
+        <div class="market-summary market-summary--hero">
 
-						<span class="text-white"> <fmt:message
-								key="theoretical.title" />
-						</span>
-					</h2>
-				</div>
+            <header class="market-summary__header">
+                <div class="market-summary__brand">
 
-				<div class="col-12 col-md-4 col-sm-6">
-					<div class="form-field">
+                    <span
+                        class="market-summary__brand-icon has-icon icon-tadawul"
+                        aria-hidden="true"
+                    ></span>
 
-						<label for="sectorsList" class="form-label">
-							<fmt:message key="selectSectorLabel" />
-						</label>
+                    <h1
+                        id="theoretical-opening-title"
+                        class="market-summary__title"
+                    >
+                        <fmt:message key="theoretical.title" />
+                    </h1>
 
-						<div id="theoreticalSectorSelect"
-							class="form-control-shell is-select is-search" tabindex="0"
-							data-select data-field="sectorParameter">
-							<div class="form-select-value is-placeholder">
-								<fmt:message key="selectSectorLabel" />
-							</div>
+                </div>
+            </header>
 
-							<input type="hidden" id="sectorsList" name="sectorParameter"
-								data-filter="sectorParameter"
-								data-label="<fmt:message key='selectSectorLabel' />"
-								value="<c:out value='${empty requestScope.selectedSector ? "All" : requestScope.selectedSector}' />" />
-
-							<span class="form-suffix form-select-arrow" aria-hidden="true"></span>
-
-							<div class="form-popover">
-								<div class="form-select-panel">
-
-									<div class="form-select-search-wrap">
-										<input type="text" class="form-select-search"
-											placeholder="<fmt:message key='marketwatch.search.sector' />"
-											autocomplete="off" />
-									</div>
-
-									<div class="form-select-list">
-
-										<div class="form-select-option" data-value="All"
-											<c:if test="${empty requestScope.selectedSector or requestScope.selectedSector eq 'All'}">
-                                                data-selected="true"
-                                            </c:if>>
-											<fmt:message key="allMarketCombo" />
-										</div>
-
-										<c:forEach items="${requestScope.sectorList}" var="sectorItem">
-											<div class="form-select-option"
-												data-value="<c:out value='${sectorItem.modifiedId}' />"
-												<c:if test="${requestScope.selectedSector eq sectorItem.modifiedId}">
-                                                    data-selected="true"
-                                                </c:if>>
-												<c:out value="${sectorItem.modifiedName}" />
-											</div>
-										</c:forEach>
-
-									</div>
-								</div>
-							</div>
-						</div>
-
-					</div>
-				</div>
-
-			</div>
-		</div>
-	</div>
-
-	<div class="intro-section">
-		<div class="app-container">
-			<div class="row">
-				<div class="col-12 mt-4">
-
-					<div class="tab-content mt-3">
-						<div id="MarketPerformance">
-
-							<div class="list-view-content">
-
-								<div id="theoreticalDesktopView"
-									class="table-responsive d-none d-md-block page-view-container">
-									<table id="theoreticalTableId" class="display table">
-										<thead>
-											<tr>
-												<th><fmt:message
-														key="companyNameCol" /></th>
-
-												<th class="text-center"><fmt:message
-														key="company.Previous.Close" /></th>
-
-												<th class="text-center"><fmt:message key="company.top" />
-												</th>
-
-												<th class="text-center"><fmt:message key="company.tov" />
-												</th>
-											</tr>
-										</thead>
-
-										<tbody></tbody>
-									</table>
-								</div>
-
-								<div id="theoreticalMobileView"
-									class="card-view-content open-close-card-view d-block d-md-none page-view-container"
-									aria-live="polite" aria-busy="false"></div>
-
-							</div>
-							
-							
-							
-<%-- 
-							<div class="note-bg-color-for-mobile">
-
-								<c:if test="${pageContext.request.locale.language eq 'en'}">
-									<div class="note-text mt-3">
-										<div class="check-icon">
-											<svg class="pc-icon pr-3 link-icon ml-2" width="20"
-												height="20" aria-hidden="true">
-                                                <use
-													xlink:href="#custom-checkmark-icon"></use>
-                                            </svg>
-										</div>
-
-										<span> <fmt:message key="top.note1" />
-										</span>
-									</div>
-								</c:if>
-
-								<div class="note-text mt-2">
-									<div class="check-icon">
-										<svg class="pc-icon pr-3 link-icon ml-2" width="20"
-											height="20" aria-hidden="true">
-                                            <use
-												xlink:href="#custom-checkmark-icon"></use>
-                                        </svg>
-									</div>
-
-									<span> <fmt:message key="top.note2" />
-									</span>
-								</div>
-
-								<div class="note-text">
-									<div class="check-icon">
-										<svg class="pc-icon pr-3 link-icon ml-2" width="20"
-											height="20" aria-hidden="true">
-                                            <use
-												xlink:href="#custom-checkmark-icon"></use>
-                                        </svg>
-									</div>
-
-									<span> <fmt:message key="top.note3" />
-									</span>
-								</div>
-
-								<div class="note-text">
-									<div class="check-icon">
-										<svg class="pc-icon pr-3 link-icon ml-2" width="20"
-											height="20" aria-hidden="true">
-                                            <use
-												xlink:href="#custom-checkmark-icon"></use>
-                                        </svg>
-									</div>
-
-									<span> <fmt:message
-											key="top.market.watch.prices.delayed" />
-									</span>
-								</div>
-
-							</div>
-							 --%>
-							
-							
-							
-							
-							
-							
-							
-
-						</div>
-						
-						
-							    
-					</div>
-
-
- 
-
-				</div>
-			</div>
-			
-			<div class="notes mt-3">
-						<ul>
-						
-						<c:if test="${pageContext.request.locale.language eq 'en'}">
-							<li><svg class="pc-icon pr-3 link-icon ml-2" width="20" height="20">
-					  <use xlink:href="#custom-checkmark-icon"></use>
-					</svg> <fmt:message key="top.note1" /> </li>
-					</c:if>
-					
-					
-
-							<li><svg class="pc-icon pr-3 link-icon ml-2" width="20" height="20">
-					  <use xlink:href="#custom-checkmark-icon"></use>
-					</svg> <fmt:message key="top.note2" /></li>
-					
-					
-					
-							<li><svg class="pc-icon pr-3 link-icon ml-2" width="20" height="20">
-					  <use xlink:href="#custom-checkmark-icon"></use>
-					</svg> <fmt:message key="top.note3" /></li>
-					
-					
-						<li><svg class="pc-icon pr-3 link-icon ml-2" width="20" height="20">
-					  <use xlink:href="#custom-checkmark-icon"></use>
-					</svg><fmt:message key="top.market.watch.prices.delayed" /></li>
-						
-						
-						
-						</ul>
-					</div>
-			
-			
-		</div>
-	</div>
+        </div>
+    </div>
 </section>
 
+<%-- =========================================================================
+     Theoretical Opening Filters
+     ========================================================================= --%>
+
+<section
+    class="section theoretical-opening-filters pb-0"
+    aria-labelledby="theoretical-opening-filters-title"
+>
+    <div class="container">
+
+        <form
+            class="filter-bar filter-bar--connected"
+            aria-labelledby="theoretical-opening-filters-title"
+            data-theoretical-opening-filters
+        >
+            <h2
+                id="theoretical-opening-filters-title"
+                class="visually-hidden"
+            >
+                <fmt:message key="theoretical.title" />
+            </h2>
+
+            <div class="filter-bar__inner">
+
+                <div class="filter-bar__fields grid-3">
+
+                    <%-- =====================================================
+                         Sector
+                         ===================================================== --%>
+
+                    <div class="filter-bar__field">
+
+                        <label
+                            class="form-label"
+                            for="theoretical-opening-sector"
+                        >
+                            <fmt:message key="selectSectorLabel" />
+                        </label>
+
+                        <div
+                            class="custom-select"
+                            data-custom-select
+                        >
+                            <div
+                                class="form-select-wrap custom-select__fallback"
+                            >
+                                <select
+                                    class="form-select custom-select__native"
+                                    id="theoretical-opening-sector"
+                                    name="sectorParameter"
+                                    data-theoretical-opening-sector
+                                >
+                                    <option
+                                        value="All"
+                                        <c:if test="${empty requestScope.selectedSector or requestScope.selectedSector eq 'All'}">
+                                            selected
+                                        </c:if>
+                                    >
+                                        <fmt:message key="allMarketCombo" />
+                                    </option>
+
+                                    <c:forEach
+                                        items="${requestScope.sectorList}"
+                                        var="sectorItem"
+                                    >
+                                        <option
+                                            value="<c:out value='${sectorItem.modifiedId}' />"
+                                            <c:if test="${requestScope.selectedSector eq sectorItem.modifiedId}">
+                                                selected
+                                            </c:if>
+                                        >
+                                            <c:out value="${sectorItem.modifiedName}" />
+                                        </option>
+                                    </c:forEach>
+                                </select>
+
+                                <span
+                                    class="form-select-icon has-icon icon-chevron-down"
+                                    aria-hidden="true"
+                                ></span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+</section>
+
+<%-- =========================================================================
+     Theoretical Opening Data View
+     ========================================================================= --%>
+
+<section
+    class="section theoretical-opening-results pt-0"
+    aria-labelledby="theoretical-opening-results-title"
+>
+    <div class="container">
+
+        <h2
+            id="theoretical-opening-results-title"
+            class="visually-hidden"
+        >
+            <fmt:message key="theoretical.title" />
+        </h2>
+
+        <div
+            class="data-view data-view--connected"
+            data-theoretical-opening-data-view
+        >
+
+            <div class="data-view__workspace">
+
+                <%-- =========================================================
+                     Desktop Table
+                     ========================================================= --%>
+
+                <div class="data-view__table">
+                    <div class="data-view__table-block">
+
+                        <table
+                            class="table table-market"
+                            data-theoretical-opening-table
+                            aria-busy="true"
+                        >
+                            <caption class="visually-hidden">
+                                <fmt:message key="theoretical.title" />
+                            </caption>
+
+                            <thead>
+                                <tr>
+
+                                    <th scope="col">
+                                        <fmt:message key="companyNameCol" />
+                                    </th>
+
+                                    <th
+                                        scope="col"
+                                        class="text-center"
+                                    >
+                                        <fmt:message
+                                            key="company.Previous.Close"
+                                        />
+                                    </th>
+
+                                    <th
+                                        scope="col"
+                                        class="text-center"
+                                    >
+                                        <fmt:message key="company.top" />
+                                    </th>
+
+                                    <th
+                                        scope="col"
+                                        class="text-center"
+                                    >
+                                        <fmt:message key="company.tov" />
+                                    </th>
+
+                                </tr>
+                            </thead>
+
+                            <tbody></tbody>
+                        </table>
+
+                    </div>
+                </div>
+
+                <%-- =========================================================
+                     Mobile Cards
+                     ========================================================= --%>
+
+                <div
+                    class="data-view__cards"
+                    data-theoretical-opening-cards
+                ></div>
+
+            </div>
+
+        </div>
+
+        <%-- =================================================================
+             Notes
+             ================================================================= --%>
+
+        <div class="notes">
+            <ul>
+
+                <c:if test="${pageContext.request.locale.language eq 'en'}">
+                    <li>
+                        <fmt:message key="top.note1" />
+                    </li>
+                </c:if>
+
+                <li>
+                    <fmt:message key="top.note2" />
+                </li>
+
+                <li>
+                    <fmt:message key="top.note3" />
+                </li>
+
+                <li>
+                    <fmt:message
+                        key="top.market.watch.prices.delayed"
+                    />
+                </li>
+
+            </ul>
+        </div>
+
+    </div>
+</section>
+
+<%-- =========================================================================
+     Theoretical Opening Configuration
+     ========================================================================= --%>
+
+<%-- =========================================================================
+     Theoretical Opening Configuration
+     ========================================================================= --%>
+
 <script>
-	window.TheoreticalOpeningConfig = {
-		moduleName : "theoreticalOpening",
+    window.TheoreticalOpeningConfig = {
+        endpoint:
+            "<portlet:resourceURL id='getTheoreticalOpeningDetails' />",
 
-		moduleKey : "theoreticalOpening",
+        locale:
+            "<c:out value='${pageContext.request.locale.language}' />",
 
-		locale : "<c:out value='${pageContext.request.locale.language}' />",
+        initialState: {
+            sector:
+                "<c:out value='${empty requestScope.selectedSector ? "All" : requestScope.selectedSector}' />"
+        },
 
-		endpoint : "<portlet:resourceURL id='getTheoreticalOpeningDetails' />",
+        table: {
+            autoWidth: false,
 
-		ajaxMethod : "POST",
+            paging: false,
+            searching: false,
+            ordering: false,
+            info: false,
+            lengthChange: false,
 
-		initialView : "1",
+            serverSide: false,
+            processing: false,
 
-		mobileMaxWidth : 767.98,
+            scrollX: true,
+            scrollCollapse: true,
 
-		resizeDelay : 200,
+            fixedHeader: true,
+            fixedColumns: 1
+        },
 
-		selectors : {
-			page : "#theoreticalOpeningPage",
+        labels: {
+            loading:
+                "<fmt:message key='loading' />",
 
-			sectorInput : "#sectorsList",
+            noData:
+                "<fmt:message key='noDataAvailable' />",
 
-			table : "#theoreticalTableId",
+            table: {
+                companyName:
+                    "<fmt:message key='companyNameCol' />",
 
-			desktopView : "#theoreticalDesktopView",
+                previousClose:
+                    "<fmt:message key='company.Previous.Close' />",
 
-			mobileView : "#theoreticalMobileView",
+                top:
+                    "<fmt:message key='company.top' />",
 
-			mobileContainer : "#theoreticalMobileView",
-
-			cardsContainer : "#theoreticalMobileView"
-		},
-
-		views : {
-			defaultView : "1",
-
-			targets : {
-				"1" : "#theoreticalTableId"
-			}
-		},
-
-		getRequestData : function() {
-			var sectorInput = document.querySelector("#sectorsList");
-
-			var localeInput = document.querySelector("#requestLocale");
-
-			return {
-				sector : sectorInput && sectorInput.value ? sectorInput.value
-						: "All",
-
-				requestLocale : localeInput && localeInput.value ? localeInput.value
-						: this.locale
-			};
-		},
-
-		labels : {
-			noData : "<fmt:message key='noDataAvailable' />",
-
-			mobile : {
-				symbolCompany : "<fmt:message key='companyNameCol' />",
-
-				priceVolume : "<fmt:message key='company.top' /> / <fmt:message key='company.tov' />"
-			},
-
-			table : {
-				symbol : "<fmt:message key='symbolCol' />",
-
-				companyName : "<fmt:message key='companyNameCol' />",
-
-				previousClose : "<fmt:message key='company.Previous.Close' />",
-
-				top : "<fmt:message key='company.top' />",
-
-				tov : "<fmt:message key='company.tov' />"
-			}
-		}
-	};
+                tov:
+                    "<fmt:message key='company.tov' />"
+            }
+        }
+    };
 </script>
 
-<script
-	src="${pageContext.request.contextPath}/js/utility/format-utils.js"></script>
+<%-- =========================================================================
+     Theoretical Opening Module
+     ========================================================================= --%>
 
 <script
-	src="${pageContext.request.contextPath}/js/utility/select-utils.js"></script>
-
-<script
-	src="${pageContext.request.contextPath}/js/utility/page-view-manager.js"></script>
-
-<script
-	src="${pageContext.request.contextPath}/js/theoretical-opening/theoretical-opening.schema.js"></script>
-
-<script
-	src="${pageContext.request.contextPath}/js/theoretical-opening/theoretical-opening.renderers.js"></script>
-
-<script
-	src="${pageContext.request.contextPath}/js/theoretical-opening/theoretical-opening.page.js"></script>
+    type="module"
+    src="${pageContext.request.contextPath}/js/theoretical-opening/theoretical-opening.js"
+></script>
