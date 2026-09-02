@@ -22,7 +22,7 @@ import { initCustomSelects } from "./components/custom-select";
 import { initCustomDates } from "./components/custom-date";
 import { initForms } from "./components/form";
 import { initTextAnimation } from "./components/text-animation";
-
+import { initCompanySearch } from "./components/company-search";
 import { initDataViews, refreshDataViews } from "./components/data-view";
 
 import { initDirectories } from "./components/directory";
@@ -133,7 +133,7 @@ function initApp() {
 
   initDirectories();
   initTextAnimation();
-
+  initCompanySearch();
   /*
    * Tables and market components.
    *

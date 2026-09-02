@@ -5632,7 +5632,6 @@
               <!-- ===============================================================
              Search
         ================================================================ -->
-
               <form
                 class="home-discovery-search"
                 role="search"
@@ -5661,6 +5660,7 @@
                   placeholder="Search companies, news, and updates"
                   autocomplete="off"
                   enterkeyhint="search"
+                  spellcheck="false"
                   data-home-discovery-search-input
                 />
 
@@ -5669,6 +5669,58 @@
                   type="submit"
                   aria-label="Submit search"
                 ></button>
+
+                <div
+                  class="home-discovery-search__results"
+                  data-home-discovery-search-results
+                  hidden
+                >
+                  <ul
+                    class="home-discovery-search__list"
+                    data-home-discovery-search-list
+                  ></ul>
+
+                  <div
+                    class="home-discovery-search__state"
+                    data-home-discovery-search-loading
+                    role="status"
+                    hidden
+                  >
+                    <span
+                      class="home-discovery-search__loading"
+                      aria-hidden="true"
+                    ></span>
+
+                    <span>Searching companies</span>
+                  </div>
+
+                  <div
+                    class="home-discovery-search__state"
+                    data-home-discovery-search-empty
+                    hidden
+                  >
+                    <span
+                      class="home-discovery-search__state-icon has-icon icon-search"
+                      aria-hidden="true"
+                    ></span>
+
+                    <span>No matching companies found.</span>
+                  </div>
+
+                  <div
+                    class="home-discovery-search__state"
+                    data-home-discovery-search-error
+                    role="alert"
+                    hidden
+                  >
+                    <span
+                      class="home-discovery-search__state-icon has-icon icon-info-warning"
+                      aria-hidden="true"
+                    ></span>
+
+                    <span> Company search is currently unavailable. </span>
+                  </div>
+                </div>
               </form>
 
               <!-- ===============================================================
@@ -8132,11 +8184,14 @@
     <aside class="utility-rail" data-utility-rail aria-label="Website tools">
       <div class="utility-rail__group">
         <!-- Search -->
-
         <button
           class="utility-rail__action"
           type="button"
           data-search-toggle
+          data-modal-open="companySearchModal"
+          aria-controls="companySearchModal"
+          aria-expanded="false"
+          aria-haspopup="dialog"
           aria-label="Open search"
           title="Search"
         >
@@ -8217,6 +8272,195 @@
       </div>
     </aside>
 
+    <!-- ===============================================================
+     Company Search Modal
+     =============================================================== -->
+
+    <div
+      id="companySearchModal"
+      class="modal modal-lg modal-rounded modal-no-header modal-no-footer modal-visual company-search-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+      aria-labelledby="companySearchModalTitle"
+      aria-describedby="companySearchModalDescription"
+      data-company-search-modal
+    >
+      <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
+
+      <div class="modal-dialog">
+        <div class="modal-content surface-hero">
+          <div class="modal-body">
+            <!-- =========================================================
+             Heading
+             ========================================================= -->
+
+            <div class="modal-login-heading">
+              <div>
+                <p class="modal-subtitle">Market Search</p>
+
+                <h2 id="companySearchModalTitle" class="modal-title">
+                  Search for a company
+                </h2>
+
+                <p id="companySearchModalDescription" class="modal-subtitle">
+                  Search by company name, symbol, ISIN, or sector.
+                </p>
+              </div>
+            </div>
+
+            <!-- =========================================================
+             Close
+             ========================================================= -->
+
+            <button
+              class="modal-close"
+              type="button"
+              data-modal-close
+              aria-label="Close company search"
+            ></button>
+
+            <!-- =========================================================
+             Company Search
+             ========================================================= -->
+
+            <div class="company-search" data-company-search>
+              <!-- =======================================================
+               Search Field
+               ======================================================= -->
+
+              <form
+                class="company-search__form"
+                role="search"
+                action="#"
+                method="get"
+                data-company-search-form
+              >
+                <label class="visually-hidden" for="companySearchInput">
+                  Search companies
+                </label>
+
+                <div class="company-search__field">
+                  <span
+                    class="company-search__search-icon has-icon icon-search"
+                    aria-hidden="true"
+                  ></span>
+
+                  <input
+                    id="companySearchInput"
+                    class="form-control"
+                    type="search"
+                    name="company"
+                    placeholder="Search by company, symbol, ISIN, or sector"
+                    autocomplete="off"
+                    enterkeyhint="search"
+                    spellcheck="false"
+                    data-company-search-input
+                  />
+                </div>
+              </form>
+
+              <!-- =======================================================
+               Results
+               ======================================================= -->
+
+              <section
+                class="company-search__results"
+                aria-labelledby="companySearchResultsTitle"
+                data-company-search-results
+                hidden
+              >
+                <div class="company-search__results-header">
+                  <h3
+                    id="companySearchResultsTitle"
+                    class="company-search__results-title"
+                  >
+                    Results
+                  </h3>
+
+                  <span
+                    class="company-search__results-count"
+                    data-company-search-count
+                    aria-live="polite"
+                  >
+                    0
+                  </span>
+                </div>
+
+                <ul
+                  id="companySearchResultList"
+                  class="company-search__list"
+                  data-company-search-list
+                ></ul>
+              </section>
+
+              <!-- =======================================================
+               Loading State
+               ======================================================= -->
+
+              <div
+                class="company-search__state"
+                data-company-search-loading
+                role="status"
+                aria-live="polite"
+                hidden
+              >
+                <span class="company-search__loading" aria-hidden="true"></span>
+
+                <p class="company-search__state-title">Loading companies</p>
+
+                <p class="company-search__state-text">
+                  Please wait while company information is loaded.
+                </p>
+              </div>
+
+              <!-- =======================================================
+               Empty State
+               ======================================================= -->
+
+              <div
+                class="company-search__state"
+                data-company-search-empty
+                hidden
+              >
+                <span
+                  class="company-search__state-icon has-icon icon-search"
+                  aria-hidden="true"
+                ></span>
+
+                <p class="company-search__state-title">No matches found</p>
+
+                <p class="company-search__state-text">
+                  Try searching by company name, symbol, ISIN, or sector.
+                </p>
+              </div>
+
+              <!-- =======================================================
+               Error State
+               ======================================================= -->
+
+              <div
+                class="company-search__state"
+                data-company-search-error
+                role="alert"
+                hidden
+              >
+                <span
+                  class="company-search__state-icon has-icon icon-info-warning"
+                  aria-hidden="true"
+                ></span>
+
+                <p class="company-search__state-title">Search is unavailable</p>
+
+                <p class="company-search__state-text">
+                  Company information could not be loaded. Please try again.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- ======================================================================
      WATCHLIST DRAWER
      Authenticated-user experience
@@ -8508,10 +8752,8 @@
       <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
 
       <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content surface-hero">
           <div class="modal-body">
-            <!-- Heading -->
-
             <div class="modal-login-heading">
               <div>
                 <p class="modal-subtitle">My Watchlist</p>
@@ -8533,8 +8775,6 @@
               ></button>
             </div>
 
-            <!-- Login Form -->
-
             <form
               id="loginForm"
               class="form"
@@ -8543,8 +8783,6 @@
               data-login-form
               novalidate
             >
-              <!-- General Error -->
-
               <div
                 class="alert alert-danger"
                 role="alert"
@@ -8566,8 +8804,6 @@
                   </p>
                 </div>
               </div>
-
-              <!-- Identity -->
 
               <div class="form-group">
                 <label class="form-label" for="loginIdentity">
@@ -8597,8 +8833,6 @@
                 </p>
               </div>
 
-              <!-- Password -->
-
               <div class="form-group">
                 <div class="form-label-row">
                   <label class="form-label" for="loginPassword">
@@ -8610,7 +8844,7 @@
                   <a href="/forgot-password.html"> Forgot password? </a>
                 </div>
 
-                <div class="form-field form-field-icon-end">
+                <div class="form-field form-field-content-end">
                   <input
                     id="loginPassword"
                     class="form-control"
@@ -8643,8 +8877,6 @@
                 </p>
               </div>
 
-              <!-- Remember Me -->
-
               <div class="form-check">
                 <input
                   id="loginRemember"
@@ -8655,8 +8887,6 @@
 
                 <label for="loginRemember"> Remember me </label>
               </div>
-
-              <!-- Submit -->
 
               <button
                 class="btn btn-light btn-block"
@@ -8671,10 +8901,8 @@
                 ></span>
               </button>
 
-              <!-- Register -->
-
               <p class="auth-alternative">
-                <span>Don’t have an account?</span>
+                <span> Don’t have an account? </span>
 
                 <a href="/register.html"> Register now </a>
               </p>
@@ -8683,7 +8911,6 @@
         </div>
       </div>
     </div>
-
     <!-- ======================================================================
      DISPLAY PREFERENCES DRAWER
      ====================================================================== -->
@@ -10641,4 +10868,324 @@
     }
   })();
 </script>
---></html>
+-->
+  <%-- =========================================================================
+  Company Search - API Bridge
+  ========================================================================= --%>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      refreshCompanySearchDetails();
+    });
+
+    function refreshCompanySearchDetails() {
+      $.ajax({
+        type: "GET",
+        url: "/api",
+        dataType: "json",
+
+        success: function (msg) {
+          /**
+           * Preserve the existing Portal contract.
+           *
+           * The Vite company-search module reads this collection
+           * directly if AJAX finishes before module initialization.
+           */
+          window.searchableSymbols = msg || [];
+
+          /**
+           * Also notify the Vite component when data arrives
+           * after it has already initialized.
+           */
+          window.dispatchEvent(
+            new CustomEvent("company-search:data", {
+              detail: {
+                companies: window.searchableSymbols,
+              },
+            }),
+          );
+        },
+
+        error: function (xhr, status, error) {
+          console.error("Company search API request failed:", status, error);
+
+          window.dispatchEvent(
+            new CustomEvent("company-search:error", {
+              detail: {
+                status: status,
+                error: error,
+              },
+            }),
+          );
+        },
+      });
+    }
+  </script>
+
+  <%-- =========================================================================
+  Utility Rail - Search Trigger
+  ========================================================================= --%>
+
+  <button
+    class="utility-rail__action"
+    type="button"
+    data-search-toggle
+    data-modal-open="companySearchModal"
+    aria-controls="companySearchModal"
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    aria-label="Open search"
+    title="Search"
+  >
+    <span
+      class="utility-rail__icon has-icon icon-search icon-lg"
+      aria-hidden="true"
+    ></span>
+
+    <span class="utility-rail__label"> Search </span>
+  </button>
+
+  <%-- =========================================================================
+  Home Discovery Search
+  ========================================================================= --%>
+
+  <form
+    class="home-discovery-search"
+    role="search"
+    aria-label="Search companies, news, and market updates"
+    action="#"
+    method="get"
+    data-home-discovery-search
+  >
+    <label class="visually-hidden" for="home-discovery-search-input">
+      Search companies, news, and market updates
+    </label>
+
+    <span
+      class="home-discovery-search__icon has-icon icon-search"
+      aria-hidden="true"
+    ></span>
+
+    <input
+      id="home-discovery-search-input"
+      class="home-discovery-search__input"
+      type="search"
+      name="q"
+      placeholder="Search companies, news, and updates"
+      autocomplete="off"
+      enterkeyhint="search"
+      spellcheck="false"
+      data-home-discovery-search-input
+    />
+
+    <button
+      class="home-discovery-search__submit has-icon icon-chevron-right icon-flip-rtl"
+      type="submit"
+      aria-label="Submit search"
+    ></button>
+
+    <div
+      class="home-discovery-search__results"
+      data-home-discovery-search-results
+      hidden
+    >
+      <ul
+        class="home-discovery-search__list"
+        data-home-discovery-search-list
+      ></ul>
+
+      <div
+        class="home-discovery-search__state"
+        data-home-discovery-search-loading
+        role="status"
+        aria-live="polite"
+        hidden
+      >
+        <span class="home-discovery-search__loading" aria-hidden="true"></span>
+
+        <span> Searching companies </span>
+      </div>
+
+      <div
+        class="home-discovery-search__state"
+        data-home-discovery-search-empty
+        hidden
+      >
+        <span
+          class="home-discovery-search__state-icon has-icon icon-search"
+          aria-hidden="true"
+        ></span>
+
+        <span> No matching companies found. </span>
+      </div>
+
+      <div
+        class="home-discovery-search__state"
+        data-home-discovery-search-error
+        role="alert"
+        hidden
+      >
+        <span
+          class="home-discovery-search__state-icon has-icon icon-info-warning"
+          aria-hidden="true"
+        ></span>
+
+        <span> Company search is currently unavailable. </span>
+      </div>
+    </div>
+  </form>
+
+  <%-- =========================================================================
+  Company Search Modal
+  ========================================================================= --%>
+
+  <div
+    id="companySearchModal"
+    class="modal modal-lg modal-rounded modal-no-header modal-no-footer modal-visual company-search-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-hidden="true"
+    aria-labelledby="companySearchModalTitle"
+    aria-describedby="companySearchModalDescription"
+    data-company-search-modal
+  >
+    <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
+
+    <div class="modal-dialog">
+      <div class="modal-content surface-hero">
+        <div class="modal-body">
+          <div class="modal-login-heading">
+            <div>
+              <p class="modal-subtitle">Market Search</p>
+
+              <h2 id="companySearchModalTitle" class="modal-title">
+                Search for a company
+              </h2>
+
+              <p id="companySearchModalDescription" class="modal-subtitle">
+                Search by company name, symbol, ISIN, or sector.
+              </p>
+            </div>
+          </div>
+
+          <button
+            class="modal-close"
+            type="button"
+            data-modal-close
+            aria-label="Close company search"
+          ></button>
+
+          <div class="company-search" data-company-search>
+            <form
+              class="company-search__form"
+              role="search"
+              action="#"
+              method="get"
+              data-company-search-form
+            >
+              <label class="visually-hidden" for="companySearchInput">
+                Search companies
+              </label>
+
+              <div class="company-search__field">
+                <span
+                  class="company-search__search-icon has-icon icon-search"
+                  aria-hidden="true"
+                ></span>
+
+                <input
+                  id="companySearchInput"
+                  class="form-control"
+                  type="search"
+                  name="company"
+                  placeholder="Search by company, symbol, ISIN, or sector"
+                  autocomplete="off"
+                  enterkeyhint="search"
+                  spellcheck="false"
+                  data-company-search-input
+                />
+              </div>
+            </form>
+
+            <section
+              class="company-search__results"
+              aria-labelledby="companySearchResultsTitle"
+              data-company-search-results
+              hidden
+            >
+              <div class="company-search__results-header">
+                <h3
+                  id="companySearchResultsTitle"
+                  class="company-search__results-title"
+                >
+                  Results
+                </h3>
+
+                <span
+                  class="company-search__results-count"
+                  data-company-search-count
+                  aria-live="polite"
+                >
+                  0
+                </span>
+              </div>
+
+              <ul
+                id="companySearchResultList"
+                class="company-search__list"
+                data-company-search-list
+              ></ul>
+            </section>
+
+            <div
+              class="company-search__state"
+              data-company-search-loading
+              role="status"
+              aria-live="polite"
+              hidden
+            >
+              <span class="company-search__loading" aria-hidden="true"></span>
+
+              <p class="company-search__state-title">Loading companies</p>
+
+              <p class="company-search__state-text">
+                Please wait while company information is loaded.
+              </p>
+            </div>
+
+            <div class="company-search__state" data-company-search-empty hidden>
+              <span
+                class="company-search__state-icon has-icon icon-search"
+                aria-hidden="true"
+              ></span>
+
+              <p class="company-search__state-title">No matches found</p>
+
+              <p class="company-search__state-text">
+                Try searching by company name, symbol, ISIN, or sector.
+              </p>
+            </div>
+
+            <div
+              class="company-search__state"
+              data-company-search-error
+              role="alert"
+              hidden
+            >
+              <span
+                class="company-search__state-icon has-icon icon-info-warning"
+                aria-hidden="true"
+              ></span>
+
+              <p class="company-search__state-title">Search is unavailable</p>
+
+              <p class="company-search__state-text">
+                Company information could not be loaded. Please try again.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</html>

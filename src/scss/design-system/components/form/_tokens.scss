@@ -5,21 +5,31 @@
    ========================================================================== */
 
 /**
- * Shared by native form controls, custom selects, and date controls.
+ * Shared by native form controls, custom selects, date controls,
+ * and composed form fields.
  *
  * Component-specific partials may map their local custom properties to these
  * values, but should not redefine the shared control measurements or states.
+ *
+ * Surface/context utilities may override these variables locally without
+ * changing the underlying form components.
  */
 
 :root {
-  /* Form rhythm */
+  /* ==========================================================================
+     Form Rhythm
+     ========================================================================== */
+
   --form-space: var(--space-6, #{ds.space(6)});
   --form-row-space: var(--space-5, #{ds.space(5)});
   --form-group-space: var(--space-2, #{ds.space(2)});
   --form-inline-space: var(--space-4, #{ds.space(4)});
   --form-fieldset-space: var(--space-4, #{ds.space(4)});
 
-  /* Labels and supporting text */
+  /* ==========================================================================
+     Labels and Supporting Text
+     ========================================================================== */
+
   --form-label-color: var(--color-heading);
   --form-label-font-size: var(--text-sm, #{ds.font-size("sm")});
   --form-label-font-weight: #{ds.font-weight("heavy")};
@@ -29,12 +39,18 @@
   --form-help-font-size: var(--text-sm, #{ds.font-size("sm")});
   --form-help-line-height: #{ds.line-height("normal")};
 
-  /* Control typography */
+  /* ==========================================================================
+     Control Typography
+     ========================================================================== */
+
   --form-control-font-size: var(--text-base, #{ds.font-size("base")});
   --form-control-line-height: #{ds.line-height("normal")};
   --form-control-font-weight: #{ds.font-weight("regular")};
 
-  /* Control sizing */
+  /* ==========================================================================
+     Control Sizing
+     ========================================================================== */
+
   --form-control-min-block-size-sm: 2.5rem;
   --form-control-min-block-size: 3rem;
   --form-control-min-block-size-lg: 3.5rem;
@@ -51,11 +67,25 @@
   --form-control-indicator-size: 1rem;
   --form-control-indicator-space: 3rem;
 
-  /* Control shape */
+  /* ==========================================================================
+     Control Shape
+     ========================================================================== */
+
   --form-control-border-width: 1px;
   --form-control-radius: var(--radius-md, #{ds.radius("md")});
 
-  /* Control colors */
+  /* ==========================================================================
+     Control Colors
+     ========================================================================== */
+
+  /**
+   * These are intentionally semantic.
+   *
+   * Normal page surfaces inherit the global design-system values.
+   * Contextual surfaces such as hero/brand/dark surfaces can override these
+   * variables locally without changing .form-control itself.
+   */
+
   --form-control-bg: var(--color-surface);
   --form-control-color: var(--color-text);
   --form-control-placeholder-color: var(--color-text-muted);
@@ -63,29 +93,67 @@
   --form-control-border-color: var(--color-border);
   --form-control-hover-border-color: var(--color-border-strong);
 
-  /* Focus */
+  /* ==========================================================================
+     Focus
+     ========================================================================== */
+
   --form-control-focus-border-color: var(--focus-ring, var(--color-primary));
+
   --form-control-focus-outline-color: var(--focus-ring, var(--color-primary));
+
   --form-control-focus-outline-width: var(--focus-ring-width, 2px);
   --form-control-focus-outline-offset: 2px;
 
-  /* Read-only */
+  /* ==========================================================================
+     Read-only
+     ========================================================================== */
+
   --form-control-readonly-bg: var(--color-surface-alt);
   --form-control-readonly-color: var(--color-text);
   --form-control-readonly-border-color: var(--color-border);
 
-  /* Disabled */
+  /* ==========================================================================
+     Disabled
+     ========================================================================== */
+
   --form-control-disabled-bg: var(--color-disabled);
   --form-control-disabled-color: var(--color-on-disabled);
   --form-control-disabled-border-color: var(--color-disabled);
   --form-control-disabled-opacity: 1;
 
-  /* Validation */
+  /* ==========================================================================
+     Field Actions
+     ========================================================================== */
+
+  /**
+   * Trailing actions such as password reveal, clear, search actions, etc.
+   *
+   * These are separate from the global surface tokens so contextual surfaces
+   * can style the complete field consistently.
+   */
+
+  --form-field-action-color: var(--color-primary);
+
+  --form-field-action-hover-bg: var(--color-surface-alt);
+  --form-field-action-hover-color: var(--color-primary-hover);
+
+  --form-field-action-active-bg: var(--color-surface-alt);
+  --form-field-action-active-color: var(--color-heading);
+
+  --form-field-action-disabled-color: var(--form-control-disabled-color);
+
+  /* ==========================================================================
+     Validation
+     ========================================================================== */
+
   --form-required-color: var(--color-danger);
   --form-valid-color: var(--color-success);
   --form-invalid-color: var(--color-danger);
 
-  /* Motion */
+  /* ==========================================================================
+     Motion
+     ========================================================================== */
+
   --form-control-transition: var(--transition-fast, #{ds.motion("fast")});
 }
 

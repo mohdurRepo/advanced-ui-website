@@ -8,12 +8,15 @@
  * Custom-select tokens map to the shared form-control contract wherever
  * possible. This keeps native fallback controls and enhanced controls aligned.
  *
- * Tokens are scoped to the component so surfaces can safely override semantic
- * color properties without creating a second global theme layer.
+ * Tokens are scoped to the component so contextual surfaces can override the
+ * shared form semantic properties without creating a second theme layer.
  */
 
 .custom-select {
-  /* Control */
+  /* ==========================================================================
+     Control
+     ========================================================================== */
+
   --custom-select-control-min-block-size: var(
     --form-control-min-block-size,
     3rem
@@ -30,13 +33,18 @@
   );
 
   --custom-select-control-gap: var(--form-control-gap, #{ds.space(2)});
+
   --custom-select-control-border-width: var(--form-control-border-width, 1px);
+
   --custom-select-control-radius: var(
     --form-control-radius,
     var(--radius-md, #{ds.radius("md")})
   );
 
-  /* Typography */
+  /* ==========================================================================
+     Typography
+     ========================================================================== */
+
   --custom-select-font-size: var(
     --form-control-font-size,
     var(--text-base, #{ds.font-size("base")})
@@ -52,8 +60,12 @@
     #{ds.line-height("normal")}
   );
 
-  /* Control colors */
+  /* ==========================================================================
+     Control Colors
+     ========================================================================== */
+
   --custom-select-bg: var(--form-control-bg, var(--color-surface));
+
   --custom-select-color: var(--form-control-color, var(--color-text));
 
   --custom-select-placeholder-color: var(
@@ -91,9 +103,14 @@
     2px
   );
 
-  /* Trigger content */
+  /* ==========================================================================
+     Trigger Content
+     ========================================================================== */
+
   --custom-select-indicator-size: var(--form-control-indicator-size, 1rem);
+
   --custom-select-clear-size: 2rem;
+
   --custom-select-clear-radius: var(--radius-pill, #{ds.radius("pill")});
 
   --custom-select-indicator-color: var(
@@ -101,11 +118,22 @@
     var(--color-text-muted)
   );
 
-  --custom-select-clear-color: var(--color-text-muted);
-  --custom-select-clear-hover-bg: var(--color-surface-alt);
-  --custom-select-clear-hover-color: var(--color-heading);
+  --custom-select-clear-color: var(--form-help-color, var(--color-text-muted));
 
-  /* Popover geometry */
+  --custom-select-clear-hover-bg: var(
+    --form-field-action-hover-bg,
+    var(--color-surface-alt)
+  );
+
+  --custom-select-clear-hover-color: var(
+    --form-field-action-hover-color,
+    var(--color-heading)
+  );
+
+  /* ==========================================================================
+     Popover Geometry
+     ========================================================================== */
+
   --custom-select-popover-gap: #{ds.space(2)};
   --custom-select-viewport-gap: #{ds.space(3)};
 
@@ -116,46 +144,80 @@
 
   --custom-select-popover-padding: #{ds.space(2)};
   --custom-select-popover-border-width: 1px;
+
   --custom-select-popover-radius: var(--radius-md, #{ds.radius("md")});
+
   --custom-select-popover-z-index: var(--z-popover, #{ds.z("popover")});
 
-  /* Popover colors */
+  /* ==========================================================================
+     Popover Colors
+     ========================================================================== */
+
   --custom-select-popover-bg: var(--color-surface);
   --custom-select-popover-color: var(--color-text);
   --custom-select-popover-border-color: var(--color-border);
+
   --custom-select-popover-shadow: var(--shadow-lg, #{ds.shadow("lg")});
 
-  /* Search */
+  /* ==========================================================================
+     Search
+     ========================================================================== */
+
   --custom-select-search-gap: #{ds.space(2)};
   --custom-select-search-padding: #{ds.space(2)};
-  --custom-select-search-border-color: var(--color-border);
-  --custom-select-search-icon-color: var(--color-text-muted);
 
-  /* Listbox */
+  --custom-select-search-border-color: var(
+    --form-control-border-color,
+    var(--color-border)
+  );
+
+  --custom-select-search-icon-color: var(
+    --form-help-color,
+    var(--color-text-muted)
+  );
+
+  /* ==========================================================================
+     Listbox
+     ========================================================================== */
+
   --custom-select-listbox-gap: #{ds.space(1)};
   --custom-select-listbox-max-block-size: 17.5rem;
   --custom-select-listbox-padding: #{ds.space(1)};
 
-  /* Groups */
+  /* ==========================================================================
+     Groups
+     ========================================================================== */
+
   --custom-select-group-padding-block: #{ds.space(2)};
   --custom-select-group-padding-inline: #{ds.space(3)};
+
   --custom-select-group-color: var(--color-text-muted);
+
   --custom-select-group-font-size: var(--text-xs, #{ds.font-size("xs")});
+
   --custom-select-group-font-weight: #{ds.font-weight("heavy")};
 
-  /* Options */
+  /* ==========================================================================
+     Options
+     ========================================================================== */
+
   --custom-select-option-min-block-size: 2.75rem;
   --custom-select-option-gap: #{ds.space(2)};
+
   --custom-select-option-padding-block: #{ds.space(2)};
   --custom-select-option-padding-inline: #{ds.space(3)};
+
   --custom-select-option-radius: var(--radius-sm, #{ds.radius("sm")});
 
   --custom-select-option-font-size: var(--text-sm, #{ds.font-size("sm")});
 
   --custom-select-option-color: var(--color-text);
+
   --custom-select-option-hover-bg: var(--color-surface-alt);
   --custom-select-option-hover-color: var(--color-heading);
+
   --custom-select-option-active-bg: var(--color-surface-alt);
+
   --custom-select-option-selected-bg: var(--color-surface-alt);
   --custom-select-option-selected-color: var(--color-primary);
 
@@ -165,16 +227,25 @@
   --custom-select-check-size: 1rem;
   --custom-select-check-color: var(--color-primary);
 
-  /* Empty result */
+  /* ==========================================================================
+     Empty Result
+     ========================================================================== */
+
   --custom-select-empty-min-block-size: 7rem;
   --custom-select-empty-padding: #{ds.space(4)};
   --custom-select-empty-color: var(--color-text-muted);
 
-  /* Multiple selection */
+  /* ==========================================================================
+     Multiple Selection
+     ========================================================================== */
+
   --custom-select-tag-gap: #{ds.space(1)};
+
   --custom-select-tag-padding-block: #{ds.space(1)};
   --custom-select-tag-padding-inline: #{ds.space(2)};
+
   --custom-select-tag-radius: var(--radius-sm, #{ds.radius("sm")});
+
   --custom-select-tag-bg: var(--color-surface-alt);
   --custom-select-tag-color: var(--color-text);
 
@@ -182,7 +253,10 @@
 
   --custom-select-tag-font-weight: #{ds.font-weight("medium")};
 
-  /* Disabled */
+  /* ==========================================================================
+     Disabled
+     ========================================================================== */
+
   --custom-select-disabled-bg: var(
     --form-control-disabled-bg,
     var(--color-disabled)
@@ -200,12 +274,18 @@
 
   --custom-select-disabled-opacity: var(--form-control-disabled-opacity, 1);
 
-  /* Validation */
+  /* ==========================================================================
+     Validation
+     ========================================================================== */
+
   --custom-select-valid-color: var(--form-valid-color, var(--color-success));
 
   --custom-select-invalid-color: var(--form-invalid-color, var(--color-danger));
 
-  /* Motion */
+  /* ==========================================================================
+     Motion
+     ========================================================================== */
+
   --custom-select-transition: var(
     --form-control-transition,
     var(--transition-fast, #{ds.motion("fast")})
@@ -214,10 +294,10 @@
   --custom-select-popover-duration: 140ms;
   --custom-select-popover-easing: ease-out;
 
-  /*
- * Maximum pre-enhancement window before the native fallback is restored.
- * JavaScript normally enhances the control well before this delay expires.
- */
+  /**
+   * Maximum pre-enhancement window before the native fallback is restored.
+   * JavaScript normally enhances the control well before this delay expires.
+   */
 
   --custom-select-fallback-delay: 2s;
 }

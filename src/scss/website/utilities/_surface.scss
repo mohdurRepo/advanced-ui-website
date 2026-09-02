@@ -40,6 +40,35 @@
   --form-label-color: var(--color-heading);
   --form-help-color: var(--color-text-muted);
 
+  --form-control-bg: rgb(0 31 51 / 0.32);
+  --form-control-color: #ffffff;
+  --form-control-placeholder-color: rgb(255 255 255 / 0.62);
+
+  --form-control-border-color: rgb(255 255 255 / 0.22);
+  --form-control-hover-border-color: rgb(255 255 255 / 0.4);
+
+  --form-control-focus-border-color: #ffffff;
+  --form-control-focus-outline-color: rgb(255 255 255 / 0.32);
+
+  --form-control-readonly-bg: rgb(0 31 51 / 0.4);
+  --form-control-readonly-color: rgb(255 255 255 / 0.82);
+  --form-control-readonly-border-color: rgb(255 255 255 / 0.18);
+
+  --form-control-disabled-bg: rgb(0 31 51 / 0.2);
+  --form-control-disabled-color: rgb(255 255 255 / 0.48);
+  --form-control-disabled-border-color: rgb(255 255 255 / 0.12);
+
+  /* Field actions */
+  --form-field-action-color: #ffffff;
+
+  --form-field-action-hover-bg: rgb(255 255 255 / 0.1);
+  --form-field-action-hover-color: #ffffff;
+
+  --form-field-action-active-bg: rgb(255 255 255 / 0.16);
+  --form-field-action-active-color: #ffffff;
+
+  --form-field-action-disabled-color: rgb(255 255 255 / 0.48);
+
   /* Focus */
   --focus-ring: #ffffff;
 
@@ -53,14 +82,9 @@
    Hero Surface
    ========================================================================== */
 
-/* ==========================================================================
-   Hero Surface
-   ========================================================================== */
-
 .surface-hero {
   --color-surface: #063f91;
   --color-surface-alt: #002c72;
-
   --color-text-muted: rgb(255 255 255 / 0.74);
 
   --color-border: rgb(255 255 255 / 0.16);
@@ -83,7 +107,6 @@
 .surface-insights {
   --color-surface: #00243a;
   --color-surface-alt: #0a3148;
-
   --color-text-muted: rgb(255 255 255 / 0.72);
 
   --color-border: rgb(255 255 255 / 0.1);
@@ -99,7 +122,6 @@
 .surface-market {
   --color-surface: #254456;
   --color-surface-alt: #1f4a60;
-
   --color-text-muted: #b8c8d4;
 
   --color-border: rgb(255 255 255 / 0.12);
@@ -209,8 +231,34 @@ html[data-contrast="high"] {
     --color-market-negative-bg: transparent;
     --color-market-neutral-bg: transparent;
 
+    /* Forms */
     --form-label-color: #ffffff;
     --form-help-color: #ffffff;
+
+    --form-control-bg: #000000;
+    --form-control-color: #ffffff;
+    --form-control-placeholder-color: #ffffff;
+
+    --form-control-border-color: #ffffff;
+    --form-control-hover-border-color: #ffffff;
+
+    --form-control-focus-border-color: #ffffff;
+    --form-control-focus-outline-color: #ffffff;
+
+    --form-control-readonly-bg: #000000;
+    --form-control-readonly-color: #ffffff;
+    --form-control-readonly-border-color: #ffffff;
+
+    --form-control-disabled-bg: #000000;
+    --form-control-disabled-color: #ffffff;
+    --form-control-disabled-border-color: #ffffff;
+
+    --form-field-action-color: #ffffff;
+    --form-field-action-hover-bg: transparent;
+    --form-field-action-hover-color: #ffffff;
+    --form-field-action-active-bg: transparent;
+    --form-field-action-active-color: #ffffff;
+    --form-field-action-disabled-color: #ffffff;
 
     --focus-ring: #ffffff;
 
@@ -250,8 +298,34 @@ html[data-contrast="high"] {
     --color-market-negative-bg: transparent;
     --color-market-neutral-bg: transparent;
 
+    /* Forms */
     --form-label-color: CanvasText;
     --form-help-color: CanvasText;
+
+    --form-control-bg: Canvas;
+    --form-control-color: CanvasText;
+    --form-control-placeholder-color: CanvasText;
+
+    --form-control-border-color: CanvasText;
+    --form-control-hover-border-color: Highlight;
+
+    --form-control-focus-border-color: Highlight;
+    --form-control-focus-outline-color: Highlight;
+
+    --form-control-readonly-bg: Canvas;
+    --form-control-readonly-color: CanvasText;
+    --form-control-readonly-border-color: CanvasText;
+
+    --form-control-disabled-bg: Canvas;
+    --form-control-disabled-color: GrayText;
+    --form-control-disabled-border-color: GrayText;
+
+    --form-field-action-color: ButtonText;
+    --form-field-action-hover-bg: transparent;
+    --form-field-action-hover-color: Highlight;
+    --form-field-action-active-bg: transparent;
+    --form-field-action-active-color: Highlight;
+    --form-field-action-disabled-color: GrayText;
 
     --focus-ring: Highlight;
 
@@ -291,8 +365,34 @@ html[data-contrast="high"] {
     --color-market-negative-bg: transparent;
     --color-market-neutral-bg: transparent;
 
+    /* Forms */
     --form-label-color: #000000;
     --form-help-color: #000000;
+
+    --form-control-bg: transparent;
+    --form-control-color: #000000;
+    --form-control-placeholder-color: #000000;
+
+    --form-control-border-color: #000000;
+    --form-control-hover-border-color: #000000;
+
+    --form-control-focus-border-color: #000000;
+    --form-control-focus-outline-color: #000000;
+
+    --form-control-readonly-bg: transparent;
+    --form-control-readonly-color: #000000;
+    --form-control-readonly-border-color: #000000;
+
+    --form-control-disabled-bg: transparent;
+    --form-control-disabled-color: #000000;
+    --form-control-disabled-border-color: #000000;
+
+    --form-field-action-color: #000000;
+    --form-field-action-hover-bg: transparent;
+    --form-field-action-hover-color: #000000;
+    --form-field-action-active-bg: transparent;
+    --form-field-action-active-color: #000000;
+    --form-field-action-disabled-color: #000000;
 
     --surface-background: transparent;
 
