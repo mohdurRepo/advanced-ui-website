@@ -1,40 +1,36 @@
 /* ==========================================================================
-   Shared Market Data Formatters
+   Theoretical Opening Formatters
    ========================================================================== */
 
 /*
- * Generic formatting helpers shared by:
+ * Formatting helpers for:
  *
- * - Market Watch
- * - Sukuk & Bonds
+ * - Previous Close
+ * - TOP
+ * - TOV
+ * - company display values
  *
  * Responsibilities:
  *
  * - string normalization
  * - HTML escaping
  * - empty-value handling
- * - first-value resolution
  * - numeric conversion
  * - zero detection
  * - locale-aware number formatting
- * - decimal formatting
- * - quantity formatting
- * - price formatting
- * - percentage formatting
- * - positive / negative / neutral state
+ * - Previous Close formatting
+ * - TOP formatting
+ * - TOV formatting
  *
  * This module intentionally has no:
  *
- * - Market Watch business rules
- * - Sukuk business rules
- * - auction behavior
- * - company / instrument identity rendering
- * - watchlist rendering
- * - status rendering
- * - coupon formatting
- * - maturity formatting
  * - DOM queries
  * - request logic
+ * - API response normalization
+ * - DataTables lifecycle
+ * - filter state
+ * - card rendering
+ * - table rendering
  */
 
 /* ==========================================================================
@@ -78,25 +74,6 @@ export function escapeHtml(value) {
 
 export function hasValue(value) {
   return value !== undefined && value !== null && String(value).trim() !== "";
-}
-
-export function firstDefined(...values) {
-  return values.find(hasValue);
-}
-
-export function getFirstValue(source, keys = [], fallback = "") {
-  const row =
-    source && typeof source === "object" && !Array.isArray(source)
-      ? source
-      : {};
-
-  for (const key of keys) {
-    if (key && hasValue(row[key])) {
-      return row[key];
-    }
-  }
-
-  return fallback;
 }
 
 export function getDisplayValue(value, fallback = DEFAULT_EMPTY_VALUE) {
@@ -176,33 +153,44 @@ export function formatNumber(value, config = {}, options = {}) {
   }
 }
 
-export function formatFullNumber(value, config = {}) {
-  return formatNumber(value, config, {
-    maximumFractionDigits: 0,
-  });
-}
+/* ==========================================================================
+   Previous Close
+   ========================================================================== */
 
-export function formatDecimal(value, decimals = 2) {
-  const number = toNumber(value);
-
-  if (number === null) {
-    return getDisplayValue(value);
+export function formatPreviousClose(value) {
+  if (!hasValue(value) || isZeroLike(value)) {
+    return DEFAULT_EMPTY_VALUE;
   }
 
-  const precision = Number.isInteger(decimals) && decimals >= 0 ? decimals : 2;
-
-  return number.toFixed(precision);
+  return getDisplayValue(value);
 }
 
-export function formatQuantity(value, config = {}) {
+/* ==========================================================================
+   Theoretical Opening Price - TOP
+   ========================================================================== */
+
+export function formatTOP(value) {
+  if (!hasValue(value) || isZeroLike(value)) {
+    return DEFAULT_EMPTY_VALUE;
+  }
+
+  return getDisplayValue(value);
+}
+
+/* ==========================================================================
+   Theoretical Opening Volume - TOV
+   ========================================================================== */
+
+export function formatTOV(value, config = {}) {
+  if (!hasValue(value) || isZeroLike(value)) {
+    return DEFAULT_EMPTY_VALUE;
+  }
+
   const displayValue = getDisplayValue(value);
 
-  if (displayValue === DEFAULT_EMPTY_VALUE) {
-    return displayValue;
-  }
-
   /*
-   * Preserve service-provided abbreviated quantities:
+   * Preserve service-provided abbreviated values
+   * if the backend ever returns them:
    *
    * 7.84M
    * 900K
@@ -215,30 +203,4 @@ export function formatQuantity(value, config = {}) {
   return formatNumber(value, config, {
     maximumFractionDigits: 20,
   });
-}
-
-export function formatPrice(value) {
-  return getDisplayValue(value);
-}
-
-export function formatPercent(value) {
-  return getDisplayValue(value).replace(/\s*%\s*$/, "");
-}
-
-/* ==========================================================================
-   Change State
-   ========================================================================== */
-
-export function getChangeClass(value) {
-  const number = toNumber(value);
-
-  if (number !== null && number > 0) {
-    return "price-up";
-  }
-
-  if (number !== null && number < 0) {
-    return "price-down";
-  }
-
-  return "price-neutral";
 }
