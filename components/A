@@ -1,448 +1,86 @@
-<%-- =========================================================================
-     Theoretical Opening Hero
-     ========================================================================= --%>
-
-<section
-  class="hero-section market-summary-section"
-  aria-labelledby="theoretical-opening-title"
->
-  <div
-    class="hero-section__background"
-    aria-hidden="true"
-  ></div>
-
-  <div class="container hero-section__content">
-    <div class="market-summary market-summary--hero">
-
-      <%-- ===================================================================
-           Theoretical Opening Identity
-           =================================================================== --%>
-
-      <header class="market-summary__header">
-        <div class="market-summary__brand">
-          <span
-            class="
-              market-summary__brand-icon
-              has-icon
-              icon-tadawul
-            "
-            aria-hidden="true"
-          ></span>
-
-          <h1
-            id="theoretical-opening-title"
-            class="market-summary__title"
-          >
-            <fmt:message key="theoretical.title" />
-          </h1>
-        </div>
-      </header>
-
-    </div>
-  </div>
-</section>
-
-
-<%-- =========================================================================
-     Theoretical Opening Filters
-     ========================================================================= --%>
-
-<section
-  class="
-    section
-    theoretical-opening-filters
-    pb-0
-  "
-  aria-labelledby="theoretical-opening-filters-title"
->
-  <div class="container">
-
-    <form
-      class="filter-bar filter-bar--connected"
-      aria-labelledby="theoretical-opening-filters-title"
-      data-theoretical-opening-filters
-    >
-      <h2
-        class="visually-hidden"
-        id="theoretical-opening-filters-title"
-      >
-        <fmt:message key="theoretical.title" />
-      </h2>
-
-      <%-- ===================================================================
-           Primary Controls
-           =================================================================== --%>
-
-      <div class="filter-bar__inner">
-
-        <div class="filter-bar__fields grid-3">
-
-          <%-- ===============================================================
-               Sector
-               =============================================================== --%>
-
-          <div class="filter-bar__field">
-
-            <label
-              class="form-label"
-              for="theoretical-opening-sector"
-            >
-              <fmt:message key="selectSectorLabel" />
-            </label>
-
-            <div
-              class="custom-select"
-              data-custom-select
-              data-searchable
-            >
-              <div
-                class="
-                  form-select-wrap
-                  custom-select__fallback
-                "
-              >
-                <select
-                  class="
-                    form-select
-                    custom-select__native
-                  "
-                  id="theoretical-opening-sector"
-                  name="sector"
-                  data-theoretical-opening-sector
-                >
-                  <option
-                    value="All"
-                    <c:if
-                      test="${empty requestScope.selectedSector
-                        or requestScope.selectedSector eq 'All'}"
-                    >
-                      selected
-                    </c:if>
-                  >
-                    <fmt:message key="allMarketCombo" />
-                  </option>
-
-                  <c:forEach
-                    items="${requestScope.sectorList}"
-                    var="sectorItem"
-                  >
-                    <option
-                      value="<c:out value='${sectorItem.modifiedId}' />"
-                      <c:if
-                        test="${requestScope.selectedSector eq sectorItem.modifiedId}"
-                      >
-                        selected
-                      </c:if>
-                    >
-                      <c:out
-                        value="${sectorItem.modifiedName}"
-                      />
-                    </option>
-                  </c:forEach>
-                </select>
-
-                <span
-                  class="
-                    form-select-icon
-                    has-icon
-                    icon-chevron-down
-                  "
-                  aria-hidden="true"
-                ></span>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </div>
-
-    </form>
-
-  </div>
-</section>
-
-
-<%-- =========================================================================
-     Theoretical Opening Data View
-     ========================================================================= --%>
-
-<section
-  class="
-    section
-    theoretical-opening-results
-    pt-0
-  "
-  aria-labelledby="theoretical-opening-results-title"
->
-  <div class="container">
-
-    <h2
-      class="visually-hidden"
-      id="theoretical-opening-results-title"
-    >
-      <fmt:message key="theoretical.title" />
-    </h2>
-
-    <div
-      class="
-        data-view
-        data-view--connected
-      "
-      data-theoretical-opening-data-view
-    >
-
-      <%-- ===================================================================
-           Workspace
-           =================================================================== --%>
-
-      <div class="data-view__workspace">
-
-        <%-- =================================================================
-             Results Toolbar
-             ================================================================= --%>
-
-        <div class="data-view__toolbar">
-
-          <div class="data-view__toolbar-start">
-
-            <p class="data-view__result-count">
-              <strong
-                data-theoretical-opening-result-count
-              >
-                0
-              </strong>
-
-              <span>
-                <fmt:message key="results" />
-              </span>
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <%-- =================================================================
-             Desktop Table
-             ================================================================= --%>
-
-        <div class="data-view__table">
-
-          <div class="data-view__table-block">
-
-            <table
-              class="
-                table
-                table-market
-                theoretical-opening-table
-              "
-              data-theoretical-opening-table
-            >
-              <thead>
-                <tr>
-
-                  <%-- Company --%>
-
-                  <th scope="col">
-                    <fmt:message key="companyNameCol" />
-                  </th>
-
-
-                  <%-- Previous Close --%>
-
-                  <th
-                    scope="col"
-                    class="table-market__number"
-                  >
-                    <fmt:message
-                      key="company.Previous.Close"
-                    />
-                  </th>
-
-
-                  <%-- Theoretical Opening Price --%>
-
-                  <th
-                    scope="col"
-                    class="table-market__number"
-                  >
-                    <fmt:message key="company.top" />
-                  </th>
-
-
-                  <%-- Theoretical Opening Volume --%>
-
-                  <th
-                    scope="col"
-                    class="table-market__number"
-                  >
-                    <fmt:message key="company.tov" />
-                  </th>
-
-                </tr>
-              </thead>
-
-              <tbody></tbody>
-            </table>
-
-          </div>
-
-        </div>
-
-
-        <%-- =================================================================
-             Mobile Cards
-             ================================================================= --%>
-
-        <div
-          class="data-view__cards"
-          data-theoretical-opening-mobile-cards
-        ></div>
-
-      </div>
-
-    </div>
-
-
-    <%-- =====================================================================
-         Footnotes
-         ===================================================================== --%>
-
-    <div class="notes">
-      <ul>
-
-        <c:if
-          test="${pageContext.request.locale.language eq 'en'}"
-        >
-          <li>
-            <fmt:message key="top.note1" />
-          </li>
-        </c:if>
-
-        <li>
-          <fmt:message key="top.note2" />
-        </li>
-
-        <li>
-          <fmt:message key="top.note3" />
-        </li>
-
-        <li>
-          <fmt:message
-            key="top.market.watch.prices.delayed"
-          />
-        </li>
-
-      </ul>
-    </div>
-
-  </div>
-</section>
-<%-- =========================================================================
-     Theoretical Opening Configuration
-     ========================================================================= --%>
-
-<script>
-  window.TheoreticalOpeningConfig = {
-    /* ======================================================================
-       Endpoint
-       ====================================================================== */
-
-    endpoint:
-      "<portlet:resourceURL id='getTheoreticalOpeningDetails' />",
-
-    locale:
-      "<c:out value='${pageContext.request.locale.language}' />",
-
-    /* ======================================================================
-       Initial State
-       ====================================================================== */
-
-    initialState: {
-      sector:
-        "<c:out value='${empty requestScope.selectedSector ? "All" : requestScope.selectedSector}' />",
-    },
-
-    /* ======================================================================
-       Table
-       ====================================================================== */
-
-    table: {
-      autoWidth: false,
-
-      paging: false,
-      searching: false,
-      ordering: false,
-      info: false,
-      lengthChange: false,
-
-      serverSide: false,
-      processing: false,
-
-      scrollX: true,
-      scrollCollapse: true,
-
-      fixedHeader: true,
-      fixedColumns: 1,
-    },
-
-    /* ======================================================================
-       Labels
-       ====================================================================== */
-
-    labels: {
-      loading:
-        "<fmt:message key='loading' />",
-
-      noData:
-        "<fmt:message key='no.data.available' />",
-
-      /* --------------------------------------------------------------------
-         Mobile
-         -------------------------------------------------------------------- */
-
-      mobile: {
-        symbolCompany:
-          "<fmt:message key='companyNameCol' />",
-
-        priceVolume:
-          "<fmt:message key='company.top' /> / <fmt:message key='company.tov' />",
-
-        showDetails:
-          "Show details",
-
-        hideDetails:
-          "Hide details",
-      },
-
-      /* --------------------------------------------------------------------
-         Table / Card Fields
-         -------------------------------------------------------------------- */
-
-      table: {
-        company:
-          "<fmt:message key='companyNameCol' />",
-
-        previousClose:
-          "<fmt:message key='company.Previous.Close' />",
-
-        top:
-          "<fmt:message key='company.top' />",
-
-        tov:
-          "<fmt:message key='company.tov' />",
-      },
-    },
-  };
-</script>
-
-
-<%-- =========================================================================
-     Theoretical Opening Entry Module
-     ========================================================================= --%>
-
-<script
-  type="module"
-  src="${pageContext.request.contextPath}/js/pages/theoretical-opening/theoretical-opening.js"
-></script>
+	<%-- =========================================================================
+  Home Discovery Search
+  ========================================================================= --%>
+
+<form class="home-discovery-search" role="search"
+	aria-label="Search companies, news, and market updates" action="#"
+	method="get" data-home-discovery-search>
+	<label class="visually-hidden" for="home-discovery-search-input">
+		Search companies, news, and market updates </label> <span
+		class="home-discovery-search__icon has-icon icon-search"
+		aria-hidden="true"></span> <input
+		id="home-discovery-search-input" class="home-discovery-search__input"
+		type="search" name="q"
+		placeholder="Search companies, news, and updates" autocomplete="off"
+		enterkeyhint="search" spellcheck="false"
+		data-home-discovery-search-input />
+
+	<button
+		class="home-discovery-search__submit has-icon icon-chevron-right icon-flip-rtl"
+		type="submit" aria-label="Submit search"></button>
+
+	<div class="home-discovery-search__results"
+		data-home-discovery-search-results hidden>
+		<ul class="home-discovery-search__list"
+			data-home-discovery-search-list></ul>
+
+		<div class="home-discovery-search__state"
+			data-home-discovery-search-loading role="status" aria-live="polite"
+			hidden>
+			<span class="home-discovery-search__loading" aria-hidden="true"></span>
+
+			<span> Searching companies </span>
+		</div>
+
+		<div class="home-discovery-search__state"
+			data-home-discovery-search-empty hidden>
+			<span class="home-discovery-search__state-icon has-icon icon-search"
+				aria-hidden="true"></span> <span> No matching
+				companies found. </span>
+		</div>
+
+		<div class="home-discovery-search__state"
+			data-home-discovery-search-error role="alert" hidden>
+			<span
+				class="home-discovery-search__state-icon has-icon icon-info-warning"
+				aria-hidden="true"></span> <span> Company search is
+				currently unavailable. </span>
+		</div>
+	</div>
+</form>
+
+
+<form class="search" role="search" aria-label="Search form company"
+					id="searchForm" action="#" method="POST">
+					<!-- Accessible label (for screen readers only) -->
+					<label class="visually-hidden" for="searchInput">Search
+						form company</label>
+
+					<!-- Search icon (magnifier) -->
+					<span class="search__icon" aria-hidden="true"> <svg
+							class="icon" viewBox="0 0 24 24" focusable="false"
+							aria-hidden="true">
+                      <path
+								d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 9.5 16
+                              c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5
+                              5 1.5-1.5-5-5zM9.5 14C7.01 14 5 11.99
+                              5 9.5S7.01 5 9.5 5 14 7.01 14
+                              9.5 11.99 14 9.5 14z" />
+                    </svg>
+					</span>
+
+					<!-- Input (typeahead attaches here) -->
+					<input type="text" id="searchInput" name="q" class="search__input"
+						 autocomplete="off"
+						inputmode="search" />
+
+					<!-- Submit button (arrow icon) -->
+					<button id="searchCompanyButton" type="submit"
+						class="search__submit" aria-label="Submit search">
+						<svg class="icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                      <path d="M12 4l1.41 1.41L7.83 11H20v2H7.83l5.58 5.59L12 20l-8-8z" />
+                    </svg>
+					</button>
+					<!-- Hidden field to store selected symbol -->
+					<input type="hidden" id="selectedSymbol" name="symbol">
+				</form>
