@@ -1616,3 +1616,558 @@ function formatMoneyhtml(val) {
     return parseFloat(val).formatMoney();
 }
 </script>
+<%-- =========================================================================
+     Market Performance Hero
+     ========================================================================= --%>
+
+<section class="hero-section surface-hero"
+	aria-labelledby="market-performance-page-title">
+	<div class="hero-section__background" aria-hidden="true"></div>
+
+	<div class="container hero-section__content">
+		<header class="hero-intro">
+			<div class="hero-intro__header">
+				<div class="hero-intro__brand">
+					<span class="hero-intro__icon has-icon icon-tadawul"
+						aria-hidden="true"></span>
+
+					<h1 class="hero-intro__title"
+						id="market-performance-page-title">
+						<fmt:message key="marketperformance.marketPerformance" />
+					</h1>
+				</div>
+			</div>
+		</header>
+	</div>
+</section>
+
+
+<%-- =========================================================================
+     Market Performance
+     ========================================================================= --%>
+
+<section class="section market-performance"
+	aria-labelledby="market-performance-page-title"
+	data-market-performance>
+	<div class="container">
+
+		<%-- =====================================================================
+		     Filters
+		     ===================================================================== --%>
+
+		<form class="filter-bar"
+			aria-labelledby="market-performance-page-title"
+			data-market-performance-filters
+			novalidate>
+			<div class="filter-bar__inner">
+				<div class="filter-bar__fields grid-3">
+
+					<%-- =========================================================
+					     Report
+					     ========================================================= --%>
+
+					<div class="filter-bar__field">
+						<label class="form-label"
+							for="market-performance-report">
+							<fmt:message key="marketperformance.selectReport" />
+						</label>
+
+						<div class="custom-select" data-custom-select>
+							<div class="form-select-wrap custom-select__fallback">
+								<select class="form-select custom-select__native"
+									id="market-performance-report"
+									name="<%=MarketPerformanceConstants.PARAMETER_REPORT_Filter%>"
+									data-market-performance-report>
+									<option
+										value="<%=MarketPerformanceConstants.PARAMETER_Filter_MOST_ACTIVE_by_VOLUME%>"
+										selected>
+										<fmt:message key="marketperformance.filter1" />
+									</option>
+
+									<option
+										value="<%=MarketPerformanceConstants.PARAMETER_Filter_GAINERS_LOSER_VALUE%>">
+										<fmt:message key="marketperformance.filter3" />
+									</option>
+
+									<option
+										value="<%=MarketPerformanceConstants.PARAMETER_Filter_GAINERS_LOSER_PRE%>">
+										<fmt:message key="marketperformance.filter4" />
+									</option>
+								</select>
+
+								<span
+									class="form-select-icon has-icon icon-chevron-down"
+									aria-hidden="true"></span>
+							</div>
+						</div>
+					</div>
+
+
+					<%-- =========================================================
+					     Period
+					     ========================================================= --%>
+
+					<div class="filter-bar__field">
+						<label class="form-label"
+							for="market-performance-period">
+							<fmt:message key="marketperformance.selectPeriod" />
+						</label>
+
+						<div class="custom-select" data-custom-select>
+							<div class="form-select-wrap custom-select__fallback">
+								<select class="form-select custom-select__native"
+									id="market-performance-period"
+									name="<%=MarketPerformanceConstants.PARAMETER_TIME_FRAME_Filter%>"
+									data-market-performance-period>
+
+									<option value="7 Days"
+										<c:if test="${'7 Days' eq requestScope.viewMarketPerformance.previousTimeFrameFilter}">
+											selected
+										</c:if>>
+										<fmt:message key="marketperformance.6days" />
+									</option>
+
+									<option value="14 Days"
+										<c:if test="${'14 Days' eq requestScope.viewMarketPerformance.previousTimeFrameFilter}">
+											selected
+										</c:if>>
+										<fmt:message key="marketperformance.2weeks" />
+									</option>
+
+									<option value="1 Months"
+										<c:if test="${'1 Months' eq requestScope.viewMarketPerformance.previousTimeFrameFilter}">
+											selected
+										</c:if>>
+										<fmt:message key="marketperformance.1month" />
+									</option>
+
+									<option value="3 Months"
+										<c:if test="${'3 Months' eq requestScope.viewMarketPerformance.previousTimeFrameFilter}">
+											selected
+										</c:if>>
+										<fmt:message key="marketperformance.3months" />
+									</option>
+
+									<option value="6 Months"
+										<c:if test="${'6 Months' eq requestScope.viewMarketPerformance.previousTimeFrameFilter}">
+											selected
+										</c:if>>
+										<fmt:message key="marketperformance.6months" />
+									</option>
+
+									<option value="9 Months"
+										<c:if test="${'9 Months' eq requestScope.viewMarketPerformance.previousTimeFrameFilter}">
+											selected
+										</c:if>>
+										<fmt:message key="marketperformance.9months" />
+									</option>
+
+									<option value="1 Years"
+										<c:if test="${'1 Years' eq requestScope.viewMarketPerformance.previousTimeFrameFilter
+											or empty requestScope.viewMarketPerformance.previousTimeFrameFilter}">
+											selected
+										</c:if>>
+										<fmt:message key="marketperformance.1year" />
+									</option>
+
+									<option value="2 Years"
+										<c:if test="${'2 Years' eq requestScope.viewMarketPerformance.previousTimeFrameFilter}">
+											selected
+										</c:if>>
+										<fmt:message key="marketperformance.2year" />
+									</option>
+
+									<option value="3 Years"
+										<c:if test="${'3 Years' eq requestScope.viewMarketPerformance.previousTimeFrameFilter}">
+											selected
+										</c:if>>
+										<fmt:message key="marketperformance.3year" />
+									</option>
+
+									<option value="5 Years"
+										<c:if test="${'5 Years' eq requestScope.viewMarketPerformance.previousTimeFrameFilter}">
+											selected
+										</c:if>>
+										<fmt:message key="marketperformance.5year" />
+									</option>
+								</select>
+
+								<span
+									class="form-select-icon has-icon icon-chevron-down"
+									aria-hidden="true"></span>
+							</div>
+						</div>
+					</div>
+
+
+					<%-- =========================================================
+					     Sector
+					     ========================================================= --%>
+
+					<div class="filter-bar__field">
+						<label class="form-label"
+							for="market-performance-sector">
+							<fmt:message key="marketperformance.sector" />
+						</label>
+
+						<div class="custom-select"
+							data-custom-select
+							data-searchable>
+							<div class="form-select-wrap custom-select__fallback">
+								<select class="form-select custom-select__native"
+									id="market-performance-sector"
+									name="<%=MarketPerformanceConstants.PARAMETER_SECTOR_Filter%>"
+									data-market-performance-sector>
+
+									<option
+										value="<%=MarketPerformanceConstants.FORM_ACTION_VIEW_ALL_MARKET%>"
+										<c:if test="${empty requestScope.viewMarketPerformance.previousSectorFilter}">
+											selected
+										</c:if>>
+										<fmt:message key="marketperformance.allMarket" />
+									</option>
+
+									<c:forEach
+										items="${requestScope.viewMarketPerformance.allSectors}"
+										var="sector">
+										<option
+											value="<c:out value='${sector.pk_rf_sector}' />"
+											<c:if test="${requestScope.viewMarketPerformance.previousSectorFilter eq sector.pk_rf_sector}">
+												selected
+											</c:if>>
+											<c:out value="${sector.name}" />
+										</option>
+									</c:forEach>
+								</select>
+
+								<span
+									class="form-select-icon has-icon icon-chevron-down"
+									aria-hidden="true"></span>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</form>
+
+
+		<%-- =====================================================================
+		     Adjusted / Non-Adjusted Tabs
+		     ===================================================================== --%>
+
+		<div class="tabs market-performance__tabs"
+			data-tabs
+			data-market-performance-tabs>
+
+			<%-- =================================================================
+			     Tab Navigation
+			     ================================================================= --%>
+
+			<div class="tabs-nav"
+				role="tablist"
+				aria-labelledby="market-performance-page-title">
+
+				<button class="tab-link active"
+					type="button"
+					id="market-performance-tab-adjusted"
+					role="tab"
+					aria-selected="true"
+					aria-controls="market-performance-panel-adjusted"
+					data-tab-target="market-performance-panel-adjusted"
+					data-market-performance-mode="adjusted">
+					<fmt:message key="marketperformance.Adjusted.tabtext" />
+				</button>
+
+				<button class="tab-link"
+					type="button"
+					id="market-performance-tab-non-adjusted"
+					role="tab"
+					aria-selected="false"
+					aria-controls="market-performance-panel-non-adjusted"
+					data-tab-target="market-performance-panel-non-adjusted"
+					data-market-performance-mode="non-adjusted">
+					<fmt:message key="marketperformance.NonAdjusted" />
+				</button>
+
+			</div>
+
+
+			<%-- =================================================================
+			     Tab Content
+			     ================================================================= --%>
+
+			<div class="tabs-content">
+
+				<%-- =============================================================
+				     Adjusted
+				     ============================================================= --%>
+
+				<section class="tab-pane active"
+					id="market-performance-panel-adjusted"
+					role="tabpanel"
+					aria-labelledby="market-performance-tab-adjusted">
+
+					<div data-market-performance-feature="adjusted">
+
+						<section class="data-view data-view--connected"
+							aria-labelledby="market-performance-tab-adjusted"
+							aria-busy="false"
+							data-market-performance-view>
+
+							<div class="data-view__workspace">
+
+								<%-- =================================================
+								     Desktop / Tablet Results
+								     ================================================= --%>
+
+								<div class="data-view__table">
+									<div class="data-view__table-block">
+
+										<div class="data-view__toolbar">
+											<div class="data-view__toolbar-start">
+												<p class="data-view__result-count"
+													aria-live="polite">
+													<span data-market-performance-result-count
+														data-result-count-value>
+														0
+													</span>
+												</p>
+											</div>
+										</div>
+
+										<p class="visually-hidden"
+											role="status"
+											aria-live="polite"
+											aria-atomic="true"
+											data-market-performance-status></p>
+
+										<div class="table-shell"
+											data-table-shell>
+
+											<div class="table-responsive custom-scrollbar"
+												role="region"
+												aria-labelledby="market-performance-tab-adjusted"
+												tabindex="0">
+
+												<table class="table"
+													data-market-performance-table>
+													<thead>
+														<tr>
+															<th scope="col">
+																<fmt:message key="marketperformance.company" />
+															</th>
+
+															<th class="text-end" scope="col">
+																<fmt:message key="marketperformance.beginprice" />
+															</th>
+
+															<th class="text-end" scope="col">
+																<fmt:message key="marketperformance.high" />
+															</th>
+
+															<th class="text-end" scope="col">
+																<fmt:message key="marketperformance.low" />
+															</th>
+
+															<th class="text-end" scope="col">
+																<fmt:message key="marketperformance.endprice" />
+															</th>
+
+															<th class="text-end" scope="col">
+																<fmt:message key="marketperformance.change" />
+															</th>
+
+															<th class="text-end" scope="col">
+																<fmt:message key="marketperformance.changePer" />
+															</th>
+
+															<th class="text-end" scope="col">
+																<fmt:message key="marketperformance.totalvolume" />
+															</th>
+
+															<th class="text-end" scope="col">
+																<fmt:message key="marketperformance.value" />
+
+																<span class="sar-symbol"
+																	aria-hidden="true">
+																	<svg class="pc-icon"
+																		width="15"
+																		height="15">
+																		<use xlink:href="#custom-riyal-icon"></use>
+																	</svg>
+																</span>
+															</th>
+														</tr>
+													</thead>
+
+													<tbody>
+														<%-- JavaScript owns all rows and result states. --%>
+													</tbody>
+												</table>
+
+											</div>
+										</div>
+									</div>
+								</div>
+
+
+								<%-- =================================================
+								     Mobile Cards
+								     ================================================= --%>
+
+								<div class="data-view__cards"
+									data-market-performance-mobile>
+
+									<div class="data-card-list"
+										data-market-performance-cards>
+										<%-- JavaScript owns all cards and result states. --%>
+									</div>
+
+								</div>
+
+							</div>
+						</section>
+
+					</div>
+				</section>
+
+
+				<%-- =============================================================
+				     Non-Adjusted
+				     ============================================================= --%>
+
+				<section class="tab-pane"
+					id="market-performance-panel-non-adjusted"
+					role="tabpanel"
+					aria-labelledby="market-performance-tab-non-adjusted">
+
+					<div data-market-performance-feature="non-adjusted">
+
+						<section class="data-view data-view--connected"
+							aria-labelledby="market-performance-tab-non-adjusted"
+							aria-busy="false"
+							data-market-performance-view>
+
+							<div class="data-view__workspace">
+
+								<%-- =================================================
+								     Desktop / Tablet Results
+								     ================================================= --%>
+
+								<div class="data-view__table">
+									<div class="data-view__table-block">
+
+										<div class="data-view__toolbar">
+											<div class="data-view__toolbar-start">
+												<p class="data-view__result-count"
+													aria-live="polite">
+													<span data-market-performance-result-count
+														data-result-count-value>
+														0
+													</span>
+												</p>
+											</div>
+										</div>
+
+										<p class="visually-hidden"
+											role="status"
+											aria-live="polite"
+											aria-atomic="true"
+											data-market-performance-status></p>
+
+										<div class="table-shell"
+											data-table-shell>
+
+											<div class="table-responsive custom-scrollbar"
+												role="region"
+												aria-labelledby="market-performance-tab-non-adjusted"
+												tabindex="0">
+
+												<table class="table"
+													data-market-performance-table>
+													<thead>
+														<tr>
+															<th scope="col">
+																<fmt:message key="marketperformance.company" />
+															</th>
+
+															<th class="text-end" scope="col">
+																<fmt:message key="marketperformance.beginprice" />
+															</th>
+
+															<th class="text-end" scope="col">
+																<fmt:message key="marketperformance.high" />
+															</th>
+
+															<th class="text-end" scope="col">
+																<fmt:message key="marketperformance.low" />
+															</th>
+
+															<th class="text-end" scope="col">
+																<fmt:message key="marketperformance.endprice" />
+															</th>
+
+															<th class="text-end" scope="col">
+																<fmt:message key="marketperformance.change" />
+															</th>
+
+															<th class="text-end" scope="col">
+																<fmt:message key="marketperformance.changePer" />
+															</th>
+
+															<th class="text-end" scope="col">
+																<fmt:message key="marketperformance.totalvolume" />
+															</th>
+
+															<th class="text-end" scope="col">
+																<fmt:message key="marketperformance.value" />
+
+																<span class="sar-symbol"
+																	aria-hidden="true">
+																	<svg class="pc-icon"
+																		width="15"
+																		height="15">
+																		<use xlink:href="#custom-riyal-icon"></use>
+																	</svg>
+																</span>
+															</th>
+														</tr>
+													</thead>
+
+													<tbody>
+														<%-- JavaScript owns all rows and result states. --%>
+													</tbody>
+												</table>
+
+											</div>
+										</div>
+									</div>
+								</div>
+
+
+								<%-- =================================================
+								     Mobile Cards
+								     ================================================= --%>
+
+								<div class="data-view__cards"
+									data-market-performance-mobile>
+
+									<div class="data-card-list"
+										data-market-performance-cards>
+										<%-- JavaScript owns all cards and result states. --%>
+									</div>
+
+								</div>
+
+							</div>
+						</section>
+
+					</div>
+				</section>
+
+			</div>
+		</div>
+
+	</div>
+</section>
