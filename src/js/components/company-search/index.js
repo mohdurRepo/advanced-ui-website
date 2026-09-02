@@ -89,15 +89,15 @@ const CSS = Object.freeze({
 let initialized = false;
 
 /**
- * Raw Portal records.
+ * Keep the original Portal records untouched.
  *
- * Keep these untouched because the legacy submitSearch()
- * integration expects the original collection.
+ * The existing Portal submitSearch() integration expects
+ * window.searchableSymbols itself.
  */
 let rawCompanies = [];
 
 /**
- * Normalized records used internally by this component.
+ * Normalized company objects used internally.
  */
 let companies = [];
 
@@ -108,11 +108,10 @@ let modalActiveIndex = -1;
 let homeActiveIndex = -1;
 
 /**
- * Shared fallback state, following the same principle
- * used by Market Ticker.
+ * Same fallback principle as Market Ticker.
  *
- * If /no-image.png itself fails once, do not repeatedly
- * request it for every failed company logo.
+ * If /no-image.png fails once during the page lifecycle,
+ * do not keep requesting it for every failed company logo.
  */
 let fallbackLogoUnavailable = false;
 
@@ -215,15 +214,12 @@ function setHidden(element, hidden) {
    ========================================================================== */
 
 /**
- * Same basic protection used by the ticker:
+ * Same URL protection principle as Market Ticker.
  *
- * - empty values are rejected
- * - malformed URLs are rejected
- * - javascript:/data: URLs are rejected
- * - HTTP/HTTPS are accepted
- *
- * A syntactically valid remote hostname can still fail at the
- * browser networking layer. That is handled by the image fallback.
+ * - empty values rejected
+ * - malformed URLs rejected
+ * - javascript:/data: rejected
+ * - HTTP/HTTPS accepted
  */
 function getSafeUrl(value, fallback = "") {
   if (typeof value !== "string" || !value.trim()) {
@@ -252,7 +248,24 @@ function getSafeLogoUrl(value) {
    ========================================================================== */
 
 /**
- * Frontend company contract:
+ * Real legacy Portal /api fields:
+ *
+ * {
+ *   companyNameEN,
+ *   companyNameAR,
+ *   symbol,
+ *   isin,
+ *   tradingNameEn,
+ *   tradingNameAr,
+ *   sectorNameEn,
+ *   sectorNameAr,
+ *   market_type,
+ *   ...
+ * }
+ *
+ * We normalize those once here.
+ *
+ * Everything below this boundary uses:
  *
  * {
  *   symbol,
@@ -266,9 +279,6 @@ function getSafeLogoUrl(value) {
  *   market,
  *   logo
  * }
- *
- * Portal-specific backend names should be adapted before
- * they reach the UI component.
  */
 function normalizeCompany(source, index) {
   if (!source || typeof source !== "object") {
@@ -279,22 +289,28 @@ function normalizeCompany(source, index) {
 
   const isin = String(source.isin ?? "").trim();
 
-  const nameEn = String(source.nameEn ?? "").trim();
+  const nameEn = String(source.companyNameEN ?? "").trim();
 
-  const nameAr = String(source.nameAr ?? "").trim();
+  const nameAr = String(source.companyNameAR ?? "").trim();
 
   const tradingNameEn = String(source.tradingNameEn ?? "").trim();
 
   const tradingNameAr = String(source.tradingNameAr ?? "").trim();
 
-  const sectorEn = String(source.sectorEn ?? "").trim();
+  const sectorEn = String(source.sectorNameEn ?? "").trim();
 
-  const sectorAr = String(source.sectorAr ?? "").trim();
+  const sectorAr = String(source.sectorNameAr ?? "").trim();
 
-  const market = String(source.market ?? "")
+  const market = String(source.market_type ?? "")
     .trim()
     .toUpperCase();
 
+  /**
+   * Do not invent a Portal image property.
+   *
+   * We keep `logo` strict until the actual /api object
+   * confirms the property name.
+   */
   const logo = String(source.logo ?? "").trim();
 
   const company = {
@@ -332,11 +348,11 @@ function buildSearchIndex(company) {
     company.nameEn,
     company.nameAr,
 
-    company.tradingNameEn,
-    company.tradingNameAr,
-
     company.symbol,
     company.isin,
+
+    company.tradingNameEn,
+    company.tradingNameAr,
 
     company.sectorEn,
     company.sectorAr,
@@ -352,15 +368,13 @@ function buildSearchIndex(company) {
     }
 
     /**
-     * Full value.
-     *
-     * Example:
-     * "Saudi Arabian Oil Company"
+     * Preserve complete values so phrases
+     * remain searchable.
      */
     tokens.add(normalized);
 
     /**
-     * Individual searchable pieces.
+     * Also index searchable pieces.
      */
     for (const token of normalized.split(/[\s\-_./()]+/gu)) {
       if (token) {
@@ -370,8 +384,8 @@ function buildSearchIndex(company) {
   }
 
   /**
-   * Preserve the legacy numeric-only
-   * ISIN search behavior.
+   * Legacy company search also indexed a
+   * numeric-only representation of ISIN.
    */
   const numericIsin = numericOnly(company.isin);
 
@@ -410,7 +424,7 @@ function setCompanies(source) {
  *
  * window.searchableSymbols
  *
- * We deliberately do NOT fetch /api here.
+ * This module deliberately performs no /api request.
  */
 function getPortalCompanies() {
   return Array.isArray(window.searchableSymbols)
@@ -418,17 +432,6 @@ function getPortalCompanies() {
     : [];
 }
 
-/**
- * Handles:
- *
- * window.dispatchEvent(
- *   new CustomEvent("company-search:data", {
- *     detail: {
- *       companies: window.searchableSymbols
- *     }
- *   })
- * );
- */
 function getCompaniesFromEvent(event) {
   const source = event?.detail?.companies;
 
@@ -447,8 +450,8 @@ function companyName(company) {
   if (isArabic()) {
     return (
       company.nameAr ||
-      company.tradingNameAr ||
       company.nameEn ||
+      company.tradingNameAr ||
       company.tradingNameEn ||
       company.symbol
     );
@@ -456,8 +459,8 @@ function companyName(company) {
 
   return (
     company.nameEn ||
-    company.tradingNameEn ||
     company.nameAr ||
+    company.tradingNameEn ||
     company.tradingNameAr ||
     company.symbol
   );
@@ -544,20 +547,28 @@ function matchesQuery(company, tokens) {
    Ranking
    ========================================================================== */
 
+/**
+ * Exact legacy market ordering:
+ *
+ * M → S → E → F → D → B → O → Others
+ */
 function marketRank(company) {
   return MARKET_ORDER[company.market] ?? 99;
 }
 
 /**
- * Preserve the legacy ranking rules:
+ * Mirror the legacy rankQuery() behavior.
  *
- * 1. Market ordering first
- * 2. Query position in localized company name
- * 3. Symbol
- * 4. ISIN
+ * Within the same market:
  *
- * Trading names and sectors remain searchable,
- * but they do not change the query ranking.
+ * localized name + symbol + ISIN
+ *               ↓
+ * query position
+ *
+ * A match at position 0 comes first.
+ *
+ * When positions are equal, alphabetical localized
+ * name is handled by sortCompanies().
  */
 function queryRank(company, query) {
   const normalizedQuery = normalizeText(query);
@@ -566,51 +577,40 @@ function queryRank(company, query) {
     return 0;
   }
 
-  const candidates = [
-    normalizeText(companyName(company)),
+  const candidate = normalizeText(
+    [companyName(company), company.symbol, company.isin]
+      .filter(Boolean)
+      .join(" "),
+  );
 
-    normalizeText(company.symbol),
+  const position = candidate.indexOf(normalizedQuery);
 
-    normalizeText(company.isin),
-  ].filter(Boolean);
-
-  let best = Number.MAX_SAFE_INTEGER;
-
-  for (const candidate of candidates) {
-    if (candidate === normalizedQuery) {
-      return 0;
-    }
-
-    if (candidate.startsWith(normalizedQuery)) {
-      best = Math.min(best, 1);
-
-      continue;
-    }
-
-    const position = candidate.indexOf(normalizedQuery);
-
-    if (position >= 0) {
-      best = Math.min(best, 10 + position);
-    }
-  }
-
-  return best;
+  return position >= 0 ? position : Number.MAX_SAFE_INTEGER;
 }
 
 function sortCompanies(items, query = "") {
   return [...items].sort((a, b) => {
+    /**
+     * 1. Market.
+     */
     const marketDifference = marketRank(a) - marketRank(b);
 
     if (marketDifference !== 0) {
       return marketDifference;
     }
 
+    /**
+     * 2. Legacy query position.
+     */
     const queryDifference = queryRank(a, query) - queryRank(b, query);
 
     if (queryDifference !== 0) {
       return queryDifference;
     }
 
+    /**
+     * 3. Localized company name.
+     */
     return companyName(a).localeCompare(companyName(b), getLanguage(), {
       sensitivity: "base",
       numeric: true,
@@ -631,12 +631,12 @@ function searchCompanies(query, { limit = Infinity } = {}) {
    ========================================================================== */
 
 /**
- * Fallback:
+ * Same fallback chain as Market Ticker:
  *
  * company logo
- *   ↓
+ *   ↓ fails
  * /no-image.png
- *   ↓
+ *   ↓ fails
  * localized initials
  */
 function createLogo(company, { rootClass, imageClass, initialsClass, size }) {
@@ -644,6 +644,9 @@ function createLogo(company, { rootClass, imageClass, initialsClass, size }) {
 
   root.setAttribute("aria-hidden", "true");
 
+  /**
+   * Initials permanently exist underneath the image.
+   */
   const initials = createElement(
     "span",
     initialsClass,
@@ -656,6 +659,12 @@ function createLogo(company, { rootClass, imageClass, initialsClass, size }) {
 
   const logoUrl = getSafeLogoUrl(company.logo);
 
+  /**
+   * No primary company logo.
+   *
+   * Try the shared fallback image before
+   * revealing initials permanently.
+   */
   if (!logoUrl) {
     if (!fallbackLogoUnavailable) {
       appendLogoImage(root, FALLBACK_LOGO_URL, "fallback", imageClass, size);
@@ -692,7 +701,7 @@ function appendLogoImage(root, source, stage, imageClass, size) {
   );
 
   /**
-   * Attach listener before src.
+   * Listener must exist before assigning src.
    */
   image.src = source;
 
@@ -708,12 +717,20 @@ function handleLogoError(image, root, imageClass, size) {
 
   image.remove();
 
+  /**
+   * Company image failed.
+   *
+   * Try /no-image.png.
+   */
   if (stage === "primary" && !fallbackLogoUnavailable) {
     appendLogoImage(root, FALLBACK_LOGO_URL, "fallback", imageClass, size);
 
     return;
   }
 
+  /**
+   * Shared fallback itself failed.
+   */
   if (stage === "fallback") {
     fallbackLogoUnavailable = true;
 
@@ -741,9 +758,12 @@ function removeFallbackLogoImages() {
    ========================================================================== */
 
 /**
- * Preserve the existing Portal integration.
+ * Exact legacy Portal integration:
  *
- * No destination route is invented here.
+ * window.submitSearch(
+ *   item.symbol,
+ *   window.searchableSymbols
+ * );
  */
 function selectCompany(company) {
   if (!company) {
@@ -751,7 +771,7 @@ function selectCompany(company) {
   }
 
   if (typeof window.submitSearch === "function") {
-    window.submitSearch(company.symbol, rawCompanies);
+    window.submitSearch(company.symbol, window.searchableSymbols);
 
     return;
   }
@@ -763,6 +783,13 @@ function selectCompany(company) {
    Modal Result
    ========================================================================== */
 
+/**
+ * Modal visual structure:
+ *
+ * [logo]  Company Name
+ *         Symbol                 ISIN
+ *         Sector
+ */
 function createModalResult(company, index) {
   const item = createElement("li", "company-search__item");
 
@@ -786,6 +813,10 @@ function createModalResult(company, index) {
     button.classList.add(CSS.active);
   }
 
+  /* ------------------------------------------------------------------------
+     Company Logo
+     ------------------------------------------------------------------------ */
+
   button.append(
     createLogo(company, {
       rootClass: "company-search__logo",
@@ -798,9 +829,15 @@ function createModalResult(company, index) {
     }),
   );
 
+  /* ------------------------------------------------------------------------
+     Company Content
+     ------------------------------------------------------------------------ */
+
   const content = createElement("span", "company-search__content");
 
-  const primary = createElement("span", "company-search__primary");
+  /* ------------------------------------------------------------------------
+     Company Name
+     ------------------------------------------------------------------------ */
 
   const name = createElement(
     "span",
@@ -810,7 +847,13 @@ function createModalResult(company, index) {
 
   name.dir = "auto";
 
-  primary.append(name);
+  content.append(name);
+
+  /* ------------------------------------------------------------------------
+     Symbol + ISIN
+     ------------------------------------------------------------------------ */
+
+  const meta = createElement("span", "company-search__meta");
 
   if (company.symbol) {
     const symbol = createElement(
@@ -822,7 +865,7 @@ function createModalResult(company, index) {
     symbol.dir = "ltr";
     symbol.lang = "en";
 
-    primary.append(symbol);
+    meta.append(symbol);
   }
 
   if (company.isin) {
@@ -831,10 +874,16 @@ function createModalResult(company, index) {
     isin.dir = "ltr";
     isin.lang = "en";
 
-    primary.append(isin);
+    meta.append(isin);
   }
 
-  content.append(primary);
+  if (meta.childElementCount) {
+    content.append(meta);
+  }
+
+  /* ------------------------------------------------------------------------
+     Sector
+     ------------------------------------------------------------------------ */
 
   const sector = companySector(company);
 
@@ -856,6 +905,10 @@ function createModalResult(company, index) {
 
   button.append(content);
 
+  /* ------------------------------------------------------------------------
+     Action Indicator
+     ------------------------------------------------------------------------ */
+
   const indicator = createElement(
     "span",
     "company-search__result-indicator has-icon icon-chevron-right",
@@ -864,6 +917,10 @@ function createModalResult(company, index) {
   indicator.setAttribute("aria-hidden", "true");
 
   button.append(indicator);
+
+  /* ------------------------------------------------------------------------
+     Selection
+     ------------------------------------------------------------------------ */
 
   button.addEventListener("click", () => {
     selectCompany(company);
@@ -878,6 +935,12 @@ function createModalResult(company, index) {
    Home Result
    ========================================================================== */
 
+/**
+ * Home discovery keeps its existing compact presentation.
+ *
+ * We are intentionally not forcing the modal's new
+ * name → meta → sector layout onto the home component.
+ */
 function createHomeResult(company, index) {
   const item = createElement("li", "home-discovery-search__item");
 
@@ -1241,10 +1304,10 @@ function filterModal() {
 }
 
 /**
- * Modal opening itself remains owned by initModals().
+ * The generic modal controller owns opening and closing.
  *
- * Company Search only decides what search state should
- * appear when the modal is opened.
+ * This function only decides which company-search state
+ * should be visible after the modal has been triggered.
  */
 function loadModalCompanies() {
   if (!companies.length) {
@@ -1274,7 +1337,7 @@ function searchHome() {
   }
 
   /**
-   * JSP may still be waiting on /api.
+   * JSP may still be waiting for /api.
    */
   if (!companies.length) {
     showHomeLoading();
@@ -1320,32 +1383,31 @@ function refreshVisibleHomeResults() {
    ========================================================================== */
 
 /**
- * The JSP/API bridge has produced a new company collection.
+ * JSP publishes fresh data with:
  *
- * This is the equivalent of giving the Vite component
- * freshly supplied Portal data.
+ * window.dispatchEvent(
+ *   new CustomEvent("company-search:data", {
+ *     detail: {
+ *       companies: window.searchableSymbols
+ *     }
+ *   })
+ * );
  */
 function onCompanySearchData(event) {
   const source = getCompaniesFromEvent(event);
 
-  if (!source.length) {
-    /**
-     * Preserve an already-valid collection when an unexpected
-     * empty/malformed event arrives.
-     *
-     * If no valid collection exists yet, allow the UI to
-     * represent that state normally.
-     */
-    if (!companies.length) {
-      setCompanies([]);
-    }
-  } else {
+  /**
+   * Keep the Portal global authoritative.
+   */
+  if (Array.isArray(source)) {
+    window.searchableSymbols = source;
+
     setCompanies(source);
   }
 
   /**
-   * If the company modal is currently open,
-   * immediately replace loading/stale results.
+   * If the modal is currently open, immediately
+   * refresh whatever query is visible.
    */
   if (modal && modal.getAttribute("aria-hidden") === "false") {
     if (companies.length) {
@@ -1362,14 +1424,13 @@ function onCompanySearchData(event) {
 }
 
 /**
- * API failure belongs to JSP, but the UI still needs
- * to represent failure when no usable dataset exists.
+ * The actual request failure belongs to JSP.
+ *
+ * This module only reflects an error when no usable
+ * company collection exists.
  */
 function onCompanySearchError() {
   if (companies.length) {
-    /**
-     * Existing data remains usable.
-     */
     return;
   }
 
@@ -1444,8 +1505,8 @@ function onModalKeyDown(event) {
       break;
 
     /**
-     * Escape intentionally remains
-     * owned by the generic modal.
+     * Escape intentionally remains owned
+     * by the generic modal controller.
      */
     default:
       break;
@@ -1532,7 +1593,7 @@ function onHomeKeyDown(event) {
 }
 
 /* ==========================================================================
-   Forms
+   Form Submission
    ========================================================================== */
 
 function onModalSubmit(event) {
@@ -1544,6 +1605,9 @@ function onModalSubmit(event) {
     return;
   }
 
+  /**
+   * If exactly one company remains, Enter selects it.
+   */
   if (modalMatches.length === 1) {
     selectCompany(modalMatches[0]);
   }
@@ -1565,8 +1629,10 @@ function onHomeSubmit(event) {
   }
 
   /**
-   * Preserve legacy Typeahead
-   * autoselect behavior.
+   * Preserve the old Typeahead autoselect behavior:
+   *
+   * when the user submits text without manually choosing
+   * a row, use the highest-ranked current match.
    */
   if (homeMatches.length) {
     selectCompany(homeMatches[0]);
@@ -1601,14 +1667,13 @@ function onModalTriggerClick() {
    * - Escape
    * - focus containment
    *
-   * Company Search owns only its
-   * search content/state.
+   * Company Search owns only the result/search state.
    */
   loadModalCompanies();
 
   /**
-   * Allow generic modal opening to complete
-   * before focusing the search field.
+   * Let the generic modal finish opening before
+   * focusing the company input.
    */
   window.requestAnimationFrame(() => {
     window.requestAnimationFrame(() => {
@@ -1660,7 +1725,7 @@ function resolveDom() {
 }
 
 /* ==========================================================================
-   Events
+   Event Binding
    ========================================================================== */
 
 function bindEvents() {
@@ -1735,13 +1800,15 @@ export function initCompanySearch() {
   initialized = true;
 
   /**
-   * Important race protection:
+   * Race-safe Portal initialization:
    *
-   * If JSP AJAX completed before this Vite module initialized,
-   * window.searchableSymbols already contains the data.
+   * Case A:
+   * JSP AJAX completed before Vite initializes.
+   * -> window.searchableSymbols is read immediately.
    *
-   * If AJAX completes after initialization, DATA_EVENT
-   * updates the same store.
+   * Case B:
+   * Vite initializes first.
+   * -> "company-search:data" supplies the collection later.
    */
   initializeCompanyData();
 

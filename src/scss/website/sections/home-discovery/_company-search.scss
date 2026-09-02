@@ -5,7 +5,7 @@
    ========================================================================== */
 
 /**
- * Website-level sizing and close-button placement for the company-search modal.
+ * Website-level sizing and close-button placement.
  *
  * The generic modal component remains untouched.
  */
@@ -32,20 +32,19 @@
    ========================================================================== */
 
 /**
- * Search and company-result interface used inside branded modal experiences.
+ * Search and result interface used inside the branded
+ * company-search modal.
  *
  * Responsibilities:
+ *
  * - search field composition
+ * - connected result surface
  * - result list layout
  * - company identity presentation
- * - loading / empty states
- * - selected / active result states
+ * - loading / empty / error states
+ * - keyboard-active result presentation
  *
- * The component deliberately does not style `.modal` globally or redefine the
- * shared `.form-control` primitive.
- *
- * Surface colors are inherited through semantic properties from the surrounding
- * contextual surface.
+ * The surrounding `.surface-hero` owns contextual colors.
  */
 
 .company-search {
@@ -53,8 +52,7 @@
      Layout
      ========================================================================== */
 
-  --company-search-gap: var(--space-5, #{ds.space(5)});
-  --company-search-results-gap: var(--space-2, #{ds.space(2)});
+  --company-search-gap: 0;
 
   --company-search-results-max-block-size: min(26rem, 52vh);
 
@@ -67,6 +65,19 @@
   --company-search-icon-space: var(--form-control-indicator-space, 3rem);
 
   /* ==========================================================================
+     Connected Surface
+     ========================================================================== */
+
+  --company-search-panel-bg: rgb(0 31 51 / 0.26);
+
+  --company-search-panel-border-color: var(
+    --form-control-border-color,
+    var(--color-border)
+  );
+
+  --company-search-row-border-color: rgb(255 255 255 / 0.1);
+
+  /* ==========================================================================
      Result
      ========================================================================== */
 
@@ -74,17 +85,13 @@
 
   --company-search-result-padding-block: var(--space-3, #{ds.space(3)});
 
-  --company-search-result-padding-inline: var(--space-3, #{ds.space(3)});
+  --company-search-result-padding-inline: var(--space-4, #{ds.space(4)});
 
   --company-search-result-gap: var(--space-3, #{ds.space(3)});
 
-  --company-search-result-radius: var(--radius-md, #{ds.radius("md")});
+  --company-search-result-hover-bg: rgb(255 255 255 / 0.08);
 
-  --company-search-result-border-color: transparent;
-
-  --company-search-result-hover-bg: var(--color-surface-alt);
-
-  --company-search-result-active-bg: var(--color-surface-alt);
+  --company-search-result-active-bg: rgb(255 255 255 / 0.12);
 
   --company-search-result-selected-border-color: var(
     --form-control-focus-border-color,
@@ -97,11 +104,11 @@
 
   --company-search-logo-size: 2.75rem;
 
-  --company-search-logo-bg: var(--color-surface-alt);
+  --company-search-logo-bg: rgb(255 255 255 / 0.08);
 
   --company-search-logo-color: var(--color-heading);
 
-  --company-search-logo-border-color: var(--color-border);
+  --company-search-logo-border-color: rgb(255 255 255 / 0.16);
 
   /* ==========================================================================
      Typography
@@ -113,7 +120,7 @@
 
   --company-search-symbol-color: var(--color-heading);
 
-  --company-search-chip-bg: var(--color-surface-alt);
+  --company-search-chip-bg: rgb(255 255 255 / 0.08);
 
   --company-search-chip-color: var(--color-text-muted);
 
@@ -137,6 +144,9 @@
    ========================================================================== */
 
 .company-search__form {
+  position: relative;
+  z-index: 1;
+
   display: block;
 
   inline-size: 100%;
@@ -184,6 +194,25 @@
 }
 
 /* ==========================================================================
+   Connected Search + Results
+   ========================================================================== */
+
+/**
+ * When results are visible, visually join them to the
+ * search field above.
+ *
+ * The form control still owns its typography, focus,
+ * padding, disabled state, etc. We only change geometry.
+ */
+
+.company-search:has(.company-search__results:not([hidden]))
+  .company-search__field
+  > .form-control {
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+}
+
+/* ==========================================================================
    Results Region
    ========================================================================== */
 
@@ -194,7 +223,20 @@
   min-inline-size: 0;
   min-block-size: 0;
 
-  gap: var(--company-search-results-gap);
+  overflow: hidden;
+
+  border: 1px solid var(--company-search-panel-border-color);
+  border-block-start: 0;
+
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+
+  border-end-start-radius: var(--radius-lg);
+  border-end-end-radius: var(--radius-lg);
+
+  background: var(--company-search-panel-bg);
+
+  color: var(--color-text);
 }
 
 /* ==========================================================================
@@ -208,7 +250,12 @@
 
   min-inline-size: 0;
 
+  padding-block: var(--space-3, #{ds.space(3)});
+  padding-inline: var(--space-4, #{ds.space(4)});
+
   gap: var(--space-3, #{ds.space(3)});
+
+  border-block-end: 1px solid var(--company-search-row-border-color);
 }
 
 .company-search__results-title {
@@ -270,6 +317,14 @@
   margin: 0;
 }
 
+.company-search__item + .company-search__item {
+  border-block-start: 1px solid var(--company-search-row-border-color);
+}
+
+/* ==========================================================================
+   Result
+   ========================================================================== */
+
 .company-search__result {
   appearance: none;
 
@@ -287,8 +342,8 @@
 
   gap: var(--company-search-result-gap);
 
-  border: 1px solid var(--company-search-result-border-color);
-  border-radius: var(--company-search-result-radius);
+  border: 0;
+  border-radius: 0;
 
   background: transparent;
   color: var(--color-text);
@@ -306,7 +361,6 @@
 
   transition:
     background-color var(--form-control-transition),
-    border-color var(--form-control-transition),
     color var(--form-control-transition),
     outline-color var(--form-control-transition);
 }
@@ -320,28 +374,32 @@
 }
 
 .company-search__result:focus-visible {
-  border-color: var(--company-search-result-selected-border-color);
-
   outline: var(--form-control-focus-outline-width) solid
     var(--form-control-focus-outline-color);
 
-  outline-offset: -1px;
+  outline-offset: -2px;
 }
 
-.company-search__result:active {
-  background: var(--company-search-result-active-bg);
-}
-
-.company-search__result[aria-selected="true"],
+.company-search__result:active,
 .company-search__result.is-active {
-  border-color: var(--company-search-result-selected-border-color);
-
   background: var(--company-search-result-active-bg);
 }
 
 /* ==========================================================================
    Company Logo
    ========================================================================== */
+
+/**
+ * Rendering order:
+ *
+ * company image
+ *   ↓ fails
+ * /no-image.png
+ *   ↓ fails
+ * initials
+ *
+ * Initials permanently exist underneath the image.
+ */
 
 .company-search__logo {
   position: relative;
@@ -427,17 +485,13 @@ html[dir="rtl"] .company-search__logo-initials {
   gap: var(--space-1, #{ds.space(1)});
 }
 
-.company-search__primary {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-
-  min-inline-size: 0;
-
-  gap: var(--space-2, #{ds.space(2)});
-}
+/* ==========================================================================
+   Company Name
+   ========================================================================== */
 
 .company-search__name {
+  display: block;
+
   min-inline-size: 0;
 
   overflow: hidden;
@@ -450,6 +504,28 @@ html[dir="rtl"] .company-search__logo-initials {
 
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ==========================================================================
+   Symbol + ISIN Row
+   ========================================================================== */
+
+/**
+ * Desired modal layout:
+ *
+ * Company Name
+ * 8220                         SAxxxxxxxxxx
+ * Sector
+ */
+
+.company-search__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  min-inline-size: 0;
+
+  gap: var(--space-3, #{ds.space(3)});
 }
 
 .company-search__symbol,
@@ -467,10 +543,8 @@ html[dir="rtl"] .company-search__logo-initials {
   border-radius: var(--radius-pill);
 
   background: var(--company-search-chip-bg);
-  color: var(--company-search-symbol-color);
 
   font-size: var(--text-xs);
-  font-weight: ds.font-weight("bold");
   line-height: 1;
 
   direction: ltr;
@@ -481,7 +555,15 @@ html[dir="rtl"] .company-search__logo-initials {
   font-variant-numeric: tabular-nums;
 }
 
+.company-search__symbol {
+  color: var(--company-search-symbol-color);
+
+  font-weight: ds.font-weight("bold");
+}
+
 .company-search__isin {
+  margin-inline-start: auto;
+
   color: var(--company-search-meta-color);
 
   font-weight: ds.font-weight("medium");
@@ -511,6 +593,8 @@ html[dir="rtl"] .company-search__logo-initials {
   padding-block: var(--space-1, #{ds.space(1)});
   padding-inline: var(--space-2, #{ds.space(2)});
 
+  overflow: hidden;
+
   border-radius: var(--radius-pill);
 
   background: var(--company-search-chip-bg);
@@ -519,8 +603,6 @@ html[dir="rtl"] .company-search__logo-initials {
   font-size: var(--text-xs);
   font-weight: ds.font-weight("medium");
   line-height: 1;
-
-  overflow: hidden;
 
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -547,7 +629,6 @@ html[dir="rtl"] .company-search__logo-initials {
 }
 
 .company-search__result:hover .company-search__result-indicator,
-.company-search__result[aria-selected="true"] .company-search__result-indicator,
 .company-search__result.is-active .company-search__result-indicator {
   color: var(--company-search-name-color);
 }
@@ -668,13 +749,11 @@ html[dir="rtl"] {
   }
 
   .company-search {
-    --company-search-gap: var(--space-4, #{ds.space(4)});
-
     --company-search-result-min-block-size: 4.25rem;
 
     --company-search-result-padding-block: var(--space-2, #{ds.space(2)});
 
-    --company-search-result-padding-inline: var(--space-2, #{ds.space(2)});
+    --company-search-result-padding-inline: var(--space-3, #{ds.space(3)});
 
     --company-search-result-gap: var(--space-2, #{ds.space(2)});
 
@@ -683,12 +762,16 @@ html[dir="rtl"] {
     --company-search-results-max-block-size: min(24rem, 50vh);
   }
 
-  .company-search__primary {
-    gap: var(--space-1, #{ds.space(1)});
+  .company-search__meta {
+    gap: var(--space-2, #{ds.space(2)});
   }
 
-  .company-search__name {
-    flex-basis: 100%;
+  .company-search__isin {
+    max-inline-size: 60%;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
   }
 }
 
@@ -697,8 +780,12 @@ html[dir="rtl"] {
    ========================================================================== */
 
 html[data-contrast="high"] {
-  .company-search__result {
+  .company-search__results {
     border-width: 2px;
+  }
+
+  .company-search__item + .company-search__item {
+    border-block-start-width: 2px;
   }
 
   .company-search__logo {
@@ -717,25 +804,31 @@ html[data-contrast="high"] {
    ========================================================================== */
 
 @media (forced-colors: active) {
-  .company-search__result {
-    border-color: transparent;
+  .company-search__results {
+    border-color: CanvasText;
 
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .company-search__results-header,
+  .company-search__item + .company-search__item {
+    border-color: CanvasText;
+  }
+
+  .company-search__result {
     background: Canvas;
     color: CanvasText;
   }
 
   .company-search__result:hover,
   .company-search__result:active,
-  .company-search__result[aria-selected="true"],
   .company-search__result.is-active {
-    border-color: Highlight;
-
     background: Highlight;
     color: HighlightText;
   }
 
   .company-search__result:focus-visible {
-    border-color: Highlight;
     outline-color: Highlight;
   }
 
