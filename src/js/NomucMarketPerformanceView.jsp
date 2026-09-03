@@ -1930,7 +1930,7 @@ function formatMoneyhtml(val) {
 
 							<%-- Desktop --------------------------------------------- --%>
 
-							<div class="data-view__desktop">
+							<div class="data-view__desktop d-none d-lg-block">
 
 								<%-- Active Report ------------------------------------ --%>
 
@@ -2105,7 +2105,7 @@ function formatMoneyhtml(val) {
 
 							<%-- Mobile Cards ---------------------------------------- --%>
 
-							<div class="data-view__cards"
+							<div class="data-view__cards d-lg-none"
 								role="region"
 								aria-labelledby="market-performance-tab-adjusted">
 
@@ -2326,7 +2326,7 @@ function formatMoneyhtml(val) {
 								</div>
 							</div>
 
-							<div class="data-view__cards"
+							<div class="data-view__cards d-lg-none"
 								role="region"
 								aria-labelledby="market-performance-tab-non-adjusted">
 

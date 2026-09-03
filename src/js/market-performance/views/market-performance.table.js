@@ -147,7 +147,7 @@ function renderChangeValue(row, type, config) {
   }
 
   return `
-		<div class="market-performance__change ${getChangeClass(value)} d-flex align-items-center justify-content-end gap-1">
+		<div class="market-performance__change ${getChangeClass(value)} gap-1">
 			<span class="market-performance__change-value">
 				${formatNumber(value, config.locale)}
 			</span>
@@ -170,7 +170,7 @@ function renderChangePercent(row, type, config) {
   }
 
   return `
-		<div class="market-performance__change-percent ${getChangeClass(directionValue)} d-flex align-items-center justify-content-end gap-1">
+		<div class="market-performance__change-percent ${getChangeClass(directionValue)} gap-1">
 			<span class="market-performance__change-percent-value">
 				${formatNumber(value, config.locale)}
 			</span>
