@@ -49,7 +49,7 @@ function renderTrendIcon(value) {
   if (value > 0) {
     return `
 			<span
-				class="has-icon icon-trending-up icon-2xl icon-accent"
+				class="has-icon icon-trending-up icon-sm"
 				aria-hidden="true">
 			</span>
 		`.trim();
@@ -58,7 +58,7 @@ function renderTrendIcon(value) {
   if (value < 0) {
     return `
 			<span
-				class="has-icon icon-trending-down icon-2xl"
+				class="has-icon icon-trending-down icon-sm"
 				aria-hidden="true">
 			</span>
 		`.trim();
@@ -69,20 +69,25 @@ function renderTrendIcon(value) {
 
 function renderSummary(row, config) {
   const changeClass = getChangeClass(row?.changeValue);
+  const closePrice = formatNumber(row?.closePrice, config.locale);
   const changeValue = formatNumber(row?.changeValue, config.locale);
   const changePercent = formatNumber(row?.changePercent, config.locale);
 
   return `
 		<div class="data-card__summary">
-			${renderStandardCompanyCardIdentity(row, {
-        logoUrlTemplate: config.assets.companyLogoUrlTemplate,
-        logoFallbackUrl: config.assets.companyLogoFallbackUrl,
-      })}
+			<div class="data-card__summary-identity">
+				${renderStandardCompanyCardIdentity(row, {
+          logoUrlTemplate: config.assets.companyLogoUrlTemplate,
+          logoFallbackUrl: config.assets.companyLogoFallbackUrl,
+        })}
+			</div>
 
-			<div class="data-card__quote">
-				<div class="data-card__change ${changeClass}">
-					${renderTrendIcon(row?.changeValue)}
+			<div class="data-card__quote text-end">
+				<span class="data-card__price">
+					${escapeHtml(closePrice)}
+				</span>
 
+				<div class="data-card__change ${changeClass} d-flex align-items-center justify-content-end gap-1">
 					<span class="data-card__change-value">
 						${escapeHtml(changeValue)}
 					</span>
@@ -90,6 +95,8 @@ function renderSummary(row, config) {
 					<span class="data-card__change-percent">
 						(${escapeHtml(changePercent)}%)
 					</span>
+
+					${renderTrendIcon(row?.changeValue)}
 				</div>
 			</div>
 		</div>
@@ -113,11 +120,6 @@ function createFields(row, config) {
     {
       label: labels.low,
       value: escapeHtml(formatNumber(row?.lowPrice, config.locale)),
-      numeric: true,
-    },
-    {
-      label: labels.close,
-      value: escapeHtml(formatNumber(row?.closePrice, config.locale)),
       numeric: true,
     },
     {
@@ -175,6 +177,12 @@ function renderGroup({ groupKey, groupLabel, cards }) {
     return cards;
   }
 
+  /*
+   * groupLabel comes from trusted JSP localization and may intentionally
+   * contain formatting such as:
+   *
+   * Gainers <strong>performance</strong>
+   */
   return `
 		<section
 			class="data-card-group market-performance__card-group"
@@ -183,7 +191,7 @@ function renderGroup({ groupKey, groupLabel, cards }) {
 		>
 			<header class="data-card-group__header">
 				<h3 class="data-card-group__title">
-					${escapeHtml(groupLabel)}
+					${groupLabel}
 				</h3>
 			</header>
 

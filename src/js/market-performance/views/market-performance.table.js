@@ -78,7 +78,7 @@ function renderTrendIcon(value) {
   if (value > 0) {
     return `
 			<span
-				class="has-icon icon-trending-up icon-2xl"
+				class="has-icon icon-trending-up icon-md"
 				aria-hidden="true">
 			</span>
 		`.trim();
@@ -87,7 +87,7 @@ function renderTrendIcon(value) {
   if (value < 0) {
     return `
 			<span
-				class="has-icon icon-trending-down icon-2xl"
+				class="has-icon icon-trending-down icon-md"
 				aria-hidden="true">
 			</span>
 		`.trim();
@@ -170,8 +170,12 @@ function renderChangePercent(row, type, config) {
   }
 
   return `
-		<div class="market-performance__change-percent ${getChangeClass(directionValue)}">
-			${formatNumber(value, config.locale)}
+		<div class="market-performance__change-percent ${getChangeClass(directionValue)} d-flex align-items-center justify-content-end gap-1">
+			<span class="market-performance__change-percent-value">
+				${formatNumber(value, config.locale)}
+			</span>
+
+			${renderTrendIcon(directionValue)}
 		</div>
 	`.trim();
 }
