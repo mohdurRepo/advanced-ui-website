@@ -1655,10 +1655,11 @@ function formatMoneyhtml(val) {
 		     Filters
 		     ===================================================================== --%>
 
-		<form class="filter-bar"
+		<form class="filter-bar filter-bar--connected"
 			aria-labelledby="market-performance-page-title"
 			data-market-performance-filters
 			novalidate>
+
 			<div class="filter-bar__inner">
 				<div class="filter-bar__fields grid-3">
 
@@ -1674,29 +1675,42 @@ function formatMoneyhtml(val) {
 
 						<div class="custom-select" data-custom-select>
 							<div class="form-select-wrap custom-select__fallback">
+
 								<select class="form-select custom-select__native"
 									id="market-performance-report"
 									name="<%=MarketPerformanceConstants.PARAMETER_REPORT_Filter%>"
 									data-market-performance-report>
+
 									<option
 										value="<%=MarketPerformanceConstants.PARAMETER_Filter_MOST_ACTIVE_by_VOLUME%>"
-										selected>
+										<c:if test="${empty requestScope.viewMarketPerformance.previousReportFilter
+											or requestScope.viewMarketPerformance.previousReportFilter eq 'active'}">
+											selected
+										</c:if>>
 										<fmt:message key="marketperformance.filter1" />
 									</option>
 
 									<option
-										value="<%=MarketPerformanceConstants.PARAMETER_Filter_GAINERS_LOSER_VALUE%>">
+										value="<%=MarketPerformanceConstants.PARAMETER_Filter_GAINERS_LOSER_VALUE%>"
+										<c:if test="${requestScope.viewMarketPerformance.previousReportFilter
+											eq MarketPerformanceConstants.PARAMETER_Filter_GAINERS_LOSER_VALUE}">
+											selected
+										</c:if>>
 										<fmt:message key="marketperformance.filter3" />
 									</option>
 
 									<option
-										value="<%=MarketPerformanceConstants.PARAMETER_Filter_GAINERS_LOSER_PRE%>">
+										value="<%=MarketPerformanceConstants.PARAMETER_Filter_GAINERS_LOSER_PRE%>"
+										<c:if test="${requestScope.viewMarketPerformance.previousReportFilter
+											eq MarketPerformanceConstants.PARAMETER_Filter_GAINERS_LOSER_PRE}">
+											selected
+										</c:if>>
 										<fmt:message key="marketperformance.filter4" />
 									</option>
+
 								</select>
 
-								<span
-									class="form-select-icon has-icon icon-chevron-down"
+								<span class="form-select-icon has-icon icon-chevron-down"
 									aria-hidden="true"></span>
 							</div>
 						</div>
@@ -1715,6 +1729,7 @@ function formatMoneyhtml(val) {
 
 						<div class="custom-select" data-custom-select>
 							<div class="form-select-wrap custom-select__fallback">
+
 								<select class="form-select custom-select__native"
 									id="market-performance-period"
 									name="<%=MarketPerformanceConstants.PARAMETER_TIME_FRAME_Filter%>"
@@ -1763,8 +1778,8 @@ function formatMoneyhtml(val) {
 									</option>
 
 									<option value="1 Years"
-										<c:if test="${'1 Years' eq requestScope.viewMarketPerformance.previousTimeFrameFilter
-											or empty requestScope.viewMarketPerformance.previousTimeFrameFilter}">
+										<c:if test="${empty requestScope.viewMarketPerformance.previousTimeFrameFilter
+											or '1 Years' eq requestScope.viewMarketPerformance.previousTimeFrameFilter}">
 											selected
 										</c:if>>
 										<fmt:message key="marketperformance.1year" />
@@ -1790,10 +1805,10 @@ function formatMoneyhtml(val) {
 										</c:if>>
 										<fmt:message key="marketperformance.5year" />
 									</option>
+
 								</select>
 
-								<span
-									class="form-select-icon has-icon icon-chevron-down"
+								<span class="form-select-icon has-icon icon-chevron-down"
 									aria-hidden="true"></span>
 							</div>
 						</div>
@@ -1813,7 +1828,9 @@ function formatMoneyhtml(val) {
 						<div class="custom-select"
 							data-custom-select
 							data-searchable>
+
 							<div class="form-select-wrap custom-select__fallback">
+
 								<select class="form-select custom-select__native"
 									id="market-performance-sector"
 									name="<%=MarketPerformanceConstants.PARAMETER_SECTOR_Filter%>"
@@ -1821,7 +1838,9 @@ function formatMoneyhtml(val) {
 
 									<option
 										value="<%=MarketPerformanceConstants.FORM_ACTION_VIEW_ALL_MARKET%>"
-										<c:if test="${empty requestScope.viewMarketPerformance.previousSectorFilter}">
+										<c:if test="${empty requestScope.viewMarketPerformance.previousSectorFilter
+											or requestScope.viewMarketPerformance.previousSectorFilter eq 'viewAllMarket'
+											or requestScope.viewMarketPerformance.previousSectorFilter eq 'viewAllmarket'}">
 											selected
 										</c:if>>
 										<fmt:message key="marketperformance.allMarket" />
@@ -1830,18 +1849,23 @@ function formatMoneyhtml(val) {
 									<c:forEach
 										items="${requestScope.viewMarketPerformance.allSectors}"
 										var="sector">
+
 										<option
 											value="<c:out value='${sector.pk_rf_sector}' />"
-											<c:if test="${requestScope.viewMarketPerformance.previousSectorFilter eq sector.pk_rf_sector}">
+											<c:if test="${fn:contains(
+												requestScope.viewMarketPerformance.previousSectorFilter,
+												sector.pk_rf_sector
+											)}">
 												selected
 											</c:if>>
 											<c:out value="${sector.name}" />
 										</option>
+
 									</c:forEach>
+
 								</select>
 
-								<span
-									class="form-select-icon has-icon icon-chevron-down"
+								<span class="form-select-icon has-icon icon-chevron-down"
 									aria-hidden="true"></span>
 							</div>
 						</div>
@@ -1859,10 +1883,6 @@ function formatMoneyhtml(val) {
 		<div class="tabs market-performance__tabs"
 			data-tabs
 			data-market-performance-tabs>
-
-			<%-- =================================================================
-			     Tab Navigation
-			     ================================================================= --%>
 
 			<div class="tabs-nav"
 				role="tablist"
@@ -1893,10 +1913,6 @@ function formatMoneyhtml(val) {
 			</div>
 
 
-			<%-- =================================================================
-			     Tab Content
-			     ================================================================= --%>
-
 			<div class="tabs-content">
 
 				<%-- =============================================================
@@ -1918,7 +1934,7 @@ function formatMoneyhtml(val) {
 							<div class="data-view__workspace">
 
 								<%-- =================================================
-								     Desktop / Tablet Results
+								     Desktop / Tablet Table
 								     ================================================= --%>
 
 								<div class="data-view__table">
@@ -1926,13 +1942,15 @@ function formatMoneyhtml(val) {
 
 										<div class="data-view__toolbar">
 											<div class="data-view__toolbar-start">
+
 												<p class="data-view__result-count"
 													aria-live="polite">
-													<span data-market-performance-result-count
+													<strong data-market-performance-result-count
 														data-result-count-value>
 														0
-													</span>
+													</strong>
 												</p>
+
 											</div>
 										</div>
 
@@ -1952,6 +1970,7 @@ function formatMoneyhtml(val) {
 
 												<table class="table"
 													data-market-performance-table>
+
 													<thead>
 														<tr>
 															<th scope="col">
@@ -2004,16 +2023,16 @@ function formatMoneyhtml(val) {
 													<tbody>
 														<%-- JavaScript owns all rows and result states. --%>
 													</tbody>
+
 												</table>
 
 											</div>
 										</div>
+
 									</div>
 								</div>
-
-
-								<%-- =================================================
-								     Mobile Cards
+																<%-- =================================================
+								     Adjusted Mobile Cards
 								     ================================================= --%>
 
 								<div class="data-view__cards"
@@ -2052,7 +2071,7 @@ function formatMoneyhtml(val) {
 							<div class="data-view__workspace">
 
 								<%-- =================================================
-								     Desktop / Tablet Results
+								     Desktop / Tablet Table
 								     ================================================= --%>
 
 								<div class="data-view__table">
@@ -2060,13 +2079,15 @@ function formatMoneyhtml(val) {
 
 										<div class="data-view__toolbar">
 											<div class="data-view__toolbar-start">
+
 												<p class="data-view__result-count"
 													aria-live="polite">
-													<span data-market-performance-result-count
+													<strong data-market-performance-result-count
 														data-result-count-value>
 														0
-													</span>
+													</strong>
 												</p>
+
 											</div>
 										</div>
 
@@ -2086,6 +2107,7 @@ function formatMoneyhtml(val) {
 
 												<table class="table"
 													data-market-performance-table>
+
 													<thead>
 														<tr>
 															<th scope="col">
@@ -2138,16 +2160,18 @@ function formatMoneyhtml(val) {
 													<tbody>
 														<%-- JavaScript owns all rows and result states. --%>
 													</tbody>
+
 												</table>
 
 											</div>
 										</div>
+
 									</div>
 								</div>
 
 
 								<%-- =================================================
-								     Mobile Cards
+								     Non-Adjusted Mobile Cards
 								     ================================================= --%>
 
 								<div class="data-view__cards"
