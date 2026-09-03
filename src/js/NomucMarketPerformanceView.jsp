@@ -1930,176 +1930,178 @@ function formatMoneyhtml(val) {
 
 							<%-- Desktop --------------------------------------------- --%>
 
-							<div class="data-view__desktop d-none d-lg-block">
+							<div class="data-view__table">
+								<div class="data-view__table-block">
 
-								<%-- Active Report ------------------------------------ --%>
+									<%-- Active Report ------------------------------------ --%>
 
-								<div class="market-performance__active-result"
-									data-market-performance-active-region>
+									<div class="market-performance__active-result"
+										data-market-performance-active-region>
 
-									<div class="table-responsive">
-										<table class="table table-market"
-											data-market-performance-table="active">
+										<div class="table-responsive">
+											<table class="table table-market"
+												data-market-performance-table="active">
 
-											<caption class="visually-hidden">
-												<fmt:message key="marketperformance.marketPerformance" />
-											</caption>
+												<caption class="visually-hidden">
+													<fmt:message key="marketperformance.marketPerformance" />
+												</caption>
 
-											<thead>
-												<tr>
-													<th scope="col">
-														<fmt:message key="marketperformance.company" />
-													</th>
-													<th scope="col" class="text-end">
-														<fmt:message key="marketperformance.beginprice" />
-													</th>
-													<th scope="col" class="text-end">
-														<fmt:message key="marketperformance.high" />
-													</th>
-													<th scope="col" class="text-end">
-														<fmt:message key="marketperformance.low" />
-													</th>
-													<th scope="col" class="text-end">
-														<fmt:message key="marketperformance.endprice" />
-													</th>
-													<th scope="col" class="text-end">
-														<fmt:message key="marketperformance.change" />
-													</th>
-													<th scope="col" class="text-end">
-														<fmt:message key="marketperformance.changePer" />
-													</th>
-													<th scope="col" class="text-end">
-														<fmt:message key="marketperformance.totalvolume" />
-													</th>
-													<th scope="col" class="text-end">
-														<fmt:message key="marketperformance.value" />
-													</th>
-												</tr>
-											</thead>
+												<thead>
+													<tr>
+														<th scope="col">
+															<fmt:message key="marketperformance.company" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.beginprice" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.high" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.low" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.endprice" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.change" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.changePer" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.totalvolume" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.value" />
+														</th>
+													</tr>
+												</thead>
 
-											<tbody></tbody>
-										</table>
+												<tbody></tbody>
+											</table>
+										</div>
 									</div>
-								</div>
 
-								<%-- Gainers / Losers -------------------------------- --%>
+									<%-- Gainers / Losers -------------------------------- --%>
 
-								<div class="market-performance__split-result"
-									data-market-performance-split-region
-									hidden>
+									<div class="market-performance__split-result"
+										data-market-performance-split-region
+										hidden>
 
-									<section class="market-performance__group"
-										aria-labelledby="market-performance-adjusted-gainers-title"
-										data-market-performance-group="gainers">
+										<section class="market-performance__group"
+											aria-labelledby="market-performance-adjusted-gainers-title"
+											data-market-performance-group="gainers">
 
-										<header class="market-performance__group-header">
-											<h2 class="market-performance__group-title"
-												id="market-performance-adjusted-gainers-title">
-												<fmt:message key="marketperformance.gainersTitle" />
-											</h2>
-										</header>
-
-										<div class="table-responsive">
-											<table class="table table-market"
-												data-market-performance-table="gainers">
-
-												<caption class="visually-hidden">
+											<header class="market-performance__group-header">
+												<h2 class="market-performance__group-title"
+													id="market-performance-adjusted-gainers-title">
 													<fmt:message key="marketperformance.gainersTitle" />
-												</caption>
+												</h2>
+											</header>
 
-												<thead>
-													<tr>
-														<th scope="col">
-															<fmt:message key="marketperformance.company" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.beginprice" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.high" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.low" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.endprice" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.change" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.changePer" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.totalvolume" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.value" />
-														</th>
-													</tr>
-												</thead>
+											<div class="table-responsive">
+												<table class="table table-market"
+													data-market-performance-table="gainers">
 
-												<tbody></tbody>
-											</table>
-										</div>
-									</section>
+													<caption class="visually-hidden">
+														<fmt:message key="marketperformance.gainersTitle" />
+													</caption>
 
-									<section class="market-performance__group"
-										aria-labelledby="market-performance-adjusted-losers-title"
-										data-market-performance-group="losers">
+													<thead>
+														<tr>
+															<th scope="col">
+																<fmt:message key="marketperformance.company" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.beginprice" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.high" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.low" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.endprice" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.change" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.changePer" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.totalvolume" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.value" />
+															</th>
+														</tr>
+													</thead>
 
-										<header class="market-performance__group-header">
-											<h2 class="market-performance__group-title"
-												id="market-performance-adjusted-losers-title">
-												<fmt:message key="marketperformance.losersTitle" />
-											</h2>
-										</header>
+													<tbody></tbody>
+												</table>
+											</div>
+										</section>
 
-										<div class="table-responsive">
-											<table class="table table-market"
-												data-market-performance-table="losers">
+										<section class="market-performance__group"
+											aria-labelledby="market-performance-adjusted-losers-title"
+											data-market-performance-group="losers">
 
-												<caption class="visually-hidden">
+											<header class="market-performance__group-header">
+												<h2 class="market-performance__group-title"
+													id="market-performance-adjusted-losers-title">
 													<fmt:message key="marketperformance.losersTitle" />
-												</caption>
+												</h2>
+											</header>
 
-												<thead>
-													<tr>
-														<th scope="col">
-															<fmt:message key="marketperformance.company" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.beginprice" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.high" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.low" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.endprice" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.change" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.changePer" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.totalvolume" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.value" />
-														</th>
-													</tr>
-												</thead>
+											<div class="table-responsive">
+												<table class="table table-market"
+													data-market-performance-table="losers">
 
-												<tbody></tbody>
-											</table>
-										</div>
-									</section>
+													<caption class="visually-hidden">
+														<fmt:message key="marketperformance.losersTitle" />
+													</caption>
 
+													<thead>
+														<tr>
+															<th scope="col">
+																<fmt:message key="marketperformance.company" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.beginprice" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.high" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.low" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.endprice" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.change" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.changePer" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.totalvolume" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.value" />
+															</th>
+														</tr>
+													</thead>
+
+													<tbody></tbody>
+												</table>
+											</div>
+										</section>
+
+									</div>
 								</div>
 							</div>
 
@@ -2153,180 +2155,181 @@ function formatMoneyhtml(val) {
 								</div>
 							</div>
 
-							<div class="data-view__desktop">
+							<div class="data-view__table">
+								<div class="data-view__table-block">
+									<%-- Active ------------------------------------------- --%>
 
-								<%-- Active ------------------------------------------- --%>
+									<div class="market-performance__active-result"
+										data-market-performance-active-region>
 
-								<div class="market-performance__active-result"
-									data-market-performance-active-region>
+										<div class="table-responsive">
+											<table class="table table-market"
+												data-market-performance-table="active">
 
-									<div class="table-responsive">
-										<table class="table table-market"
-											data-market-performance-table="active">
+												<caption class="visually-hidden">
+													<fmt:message key="marketperformance.NonAdjusted" />
+												</caption>
 
-											<caption class="visually-hidden">
-												<fmt:message key="marketperformance.NonAdjusted" />
-											</caption>
+												<thead>
+													<tr>
+														<th scope="col">
+															<fmt:message key="marketperformance.company" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.beginprice" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.high" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.low" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.endprice" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.change" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.changePer" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.totalvolume" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.value" />
+														</th>
+													</tr>
+												</thead>
 
-											<thead>
-												<tr>
-													<th scope="col">
-														<fmt:message key="marketperformance.company" />
-													</th>
-													<th scope="col" class="text-end">
-														<fmt:message key="marketperformance.beginprice" />
-													</th>
-													<th scope="col" class="text-end">
-														<fmt:message key="marketperformance.high" />
-													</th>
-													<th scope="col" class="text-end">
-														<fmt:message key="marketperformance.low" />
-													</th>
-													<th scope="col" class="text-end">
-														<fmt:message key="marketperformance.endprice" />
-													</th>
-													<th scope="col" class="text-end">
-														<fmt:message key="marketperformance.change" />
-													</th>
-													<th scope="col" class="text-end">
-														<fmt:message key="marketperformance.changePer" />
-													</th>
-													<th scope="col" class="text-end">
-														<fmt:message key="marketperformance.totalvolume" />
-													</th>
-													<th scope="col" class="text-end">
-														<fmt:message key="marketperformance.value" />
-													</th>
-												</tr>
-											</thead>
-
-											<tbody></tbody>
-										</table>
+												<tbody></tbody>
+											</table>
+										</div>
 									</div>
-								</div>
 
-								<%-- Gainers / Losers -------------------------------- --%>
+									<%-- Gainers / Losers -------------------------------- --%>
 
-								<div class="market-performance__split-result"
-									data-market-performance-split-region
-									hidden>
+									<div class="market-performance__split-result"
+										data-market-performance-split-region
+										hidden>
 
-									<section class="market-performance__group"
-										aria-labelledby="market-performance-non-adjusted-gainers-title"
-										data-market-performance-group="gainers">
+										<section class="market-performance__group"
+											aria-labelledby="market-performance-non-adjusted-gainers-title"
+											data-market-performance-group="gainers">
 
-										<header class="market-performance__group-header">
-											<h2 class="market-performance__group-title"
-												id="market-performance-non-adjusted-gainers-title">
-												<fmt:message key="marketperformance.gainersTitle" />
-											</h2>
-										</header>
-
-										<div class="table-responsive">
-											<table class="table table-market"
-												data-market-performance-table="gainers">
-
-												<caption class="visually-hidden">
+											<header class="market-performance__group-header">
+												<h2 class="market-performance__group-title"
+													id="market-performance-non-adjusted-gainers-title">
 													<fmt:message key="marketperformance.gainersTitle" />
-												</caption>
+												</h2>
+											</header>
 
-												<thead>
-													<tr>
-														<th scope="col">
-															<fmt:message key="marketperformance.company" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.beginprice" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.high" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.low" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.endprice" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.change" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.changePer" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.totalvolume" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.value" />
-														</th>
-													</tr>
-												</thead>
+											<div class="table-responsive">
+												<table class="table table-market"
+													data-market-performance-table="gainers">
 
-												<tbody></tbody>
-											</table>
-										</div>
-									</section>
+													<caption class="visually-hidden">
+														<fmt:message key="marketperformance.gainersTitle" />
+													</caption>
 
-									<section class="market-performance__group"
-										aria-labelledby="market-performance-non-adjusted-losers-title"
-										data-market-performance-group="losers">
+													<thead>
+														<tr>
+															<th scope="col">
+																<fmt:message key="marketperformance.company" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.beginprice" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.high" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.low" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.endprice" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.change" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.changePer" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.totalvolume" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.value" />
+															</th>
+														</tr>
+													</thead>
 
-										<header class="market-performance__group-header">
-											<h2 class="market-performance__group-title"
-												id="market-performance-non-adjusted-losers-title">
-												<fmt:message key="marketperformance.losersTitle" />
-											</h2>
-										</header>
+													<tbody></tbody>
+												</table>
+											</div>
+										</section>
 
-										<div class="table-responsive">
-											<table class="table table-market"
-												data-market-performance-table="losers">
+										<section class="market-performance__group"
+											aria-labelledby="market-performance-non-adjusted-losers-title"
+											data-market-performance-group="losers">
 
-												<caption class="visually-hidden">
+											<header class="market-performance__group-header">
+												<h2 class="market-performance__group-title"
+													id="market-performance-non-adjusted-losers-title">
 													<fmt:message key="marketperformance.losersTitle" />
-												</caption>
+												</h2>
+											</header>
 
-												<thead>
-													<tr>
-														<th scope="col">
-															<fmt:message key="marketperformance.company" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.beginprice" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.high" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.low" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.endprice" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.change" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.changePer" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.totalvolume" />
-														</th>
-														<th scope="col" class="text-end">
-															<fmt:message key="marketperformance.value" />
-														</th>
-													</tr>
-												</thead>
+											<div class="table-responsive">
+												<table class="table table-market"
+													data-market-performance-table="losers">
 
-												<tbody></tbody>
-											</table>
-										</div>
-									</section>
+													<caption class="visually-hidden">
+														<fmt:message key="marketperformance.losersTitle" />
+													</caption>
 
+													<thead>
+														<tr>
+															<th scope="col">
+																<fmt:message key="marketperformance.company" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.beginprice" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.high" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.low" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.endprice" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.change" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.changePer" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.totalvolume" />
+															</th>
+															<th scope="col" class="text-end">
+																<fmt:message key="marketperformance.value" />
+															</th>
+														</tr>
+													</thead>
+
+													<tbody></tbody>
+												</table>
+											</div>
+										</section>
+
+									</div>
 								</div>
 							</div>
 
-							<div class="data-view__cards d-lg-none"
+							<div class="data-view__cards"
 								role="region"
 								aria-labelledby="market-performance-tab-non-adjusted">
 
