@@ -21,6 +21,11 @@ const MODES = Object.freeze({
   nonAdjusted: "non-adjusted",
 });
 
+const REPORT_VIEWS = Object.freeze({
+  active: "active",
+  split: "split",
+});
+
 const TAB_CHANGE_EVENT = "tabs:change";
 
 const SELECTORS = Object.freeze({
@@ -29,7 +34,14 @@ const SELECTORS = Object.freeze({
   activeTab: '[role="tab"][data-market-performance-mode][aria-selected="true"]',
   feature: "[data-market-performance-feature]",
   view: "[data-market-performance-view]",
-  table: "[data-market-performance-table]",
+
+  activeRegion: "[data-market-performance-active-region]",
+  splitRegion: "[data-market-performance-split-region]",
+
+  activeTable: '[data-market-performance-table="active"]',
+  gainersTable: '[data-market-performance-table="gainers"]',
+  losersTable: '[data-market-performance-table="losers"]',
+
   cards: "[data-market-performance-cards]",
   resultCount: "[data-market-performance-result-count]",
   status: "[data-market-performance-status]",
@@ -60,11 +72,17 @@ function getModeRequestValue(mode, config) {
     : config.request.adjusted;
 }
 
-function isGainersLosersReport(reportFilter, config) {
+function isSplitReport(reportFilter, config) {
   return (
     reportFilter === config.request.report.gainersLosersValue ||
     reportFilter === config.request.report.gainersLosersPercent
   );
+}
+
+function getReportView(reportFilter, config) {
+  return isSplitReport(reportFilter, config)
+    ? REPORT_VIEWS.split
+    : REPORT_VIEWS.active;
 }
 
 function buildRequestData(filters, mode, config) {
@@ -99,12 +117,42 @@ function createSource({ endpoint, group, mode, config }) {
   });
 }
 
+function createTable({ root, selector, definition, config }) {
+  return createDataTable({
+    root,
+    table: selector,
+    headerMode: "existing",
+
+    getColumns() {
+      return definition.getColumns();
+    },
+
+    renderCell(context) {
+      return definition.renderCell(context);
+    },
+
+    tableOptions: definition.tableOptions,
+    loadingRowCount: 6,
+    emptyMessage: config.labels.noData,
+    errorMessage: config.labels.error,
+  });
+}
+
 function createModeFeature({ root, mode, config }) {
   if (!root) {
     throw new Error(`[Market Performance] Missing feature root for "${mode}".`);
   }
 
   const viewElement = root.querySelector(SELECTORS.view);
+  const activeRegion = root.querySelector(SELECTORS.activeRegion);
+  const splitRegion = root.querySelector(SELECTORS.splitRegion);
+
+  if (!viewElement || !activeRegion || !splitRegion) {
+    throw new Error(
+      `[Market Performance] Incomplete result markup for "${mode}".`,
+    );
+  }
+
   const tableDefinition = createMarketPerformanceTable(config);
   const cardsDefinition = createMarketPerformanceCards(config);
 
@@ -115,31 +163,27 @@ function createModeFeature({ root, mode, config }) {
     error: null,
   });
 
-  const table = createDataTable({
-    root,
-    table: SELECTORS.table,
-    headerMode: "existing",
+  const tables = Object.freeze({
+    active: createTable({
+      root,
+      selector: SELECTORS.activeTable,
+      definition: tableDefinition,
+      config,
+    }),
 
-    getColumns() {
-      return tableDefinition.getColumns();
-    },
+    gainers: createTable({
+      root,
+      selector: SELECTORS.gainersTable,
+      definition: tableDefinition,
+      config,
+    }),
 
-    renderCell(context) {
-      return tableDefinition.renderCell(context);
-    },
-
-    getRowGroup(row) {
-      return tableDefinition.getRowGroup(row);
-    },
-
-    renderRowGroupStart(context) {
-      return tableDefinition.renderRowGroupStart(context);
-    },
-
-    tableOptions: tableDefinition.tableOptions,
-    loadingRowCount: 6,
-    emptyMessage: config.labels.noData,
-    errorMessage: config.labels.error,
+    losers: createTable({
+      root,
+      selector: SELECTORS.losersTable,
+      definition: tableDefinition,
+      config,
+    }),
   });
 
   const cards = createDataCards({
@@ -171,6 +215,7 @@ function createModeFeature({ root, mode, config }) {
     count: SELECTORS.resultCount,
     status: SELECTORS.status,
     initialCount: 0,
+
     labels: {
       results: "",
       loading: config.labels.loading,
@@ -205,12 +250,13 @@ function createModeFeature({ root, mode, config }) {
   let hasLoaded = false;
   let destroyed = false;
   let loadId = 0;
+  let currentReportView = REPORT_VIEWS.active;
 
   function syncBusyState(loading) {
     const value = String(Boolean(loading));
 
     root.setAttribute("aria-busy", value);
-    viewElement?.setAttribute("aria-busy", value);
+    viewElement.setAttribute("aria-busy", value);
   }
 
   function cancelRequests() {
@@ -219,53 +265,131 @@ function createModeFeature({ root, mode, config }) {
     losersSource.cancel();
   }
 
-  function renderLoading() {
-    syncBusyState(true);
-    table.showLoading();
-    cards.showLoading();
-    results.showLoading();
+  function showReportView(reportView) {
+    currentReportView = reportView;
+
+    const split = reportView === REPORT_VIEWS.split;
+
+    activeRegion.hidden = split;
+    splitRegion.hidden = !split;
   }
 
-  function renderRows(rows) {
+  function adjustActiveTables() {
+    window.requestAnimationFrame(() => {
+      if (destroyed) {
+        return;
+      }
+
+      if (currentReportView === REPORT_VIEWS.split) {
+        tables.gainers.adjust();
+        tables.losers.adjust();
+      } else {
+        tables.active.adjust();
+      }
+    });
+  }
+
+  function renderLoading(reportView) {
+    syncBusyState(true);
+    showReportView(reportView);
+    results.showLoading();
+    cards.showLoading();
+
+    if (reportView === REPORT_VIEWS.split) {
+      tables.gainers.showLoading();
+      tables.losers.showLoading();
+    } else {
+      tables.active.showLoading();
+    }
+
+    adjustActiveTables();
+  }
+
+  function renderActive(rows) {
     const normalizedRows = normalizeRows(rows);
 
     syncBusyState(false);
+    showReportView(REPORT_VIEWS.active);
 
     if (!normalizedRows.length) {
-      table.showEmpty(config.labels.noData);
+      tables.active.showEmpty(config.labels.noData);
       cards.showEmpty(config.labels.noData);
       results.showEmpty(config.labels.noData);
+      adjustActiveTables();
       return;
     }
 
-    table.setRows(normalizedRows);
+    tables.active.setRows(normalizedRows);
     cards.setRows(normalizedRows);
     results.showReady(normalizedRows.length);
-    table.adjust();
+
+    adjustActiveTables();
   }
 
-  function renderError(message) {
+  function renderSplit(gainers, losers) {
+    const gainersRows = normalizeRows(gainers);
+    const losersRows = normalizeRows(losers);
+    const allRows = [...gainersRows, ...losersRows];
+
     syncBusyState(false);
-    table.showError(message);
+    showReportView(REPORT_VIEWS.split);
+
+    if (gainersRows.length) {
+      tables.gainers.setRows(gainersRows);
+    } else {
+      tables.gainers.showEmpty(config.labels.noData);
+    }
+
+    if (losersRows.length) {
+      tables.losers.setRows(losersRows);
+    } else {
+      tables.losers.showEmpty(config.labels.noData);
+    }
+
+    if (allRows.length) {
+      cards.setRows(allRows);
+      results.showReady(allRows.length);
+    } else {
+      cards.showEmpty(config.labels.noData);
+      results.showEmpty(config.labels.noData);
+    }
+
+    adjustActiveTables();
+  }
+
+  function renderError(reportView, message) {
+    syncBusyState(false);
+    showReportView(reportView);
+
     cards.showError(message);
     results.showError(message);
+
+    if (reportView === REPORT_VIEWS.split) {
+      tables.gainers.showError(message);
+      tables.losers.showError(message);
+    } else {
+      tables.active.showError(message);
+    }
+
+    adjustActiveTables();
   }
 
   async function loadActive(filters) {
     const response = await activeSource.load(filters);
+
     return normalizeRows(response?.rows);
   }
 
-  async function loadGainersLosers(filters) {
+  async function loadSplit(filters) {
     const [gainersResponse, losersResponse] = await Promise.all([
       gainersSource.load(filters),
       losersSource.load(filters),
     ]);
 
-    return [
-      ...normalizeRows(gainersResponse?.rows),
-      ...normalizeRows(losersResponse?.rows),
-    ];
+    return {
+      gainers: normalizeRows(gainersResponse?.rows),
+      losers: normalizeRows(losersResponse?.rows),
+    };
   }
 
   async function reload(filters) {
@@ -275,6 +399,7 @@ function createModeFeature({ root, mode, config }) {
 
     const currentLoadId = ++loadId;
     const currentFilters = { ...filters };
+    const reportView = getReportView(currentFilters.reportFilter, config);
 
     cancelRequests();
 
@@ -289,12 +414,39 @@ function createModeFeature({ root, mode, config }) {
       },
     );
 
-    renderLoading();
+    renderLoading(reportView);
 
     try {
-      const rows = isGainersLosersReport(currentFilters.reportFilter, config)
-        ? await loadGainersLosers(currentFilters)
-        : await loadActive(currentFilters);
+      if (reportView === REPORT_VIEWS.split) {
+        const response = await loadSplit(currentFilters);
+
+        if (destroyed || currentLoadId !== loadId) {
+          return null;
+        }
+
+        const rows = [...response.gainers, ...response.losers];
+
+        hasLoaded = true;
+        dirty = false;
+
+        renderSplit(response.gainers, response.losers);
+
+        state.setState(
+          {
+            loading: false,
+            rows,
+            error: null,
+          },
+          {
+            type: "loaded",
+            source: mode,
+          },
+        );
+
+        return rows;
+      }
+
+      const rows = await loadActive(currentFilters);
 
       if (destroyed || currentLoadId !== loadId) {
         return null;
@@ -303,7 +455,7 @@ function createModeFeature({ root, mode, config }) {
       hasLoaded = true;
       dirty = false;
 
-      renderRows(rows);
+      renderActive(rows);
 
       state.setState(
         {
@@ -325,7 +477,7 @@ function createModeFeature({ root, mode, config }) {
 
       const message = getErrorMessage(error, config);
 
-      renderError(message);
+      renderError(reportView, message);
 
       state.setState(
         {
@@ -360,11 +512,11 @@ function createModeFeature({ root, mode, config }) {
       },
     );
 
-    table.adjust();
-
     if (!hasLoaded || dirty) {
       return reload(filters);
     }
+
+    adjustActiveTables();
 
     return Promise.resolve(state.getState().rows || []);
   }
@@ -376,6 +528,7 @@ function createModeFeature({ root, mode, config }) {
 
     active = false;
     loadId += 1;
+
     cancelRequests();
     syncBusyState(false);
 
@@ -396,15 +549,9 @@ function createModeFeature({ root, mode, config }) {
   }
 
   function adjust() {
-    if (destroyed) {
-      return;
+    if (!destroyed) {
+      adjustActiveTables();
     }
-
-    window.requestAnimationFrame(() => {
-      if (!destroyed) {
-        table.adjust();
-      }
-    });
   }
 
   function destroy() {
@@ -422,7 +569,10 @@ function createModeFeature({ root, mode, config }) {
     gainersSource.destroy?.();
     losersSource.destroy?.();
 
-    table.destroy();
+    tables.active.destroy();
+    tables.gainers.destroy();
+    tables.losers.destroy();
+
     cards.destroy();
     results.destroy();
     state.destroy();
@@ -468,29 +618,44 @@ function getInitialMode(tabs) {
     : MODES.adjusted;
 }
 
+function normalizeMode(value) {
+  const normalized = String(value ?? "")
+    .replace(/^#/, "")
+    .toLowerCase();
+
+  if (normalized.includes("non-adjusted")) {
+    return MODES.nonAdjusted;
+  }
+
+  if (
+    normalized === MODES.adjusted ||
+    normalized.includes("panel-adjusted") ||
+    normalized.includes("tab-adjusted")
+  ) {
+    return MODES.adjusted;
+  }
+
+  return "";
+}
+
 function getEventMode(event, tabs) {
   const detail = event?.detail || {};
 
-  const candidates = [
+  const values = [
     detail.tab?.dataset?.marketPerformanceMode,
+    detail.panel?.dataset?.marketPerformanceFeature,
     detail.panel?.querySelector?.(SELECTORS.feature)?.dataset
       ?.marketPerformanceFeature,
     detail.tabKey,
     detail.targetId,
+    detail.tab?.getAttribute?.("aria-controls"),
   ];
 
-  for (const candidate of candidates) {
-    const value = String(candidate ?? "");
+  for (const value of values) {
+    const mode = normalizeMode(value);
 
-    if (
-      value === MODES.adjusted ||
-      (value.includes("adjusted") && !value.includes("non-adjusted"))
-    ) {
-      return MODES.adjusted;
-    }
-
-    if (value === MODES.nonAdjusted || value.includes("non-adjusted")) {
-      return MODES.nonAdjusted;
+    if (mode) {
+      return mode;
     }
   }
 
@@ -558,7 +723,9 @@ export function initMarketPerformance(root = document) {
         return;
       }
 
-      features.forEach((feature) => feature.markDirty());
+      features.forEach((feature) => {
+        feature.markDirty();
+      });
 
       const activeFeature = features.get(activeMode);
 
@@ -575,19 +742,16 @@ export function initMarketPerformance(root = document) {
       return Promise.resolve(null);
     }
 
-    if (mode === activeMode) {
-      const feature = features.get(mode);
+    const currentFeature = features.get(activeMode);
 
-      if (feature?.isActive()) {
-        feature.adjust();
-        return Promise.resolve(feature);
-      }
+    if (mode === activeMode && currentFeature?.isActive()) {
+      currentFeature.adjust();
+
+      return Promise.resolve(currentFeature);
     }
 
-    const previousFeature = features.get(activeMode);
-
-    if (previousFeature && activeMode !== mode) {
-      previousFeature.deactivate();
+    if (currentFeature && activeMode !== mode) {
+      currentFeature.deactivate();
     }
 
     activeMode = mode;
@@ -597,6 +761,7 @@ export function initMarketPerformance(root = document) {
     return Promise.resolve(nextFeature.activate(filters.getValues()))
       .then(() => {
         nextFeature.adjust();
+
         return nextFeature;
       })
       .catch((error) => {
@@ -614,6 +779,7 @@ export function initMarketPerformance(root = document) {
     }
 
     const mode = getEventMode(event, tabs);
+
     void activateMode(mode);
   }
 
@@ -633,9 +799,11 @@ export function initMarketPerformance(root = document) {
       filters.destroy();
       unbindLogoFallback?.();
 
-      features.forEach((feature) => feature.destroy());
-      features.clear();
+      features.forEach((feature) => {
+        feature.destroy();
+      });
 
+      features.clear();
       instances.delete(pageRoot);
     },
 

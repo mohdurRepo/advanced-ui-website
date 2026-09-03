@@ -27,17 +27,17 @@ function isFilterType(type) {
   return type === DATA_TABLE_TYPES.filter;
 }
 
-function numericSortValue(value) {
+function getNumericSortValue(value) {
   return typeof value === "number" && Number.isFinite(value) ? value : "";
 }
 
-function textSortValue(value) {
+function getTextSortValue(value) {
   return String(value ?? "")
     .trim()
     .toLocaleLowerCase();
 }
 
-function displayNumber(value, locale, fractionDigits = 2) {
+function formatNumber(value, locale, fractionDigits = 2) {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return "-";
   }
@@ -48,7 +48,7 @@ function displayNumber(value, locale, fractionDigits = 2) {
   }).format(value);
 }
 
-function displayQuantity(value, locale) {
+function formatQuantity(value, locale) {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return "-";
   }
@@ -60,45 +60,6 @@ function displayQuantity(value, locale) {
 
 function renderLoadingCell(size = "md") {
   return `<span class="table-skeleton table-skeleton-${size}" aria-hidden="true"></span>`;
-}
-
-function renderCompany(row, type, config) {
-  if (isSortType(type)) {
-    return textSortValue(row?.companyName || row?.companyCode);
-  }
-
-  if (isFilterType(type)) {
-    return [row?.companyName, row?.companyCode].filter(Boolean).join(" ");
-  }
-
-  return renderStandardCompanyCell(row, {
-    logoUrlTemplate: config.assets.companyLogoUrlTemplate,
-    logoFallbackUrl: config.assets.companyLogoFallbackUrl,
-  });
-}
-
-function renderNumber(value, type, config, fractionDigits = 2) {
-  if (isSortType(type)) {
-    return numericSortValue(value);
-  }
-
-  if (isFilterType(type)) {
-    return value ?? "";
-  }
-
-  return displayNumber(value, config.locale, fractionDigits);
-}
-
-function renderQuantity(value, type, config) {
-  if (isSortType(type)) {
-    return numericSortValue(value);
-  }
-
-  if (isFilterType(type)) {
-    return value ?? "";
-  }
-
-  return displayQuantity(value, config.locale);
 }
 
 function getChangeClass(value) {
@@ -113,31 +74,72 @@ function getChangeClass(value) {
   return "priceEqual";
 }
 
-function getChangeIcon(value) {
+function renderTrendIcon(value) {
   if (value > 0) {
     return `
-			<svg class="pc-icon pr-3 link-icon ml-2" width="20" height="20" aria-hidden="true">
-				<use xlink:href="#custom-arrow-up-right"></use>
-			</svg>
+			<span
+				class="has-icon icon-trending-up icon-2xl"
+				aria-hidden="true">
+			</span>
 		`.trim();
   }
 
   if (value < 0) {
     return `
-			<svg class="pc-icon pr-3 link-icon ml-2" width="20" height="20" aria-hidden="true">
-				<use xlink:href="#custom-arrow-down-right"></use>
-			</svg>
+			<span
+				class="has-icon icon-trending-down icon-2xl"
+				aria-hidden="true">
+			</span>
 		`.trim();
   }
 
   return "";
 }
 
+function renderCompany(row, type, config) {
+  if (isSortType(type)) {
+    return getTextSortValue(row?.companyName || row?.companyCode);
+  }
+
+  if (isFilterType(type)) {
+    return [row?.companyName, row?.companyCode].filter(Boolean).join(" ");
+  }
+
+  return renderStandardCompanyCell(row, {
+    logoUrlTemplate: config.assets.companyLogoUrlTemplate,
+    logoFallbackUrl: config.assets.companyLogoFallbackUrl,
+  });
+}
+
+function renderNumber(value, type, config, fractionDigits = 2) {
+  if (isSortType(type)) {
+    return getNumericSortValue(value);
+  }
+
+  if (isFilterType(type)) {
+    return value ?? "";
+  }
+
+  return formatNumber(value, config.locale, fractionDigits);
+}
+
+function renderQuantity(value, type, config) {
+  if (isSortType(type)) {
+    return getNumericSortValue(value);
+  }
+
+  if (isFilterType(type)) {
+    return value ?? "";
+  }
+
+  return formatQuantity(value, config.locale);
+}
+
 function renderChangeValue(row, type, config) {
   const value = row?.changeValue;
 
   if (isSortType(type)) {
-    return numericSortValue(value);
+    return getNumericSortValue(value);
   }
 
   if (isFilterType(type)) {
@@ -145,19 +147,22 @@ function renderChangeValue(row, type, config) {
   }
 
   return `
-		<div class="${getChangeClass(value)}">
-			${displayNumber(value, config.locale, 2)}
-			<i aria-hidden="true"></i>
+		<div class="market-performance__change ${getChangeClass(value)} d-flex align-items-center justify-content-end gap-1">
+			<span class="market-performance__change-value">
+				${formatNumber(value, config.locale)}
+			</span>
+
+			${renderTrendIcon(value)}
 		</div>
 	`.trim();
 }
 
 function renderChangePercent(row, type, config) {
   const value = row?.changePercent;
-  const changeValue = row?.changeValue;
+  const directionValue = row?.changeValue;
 
   if (isSortType(type)) {
-    return numericSortValue(value);
+    return getNumericSortValue(value);
   }
 
   if (isFilterType(type)) {
@@ -165,76 +170,97 @@ function renderChangePercent(row, type, config) {
   }
 
   return `
-		<div class="${getChangeClass(changeValue)}">
-			${getChangeIcon(changeValue)}
-			${displayNumber(value, config.locale, 2)}
-			<i aria-hidden="true"></i>
+		<div class="market-performance__change-percent ${getChangeClass(directionValue)}">
+			${formatNumber(value, config.locale)}
 		</div>
 	`.trim();
 }
 
 function createColumns(config) {
+  const labels = config.labels.table;
+
   return [
     {
       key: COLUMN_KEYS.company,
-      label: config.labels.table.company,
+      label: labels.company,
+      width: "18%",
       className: "market-performance__company-cell",
+      headerClassName: "market-performance__company-heading",
       orderable: true,
       searchable: false,
     },
     {
       key: COLUMN_KEYS.open,
-      label: config.labels.table.open,
-      className: "text-end",
+      label: labels.open,
+      width: "8%",
+      className: "market-performance__number text-end",
+      headerClassName: "text-end",
       orderable: true,
       searchable: false,
     },
     {
       key: COLUMN_KEYS.high,
-      label: config.labels.table.high,
-      className: "text-end",
+      label: labels.high,
+      width: "8%",
+      className: "market-performance__number text-end",
+      headerClassName: "text-end",
       orderable: true,
       searchable: false,
     },
     {
       key: COLUMN_KEYS.low,
-      label: config.labels.table.low,
-      className: "text-end",
+      label: labels.low,
+      width: "8%",
+      className: "market-performance__number text-end",
+      headerClassName: "text-end",
       orderable: true,
       searchable: false,
     },
     {
       key: COLUMN_KEYS.close,
-      label: config.labels.table.close,
-      className: "text-end",
+      label: labels.close,
+      width: "8%",
+      className: "market-performance__number text-end",
+      headerClassName: "text-end",
       orderable: true,
       searchable: false,
     },
     {
       key: COLUMN_KEYS.change,
-      label: config.labels.table.change,
-      className: "text-end",
+      label: labels.change,
+      width: "9%",
+      className:
+        "market-performance__number market-performance__change-cell text-end",
+      headerClassName: "text-end",
       orderable: true,
       searchable: false,
     },
     {
       key: COLUMN_KEYS.changePercent,
-      label: config.labels.table.changePercent,
-      className: "text-end",
+      label: labels.changePercent,
+      width: "9%",
+      className:
+        "market-performance__number market-performance__change-percent-cell text-end",
+      headerClassName: "text-end",
       orderable: true,
       searchable: false,
     },
     {
       key: COLUMN_KEYS.volume,
-      label: config.labels.table.volume,
-      className: "text-end",
+      label: labels.volume,
+      width: "15%",
+      className: "market-performance__number text-end",
+      headerClassName: "text-end",
       orderable: true,
       searchable: false,
     },
     {
       key: COLUMN_KEYS.value,
-      label: config.labels.table.value,
-      className: "text-end",
+      label: labels.value,
+      width: "17%",
+      className:
+        "market-performance__number market-performance__value-cell text-end",
+      headerClassName: "text-end",
       orderable: true,
       searchable: false,
     },
@@ -283,28 +309,6 @@ function createCellRenderer(config) {
   };
 }
 
-function getGroupLabel(group, config) {
-  if (group === "gainers") {
-    return config.labels.gainers;
-  }
-
-  if (group === "losers") {
-    return config.labels.losers;
-  }
-
-  return "";
-}
-
-function renderRowGroupStart({ groupName }, config) {
-  const label = getGroupLabel(groupName, config);
-
-  if (!label) {
-    return null;
-  }
-
-  return label;
-}
-
 export function createMarketPerformanceTable(config) {
   const columns = createColumns(config);
 
@@ -315,15 +319,8 @@ export function createMarketPerformanceTable(config) {
 
     renderCell: createCellRenderer(config),
 
-    getRowGroup(row) {
-      return row?.resultGroup || "active";
-    },
-
-    renderRowGroupStart(context) {
-      return renderRowGroupStart(context, config);
-    },
-
     tableOptions: Object.freeze({
+      autoWidth: false,
       paging: false,
       searching: false,
       ordering: true,
@@ -334,8 +331,8 @@ export function createMarketPerformanceTable(config) {
       scrollCollapse: true,
       fixedHeader: true,
       fixedColumns: false,
-      rowGroup: {},
-      responsive: true,
+      rowGroup: false,
+      responsive: false,
       language: {
         emptyTable: config.labels.noData,
         zeroRecords: config.labels.noData,

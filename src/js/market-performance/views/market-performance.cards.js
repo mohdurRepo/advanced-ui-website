@@ -1,4 +1,7 @@
-import { renderStandardCompanyCardIdentity } from "../../../common/data-view/index.js";
+import {
+  renderStandardCompanyCardIdentity,
+  renderStandardDataCard,
+} from "../../../common/data-view/index.js";
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -42,74 +45,117 @@ function getChangeClass(value) {
   return "priceEqual";
 }
 
-function getChangeIcon(value) {
+function renderTrendIcon(value) {
   if (value > 0) {
     return `
-			<svg class="pc-icon link-icon" width="18" height="18" aria-hidden="true">
-				<use xlink:href="#custom-arrow-up-right"></use>
-			</svg>
+			<span
+				class="has-icon icon-trending-up icon-2xl icon-accent"
+				aria-hidden="true">
+			</span>
 		`.trim();
   }
 
   if (value < 0) {
     return `
-			<svg class="pc-icon link-icon" width="18" height="18" aria-hidden="true">
-				<use xlink:href="#custom-arrow-down-right"></use>
-			</svg>
+			<span
+				class="has-icon icon-trending-down icon-2xl"
+				aria-hidden="true">
+			</span>
 		`.trim();
   }
 
   return "";
 }
 
-function renderMetric(label, value) {
-  return `
-		<div class="data-card__metric">
-			<span class="data-card__metric-label">${escapeHtml(label)}</span>
-			<span class="data-card__metric-value">${escapeHtml(value)}</span>
-		</div>
-	`.trim();
-}
-
-function renderChange(row, config) {
-  const className = getChangeClass(row?.changeValue);
-  const change = formatNumber(row?.changeValue, config.locale);
-  const percent = formatNumber(row?.changePercent, config.locale);
+function renderSummary(row, config) {
+  const changeClass = getChangeClass(row?.changeValue);
+  const changeValue = formatNumber(row?.changeValue, config.locale);
+  const changePercent = formatNumber(row?.changePercent, config.locale);
 
   return `
-		<div class="data-card__change ${className}">
-			${getChangeIcon(row?.changeValue)}
-			<span>${escapeHtml(change)} (${escapeHtml(percent)}%)</span>
-		</div>
-	`.trim();
-}
+		<div class="data-card__summary">
+			${renderStandardCompanyCardIdentity(row, {
+        logoUrlTemplate: config.assets.companyLogoUrlTemplate,
+        logoFallbackUrl: config.assets.companyLogoFallbackUrl,
+      })}
 
-function renderCard(row, config) {
-  const labels = config.labels.table;
+			<div class="data-card__quote">
+				<div class="data-card__change ${changeClass}">
+					${renderTrendIcon(row?.changeValue)}
 
-  return `
-		<article class="data-card market-performance-card">
-			<header class="data-card__header market-performance-card__header">
-				${renderStandardCompanyCardIdentity(row, {
-          logoUrlTemplate: config.assets.companyLogoUrlTemplate,
-          logoFallbackUrl: config.assets.companyLogoFallbackUrl,
-        })}
+					<span class="data-card__change-value">
+						${escapeHtml(changeValue)}
+					</span>
 
-				${renderChange(row, config)}
-			</header>
-
-			<div class="data-card__body">
-				<div class="data-card__metrics">
-					${renderMetric(labels.open, formatNumber(row?.openPrice, config.locale))}
-					${renderMetric(labels.high, formatNumber(row?.highPrice, config.locale))}
-					${renderMetric(labels.low, formatNumber(row?.lowPrice, config.locale))}
-					${renderMetric(labels.close, formatNumber(row?.closePrice, config.locale))}
-					${renderMetric(labels.volume, formatQuantity(row?.volumeTraded, config.locale))}
-					${renderMetric(labels.value, formatNumber(row?.value, config.locale))}
+					<span class="data-card__change-percent">
+						(${escapeHtml(changePercent)}%)
+					</span>
 				</div>
 			</div>
-		</article>
+		</div>
 	`.trim();
+}
+
+function createFields(row, config) {
+  const labels = config.labels.table;
+
+  return [
+    {
+      label: labels.open,
+      value: escapeHtml(formatNumber(row?.openPrice, config.locale)),
+      numeric: true,
+    },
+    {
+      label: labels.high,
+      value: escapeHtml(formatNumber(row?.highPrice, config.locale)),
+      numeric: true,
+    },
+    {
+      label: labels.low,
+      value: escapeHtml(formatNumber(row?.lowPrice, config.locale)),
+      numeric: true,
+    },
+    {
+      label: labels.close,
+      value: escapeHtml(formatNumber(row?.closePrice, config.locale)),
+      numeric: true,
+    },
+    {
+      label: labels.volume,
+      value: escapeHtml(formatQuantity(row?.volumeTraded, config.locale)),
+      numeric: true,
+    },
+    {
+      label: labels.value,
+      value: escapeHtml(formatNumber(row?.value, config.locale)),
+      numeric: true,
+    },
+  ];
+}
+
+function getRowId(row, index) {
+  const companyCode = String(row?.companyCode ?? "").trim();
+
+  return companyCode
+    ? `${companyCode}-${index}`
+    : `market-performance-${index}`;
+}
+
+function renderCard(row, context, config) {
+  const companyName =
+    String(row?.companyName ?? "").trim() ||
+    String(row?.companyCode ?? "").trim() ||
+    "Company";
+
+  return renderStandardDataCard({
+    idPrefix: "market-performance-card-details",
+    rowId: getRowId(row, context?.index ?? 0),
+    className: "data-card--market-performance",
+    summary: renderSummary(row, config),
+    fields: createFields(row, config),
+    moreLabel: `Show details ${companyName}`,
+    lessLabel: `Hide details ${companyName}`,
+  });
 }
 
 function getGroupLabel(groupKey, config) {
@@ -130,8 +176,17 @@ function renderGroup({ groupKey, groupLabel, cards }) {
   }
 
   return `
-		<section class="data-card-group" data-data-card-group>
-			<h3 class="data-card-group__title">${escapeHtml(groupLabel)}</h3>
+		<section
+			class="data-card-group market-performance__card-group"
+			data-data-card-group
+			data-market-performance-card-group="${escapeHtml(groupKey)}"
+		>
+			<header class="data-card-group__header">
+				<h3 class="data-card-group__title">
+					${escapeHtml(groupLabel)}
+				</h3>
+			</header>
+
 			<div class="data-card-group__items">
 				${cards}
 			</div>
@@ -141,8 +196,8 @@ function renderGroup({ groupKey, groupLabel, cards }) {
 
 export function createMarketPerformanceCards(config) {
   return Object.freeze({
-    renderCard(row) {
-      return renderCard(row, config);
+    renderCard(row, context = {}) {
+      return renderCard(row, context, config);
     },
 
     getGroupKey(row) {

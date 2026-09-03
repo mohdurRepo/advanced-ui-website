@@ -1641,7 +1641,6 @@ function formatMoneyhtml(val) {
 	</div>
 </section>
 
-
 <%-- =========================================================================
      Market Performance
      ========================================================================= --%>
@@ -1649,6 +1648,7 @@ function formatMoneyhtml(val) {
 <section class="section market-performance"
 	aria-labelledby="market-performance-page-title"
 	data-market-performance>
+
 	<div class="container">
 
 		<div class="tabs market-performance__tabs"
@@ -1656,7 +1656,7 @@ function formatMoneyhtml(val) {
 			data-market-performance-tabs>
 
 			<%-- =================================================================
-			     Adjusted / Non-Adjusted Tabs
+			     Tabs
 			     ================================================================= --%>
 
 			<div class="tabs-nav"
@@ -1671,6 +1671,7 @@ function formatMoneyhtml(val) {
 					aria-controls="market-performance-panel-adjusted"
 					data-tab-target="market-performance-panel-adjusted"
 					data-market-performance-mode="adjusted">
+
 					<fmt:message key="marketperformance.Adjusted.tabtext" />
 				</button>
 
@@ -1682,27 +1683,24 @@ function formatMoneyhtml(val) {
 					aria-controls="market-performance-panel-non-adjusted"
 					data-tab-target="market-performance-panel-non-adjusted"
 					data-market-performance-mode="non-adjusted">
+
 					<fmt:message key="marketperformance.NonAdjusted" />
 				</button>
 
 			</div>
 
-
 			<%-- =================================================================
 			     Shared Filters
 			     ================================================================= --%>
 
-			<form class="filter-bar filter-bar--connected"
-				aria-labelledby="market-performance-page-title"
+			<form class="filter-bar filter-bar--connected market-performance__filters"
 				data-market-performance-filters
 				novalidate>
 
 				<div class="filter-bar__inner">
 					<div class="filter-bar__fields grid-3">
 
-						<%-- =====================================================
-						     Report
-						     ===================================================== --%>
+						<%-- Report ------------------------------------------------ --%>
 
 						<div class="filter-bar__field">
 							<label class="form-label"
@@ -1715,7 +1713,7 @@ function formatMoneyhtml(val) {
 
 									<select class="form-select custom-select__native"
 										id="market-performance-report"
-										name="<%=MarketPerformanceConstants.PARAMETER_REPORT_Filter%>"
+										name="reportFilter"
 										data-market-performance-report>
 
 										<option
@@ -1742,10 +1740,7 @@ function formatMoneyhtml(val) {
 							</div>
 						</div>
 
-
-						<%-- =====================================================
-						     Period
-						     ===================================================== --%>
+						<%-- Period ------------------------------------------------ --%>
 
 						<div class="filter-bar__field">
 							<label class="form-label"
@@ -1758,7 +1753,7 @@ function formatMoneyhtml(val) {
 
 									<select class="form-select custom-select__native"
 										id="market-performance-period"
-										name="<%=MarketPerformanceConstants.PARAMETER_TIME_FRAME_Filter%>"
+										name="timeFrameFilter"
 										data-market-performance-period>
 
 										<option value="7 Days"
@@ -1805,7 +1800,7 @@ function formatMoneyhtml(val) {
 
 										<option value="1 Years"
 											<c:if test="${empty requestScope.viewMarketPerformance.previousTimeFrameFilter
-												or '1 Years' eq requestScope.viewMarketPerformance.previousTimeFrameFilter}">
+												|| '1 Years' eq requestScope.viewMarketPerformance.previousTimeFrameFilter}">
 												selected
 											</c:if>>
 											<fmt:message key="marketperformance.1year" />
@@ -1840,10 +1835,7 @@ function formatMoneyhtml(val) {
 							</div>
 						</div>
 
-
-						<%-- =====================================================
-						     Sector
-						     ===================================================== --%>
+						<%-- Sector ------------------------------------------------ --%>
 
 						<div class="filter-bar__field">
 							<label class="form-label"
@@ -1851,33 +1843,28 @@ function formatMoneyhtml(val) {
 								<fmt:message key="marketperformance.sector" />
 							</label>
 
-							<div class="custom-select"
-								data-custom-select
-								data-searchable>
-
+							<div class="custom-select" data-custom-select>
 								<div class="form-select-wrap custom-select__fallback">
 
 									<select class="form-select custom-select__native"
 										id="market-performance-sector"
-										name="<%=MarketPerformanceConstants.PARAMETER_SECTOR_Filter%>"
+										name="sectorFilter"
 										data-market-performance-sector>
 
 										<option
 											value="<%=MarketPerformanceConstants.FORM_ACTION_VIEW_ALL_MARKET%>"
 											<c:if test="${empty requestScope.viewMarketPerformance.previousSectorFilter
-												or requestScope.viewMarketPerformance.previousSectorFilter eq 'viewAllMarket'
-												or requestScope.viewMarketPerformance.previousSectorFilter eq 'viewAllmarket'}">
+												|| requestScope.viewMarketPerformance.previousSectorFilter eq 'viewAllMarket'
+												|| requestScope.viewMarketPerformance.previousSectorFilter eq 'viewAllmarket'}">
 												selected
 											</c:if>>
 											<fmt:message key="marketperformance.allMarket" />
 										</option>
 
-										<c:forEach
-											items="${requestScope.viewMarketPerformance.allSectors}"
-											var="sector">
+										<c:forEach var="sector"
+											items="${requestScope.viewMarketPerformance.allSectors}">
 
-											<option
-												value="<c:out value='${sector.pk_rf_sector}' />"
+											<option value="${sector.pk_rf_sector}"
 												<c:if test="${fn:contains(
 													requestScope.viewMarketPerformance.previousSectorFilter,
 													sector.pk_rf_sector
@@ -1901,7 +1888,6 @@ function formatMoneyhtml(val) {
 				</div>
 			</form>
 
-
 			<%-- =================================================================
 			     Tab Content
 			     ================================================================= --%>
@@ -1920,132 +1906,219 @@ function formatMoneyhtml(val) {
 					<div data-market-performance-feature="adjusted">
 
 						<section class="data-view data-view--connected"
-							aria-labelledby="market-performance-tab-adjusted"
-							aria-busy="false"
-							data-market-performance-view>
+							data-market-performance-view
+							aria-busy="false">
 
-							<div class="data-view__workspace">
+							<%-- Toolbar --------------------------------------------- --%>
 
-								<%-- =================================================
-								     Adjusted Desktop / Tablet Table
-								     ================================================= --%>
+							<div class="data-view__toolbar">
+								<div class="data-view__result">
 
-								<div class="data-view__table">
-									<div class="data-view__table-block">
+									<strong class="data-view__result-count"
+										data-market-performance-result-count>
+										0
+									</strong>
 
-										<div class="data-view__toolbar">
-											<div class="data-view__toolbar-start">
-												<p class="data-view__result-count"
-													id="market-performance-adjusted-results"
-													aria-live="polite">
-													<strong data-market-performance-result-count
-														data-result-count-value>0</strong>
-												</p>
-											</div>
-										</div>
+									<span class="data-view__status"
+										role="status"
+										aria-live="polite"
+										data-market-performance-status>
+									</span>
 
-										<p class="visually-hidden"
-											role="status"
-											aria-live="polite"
-											aria-atomic="true"
-											data-market-performance-status></p>
+								</div>
+							</div>
 
-										<div class="table-shell" data-table-shell>
-											<div class="table-responsive custom-scrollbar"
-												role="region"
-												tabindex="0"
-												aria-labelledby="market-performance-tab-adjusted market-performance-adjusted-results"
-												data-table-scroll>
+							<%-- Desktop --------------------------------------------- --%>
 
-												<table
-													class="table table-market table-market--results table-striped table-hover table-nowrap"
-													id="market-performance-adjusted-table"
-													aria-describedby="market-performance-adjusted-results"
-													aria-busy="false"
-													data-market-performance-table>
+							<div class="data-view__desktop">
 
-													<thead>
-														<tr>
-															<th scope="col">
-																<fmt:message key="marketperformance.company" />
-															</th>
+								<%-- Active Report ------------------------------------ --%>
 
-															<th class="text-end" scope="col">
-																<fmt:message key="marketperformance.beginprice" />
-															</th>
+								<div class="market-performance__active-result"
+									data-market-performance-active-region>
 
-															<th class="text-end" scope="col">
-																<fmt:message key="marketperformance.high" />
-															</th>
+									<div class="table-responsive">
+										<table class="table table-market"
+											data-market-performance-table="active">
 
-															<th class="text-end" scope="col">
-																<fmt:message key="marketperformance.low" />
-															</th>
+											<caption class="visually-hidden">
+												<fmt:message key="marketperformance.marketPerformance" />
+											</caption>
 
-															<th class="text-end" scope="col">
-																<fmt:message key="marketperformance.endprice" />
-															</th>
+											<thead>
+												<tr>
+													<th scope="col">
+														<fmt:message key="marketperformance.company" />
+													</th>
+													<th scope="col" class="text-end">
+														<fmt:message key="marketperformance.beginprice" />
+													</th>
+													<th scope="col" class="text-end">
+														<fmt:message key="marketperformance.high" />
+													</th>
+													<th scope="col" class="text-end">
+														<fmt:message key="marketperformance.low" />
+													</th>
+													<th scope="col" class="text-end">
+														<fmt:message key="marketperformance.endprice" />
+													</th>
+													<th scope="col" class="text-end">
+														<fmt:message key="marketperformance.change" />
+													</th>
+													<th scope="col" class="text-end">
+														<fmt:message key="marketperformance.changePer" />
+													</th>
+													<th scope="col" class="text-end">
+														<fmt:message key="marketperformance.totalvolume" />
+													</th>
+													<th scope="col" class="text-end">
+														<fmt:message key="marketperformance.value" />
+													</th>
+												</tr>
+											</thead>
 
-															<th class="text-end" scope="col">
-																<fmt:message key="marketperformance.change" />
-															</th>
-
-															<th class="text-end" scope="col">
-																<fmt:message key="marketperformance.changePer" />
-															</th>
-
-															<th class="text-end" scope="col">
-																<fmt:message key="marketperformance.totalvolume" />
-															</th>
-
-															<th class="text-end" scope="col">
-																<fmt:message key="marketperformance.value" />
-
-																<span class="sar-symbol"
-																	aria-hidden="true">
-																	<svg class="pc-icon"
-																		width="15"
-																		height="15">
-																		<use xlink:href="#custom-riyal-icon"></use>
-																	</svg>
-																</span>
-															</th>
-														</tr>
-													</thead>
-
-													<tbody>
-														<%-- JavaScript owns all rows and result states. --%>
-													</tbody>
-
-												</table>
-
-											</div>
-										</div>
-
+											<tbody></tbody>
+										</table>
 									</div>
 								</div>
 
+								<%-- Gainers / Losers -------------------------------- --%>
 
-								<%-- =================================================
-								     Adjusted Mobile Cards
-								     ================================================= --%>
+								<div class="market-performance__split-result"
+									data-market-performance-split-region
+									hidden>
 
-								<div class="data-view__cards"
-									data-market-performance-mobile>
+									<section class="market-performance__group"
+										aria-labelledby="market-performance-adjusted-gainers-title"
+										data-market-performance-group="gainers">
 
-									<div class="data-card-list"
-										data-market-performance-cards>
-										<%-- JavaScript owns all cards and result states. --%>
-									</div>
+										<header class="market-performance__group-header">
+											<h2 class="market-performance__group-title"
+												id="market-performance-adjusted-gainers-title">
+												<fmt:message key="marketperformance.gainersTitle" />
+											</h2>
+										</header>
 
+										<div class="table-responsive">
+											<table class="table table-market"
+												data-market-performance-table="gainers">
+
+												<caption class="visually-hidden">
+													<fmt:message key="marketperformance.gainersTitle" />
+												</caption>
+
+												<thead>
+													<tr>
+														<th scope="col">
+															<fmt:message key="marketperformance.company" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.beginprice" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.high" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.low" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.endprice" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.change" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.changePer" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.totalvolume" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.value" />
+														</th>
+													</tr>
+												</thead>
+
+												<tbody></tbody>
+											</table>
+										</div>
+									</section>
+
+									<section class="market-performance__group"
+										aria-labelledby="market-performance-adjusted-losers-title"
+										data-market-performance-group="losers">
+
+										<header class="market-performance__group-header">
+											<h2 class="market-performance__group-title"
+												id="market-performance-adjusted-losers-title">
+												<fmt:message key="marketperformance.losersTitle" />
+											</h2>
+										</header>
+
+										<div class="table-responsive">
+											<table class="table table-market"
+												data-market-performance-table="losers">
+
+												<caption class="visually-hidden">
+													<fmt:message key="marketperformance.losersTitle" />
+												</caption>
+
+												<thead>
+													<tr>
+														<th scope="col">
+															<fmt:message key="marketperformance.company" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.beginprice" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.high" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.low" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.endprice" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.change" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.changePer" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.totalvolume" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.value" />
+														</th>
+													</tr>
+												</thead>
+
+												<tbody></tbody>
+											</table>
+										</div>
+									</section>
+
+								</div>
+							</div>
+
+							<%-- Mobile Cards ---------------------------------------- --%>
+
+							<div class="data-view__cards"
+								role="region"
+								aria-labelledby="market-performance-tab-adjusted">
+
+								<div class="data-view__cards-inner"
+									aria-busy="false"
+									data-market-performance-cards>
 								</div>
 
 							</div>
-						</section>
 
+						</section>
 					</div>
 				</section>
-
 
 				<%-- =============================================================
 				     Non-Adjusted
@@ -2054,140 +2127,222 @@ function formatMoneyhtml(val) {
 				<section class="tab-pane"
 					id="market-performance-panel-non-adjusted"
 					role="tabpanel"
-					aria-labelledby="market-performance-tab-non-adjusted">
+					aria-labelledby="market-performance-tab-non-adjusted"
+					hidden>
 
 					<div data-market-performance-feature="non-adjusted">
 
 						<section class="data-view data-view--connected"
-							aria-labelledby="market-performance-tab-non-adjusted"
-							aria-busy="false"
-							data-market-performance-view>
+							data-market-performance-view
+							aria-busy="false">
 
-							<div class="data-view__workspace">
+							<div class="data-view__toolbar">
+								<div class="data-view__result">
 
-								<%-- =================================================
-								     Non-Adjusted Desktop / Tablet Table
-								     ================================================= --%>
+									<strong class="data-view__result-count"
+										data-market-performance-result-count>
+										0
+									</strong>
 
-								<div class="data-view__table">
-									<div class="data-view__table-block">
+									<span class="data-view__status"
+										role="status"
+										aria-live="polite"
+										data-market-performance-status>
+									</span>
 
-										<div class="data-view__toolbar">
-											<div class="data-view__toolbar-start">
-												<p class="data-view__result-count"
-													id="market-performance-non-adjusted-results"
-													aria-live="polite">
-													<strong data-market-performance-result-count
-														data-result-count-value>0</strong>
-												</p>
-											</div>
-										</div>
+								</div>
+							</div>
 
-										<p class="visually-hidden"
-											role="status"
-											aria-live="polite"
-											aria-atomic="true"
-											data-market-performance-status></p>
+							<div class="data-view__desktop">
 
-										<div class="table-shell" data-table-shell>
-											<div class="table-responsive custom-scrollbar"
-												role="region"
-												tabindex="0"
-												aria-labelledby="market-performance-tab-non-adjusted market-performance-non-adjusted-results"
-												data-table-scroll>
+								<%-- Active ------------------------------------------- --%>
 
-												<table
-													class="table table-market table-market--results table-striped table-hover table-nowrap"
-													id="market-performance-non-adjusted-table"
-													aria-describedby="market-performance-non-adjusted-results"
-													aria-busy="false"
-													data-market-performance-table>
+								<div class="market-performance__active-result"
+									data-market-performance-active-region>
 
-													<thead>
-														<tr>
-															<th scope="col">
-																<fmt:message key="marketperformance.company" />
-															</th>
+									<div class="table-responsive">
+										<table class="table table-market"
+											data-market-performance-table="active">
 
-															<th class="text-end" scope="col">
-																<fmt:message key="marketperformance.beginprice" />
-															</th>
+											<caption class="visually-hidden">
+												<fmt:message key="marketperformance.NonAdjusted" />
+											</caption>
 
-															<th class="text-end" scope="col">
-																<fmt:message key="marketperformance.high" />
-															</th>
+											<thead>
+												<tr>
+													<th scope="col">
+														<fmt:message key="marketperformance.company" />
+													</th>
+													<th scope="col" class="text-end">
+														<fmt:message key="marketperformance.beginprice" />
+													</th>
+													<th scope="col" class="text-end">
+														<fmt:message key="marketperformance.high" />
+													</th>
+													<th scope="col" class="text-end">
+														<fmt:message key="marketperformance.low" />
+													</th>
+													<th scope="col" class="text-end">
+														<fmt:message key="marketperformance.endprice" />
+													</th>
+													<th scope="col" class="text-end">
+														<fmt:message key="marketperformance.change" />
+													</th>
+													<th scope="col" class="text-end">
+														<fmt:message key="marketperformance.changePer" />
+													</th>
+													<th scope="col" class="text-end">
+														<fmt:message key="marketperformance.totalvolume" />
+													</th>
+													<th scope="col" class="text-end">
+														<fmt:message key="marketperformance.value" />
+													</th>
+												</tr>
+											</thead>
 
-															<th class="text-end" scope="col">
-																<fmt:message key="marketperformance.low" />
-															</th>
-
-															<th class="text-end" scope="col">
-																<fmt:message key="marketperformance.endprice" />
-															</th>
-
-															<th class="text-end" scope="col">
-																<fmt:message key="marketperformance.change" />
-															</th>
-
-															<th class="text-end" scope="col">
-																<fmt:message key="marketperformance.changePer" />
-															</th>
-
-															<th class="text-end" scope="col">
-																<fmt:message key="marketperformance.totalvolume" />
-															</th>
-
-															<th class="text-end" scope="col">
-																<fmt:message key="marketperformance.value" />
-
-																<span class="sar-symbol"
-																	aria-hidden="true">
-																	<svg class="pc-icon"
-																		width="15"
-																		height="15">
-																		<use xlink:href="#custom-riyal-icon"></use>
-																	</svg>
-																</span>
-															</th>
-														</tr>
-													</thead>
-
-													<tbody>
-														<%-- JavaScript owns all rows and result states. --%>
-													</tbody>
-
-												</table>
-
-											</div>
-										</div>
-
+											<tbody></tbody>
+										</table>
 									</div>
 								</div>
 
+								<%-- Gainers / Losers -------------------------------- --%>
 
-								<%-- =================================================
-								     Non-Adjusted Mobile Cards
-								     ================================================= --%>
+								<div class="market-performance__split-result"
+									data-market-performance-split-region
+									hidden>
 
-								<div class="data-view__cards"
-									data-market-performance-mobile>
+									<section class="market-performance__group"
+										aria-labelledby="market-performance-non-adjusted-gainers-title"
+										data-market-performance-group="gainers">
 
-									<div class="data-card-list"
-										data-market-performance-cards>
-										<%-- JavaScript owns all cards and result states. --%>
-									</div>
+										<header class="market-performance__group-header">
+											<h2 class="market-performance__group-title"
+												id="market-performance-non-adjusted-gainers-title">
+												<fmt:message key="marketperformance.gainersTitle" />
+											</h2>
+										</header>
 
+										<div class="table-responsive">
+											<table class="table table-market"
+												data-market-performance-table="gainers">
+
+												<caption class="visually-hidden">
+													<fmt:message key="marketperformance.gainersTitle" />
+												</caption>
+
+												<thead>
+													<tr>
+														<th scope="col">
+															<fmt:message key="marketperformance.company" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.beginprice" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.high" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.low" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.endprice" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.change" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.changePer" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.totalvolume" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.value" />
+														</th>
+													</tr>
+												</thead>
+
+												<tbody></tbody>
+											</table>
+										</div>
+									</section>
+
+									<section class="market-performance__group"
+										aria-labelledby="market-performance-non-adjusted-losers-title"
+										data-market-performance-group="losers">
+
+										<header class="market-performance__group-header">
+											<h2 class="market-performance__group-title"
+												id="market-performance-non-adjusted-losers-title">
+												<fmt:message key="marketperformance.losersTitle" />
+											</h2>
+										</header>
+
+										<div class="table-responsive">
+											<table class="table table-market"
+												data-market-performance-table="losers">
+
+												<caption class="visually-hidden">
+													<fmt:message key="marketperformance.losersTitle" />
+												</caption>
+
+												<thead>
+													<tr>
+														<th scope="col">
+															<fmt:message key="marketperformance.company" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.beginprice" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.high" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.low" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.endprice" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.change" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.changePer" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.totalvolume" />
+														</th>
+														<th scope="col" class="text-end">
+															<fmt:message key="marketperformance.value" />
+														</th>
+													</tr>
+												</thead>
+
+												<tbody></tbody>
+											</table>
+										</div>
+									</section>
+
+								</div>
+							</div>
+
+							<div class="data-view__cards"
+								role="region"
+								aria-labelledby="market-performance-tab-non-adjusted">
+
+								<div class="data-view__cards-inner"
+									aria-busy="false"
+									data-market-performance-cards>
 								</div>
 
 							</div>
-						</section>
 
+						</section>
 					</div>
 				</section>
 
 			</div>
 		</div>
-
 	</div>
 </section>
 <%-- =========================================================================
