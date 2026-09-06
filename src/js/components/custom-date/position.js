@@ -20,13 +20,18 @@ import { clamp, getDocumentDirection, readCssLength } from "./utils";
  * so the floating-sheet branch only applies when the enhanced interface is
  * available.
  */
-
 const FLOATING_SHEET_QUERY = "(max-width: 575.98px) and (min-height: 32rem)";
 
 /* ==========================================================================
    Positioning Properties
    ========================================================================== */
 
+/**
+ * CSS custom properties owned by the JavaScript positioner.
+ *
+ * Keeping them in one collection makes responsive transitions and teardown
+ * predictable.
+ */
 const STYLE_PROPERTIES = Object.freeze([
   "--custom-date-popover-top",
   "--custom-date-popover-left",
@@ -38,8 +43,15 @@ const STYLE_PROPERTIES = Object.freeze([
    Viewport
    ========================================================================== */
 
+/**
+ * Returns the currently visible viewport.
+ *
+ * visualViewport is preferred where available so browser zoom, mobile browser
+ * chrome, and virtual-keyboard changes are reflected in positioning.
+ */
 function getViewportRect(view) {
   const visualViewport = view.visualViewport;
+
   const documentElement = view.document.documentElement;
 
   const left = visualViewport?.offsetLeft || 0;
@@ -55,8 +67,11 @@ function getViewportRect(view) {
   return {
     left,
     top,
+
     right: left + width,
+
     bottom: top + height,
+
     width,
     height,
   };
@@ -67,13 +82,20 @@ function getViewportRect(view) {
    ========================================================================== */
 
 function usesFloatingSheet(view) {
-  return Boolean(view?.matchMedia?.(FLOATING_SHEET_QUERY).matches);
+  if (!view || typeof view.matchMedia !== "function") {
+    return false;
+  }
+
+  return view.matchMedia(FLOATING_SHEET_QUERY).matches;
 }
 
 /* ==========================================================================
    CSS Lengths
    ========================================================================== */
 
+/**
+ * Returns the requested popover width from the component's CSS variables.
+ */
 function getRequestedPopoverWidth(component, mode) {
   const propertyName =
     mode === MODES.range
@@ -85,6 +107,9 @@ function getRequestedPopoverWidth(component, mode) {
   return readCssLength(component, propertyName, fallback);
 }
 
+/**
+ * Distance between the control and its anchored popover.
+ */
 function getPopoverGap(component) {
   return readCssLength(
     component,
@@ -93,6 +118,9 @@ function getPopoverGap(component) {
   );
 }
 
+/**
+ * Minimum distance maintained between the popover and viewport edges.
+ */
 function getViewportGap(component) {
   return readCssLength(
     component,
@@ -102,11 +130,19 @@ function getViewportGap(component) {
 }
 
 /* ==========================================================================
-   Values
+   CSS Values
    ========================================================================== */
 
+/**
+ * Converts a numeric layout value into a compact pixel value.
+ *
+ * Two decimal places are retained to avoid unnecessary sub-pixel noise while
+ * still preserving accurate placement on scaled displays.
+ */
 function toPixels(value) {
-  const roundedValue = Math.round(value * 100) / 100;
+  const number = Number.isFinite(value) ? value : 0;
+
+  const roundedValue = Math.round(number * 100) / 100;
 
   return `${roundedValue}px`;
 }
@@ -116,6 +152,10 @@ function toPixels(value) {
    ========================================================================== */
 
 function clearPositionStyles(popover) {
+  if (!popover) {
+    return;
+  }
+
   STYLE_PROPERTIES.forEach((propertyName) => {
     popover.style.removeProperty(propertyName);
   });
@@ -126,13 +166,12 @@ function clearPositionStyles(popover) {
    ========================================================================== */
 
 /**
- * Uses measurable content height whenever possible.
+ * Returns the content height required by the popover.
  *
- * The estimate is only used before the browser has produced a measurable
- * layout. This avoids unnecessarily opening upward when a compact calendar
- * already fits below its control.
+ * scrollHeight is preferred because the visible box may already have been
+ * constrained by CSS. getBoundingClientRect() remains useful during initial
+ * layout, and the configured estimate is used only as a final fallback.
  */
-
 function getPopoverHeight(popover) {
   const rectangle = popover.getBoundingClientRect();
 
@@ -155,6 +194,13 @@ function getPopoverHeight(popover) {
    Horizontal Position
    ========================================================================== */
 
+/**
+ * Positions the popover along the inline axis while keeping it inside the
+ * visible viewport.
+ *
+ * LTR prefers alignment with the anchor's left edge.
+ * RTL prefers alignment with the anchor's right edge.
+ */
 function getHorizontalPosition({
   anchorRectangle,
   popoverWidth,
@@ -171,6 +217,7 @@ function getHorizontalPosition({
 
   const maximumLeft = Math.max(
     minimumLeft,
+
     viewport.right - viewportGap - popoverWidth,
   );
 
@@ -181,6 +228,12 @@ function getHorizontalPosition({
    Vertical Position
    ========================================================================== */
 
+/**
+ * Determines whether the popover should open below or above its control.
+ *
+ * Below remains the preferred placement. The popover opens above only when it
+ * cannot fit below and more usable space exists above.
+ */
 function getVerticalPosition({
   anchorRectangle,
   popoverHeight,
@@ -194,17 +247,16 @@ function getVerticalPosition({
 
   const spaceBelow = Math.max(
     0,
+
     maximumBottom - anchorRectangle.bottom - popoverGap,
   );
 
-  const spaceAbove = Math.max(0, anchorRectangle.top - popoverGap - minimumTop);
+  const spaceAbove = Math.max(
+    0,
 
-  /*
-   * Prefer opening below.
-   *
-   * Open above only when the popover does not fit below and the upper side
-   * provides more usable space.
-   */
+    anchorRectangle.top - popoverGap - minimumTop,
+  );
+
   const opensUp = popoverHeight > spaceBelow && spaceAbove > spaceBelow;
 
   const availableBlockSize = opensUp ? spaceAbove : spaceBelow;
@@ -215,11 +267,17 @@ function getVerticalPosition({
     ? anchorRectangle.top - popoverGap - renderedHeight
     : anchorRectangle.bottom + popoverGap;
 
-  const maximumTop = Math.max(minimumTop, maximumBottom - renderedHeight);
+  const maximumTop = Math.max(
+    minimumTop,
+
+    maximumBottom - renderedHeight,
+  );
 
   return {
     opensUp,
+
     availableBlockSize,
+
     top: clamp(preferredTop, minimumTop, maximumTop),
   };
 }
@@ -229,12 +287,11 @@ function getVerticalPosition({
    ========================================================================== */
 
 /**
- * Mobile placement is fully owned by responsive SCSS.
+ * Mobile placement is owned by responsive SCSS.
  *
- * Clearing desktop position properties prevents stale coordinates from
- * affecting the centered floating sheet after a responsive transition.
+ * Any coordinates left behind by the anchored desktop/tablet presentation are
+ * removed before switching to floating-sheet mode.
  */
-
 function applyFloatingSheetState({ component, popover }) {
   clearPositionStyles(popover);
 
@@ -246,11 +303,17 @@ function applyFloatingSheetState({ component, popover }) {
 
   return Object.freeze({
     presentation: "floating-sheet",
+
     placement: PLACEMENTS.bottom,
+
     opensUp: false,
+
     top: null,
+
     left: null,
+
     inlineSize: null,
+
     availableBlockSize: null,
   });
 }
@@ -262,10 +325,12 @@ function applyFloatingSheetState({ component, popover }) {
 /**
  * Positions one custom-date popover against its generated control.
  *
- * Desktop and tablet presentations use fixed physical viewport coordinates.
- * Mobile floating-sheet placement is delegated to responsive SCSS.
+ * Desktop and tablet:
+ *   Fixed physical viewport coordinates are calculated here.
+ *
+ * Mobile:
+ *   Placement is delegated to responsive SCSS through floating-sheet mode.
  */
-
 export function positionCustomDatePopover({
   component,
   anchor,
@@ -276,12 +341,17 @@ export function positionCustomDatePopover({
     return null;
   }
 
-  const view = component.ownerDocument.defaultView;
+  const documentReference = component.ownerDocument;
+
+  const view = documentReference?.defaultView;
 
   if (!view) {
     return null;
   }
 
+  /*
+   * Mobile presentation is CSS-owned.
+   */
   if (usesFloatingSheet(view)) {
     return applyFloatingSheetState({
       component,
@@ -297,12 +367,24 @@ export function positionCustomDatePopover({
 
   const popoverGap = getPopoverGap(component);
 
-  const maximumWidth = Math.max(0, viewport.width - viewportGap * 2);
+  /*
+   * The popover must never be wider than the usable viewport.
+   */
+  const maximumWidth = Math.max(
+    0,
+
+    viewport.width - viewportGap * 2,
+  );
 
   const requestedWidth = getRequestedPopoverWidth(component, mode);
 
+  /*
+   * The control itself establishes the minimum useful width unless the
+   * viewport is too narrow to support it.
+   */
   const popoverWidth = Math.min(
     Math.max(anchorRectangle.width, requestedWidth),
+
     maximumWidth,
   );
 
@@ -311,6 +393,10 @@ export function positionCustomDatePopover({
     toPixels(popoverWidth),
   );
 
+  /*
+   * Width can influence wrapping and therefore height, so measure height only
+   * after applying the final inline size.
+   */
   const popoverHeight = getPopoverHeight(popover);
 
   const verticalPosition = getVerticalPosition({
@@ -326,7 +412,7 @@ export function positionCustomDatePopover({
     toPixels(verticalPosition.availableBlockSize),
   );
 
-  const direction = getDocumentDirection(component.ownerDocument);
+  const direction = getDocumentDirection(documentReference);
 
   const left = getHorizontalPosition({
     anchorRectangle,
@@ -355,11 +441,17 @@ export function positionCustomDatePopover({
 
   return Object.freeze({
     presentation: "anchored",
+
     placement,
+
     opensUp: verticalPosition.opensUp,
+
     top: verticalPosition.top,
+
     left,
+
     inlineSize: popoverWidth,
+
     availableBlockSize: verticalPosition.availableBlockSize,
   });
 }
@@ -368,6 +460,9 @@ export function positionCustomDatePopover({
    Reset Position
    ========================================================================== */
 
+/**
+ * Removes all positioning state added while the popover was open.
+ */
 export function resetCustomDatePopover({ component, popover }) {
   if (!component || !popover) {
     return;
@@ -387,12 +482,11 @@ export function resetCustomDatePopover({ component, popover }) {
    ========================================================================== */
 
 /**
- * Owns responsive positioning for one open custom-date component.
+ * Owns responsive positioning for one open CustomDate component.
  *
- * Resize, scroll, visual-viewport and element-size changes are coalesced into
- * one animation frame.
+ * Resize, scroll, visual-viewport changes, and element-size changes are
+ * coalesced into one animation frame.
  */
-
 export class CustomDatePositioner {
   constructor({ component, anchor, popover, mode }) {
     if (!component || !anchor || !popover) {
@@ -402,25 +496,43 @@ export class CustomDatePositioner {
     }
 
     this.component = component;
+
     this.anchor = anchor;
+
     this.popover = popover;
+
     this.mode = mode;
 
-    this.view = component.ownerDocument.defaultView;
+    this.view = component.ownerDocument?.defaultView || null;
 
     this.isStarted = false;
+
     this.frameId = null;
+
     this.cancelScheduledFrame = null;
+
     this.resizeObserver = null;
 
+    /*
+     * Keep one stable callback reference so addEventListener() and
+     * removeEventListener() always use the same function.
+     */
     this.handleViewportChange = this.schedule.bind(this);
   }
+
+  /* ==========================================================================
+     Start
+     ========================================================================== */
 
   start() {
     if (!this.view) {
       return this;
     }
 
+    /*
+     * Starting an already-running positioner should not register listeners
+     * again. It only requests a fresh position.
+     */
     if (this.isStarted) {
       this.schedule();
 
@@ -433,23 +545,42 @@ export class CustomDatePositioner {
       passive: true,
     });
 
+    /*
+     * Capture scroll events from scrollable ancestors as well as the window.
+     */
     this.view.addEventListener(DOM_EVENTS.scroll, this.handleViewportChange, {
       capture: true,
       passive: true,
     });
 
-    this.view.visualViewport?.addEventListener(
+    const visualViewport = this.view.visualViewport;
+
+    visualViewport?.addEventListener(
       DOM_EVENTS.resize,
       this.handleViewportChange,
-      { passive: true },
+      {
+        passive: true,
+      },
     );
 
-    this.view.visualViewport?.addEventListener(
+    visualViewport?.addEventListener(
       DOM_EVENTS.scroll,
       this.handleViewportChange,
-      { passive: true },
+      {
+        passive: true,
+      },
     );
 
+    /*
+     * Reposition when either the control or popover changes size.
+     *
+     * This is useful when:
+     *
+     * - the calendar changes month;
+     * - presets appear or disappear;
+     * - translated text changes dimensions;
+     * - responsive styles change the control size.
+     */
     if (typeof this.view.ResizeObserver === "function") {
       this.resizeObserver = new this.view.ResizeObserver(
         this.handleViewportChange,
@@ -460,20 +591,42 @@ export class CustomDatePositioner {
       this.resizeObserver.observe(this.popover);
     }
 
+    /*
+     * Position immediately on opening so the component does not wait for the
+     * first resize/scroll/animation-frame event.
+     */
     this.position();
 
     return this;
   }
 
+  /* ==========================================================================
+     Position
+     ========================================================================== */
+
   position() {
+    if (!this.component || !this.anchor || !this.popover) {
+      return null;
+    }
+
     return positionCustomDatePopover({
       component: this.component,
+
       anchor: this.anchor,
+
       popover: this.popover,
+
       mode: this.mode,
     });
   }
 
+  /* ==========================================================================
+     Schedule
+     ========================================================================== */
+
+  /**
+   * Coalesces repeated position requests into one browser frame.
+   */
   schedule() {
     if (!this.view || !this.isStarted || this.frameId !== null) {
       return;
@@ -491,14 +644,23 @@ export class CustomDatePositioner {
       : this.view.clearTimeout.bind(this.view);
 
     this.frameId = requestFrame(() => {
+      /*
+       * Clear scheduling state before positioning so a ResizeObserver fired
+       * by the resulting layout can safely request the next frame.
+       */
       this.frameId = null;
+
       this.cancelScheduledFrame = null;
 
-      if (this.isStarted) {
+      if (this.isStarted && this.component && this.anchor && this.popover) {
         this.position();
       }
     });
   }
+
+  /* ==========================================================================
+     Stop
+     ========================================================================== */
 
   stop({ reset = false } = {}) {
     if (!this.view) {
@@ -519,29 +681,37 @@ export class CustomDatePositioner {
       true,
     );
 
-    this.view.visualViewport?.removeEventListener(
+    const visualViewport = this.view.visualViewport;
+
+    visualViewport?.removeEventListener(
       DOM_EVENTS.resize,
       this.handleViewportChange,
     );
 
-    this.view.visualViewport?.removeEventListener(
+    visualViewport?.removeEventListener(
       DOM_EVENTS.scroll,
       this.handleViewportChange,
     );
 
     this.resizeObserver?.disconnect();
+
     this.resizeObserver = null;
 
+    /*
+     * Cancel any position request that has not executed yet.
+     */
     if (this.frameId !== null) {
       this.cancelScheduledFrame?.(this.frameId);
 
       this.frameId = null;
+
       this.cancelScheduledFrame = null;
     }
 
     if (reset) {
       resetCustomDatePopover({
         component: this.component,
+
         popover: this.popover,
       });
     }
@@ -549,17 +719,26 @@ export class CustomDatePositioner {
     return this;
   }
 
-  destroy() {
-    if (!this.view) {
-      return;
-    }
+  /* ==========================================================================
+     Destroy
+     ========================================================================== */
 
-    this.stop({ reset: true });
+  destroy() {
+    /*
+     * stop() handles listeners, ResizeObserver, pending frames, and CSS state.
+     */
+    this.stop({
+      reset: true,
+    });
 
     this.component = null;
+
     this.anchor = null;
+
     this.popover = null;
+
     this.mode = null;
+
     this.view = null;
   }
 }

@@ -1,14 +1,41 @@
 @use "../../../design-system/abstracts" as ds;
 
 /* ==========================================================================
-   Market Status
+   Market Status / Market Change
+   ========================================================================== */
+
+/*
+ * Responsibilities:
+ *
+ * - Own market-session status indicators.
+ * - Own status animation.
+ * - Own the shared market-change direction layout.
+ * - Own directional up / down / neutral arrow geometry.
+ *
+ * Important:
+ *
+ * `.market-change__icon` is also used by legacy/current markup for
+ * non-directional icons such as Riyal.
+ *
+ * Therefore this file NEVER globally resets `.market-change__icon`.
+ * Directional icon treatment is applied only when the parent explicitly
+ * represents up, down or neutral movement.
+ */
+
+/* ==========================================================================
+   Status Root
    ========================================================================== */
 
 .market-status {
-  --market-status-color: var(--market-overview-neutral, #a9bdca);
-  --market-status-glow: rgb(169 189 202 / 0.38);
+  --market-status-color: var(
+    --color-market-neutral,
+    var(--market-overview-neutral, #b7c7d4)
+  );
 
-  --market-status-indicator-size: 0.6875rem;
+  --market-status-glow: rgb(183 199 212 / 0.24);
+
+  --market-status-dot-size: 0.625rem;
+  --market-status-box-size: 1.5rem;
 
   --market-status-dot-animation: none;
   --market-status-halo-animation: none;
@@ -18,177 +45,189 @@
   display: inline-grid;
   place-items: center;
 
-  flex: 0 0 auto;
+  flex: 0 0 var(--market-status-box-size);
 
-  inline-size: calc(var(--market-status-indicator-size) * 2.25);
-  block-size: calc(var(--market-status-indicator-size) * 2.25);
+  inline-size: var(--market-status-box-size);
+  block-size: var(--market-status-box-size);
+
+  min-inline-size: var(--market-status-box-size);
+  min-block-size: var(--market-status-box-size);
+
+  overflow: visible;
 
   color: var(--market-status-color);
+
+  line-height: 1;
 
   pointer-events: none;
 
   &[hidden] {
-    display: none;
+    display: none !important;
   }
+}
 
-  &::before,
-  &::after {
-    content: "";
+/* ==========================================================================
+   Status Dot / Halo
+   ========================================================================== */
 
-    position: absolute;
+.market-status::before,
+.market-status::after {
+  content: "";
 
-    inset-block-start: 50%;
-    inset-inline-start: 50%;
+  position: absolute;
 
-    border-radius: var(--radius-pill);
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
 
-    transform: translate(-50%, -50%);
+  pointer-events: none;
+}
 
-    pointer-events: none;
-  }
+/* Dot */
 
-  /* Solid status dot */
+.market-status::before {
+  z-index: 2;
 
-  &::before {
-    z-index: 2;
+  inline-size: var(--market-status-dot-size);
+  block-size: var(--market-status-dot-size);
 
-    inline-size: var(--market-status-indicator-size);
-    block-size: var(--market-status-indicator-size);
+  border-radius: var(--radius-pill);
 
-    background: currentColor;
+  background: currentColor;
 
-    box-shadow:
-      0 0 0 1px rgb(255 255 255 / 0.2),
-      0 0 0.5rem var(--market-status-glow);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.14),
+    0 0 0.4375rem var(--market-status-glow);
 
-    animation: var(--market-status-dot-animation);
-  }
+  transform: translate(-50%, -50%);
 
-  /* Expanding live halo */
+  animation: var(--market-status-dot-animation);
+}
 
-  &::after {
-    z-index: 1;
+/* Halo */
 
-    inline-size: var(--market-status-indicator-size);
-    block-size: var(--market-status-indicator-size);
+.market-status::after {
+  z-index: 1;
 
-    border: 1px solid currentColor;
+  inline-size: var(--market-status-dot-size);
+  block-size: var(--market-status-dot-size);
 
-    opacity: 0;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
 
-    animation: var(--market-status-halo-animation);
-  }
+  opacity: 0;
+
+  transform: translate(-50%, -50%);
+
+  animation: var(--market-status-halo-animation);
 }
 
 /* ==========================================================================
    Open
    ========================================================================== */
 
-/*
- * Open markets use a regular live pulse.
- */
-
 .market-status--open {
-  --market-status-color: var(--market-overview-success, #4ade80);
-  --market-status-glow: rgb(74 222 128 / 0.46);
+  --market-status-color: var(--color-market-positive, #4ade80);
 
-  --market-status-dot-animation: market-status-dot 1.8s ease-in-out infinite;
-  --market-status-halo-animation: market-status-halo 1.8s ease-out infinite;
+  --market-status-glow: rgb(74 222 128 / 0.32);
+
+  --market-status-dot-animation: market-status-dot 2.2s ease-in-out infinite;
+
+  --market-status-halo-animation: market-status-halo 2.2s ease-out infinite;
 }
 
 /* ==========================================================================
    Closed
    ========================================================================== */
 
-/*
- * Closed markets remain visually stable while retaining a restrained pulse.
- */
-
 .market-status--closed {
-  --market-status-color: var(--market-overview-danger, #fb7185);
-  --market-status-glow: rgb(251 113 133 / 0.38);
+  --market-status-color: var(--color-market-negative, #fb7185);
 
-  --market-status-dot-animation: market-status-dot 2.2s ease-in-out infinite;
-  --market-status-halo-animation: market-status-halo 2.2s ease-out infinite;
+  --market-status-glow: rgb(251 113 133 / 0.24);
+
+  --market-status-dot-animation: none;
+  --market-status-halo-animation: none;
 }
 
 /* ==========================================================================
-   Pre-open and Auction
+   Pre-open
    ========================================================================== */
 
-/*
- * Pre-open and auction states pulse more slowly than an open market.
- */
+.market-status--pre-open {
+  --market-status-color: var(--market-overview-warning, #fbbf24);
 
-.market-status--pre-open,
+  --market-status-glow: rgb(251 191 36 / 0.3);
+
+  --market-status-dot-animation: market-status-dot 3.2s ease-in-out infinite;
+
+  --market-status-halo-animation: market-status-halo 3.2s ease-out infinite;
+}
+
+/* ==========================================================================
+   Auction
+   ========================================================================== */
+
 .market-status--auction {
   --market-status-color: var(--market-overview-warning, #fbbf24);
-  --market-status-glow: rgb(251 191 36 / 0.42);
 
-  --market-status-dot-animation: market-status-dot 2.4s ease-in-out infinite;
-  --market-status-halo-animation: market-status-halo 2.4s ease-out infinite;
+  --market-status-glow: rgb(251 191 36 / 0.32);
+
+  --market-status-dot-animation: market-status-dot 2.8s ease-in-out infinite;
+
+  --market-status-halo-animation: market-status-halo 2.8s ease-out infinite;
 }
 
 /* ==========================================================================
    Halted
    ========================================================================== */
 
-/*
- * Halted markets receive a restrained attention pulse.
- */
-
 .market-status--halted {
-  --market-status-color: var(
-    --market-status-halted,
-    var(--market-overview-caution, #f2dc55)
-  );
+  --market-status-color: var(--market-overview-caution, #f2dc55);
 
-  --market-status-glow: rgb(242 220 85 / 0.42);
+  --market-status-glow: rgb(242 220 85 / 0.3);
 
-  --market-status-dot-animation: market-status-dot 2.2s ease-in-out infinite;
-  --market-status-halo-animation: market-status-halo 2.2s ease-out infinite;
+  --market-status-dot-animation: market-status-dot 2.8s ease-in-out infinite;
+
+  --market-status-halo-animation: market-status-halo 2.8s ease-out infinite;
 }
 
 /* ==========================================================================
-   Neutral
+   Neutral / Unknown
    ========================================================================== */
 
-.market-status--neutral {
-  --market-status-color: var(
-    --market-status-neutral,
-    var(--market-overview-neutral, #a9bdca)
-  );
+.market-status--neutral,
+.market-status--unknown {
+  --market-status-color: var(--color-market-neutral, #b7c7d4);
 
-  --market-status-glow: rgb(169 189 202 / 0.34);
+  --market-status-glow: rgb(183 199 212 / 0.2);
+
+  --market-status-dot-animation: none;
+  --market-status-halo-animation: none;
 }
 
 /* ==========================================================================
-   Market Change
+   Shared Market Change
    ========================================================================== */
-
-/*
- * Market Change owns layout and its direction indicator.
- *
- * Semantic colors are owned by:
- *
- * - .price-up
- * - .price-down
- * - .price-neutral
- */
 
 .market-change {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
+
   gap: 0.375rem;
 
   min-inline-size: 0;
   max-inline-size: 100%;
 
-  color: var(--price-state-color, currentColor);
+  overflow: visible;
+
+  line-height: 1.2;
 
   font-variant-numeric: tabular-nums;
+
   white-space: nowrap;
+
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 /* ==========================================================================
@@ -196,56 +235,209 @@
    ========================================================================== */
 
 .market-change__value {
+  display: inline-block;
+
   min-inline-size: 0;
 
   color: inherit;
 
   font: inherit;
+  line-height: inherit;
+
   font-variant-numeric: tabular-nums;
 
   white-space: nowrap;
 }
 
 /* ==========================================================================
-   Market Change Direction Icon
+   Direction Colors — Modern
    ========================================================================== */
 
-/*
- * The icon remains in the markup, but its shape is rendered with CSS.
- * This avoids missing icon-font glyphs appearing as empty squares.
- */
-
-.market-change__icon {
-  flex: 0 0 auto;
-
-  inline-size: 0;
-  block-size: 0;
-
-  border-inline: 0.25rem solid transparent;
-
-  color: currentColor;
+.market-change.price-up {
+  color: var(--color-market-positive, #4ade80);
 }
 
-/* Positive */
-
-.market-change.price-up .market-change__icon {
-  border-block-end: 0.4rem solid currentColor;
+.market-change.price-down {
+  color: var(--color-market-negative, #fb7185);
 }
 
-/* Negative */
-
-.market-change.price-down .market-change__icon {
-  border-block-start: 0.4rem solid currentColor;
-}
-
-/* Neutral */
-
-.market-change.price-neutral .market-change__icon {
-  display: none;
+.market-change.price-neutral {
+  color: var(--color-market-neutral, currentColor);
 }
 
 /* ==========================================================================
-   Status Animations
+   Direction Colors — Legacy
+   ========================================================================== */
+
+.market-change--up {
+  color: var(--color-market-positive, #4ade80);
+}
+
+.market-change--down {
+  color: var(--color-market-negative, #fb7185);
+}
+
+.market-change--neutral {
+  color: var(--color-market-neutral, currentColor);
+}
+
+/* ==========================================================================
+   Direction Icon Contract
+   ========================================================================== */
+
+/*
+ * IMPORTANT:
+ *
+ * Only actual movement states are selected here.
+ *
+ * This prevents:
+ *
+ *   .market-change__icon.has-icon.icon-riyal
+ *
+ * from being converted into an arrow.
+ */
+
+.market-change.price-up .market-change__icon,
+.market-change.price-down .market-change__icon,
+.market-change.price-neutral .market-change__icon,
+.market-change--up .market-change__icon,
+.market-change--down .market-change__icon,
+.market-change--neutral .market-change__icon {
+  --market-change-icon-width: 0.75rem;
+  --market-change-icon-height: 0.5rem;
+
+  position: relative !important;
+
+  inset: auto !important;
+
+  display: inline-grid !important;
+  place-items: center;
+
+  flex: 0 0 var(--market-change-icon-width);
+
+  inline-size: var(--market-change-icon-width) !important;
+  block-size: 0.875rem !important;
+
+  min-inline-size: var(--market-change-icon-width);
+  min-block-size: 0.875rem;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  overflow: visible !important;
+
+  border: 0 !important;
+
+  background: transparent !important;
+
+  color: currentColor;
+
+  font-family: inherit !important;
+  font-size: 0 !important;
+  line-height: 1 !important;
+
+  vertical-align: middle;
+
+  transform: none !important;
+
+  mask: none !important;
+  -webkit-mask: none !important;
+}
+
+/* ==========================================================================
+   Direction Shape
+   ========================================================================== */
+
+.market-change.price-up .market-change__icon::before,
+.market-change.price-down .market-change__icon::before,
+.market-change.price-neutral .market-change__icon::before,
+.market-change--up .market-change__icon::before,
+.market-change--down .market-change__icon::before,
+.market-change--neutral .market-change__icon::before {
+  content: "" !important;
+
+  position: static !important;
+
+  inset: auto !important;
+
+  display: block !important;
+
+  inline-size: var(--market-change-icon-width) !important;
+  block-size: var(--market-change-icon-height) !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  border: 0 !important;
+
+  background: currentColor !important;
+
+  color: currentColor;
+
+  font-family: inherit !important;
+  font-size: 0 !important;
+  line-height: 1 !important;
+
+  opacity: 1 !important;
+
+  transform: none !important;
+
+  mask: none !important;
+  -webkit-mask: none !important;
+}
+
+.market-change.price-up .market-change__icon::after,
+.market-change.price-down .market-change__icon::after,
+.market-change.price-neutral .market-change__icon::after,
+.market-change--up .market-change__icon::after,
+.market-change--down .market-change__icon::after,
+.market-change--neutral .market-change__icon::after {
+  content: none !important;
+
+  display: none !important;
+}
+
+/* ==========================================================================
+   Positive Arrow
+   ========================================================================== */
+
+.market-change.price-up .market-change__icon::before,
+.market-change--up .market-change__icon::before {
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+/* ==========================================================================
+   Negative Arrow
+   ========================================================================== */
+
+.market-change.price-down .market-change__icon::before,
+.market-change--down .market-change__icon::before {
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+/* ==========================================================================
+   Neutral Indicator
+   ========================================================================== */
+
+.market-change.price-neutral .market-change__icon,
+.market-change--neutral .market-change__icon {
+  --market-change-icon-width: 0.625rem;
+  --market-change-icon-height: 0.125rem;
+
+  block-size: 0.75rem !important;
+
+  min-block-size: 0.75rem;
+}
+
+.market-change.price-neutral .market-change__icon::before,
+.market-change--neutral .market-change__icon::before {
+  border-radius: var(--radius-pill);
+
+  clip-path: none;
+}
+
+/* ==========================================================================
+   Animations
    ========================================================================== */
 
 @keyframes market-status-dot {
@@ -259,19 +451,19 @@
   50% {
     opacity: 1;
 
-    transform: translate(-50%, -50%) scale(1.12);
+    transform: translate(-50%, -50%) scale(1.08);
   }
 }
 
 @keyframes market-status-halo {
   0% {
-    opacity: 0.58;
+    opacity: 0.45;
 
     transform: translate(-50%, -50%) scale(1);
   }
 
-  65% {
-    opacity: 0.16;
+  70% {
+    opacity: 0.1;
 
     transform: translate(-50%, -50%) scale(2);
   }
@@ -279,7 +471,7 @@
   100% {
     opacity: 0;
 
-    transform: translate(-50%, -50%) scale(2.5);
+    transform: translate(-50%, -50%) scale(2.35);
   }
 }
 
@@ -287,14 +479,10 @@
    RTL
    ========================================================================== */
 
-/*
- * Financial signs and direction indicators retain their numeric direction
- * inside RTL interfaces.
- */
-
 html[dir="rtl"] {
   .market-change {
     direction: ltr;
+
     unicode-bidi: isolate;
   }
 }
@@ -304,8 +492,13 @@ html[dir="rtl"] {
    ========================================================================== */
 
 html[data-contrast="high"] {
+  .market-status {
+    --market-status-glow: transparent;
+  }
+
   .market-status::before {
     outline: 2px solid currentColor;
+
     outline-offset: 2px;
 
     box-shadow: none;
@@ -315,37 +508,82 @@ html[data-contrast="high"] {
     border-width: 2px;
   }
 
-  .market-change {
+  .market-change.price-up,
+  .market-change.price-down,
+  .market-change.price-neutral,
+  .market-change--up,
+  .market-change--down,
+  .market-change--neutral {
     color: currentColor;
-
-    font-weight: ds.font-weight("bold");
   }
 
-  /*
-   * Direction remains understandable without relying only on color.
-   */
-
-  .market-change.price-up {
+  .market-change.price-up,
+  .market-change--up {
     text-decoration-line: underline;
     text-decoration-style: double;
-    text-decoration-thickness: 2px;
+
     text-underline-offset: 0.18em;
   }
 
-  .market-change.price-down {
+  .market-change.price-down,
+  .market-change--down {
     text-decoration-line: underline;
     text-decoration-style: solid;
-    text-decoration-thickness: 2px;
+
     text-underline-offset: 0.18em;
   }
 
-  .market-change.price-neutral {
+  .market-change.price-neutral,
+  .market-change--neutral {
     text-decoration: none;
   }
 }
 
 /* ==========================================================================
-   Reduced Motion
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .market-status {
+    --market-status-color: CanvasText;
+    --market-status-glow: transparent;
+
+    forced-color-adjust: auto;
+  }
+
+  .market-status::before {
+    background: CanvasText;
+
+    box-shadow: none;
+  }
+
+  .market-status::after {
+    border-color: CanvasText;
+  }
+
+  .market-change.price-up,
+  .market-change.price-down,
+  .market-change.price-neutral,
+  .market-change--up,
+  .market-change--down,
+  .market-change--neutral {
+    color: CanvasText;
+
+    forced-color-adjust: auto;
+  }
+
+  .market-change.price-up .market-change__icon::before,
+  .market-change.price-down .market-change__icon::before,
+  .market-change.price-neutral .market-change__icon::before,
+  .market-change--up .market-change__icon::before,
+  .market-change--down .market-change__icon::before,
+  .market-change--neutral .market-change__icon::before {
+    background: CanvasText !important;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion — System
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
@@ -365,6 +603,10 @@ html[data-contrast="high"] {
   }
 }
 
+/* ==========================================================================
+   Reduced Motion — Application
+   ========================================================================== */
+
 html[data-motion="reduce"] {
   .market-status {
     --market-status-dot-animation: none;
@@ -379,5 +621,51 @@ html[data-motion="reduce"] {
 
   .market-status::after {
     display: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .market-status {
+    --market-status-color: #000000;
+    --market-status-glow: transparent;
+
+    --market-status-dot-animation: none;
+    --market-status-halo-animation: none;
+
+    color: #000000;
+  }
+
+  .market-status::before {
+    background: #000000;
+
+    box-shadow: none;
+  }
+
+  .market-status::after {
+    display: none;
+  }
+
+  .market-change.price-up,
+  .market-change.price-down,
+  .market-change.price-neutral,
+  .market-change--up,
+  .market-change--down,
+  .market-change--neutral {
+    color: #000000 !important;
+
+    text-decoration: none;
+  }
+
+  .market-change.price-up .market-change__icon::before,
+  .market-change.price-down .market-change__icon::before,
+  .market-change.price-neutral .market-change__icon::before,
+  .market-change--up .market-change__icon::before,
+  .market-change--down .market-change__icon::before,
+  .market-change--neutral .market-change__icon::before {
+    background: #000000 !important;
   }
 }

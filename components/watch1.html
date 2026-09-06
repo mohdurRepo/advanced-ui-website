@@ -1,503 +1,1460 @@
 <script type="text/javascript">
+  (() => {
+    "use strict";
 
-/**
- * Renders financial charts using Highcharts
- * Compatible with JSP environments (avoids EL conflicts)
- */
-
-// Language translations
-const chartTranslations = {
-  en: {
-    time: "Time",
-    index: "Index",
-    chartError: " Chart Loading Error",
-    noData: "Empty chart for {CHART} index (no data available)",
-    priceChart: "Price chart for {CHART} index",
-    tasi: "Tadawul All Share Index (TASI)",
-    nomuc: "Parallel Market Capped Index (NomuC)",
-    sukuk: "Sukuk/Bonds Market Index",
-    reits: "REITs", 
-    mt30: "MT30"
-  },
-  ar: {
-    time: "الوقت",
-    index: "المؤشر",
-    chartError: " خطأ في تحميل الرسم البياني",
-    noData: "مخطط فارغ لمؤشر {CHART} (لا توجد بيانات متاحة)",
-    priceChart: "الرسم البياني للسعر لمؤشر {CHART}",
-    tasi: "مؤشر السوق الرئيسية (تاسي)",
-    nomuc: "مؤشر السوق الموازية (نمو حد أعلى)",
-    sukuk: "مؤشر سوق الصكوك / السندات",
-    reits: "صناديق الإستثمار العقارية",
-     mt30: "إم تي 30"
-  }
-};
-
-
-// Detect language (from <html lang="..."> or fallback to English)
-let chartLang = document.documentElement.lang === "ar" ? "ar" : "en";
-
-function renderChart(chartId, targetElement) {
-  const safeId = String(chartId || 'tasi').trim().toLowerCase();
-  if (!safeId) {
-    console.error('Invalid chartId received');
-    renderErrorState(targetElement, chartTranslations[chartLang].chartError);
-    return;
-  }
-
-  const apiUrl = buildApiUrl(safeId);
-  if (!apiUrl) {
-    console.warn('Failed to build API URL, rendering empty chart');
-    drawEmptyChart(safeId, targetElement);
-    return;
-  }
-
-  console.log('Fetching data for:', safeId);
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-  fetch(apiUrl, { signal: controller.signal })
-    .then(response => {
-      clearTimeout(timeoutId);
-      if (!response.ok) throw new Error('HTTP ' + response.status);
-      return response.json();
-    })
-    .then(data => {
-      if (!isValidData(data)) {
-        console.warn('Invalid data structure, rendering empty chart');
-        drawEmptyChart(safeId, targetElement);
-      } else {
-        drawChart(data, safeId, targetElement);
-      }
-    })
-    .catch(error => {
-      console.error('Fetch failed:', error.message);
-      drawEmptyChart(safeId, targetElement);
-    });
-}
-
-// Helper Functions ============================================
-
-function buildApiUrl(safeId) {
-  try {
-    const params = new URLSearchParams();
-    params.append('methodType', 'parsingMethod');
-
-    const sid = safeId.toLowerCase();
-    let chartType = "SQL_MI_MSPV";
-    if (sid === "nomuc") {
-      chartType = "SQL_MI_MSPV_SME";
-    } else if (sid === "sukuk") {
-      chartType = "SQL_MI_MSPV_SUKUK";
+    if (window.__marketOverviewChartsInitialized) {
+      return;
     }
-    params.append('chart-type', chartType);
 
-    let chartParam;
-    if (sid === "sukuk") {
-      chartParam = "tsbi";
-    } else if (sid === "reits") {
-      chartParam = "trti";
-    } else {
-      chartParam = safeId;
+    window.__marketOverviewChartsInitialized = true;
+
+    /* ==========================================================================
+     Production Configuration
+     ========================================================================== */
+
+    /*
+     * The production chart refreshes once per minute.
+     *
+     * This is frequent enough for the Overview while keeping network,
+     * normalization and Highcharts work very low during an all-day session.
+     */
+    const LIVE_INTERVAL = 60_000;
+
+    /*
+     * The live viewport follows approximately the latest trading hour.
+     */
+    const LIVE_WINDOW_DURATION = 60 * 60 * 1_000;
+
+    /*
+     * Controller storage remains bounded even when the page stays open all day.
+     */
+    const MAX_POINTS = 240;
+
+    /*
+     * Candlestick mode, when enabled elsewhere, aggregates live price updates
+     * into one-minute candles.
+     */
+    const CANDLE_BUCKET_SIZE = 60_000;
+
+    /*
+     * Network requests should not remain pending indefinitely.
+     */
+    const REQUEST_TIMEOUT = 10_000;
+
+    /*
+     * Returning to a market shortly after leaving it does not need another
+     * complete snapshot request.
+     */
+    const SNAPSHOT_FRESHNESS = 90_000;
+
+    const INACTIVE_REASON = "overview-inactive";
+
+    /* ==========================================================================
+     Market Configuration
+     ========================================================================== */
+
+    const MARKETS = Object.freeze([
+      Object.freeze({
+        key: "tasi",
+
+        apiId: "tasi",
+
+        symbol: "TASI",
+
+        nameEn: "Tadawul All Share Index",
+
+        nameAr: "مؤشر السوق الرئيسية (تاسي)",
+
+        currency: "SAR",
+
+        decimals: 2,
+
+        chartSelector: "#tasi-chart",
+
+        panelSelector: "#market-panel-tasi",
+      }),
+
+      Object.freeze({
+        /*
+         * The page uses `nomu`, while the existing service expects `nomuc`.
+         */
+        key: "nomu",
+
+        apiId: "nomuc",
+
+        symbol: "NOMUC",
+
+        nameEn: "Parallel Market Capped Index",
+
+        nameAr: "مؤشر السوق الموازية (نمو حد أعلى)",
+
+        currency: "SAR",
+
+        decimals: 2,
+
+        chartSelector: "#nomu-chart",
+
+        panelSelector: "#market-panel-nomu",
+      }),
+
+      Object.freeze({
+        key: "sukuk",
+
+        apiId: "sukuk",
+
+        symbol: "SUKUK",
+
+        nameEn: "Sukuk/Bonds Market Index",
+
+        nameAr: "مؤشر سوق الصكوك / السندات",
+
+        currency: "SAR",
+
+        decimals: 2,
+
+        chartSelector: "#sukuk-chart",
+
+        panelSelector: "#market-panel-sukuk",
+      }),
+
+      Object.freeze({
+        key: "reits",
+
+        apiId: "reits",
+
+        symbol: "REITS",
+
+        nameEn: "REITs Index",
+
+        nameAr: "صناديق الاستثمار العقارية",
+
+        currency: "SAR",
+
+        decimals: 2,
+
+        chartSelector: "#reits-chart",
+
+        /*
+         * REITs belongs to the Funds details panel.
+         */
+        panelSelector: "#market-panel-funds",
+      }),
+
+      Object.freeze({
+        key: "mt30",
+
+        apiId: "mt30",
+
+        symbol: "MT30",
+
+        nameEn: "MT30 Index",
+
+        nameAr: "إم تي 30",
+
+        currency: "SAR",
+
+        decimals: 2,
+
+        chartSelector: "#mt30-chart",
+
+        /*
+         * MT30 belongs to the Derivatives details panel.
+         */
+        panelSelector: "#market-panel-derivatives",
+      }),
+    ]);
+
+    /* ==========================================================================
+     Runtime State
+     ========================================================================== */
+
+    /*
+     * Each visited market keeps one controller in memory.
+     *
+     * Hidden controllers are suspended rather than destroyed so returning to a
+     * market is immediate.
+     */
+    const runtimes = new Map();
+
+    /*
+     * First-load creation requests are tracked independently so changing tabs
+     * before a request completes can cancel unnecessary work.
+     */
+    const pendingCreations = new Map();
+
+    /*
+     * Visibility observers are retained for cleanup during page teardown.
+     */
+    const panelObservers = [];
+
+    const listenerController = new AbortController();
+
+    let chartAPI = null;
+
+    let activeRuntime = null;
+
+    let activityFrame = null;
+
+    let activityRevision = 0;
+
+    let destroyed = false;
+
+    /* ==========================================================================
+     Locale
+     ========================================================================== */
+
+    function getLanguage() {
+      return document.documentElement.lang || "en";
     }
-    params.append('chart-parameter', chartParam);
 
-    params.append('format', 'json');
-    params.append('pageName', 'MarketSummaryHomePageGraph');
-    params.append('jwtToken', '<%=JwtBean.getJwtToken("marketStatusHomeGraph")%>');
+    function isArabic() {
+      const language = String(getLanguage()).toLowerCase();
 
-    return '/url?' + params.toString();
-  } catch (e) {
-    console.error('URL build failed:', e);
-    return null;
-  }
-}
+      return language === "ar" || language.startsWith("ar-");
+    }
 
-function isValidData(data) {
-  return Array.isArray(data) && data.length > 0 && 
-         data.every(item => item.dateTime && item.indexPrice !== undefined);
-}
+    function getMarketName(market) {
+      return isArabic() ? market.nameAr : market.nameEn;
+    }
 
-function renderErrorState(element, message) {
-  element.innerHTML = '<div class="chart-error">' +
-    '<p>' + chartTranslations[chartLang].chartError + '</p>' +
-    '<small>' + message + '</small>' +
-    '</div>';
-}
+    function getAxisLabels() {
+      return isArabic()
+        ? {
+            time: "الوقت",
 
-// Empty Chart Rendering ======================================
-function drawEmptyChart(chartId, targetElement) {
-  try {
-    Highcharts.chart(targetElement, getEmptyChartConfig(chartId));
-  } catch (e) {
-    console.error('Empty chart render failed:', e);
-    renderErrorState(targetElement, 'Technical error in chart rendering');
-  }
-}
+            date: "التاريخ",
 
-function getEmptyChartConfig(chartId) {
-  const style = getChartStyles();
-  const t = chartTranslations[chartLang];
-  
-  const now = new Date();
-  const categories = [];
-  for (let i = 6; i >= 0; i--) {
-    const time = new Date(now.getTime() - i * 3600000);
-    categories.push(formatTime(time));
-  }
-  var chartName = t[chartId] || chartId.toUpperCase();
-  
-  return {
-    chart: {
-      type: 'area',
-      backgroundColor: 'transparent',
-      spacing: [10, 10, 10, 10]
-    },
-    exporting: {
-	  enabled: false
-	},
-	navigation: {
-	  buttonOptions: {
-	    enabled: false
-	  }
-	},
-    title: { text: null },
-    xAxis: {
-      categories: categories,
-      labels: {
-        style: { color: style.axisText },
-        step: 1
-      },
-      lineColor: style.axisLine,
-      title: {
-        text: t.time, 
-        style: { color: style.axisText }
-      }
-    },
-    yAxis: {
-      min: 0,
-      max: 100,
-      opposite: true,
-      title: { 
-        text: t.index,
-        style: { color: style.axisText } 
-      },
-      labels: {
-        style: { color: style.axisText },
-        formatter: function() {
-          return Highcharts.numberFormat(this.value, 0, '.', ',');
-        }
-      },
-      gridLineColor: style.gridLine
-    },
-    tooltip: { enabled: false },
-    plotOptions: {
-      area: {
-        fillOpacity: 0,
-        lineWidth: 0
-      }
-    },
-    
-    series: [{
-    
-      name: chartName,
-      data: []
-    }],
-    legend: {
-      itemStyle: {
-        color: 'rgb(156, 179, 201)',
-        fontWeight: 'normal'
-      },
-      itemHoverStyle: {
-        color: 'rgb(156, 179, 201)',
-        cursor: 'pointer'
-      }
-    },
-    credits: { enabled: false },
-    accessibility: {
-      enabled: true,
-      description: t.noData.replace("{CHART}", chartId.toUpperCase())
-    },
-    rangeSelector: {
-      buttonSpacing: 70
-    },
-    responsive: {
-      rules: [{
-        condition: { maxWidth: 1400 },
-        chartOptions: {
-          rangeSelector: {
-            dropdown: "always",
-            buttonSpacing: 50
+            value: "قيمة المؤشر",
           }
-        }
-      }]
+        : {
+            time: "Time",
+
+            date: "Date",
+
+            value: "Index Value",
+          };
     }
-  };
-}
 
-// Chart Rendering ============================================
-function drawChart(data, chartId, targetElement) {
-  try {
-    const formattedData = data.map(item => ({
-      x: new Date(item.dateTime).getTime(), // timestamp
-      y: item.indexPrice,
-      //name: chartId.toUpperCase()
-    }));
-    
-    Highcharts.setOptions({
-	  time: {
-	    useUTC: false
-	  }
-	});
+    function getMessages(market) {
+      const name = getMarketName(market);
 
-    Highcharts.chart(targetElement, getChartConfig(formattedData, chartId));
-    
-  } catch (e) {
-    console.error('Chart render failed:', e);
-    renderErrorState(targetElement, 'Technical error in chart rendering');
-  }
-}
+      return isArabic()
+        ? {
+            loading: `جارٍ تحميل بيانات ${name}…`,
 
-function getChartConfig(data, chartId) {
-  const range = calculateAxisRange(data.map(item => item.y));
-  const style = getChartStyles();
-  const t = chartTranslations[chartLang];
-  var chartName = t[chartId] || chartId.toUpperCase();
+            empty: `بيانات ${name} غير متاحة حالياً.`,
 
-  return {
-    chart: {
-      type: 'area',
-      backgroundColor: 'transparent',
-      spacing: [10, 10, 10, 10]
-    },
-    exporting: {
-  enabled: false
-},
-navigation: {
-  buttonOptions: {
-    enabled: false
-  }
-},
-    title: { text: null },
-    xAxis: {
-  type: 'datetime',
-  labels: {
-    style: { color: style.axisText },
-    formatter: function () {
-      const date = new Date(this.value);
-      return date.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
+            error: `تعذر تحميل بيانات ${name}.`,
+          }
+        : {
+            loading: `Loading ${name} data…`,
+
+            empty: `${name} data is currently unavailable.`,
+
+            error: `${name} data could not be loaded.`,
+          };
+    }
+
+    /* ==========================================================================
+     Number and Time Normalization
+     ========================================================================== */
+
+    function toFiniteNumber(value) {
+      if (typeof value === "string") {
+        value = value.replace(/,/g, "");
+      }
+
+      const number = Number(value);
+
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function toTimestamp(value) {
+      if (value === null || value === undefined || value === "") {
+        return null;
+      }
+
+      const numeric = toFiniteNumber(value);
+
+      /*
+       * Accept numeric epoch values when supplied directly.
+       */
+      if (
+        numeric !== null &&
+        (typeof value === "number" || /^[0-9]+$/.test(String(value)))
+      ) {
+        /*
+         * Small epoch values are normally seconds;
+         * JavaScript Date expects milliseconds.
+         */
+        return numeric < 10_000_000_000 ? numeric * 1_000 : numeric;
+      }
+
+      const timestamp = new Date(value).getTime();
+
+      return Number.isFinite(timestamp) ? timestamp : null;
+    }
+
+    /* ==========================================================================
+     Backend URL
+     ========================================================================== */
+
+    function buildMarketApiUrl(market) {
+      if (!market) {
+        return null;
+      }
+
+      const params = new URLSearchParams();
+
+      params.append("methodType", "parsingMethod");
+
+      /*
+       * Preserve the existing backend chart-type contract.
+       */
+      let chartType = "SQL_MI_MSPV";
+
+      if (market.apiId === "nomuc") {
+        chartType = "SQL_MI_MSPV_SME";
+      } else if (market.apiId === "sukuk") {
+        chartType = "SQL_MI_MSPV_SUKUK";
+      }
+
+      params.append("chart-type", chartType);
+
+      /*
+       * Preserve the existing service parameter aliases.
+       */
+      let chartParameter = market.apiId;
+
+      if (market.apiId === "sukuk") {
+        chartParameter = "tsbi";
+      } else if (market.apiId === "reits") {
+        chartParameter = "trti";
+      }
+
+      params.append("chart-parameter", chartParameter);
+
+      params.append("format", "json");
+
+      params.append("pageName", "MarketSummaryHomePageGraph");
+
+      params.append(
+        "jwtToken",
+        '<%=JwtBean.getJwtToken("marketStatusHomeGraph")%>',
+      );
+
+      return "/url?" + params.toString();
+    }
+
+    /* ==========================================================================
+     API Payload Normalization
+     ========================================================================== */
+
+    function normalizeSnapshot(payload) {
+      if (!Array.isArray(payload) || !payload.length) {
+        return [];
+      }
+
+      /*
+       * A Map guarantees one final value per timestamp.
+       *
+       * The latest payload item wins when the backend contains duplicate X
+       * values.
+       */
+      const byTimestamp = new Map();
+
+      payload.forEach((item) => {
+        if (!item || typeof item !== "object") {
+          return;
+        }
+
+        const timestamp = toTimestamp(item.dateTime);
+
+        const value = toFiniteNumber(item.indexPrice);
+
+        if (timestamp === null || value === null) {
+          return;
+        }
+
+        byTimestamp.set(timestamp, [timestamp, value]);
+      });
+
+      /*
+       * Highcharts requires ordered X values.
+       *
+       * Sorting here guarantees warning #15 cannot originate from the backend
+       * snapshot ordering.
+       */
+      const points = Array.from(byTimestamp.values()).sort(
+        (first, second) => first[0] - second[0],
+      );
+
+      /*
+       * Never feed an unnecessarily large historical array into the Overview.
+       */
+      return points.length > MAX_POINTS ? points.slice(-MAX_POINTS) : points;
+    }
+
+    /* ==========================================================================
+     Abort Helpers
+     ========================================================================== */
+
+    function createAbortError(message = "The request was cancelled.") {
+      const error = new Error(message);
+
+      error.name = "AbortError";
+
+      return error;
+    }
+
+    function isAbortError(error) {
+      return error?.name === "AbortError";
+    }
+
+    /* ==========================================================================
+     Snapshot Request
+     ========================================================================== */
+
+    async function requestSnapshot(market, externalSignal = null) {
+      const url = buildMarketApiUrl(market);
+
+      if (!url) {
+        throw new Error(
+          `Unable to build ${market?.symbol || "market"} chart URL.`,
+        );
+      }
+
+      const controller = new AbortController();
+
+      let timedOut = false;
+
+      /*
+       * Forward cancellation from the chart live controller or from a cancelled
+       * first-load request into this transport request.
+       */
+      const handleExternalAbort = () => {
+        controller.abort();
+      };
+
+      if (externalSignal) {
+        if (externalSignal.aborted) {
+          throw externalSignal.reason || createAbortError();
+        }
+
+        externalSignal.addEventListener("abort", handleExternalAbort, {
+          once: true,
+        });
+      }
+
+      const timeoutId = window.setTimeout(() => {
+        timedOut = true;
+
+        controller.abort();
+      }, REQUEST_TIMEOUT);
+
+      try {
+        const response = await fetch(url, {
+          method: "GET",
+
+          credentials: "same-origin",
+
+          signal: controller.signal,
+
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `${market.symbol} chart request failed with HTTP ${response.status}.`,
+          );
+        }
+
+        const payload = await response.json();
+
+        return normalizeSnapshot(payload);
+      } catch (error) {
+        if (timedOut) {
+          const timeoutError = new Error(
+            `${market.symbol} chart request timed out.`,
+          );
+
+          timeoutError.name = "TimeoutError";
+
+          throw timeoutError;
+        }
+
+        if (externalSignal?.aborted) {
+          throw externalSignal.reason || createAbortError();
+        }
+
+        if (controller.signal.aborted) {
+          throw createAbortError();
+        }
+
+        throw error;
+      } finally {
+        window.clearTimeout(timeoutId);
+
+        externalSignal?.removeEventListener("abort", handleExternalAbort);
+      }
+    }
+
+    /* ==========================================================================
+     DOM Resolution
+     ========================================================================== */
+
+    function resolveChartElement(market) {
+      return document.querySelector(market.chartSelector);
+    }
+
+    function resolvePanel(market, chartElement = resolveChartElement(market)) {
+      return (
+        document.querySelector(market.panelSelector) ||
+        chartElement?.closest("[data-market-detail-panel]") ||
+        chartElement?.closest("[data-performance-chart]") ||
+        chartElement?.closest(".performance-chart") ||
+        chartElement?.parentElement ||
+        null
+      );
+    }
+
+    function isElementVisible(element) {
+      if (!element?.isConnected) {
+        return false;
+      }
+
+      if (element.closest("[hidden]")) {
+        return false;
+      }
+
+      if (element.closest('[aria-hidden="true"]')) {
+        return false;
+      }
+
+      const rect = element.getBoundingClientRect();
+
+      return Boolean(
+        element.getClientRects().length && rect.width > 0 && rect.height > 0,
+      );
+    }
+
+    function getVisibleMarket() {
+      return (
+        MARKETS.find((market) =>
+          isElementVisible(resolveChartElement(market)),
+        ) || null
+      );
+    }
+
+    /* ==========================================================================
+     Initial Comparison Value
+     ========================================================================== */
+
+    function resolveComparisonValue(points) {
+      if (!Array.isArray(points) || !points.length) {
+        return null;
+      }
+
+      /*
+       * The current graph endpoint does not expose an explicit previous-close
+       * field in the chart payload.
+       *
+       * Until that value is supplied separately, the first valid chart point is
+       * used as the chart comparison baseline.
+       */
+      return toFiniteNumber(points[0]?.[1]);
+    }
+
+    /* ==========================================================================
+     Chart Options
+     ========================================================================== */
+
+    function createChartOptions(market, panel, initialPoints) {
+      const labels = getAxisLabels();
+
+      const comparisonValue = resolveComparisonValue(initialPoints);
+
+      return {
+        context: "overview",
+
+        symbol: market.symbol,
+
+        name: getMarketName(market),
+
+        currency: market.currency,
+
+        previousClose: comparisonValue,
+
+        mode: "trend",
+
+        range: "1D",
+
+        language: getLanguage(),
+
+        timeZone: "Asia/Riyadh",
+
+        decimals: market.decimals,
+
+        maxPoints: MAX_POINTS,
+
+        candleBucketSize: CANDLE_BUCKET_SIZE,
+
+        followLive: true,
+
+        liveWindowDuration: LIVE_WINDOW_DURATION,
+
+        /*
+         * The Overview is deliberately non-animated.
+         *
+         * Data changes remain smooth through incremental Highcharts updates,
+         * while tab switching, theme changes and drawer resizing avoid expensive
+         * SVG animation work.
+         */
+        animation: false,
+
+        xAxisTitle: labels.time,
+
+        yAxisTitle: labels.value,
+
+        capabilities: {
+          intraday: true,
+
+          historical: false,
+
+          live: true,
+
+          navigator: true,
+
+          intradayRange: "1D",
+        },
+
+        axis: {
+          x: {
+            title: {
+              "1D": labels.time,
+
+              default: labels.date,
+            },
+
+            rotation: {
+              "1D": 0,
+
+              default: -25,
+            },
+
+            labels: true,
+
+            showFirstLabel: true,
+
+            showLastLabel: true,
+
+            minPadding: 0,
+
+            maxPadding: 0,
+          },
+
+          y: {
+            title: labels.value,
+
+            /*
+             * Overview keeps the value axis physically on the right in both LTR
+             * and RTL.
+             */
+            opposite: true,
+
+            labels: true,
+
+            minPadding: 0.04,
+
+            maxPadding: 0.06,
+
+            format: {
+              decimals: market.decimals,
+
+              useGrouping: true,
+            },
+          },
+        },
+
+        dateFormats: {
+          "1D": {
+            hour: "2-digit",
+
+            minute: "2-digit",
+
+            hourCycle: "h23",
+          },
+        },
+
+        tooltipDateFormats: {
+          "1D": {
+            day: "2-digit",
+
+            month: "short",
+
+            year: "numeric",
+
+            hour: "2-digit",
+
+            minute: "2-digit",
+
+            second: "2-digit",
+
+            hourCycle: "h23",
+          },
+        },
+
+        ranges: {
+          "1D": {
+            comparisonValue,
+
+            trend: initialPoints,
+
+            /*
+             * Trend and line use the same ordered source geometry.
+             */
+            line: initialPoints,
+
+            candlestick: [],
+          },
+        },
+
+        controls: {
+          root: panel,
+        },
+
+        navigatorEnabled: true,
+
+        navigator: {
+          enabled: true,
+
+          labels: true,
+
+          labelsInside: true,
+
+          insideLabelOffset: -7,
+
+          height: 38,
+
+          margin: 10,
+
+          handleWidth: 7,
+
+          handleHeight: 20,
+
+          tickPixelInterval: 105,
+
+          /*
+           * At MAX_POINTS=240, grouping adds unnecessary processing and removes
+           * detail from this small intraday dataset.
+           */
+          dataGrouping: false,
+
+          formats: {
+            "1D": {
+              hour: "2-digit",
+
+              minute: "2-digit",
+
+              hourCycle: "h23",
+            },
+
+            ALL: {
+              year: "numeric",
+            },
+          },
+        },
+
+        live: {
+          enabled: true,
+
+          /*
+           * One production request per minute for the active chart.
+           */
+          interval: LIVE_INTERVAL,
+
+          alignToInterval: true,
+
+          /*
+           * The initial snapshot was already requested before chart creation, so
+           * do not immediately issue the same request again.
+           */
+          immediate: false,
+
+          /*
+           * Browser-tab visibility and Overview activity both suspend polling.
+           */
+          pauseWhenHidden: true,
+
+          retry: true,
+
+          autostart: true,
+
+          requestTimeout: REQUEST_TIMEOUT,
+
+          /*
+           * The current graph service returns a complete snapshot rather than a
+           * delta endpoint.
+           *
+           * For each minute tick we normalize the snapshot but return only its
+           * newest point to the incremental chart engine.
+           */
+          async fetchPoint({ signal } = {}) {
+            const points = await requestSnapshot(market, signal);
+
+            if (!points.length) {
+              return null;
+            }
+
+            return points[points.length - 1];
+          },
+
+          onError(error, metadata) {
+            if (isAbortError(error)) {
+              return;
+            }
+
+            console.error(
+              `${market.symbol} live chart update failed.`,
+
+              {
+                error,
+                metadata,
+              },
+            );
+          },
+        },
+
+        accessibilityDescription: isArabic()
+          ? `الأداء اللحظي لمؤشر ${getMarketName(market)}.`
+          : `${getMarketName(market)} intraday market performance.`,
+
+        messages: getMessages(market),
+      };
+    }
+
+    /* ==========================================================================
+     Runtime Creation
+     ========================================================================== */
+
+    async function createRuntime(market, signal) {
+      const existing = runtimes.get(market.key);
+
+      if (existing) {
+        return existing;
+      }
+
+      const chartElement = resolveChartElement(market);
+
+      if (!chartElement) {
+        console.warn(
+          `${market.symbol} chart element was not found: ${market.chartSelector}`,
+        );
+
+        return null;
+      }
+
+      const panel = resolvePanel(market, chartElement);
+
+      if (!panel) {
+        console.warn(`${market.symbol} chart panel could not be resolved.`);
+
+        return null;
+      }
+
+      panel.setAttribute("aria-busy", "true");
+
+      chartElement.dataset.chartState = "loading";
+
+      let initialPoints = [];
+
+      try {
+        /*
+         * Request the real backend snapshot before constructing Highcharts.
+         *
+         * This prevents creating an empty chart and then immediately performing
+         * a second structural chart update.
+         */
+        initialPoints = await requestSnapshot(market, signal);
+      } catch (error) {
+        if (isAbortError(error)) {
+          panel.setAttribute("aria-busy", "false");
+
+          return null;
+        }
+
+        /*
+         * A temporary initial service failure does not prevent the controller
+         * from existing. Its live retry loop can recover automatically.
+         */
+        console.error(
+          `${market.symbol} initial chart request failed.`,
+
+          error,
+        );
+      }
+
+      if (signal?.aborted || destroyed) {
+        panel.setAttribute("aria-busy", "false");
+
+        return null;
+      }
+
+      try {
+        const controller = chartAPI.create(
+          chartElement,
+
+          createChartOptions(market, panel, initialPoints),
+        );
+
+        if (!controller) {
+          throw new Error(`${market.symbol} chart controller was not created.`);
+        }
+
+        const runtime = {
+          market,
+
+          panel,
+
+          chartElement,
+
+          controller,
+
+          active: true,
+
+          lastSnapshotAt: Date.now(),
+
+          refreshController: null,
+
+          pendingSnapshot: null,
+        };
+
+        runtimes.set(market.key, runtime);
+
+        panel.marketChartController = controller;
+
+        panel.setAttribute("aria-busy", "false");
+
+        return runtime;
+      } catch (error) {
+        panel.setAttribute("aria-busy", "false");
+
+        console.error(
+          `${market.symbol} chart initialization failed.`,
+
+          error,
+        );
+
+        return null;
+      }
+    }
+
+    /* ==========================================================================
+     Pending Creation
+     ========================================================================== */
+
+    function cancelPendingCreation(marketKey) {
+      const pending = pendingCreations.get(marketKey);
+
+      if (!pending) {
+        return;
+      }
+
+      pending.controller.abort();
+
+      pendingCreations.delete(marketKey);
+    }
+
+    function cancelOtherPendingCreations(activeMarketKey) {
+      Array.from(pendingCreations.keys()).forEach((marketKey) => {
+        if (marketKey !== activeMarketKey) {
+          cancelPendingCreation(marketKey);
+        }
       });
     }
-  },
-  lineColor: style.axisLine,
-  title: {
-    text: t.time,
-    style: { color: style.axisText }
-  },
-  crosshair: {
-    width: 1,
-    color: style.gridLine,
-    label: {
-      enabled: true,
-      backgroundColor: style.tooltipBackground,
-      borderColor: style.lineColor,
-      borderRadius: 3,
-      padding: 5,
-      style: {
-        color: '#ffffff',
-        fontSize: '11px'
-      },
-      format: '{value:%A, %b %e, %H:%M}'
-    }
-  }
-},
-      yAxis: {
-      min: range.min,
-      max: range.max,
-      opposite: true,
-      title: {
-        text: t.index,
-        style: { color: style.axisText }
-      },
-      labels: {
-        style: { color: style.axisText },
-        formatter: function () {
-          // Automatically sets 2 decimal places if the axis value is a fraction
-          const decimals = (this.value % 1 !== 0) ? 2 : 0;
-          return Highcharts.numberFormat(this.value, decimals, '.', ',');
+
+    function ensureRuntime(market) {
+      const existing = runtimes.get(market.key);
+
+      if (existing) {
+        return Promise.resolve(existing);
+      }
+
+      const pending = pendingCreations.get(market.key);
+
+      if (pending) {
+        return pending.promise;
+      }
+
+      const controller = new AbortController();
+
+      const promise = createRuntime(market, controller.signal).finally(() => {
+        const current = pendingCreations.get(market.key);
+
+        if (current?.controller === controller) {
+          pendingCreations.delete(market.key);
         }
-      },
-      gridLineColor: style.gridLine
-    },
-  
-tooltip: {
-  split: true,
-  useHTML: true,
-  backgroundColor: style.tooltipBackground,
-  borderColor: style.lineColor,
-  style: { color: '#ffffff' },
-  
-  headerFormat: '<span style="font-size:11px;">{point.key:%A, %b %e, %H:%M}</span><br/>',
-  
-  pointFormatter: function () {
-  
-    return '<b>' + this.series.name  + ':</b> ' + Highcharts.numberFormat(this.y, 2);
-  }
-},
-    plotOptions: {
-      area: {
-        fillOpacity: 0.3,
-        lineColor: style.lineColor,
-        fillColor: {
-          linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
-          stops: [
-            [0, style.fillColor],
-            [1, style.fillColorEnd]
-          ]
+      });
+
+      pendingCreations.set(market.key, {
+        controller,
+
+        promise,
+      });
+
+      return promise;
+    }
+
+    /* ==========================================================================
+     Snapshot Synchronization
+     ========================================================================== */
+
+    function applySnapshot(runtime, points) {
+      if (!runtime || !Array.isArray(points)) {
+        return false;
+      }
+
+      const comparisonValue = resolveComparisonValue(points);
+
+      /*
+       * Replace trend and line together in one structural controller
+       * transaction. This avoids two Highcharts redraws.
+       */
+      return (
+        runtime.controller.setRanges?.(
+          {
+            "1D": {
+              comparisonValue,
+
+              trend: points,
+
+              line: points,
+
+              candlestick: [],
+            },
+          },
+          {
+            merge: true,
+
+            preserveViewport: true,
+
+            redraw: true,
+
+            animation: false,
+          },
+        ) !== false
+      );
+    }
+
+    async function refreshRuntimeSnapshot(runtime, options = {}) {
+      if (!runtime || destroyed) {
+        return false;
+      }
+
+      const age = Date.now() - runtime.lastSnapshotAt;
+
+      if (options.force !== true && age < SNAPSHOT_FRESHNESS) {
+        return false;
+      }
+
+      /*
+       * One snapshot refresh per runtime at a time.
+       */
+      runtime.refreshController?.abort();
+
+      const controller = new AbortController();
+
+      runtime.refreshController = controller;
+
+      try {
+        const points = await requestSnapshot(runtime.market, controller.signal);
+
+        if (destroyed || controller.signal.aborted) {
+          return false;
+        }
+
+        runtime.lastSnapshotAt = Date.now();
+
+        /*
+         * If the user has already moved to another market, keep the normalized
+         * snapshot in lightweight JS memory and postpone all Highcharts work.
+         */
+        if (!runtime.active || activeRuntime !== runtime) {
+          runtime.pendingSnapshot = points;
+
+          return true;
+        }
+
+        runtime.pendingSnapshot = null;
+
+        return applySnapshot(runtime, points);
+      } catch (error) {
+        if (isAbortError(error)) {
+          return false;
+        }
+
+        console.error(
+          `${runtime.market.symbol} snapshot refresh failed.`,
+
+          error,
+        );
+
+        return false;
+      } finally {
+        if (runtime.refreshController === controller) {
+          runtime.refreshController = null;
+        }
+      }
+    }
+
+    /* ==========================================================================
+     Runtime Suspension
+     ========================================================================== */
+
+    function deactivateRuntime(runtime) {
+      if (!runtime || !runtime.active) {
+        return;
+      }
+
+      runtime.active = false;
+
+      /*
+       * Keep Highcharts and its data alive for instant return, but pause network,
+       * redraw, theme and resize work.
+       */
+      runtime.controller.setActive?.(false, INACTIVE_REASON);
+
+      /*
+       * A refresh that is no longer needed for the visible market can stop.
+       */
+      runtime.refreshController?.abort();
+
+      runtime.refreshController = null;
+    }
+
+    function activateRuntime(runtime) {
+      if (!runtime) {
+        return;
+      }
+
+      if (!runtime.active) {
+        runtime.active = true;
+
+        runtime.controller.setActive?.(true, INACTIVE_REASON);
+      }
+
+      /*
+       * A complete snapshot may have arrived while the chart became inactive.
+       * Apply it once, now that rendering is useful again.
+       */
+      if (runtime.pendingSnapshot) {
+        const points = runtime.pendingSnapshot;
+
+        runtime.pendingSnapshot = null;
+
+        applySnapshot(runtime, points);
+
+        runtime.lastSnapshotAt = Date.now();
+
+        return;
+      }
+
+      /*
+       * Show the cached Highcharts instance immediately.
+       *
+       * If it has been inactive long enough, update its complete backend
+       * snapshot asynchronously after the card switch has already completed.
+       */
+      void refreshRuntimeSnapshot(runtime);
+    }
+
+    /* ==========================================================================
+     Active Market Synchronization
+     ========================================================================== */
+
+    async function synchronizeVisibleMarket(revision) {
+      if (destroyed || !chartAPI) {
+        return;
+      }
+
+      const market = getVisibleMarket();
+
+      /*
+       * Details can temporarily have no visible chart while native details,
+       * market views or card state is changing.
+       */
+      if (!market) {
+        if (activeRuntime) {
+          deactivateRuntime(activeRuntime);
+
+          activeRuntime = null;
+        }
+
+        cancelOtherPendingCreations(null);
+
+        return;
+      }
+
+      /*
+       * Do not allow an abandoned market's first-load request to continue
+       * creating a hidden Highcharts instance.
+       */
+      cancelOtherPendingCreations(market.key);
+
+      /*
+       * Same visible market: nothing structural needs to happen.
+       */
+      if (activeRuntime?.market.key === market.key) {
+        activateRuntime(activeRuntime);
+
+        return;
+      }
+
+      /*
+       * Suspend the previous chart immediately.
+       */
+      if (activeRuntime) {
+        deactivateRuntime(activeRuntime);
+
+        activeRuntime = null;
+      }
+
+      /*
+       * Existing markets resolve immediately.
+       * First-time visits fetch their initial real snapshot before creation.
+       */
+      const runtime = await ensureRuntime(market);
+
+      if (destroyed || !runtime) {
+        return;
+      }
+
+      /*
+       * The user may have selected another card while the network request was
+       * running. Never activate a stale result.
+       */
+      if (
+        revision !== activityRevision ||
+        getVisibleMarket()?.key !== market.key
+      ) {
+        deactivateRuntime(runtime);
+
+        return;
+      }
+
+      activeRuntime = runtime;
+
+      activateRuntime(runtime);
+    }
+
+    function syncActiveChart() {
+      activityFrame = null;
+
+      activityRevision += 1;
+
+      const revision = activityRevision;
+
+      void synchronizeVisibleMarket(revision);
+    }
+
+    function scheduleActiveChartSync() {
+      if (destroyed || activityFrame !== null) {
+        return;
+      }
+
+      /*
+       * One card click may change several hidden/ARIA/classes. Collapse those
+       * mutations into one visible-market resolution.
+       */
+      activityFrame = window.requestAnimationFrame(syncActiveChart);
+    }
+
+    /* ==========================================================================
+     Visibility Observation
+     ========================================================================== */
+
+    function observeElement(element, observed) {
+      if (!element || observed.has(element)) {
+        return;
+      }
+
+      observed.add(element);
+
+      const observer = new MutationObserver(scheduleActiveChartSync);
+
+      observer.observe(element, {
+        attributes: true,
+
+        attributeFilter: ["hidden", "aria-hidden", "class", "style", "open"],
+      });
+
+      panelObservers.push(observer);
+    }
+
+    function observePanels() {
+      if (typeof MutationObserver !== "function") {
+        return;
+      }
+
+      const observed = new Set();
+
+      MARKETS.forEach((market) => {
+        const chartElement = resolveChartElement(market);
+
+        const panel = resolvePanel(market, chartElement);
+
+        const viewPanel =
+          chartElement?.closest("[data-market-view-panel]") || null;
+
+        observeElement(panel, observed);
+
+        observeElement(viewPanel, observed);
+      });
+
+      /*
+       * Closing the native Overview disclosure hides every chart without
+       * mutating the individual market panels.
+       */
+      observeElement(
+        document.querySelector("[data-market-details-disclosure]"),
+        observed,
+      );
+    }
+
+    /* ==========================================================================
+     Overview Activity
+     ========================================================================== */
+
+    function bindOverviewActivity() {
+      const overview = document.querySelector("[data-market-overview]");
+
+      if (!overview) {
+        return;
+      }
+
+      overview.addEventListener("click", scheduleActiveChartSync, {
+        signal: listenerController.signal,
+
+        passive: true,
+      });
+    }
+
+    /* ==========================================================================
+     Initialization
+     ========================================================================== */
+
+    function initializeOverviewCharts(api = window.SEMarketCharts) {
+      if (destroyed) {
+        return;
+      }
+
+      if (!api || typeof api.create !== "function") {
+        console.error("SEMarketCharts is unavailable for Market Overview.");
+
+        return;
+      }
+
+      chartAPI = api;
+
+      observePanels();
+
+      bindOverviewActivity();
+
+      /*
+       * Only the chart visible on first paint is requested and created.
+       */
+      scheduleActiveChartSync();
+    }
+
+    /* ==========================================================================
+     Teardown
+     ========================================================================== */
+
+    function destroyOverviewCharts() {
+      if (destroyed) {
+        return;
+      }
+
+      destroyed = true;
+
+      activityRevision += 1;
+
+      listenerController.abort();
+
+      panelObservers.forEach((observer) => {
+        observer.disconnect();
+      });
+
+      panelObservers.length = 0;
+
+      if (activityFrame !== null) {
+        window.cancelAnimationFrame(activityFrame);
+
+        activityFrame = null;
+      }
+
+      pendingCreations.forEach((pending) => {
+        pending.controller.abort();
+      });
+
+      pendingCreations.clear();
+
+      /*
+       * Chart destruction belongs only to complete page teardown.
+       */
+      runtimes.forEach((runtime) => {
+        runtime.refreshController?.abort();
+
+        runtime.refreshController = null;
+
+        try {
+          runtime.controller.destroy?.();
+        } catch (error) {
+          console.error(
+            `${runtime.market.symbol} chart destruction failed.`,
+
+            error,
+          );
+        }
+
+        if (runtime.panel.marketChartController === runtime.controller) {
+          delete runtime.panel.marketChartController;
+        }
+      });
+
+      runtimes.clear();
+
+      activeRuntime = null;
+    }
+
+    /* ==========================================================================
+     Chart Engine Readiness
+     ========================================================================== */
+
+    if (window.SEMarketCharts) {
+      initializeOverviewCharts(window.SEMarketCharts);
+    } else {
+      window.addEventListener(
+        "semarketchartsready",
+        (event) => {
+          initializeOverviewCharts(event?.detail?.api || window.SEMarketCharts);
         },
-        marker: { radius: 0 },
-        lineWidth: 2
-      }
-    },
-    series: [{
-   
-      name: chartName,
-      data: data
-    }],
-    legend: {
-      itemStyle: {
-        color: 'rgb(156, 179, 201)',
-        fontWeight: 'normal'
-      },
-      itemHoverStyle: {
-        color: 'rgb(156, 179, 201)',
-        cursor: 'pointer'
-      }
-    },
-    credits: { enabled: false },
-    accessibility: {
-      enabled: true,
-      description: t.priceChart.replace("{CHART}", chartId.toUpperCase())
-    },
-    navigator: {
-      enabled: true,
-      adaptToUpdatedData: false,
-     backgroundColor: '#f0f0f0',  
-      maskFill: 'rgba(0, 0, 0, 0.1)',
-     outlineColor: '#677985',
-     
-     xAxis: {
-            labels: {
-                style: {
-                    textOutline: 'none', // Removes the text shadow
-                    color: '#ffffff'     // Optional: Set a clean text color
-                }
-            }
-        }
-     
-    },
-    rangeSelector: {
-      buttonSpacing: 70
-    },
-    responsive: {
-      rules: [{
-        condition: { maxWidth: 1400 },
-        chartOptions: {
-          rangeSelector: {
-            dropdown: "always",
-            buttonSpacing: 50
-          }
-        }
-      }]
+        {
+          once: true,
+
+          signal: listenerController.signal,
+        },
+      );
     }
-  };
-}
 
+    /* ==========================================================================
+     Page Lifecycle
+     ========================================================================== */
 
-function getChartStyles() {
-  const css = getComputedStyle(document.documentElement);
-  return {
-    lineColor: css.getPropertyValue('--highcharts-line-color') || '#00e0b5',
-    fillColor: css.getPropertyValue('--highcharts-fill-color') || 'rgba(0, 224, 181, 0.35)',
-    fillColorEnd: 'rgba(0, 224, 181, 0)',
-    axisText: '#9cb3c9',
-    axisLine: '#435c72',
-    gridLine: '#2f3e4e',
-    tooltipBackground: '#1a3c5f'
-  };
-}
-
-function formatTime(date) {
-  return isNaN(date) ? '' : date.toLocaleTimeString([], { 
-    hour: '2-digit', 
-    minute: '2-digit',
-    hour12: true
-  });
-}
-
-function calculateAxisRange(values) {
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const delta = max - min;
-  const padding = delta * 0.05;
-
-  // If the total variation is less than 2 points, preserve exact decimal ranges
-  if (delta < 2) {
-    return {
-      min: Number((min - (padding || 0.01)).toFixed(4)),
-      max: Number((max + (padding || 0.01)).toFixed(4))
-    };
-  }
-
-  // Otherwise, safely continue using whole numbers for large-scale charts
-  return {
-    min: Math.floor(min - padding),
-    max: Math.ceil(max + padding)
-  };
-}
-
-
-
-
-function showTab(targetId, dataKey) {
-    console.log('inside showTab');
- 
-    const allCharts = ['tasi', 'nomuc', 'mt30', 'sukuk', 'reits'];
- 
-    allCharts.forEach(function(id) {
-        const el = document.getElementById(id);
-        if (el) {
-            el.style.display = (id === targetId) ? 'block' : 'none';
-        }
+    window.addEventListener("pagehide", destroyOverviewCharts, {
+      once: true,
     });
-    const targetElement = document.getElementById(targetId);
- renderChart(dataKey, targetElement);
-    console.log("after allCharts.forEach(id)");
-    
-    console.log('targetElement: ' + targetElement);
- 
- 
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  // Default to first tab
-  showTab('tasi', 'tasi');
- 
-  document.querySelectorAll('.tab-button').forEach(button => {
-  console.log('before button.addEventListener');
-    button.addEventListener('click', () => {
-    console.log('after button.addEventListener');
-      const key = button.getAttribute('data-key');
-      const target = button.getAttribute('data-target');
-      showTab(target, key);
-    });
-  });
-});
-
-
-
+  })();
 </script>

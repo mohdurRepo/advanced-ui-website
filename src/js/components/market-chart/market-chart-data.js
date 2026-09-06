@@ -2,6 +2,37 @@
    Market Chart Data
    ========================================================================== */
 
+/*
+ * Responsibilities:
+ *
+ * - Normalize external market data.
+ * - Normalize named ranges and chart modes.
+ * - Validate trend and OHLC points.
+ * - Sort and deduplicate data at ingestion boundaries.
+ * - Resolve range availability and comparison values.
+ * - Provide safe reusable public data helpers.
+ * - Provide an optimized general live-merge utility.
+ *
+ * Performance contract:
+ *
+ * This module is the DEFENSIVE boundary for external data.
+ *
+ * It is correct for normalization here to:
+ *
+ * - allocate;
+ * - validate;
+ * - deduplicate;
+ * - sort.
+ *
+ * The high-frequency live-render path in market-chart.js does not repeatedly
+ * call these full-array normalization functions. Controller-owned runtime data
+ * is already normalized and is updated incrementally.
+ */
+
+/* ==========================================================================
+   Constants
+   ========================================================================== */
+
 const CHART_MODES = new Set(["trend", "line", "candlestick"]);
 
 const DEFAULT_MODE = "trend";
@@ -16,8 +47,11 @@ const DEFAULT_CANDLE_BUCKET_SIZE = 60_000;
 
 const DEFAULT_CAPABILITIES = Object.freeze({
   intraday: true,
+
   historical: true,
+
   live: false,
+
   navigator: true,
 
   intradayRange: DEFAULT_INTRADAY_RANGE,
@@ -57,7 +91,9 @@ function createEmptyRangeRecord() {
     comparisonValue: null,
 
     trend: [],
+
     line: [],
+
     candlestick: [],
   };
 }
@@ -71,7 +107,7 @@ function clonePoints(points) {
 }
 
 /* ==========================================================================
-   Mode and Range
+   Mode
    ========================================================================== */
 
 export function normalizeMarketChartMode(mode, fallback = DEFAULT_MODE) {
@@ -91,6 +127,10 @@ export function normalizeMarketChartMode(mode, fallback = DEFAULT_MODE) {
     ? normalizedFallback
     : DEFAULT_MODE;
 }
+
+/* ==========================================================================
+   Range
+   ========================================================================== */
 
 export function normalizeMarketChartRange(range, fallback = DEFAULT_RANGE) {
   if (range === null || range === undefined || range === "") {
@@ -182,10 +222,11 @@ export function normalizeMarketChartTimestamp(value) {
 
   if (Number.isFinite(numericValue)) {
     /*
-     * Values below 100 billion are treated as
-     * Unix seconds. Larger values are treated
-     * as Unix milliseconds.
+     * Values below 100 billion are interpreted as Unix seconds.
+     *
+     * Larger values are interpreted as Unix milliseconds.
      */
+
     return Math.abs(numericValue) < 100_000_000_000
       ? numericValue * 1_000
       : numericValue;
@@ -249,9 +290,13 @@ function normalizeTrendPoint(point) {
 
 function normalizeCandlestickPoint(point) {
   let timestamp;
+
   let open;
+
   let high;
+
   let low;
+
   let close;
 
   if (Array.isArray(point)) {
@@ -299,7 +344,11 @@ function normalizeCandlestickPoint(point) {
 
   /*
    * Reject impossible OHLC geometry.
+   *
+   * High must contain both open and close.
+   * Low must contain both open and close.
    */
+
   if (
     normalizedHigh < normalizedLow ||
     normalizedHigh < normalizedOpen ||
@@ -320,17 +369,33 @@ function normalizeCandlestickPoint(point) {
 }
 
 /* ==========================================================================
+   Point Normalization
+   ========================================================================== */
+
+function normalizePointForMode(point, mode) {
+  return mode === "candlestick"
+    ? normalizeCandlestickPoint(point)
+    : normalizeTrendPoint(point);
+}
+
+/* ==========================================================================
    Sorting and Deduplication
    ========================================================================== */
 
 function sortAndDeduplicate(points) {
+  if (!Array.isArray(points) || !points.length) {
+    return [];
+  }
+
+  /*
+   * Last point wins when duplicate timestamps exist.
+   *
+   * This matches live replacement semantics.
+   */
+
   const pointsByTimestamp = new Map();
 
   points.forEach((point) => {
-    /*
-     * The final point for a duplicate timestamp
-     * wins, matching live replacement behavior.
-     */
     pointsByTimestamp.set(point[0], point);
   });
 
@@ -338,6 +403,10 @@ function sortAndDeduplicate(points) {
     (first, second) => first[0] - second[0],
   );
 }
+
+/* ==========================================================================
+   Timestamp Search
+   ========================================================================== */
 
 function findTimestampIndex(points, timestamp) {
   let low = 0;
@@ -362,22 +431,142 @@ function findTimestampIndex(points, timestamp) {
 }
 
 /* ==========================================================================
+   Normalized Data Detection
+   ========================================================================== */
+
+/*
+ * Used by the reusable live-merge helpers.
+ *
+ * Instead of automatically rebuilding a Map + sorting the complete existing
+ * dataset, first check whether it is already in the canonical internal form.
+ *
+ * This performs no allocations.
+ */
+
+function isNormalizedTrendPoint(point) {
+  return Boolean(
+    Array.isArray(point) &&
+    point.length >= 2 &&
+    Number.isFinite(point[0]) &&
+    Number.isFinite(point[1]),
+  );
+}
+
+function isNormalizedCandlestickPoint(point) {
+  if (!Array.isArray(point) || point.length < 5) {
+    return false;
+  }
+
+  const [timestamp, open, high, low, close] = point;
+
+  if (
+    !Number.isFinite(timestamp) ||
+    !Number.isFinite(open) ||
+    !Number.isFinite(high) ||
+    !Number.isFinite(low) ||
+    !Number.isFinite(close)
+  ) {
+    return false;
+  }
+
+  return !(
+    high < low ||
+    high < open ||
+    high < close ||
+    low > open ||
+    low > close
+  );
+}
+
+function isNormalizedOrderedData(data, mode) {
+  if (!Array.isArray(data)) {
+    return false;
+  }
+
+  if (!data.length) {
+    return true;
+  }
+
+  const validatePoint =
+    mode === "candlestick"
+      ? isNormalizedCandlestickPoint
+      : isNormalizedTrendPoint;
+
+  let previousTimestamp = -Infinity;
+
+  for (let index = 0; index < data.length; index += 1) {
+    const point = data[index];
+
+    if (!validatePoint(point)) {
+      return false;
+    }
+
+    const timestamp = point[0];
+
+    /*
+     * Strictly increasing timestamps guarantee both ordering and
+     * deduplication.
+     */
+
+    if (timestamp <= previousTimestamp) {
+      return false;
+    }
+
+    previousTimestamp = timestamp;
+  }
+
+  return true;
+}
+
+/* ==========================================================================
+   Live Merge Preparation
+   ========================================================================== */
+
+/*
+ * Public mergeMarketChartLivePoint() remains pure:
+ *
+ * it never mutates the caller's outer data array.
+ *
+ * If the input is already canonical we need only a shallow array copy.
+ * Existing point arrays are never mutated by the merge algorithms.
+ *
+ * If input is arbitrary external data, fall back to complete normalization.
+ */
+
+function prepareDataForLiveMerge(data, mode) {
+  if (isNormalizedOrderedData(data, mode)) {
+    return data.slice();
+  }
+
+  return normalizeMarketChartData(data, mode);
+}
+
+/* ==========================================================================
    Data Normalization
    ========================================================================== */
 
 export function normalizeMarketChartData(data, mode = DEFAULT_MODE) {
-  if (!Array.isArray(data)) {
+  if (!Array.isArray(data) || !data.length) {
     return [];
   }
 
   const normalizedMode = normalizeMarketChartMode(mode);
 
-  const normalizePoint =
-    normalizedMode === "candlestick"
-      ? normalizeCandlestickPoint
-      : normalizeTrendPoint;
+  const points = [];
 
-  const points = data.map(normalizePoint).filter(Boolean);
+  /*
+   * Avoid intermediate map().filter() arrays.
+   *
+   * External data is normalized in one pass before deduplication / sorting.
+   */
+
+  for (let index = 0; index < data.length; index += 1) {
+    const normalizedPoint = normalizePointForMode(data[index], normalizedMode);
+
+    if (normalizedPoint) {
+      points.push(normalizedPoint);
+    }
+  }
 
   return sortAndDeduplicate(points);
 }
@@ -395,6 +584,13 @@ function normalizeRangeRecord(record) {
 
       trend,
 
+      /*
+       * Keep trend / line externally independent at ingestion.
+       *
+       * The runtime controller may intentionally share them later while
+       * processing live ticks.
+       */
+
       line: clonePoints(trend),
 
       candlestick: [],
@@ -408,29 +604,31 @@ function normalizeRangeRecord(record) {
   const sharedData = record.data ?? [];
 
   /*
-   * `comparisonValue` represents the official
-   * value immediately before the range.
-   * `previousClose` remains a supported alias.
+   * comparisonValue is the official value immediately before the named
+   * range. previousClose remains a supported integration alias.
    */
+
   const comparisonValue = toFiniteNumber(
     record.comparisonValue ?? record.previousClose,
   );
 
-  const trend = normalizeMarketChartData(
-    record.trend ?? record.line ?? sharedData,
+  const trendSource = record.trend ?? record.line ?? sharedData;
 
-    "trend",
-  );
+  const lineSource = record.line ?? record.trend ?? sharedData;
 
-  const line = normalizeMarketChartData(
-    record.line ?? record.trend ?? sharedData,
+  const trend = normalizeMarketChartData(trendSource, "trend");
 
-    "line",
-  );
+  /*
+   * When line and trend resolve to the same source, normalize it only once.
+   */
+
+  const line =
+    lineSource === trendSource
+      ? clonePoints(trend)
+      : normalizeMarketChartData(lineSource, "line");
 
   const candlestick = normalizeMarketChartData(
     record.candlestick ?? record.candles ?? record.ohlc ?? [],
-
     "candlestick",
   );
 
@@ -438,7 +636,9 @@ function normalizeRangeRecord(record) {
     comparisonValue,
 
     trend,
+
     line,
+
     candlestick,
   };
 }
@@ -446,6 +646,7 @@ function normalizeRangeRecord(record) {
 /* ==========================================================================
    Range Normalization
    ========================================================================== */
+
 export function normalizeMarketChartRanges(ranges, options = {}) {
   if (!isPlainObject(ranges)) {
     return {};
@@ -453,23 +654,25 @@ export function normalizeMarketChartRanges(ranges, options = {}) {
 
   const capabilities = normalizeMarketChartCapabilities(options.capabilities);
 
-  return Object.entries(ranges).reduce((normalizedRanges, [range, record]) => {
+  const normalizedRanges = {};
+
+  Object.entries(ranges).forEach(([range, record]) => {
     const normalizedRange = normalizeMarketChartRange(range);
 
     if (!isMarketChartRangeSupported(normalizedRange, capabilities)) {
-      return normalizedRanges;
+      return;
     }
 
     const normalizedRecord = normalizeRangeRecord(record);
 
     if (!normalizedRecord) {
-      return normalizedRanges;
+      return;
     }
 
     normalizedRanges[normalizedRange] = normalizedRecord;
+  });
 
-    return normalizedRanges;
-  }, {});
+  return normalizedRanges;
 }
 
 /* ==========================================================================
@@ -484,18 +687,23 @@ export function getAvailableMarketChartRanges(
     return [];
   }
 
-  return Object.keys(ranges).reduce((availableRanges, range) => {
+  const availableRanges = [];
+
+  Object.keys(ranges).forEach((range) => {
     const normalizedRange = normalizeMarketChartRange(range);
 
-    if (
-      !availableRanges.includes(normalizedRange) &&
-      isMarketChartRangeSupported(normalizedRange, capabilities)
-    ) {
-      availableRanges.push(normalizedRange);
+    if (availableRanges.includes(normalizedRange)) {
+      return;
     }
 
-    return availableRanges;
-  }, []);
+    if (!isMarketChartRangeSupported(normalizedRange, capabilities)) {
+      return;
+    }
+
+    availableRanges.push(normalizedRange);
+  });
+
+  return availableRanges;
 }
 
 export function getFirstAvailableMarketChartRange(
@@ -517,6 +725,16 @@ export function getFirstAvailableMarketChartRange(
 /* ==========================================================================
    Range Data
    ========================================================================== */
+
+/*
+ * Public helper.
+ *
+ * This function intentionally remains defensive because callers outside the
+ * MarketChartController may pass arbitrary range objects.
+ *
+ * The optimized runtime controller does NOT use this method for every live
+ * read; it accesses its already-normalized range record directly.
+ */
 
 export function getMarketChartRangeData(ranges, range, mode = DEFAULT_MODE) {
   if (!isPlainObject(ranges)) {
@@ -543,11 +761,12 @@ export function getMarketChartRangeData(ranges, range, mode = DEFAULT_MODE) {
   }
 
   /*
-   * Trend and line share the same point
-   * representation and may safely fall back
-   * to each other. Candlesticks never fall
-   * back to trend data.
+   * Trend and line share [timestamp, value] geometry and may safely fall back
+   * to each other.
+   *
+   * Candlesticks must never fall back to trend data.
    */
+
   if (normalizedMode === "trend") {
     return normalizeMarketChartData(record.line, "trend");
   }
@@ -564,13 +783,17 @@ export function getMarketChartRangeData(ranges, range, mode = DEFAULT_MODE) {
    ========================================================================== */
 
 /**
- * Returns the official value immediately before
- * the named range.
+ * Returns the official value immediately before a named range.
  *
- * This value is used for tooltip amount and
- * percentage calculations. It is intentionally
- * separate from visible series direction.
+ * This value is intended for:
+ *
+ * - tooltip amount change;
+ * - tooltip percentage change;
+ * - integrations explicitly requesting comparison-baseline direction.
+ *
+ * It remains separate from default visible-series direction.
  */
+
 export function getMarketChartRangeComparisonValue(
   ranges,
   range,
@@ -612,22 +835,23 @@ export function getMarketChartPointValue(point, mode = DEFAULT_MODE) {
    ========================================================================== */
 
 /**
- * Resolves the visible series direction.
+ * Resolves visible-series direction.
  *
- * Default behavior compares the final visible
- * value with the first visible value:
+ * Default:
  *
- * - final > first: up
- * - final < first: down
- * - final === first: neutral
+ *   final value > first value  → up
+ *   final value < first value  → down
+ *   final value = first value  → neutral
  *
- * The official comparison value remains
- * available for tooltip change calculations.
+ * `comparisonValue` remains available for callers that explicitly request:
  *
- * Set `baseline: "comparison"` when an
- * integration explicitly wants the entire
- * series colored against previous close.
+ *   { baseline: "comparison" }
+ *
+ * Public callers may pass untrusted data, so this helper intentionally
+ * normalizes its input. The runtime chart controller has its own O(1)
+ * direction resolver for already-normalized storage.
  */
+
 export function getMarketChartDirection(
   data,
   mode = DEFAULT_MODE,
@@ -675,25 +899,26 @@ export function getMarketChartDirection(
 
   return "neutral";
 }
-
 /* ==========================================================================
    Maximum Points
    ========================================================================== */
 
+/*
+ * The live-merge helpers operate on their own outer-array copy, so trimming
+ * that working array in place does not mutate the caller's array.
+ */
+
 function limitMarketChartPoints(data, maxPoints) {
   const safeMaxPoints = toPositiveInteger(maxPoints, DEFAULT_MAX_POINTS);
 
-  if (data.length <= safeMaxPoints) {
-    return {
-      data,
-      removed: 0,
-    };
+  const removed = Math.max(0, data.length - safeMaxPoints);
+
+  if (removed > 0) {
+    data.splice(0, removed);
   }
 
-  const removed = data.length - safeMaxPoints;
-
   return {
-    data: data.slice(removed),
+    data,
 
     removed,
   };
@@ -702,44 +927,95 @@ function limitMarketChartPoints(data, maxPoints) {
 /* ==========================================================================
    Trend Live Merge
    ========================================================================== */
+
 function mergeTrendLivePoint(currentData, incomingPoint, options) {
-  const data = normalizeMarketChartData(currentData, options.mode);
+  const mode = normalizeMarketChartMode(options.mode);
 
-  const normalizedIncoming = normalizeMarketChartData(
-    [incomingPoint],
-    options.mode,
-  );
+  /*
+   * If currentData is already canonical this creates only one shallow outer
+   * array copy. No full normalization, Map construction or sorting occurs.
+   */
 
-  if (!normalizedIncoming.length) {
+  const data = prepareDataForLiveMerge(currentData, mode);
+
+  /*
+   * Normalize only the incoming point.
+   */
+
+  const point = normalizePointForMode(incomingPoint, mode);
+
+  if (!point) {
     return null;
   }
 
-  const point = normalizedIncoming[0];
-
   const timestamp = point[0];
 
-  const location = findTimestampIndex(data, timestamp);
+  let index = -1;
 
-  const replaced = location.found;
+  let replaced = false;
 
-  const appended = !replaced && location.index === data.length;
+  let appended = false;
 
-  const inserted = !replaced && !appended;
+  let inserted = false;
 
-  if (replaced) {
-    data[location.index] = point;
+  const lastIndex = data.length - 1;
+
+  const lastPoint = lastIndex >= 0 ? data[lastIndex] : null;
+
+  /* -----------------------------------------------------------------------
+     Fast Append Path
+     -------------------------------------------------------------------- */
+
+  if (!lastPoint) {
+    data.push(point);
+
+    index = 0;
+
+    appended = true;
+  } else if (timestamp > lastPoint[0]) {
+    data.push(point);
+
+    index = data.length - 1;
+
+    appended = true;
+  } else if (timestamp === lastPoint[0]) {
+
+  /* -----------------------------------------------------------------------
+     Fast Latest Replacement
+     -------------------------------------------------------------------- */
+    data[lastIndex] = point;
+
+    index = lastIndex;
+
+    replaced = true;
   } else {
-    data.splice(location.index, 0, point);
+
+  /* -----------------------------------------------------------------------
+     Rare Historical Insert / Replacement
+     -------------------------------------------------------------------- */
+    const location = findTimestampIndex(data, timestamp);
+
+    index = location.index;
+
+    if (location.found) {
+      data[index] = point;
+
+      replaced = true;
+    } else {
+      data.splice(index, 0, point);
+
+      inserted = true;
+    }
   }
 
   const limited = limitMarketChartPoints(data, options.maxPoints);
 
-  const retainedIndex = location.index - limited.removed;
+  const retainedIndex = index - limited.removed;
 
-  const index =
+  const finalIndex =
     retainedIndex >= 0 &&
     retainedIndex < limited.data.length &&
-    limited.data[retainedIndex][0] === timestamp
+    limited.data[retainedIndex]?.[0] === timestamp
       ? retainedIndex
       : -1;
 
@@ -748,10 +1024,12 @@ function mergeTrendLivePoint(currentData, incomingPoint, options) {
 
     point,
 
-    index,
+    index: finalIndex,
 
     replaced,
+
     appended,
+
     inserted,
 
     shifted: appended && limited.removed > 0,
@@ -767,6 +1045,10 @@ function mergeTrendLivePoint(currentData, incomingPoint, options) {
    ========================================================================== */
 
 function normalizeLiveCandlestickInput(incomingPoint) {
+  /*
+   * Prefer a complete OHLC point when supplied.
+   */
+
   const candle = normalizeCandlestickPoint(incomingPoint);
 
   if (candle) {
@@ -776,11 +1058,18 @@ function normalizeLiveCandlestickInput(incomingPoint) {
       timestamp: candle[0],
 
       open: candle[1],
+
       high: candle[2],
+
       low: candle[3],
+
       close: candle[4],
     };
   }
+
+  /*
+   * Otherwise treat the incoming value as an ordinary price tick.
+   */
 
   const trendPoint = normalizeTrendPoint(incomingPoint);
 
@@ -798,20 +1087,76 @@ function normalizeLiveCandlestickInput(incomingPoint) {
 }
 
 /* ==========================================================================
+   Candlestick Construction
+   ========================================================================== */
+
+function createTickCandle(bucketTimestamp, price, previousClose = null) {
+  const open = previousClose ?? price;
+
+  return [
+    bucketTimestamp,
+    open,
+    Math.max(open, price),
+    Math.min(open, price),
+    price,
+  ];
+}
+
+function createIncomingCandle(bucketTimestamp, incoming) {
+  return [
+    bucketTimestamp,
+    incoming.open,
+    incoming.high,
+    incoming.low,
+    incoming.close,
+  ];
+}
+
+function updateExistingCandle(existing, bucketTimestamp, incoming) {
+  const incomingHigh =
+    incoming.type === "candle" ? incoming.high : incoming.price;
+
+  const incomingLow =
+    incoming.type === "candle" ? incoming.low : incoming.price;
+
+  const incomingClose =
+    incoming.type === "candle" ? incoming.close : incoming.price;
+
+  return [
+    bucketTimestamp,
+
+    /*
+     * Preserve the bucket's original open.
+     */
+
+    existing[1],
+
+    Math.max(existing[2], incomingHigh),
+
+    Math.min(existing[3], incomingLow),
+
+    incomingClose,
+  ];
+}
+
+/* ==========================================================================
    Candlestick Live Merge
    ========================================================================== */
 
 /**
- * Frequent price ticks must not create one
- * full-width candle for every request.
+ * Frequent price ticks are aggregated into a configurable candle bucket.
  *
- * Incoming ticks are aggregated into a
- * configurable candle bucket. The active
- * candle is updated until the next bucket
- * begins.
+ * Example with a 60-second bucket:
+ *
+ *   10:00:05
+ *   10:00:10
+ *   10:00:15
+ *
+ * all update one 10:00 candle rather than creating three candles.
  */
+
 function mergeCandlestickLivePoint(currentData, incomingPoint, options) {
-  const data = normalizeMarketChartData(currentData, "candlestick");
+  const data = prepareDataForLiveMerge(currentData, "candlestick");
 
   const incoming = normalizeLiveCandlestickInput(incomingPoint);
 
@@ -827,99 +1172,119 @@ function mergeCandlestickLivePoint(currentData, incomingPoint, options) {
   const bucketTimestamp =
     Math.floor(incoming.timestamp / bucketSize) * bucketSize;
 
-  const location = findTimestampIndex(data, bucketTimestamp);
+  let index = -1;
 
-  const existingIndex = location.found ? location.index : -1;
+  let candle = null;
 
-  const previousCandle = location.index > 0 ? data[location.index - 1] : null;
+  let replaced = false;
 
-  const previousClose = previousCandle ? previousCandle[4] : null;
+  let appended = false;
 
-  let candle;
+  let inserted = false;
 
-  if (existingIndex >= 0) {
-    const existing = data[existingIndex];
+  const lastIndex = data.length - 1;
 
-    const incomingHigh =
-      incoming.type === "candle" ? incoming.high : incoming.price;
+  const lastCandle = lastIndex >= 0 ? data[lastIndex] : null;
 
-    const incomingLow =
-      incoming.type === "candle" ? incoming.low : incoming.price;
+  /* -----------------------------------------------------------------------
+     Empty Dataset
+     -------------------------------------------------------------------- */
 
-    const incomingClose =
-      incoming.type === "candle" ? incoming.close : incoming.price;
+  if (!lastCandle) {
+    candle =
+      incoming.type === "candle"
+        ? createIncomingCandle(bucketTimestamp, incoming)
+        : createTickCandle(bucketTimestamp, incoming.price);
 
-    candle = [
-      bucketTimestamp,
+    data.push(candle);
 
-      /*
-       * Preserve the bucket's original open.
-       */
-      existing[1],
+    index = 0;
 
-      Math.max(existing[2], incomingHigh),
+    appended = true;
+  } else if (bucketTimestamp === lastCandle[0]) {
 
-      Math.min(existing[3], incomingLow),
+  /* -----------------------------------------------------------------------
+     Current Candle Bucket
+     -------------------------------------------------------------------- */
+    candle = updateExistingCandle(lastCandle, bucketTimestamp, incoming);
 
-      incomingClose,
-    ];
+    data[lastIndex] = candle;
 
-    data[existingIndex] = candle;
-  } else if (incoming.type === "candle") {
-    candle = [
-      bucketTimestamp,
+    index = lastIndex;
 
-      incoming.open,
-      incoming.high,
-      incoming.low,
-      incoming.close,
-    ];
+    replaced = true;
+  } else if (bucketTimestamp > lastCandle[0]) {
 
-    data.splice(location.index, 0, candle);
+  /* -----------------------------------------------------------------------
+     New Latest Candle Bucket
+     -------------------------------------------------------------------- */
+    candle =
+      incoming.type === "candle"
+        ? createIncomingCandle(bucketTimestamp, incoming)
+        : createTickCandle(bucketTimestamp, incoming.price, lastCandle[4]);
+
+    data.push(candle);
+
+    index = data.length - 1;
+
+    appended = true;
   } else {
-    const open = previousClose ?? incoming.price;
 
-    candle = [
-      bucketTimestamp,
+  /* -----------------------------------------------------------------------
+     Rare Historical Bucket
+     -------------------------------------------------------------------- */
+    const location = findTimestampIndex(data, bucketTimestamp);
 
-      open,
+    index = location.index;
 
-      Math.max(open, incoming.price),
+    if (location.found) {
+      const existing = data[index];
 
-      Math.min(open, incoming.price),
+      candle = updateExistingCandle(existing, bucketTimestamp, incoming);
 
-      incoming.price,
-    ];
+      data[index] = candle;
 
-    data.splice(location.index, 0, candle);
+      replaced = true;
+    } else {
+      const previousCandle = index > 0 ? data[index - 1] : null;
+
+      candle =
+        incoming.type === "candle"
+          ? createIncomingCandle(bucketTimestamp, incoming)
+          : createTickCandle(
+              bucketTimestamp,
+              incoming.price,
+              previousCandle ? previousCandle[4] : null,
+            );
+
+      data.splice(index, 0, candle);
+
+      inserted = true;
+    }
   }
 
   const limited = limitMarketChartPoints(data, options.maxPoints);
 
-  const retainedIndex = location.index - limited.removed;
+  const retainedIndex = index - limited.removed;
 
-  const index =
+  const finalIndex =
     retainedIndex >= 0 &&
     retainedIndex < limited.data.length &&
-    limited.data[retainedIndex][0] === bucketTimestamp
+    limited.data[retainedIndex]?.[0] === bucketTimestamp
       ? retainedIndex
       : -1;
-
-  const replaced = existingIndex >= 0;
-
-  const appended = !replaced && location.index === data.length - 1;
-
-  const inserted = !replaced && !appended;
 
   return {
     data: limited.data,
 
     point: candle,
 
-    index,
+    index: finalIndex,
 
     replaced,
+
     appended,
+
     inserted,
 
     shifted: appended && limited.removed > 0,
@@ -939,6 +1304,22 @@ function mergeCandlestickLivePoint(currentData, incomingPoint, options) {
 /* ==========================================================================
    Live Point Merge
    ========================================================================== */
+
+/**
+ * Safely merge one live point into a dataset.
+ *
+ * This helper remains useful for integrations outside MarketChartController.
+ *
+ * Performance:
+ *
+ * - canonical ordered input:
+ *     shallow outer-array copy + incremental mutation;
+ *
+ * - arbitrary external input:
+ *     defensive normalization + deduplication + sorting.
+ *
+ * The function never mutates the caller's outer array.
+ */
 
 export function mergeMarketChartLivePoint(
   currentData,
@@ -972,6 +1353,33 @@ export function mergeMarketChartLivePoint(
    Range Mutation
    ========================================================================== */
 
+function ensureRangeRecordForMutation(ranges, range) {
+  const existing = ranges[range];
+
+  if (!existing) {
+    const record = createEmptyRangeRecord();
+
+    ranges[range] = record;
+
+    return record;
+  }
+
+  /*
+   * setMarketChartRangeData() is an explicit ingestion operation rather than
+   * a five-second hot-path operation.
+   *
+   * Preserve the defensive contract here by normalizing an arbitrary existing
+   * record before modifying it.
+   */
+
+  const normalizedRecord =
+    normalizeRangeRecord(existing) || createEmptyRangeRecord();
+
+  ranges[range] = normalizedRecord;
+
+  return normalizedRecord;
+}
+
 export function setMarketChartRangeData(ranges, range, mode, data) {
   if (!isPlainObject(ranges)) {
     return false;
@@ -981,27 +1389,30 @@ export function setMarketChartRangeData(ranges, range, mode, data) {
 
   const normalizedMode = normalizeMarketChartMode(mode);
 
+  /*
+   * External data enters the canonical model here.
+   */
+
   const normalizedData = normalizeMarketChartData(data, normalizedMode);
 
-  if (!ranges[normalizedRange]) {
-    ranges[normalizedRange] = createEmptyRangeRecord();
-  } else {
-    const normalizedRecord = normalizeRangeRecord(ranges[normalizedRange]);
+  const record = ensureRangeRecordForMutation(ranges, normalizedRange);
 
-    ranges[normalizedRange] = normalizedRecord || createEmptyRangeRecord();
-  }
-
-  ranges[normalizedRange][normalizedMode] = normalizedData;
+  record[normalizedMode] = normalizedData;
 
   /*
-   * Trend and line share the same point
-   * representation. Synchronizing them allows
-   * a visual mode change without losing data.
+   * Trend and line use identical [timestamp, value] geometry.
+   *
+   * Keep them synchronized for externally set data so mode switching cannot
+   * unexpectedly produce an empty chart.
+   *
+   * They remain separate arrays at this public ingestion boundary to avoid
+   * surprising aliasing for callers holding references.
    */
+
   if (normalizedMode === "trend") {
-    ranges[normalizedRange].line = clonePoints(normalizedData);
+    record.line = clonePoints(normalizedData);
   } else if (normalizedMode === "line") {
-    ranges[normalizedRange].trend = clonePoints(normalizedData);
+    record.trend = clonePoints(normalizedData);
   }
 
   return true;

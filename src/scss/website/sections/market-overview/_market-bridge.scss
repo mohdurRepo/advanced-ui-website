@@ -4,96 +4,257 @@
    Market Bridge
    ========================================================================== */
 
+/*
+ * Decorative connection between:
+ *
+ * selected Summary card
+ *        ↓
+ * active Market Details surface
+ *
+ * JavaScript owns:
+ *
+ * - block-axis start;
+ * - bridge block size;
+ * - visible selected-card width;
+ * - selected-card logical inline offset;
+ * - first / last connected-edge state.
+ *
+ * CSS owns:
+ *
+ * - bridge containing geometry;
+ * - connected surface color;
+ * - clipping;
+ * - layering;
+ * - responsive visibility;
+ * - accessibility preference presentation.
+ *
+ * The connector must remain an exact rectangular continuation of the
+ * selected card.
+ *
+ * IMPORTANT:
+ *
+ * - Do not inset the connector.
+ * - Do not round the connector.
+ * - Do not add a shadow.
+ * - Do not animate its size or position.
+ *
+ * The selected card itself owns the card-facing shape.
+ * Market Details owns its outer container shape.
+ */
+
+/* ==========================================================================
+   Bridge Root
+   ========================================================================== */
+
 .market-bridge {
-  --market-bridge-gap: var(--market-overview-connection-gap, 1.5rem);
-
-  --market-bridge-card-overlap: calc(
-    var(--market-summary-card-block-space, 0.625rem) +
-      var(--market-summary-scrollbar-size, 0.375rem)
-  );
-
-  --market-bridge-height: calc(
-    var(--market-bridge-gap) + var(--market-bridge-card-overlap)
-  );
-
-  --market-bridge-container-width: 1480px;
-  --market-bridge-container-space: 2rem;
-
-  --market-bridge-bg: var(--market-overview-connected-bg, #334c5c);
-
   position: absolute;
 
-  inset-block-start: calc(var(--market-bridge-height) * -1);
+  z-index: 2;
+
+  /*
+   * JavaScript supplies:
+   *
+   * - inset-block-start
+   * - block-size
+   */
+
   inset-inline: 0;
 
-  z-index: 4;
+  min-inline-size: 0;
+  min-block-size: 0;
 
-  block-size: var(--market-bridge-height);
+  margin: 0;
+  padding: 0;
+
+  overflow: hidden;
+
+  background: transparent;
 
   pointer-events: none;
+
+  user-select: none;
+
+  /*
+   * Keep bridge painting isolated from surrounding layout.
+   *
+   * Do not use size containment because JavaScript measures the rendered
+   * inner geometry.
+   */
+
+  contain: layout paint;
 }
 
 /* ==========================================================================
-   Inner Track
+   Bounded Inner Geometry
    ========================================================================== */
+
+/*
+ * This element must match the Summary / Market Details container width.
+ *
+ * JavaScript measures it when converting the selected card's physical
+ * position into a logical inline position.
+ */
 
 .market-bridge__inner {
   position: relative;
 
   inline-size: min(
-    100% - var(--market-bridge-container-space),
-    var(--market-bridge-container-width)
+    calc(100% - var(--market-overview-container-space, 2rem)),
+    var(--market-overview-container-width, #{ds.$container-xxxl})
   );
 
   block-size: 100%;
 
+  min-inline-size: 0;
+  min-block-size: 0;
+
   margin-inline: auto;
 
-  overflow: clip;
+  overflow: hidden;
+
+  pointer-events: none;
 }
 
 /* ==========================================================================
-   Active Bridge Bar
+   Selected-Market Connector
    ========================================================================== */
+
+/*
+ * JavaScript supplies:
+ *
+ * - inline-size
+ * - inset-inline-start
+ *
+ * The connector width must be exactly the visible selected-card width.
+ *
+ * This gives us:
+ *
+ *        selected card
+ *      ┌──────────────┐
+ *      │              │
+ *      └──────────────┘
+ *      │              │
+ *      │    bridge    │
+ *      │              │
+ *
+ * rather than a narrower stem or rounded shoulder.
+ */
 
 .market-bridge__bar {
   position: absolute;
 
   inset-block: 0;
+
   inset-inline-start: 0;
+
+  /*
+   * Safe pre-measurement state.
+   */
 
   inline-size: 0;
 
-  background: var(--market-bridge-bg);
+  min-inline-size: 0;
+  min-block-size: 0;
 
-  transform: translate3d(0, 0, 0);
-  transform-origin: left center;
+  /*
+   * Selected card, bridge and connected Details header/surface intentionally
+   * share the same visual color.
+   */
 
-  will-change: inline-size, transform;
+  background: var(--market-overview-connected-bg, #254456);
+
+  /*
+   * The bridge itself must be geometrically neutral.
+   *
+   * Any radius here exposes bridge/background fragments beside a card and
+   * produces the small side shapes seen in the previous implementation.
+   */
+
+  border: 0;
+  border-radius: 0;
+
+  outline: 0;
+
+  box-shadow: none;
+
+  transform: none;
+
+  opacity: 1;
+
+  pointer-events: none;
+
+  /*
+   * Geometry is already coalesced by JavaScript with requestAnimationFrame.
+   *
+   * Avoid permanent compositor promotion.
+   */
+
+  will-change: auto;
 }
 
 /* ==========================================================================
-   Always-visible Mode
+   Seam Protection
    ========================================================================== */
 
 /*
- * In always-visible mode there is no disclosure-control gap, but the bridge
- * still overlaps the cards' lower padding and scrollbar area.
+ * JavaScript begins the bridge slightly inside the selected card.
+ *
+ * The bridge therefore does not need pseudo-elements, shadows or gradients
+ * to hide the Summary → bridge seam.
+ */
+
+.market-bridge__bar::before,
+.market-bridge__bar::after {
+  content: none;
+
+  display: none;
+}
+
+/* ==========================================================================
+   Permanent Home Mode
+   ========================================================================== */
+
+/*
+ * The Summary → Details connector belongs only to the permanently visible
+ * home-page composition.
  */
 
 .market-overview[data-market-details-mode="always"] {
   .market-bridge {
-    --market-bridge-gap: 0rem;
+    display: block;
   }
 }
 
 /* ==========================================================================
-   Bidirectional Layout
+   Disclosure Mode
    ========================================================================== */
 
-html[dir="rtl"] {
-  .market-bridge__bar {
-    transform-origin: right center;
+/*
+ * Inner-page Details use their disclosure control to communicate hierarchy.
+ *
+ * A selected-card bridge would duplicate that relationship.
+ */
+
+.market-overview[data-market-details-mode="disclosure"] {
+  .market-bridge {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Mobile / Narrow Layout
+   ========================================================================== */
+
+/*
+ * At md and below Summary becomes a stacked / mobile composition.
+ *
+ * The horizontal selected-card connector no longer provides a useful visual
+ * relationship and is intentionally removed.
+ */
+
+@include ds.respond-down(md) {
+  .market-bridge {
+    display: none !important;
   }
 }
 
@@ -103,8 +264,38 @@ html[dir="rtl"] {
 
 html[data-contrast="high"] {
   .market-bridge__bar {
-    border-inline: 2px solid var(--color-border-strong);
-    border-block-end: 2px solid var(--color-border-strong);
+    background: var(--market-overview-connected-bg, var(--color-surface));
+
+    /*
+     * Preserve rectangular geometry.
+     *
+     * Inline borders provide non-color definition without changing the
+     * connector width because the element uses normal border-box geometry.
+     */
+
+    border-inline: 1px solid var(--market-overview-border-strong, currentColor);
+
+    border-radius: 0;
+
+    box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .market-bridge__bar {
+    background: Canvas;
+
+    border-inline: 1px solid CanvasText;
+
+    border-radius: 0;
+
+    box-shadow: none;
+
+    forced-color-adjust: auto;
   }
 }
 
@@ -112,19 +303,35 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+/*
+ * Bridge position follows horizontal Summary scrolling.
+ *
+ * It must update immediately so the connector never visually trails the
+ * selected market card.
+ */
+
+@media (prefers-reduced-motion: reduce) {
+  .market-bridge,
   .market-bridge__bar {
     transition: none;
-    will-change: auto;
+    animation: none;
+  }
+}
+
+html[data-motion="reduce"] {
+  .market-bridge,
+  .market-bridge__bar {
+    transition: none;
+    animation: none;
   }
 }
 
 /* ==========================================================================
-   Mobile
+   Print
    ========================================================================== */
 
-@include ds.respond-down(sm) {
+@media print {
   .market-bridge {
-    --market-bridge-container-space: 1rem;
+    display: none !important;
   }
 }

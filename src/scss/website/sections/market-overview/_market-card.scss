@@ -4,36 +4,137 @@
    Market Card
    ========================================================================== */
 
+/*
+ * Selectable market Summary card.
+ *
+ * Responsibilities:
+ *
+ * - Present market identity and session state.
+ * - Present current value and market movement.
+ * - Present market countdown / timing context.
+ * - Own hover, focus, selected, disabled states.
+ * - Provide the compact Derivatives variant.
+ * - Integrate the selected card with the Summary → Details bridge.
+ *
+ * This file does NOT own:
+ *
+ * - Summary rail geometry.
+ * - Horizontal scrolling.
+ * - Market selection behavior.
+ * - Market-status dot semantics.
+ * - Market-change arrow geometry.
+ * - Financial state colors.
+ * - Bridge positioning / sizing.
+ */
+
+/* ==========================================================================
+   Root
+   ========================================================================== */
+
 .market-card {
+  /* -----------------------------------------------------------------------
+     Surface
+     -------------------------------------------------------------------- */
+
   --market-card-bg: transparent;
-  --market-card-hover-bg: rgb(255 255 255 / 0.05);
 
-  --market-card-border: var(--market-summary-border);
-  --market-card-hover-border: var(--market-summary-border-hover);
-
-  --market-card-color: var(--market-summary-fg);
-  --market-card-muted: var(--market-summary-muted);
-
-  --market-card-status-color: var(--market-overview-muted-strong, #c4d2da);
+  --market-card-hover-bg: var(
+    --market-summary-surface,
+    rgb(255 255 255 / 0.05)
+  );
 
   /*
-   * Must match the bridge and Market Details backgrounds exactly.
+   * Selected cards intentionally use the same connected surface as:
+   *
+   * - the bridge;
+   * - the connected Details heading/surface.
    */
-  --market-card-active-bg: var(--market-overview-connected-bg, #334c5c);
 
-  --market-card-active-border: var(--color-primary);
+  --market-card-active-bg: var(--market-overview-connected-bg, #254456);
+
+  /* -----------------------------------------------------------------------
+     Foreground
+     -------------------------------------------------------------------- */
+
+  --market-card-color: var(--market-summary-fg, var(--color-text));
+
+  --market-card-muted: var(--market-summary-muted, var(--color-text-muted));
+
+  --market-card-muted-strong: var(
+    --market-summary-muted-strong,
+    var(--market-card-muted)
+  );
+
+  /* -----------------------------------------------------------------------
+     Borders
+     -------------------------------------------------------------------- */
+
+  --market-card-border: var(--market-summary-border, var(--color-border));
+
+  --market-card-hover-border: var(
+    --market-summary-border-hover,
+    var(--color-border-strong)
+  );
+
+  --market-card-active-border: var(
+    --market-summary-border-strong,
+    var(--color-border-strong)
+  );
+
+  --market-card-divider: var(--market-card-border);
+
+  /*
+   * Keep the internal selected divider restrained.
+   */
+
+  --market-card-active-divider: color-mix(
+    in srgb,
+    var(--market-card-active-border) 58%,
+    transparent
+  );
+
+  /* -----------------------------------------------------------------------
+     Geometry
+     -------------------------------------------------------------------- */
+
+  --market-card-radius: var(--radius-lg);
+
+  --market-card-space: var(--space-3, #{ds.space(3)});
+
+  --market-card-gap: var(--space-2, #{ds.space(2)});
+
+  --market-card-body-gap: var(--space-3, #{ds.space(3)});
+
+  --market-card-metrics-min: 6rem;
+
+  --market-card-metrics-max: 7.5rem;
+
+  --market-card-min-height: 9.25rem;
+
+  /* -----------------------------------------------------------------------
+     Root Layout
+     -------------------------------------------------------------------- */
 
   position: relative;
+
   isolation: isolate;
 
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 0.75rem;
+
+  grid-template-rows:
+    auto
+    minmax(0, 1fr)
+    auto;
+
+  gap: var(--market-card-gap);
+
+  inline-size: 100%;
 
   min-inline-size: 0;
-  min-block-size: 9.25rem;
 
-  padding: 1rem;
+  min-block-size: var(--market-card-min-height);
+
+  padding: var(--market-card-space);
 
   overflow: hidden;
 
@@ -41,64 +142,80 @@
 
   border: 1px solid var(--market-card-border);
 
+  border-radius: var(--market-card-radius);
+
   background: var(--market-card-bg);
+
   color: var(--market-card-color);
 
   font: inherit;
+
   text-align: start;
 
   cursor: pointer;
+
   touch-action: manipulation;
 
   scroll-snap-align: start;
   scroll-snap-stop: normal;
 
   @include ds.transition(
-    (
-      background-color,
-      border-color,
-      border-radius,
-      box-shadow,
-      color,
-      transform
-    ),
-    fast
+    (background-color, border-color, box-shadow, color, transform),
+    "fast"
   );
+
+  &[hidden] {
+    display: none !important;
+  }
+
+  /* -----------------------------------------------------------------------
+     Hover
+     -------------------------------------------------------------------- */
 
   &:hover:not(:disabled):not(.is-disabled) {
     border-color: var(--market-card-hover-border);
   }
 
-  /*
-   * The translucent hover surface applies only to inactive cards. The active
-   * card must retain the connected background.
-   */
   &:hover:not(:disabled):not(.is-disabled):not(.is-active):not(
       [aria-selected="true"]
     ) {
     background: var(--market-card-hover-bg);
   }
 
+  /* -----------------------------------------------------------------------
+     Focus
+     -------------------------------------------------------------------- */
+
   &:focus {
     outline: none;
   }
 
   &:focus-visible {
-    z-index: 2;
+    z-index: 5;
 
     @include ds.focus-ring;
   }
 
+  /* -----------------------------------------------------------------------
+     Pressed
+     -------------------------------------------------------------------- */
+
   &:active:not(:disabled):not(.is-disabled) {
     transform: translateY(1px);
   }
+
+  /* -----------------------------------------------------------------------
+     Disabled
+     -------------------------------------------------------------------- */
 
   &:disabled,
   &.is-disabled {
     opacity: 0.5;
 
     cursor: not-allowed;
+
     pointer-events: none;
+
     transform: none;
   }
 }
@@ -107,22 +224,96 @@
    Selected State
    ========================================================================== */
 
+/*
+ * Selection MUST NOT change component dimensions.
+ *
+ * Never change:
+ *
+ * - padding;
+ * - border width;
+ * - min-height;
+ * - inline size;
+ * - grid structure.
+ *
+ * Stable geometry prevents Summary / bridge movement when switching markets.
+ */
+
 .market-card.is-active,
 .market-card[aria-selected="true"] {
-  z-index: 1;
+  z-index: 3;
 
-  border-block-end-color: var(--market-card-active-bg);
+  border-color: var(--market-card-active-border);
 
   background: var(--market-card-active-bg);
 
-  box-shadow:
-    0 0.75rem 1.5rem rgb(0 0 0 / 0.16),
-    inset 0 1px 0 rgb(255 255 255 / 0.06);
+  color: var(--market-card-color);
+
+  /*
+   * Selected means connected, not floating.
+   */
+
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
 
   &:hover:not(:disabled):not(.is-disabled) {
-    border-block-end-color: var(--market-card-active-bg);
+    border-color: var(--market-card-active-border);
 
     background: var(--market-card-active-bg);
+
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+  }
+}
+
+/* ==========================================================================
+   Selected Card → Details Connection
+   ========================================================================== */
+
+/*
+ * Permanent home mode:
+ *
+ * The selected card becomes the exact upper continuation of the bridge.
+ *
+ * Therefore BOTH lower corners must be square.
+ *
+ * The bridge uses the exact visible selected-card width. Any lower card
+ * radius would reveal the bridge behind the card and create small protruding
+ * shapes at the connection edges.
+ */
+
+.market-overview[data-market-details-mode="always"] {
+  .market-card.is-active,
+  .market-card[aria-selected="true"] {
+    border-start-start-radius: var(--market-card-radius);
+    border-start-end-radius: var(--market-card-radius);
+
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+
+    /*
+     * Bridge begins one physical pixel inside the selected card.
+     *
+     * Removing the lower border prevents a visible horizontal seam.
+     */
+
+    border-block-end-color: transparent;
+  }
+
+  .market-card.is-active:hover:not(:disabled):not(.is-disabled),
+  .market-card[aria-selected="true"]:hover:not(:disabled):not(.is-disabled) {
+    border-block-end-color: transparent;
+
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  /*
+   * A connected card must not move vertically while pressed.
+   *
+   * translateY() would temporarily detach it from the bridge.
+   */
+
+  .market-card.is-active:active:not(:disabled):not(.is-disabled),
+  .market-card[aria-selected="true"]:active:not(:disabled):not(.is-disabled) {
+    transform: none;
   }
 }
 
@@ -132,76 +323,128 @@
 
 .market-card__top {
   display: flex;
+
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+
+  gap: var(--space-2, #{ds.space(2)});
 
   min-inline-size: 0;
 
   color: var(--market-card-muted);
 
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
+
   font-weight: ds.font-weight("bold");
+
   line-height: var(--line-height-tight);
 }
+
+/* ==========================================================================
+   Market Status Integration
+   ========================================================================== */
+
+/*
+ * market-status.scss owns the indicator itself.
+ *
+ * This component only preserves its layout slot.
+ */
+
+.market-card__top > .market-status {
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   Market Name
+   ========================================================================== */
 
 .market-card__market {
   min-inline-size: 0;
 
   overflow: hidden;
+
+  color: inherit;
+
   text-overflow: ellipsis;
+
   white-space: nowrap;
 }
 
 /* ==========================================================================
-   Main Body
+   Body
    ========================================================================== */
 
 .market-card__body {
   display: grid;
+
   grid-template-columns:
     minmax(0, 1fr)
     auto
-    minmax(6rem, 7.5rem);
+    minmax(var(--market-card-metrics-min), var(--market-card-metrics-max));
 
   align-items: center;
-  gap: 0.75rem;
+
+  gap: var(--market-card-body-gap);
 
   min-inline-size: 0;
+  min-block-size: 0;
 }
+
+/* ==========================================================================
+   Market Identity
+   ========================================================================== */
 
 .market-card__main {
   display: grid;
+
   align-content: center;
-  gap: 0.25rem;
+
+  gap: var(--space-1, #{ds.space(1)});
 
   min-inline-size: 0;
 }
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
 
 .market-card__title {
   min-inline-size: 0;
 
+  overflow: hidden;
+
   color: var(--market-card-color);
 
   font-size: var(--text-base);
+
   font-weight: ds.font-weight("heavy");
+
   line-height: var(--line-height-tight);
 
-  overflow: hidden;
   text-overflow: ellipsis;
+
   white-space: nowrap;
 }
+
+/* ==========================================================================
+   Session Status
+   ========================================================================== */
 
 .market-card__status {
   min-inline-size: 0;
 
-  color: var(--market-card-status-color);
-
-  font-size: var(--text-xs);
-  line-height: var(--line-height-normal);
-
   overflow: hidden;
+
+  color: var(--market-card-muted);
+
+  font-size: var(--text-sm);
+
+  font-weight: ds.font-weight("regular");
+
+  line-height: var(--line-height-tight);
+
   text-overflow: ellipsis;
+
   white-space: nowrap;
 }
 
@@ -209,19 +452,30 @@
    Divider
    ========================================================================== */
 
+/*
+ * Supporting structure only.
+ *
+ * The divider must not visually compete with financial data or the selected
+ * surface.
+ */
+
 .market-card__divider {
+  align-self: stretch;
+
   inline-size: 1px;
-  block-size: 100%;
+
   min-block-size: 3rem;
 
-  background: var(--market-card-border);
+  background: var(--market-card-divider);
+
+  pointer-events: none;
+
+  @include ds.transition(background-color, "fast");
 }
 
-.market-card.is-active,
-.market-card[aria-selected="true"] {
-  .market-card__divider {
-    background: var(--market-overview-border);
-  }
+.market-card.is-active .market-card__divider,
+.market-card[aria-selected="true"] .market-card__divider {
+  background: var(--market-card-active-divider);
 }
 
 /* ==========================================================================
@@ -230,14 +484,29 @@
 
 .market-card__metrics {
   display: grid;
+
   align-content: center;
+
   justify-items: end;
-  gap: 0.25rem;
+
+  gap: var(--space-1, #{ds.space(1)});
 
   min-inline-size: 0;
 
   text-align: end;
+
+  /*
+   * Financial values remain physically LTR regardless of document direction.
+   */
+
+  direction: ltr;
+
+  unicode-bidi: isolate;
 }
+
+/* ==========================================================================
+   Index Value
+   ========================================================================== */
 
 .market-card__value {
   display: block;
@@ -245,55 +514,80 @@
   min-inline-size: 0;
   max-inline-size: 100%;
 
+  overflow: hidden;
+
   color: var(--market-card-color);
 
   font-size: var(--text-xl);
+
   font-weight: ds.font-weight("heavy");
+
   line-height: 1.1;
 
   font-variant-numeric: tabular-nums;
+
+  text-overflow: ellipsis;
+
   white-space: nowrap;
 }
 
+/* ==========================================================================
+   Market Change
+   ========================================================================== */
+
+/*
+ * market-status.scss owns arrow geometry.
+ *
+ * price-state utilities own positive / negative / neutral colors.
+ */
+
 .market-card__change {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.25rem;
+  justify-self: end;
 
   min-inline-size: 0;
   max-inline-size: 100%;
 
-  font-size: var(--text-xs);
-  font-weight: ds.font-weight("bold");
-  line-height: var(--line-height-tight);
+  overflow: visible;
 
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  font-size: var(--text-sm);
+
+  font-weight: ds.font-weight("bold");
+
+  line-height: 1.2;
+
+  text-align: end;
 }
 
 /* ==========================================================================
-   Timer
+   Countdown / Timing
    ========================================================================== */
 
 .market-card__timer {
+  display: block;
+
   min-inline-size: 0;
+
+  overflow: hidden;
 
   color: var(--market-card-muted);
 
-  font-size: var(--text-xs);
-  line-height: var(--line-height-normal);
+  font-size: var(--text-sm);
+
+  font-weight: ds.font-weight("regular");
+
+  line-height: var(--line-height-tight);
+
   text-align: center;
 
-  font-variant-numeric: tabular-nums;
-
-  overflow: hidden;
   text-overflow: ellipsis;
+
   white-space: nowrap;
+
+  font-variant-numeric: tabular-nums;
 }
 
 /* ==========================================================================
-   Active Content
+   Selected Secondary Content
    ========================================================================== */
 
 .market-card.is-active,
@@ -301,17 +595,25 @@
   .market-card__top,
   .market-card__status,
   .market-card__timer {
-    color: var(--market-overview-muted-strong);
+    color: var(--market-card-muted-strong);
   }
 }
 
 /* ==========================================================================
-   Compact Variant
+   Compact Card
    ========================================================================== */
+
+/*
+ * Derivatives does not expose a comparable index / movement pair.
+ *
+ * Avoid artificial empty columns.
+ */
 
 .market-card--compact {
   .market-card__body {
     grid-template-columns: minmax(0, 1fr);
+
+    place-items: center;
   }
 
   .market-card__divider,
@@ -325,19 +627,6 @@
     text-align: center;
   }
 }
-/* Add these declarations to the existing .market-card token block. */
-.market-card {
-  --market-card-active-divider: var(
-    --market-overview-border-strong,
-    rgb(255 255 255 / 0.42)
-  );
-}
-
-/* Replace the existing active-divider rule with this rule. */
-.market-card.is-active .market-card__divider,
-.market-card[aria-selected="true"] .market-card__divider {
-  background: var(--market-card-active-divider);
-}
 
 /* ==========================================================================
    RTL
@@ -349,10 +638,99 @@ html[dir="rtl"] {
     text-align: start;
   }
 
-  .market-card__metrics {
-    justify-items: end;
+  /*
+   * Financial data deliberately remains LTR.
+   */
 
-    text-align: end;
+  .market-card__metrics,
+  .market-card__value,
+  .market-card__change {
+    direction: ltr;
+
+    unicode-bidi: isolate;
+  }
+}
+
+/* ==========================================================================
+   Tablet / Constrained Desktop
+   ========================================================================== */
+
+@include ds.respond-down(lg) {
+  .market-card {
+    --market-card-space: var(--space-3, #{ds.space(3)});
+
+    --market-card-body-gap: var(--space-2, #{ds.space(2)});
+
+    --market-card-metrics-min: 5.75rem;
+
+    --market-card-metrics-max: 7rem;
+  }
+
+  .market-card__value {
+    font-size: var(--text-lg);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down(md) {
+  .market-card {
+    --market-card-min-height: 8.75rem;
+  }
+
+  /*
+   * Bridge is disabled at this breakpoint.
+   *
+   * Selected cards return to ordinary standalone rounded cards.
+   */
+
+  .market-overview[data-market-details-mode="always"] {
+    .market-card.is-active,
+    .market-card[aria-selected="true"],
+    .market-card.is-active:hover:not(:disabled):not(.is-disabled),
+    .market-card[aria-selected="true"]:hover:not(:disabled):not(.is-disabled) {
+      border-radius: var(--market-card-radius);
+
+      border-block-end-color: var(--market-card-active-border);
+    }
+
+    .market-card.is-active:active:not(:disabled):not(.is-disabled),
+    .market-card[aria-selected="true"]:active:not(:disabled):not(.is-disabled) {
+      transform: translateY(1px);
+    }
+  }
+}
+
+/* ==========================================================================
+   Small Mobile
+   ========================================================================== */
+
+@include ds.respond-down(sm) {
+  .market-card {
+    --market-card-space: var(--space-3, #{ds.space(3)});
+
+    --market-card-gap: var(--space-2, #{ds.space(2)});
+
+    --market-card-body-gap: var(--space-2, #{ds.space(2)});
+
+    --market-card-metrics-min: 5.5rem;
+
+    --market-card-metrics-max: 6.5rem;
+
+    --market-card-min-height: 8.5rem;
+  }
+
+  .market-card__value {
+    font-size: var(--text-lg);
+  }
+
+  .market-card__top,
+  .market-card__status,
+  .market-card__change,
+  .market-card__timer {
+    font-size: var(--text-xs);
   }
 }
 
@@ -362,15 +740,46 @@ html[dir="rtl"] {
 
 html[data-contrast="high"] {
   .market-card {
+    --market-card-bg: transparent;
+
+    --market-card-hover-bg: var(--color-surface-hover);
+
+    --market-card-active-bg: var(--color-surface);
+
+    --market-card-color: var(--color-text);
+
+    --market-card-muted: var(--color-text-muted);
+
+    --market-card-muted-strong: var(--color-text);
+
+    --market-card-border: var(--color-border);
+
+    --market-card-hover-border: var(--color-border-strong);
+
+    --market-card-active-border: var(--color-border-strong);
+
+    --market-card-divider: var(--color-border-strong);
+
+    --market-card-active-divider: var(--color-border-strong);
+
     border-width: 2px;
   }
 
   .market-card.is-active,
   .market-card[aria-selected="true"] {
-    border-color: var(--market-overview-fg);
-    border-block-end-color: var(--market-card-active-bg);
+    border-color: var(--market-card-active-border);
 
     box-shadow: none;
+  }
+
+  .market-overview[data-market-details-mode="always"] {
+    .market-card.is-active,
+    .market-card[aria-selected="true"] {
+      border-block-end-color: transparent;
+
+      border-end-start-radius: 0;
+      border-end-end-radius: 0;
+    }
   }
 
   .market-card__divider {
@@ -379,31 +788,78 @@ html[data-contrast="high"] {
 
   .market-card__title,
   .market-card__value {
-    color: var(--market-overview-fg);
+    color: var(--color-text);
   }
 }
 
 /* ==========================================================================
-   Mobile
+   Forced Colors
    ========================================================================== */
 
-@include ds.respond-down(sm) {
+@media (forced-colors: active) {
   .market-card {
-    min-block-size: 8.5rem;
-    padding: 0.875rem;
+    --market-card-bg: Canvas;
+
+    --market-card-hover-bg: Canvas;
+
+    --market-card-active-bg: Highlight;
+
+    --market-card-color: CanvasText;
+
+    --market-card-muted: CanvasText;
+
+    --market-card-muted-strong: CanvasText;
+
+    --market-card-border: CanvasText;
+
+    --market-card-hover-border: Highlight;
+
+    --market-card-active-border: Highlight;
+
+    --market-card-divider: CanvasText;
+
+    --market-card-active-divider: HighlightText;
+
+    border-color: var(--market-card-border);
+
+    background: var(--market-card-bg);
+
+    color: var(--market-card-color);
+
+    forced-color-adjust: auto;
   }
 
-  .market-card__body {
-    grid-template-columns:
-      minmax(0, 1fr)
-      auto
-      minmax(5.75rem, 7rem);
-
-    gap: 0.625rem;
+  .market-card:hover:not(:disabled):not(.is-disabled) {
+    border-color: var(--market-card-hover-border);
   }
 
-  .market-card__value {
-    font-size: var(--text-lg);
+  .market-card.is-active,
+  .market-card[aria-selected="true"] {
+    border-color: Highlight;
+
+    background: Highlight;
+
+    color: HighlightText;
+
+    box-shadow: none;
+
+    .market-card__top,
+    .market-card__title,
+    .market-card__status,
+    .market-card__value,
+    .market-card__timer {
+      color: HighlightText;
+    }
+  }
+
+  .market-overview[data-market-details-mode="always"] {
+    .market-card.is-active,
+    .market-card[aria-selected="true"] {
+      border-block-end-color: transparent;
+
+      border-end-start-radius: 0;
+      border-end-end-radius: 0;
+    }
   }
 }
 
@@ -412,7 +868,8 @@ html[data-contrast="high"] {
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  .market-card {
+  .market-card,
+  .market-card__divider {
     transition: none;
   }
 
@@ -422,11 +879,67 @@ html[data-contrast="high"] {
 }
 
 html[data-motion="reduce"] {
-  .market-card {
+  .market-card,
+  .market-card__divider {
     transition: none;
   }
 
   .market-card:active:not(:disabled):not(.is-disabled) {
     transform: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .market-card {
+    --market-card-bg: #ffffff;
+
+    --market-card-hover-bg: #ffffff;
+
+    --market-card-active-bg: #ffffff;
+
+    --market-card-color: #000000;
+
+    --market-card-muted: #000000;
+
+    --market-card-muted-strong: #000000;
+
+    --market-card-border: #000000;
+
+    --market-card-hover-border: #000000;
+
+    --market-card-active-border: #000000;
+
+    --market-card-divider: #000000;
+
+    --market-card-active-divider: #000000;
+
+    break-inside: avoid;
+
+    border-color: #000000;
+
+    border-radius: 0;
+
+    background: #ffffff;
+
+    color: #000000;
+
+    box-shadow: none;
+  }
+
+  .market-card.is-active,
+  .market-card[aria-selected="true"] {
+    border-color: #000000;
+
+    border-block-end-color: #000000;
+
+    border-radius: 0;
+
+    background: #ffffff;
+
+    box-shadow: none;
   }
 }

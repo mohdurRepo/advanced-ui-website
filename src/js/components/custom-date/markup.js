@@ -1,4 +1,11 @@
-import { ARIA, CLASS_NAMES, DATA_ATTRIBUTES, MODES, ROLES } from "./constants";
+import {
+  ARIA,
+  CLASS_NAMES,
+  DATA_ATTRIBUTES,
+  DEFAULTS,
+  MODES,
+  ROLES,
+} from "./constants";
 
 import { createElement, ensureElementId, getAssociatedLabel } from "./utils";
 
@@ -6,6 +13,12 @@ import { createElement, ensureElementId, getAssociatedLabel } from "./utils";
    Label Resolution
    ========================================================================== */
 
+/**
+ * Returns the direct legend associated with the range component's fieldset.
+ *
+ * Using a direct child prevents a nested fieldset legend from accidentally
+ * becoming the accessible label for this date range.
+ */
 function getRangeLegend(component) {
   const fieldset = component.closest("fieldset");
 
@@ -19,6 +32,12 @@ function getRangeLegend(component) {
   );
 }
 
+/**
+ * Resolves the primary accessible label for the custom-date control.
+ *
+ * Single dates use the label associated with the native input.
+ * Date ranges use the enclosing fieldset legend.
+ */
 function getComponentLabel(component, mode, startInput) {
   if (mode === MODES.range) {
     return getRangeLegend(component);
@@ -31,6 +50,11 @@ function getComponentLabel(component, mode, startInput) {
    Descriptions
    ========================================================================== */
 
+/**
+ * Collects all aria-describedby references from the native inputs.
+ *
+ * Duplicate IDs are removed while preserving their original order.
+ */
 function getDescriptionIds(...inputs) {
   const ids = inputs.filter(Boolean).flatMap((input) =>
     String(input.getAttribute(ARIA.describedBy) || "")
@@ -51,6 +75,7 @@ function createSingleValue(documentReference, valueId) {
     "span",
     {
       className: CLASS_NAMES.value,
+
       attributes: {
         id: valueId,
       },
@@ -67,7 +92,8 @@ function createRangeValue(documentReference, valueId) {
   const valueElement = createElement(
     "span",
     {
-      className: `${CLASS_NAMES.value} ${CLASS_NAMES.rangeValue}`,
+      className: `${CLASS_NAMES.value} ` + CLASS_NAMES.rangeValue,
+
       attributes: {
         id: valueId,
       },
@@ -87,10 +113,12 @@ function createRangeValue(documentReference, valueId) {
     "span",
     {
       className: CLASS_NAMES.rangeSeparator,
+
       attributes: {
         [ARIA.hidden]: "true",
       },
-      text: "–",
+
+      text: DEFAULTS.rangeSeparator,
     },
     documentReference,
   );
@@ -136,23 +164,33 @@ function createTrigger({
 
   const describedBy = getDescriptionIds(startInput, endInput);
 
+  const labelledBy = [labelId, valueId].filter(Boolean).join(" ");
+
   const triggerElement = createElement(
     "button",
     {
       className: CLASS_NAMES.trigger,
+
       attributes: {
         id: triggerId,
         type: "button",
+
         [ARIA.controls]: popoverId,
         [ARIA.expanded]: "false",
         [ARIA.hasPopup]: "dialog",
-        [ARIA.labelledBy]: [labelId, valueId].filter(Boolean).join(" ") || null,
+
+        [ARIA.labelledBy]: labelledBy || null,
+
         [ARIA.describedBy]: describedBy || null,
       },
     },
     documentReference,
   );
 
+  /*
+   * When there is no associated label or range legend, provide a direct
+   * accessible name for the trigger.
+   */
   if (!labelId) {
     triggerElement.setAttribute(
       ARIA.label,
@@ -177,6 +215,7 @@ function createIndicator(documentReference) {
     {
       className:
         `${CLASS_NAMES.indicator} ` + "has-icon icon-calendar-scheduler",
+
       attributes: {
         [ARIA.hidden]: "true",
       },
@@ -194,10 +233,13 @@ function createClearAction({ mode, messages, documentReference }) {
     "button",
     {
       className: `${CLASS_NAMES.clear} ` + "has-icon icon-close-x",
+
       attributes: {
         type: "button",
+
         [ARIA.label]:
           mode === MODES.range ? messages.clearRange : messages.clearDate,
+
         hidden: true,
       },
     },
@@ -245,6 +287,7 @@ function createControl({
       ? createRangeValue(documentReference, valueId)
       : {
           valueElement: createSingleValue(documentReference, valueId),
+
           startValueElement: null,
           endValueElement: null,
           separatorElement: null,
@@ -272,14 +315,22 @@ function createControl({
 
   return {
     controlElement,
+
     triggerElement: trigger.triggerElement,
+
     valueElement: valueMarkup.valueElement,
+
     startValueElement: valueMarkup.startValueElement,
+
     endValueElement: valueMarkup.endValueElement,
+
     separatorElement: valueMarkup.separatorElement,
+
     indicatorElement,
     clearElement,
+
     labelElement: trigger.labelElement,
+
     labelId: trigger.labelId,
   };
 }
@@ -308,7 +359,6 @@ function createCalendarRegion(documentReference) {
  * `_popover.scss` visually hides this element, so it does not appear in the
  * footer while still providing selection context to screen-reader users.
  */
-
 function createSelectionSummary({ messages, documentReference }) {
   const summaryElement = createElement(
     "div",
@@ -322,6 +372,7 @@ function createSelectionSummary({ messages, documentReference }) {
     "span",
     {
       className: CLASS_NAMES.selectionSummaryLabel,
+
       text: messages.selectedRange,
     },
     documentReference,
@@ -332,6 +383,7 @@ function createSelectionSummary({ messages, documentReference }) {
     {
       className:
         `${CLASS_NAMES.selectionSummaryValue} ` + CLASS_NAMES.placeholder,
+
       text: messages.noRangeSelected,
     },
     documentReference,
@@ -341,7 +393,9 @@ function createSelectionSummary({ messages, documentReference }) {
 
   return {
     summaryElement,
+
     summaryLabelElement: labelElement,
+
     summaryValueElement: valueElement,
   };
 }
@@ -358,10 +412,15 @@ function createPresetsRegion({ mode, messages, documentReference }) {
     };
   }
 
+  /*
+   * Presets start hidden. presets.js owns whether there are usable presets and
+   * reveals the region when appropriate.
+   */
   const presetsElement = createElement(
     "div",
     {
       className: CLASS_NAMES.presets,
+
       attributes: {
         hidden: true,
       },
@@ -373,6 +432,7 @@ function createPresetsRegion({ mode, messages, documentReference }) {
     "span",
     {
       className: CLASS_NAMES.presetsLabel,
+
       text: messages.presetsLabel,
     },
     documentReference,
@@ -395,9 +455,11 @@ function createFooterAction({ className, label, documentReference }) {
     "button",
     {
       className: `${CLASS_NAMES.action} ${className}`,
+
       attributes: {
         type: "button",
       },
+
       text: label,
     },
     documentReference,
@@ -419,19 +481,25 @@ function createFooterActions({ mode, messages, documentReference }) {
 
   const todayElement = createFooterAction({
     className: CLASS_NAMES.actionToday,
+
     label: messages.today,
+
     documentReference,
   });
 
   const clearElement = createFooterAction({
     className: CLASS_NAMES.actionClear,
+
     label: messages.clear,
+
     documentReference,
   });
 
   const cancelElement = createFooterAction({
     className: CLASS_NAMES.actionCancel,
+
     label: messages.cancel,
+
     documentReference,
   });
 
@@ -439,7 +507,9 @@ function createFooterActions({ mode, messages, documentReference }) {
     mode === MODES.range
       ? createFooterAction({
           className: CLASS_NAMES.actionApply,
+
           label: messages.apply,
+
           documentReference,
         })
       : null;
@@ -452,9 +522,13 @@ function createFooterActions({ mode, messages, documentReference }) {
 
   return {
     actionsElement,
+
     todayActionElement: todayElement,
+
     clearActionElement: clearElement,
+
     cancelActionElement: cancelElement,
+
     applyActionElement: applyElement,
   };
 }
@@ -508,6 +582,7 @@ function createFooter({ mode, messages, documentReference }) {
 
   return {
     footerElement,
+
     ...summary,
     ...presets,
     ...actions,
@@ -519,19 +594,30 @@ function createFooter({ mode, messages, documentReference }) {
    ========================================================================== */
 
 /**
- * The status element announces date-selection changes without becoming visible.
- * Its visually-hidden presentation is owned by `_popover.scss`.
+ * Announces date-selection changes to assistive technologies.
+ *
+ * The status element itself remains visually hidden through the component
+ * stylesheet.
+ *
+ * aria-live="polite"
+ *   Allows the current announcement to finish before the new message.
+ *
+ * aria-atomic="true"
+ *   Causes the complete status message to be announced whenever it changes.
  */
-
 function createStatus({ documentReference, statusId }) {
   return createElement(
     "div",
     {
       className: CLASS_NAMES.status,
+
       attributes: {
         id: statusId,
+
         role: ROLES.status,
+
         [ARIA.live]: "polite",
+
         [ARIA.atomic]: "true",
       },
     },
@@ -544,12 +630,12 @@ function createStatus({ documentReference, statusId }) {
    ========================================================================== */
 
 /**
- * `popover="manual"` keeps lifecycle ownership inside the component.
+ * `popover="manual"` keeps lifecycle ownership inside CustomDate.
  *
  * Automatic light-dismiss is intentionally avoided because range selection
- * requires multiple interactions and must remain open until explicitly closed.
+ * can require several interactions and should remain open until the component
+ * explicitly closes it.
  */
-
 function createPopover({
   mode,
   messages,
@@ -562,12 +648,18 @@ function createPopover({
     "div",
     {
       className: CLASS_NAMES.popover,
+
       attributes: {
         id: popoverId,
+
         popover: "manual",
+
         role: ROLES.dialog,
+
         [ARIA.modal]: "false",
+
         [ARIA.labelledBy]: triggerId,
+
         tabindex: "-1",
       },
     },
@@ -615,6 +707,7 @@ function createPopover({
     mainElement,
     calendarsElement,
     statusElement,
+
     ...footer,
   };
 }
@@ -623,6 +716,12 @@ function createPopover({
    Complete Interface
    ========================================================================== */
 
+/**
+ * Builds the complete enhanced custom-date interface.
+ *
+ * This function only creates detached markup. CustomDate owns insertion,
+ * event registration, state synchronization, and destruction.
+ */
 export function createCustomDateMarkup({
   component,
   mode,
@@ -632,6 +731,10 @@ export function createCustomDateMarkup({
 }) {
   const documentReference = component.ownerDocument;
 
+  /*
+   * The native start input provides the stable prefix for every generated
+   * interface ID.
+   */
   const nativeId = ensureElementId(startInput, "custom-date-native");
 
   if (endInput) {
@@ -641,8 +744,11 @@ export function createCustomDateMarkup({
   const idPrefix = `${nativeId}-custom-date`;
 
   const triggerId = `${idPrefix}-trigger`;
+
   const valueId = `${idPrefix}-value`;
+
   const popoverId = `${idPrefix}-popover`;
+
   const statusId = `${idPrefix}-status`;
 
   const interfaceElement = createElement(

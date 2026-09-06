@@ -23,21 +23,29 @@
 
 .market-ticker {
   /* ========================================================================
+     Shared Top Shell
+     ======================================================================== */
+
+  --shell-market-bg: #0b2233;
+  --shell-market-color: #f5f6f8;
+  --shell-market-border: #1e3d52;
+
+  /* ========================================================================
      Surface
      ======================================================================== */
 
-  --market-ticker-bg: #{ds.brand("navy")};
-  --market-ticker-surface-alt: #073548;
+  --market-ticker-bg: var(--shell-market-bg);
+  --market-ticker-surface-alt: #123247;
   --market-ticker-hover: rgb(255 255 255 / 0.08);
 
-  --market-ticker-color: #{ds.brand("white")};
-  --market-ticker-muted: rgb(255 255 255 / 0.72);
+  --market-ticker-color: var(--shell-market-color);
+  --market-ticker-muted: rgb(245 246 248 / 0.72);
 
-  --market-ticker-border: rgb(255 255 255 / 0.14);
-  --market-ticker-border-strong: rgb(255 255 255 / 0.28);
+  --market-ticker-border: var(--shell-market-border);
+  --market-ticker-border-strong: rgb(245 246 248 / 0.24);
 
   --market-ticker-accent: #{ds.brand("teal")};
-  --market-ticker-focus: #{ds.brand("white")};
+  --market-ticker-focus: var(--shell-market-color);
 
   /* ========================================================================
      Local Semantic Contract
@@ -65,17 +73,10 @@
      ======================================================================== */
 
   --market-ticker-block-size: 3.5rem;
-
   --market-ticker-logo-size: 2.5rem;
 
   --market-ticker-item-gap: var(--space-4, #{ds.space(4)});
-
   --market-ticker-list-gap: var(--space-6, #{ds.space(6)});
-
-  /*
-   * Extra breathing room around the separator without affecting the
-   * internal logo/name/price/change spacing.
-   */
   --market-ticker-separator-clearance: var(--space-2, #{ds.space(2)});
 
   --market-ticker-effective-gap: calc(
@@ -84,10 +85,6 @@
 
   --market-ticker-padding-inline: var(--space-4, #{ds.space(4)});
 
-  /*
-   * Pixels per second.
-   * JavaScript reads this variable.
-   */
   --market-ticker-speed: 48;
 
   position: relative;
@@ -97,10 +94,9 @@
   inline-size: 100%;
   min-inline-size: 0;
 
-  border-block: 1px solid var(--market-ticker-border);
+  border-block-end: 1px solid var(--market-ticker-border);
 
   background: var(--market-ticker-bg);
-
   color: var(--market-ticker-color);
 
   color-scheme: dark;

@@ -49,27 +49,34 @@ export const CALENDAR_ACTIONS = Object.freeze({
    ========================================================================== */
 
 /**
- * Every calendar renders six complete weeks.
+ * Returns the 42 dates required for a fixed six-week calendar grid.
  *
- * A fixed 42-cell grid prevents the popover height from changing between
- * months.
- *
- * Single-date calendars display adjacent-month dates. Dual range calendars
- * render those positions as blank cells so the same date never appears in
- * both panels.
+ * Keeping the grid at six complete weeks prevents the popover height from
+ * changing as users navigate between months.
  */
-
 function getCalendarDates(viewDate, firstDayOfWeek) {
   const monthStart = startOfMonth(viewDate);
+
   const gridStart = startOfWeek(monthStart, firstDayOfWeek);
 
-  return Array.from({ length: 42 }, (_, index) => addDays(gridStart, index));
+  return Array.from(
+    {
+      length: 42,
+    },
+    (_, index) => addDays(gridStart, index),
+  );
 }
 
 /* ==========================================================================
-   Range State
+   Range Preview
    ========================================================================== */
 
+/**
+ * Orders the selected start date and pointer/keyboard preview date.
+ *
+ * This allows preview rendering to remain correct even when the preview date
+ * is before the currently selected range start.
+ */
 function getOrderedPreviewDates(startDate, previewDate) {
   if (!startDate || !previewDate) {
     return {
@@ -78,16 +85,24 @@ function getOrderedPreviewDates(startDate, previewDate) {
     };
   }
 
-  return compareDates(startDate, previewDate) <= 0
-    ? {
-        previewStart: startDate,
-        previewEnd: previewDate,
-      }
-    : {
-        previewStart: previewDate,
-        previewEnd: startDate,
-      };
+  if (compareDates(startDate, previewDate) <= 0) {
+    return {
+      previewStart: startDate,
+
+      previewEnd: previewDate,
+    };
+  }
+
+  return {
+    previewStart: previewDate,
+
+    previewEnd: startDate,
+  };
 }
+
+/* ==========================================================================
+   Range State Classes
+   ========================================================================== */
 
 function getRangeClasses({
   date,
@@ -105,7 +120,7 @@ function getRangeClasses({
 
   const isStart = isSameDay(date, selectedStart);
 
-  const isEnd = selectedEnd && isSameDay(date, selectedEnd);
+  const isEnd = Boolean(selectedEnd && isSameDay(date, selectedEnd));
 
   if (isStart) {
     classes.push(CLASS_NAMES.rangeStartState);
@@ -121,27 +136,35 @@ function getRangeClasses({
 
   if (
     selectedEnd &&
-    isDateBetween(date, selectedStart, selectedEnd, { inclusive: false })
+    isDateBetween(date, selectedStart, selectedEnd, {
+      inclusive: false,
+    })
   ) {
     classes.push(CLASS_NAMES.inRange);
   }
 
+  /*
+   * Preview classes are only used while choosing the end boundary.
+   */
   if (!selectedEnd && previewDate && activeBoundary === BOUNDARIES.end) {
-    const preview = getOrderedPreviewDates(selectedStart, previewDate);
+    const { previewStart, previewEnd } = getOrderedPreviewDates(
+      selectedStart,
+      previewDate,
+    );
 
     if (
-      isDateBetween(date, preview.previewStart, preview.previewEnd, {
+      isDateBetween(date, previewStart, previewEnd, {
         inclusive: false,
       })
     ) {
       classes.push(CLASS_NAMES.rangePreview);
     }
 
-    if (isSameDay(date, preview.previewStart)) {
+    if (isSameDay(date, previewStart)) {
       classes.push(CLASS_NAMES.previewStart);
     }
 
-    if (isSameDay(date, preview.previewEnd)) {
+    if (isSameDay(date, previewEnd)) {
       classes.push(CLASS_NAMES.previewEnd);
     }
   }
@@ -164,13 +187,23 @@ function createNavigationButton({
   return createElement(
     "button",
     {
-      className:
-        `${CLASS_NAMES.nav} ${className} ` +
-        `has-icon ${iconClass} icon-flip-rtl`,
+      className: [
+        CLASS_NAMES.nav,
+        className,
+        "has-icon",
+        iconClass,
+        "icon-flip-rtl",
+      ]
+        .filter(Boolean)
+        .join(" "),
+
       attributes: {
         type: "button",
+
         [ARIA.label]: label,
+
         "data-date-navigation": action,
+
         [DATA_ATTRIBUTES.side]: side,
       },
     },
@@ -215,37 +248,57 @@ function createCalendarHeader({
 
   const previousYearElement = createNavigationButton({
     action: CALENDAR_ACTIONS.previousYear,
+
     className: CLASS_NAMES.navPreviousYear,
+
     iconClass: "icon-chevron-left",
+
     label: messages.previousYear,
+
     side,
+
     documentReference,
   });
 
   const previousMonthElement = createNavigationButton({
     action: CALENDAR_ACTIONS.previousMonth,
+
     className: CLASS_NAMES.navPreviousMonth,
+
     iconClass: "icon-chevron-left",
+
     label: messages.previousMonth,
+
     side,
+
     documentReference,
   });
 
   const nextMonthElement = createNavigationButton({
     action: CALENDAR_ACTIONS.nextMonth,
+
     className: CLASS_NAMES.navNextMonth,
+
     iconClass: "icon-chevron-right",
+
     label: messages.nextMonth,
+
     side,
+
     documentReference,
   });
 
   const nextYearElement = createNavigationButton({
     action: CALENDAR_ACTIONS.nextYear,
+
     className: CLASS_NAMES.navNextYear,
+
     iconClass: "icon-chevron-right",
+
     label: messages.nextYear,
+
     side,
+
     documentReference,
   });
 
@@ -266,13 +319,18 @@ function createCalendarHeader({
   const monthElement = createElement(
     "button",
     {
-      className: `${CLASS_NAMES.title} ` + CLASS_NAMES.titleMonth,
+      className: [CLASS_NAMES.title, CLASS_NAMES.titleMonth].join(" "),
+
       attributes: {
         type: "button",
+
         [ARIA.label]: messages.chooseMonth,
+
         "data-date-navigation": CALENDAR_ACTIONS.showMonths,
+
         [DATA_ATTRIBUTES.side]: side,
       },
+
       text: monthNames[viewDate.getMonth()],
     },
     documentReference,
@@ -281,13 +339,18 @@ function createCalendarHeader({
   const yearElement = createElement(
     "button",
     {
-      className: `${CLASS_NAMES.title} ` + CLASS_NAMES.titleYear,
+      className: [CLASS_NAMES.title, CLASS_NAMES.titleYear].join(" "),
+
       attributes: {
         type: "button",
+
         [ARIA.label]: messages.chooseYear,
+
         "data-date-navigation": CALENDAR_ACTIONS.showYears,
+
         [DATA_ATTRIBUTES.side]: side,
       },
+
       text: String(viewDate.getFullYear()),
     },
     documentReference,
@@ -309,6 +372,7 @@ function createWeekdays({ locale, firstDayOfWeek, documentReference }) {
     "div",
     {
       className: CLASS_NAMES.weekdays,
+
       attributes: {
         role: "row",
       },
@@ -331,10 +395,13 @@ function createWeekdays({ locale, firstDayOfWeek, documentReference }) {
       "div",
       {
         className: CLASS_NAMES.weekday,
+
         attributes: {
           role: "columnheader",
+
           [ARIA.label]: longNames[index],
         },
+
         text: shortName,
       },
       documentReference,
@@ -351,17 +418,20 @@ function createWeekdays({ locale, firstDayOfWeek, documentReference }) {
    ========================================================================== */
 
 /**
- * Blank cells preserve the six-week grid without creating a second selectable
- * representation of a date already shown by the adjacent month panel.
+ * In range mode the two visible calendars represent adjacent months.
+ *
+ * Adjacent-month positions are therefore rendered as blank cells so the same
+ * date never appears as a selectable button in both calendar panels.
  */
-
 function createBlankDayCell(documentReference) {
   return createElement(
     "span",
     {
-      className: `${CLASS_NAMES.day} ` + CLASS_NAMES.dayBlank,
+      className: [CLASS_NAMES.day, CLASS_NAMES.dayBlank].join(" "),
+
       attributes: {
         role: "presentation",
+
         [ARIA.hidden]: "true",
       },
     },
@@ -395,7 +465,7 @@ function createDayButton({
   const selected =
     mode === MODES.single
       ? isSameDay(date, selectedStart)
-      : isSameDay(date, selectedStart) || isSameDay(date, selectedEnd);
+      : Boolean(isSameDay(date, selectedStart) || isSameDay(date, selectedEnd));
 
   const classes = [CLASS_NAMES.day];
 
@@ -436,15 +506,24 @@ function createDayButton({
     "button",
     {
       className: classes.join(" "),
+
       attributes: {
         type: "button",
+
         role: ROLES.gridCell,
+
         [DATA_ATTRIBUTES.date]: isoDate,
+
         [ARIA.label]: formatAccessibleDate(date, locale),
-        [ARIA.selected]: String(Boolean(selected)),
+
+        [ARIA.selected]: String(selected),
+
         [ARIA.current]: isSameDay(date, today) ? "date" : null,
+
         [ARIA.disabled]: disabled ? "true" : null,
+
         disabled: disabled || null,
+
         tabindex: active ? "0" : "-1",
       },
     },
@@ -455,9 +534,11 @@ function createDayButton({
     "span",
     {
       className: CLASS_NAMES.dayNumber,
+
       attributes: {
         [ARIA.hidden]: "true",
       },
+
       text: String(date.getDate()),
     },
     documentReference,
@@ -493,6 +574,7 @@ function createDaysView({
     "div",
     {
       className: CLASS_NAMES.calendarView,
+
       attributes: {
         [DATA_ATTRIBUTES.view]: VIEWS.days,
       },
@@ -510,8 +592,10 @@ function createDaysView({
     "div",
     {
       className: CLASS_NAMES.days,
+
       attributes: {
         role: ROLES.grid,
+
         [ARIA.label]: formatAccessibleMonth(viewDate, locale),
       },
     },
@@ -520,12 +604,17 @@ function createDaysView({
 
   const dayRecords = [];
 
-  getCalendarDates(viewDate, firstDayOfWeek).forEach((date) => {
+  const calendarDates = getCalendarDates(viewDate, firstDayOfWeek);
+
+  calendarDates.forEach((date) => {
     const outsideMonth = !isSameMonth(date, viewDate);
 
     /*
-     * Adjacent-month days are useful in a single calendar. Range calendars
-     * use blank cells so the same date never appears in both month panels.
+     * Single-date calendars show adjacent-month dates.
+     *
+     * Range calendars display two adjacent panels simultaneously, so
+     * adjacent-month dates become blank cells to prevent duplicate
+     * interactive representations.
      */
     if (mode === MODES.range && outsideMonth) {
       daysElement.append(createBlankDayCell(documentReference));
@@ -558,6 +647,7 @@ function createDaysView({
     viewElement,
     daysElement,
     dayRecords,
+    pickerRecords: [],
   };
 }
 
@@ -569,7 +659,8 @@ function createMonthPicker({ viewDate, side, locale, documentReference }) {
   const pickerElement = createElement(
     "div",
     {
-      className: `${CLASS_NAMES.picker} ` + CLASS_NAMES.entering,
+      className: [CLASS_NAMES.picker, CLASS_NAMES.entering].join(" "),
+
       attributes: {
         [DATA_ATTRIBUTES.view]: VIEWS.months,
       },
@@ -580,7 +671,8 @@ function createMonthPicker({ viewDate, side, locale, documentReference }) {
   const gridElement = createElement(
     "div",
     {
-      className: `${CLASS_NAMES.pickerGrid} ` + CLASS_NAMES.pickerMonths,
+      className: [CLASS_NAMES.pickerGrid, CLASS_NAMES.pickerMonths].join(" "),
+
       attributes: {
         role: ROLES.grid,
       },
@@ -588,7 +680,9 @@ function createMonthPicker({ viewDate, side, locale, documentReference }) {
     documentReference,
   );
 
-  const monthNames = getMonthNames(locale, { width: "long" });
+  const monthNames = getMonthNames(locale, {
+    width: "long",
+  });
 
   const optionRecords = monthNames.map((monthName, monthIndex) => {
     const selected = monthIndex === viewDate.getMonth();
@@ -598,18 +692,26 @@ function createMonthPicker({ viewDate, side, locale, documentReference }) {
       {
         className: [
           CLASS_NAMES.pickerOption,
+
           selected ? CLASS_NAMES.selected : "",
         ]
           .filter(Boolean)
           .join(" "),
+
         attributes: {
           type: "button",
+
           role: ROLES.gridCell,
+
           [DATA_ATTRIBUTES.month]: monthIndex,
+
           [DATA_ATTRIBUTES.side]: side,
+
           [ARIA.selected]: String(selected),
+
           tabindex: selected ? "0" : "-1",
         },
+
         text: monthName,
       },
       documentReference,
@@ -617,6 +719,7 @@ function createMonthPicker({ viewDate, side, locale, documentReference }) {
 
     return {
       month: monthIndex,
+
       element: optionElement,
     };
   });
@@ -629,9 +732,13 @@ function createMonthPicker({ viewDate, side, locale, documentReference }) {
 
   return {
     viewElement: pickerElement,
+
     pickerElement,
+
     pickerGridElement: gridElement,
+
     pickerRecords: optionRecords,
+
     dayRecords: [],
   };
 }
@@ -658,7 +765,8 @@ function createYearPicker({
   const pickerElement = createElement(
     "div",
     {
-      className: `${CLASS_NAMES.picker} ` + CLASS_NAMES.entering,
+      className: [CLASS_NAMES.picker, CLASS_NAMES.entering].join(" "),
+
       attributes: {
         [DATA_ATTRIBUTES.view]: VIEWS.years,
       },
@@ -669,7 +777,8 @@ function createYearPicker({
   const gridElement = createElement(
     "div",
     {
-      className: `${CLASS_NAMES.pickerGrid} ` + CLASS_NAMES.pickerYears,
+      className: [CLASS_NAMES.pickerGrid, CLASS_NAMES.pickerYears].join(" "),
+
       attributes: {
         role: ROLES.grid,
       },
@@ -687,18 +796,26 @@ function createYearPicker({
       {
         className: [
           CLASS_NAMES.pickerOption,
+
           selected ? CLASS_NAMES.selected : "",
         ]
           .filter(Boolean)
           .join(" "),
+
         attributes: {
           type: "button",
+
           role: ROLES.gridCell,
+
           [DATA_ATTRIBUTES.year]: year,
+
           [DATA_ATTRIBUTES.side]: side,
+
           [ARIA.selected]: String(selected),
+
           tabindex: selected ? "0" : "-1",
         },
+
         text: String(year),
       },
       documentReference,
@@ -706,6 +823,7 @@ function createYearPicker({
 
     optionRecords.push({
       year,
+
       element: optionElement,
     });
   }
@@ -718,9 +836,13 @@ function createYearPicker({
 
   return {
     viewElement: pickerElement,
+
     pickerElement,
+
     pickerGridElement: gridElement,
+
     pickerRecords: optionRecords,
+
     dayRecords: [],
   };
 }
@@ -814,9 +936,11 @@ function createCalendarPanel({
   const panelElement = createElement(
     "section",
     {
-      className: `${CLASS_NAMES.calendarPanel} ` + sideClass,
+      className: [CLASS_NAMES.calendarPanel, sideClass].join(" "),
+
       attributes: {
         [DATA_ATTRIBUTES.side]: side,
+
         [ARIA.label]: formatAccessibleMonth(viewDate, locale),
       },
     },
@@ -857,6 +981,7 @@ function createCalendarPanel({
     viewDate,
     panelElement,
     headerElement,
+
     ...view,
   };
 }
@@ -865,6 +990,15 @@ function createCalendarPanel({
    Render Calendars
    ========================================================================== */
 
+/**
+ * Rebuilds the calendar region from component state.
+ *
+ * Single mode renders one calendar panel.
+ * Range mode renders the primary month plus the following month.
+ *
+ * The function returns references used by CustomDate for keyboard navigation,
+ * pointer interaction, selection, and focus management.
+ */
 export function renderCustomDateCalendars({
   container,
   mode,
@@ -885,11 +1019,17 @@ export function renderCustomDateCalendars({
 }) {
   const documentReference = container.ownerDocument;
 
+  /*
+   * Calendar markup is derived entirely from state, so replacing the current
+   * children avoids stale day, range, picker, and accessibility state.
+   */
   container.replaceChildren();
 
   const primaryPanel = createCalendarPanel({
     side: SIDES.primary,
+
     viewDate: primaryViewDate,
+
     panelView,
     pickerSide,
     mode,
@@ -911,12 +1051,17 @@ export function renderCustomDateCalendars({
 
   container.append(primaryPanel.panelElement);
 
+  /*
+   * Range mode owns two adjacent calendar panels.
+   */
   if (mode === MODES.range) {
     const secondaryViewDate = startOfMonth(addMonths(primaryViewDate, 1));
 
     const secondaryPanel = createCalendarPanel({
       side: SIDES.secondary,
+
       viewDate: secondaryViewDate,
+
       panelView,
       pickerSide,
       mode,

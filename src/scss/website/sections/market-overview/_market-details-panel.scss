@@ -475,19 +475,84 @@
 }
 
 /* ==========================================================================
-   Constrained Desktop: 992px–1200px
+   Constrained Desktop: 992px–1199.98px
    ========================================================================== */
 
-@media (min-width: 992px) and (max-width: 1200px) {
+/*
+ * The desktop Overview normally uses one fixed 22rem canvas. At this
+ * breakpoint Statistics move to a second row, so keeping that same total
+ * height would force the Chart and Movers to share only a fraction of the
+ * original canvas.
+ *
+ * Give the first row the complete 22rem working height and let Statistics
+ * add its own content-driven row below it. The active Movers panel already
+ * owns vertical scrolling, so constraining the Insights row to the same
+ * 22rem height allows long mover lists to scroll instead of stretching the
+ * complete Details surface.
+ */
+
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  /*
+   * The top-level Overview can no longer use the fixed 22rem TOTAL height
+   * once Statistics occupy a second row.
+   */
+  .market-details-panel[data-market-detail-panel].market-details-panel--overview {
+    --market-details-height: auto;
+
+    block-size: auto;
+
+    overflow: visible;
+  }
+
   .market-details-panel--overview {
     .market-details-panel__grid {
       grid-template-columns:
         minmax(0, 1.3fr)
         minmax(18rem, 0.7fr);
 
+      grid-template-rows:
+        22rem
+        auto;
+
       grid-template-areas:
         "main insights"
         "stats stats";
+
+      block-size: auto;
+      min-block-size: 0;
+    }
+
+    /*
+     * Chart and Movers share one stable first-row canvas.
+     */
+    .market-details-panel__main,
+    .market-details-panel__insights {
+      block-size: 22rem;
+      min-block-size: 0;
+    }
+
+    /*
+     * Movers owns its own active-panel scrollbar. Keep the containing region
+     * bounded so that scrollbar can actually engage.
+     */
+    .market-details-panel__insights {
+      overflow: hidden;
+    }
+
+    .market-details-panel__insights > .market-movers {
+      block-size: 100%;
+      min-block-size: 0;
+      max-block-size: 100%;
+    }
+
+    /*
+     * Statistics are deliberately content-sized below Chart / Movers.
+     */
+    .market-details-panel__stats {
+      block-size: auto;
+      min-block-size: 0;
+
+      overflow: visible;
     }
   }
 

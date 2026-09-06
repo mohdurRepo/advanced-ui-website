@@ -182,11 +182,13 @@ export const SELECTORS = Object.freeze({
   /* Days */
   days: classSelector("days"),
   day: classSelector("day"),
-  enabledDay: `.${CLASS_NAMES.day}:not(
-    :disabled,
-    .${CLASS_NAMES.disabled},
-    [aria-disabled="true"]
-  )`,
+
+  enabledDay: [
+    `.${CLASS_NAMES.day}`,
+    `:not(:disabled)`,
+    `:not(.${CLASS_NAMES.disabled})`,
+    `:not([aria-disabled="true"])`,
+  ].join(""),
 
   /* Pickers */
   picker: classSelector("picker"),
@@ -248,6 +250,7 @@ export const DATA_ATTRIBUTES = Object.freeze({
 
 export const ARIA = Object.freeze({
   activeDescendant: "aria-activedescendant",
+  atomic: "aria-atomic",
   busy: "aria-busy",
   controls: "aria-controls",
   current: "aria-current",
@@ -399,7 +402,7 @@ export const PRESETS = Object.freeze({
    ========================================================================== */
 
 /**
- * `Date#getDay()` uses:
+ * Date#getDay() uses:
  *
  * 0 Sunday
  * 1 Monday
@@ -409,7 +412,6 @@ export const PRESETS = Object.freeze({
  * 5 Friday
  * 6 Saturday
  */
-
 export const WEEKDAYS = Object.freeze({
   sunday: 0,
   monday: 1,
@@ -426,24 +428,31 @@ export const WEEKDAYS = Object.freeze({
 
 export const DEFAULTS = Object.freeze({
   closeDuration: 140,
+
   rangeSeparator: "–",
 
   firstDayOfWeek: 0,
+
   visibleMonths: 2,
 
   yearPageSize: 20,
+
   yearRangeBefore: 100,
+
   yearRangeAfter: 20,
 
   typeaheadDelay: 700,
 
   estimatedPopoverHeight: 480,
+
   popoverGap: 8,
+
   viewportGap: 12,
 
   mobileBreakpoint: 768,
 
   singlePlaceholder: "YYYY-MM-DD",
+
   rangePlaceholder: "YYYY-MM-DD – YYYY-MM-DD",
 });
 

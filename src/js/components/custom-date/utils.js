@@ -1,6 +1,21 @@
 import { DEFAULTS, ISO_DATE_PATTERN, WEEKDAYS } from "./constants";
 
 /* ==========================================================================
+   Environment
+   ========================================================================== */
+
+/**
+ * Returns the browser document when one exists.
+ *
+ * Most component calls explicitly provide an ownerDocument, but keeping the
+ * fallback guarded makes these utilities safer in tests, SSR builds, and
+ * non-browser module evaluation.
+ */
+function getDefaultDocument() {
+  return typeof document !== "undefined" ? document : null;
+}
+
+/* ==========================================================================
    Numeric Utilities
    ========================================================================== */
 
@@ -29,16 +44,44 @@ export function isButtonElement(element) {
    ========================================================================== */
 
 /**
- * Date-only values are created at local noon.
+ * Creates a local civil date at noon.
  *
  * Noon avoids date movement around daylight-saving transitions while keeping
- * calendar calculations in the user's local civil-date system.
+ * all calendar calculations in the user's local civil-date system.
+ *
+ * setFullYear() is intentionally used rather than:
+ *
+ *     new Date(year, month, day)
+ *
+ * because the Date constructor treats years 0–99 as 1900–1999.
  */
-
 export function createDate(year, month, day) {
-  const date = new Date(year, month, day, 12, 0, 0, 0);
-
   if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(day)
+  ) {
+    return null;
+  }
+
+  const date = new Date(0);
+
+  /*
+   * Establish local noon before assigning the civil-date fields.
+   */
+  date.setHours(12, 0, 0, 0);
+
+  date.setFullYear(year, month, day);
+
+  /*
+   * Reject overflow such as:
+   *
+   * 2026-02-31
+   * month 12
+   * day 0
+   */
+  if (
+    Number.isNaN(date.getTime()) ||
     date.getFullYear() !== year ||
     date.getMonth() !== month ||
     date.getDate() !== day
@@ -70,7 +113,9 @@ export function getToday() {
    ========================================================================== */
 
 export function parseISODate(value) {
-  if (typeof value !== "string") return null;
+  if (typeof value !== "string") {
+    return null;
+  }
 
   const normalizedValue = value.trim();
 
@@ -86,10 +131,14 @@ export function parseISODate(value) {
 export function formatISODate(date) {
   const normalizedDate = normalizeDate(date);
 
-  if (!normalizedDate) return "";
+  if (!normalizedDate) {
+    return "";
+  }
 
   const year = String(normalizedDate.getFullYear()).padStart(4, "0");
+
   const month = String(normalizedDate.getMonth() + 1).padStart(2, "0");
+
   const day = String(normalizedDate.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
@@ -100,13 +149,17 @@ export function formatISODate(date) {
    ========================================================================== */
 
 /**
- * A numeric civil-date key avoids time-zone and daylight-saving comparisons.
+ * Converts a date into a sortable civil-date key.
+ *
+ * This avoids comparing timestamps and therefore avoids time-zone and
+ * daylight-saving effects.
  */
-
 export function getDateKey(date) {
   const normalizedDate = normalizeDate(date);
 
-  if (!normalizedDate) return Number.NaN;
+  if (!normalizedDate) {
+    return Number.NaN;
+  }
 
   return (
     normalizedDate.getFullYear() * 10_000 +
@@ -117,14 +170,20 @@ export function getDateKey(date) {
 
 export function compareDates(firstDate, secondDate) {
   const firstKey = getDateKey(firstDate);
+
   const secondKey = getDateKey(secondDate);
 
   if (!Number.isFinite(firstKey) || !Number.isFinite(secondKey)) {
     return Number.NaN;
   }
 
-  if (firstKey < secondKey) return -1;
-  if (firstKey > secondKey) return 1;
+  if (firstKey < secondKey) {
+    return -1;
+  }
+
+  if (firstKey > secondKey) {
+    return 1;
+  }
 
   return 0;
 }
@@ -148,6 +207,7 @@ export function isDateBetween(
   { inclusive = true } = {},
 ) {
   const startComparison = compareDates(date, startDate);
+
   const endComparison = compareDates(date, endDate);
 
   if (!Number.isFinite(startComparison) || !Number.isFinite(endComparison)) {
@@ -168,7 +228,9 @@ export function isDateBetween(
 export function addDays(date, amount) {
   const normalizedDate = normalizeDate(date);
 
-  if (!normalizedDate || !Number.isFinite(amount)) return null;
+  if (!normalizedDate || !Number.isFinite(amount)) {
+    return null;
+  }
 
   const result = cloneDate(normalizedDate);
 
@@ -180,19 +242,35 @@ export function addDays(date, amount) {
 export function addMonths(date, amount) {
   const normalizedDate = normalizeDate(date);
 
-  if (!normalizedDate || !Number.isFinite(amount)) return null;
+  if (!normalizedDate || !Number.isFinite(amount)) {
+    return null;
+  }
 
   const originalDay = normalizedDate.getDate();
 
+  /*
+   * Move from the first day of the source month so dates such as January 31
+   * cannot overflow directly into the following target month.
+   */
   const target = createDate(
     normalizedDate.getFullYear(),
+
     normalizedDate.getMonth(),
+
     1,
   );
+
+  if (!target) {
+    return null;
+  }
 
   target.setMonth(target.getMonth() + Math.trunc(amount));
 
   const maximumDay = getDaysInMonth(target.getFullYear(), target.getMonth());
+
+  if (!Number.isFinite(maximumDay)) {
+    return null;
+  }
 
   target.setDate(Math.min(originalDay, maximumDay));
 
@@ -202,16 +280,31 @@ export function addMonths(date, amount) {
 export function addYears(date, amount) {
   const normalizedDate = normalizeDate(date);
 
-  if (!normalizedDate || !Number.isFinite(amount)) return null;
+  if (!normalizedDate || !Number.isFinite(amount)) {
+    return null;
+  }
 
   const targetYear = normalizedDate.getFullYear() + Math.trunc(amount);
 
   const maximumDay = getDaysInMonth(targetYear, normalizedDate.getMonth());
 
+  if (!Number.isFinite(maximumDay)) {
+    return null;
+  }
+
+  /*
+   * February 29 becomes February 28 when moving into a non-leap year.
+   */
   return createDate(
     targetYear,
+
     normalizedDate.getMonth(),
-    Math.min(normalizedDate.getDate(), maximumDay),
+
+    Math.min(
+      normalizedDate.getDate(),
+
+      maximumDay,
+    ),
   );
 }
 
@@ -219,14 +312,40 @@ export function addYears(date, amount) {
    Month Utilities
    ========================================================================== */
 
+/**
+ * Returns the number of days in a calendar month.
+ *
+ * Month follows JavaScript's zero-based month numbering.
+ */
 export function getDaysInMonth(year, month) {
-  return new Date(year, month + 1, 0, 12, 0, 0, 0).getDate();
+  if (!Number.isInteger(year) || !Number.isInteger(month)) {
+    return Number.NaN;
+  }
+
+  /*
+   * Using setFullYear avoids Date's special 0–99 year handling.
+   *
+   * Day 0 of the following month is the final day of the requested month.
+   */
+  const date = new Date(0);
+
+  date.setHours(12, 0, 0, 0);
+
+  date.setFullYear(year, month + 1, 0);
+
+  if (Number.isNaN(date.getTime())) {
+    return Number.NaN;
+  }
+
+  return date.getDate();
 }
 
 export function startOfMonth(date) {
   const normalizedDate = normalizeDate(date);
 
-  if (!normalizedDate) return null;
+  if (!normalizedDate) {
+    return null;
+  }
 
   return createDate(normalizedDate.getFullYear(), normalizedDate.getMonth(), 1);
 }
@@ -234,20 +353,37 @@ export function startOfMonth(date) {
 export function endOfMonth(date) {
   const normalizedDate = normalizeDate(date);
 
-  if (!normalizedDate) return null;
+  if (!normalizedDate) {
+    return null;
+  }
+
+  const maximumDay = getDaysInMonth(
+    normalizedDate.getFullYear(),
+
+    normalizedDate.getMonth(),
+  );
+
+  if (!Number.isFinite(maximumDay)) {
+    return null;
+  }
 
   return createDate(
     normalizedDate.getFullYear(),
+
     normalizedDate.getMonth(),
-    getDaysInMonth(normalizedDate.getFullYear(), normalizedDate.getMonth()),
+
+    maximumDay,
   );
 }
 
 export function isSameMonth(firstDate, secondDate) {
   const first = normalizeDate(firstDate);
+
   const second = normalizeDate(secondDate);
 
-  if (!first || !second) return false;
+  if (!first || !second) {
+    return false;
+  }
 
   return (
     first.getFullYear() === second.getFullYear() &&
@@ -262,9 +398,15 @@ export function isSameMonth(firstDate, secondDate) {
 export function startOfWeek(date, firstDayOfWeek = DEFAULTS.firstDayOfWeek) {
   const normalizedDate = normalizeDate(date);
 
-  if (!normalizedDate) return null;
+  if (!normalizedDate) {
+    return null;
+  }
 
-  const offset = modulo(normalizedDate.getDay() - firstDayOfWeek, 7);
+  const normalizedFirstDay = Number.isFinite(firstDayOfWeek)
+    ? modulo(Math.trunc(firstDayOfWeek), 7)
+    : DEFAULTS.firstDayOfWeek;
+
+  const offset = modulo(normalizedDate.getDay() - normalizedFirstDay, 7);
 
   return addDays(normalizedDate, -offset);
 }
@@ -282,7 +424,9 @@ export function endOfWeek(date, firstDayOfWeek = DEFAULTS.firstDayOfWeek) {
 export function clampDate(date, minimumDate, maximumDate) {
   const normalizedDate = normalizeDate(date);
 
-  if (!normalizedDate) return null;
+  if (!normalizedDate) {
+    return null;
+  }
 
   if (minimumDate && isBefore(normalizedDate, minimumDate)) {
     return cloneDate(minimumDate);
@@ -321,10 +465,26 @@ export function parseDisabledWeekdays(value) {
    Boolean Data Attributes
    ========================================================================== */
 
+/**
+ * HTML-style boolean parser.
+ *
+ * These are treated as false:
+ *
+ * false
+ * 0
+ * no
+ * off
+ *
+ * Every other present value is treated as true.
+ */
 export function parseBooleanAttribute(value) {
-  if (value === null || value === undefined) return false;
+  if (value === null || value === undefined) {
+    return false;
+  }
 
-  if (value === "") return true;
+  if (value === "") {
+    return true;
+  }
 
   const normalizedValue = String(value).trim().toLowerCase();
 
@@ -336,7 +496,9 @@ export function parseBooleanAttribute(value) {
    ========================================================================== */
 
 export function parseCommaSeparatedList(value) {
-  if (typeof value !== "string") return [];
+  if (typeof value !== "string") {
+    return [];
+  }
 
   return [
     ...new Set(
@@ -352,30 +514,54 @@ export function parseCommaSeparatedList(value) {
    Locale
    ========================================================================== */
 
-export function getDocumentLocale(documentReference = document) {
-  return (
-    documentReference.documentElement.lang ||
-    documentReference.defaultView?.navigator?.language ||
-    "en"
-  );
+export function getDocumentLocale(documentReference = getDefaultDocument()) {
+  if (!documentReference) {
+    return "en";
+  }
+
+  const documentLanguage = documentReference.documentElement?.lang?.trim();
+
+  if (documentLanguage) {
+    return documentLanguage;
+  }
+
+  const navigatorLanguage =
+    documentReference.defaultView?.navigator?.language?.trim();
+
+  return navigatorLanguage || "en";
 }
 
-export function getDocumentDirection(documentReference = document) {
-  const explicitDirection =
-    documentReference.documentElement.dir?.toLowerCase();
+export function getDocumentDirection(documentReference = getDefaultDocument()) {
+  if (!documentReference) {
+    return "ltr";
+  }
+
+  const documentElement = documentReference.documentElement;
+
+  if (!documentElement) {
+    return "ltr";
+  }
+
+  const explicitDirection = documentElement.dir?.trim().toLowerCase();
 
   if (explicitDirection === "rtl" || explicitDirection === "ltr") {
     return explicitDirection;
   }
 
-  const computedDirection = documentReference.defaultView
-    ?.getComputedStyle(documentReference.documentElement)
-    ?.direction?.toLowerCase();
+  const view = documentReference.defaultView;
+
+  if (!view || typeof view.getComputedStyle !== "function") {
+    return "ltr";
+  }
+
+  const computedDirection = view
+    .getComputedStyle(documentElement)
+    .direction?.toLowerCase();
 
   return computedDirection === "rtl" ? "rtl" : "ltr";
 }
 
-export function isRTL(documentReference = document) {
+export function isRTL(documentReference = getDefaultDocument()) {
   return getDocumentDirection(documentReference) === "rtl";
 }
 
@@ -384,11 +570,13 @@ export function isRTL(documentReference = document) {
    ========================================================================== */
 
 /**
- * `Intl.Locale` reports Sunday as 7. JavaScript Date reports Sunday as 0.
+ * Intl.Locale reports Sunday as 7.
+ * JavaScript Date reports Sunday as 0.
  */
-
 export function getFirstDayOfWeek(locale, fallback = DEFAULTS.firstDayOfWeek) {
-  if (typeof Intl.Locale !== "function") return fallback;
+  if (typeof Intl === "undefined" || typeof Intl.Locale !== "function") {
+    return fallback;
+  }
 
   try {
     const localeObject = new Intl.Locale(locale);
@@ -400,11 +588,36 @@ export function getFirstDayOfWeek(locale, fallback = DEFAULTS.firstDayOfWeek) {
 
     const firstDay = weekInfo?.firstDay;
 
-    if (!Number.isInteger(firstDay)) return fallback;
+    if (!Number.isInteger(firstDay)) {
+      return fallback;
+    }
 
+    /*
+     * Intl:
+     * Sunday = 7
+     *
+     * Date:
+     * Sunday = 0
+     */
     return firstDay % 7;
   } catch {
     return fallback;
+  }
+}
+
+/* ==========================================================================
+   Intl Formatter
+   ========================================================================== */
+
+/**
+ * Creates an Intl.DateTimeFormat while gracefully falling back when the
+ * supplied locale is invalid.
+ */
+function createDateTimeFormatter(locale, options) {
+  try {
+    return new Intl.DateTimeFormat(locale || "en", options);
+  } catch {
+    return new Intl.DateTimeFormat("en", options);
   }
 }
 
@@ -413,88 +626,152 @@ export function getFirstDayOfWeek(locale, fallback = DEFAULTS.firstDayOfWeek) {
    ========================================================================== */
 
 export function getMonthNames(locale, { width = "long" } = {}) {
-  const formatter = new Intl.DateTimeFormat(locale, {
+  const formatter = createDateTimeFormatter(locale, {
     month: width,
     timeZone: "UTC",
   });
 
-  return Array.from({ length: 12 }, (_, month) =>
-    formatter.format(new Date(Date.UTC(2020, month, 1))),
+  return Array.from(
+    {
+      length: 12,
+    },
+    (_, month) => formatter.format(new Date(Date.UTC(2020, month, 1))),
   );
 }
 
 export function getWeekdayNames(
   locale,
-  { width = "short", firstDayOfWeek = DEFAULTS.firstDayOfWeek } = {},
+  {
+    width = "short",
+
+    firstDayOfWeek = DEFAULTS.firstDayOfWeek,
+  } = {},
 ) {
-  const formatter = new Intl.DateTimeFormat(locale, {
+  const formatter = createDateTimeFormatter(locale, {
     weekday: width,
     timeZone: "UTC",
   });
 
+  /*
+   * 2020-06-07 was a Sunday.
+   */
   const sunday = new Date(Date.UTC(2020, 5, 7));
 
-  const weekdays = Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(sunday);
+  const weekdays = Array.from(
+    {
+      length: 7,
+    },
+    (_, index) => {
+      const date = new Date(sunday);
 
-    date.setUTCDate(sunday.getUTCDate() + index);
+      date.setUTCDate(sunday.getUTCDate() + index);
 
-    return formatter.format(date);
-  });
+      return formatter.format(date);
+    },
+  );
+
+  const normalizedFirstDay = Number.isFinite(firstDayOfWeek)
+    ? modulo(Math.trunc(firstDayOfWeek), 7)
+    : DEFAULTS.firstDayOfWeek;
 
   return [
-    ...weekdays.slice(firstDayOfWeek),
-    ...weekdays.slice(0, firstDayOfWeek),
+    ...weekdays.slice(normalizedFirstDay),
+
+    ...weekdays.slice(0, normalizedFirstDay),
   ];
 }
 
 export function formatAccessibleDate(date, locale) {
   const normalizedDate = normalizeDate(date);
 
-  if (!normalizedDate) return "";
+  if (!normalizedDate) {
+    return "";
+  }
 
+  /*
+   * Convert the civil date to an equivalent UTC date before formatting.
+   *
+   * This ensures the localized accessible label never shifts to the previous
+   * or following day because of the user's time zone.
+   */
   const utcDate = new Date(
     Date.UTC(
       normalizedDate.getFullYear(),
+
       normalizedDate.getMonth(),
+
       normalizedDate.getDate(),
     ),
   );
 
-  return new Intl.DateTimeFormat(locale, {
+  const formatter = createDateTimeFormatter(locale, {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
     timeZone: "UTC",
-  }).format(utcDate);
+  });
+
+  return formatter.format(utcDate);
 }
 
 export function formatAccessibleMonth(date, locale) {
   const normalizedDate = normalizeDate(date);
 
-  if (!normalizedDate) return "";
+  if (!normalizedDate) {
+    return "";
+  }
 
   const utcDate = new Date(
-    Date.UTC(normalizedDate.getFullYear(), normalizedDate.getMonth(), 1),
+    Date.UTC(
+      normalizedDate.getFullYear(),
+
+      normalizedDate.getMonth(),
+
+      1,
+    ),
   );
 
-  return new Intl.DateTimeFormat(locale, {
+  const formatter = createDateTimeFormatter(locale, {
     year: "numeric",
     month: "long",
     timeZone: "UTC",
-  }).format(utcDate);
+  });
+
+  return formatter.format(utcDate);
 }
 
 /* ==========================================================================
    DOM Creation
    ========================================================================== */
 
+/**
+ * Creates an element and applies optional classes, attributes, dataset values,
+ * and text.
+ *
+ * Attribute rules:
+ *
+ * null / undefined / false
+ *   Attribute is omitted.
+ *
+ * true
+ *   Boolean attribute is emitted as an empty attribute.
+ *
+ * everything else
+ *   Value is stringified.
+ */
 export function createElement(
   tagName,
   { className = "", attributes = {}, dataset = {}, text = null } = {},
-  documentReference = document,
+  documentReference = getDefaultDocument(),
 ) {
+  if (
+    !documentReference ||
+    typeof documentReference.createElement !== "function"
+  ) {
+    throw new TypeError("createElement requires a valid Document.");
+  }
+
   const element = documentReference.createElement(tagName);
 
   if (className) {
@@ -502,10 +779,13 @@ export function createElement(
   }
 
   Object.entries(attributes).forEach(([name, value]) => {
-    if (value === null || value === undefined || value === false) return;
+    if (value === null || value === undefined || value === false) {
+      return;
+    }
 
     if (value === true) {
       element.setAttribute(name, "");
+
       return;
     }
 
@@ -513,7 +793,9 @@ export function createElement(
   });
 
   Object.entries(dataset).forEach(([name, value]) => {
-    if (value === null || value === undefined) return;
+    if (value === null || value === undefined) {
+      return;
+    }
 
     element.dataset[name] = String(value);
   });
@@ -537,11 +819,31 @@ export function createUniqueId(prefix = "custom-date") {
   return `${prefix}-${generatedId}`;
 }
 
+/**
+ * Ensures that an element has an ID.
+ *
+ * Existing IDs are preserved because they may be referenced by labels,
+ * validation messages, tests, or application code.
+ */
 export function ensureElementId(element, prefix = "custom-date") {
-  if (!element) return "";
+  if (!element) {
+    return "";
+  }
 
   if (!element.id) {
-    element.id = createUniqueId(prefix);
+    const documentReference = element.ownerDocument;
+
+    let candidateId;
+
+    /*
+     * Avoid accidentally generating an ID that already exists in the current
+     * document.
+     */
+    do {
+      candidateId = createUniqueId(prefix);
+    } while (documentReference?.getElementById?.(candidateId));
+
+    element.id = candidateId;
   }
 
   return element.id;
@@ -552,57 +854,90 @@ export function ensureElementId(element, prefix = "custom-date") {
    ========================================================================== */
 
 export function getAssociatedLabel(input) {
-  if (!input) return null;
+  if (!input) {
+    return null;
+  }
 
+  /*
+   * The native labels collection is the most reliable source and correctly
+   * handles both explicit and wrapping labels.
+   */
   if (input.labels?.length) {
     return input.labels[0];
   }
 
-  if (input.id) {
+  if (input.id && input.ownerDocument) {
     const escapedId =
       typeof CSS !== "undefined" && typeof CSS.escape === "function"
         ? CSS.escape(input.id)
         : input.id.replace(/["\\]/g, "\\$&");
 
-    const label = input.ownerDocument.querySelector(
-      `label[for="${escapedId}"]`,
-    );
+    try {
+      const label = input.ownerDocument.querySelector(
+        `label[for="${escapedId}"]`,
+      );
 
-    if (label) return label;
+      if (label) {
+        return label;
+      }
+    } catch {
+      /*
+       * Fall through to wrapping-label lookup if an unusual legacy ID cannot
+       * be represented safely by the fallback selector escaping.
+       */
+    }
   }
 
-  return input.closest("label");
+  return input.closest?.("label") || null;
 }
 
 /* ==========================================================================
    Attribute Restoration
    ========================================================================== */
 
+/**
+ * Restores an attribute captured before enhancement.
+ *
+ * null / undefined means the original attribute was absent.
+ */
 export function restoreAttribute(element, name, value) {
-  if (!element) return;
-
-  if (value === null || value === undefined) {
-    element.removeAttribute(name);
+  if (!element || !name) {
     return;
   }
 
-  element.setAttribute(name, value);
+  if (value === null || value === undefined) {
+    element.removeAttribute(name);
+
+    return;
+  }
+
+  element.setAttribute(name, String(value));
 }
 
 /* ==========================================================================
    Focus
    ========================================================================== */
 
-export function focusSafely(element, options = { preventScroll: true }) {
-  if (!element || typeof element.focus !== "function") return false;
+export function focusSafely(
+  element,
+  options = {
+    preventScroll: true,
+  },
+) {
+  if (!element || typeof element.focus !== "function") {
+    return false;
+  }
 
   try {
     element.focus(options);
   } catch {
+    /*
+     * Older browsers may reject the FocusOptions argument.
+     */
     element.focus();
   }
 
-  return element.ownerDocument.activeElement === element;
+  return element.ownerDocument?.activeElement === element;
 }
 
 /* ==========================================================================
@@ -615,15 +950,33 @@ export function dispatchComponentEvent(
   detail = {},
   options = {},
 ) {
-  if (!element || !eventName) return null;
+  if (!element || !eventName) {
+    return null;
+  }
 
-  const view = element.ownerDocument.defaultView;
-  const EventConstructor = view?.CustomEvent || CustomEvent;
+  const documentReference = element.ownerDocument;
+
+  const view = documentReference?.defaultView;
+
+  const EventConstructor =
+    view?.CustomEvent ||
+    (typeof CustomEvent !== "undefined" ? CustomEvent : null);
+
+  if (!EventConstructor) {
+    return null;
+  }
 
   const event = new EventConstructor(eventName, {
     bubbles: true,
+
     cancelable: Boolean(options.cancelable),
+
+    /*
+     * Allows events to pass through shadow-DOM boundaries when the
+     * component is used inside a shadow root.
+     */
     composed: true,
+
     detail,
   });
 
@@ -636,16 +989,34 @@ export function dispatchComponentEvent(
    CSS Time Parsing
    ========================================================================== */
 
+/**
+ * Reads a CSS custom property representing time.
+ *
+ * Supported examples:
+ *
+ * 140ms
+ * .14s
+ * 140
+ */
 export function readCssTime(element, propertyName, fallback = 0) {
-  if (!element) return fallback;
+  if (!element || !propertyName) {
+    return fallback;
+  }
 
-  const view = element.ownerDocument.defaultView;
+  const view = element.ownerDocument?.defaultView;
+
+  if (!view || typeof view.getComputedStyle !== "function") {
+    return fallback;
+  }
+
   const value = view
     .getComputedStyle(element)
     .getPropertyValue(propertyName)
     .trim();
 
-  if (!value) return fallback;
+  if (!value) {
+    return fallback;
+  }
 
   if (value.endsWith("ms")) {
     const milliseconds = Number.parseFloat(value);
@@ -668,10 +1039,29 @@ export function readCssTime(element, propertyName, fallback = 0) {
    CSS Length Parsing
    ========================================================================== */
 
+/**
+ * Reads simple CSS lengths used by the positioning system.
+ *
+ * Supported units:
+ *
+ * px
+ * rem
+ * em
+ *
+ * Unitless values are interpreted as pixels.
+ */
 export function readCssLength(element, propertyName, fallback = 0) {
-  if (!element) return fallback;
+  if (!element || !propertyName) {
+    return fallback;
+  }
 
-  const view = element.ownerDocument.defaultView;
+  const documentReference = element.ownerDocument;
+
+  const view = documentReference?.defaultView;
+
+  if (!view || typeof view.getComputedStyle !== "function") {
+    return fallback;
+  }
 
   const value = view
     .getComputedStyle(element)
@@ -680,16 +1070,29 @@ export function readCssLength(element, propertyName, fallback = 0) {
 
   const match = value.match(/^(-?(?:\d+|\d*\.\d+))(px|rem|em)?$/i);
 
-  if (!match) return fallback;
+  if (!match) {
+    return fallback;
+  }
 
   const amount = Number(match[1]);
+
   const unit = (match[2] || "px").toLowerCase();
 
-  if (!Number.isFinite(amount)) return fallback;
-  if (unit === "px") return amount;
+  if (!Number.isFinite(amount)) {
+    return fallback;
+  }
 
-  const root = element.ownerDocument.documentElement;
+  if (unit === "px") {
+    return amount;
+  }
+
+  const root = documentReference?.documentElement;
+
   const fontTarget = unit === "rem" ? root : element;
+
+  if (!fontTarget) {
+    return fallback;
+  }
 
   const fontSize = Number.parseFloat(
     view.getComputedStyle(fontTarget).fontSize,

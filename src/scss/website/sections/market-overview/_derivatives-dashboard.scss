@@ -4,18 +4,75 @@
    Derivatives Dashboard
    ========================================================================== */
 
+/*
+ * Responsibilities:
+ *
+ * - Own the Derivatives dashboard card grid.
+ * - Own dashboard-card surfaces and headers.
+ * - Own table viewport sizing and overflow.
+ * - Own the mobile "additional tables" presentation.
+ * - Provide responsive dashboard composition.
+ *
+ * This file does NOT own:
+ *
+ * - Derivatives view-tab behavior;
+ * - mobile disclosure state;
+ * - generic table presentation;
+ * - numeric directionality;
+ * - Market Details panel height;
+ * - chart presentation.
+ */
+
+/* ==========================================================================
+   Root
+   ========================================================================== */
+
 .derivatives-dashboard {
+  /* -----------------------------------------------------------------------
+     Local Contract
+     -------------------------------------------------------------------- */
+
+  --derivatives-dashboard-gap: var(--market-panel-gap);
+
+  --derivatives-dashboard-space: var(--market-panel-space);
+
+  --derivatives-dashboard-space-sm: var(--market-panel-space-sm);
+
+  --derivatives-dashboard-card-bg: var(--market-details-side-bg);
+
+  --derivatives-dashboard-fg: var(--market-details-fg);
+
+  --derivatives-dashboard-heading: var(--market-details-heading);
+
+  --derivatives-dashboard-line: var(--market-panel-line);
+
+  --derivatives-dashboard-line-hover: var(--market-details-border-hover);
+
+  --derivatives-dashboard-line-strong: var(--market-details-border-strong);
+
+  --derivatives-dashboard-scrollbar: rgb(255 255 255 / 0.3);
+
+  --derivatives-dashboard-scrollbar-hover: rgb(255 255 255 / 0.5);
+
+  --derivatives-dashboard-table-max-block-size: 13rem;
+
   display: grid;
+
   grid-template-columns: repeat(2, minmax(0, 1fr));
+
   align-items: stretch;
-  gap: var(--market-panel-gap);
+
+  gap: var(--derivatives-dashboard-gap);
+
+  inline-size: 100%;
 
   min-inline-size: 0;
+  min-block-size: 0;
 
-  padding: var(--market-panel-space);
+  padding: var(--derivatives-dashboard-space);
 
   background: var(--market-details-bg);
-  color: var(--market-details-fg);
+  color: var(--derivatives-dashboard-fg);
 
   font-size: var(--text-xs);
   line-height: var(--line-height-normal);
@@ -26,26 +83,26 @@
    ========================================================================== */
 
 .derivatives-dashboard__card {
-  --derivatives-table-max-height: 13rem;
-
   display: flex;
   flex-direction: column;
+
+  inline-size: 100%;
 
   min-inline-size: 0;
   min-block-size: 0;
 
   overflow: hidden;
 
-  border: 1px solid var(--market-panel-line);
+  border: 1px solid var(--derivatives-dashboard-line);
   border-radius: var(--market-panel-radius);
 
-  background: var(--market-details-side-bg);
-  color: var(--market-details-fg);
+  background: var(--derivatives-dashboard-card-bg);
+  color: var(--derivatives-dashboard-fg);
 
-  @include ds.transition((border-color, box-shadow), fast);
+  @include ds.transition((border-color, box-shadow), "fast");
 
   &:hover {
-    border-color: var(--market-details-border-hover);
+    border-color: var(--derivatives-dashboard-line-hover);
 
     box-shadow: var(--shadow-sm);
   }
@@ -63,116 +120,182 @@
 
   min-block-size: 3rem;
 
-  padding: 0.75rem var(--market-panel-space-sm);
+  padding-block: var(--space-3, #{ds.space(3)});
+  padding-inline: var(--derivatives-dashboard-space-sm);
 
-  border-block-end: 1px solid var(--market-panel-line);
+  border-block-end: 1px solid var(--derivatives-dashboard-line);
 
-  background: var(--market-details-side-bg);
+  background: var(--derivatives-dashboard-card-bg);
 }
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
 
 .derivatives-dashboard__title {
   min-inline-size: 0;
+
   margin: 0;
 
   overflow: hidden;
 
-  color: var(--market-details-heading);
+  color: var(--derivatives-dashboard-heading);
 
   font-size: var(--text-sm);
   font-weight: ds.font-weight("heavy");
   line-height: var(--line-height-tight);
+
+  text-align: start;
 
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 /* ==========================================================================
-   Table Region
+   Table Viewport
    ========================================================================== */
 
 /*
- * Each card owns its table viewport. Long datasets scroll independently,
- * while the card title and the rest of the dashboard remain stationary.
+ * Each dashboard card owns its own table viewport.
+ *
+ * The card header remains stationary while larger datasets scroll within
+ * the table region.
  */
 
-.derivatives-dashboard__card {
-  .table-responsive {
-    flex: 1 1 auto;
+.derivatives-dashboard__card .table-responsive {
+  flex: 1 1 auto;
 
-    inline-size: 100%;
-    max-inline-size: 100%;
-    min-inline-size: 0;
-    min-block-size: 0;
-    max-block-size: var(--derivatives-table-max-height);
+  inline-size: 100%;
+  max-inline-size: 100%;
 
-    overflow-x: auto;
-    overflow-y: auto;
+  min-inline-size: 0;
+  min-block-size: 0;
 
-    overscroll-behavior-inline: contain;
-    overscroll-behavior-block: contain;
+  max-block-size: var(--derivatives-dashboard-table-max-block-size);
 
-    scrollbar-gutter: stable;
-    scrollbar-width: thin;
-    scrollbar-color: rgb(255 255 255 / 0.3) transparent;
+  overflow-x: auto;
+  overflow-y: auto;
 
-    touch-action: pan-x pan-y;
+  overscroll-behavior-inline: contain;
+  overscroll-behavior-block: contain;
 
-    -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
 
-    &::-webkit-scrollbar {
-      inline-size: 0.375rem;
-      block-size: 0.375rem;
-    }
+  scrollbar-width: thin;
 
-    &::-webkit-scrollbar-track {
-      background: transparent;
-    }
+  scrollbar-color: var(--derivatives-dashboard-scrollbar) transparent;
 
-    &::-webkit-scrollbar-thumb {
-      border-radius: var(--radius-pill);
+  touch-action: pan-x pan-y;
 
-      background: rgb(255 255 255 / 0.3);
-    }
-
-    &::-webkit-scrollbar-thumb:hover {
-      background: rgb(255 255 255 / 0.5);
-    }
-  }
-
-  /*
-   * The design system owns table surfaces, typography, borders, cell
-   * spacing, links, interaction, and numeric alignment. This component
-   * controls only sizing and overflow.
-   */
-
-  .table {
-    inline-size: 100%;
-    min-inline-size: 24rem;
-
-    margin: 0;
-  }
-
-  /* Keep table column headings visible while its rows scroll. */
-
-  .table thead th,
-  .table thead td {
-    position: sticky;
-    inset-block-start: 0;
-    z-index: 2;
-
-    background: var(--table-head-bg);
-  }
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ==========================================================================
-   Mobile Table Disclosure
+   Table Scrollbar
    ========================================================================== */
+
+.derivatives-dashboard__card .table-responsive::-webkit-scrollbar {
+  inline-size: 0.375rem;
+  block-size: 0.375rem;
+}
+
+.derivatives-dashboard__card .table-responsive::-webkit-scrollbar-button {
+  display: none;
+
+  inline-size: 0;
+  block-size: 0;
+}
+
+.derivatives-dashboard__card .table-responsive::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.derivatives-dashboard__card .table-responsive::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+
+  background: var(--derivatives-dashboard-scrollbar);
+}
+
+.derivatives-dashboard__card .table-responsive::-webkit-scrollbar-thumb:hover {
+  background: var(--derivatives-dashboard-scrollbar-hover);
+}
+
+.derivatives-dashboard__card .table-responsive::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ==========================================================================
+   Table Sizing
+   ========================================================================== */
+
+/*
+ * The design system continues to own:
+ *
+ * - table surfaces;
+ * - cell spacing;
+ * - borders;
+ * - typography;
+ * - links;
+ * - numeric alignment.
+ *
+ * Dashboard owns only width and overflow requirements.
+ */
+
+.derivatives-dashboard__card .table {
+  inline-size: 100%;
+
+  min-inline-size: 24rem;
+
+  margin: 0;
+}
+
+/* ==========================================================================
+   Sticky Table Header
+   ========================================================================== */
+
+.derivatives-dashboard__card .table thead th,
+.derivatives-dashboard__card .table thead td {
+  position: sticky;
+
+  inset-block-start: 0;
+
+  z-index: 2;
+
+  background: var(--table-head-bg);
+}
+
+/* ==========================================================================
+   Mobile Additional-Tables Toggle
+   ========================================================================== */
+
+/*
+ * Hidden outside mobile.
+ *
+ * The existing mobile disclosure JavaScript owns:
+ *
+ * - aria-expanded;
+ * - hidden;
+ * - aria-hidden;
+ * - localized label text.
+ */
 
 .derivatives-dashboard__toggle {
   display: none;
 
   grid-column: 1 / -1;
+
+  min-inline-size: 0;
 }
+
+/* ==========================================================================
+   Additional Tables
+   ========================================================================== */
+
+/*
+ * Desktop and tablet:
+ *
+ * Promote the additional cards directly into the dashboard grid.
+ */
 
 .derivatives-dashboard__more {
   display: contents;
@@ -183,29 +306,89 @@
 }
 
 /* ==========================================================================
-   Tablet
+   Desktop: XL+
    ========================================================================== */
 
-@include ds.respond-between(md, lg) {
+/*
+ * Four dashboard cards form a clean 2 × 2 composition.
+ *
+ * CSS Grid naturally equalizes cards within each row while allowing the
+ * dashboard itself to remain content-driven.
+ */
+
+@include ds.respond-up(xl) {
   .derivatives-dashboard {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .derivatives-dashboard__card {
+    min-block-size: 0;
   }
 }
 
 /* ==========================================================================
-   Mobile
+   Small Desktop: 992px–1199.98px
+   ========================================================================== */
+
+/*
+ * Preserve the two-column dashboard while allowing the parent Details panel
+ * to become content-driven below XL.
+ */
+
+@include ds.respond-between(lg, xl) {
+  .derivatives-dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    align-items: start;
+  }
+
+  .derivatives-dashboard__card {
+    --derivatives-dashboard-table-max-block-size: 15rem;
+  }
+}
+
+/* ==========================================================================
+   Tablet: 768px–991.98px
+   ========================================================================== */
+
+/*
+ * One card per row gives all three table columns sufficient reading space.
+ *
+ * All four dashboard tables remain visible at tablet width.
+ */
+
+@include ds.respond-between(md, lg) {
+  .derivatives-dashboard {
+    grid-template-columns: minmax(0, 1fr);
+
+    padding: var(--derivatives-dashboard-space-sm);
+  }
+
+  .derivatives-dashboard__card {
+    --derivatives-dashboard-table-max-block-size: 16rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile: Below 768px
    ========================================================================== */
 
 @include ds.respond-down(md) {
   .derivatives-dashboard {
     grid-template-columns: minmax(0, 1fr);
 
-    padding: var(--market-panel-space-sm);
+    gap: var(--derivatives-dashboard-gap);
+
+    padding: var(--derivatives-dashboard-space-sm);
   }
 
   .derivatives-dashboard__card {
-    --derivatives-table-max-height: 16rem;
+    --derivatives-dashboard-table-max-block-size: 16rem;
   }
+
+  /* -----------------------------------------------------------------------
+     Disclosure Control
+     -------------------------------------------------------------------- */
 
   .derivatives-dashboard__toggle {
     display: block;
@@ -217,10 +400,26 @@
     justify-content: center;
   }
 
+  /* -----------------------------------------------------------------------
+     Additional Tables
+     -------------------------------------------------------------------- */
+
+  /*
+   * On mobile these cards need a real container because they are collapsed
+   * and expanded together by the existing disclosure control.
+   */
+
   .derivatives-dashboard__more {
     display: grid;
+
     grid-column: 1 / -1;
-    gap: var(--market-panel-gap);
+
+    grid-template-columns: minmax(0, 1fr);
+
+    gap: var(--derivatives-dashboard-gap);
+
+    min-inline-size: 0;
+    min-block-size: 0;
   }
 
   .derivatives-dashboard__more[hidden] {
@@ -229,19 +428,29 @@
 }
 
 /* ==========================================================================
-   RTL
+   Small Mobile
    ========================================================================== */
 
-html[dir="rtl"] {
-  .derivatives-dashboard__card {
-    text-align: start;
+@include ds.respond-down(sm) {
+  .derivatives-dashboard {
+    gap: var(--space-2, #{ds.space(2)});
+
+    padding: var(--space-2, #{ds.space(2)});
   }
 
   .derivatives-dashboard__card {
-    .numeric,
-    .table-cell-numeric {
-      text-align: end;
-    }
+    --derivatives-dashboard-table-max-block-size: 15rem;
+  }
+
+  .derivatives-dashboard__header {
+    min-block-size: 2.75rem;
+
+    padding-block: var(--space-2, #{ds.space(2)});
+    padding-inline: var(--space-3, #{ds.space(3)});
+  }
+
+  .derivatives-dashboard__title {
+    font-size: var(--text-xs);
   }
 }
 
@@ -252,22 +461,58 @@ html[dir="rtl"] {
 html[data-contrast="high"] {
   .derivatives-dashboard__card {
     border-width: 2px;
-    border-color: var(--market-details-border-strong);
+    border-color: var(--derivatives-dashboard-line-strong);
 
     box-shadow: none;
   }
 
   .derivatives-dashboard__header {
     border-block-end-width: 2px;
-    border-color: var(--market-details-border-strong);
+    border-color: var(--derivatives-dashboard-line-strong);
   }
 
   .derivatives-dashboard__card .table-responsive {
     scrollbar-color: #ffffff transparent;
+  }
 
-    &::-webkit-scrollbar-thumb {
-      background: #ffffff;
-    }
+  .derivatives-dashboard__card .table-responsive::-webkit-scrollbar-thumb {
+    background: #ffffff;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .derivatives-dashboard {
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .derivatives-dashboard__card {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+
+    forced-color-adjust: auto;
+  }
+
+  .derivatives-dashboard__header {
+    border-color: CanvasText;
+
+    background: Canvas;
+  }
+
+  .derivatives-dashboard__title {
+    color: CanvasText;
+  }
+
+  .derivatives-dashboard__card .table-responsive {
+    scrollbar-color: CanvasText Canvas;
   }
 }
 
@@ -284,5 +529,73 @@ html[data-contrast="high"] {
 html[data-motion="reduce"] {
   .derivatives-dashboard__card {
     transition: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .derivatives-dashboard {
+    display: block;
+
+    padding: 0;
+
+    background: #ffffff;
+    color: #000000;
+  }
+
+  .derivatives-dashboard__card {
+    display: block;
+
+    margin-block-end: var(--space-4, #{ds.space(4)});
+
+    overflow: visible;
+
+    border: 1px solid #000000;
+
+    background: #ffffff;
+    color: #000000;
+
+    box-shadow: none;
+
+    break-inside: avoid;
+  }
+
+  .derivatives-dashboard__header {
+    border-color: #000000;
+
+    background: #ffffff;
+  }
+
+  .derivatives-dashboard__title {
+    color: #000000;
+  }
+
+  .derivatives-dashboard__card .table-responsive {
+    max-block-size: none;
+
+    overflow: visible;
+
+    scrollbar-width: none;
+  }
+
+  .derivatives-dashboard__card .table {
+    min-inline-size: 0;
+  }
+
+  .derivatives-dashboard__card .table thead th,
+  .derivatives-dashboard__card .table thead td {
+    position: static;
+  }
+
+  .derivatives-dashboard__toggle {
+    display: none !important;
+  }
+
+  .derivatives-dashboard__more,
+  .derivatives-dashboard__more[hidden] {
+    display: block !important;
   }
 }

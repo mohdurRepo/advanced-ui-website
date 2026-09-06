@@ -33,13 +33,19 @@ const MAXIMUM_ANIMATION_DURATION = 2_000;
 const CONTEXT_LAYOUT = Object.freeze({
   overview: Object.freeze({
     spacingTop: 8,
-    spacingRight: 14,
+    spacingRight: 18,
     spacingBottom: 8,
     spacingLeft: 18,
 
     marginTop: 8,
-    marginRight: 64,
-    marginLeft: 18,
+
+    /*
+     * Keep horizontal margins dynamic. Highcharts then reserves the exact
+     * space required by axis labels and titles instead of clipping them
+     * against a fixed margin.
+     */
+    marginRight: null,
+    marginLeft: null,
 
     yAxisTickPixelInterval: 52,
 
@@ -51,13 +57,18 @@ const CONTEXT_LAYOUT = Object.freeze({
 
   performance: Object.freeze({
     spacingTop: 8,
-    spacingRight: 14,
+    spacingRight: 20,
     spacingBottom: 8,
     spacingLeft: 20,
 
     marginTop: 8,
-    marginRight: 72,
-    marginLeft: 20,
+
+    /*
+     * Highcharts owns horizontal plot margins so the layout adapts to
+     * localized values, axis-title width, responsive sizes and RTL.
+     */
+    marginRight: null,
+    marginLeft: null,
 
     yAxisTickPixelInterval: 56,
 
@@ -187,6 +198,28 @@ function resolveContext(element, context) {
   ).toLowerCase();
 
   return CONTEXT_LAYOUT[resolvedContext] ? resolvedContext : "performance";
+}
+
+function resolveRTL(element, language) {
+  const localDirection = element?.closest?.("[dir]")?.getAttribute?.("dir");
+
+  const documentDirection = element?.ownerDocument?.documentElement?.dir;
+
+  const direction = String(localDirection || documentDirection || "")
+    .trim()
+    .toLowerCase();
+
+  if (direction === "rtl") {
+    return true;
+  }
+
+  if (direction === "ltr") {
+    return false;
+  }
+
+  const normalizedLanguage = String(language || DEFAULT_LANGUAGE).toLowerCase();
+
+  return normalizedLanguage === "ar" || normalizedLanguage.startsWith("ar-");
 }
 
 function resolveRangeValue(value, range, fallback) {
@@ -442,6 +475,7 @@ function normalizeAxisConfiguration({
 /* ==========================================================================
    X Axis
    ========================================================================== */
+
 function createCrosshairOptions(configuration, theme, { formatValue } = {}) {
   if (configuration === false || configuration?.enabled === false) {
     return false;
@@ -514,6 +548,7 @@ function createCrosshairOptions(configuration, theme, { formatValue } = {}) {
           },
   };
 }
+
 function createXAxisOptions({
   range,
 
@@ -632,7 +667,13 @@ function createXAxisOptions({
    Y Axis
    ========================================================================== */
 
-function createYAxisOptions({ language, theme, layout, configuration }) {
+function createYAxisOptions({
+  language,
+  theme,
+  layout,
+  configuration,
+  rtl = false,
+}) {
   const formatConfiguration = isPlainObject(configuration.format)
     ? configuration.format
     : {};
@@ -653,8 +694,28 @@ function createYAxisOptions({ language, theme, layout, configuration }) {
     "Index Value",
   );
 
+  /*
+   * By default the Y axis lives on the logical inline-end side:
+   *
+   *   LTR -> right
+   *   RTL -> left
+   *
+   * A boolean `opposite` supplied by a page remains an explicit physical
+   * Highcharts override.
+   */
+  const opposite =
+    typeof configuration.opposite === "boolean" ? configuration.opposite : !rtl;
+
+  const labelOptions = isPlainObject(configuration.labelOptions)
+    ? configuration.labelOptions
+    : {};
+
+  const titleOptions = isPlainObject(configuration.titleOptions)
+    ? configuration.titleOptions
+    : {};
+
   return {
-    opposite: configuration.opposite !== false,
+    opposite,
 
     minPadding: toNonNegativeNumber(configuration.minPadding, 0.04),
 
@@ -689,10 +750,12 @@ function createYAxisOptions({ language, theme, layout, configuration }) {
     labels: {
       enabled: configuration.labels !== false,
 
-      align: configuration.opposite === false ? "right" : "left",
-
-      x: configuration.opposite === false ? -8 : 8,
-
+      /*
+       * Do not hard-code align/x here. Highcharts has side-aware defaults
+       * for left and right Y axes and its dynamic margin calculation uses
+       * those positions correctly. Pages can still override them through
+       * labelOptions when a specialized chart requires it.
+       */
       reserveSpace: true,
 
       style: {
@@ -707,15 +770,13 @@ function createYAxisOptions({ language, theme, layout, configuration }) {
         return formatNumber(this.value);
       },
 
-      ...(isPlainObject(configuration.labelOptions)
-        ? configuration.labelOptions
-        : {}),
+      ...labelOptions,
     },
 
     title: {
       text: title === false ? null : title,
 
-      margin: 14,
+      margin: toNonNegativeNumber(configuration.titleMargin, 14),
 
       style: {
         color: theme.muted,
@@ -724,6 +785,8 @@ function createYAxisOptions({ language, theme, layout, configuration }) {
 
         fontWeight: "600",
       },
+
+      ...titleOptions,
     },
 
     plotLines: [],
@@ -830,7 +893,6 @@ function createTooltipRow(label, value, formatPrice) {
     "</div>",
   ].join("");
 }
-
 /* ==========================================================================
    Tooltip
    ========================================================================== */
@@ -1078,6 +1140,7 @@ function createTooltipOptions({
 /* ==========================================================================
    Main Series
    ========================================================================== */
+
 function createMainSeries({
   mode,
   symbol,
@@ -1592,11 +1655,15 @@ function createResponsiveOptions() {
 
         chartOptions: {
           chart: {
-            spacingLeft: 8,
-            spacingRight: 8,
+            spacingLeft: 10,
+            spacingRight: 10,
 
-            marginLeft: 8,
-            marginRight: 56,
+            /*
+             * Preserve Highcharts automatic
+             * axis-margin calculation.
+             */
+            marginLeft: null,
+            marginRight: null,
           },
 
           xAxis: {
@@ -1615,8 +1682,6 @@ function createResponsiveOptions() {
             tickPixelInterval: 48,
 
             labels: {
-              x: 6,
-
               style: {
                 fontSize: "10px",
               },
@@ -1660,7 +1725,11 @@ function createResponsiveOptions() {
 
         chartOptions: {
           chart: {
-            marginRight: 50,
+            spacingLeft: 8,
+            spacingRight: 8,
+
+            marginLeft: null,
+            marginRight: null,
           },
 
           yAxis: {
@@ -1680,11 +1749,10 @@ function createResponsiveOptions() {
       },
     ],
   };
-}
-
-/* ==========================================================================
+} /* ==========================================================================
    Options Factory
    ========================================================================== */
+
 export function createMarketChartOptions({
   Highcharts,
   element,
@@ -1831,6 +1899,8 @@ export function createMarketChartOptions({
 
   const arabic =
     normalizedLanguage === "ar" || normalizedLanguage.startsWith("ar-");
+
+  const rtl = resolveRTL(element, language);
 
   return {
     chart: {
@@ -1984,6 +2054,8 @@ export function createMarketChartOptions({
         layout,
 
         configuration: axisConfiguration.y,
+
+        rtl,
       }),
 
       visible: hasData,

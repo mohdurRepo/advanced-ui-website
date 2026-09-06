@@ -5,9 +5,13 @@
    ========================================================================== */
 
 .site-header {
-  --site-header-bg: #0b2233; //var(--color-surface);
-  --site-header-color: #f5f6f8; //var(--color-text);
-  --site-header-border: #1e3d52; //var(--color-border);
+  --shell-market-bg: #0b2233;
+  --shell-market-color: #f5f6f8;
+  --shell-market-border: #1e3d52;
+
+  --site-header-bg: var(--shell-market-bg);
+  --site-header-color: var(--shell-market-color);
+  --site-header-border: var(--shell-market-border);
   --site-header-shadow: none;
 
   position: sticky;
@@ -38,7 +42,6 @@
   align-items: center;
   gap: clamp(0.5rem, 1vw, 1rem);
 
-  //inline-size: min(100% - 2rem, 82.5rem);
   min-inline-size: 0;
   min-block-size: var(--app-header-height);
 
@@ -134,19 +137,7 @@ html[data-theme="dark"] .site-header__logo--dark {
   --site-header-shadow: var(--shadow-sm);
 }
 
-.site-header.is-menu-open {
-  --site-header-shadow: var(--shadow-md);
-}
-
-/* ==========================================================================
-   Mobile Navigation Open State
-   ========================================================================== */
-
-/*
- * JavaScript may add this class to the Header while the mobile drawer is
- * active. It provides a clear relationship between the Header and drawer.
- */
-
+.site-header.is-menu-open,
 .site-header.is-mobile-menu-open {
   --site-header-shadow: var(--shadow-md);
 }
@@ -195,6 +186,8 @@ html[data-theme="dark"] .site-header__logo--dark {
    ========================================================================== */
 
 html[data-contrast="high"] .site-header {
+  --site-header-bg: var(--color-bg);
+  --site-header-color: var(--color-text);
   --site-header-border: var(--color-border-strong);
   --site-header-shadow: none;
 
@@ -203,6 +196,21 @@ html[data-contrast="high"] .site-header {
 
 html[data-contrast="high"] .site-header__brand:focus-visible {
   outline-width: var(--focus-ring-width, 4px);
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .site-header {
+    --site-header-bg: Canvas;
+    --site-header-color: CanvasText;
+    --site-header-border: CanvasText;
+    --site-header-shadow: none;
+
+    color-scheme: normal;
+  }
 }
 
 /* ==========================================================================

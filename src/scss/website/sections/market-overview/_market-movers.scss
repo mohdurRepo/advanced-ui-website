@@ -4,29 +4,96 @@
    Market Movers
    ========================================================================== */
 
+/*
+ * Responsibilities:
+ *
+ * - Own the Movers surface.
+ * - Own Movers tab presentation.
+ * - Own the active Movers panel scrolling region.
+ * - Own security-row layout.
+ * - Own security/category indicator dots.
+ * - Own Movers-specific currency-icon sizing.
+ * - Own responsive Movers behavior.
+ *
+ * This file does NOT own:
+ *
+ * - positive / negative market movement colors;
+ * - directional market-change arrow geometry;
+ * - overall Details panel height;
+ * - Details column placement;
+ * - nested Details disclosure behavior.
+ */
+
+/* ==========================================================================
+   Root
+   ========================================================================== */
+
 .market-movers {
-  --market-movers-bg: var(--market-overview-connected-bg, #254456);
+  /* -----------------------------------------------------------------------
+     Surface
+     -------------------------------------------------------------------- */
+
+  --market-movers-bg: var(--market-details-insights-bg, #173d52);
+
+  --market-movers-bg-hover: rgb(255 255 255 / 0.04);
+
+  --market-movers-tab-hover: rgb(255 255 255 / 0.05);
 
   --market-movers-fg: var(--market-details-fg, #ffffff);
 
-  --market-movers-muted: var(--market-details-muted, #a9bdca);
+  --market-movers-muted: var(--market-details-muted, #b7c7d4);
 
-  --market-movers-line: var(--market-panel-line, rgb(255 255 255 / 0.14));
+  --market-movers-line: var(--market-panel-line, rgb(255 255 255 / 0.12));
 
-  --market-movers-scrollbar: rgb(255 255 255 / 0.3);
-  --market-movers-scrollbar-hover: rgb(255 255 255 / 0.5);
+  --market-movers-scrollbar: rgb(255 255 255 / 0.24);
+
+  --market-movers-scrollbar-hover: rgb(255 255 255 / 0.4);
+
+  /* -----------------------------------------------------------------------
+     Geometry
+     -------------------------------------------------------------------- */
+
+  --market-movers-row-min-height: 3.75rem;
+
+  --market-movers-numbers-width: 8rem;
+
+  /* -----------------------------------------------------------------------
+     Root Layout
+     -------------------------------------------------------------------- */
 
   display: flex;
   flex-direction: column;
 
+  flex: 1 1 0;
+
+  inline-size: 100%;
+  block-size: 100%;
+
   min-inline-size: 0;
   min-block-size: 0;
-  block-size: 100%;
 
   overflow: hidden;
 
   background: var(--market-movers-bg);
+
   color: var(--market-movers-fg);
+}
+
+/* ==========================================================================
+   Details Integration
+   ========================================================================== */
+
+.market-details-panel__insights > .market-movers,
+.market-details-panel__movers > .market-movers {
+  flex: 1 1 0;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  align-self: stretch;
 }
 
 /* ==========================================================================
@@ -41,17 +108,20 @@
 
   inline-size: 100%;
 
+  min-inline-size: 0;
+
   overflow-x: auto;
   overflow-y: hidden;
 
   border-block-end: 1px solid var(--market-movers-line);
 
   overscroll-behavior-inline: contain;
+
   scroll-snap-type: inline proximity;
 
   scrollbar-width: none;
 
-  touch-action: pan-x pan-y;
+  touch-action: pan-x;
 
   -webkit-overflow-scrolling: touch;
 
@@ -76,31 +146,38 @@
   min-inline-size: max-content;
   min-block-size: 3rem;
 
-  padding: 0.625rem 0.75rem;
+  padding-block: var(--space-2, #{ds.space(2)});
+  padding-inline: var(--space-3, #{ds.space(3)});
 
   appearance: none;
 
   border: 0;
 
   background: transparent;
+
   color: var(--market-movers-muted);
 
   font: inherit;
-  font-size: var(--text-xs);
+
+  font-size: var(--text-sm);
   font-weight: ds.font-weight("bold");
   line-height: var(--line-height-tight);
+
+  text-align: center;
 
   white-space: nowrap;
 
   cursor: pointer;
+
   touch-action: manipulation;
 
   scroll-snap-align: start;
 
-  @include ds.transition((background-color, color), fast);
+  @include ds.transition((background-color, color), "fast");
 
   &:hover:not(:disabled):not(.is-disabled) {
-    background: rgb(255 255 255 / 0.06);
+    background: var(--market-movers-tab-hover);
+
     color: var(--market-movers-fg);
   }
 
@@ -109,7 +186,7 @@
   }
 
   &:focus-visible {
-    z-index: 1;
+    z-index: 2;
 
     @include ds.focus-ring;
   }
@@ -117,21 +194,22 @@
   &.is-active,
   &[aria-selected="true"] {
     color: var(--market-movers-fg);
+  }
 
-    &::after {
-      content: "";
+  &.is-active::after,
+  &[aria-selected="true"]::after {
+    content: "";
 
-      position: absolute;
+    position: absolute;
 
-      inset-inline: 0.625rem;
-      inset-block-end: 0;
+    inset-inline: var(--space-2, #{ds.space(2)});
+    inset-block-end: 0;
 
-      block-size: 2px;
+    block-size: 2px;
 
-      border-radius: var(--radius-pill);
+    border-radius: var(--radius-pill);
 
-      background: var(--color-primary);
-    }
+    background: var(--color-primary);
   }
 
   &:disabled,
@@ -139,6 +217,7 @@
     opacity: 0.5;
 
     cursor: not-allowed;
+
     pointer-events: none;
   }
 }
@@ -147,10 +226,23 @@
    Panel
    ========================================================================== */
 
+/*
+ * Desktop behavior:
+ *
+ * The panel consumes all space remaining beneath the tab bar.
+ *
+ * The Details canvas remains stable:
+ *
+ *   1–5 rows -> no panel-height change
+ *   6+ rows  -> panel scrolls vertically
+ */
+
 .market-movers__panel {
   display: none;
 
-  flex: 1 1 auto;
+  flex: 1 1 0;
+
+  inline-size: 100%;
 
   min-inline-size: 0;
   min-block-size: 0;
@@ -161,7 +253,9 @@
   overscroll-behavior-block: contain;
 
   scrollbar-gutter: stable;
+
   scrollbar-width: thin;
+
   scrollbar-color: var(--market-movers-scrollbar) transparent;
 
   touch-action: pan-y;
@@ -203,6 +297,8 @@
 .market-movers__list {
   display: block;
 
+  inline-size: 100%;
+
   margin: 0;
   padding: 0;
 
@@ -214,22 +310,32 @@
    ========================================================================== */
 
 .market-movers__row {
+  box-sizing: border-box;
+
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(var(--market-movers-numbers-width), auto);
+
   align-items: center;
-  gap: 0.75rem;
+
+  gap: var(--space-3, #{ds.space(3)});
+
+  inline-size: 100%;
 
   min-inline-size: 0;
+  min-block-size: var(--market-movers-row-min-height);
 
-  padding: 0.75rem 0.5rem;
+  padding-block: var(--space-2, #{ds.space(2)});
+  padding-inline: var(--space-2, #{ds.space(2)});
 
   border-block-end: 1px solid var(--market-movers-line);
-  border-radius: var(--radius-sm);
 
-  @include ds.transition(background-color, fast);
+  @include ds.transition(background-color, "fast");
 
   &:hover {
-    background: rgb(255 255 255 / 0.05);
+    background: var(--market-movers-bg-hover);
   }
 
   &:last-child {
@@ -237,10 +343,8 @@
   }
 }
 
-.market-movers__row:hover {
-  .market-movers__name {
-    color: var(--color-primary);
-  }
+.market-movers__row:hover .market-movers__name {
+  color: var(--color-primary);
 }
 
 /* ==========================================================================
@@ -249,18 +353,27 @@
 
 .market-movers__info {
   display: grid;
-  gap: 0.2rem;
+
+  align-content: center;
+
+  gap: var(--space-1, #{ds.space(1)});
 
   min-inline-size: 0;
 }
 
+/* ==========================================================================
+   Security Name
+   ========================================================================== */
+
 .market-movers__name {
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
+
+  gap: var(--space-1, #{ds.space(1)});
 
   inline-size: fit-content;
   max-inline-size: 100%;
+
   min-inline-size: 0;
 
   border-radius: var(--radius-sm);
@@ -273,7 +386,7 @@
 
   text-decoration: none;
 
-  @include ds.transition(color, fast);
+  @include ds.transition(color, "fast");
 
   &:hover {
     color: var(--color-primary);
@@ -286,30 +399,43 @@
   &:focus-visible {
     @include ds.focus-ring;
   }
-
-  /*
-   * The refactored HTML places the name and status indicator in separate
-   * spans. Only the name text should truncate.
-   */
-  > :not(.market-movers__indicator) {
-    min-inline-size: 0;
-
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
 }
+
+/* ==========================================================================
+   Security Name Text
+   ========================================================================== */
+
+/*
+ * Keep the security-state dot visible even when the actual name truncates.
+ */
+
+.market-movers__name > :not(.market-movers__indicator) {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Market / Category
+   ========================================================================== */
 
 .market-movers__market {
   min-inline-size: 0;
 
+  overflow: hidden;
+
   color: var(--market-movers-muted);
 
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("regular");
   line-height: var(--line-height-tight);
 
-  overflow: hidden;
   text-overflow: ellipsis;
+
   white-space: nowrap;
 }
 
@@ -317,128 +443,212 @@
    Security Indicator
    ========================================================================== */
 
+/*
+ * Security/category state only.
+ *
+ * This is deliberately independent from financial movement direction.
+ */
+
 .market-movers__indicator {
-  --market-movers-indicator-color: var(--market-overview-neutral, #a9bdca);
+  --market-movers-indicator-color: var(
+    --color-market-neutral,
+    var(--market-overview-neutral, #b7c7d4)
+  );
 
   flex: 0 0 auto;
 
   inline-size: 0.5rem;
   block-size: 0.5rem;
 
-  border: 1px solid rgb(255 255 255 / 0.24);
+  min-inline-size: 0.5rem;
+  min-block-size: 0.5rem;
+
+  border: 1px solid rgb(255 255 255 / 0.2);
+
   border-radius: var(--radius-pill);
 
   background: var(--market-movers-indicator-color);
-
-  box-shadow: 0 0 0.375rem var(--market-movers-indicator-glow, transparent);
 }
+
+/* Success */
 
 .market-movers__indicator--success {
-  --market-movers-indicator-color: var(
-    --color-market-positive,
-    var(--market-overview-success, #4ade80)
-  );
-
-  --market-movers-indicator-glow: rgb(74 222 128 / 0.38);
+  --market-movers-indicator-color: var(--color-market-positive, #4ade80);
 }
+
+/* Warning */
 
 .market-movers__indicator--warning {
-  --market-movers-indicator-color: var(--market-overview-warning, #ffb84d);
-
-  --market-movers-indicator-glow: rgb(255 184 77 / 0.38);
+  --market-movers-indicator-color: var(--market-overview-warning, #fbbf24);
 }
+
+/* Caution */
 
 .market-movers__indicator--caution {
   --market-movers-indicator-color: var(--market-overview-caution, #f2dc55);
-
-  --market-movers-indicator-glow: rgb(242 220 85 / 0.36);
 }
 
-.market-movers__indicator--danger {
-  --market-movers-indicator-color: var(
-    --color-market-negative,
-    var(--market-overview-danger, #fb7185)
-  );
+/* Danger */
 
-  --market-movers-indicator-glow: rgb(251 113 133 / 0.38);
+.market-movers__indicator--danger {
+  --market-movers-indicator-color: var(--color-market-negative, #fb7185);
 }
 
 /* ==========================================================================
-   Numeric Values
+   Numeric Group
    ========================================================================== */
 
 .market-movers__numbers {
   display: grid;
+
+  align-content: center;
   justify-items: end;
-  gap: 0.2rem;
+
+  gap: var(--space-1, #{ds.space(1)});
 
   min-inline-size: 0;
 
   text-align: end;
+
   white-space: nowrap;
 
   font-variant-numeric: tabular-nums;
+
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
+/* ==========================================================================
+   Price
+   ========================================================================== */
+
 .market-movers__price {
+  display: block;
+
+  min-inline-size: 0;
+  max-inline-size: 100%;
+
   color: var(--market-movers-fg);
 
   font-size: var(--text-sm);
   font-weight: ds.font-weight("heavy");
   line-height: var(--line-height-tight);
+
+  font-variant-numeric: tabular-nums;
+
+  white-space: nowrap;
 }
 
-.market-movers__change {
-  display: inline-grid;
-  grid-template-columns: 0.75rem auto;
-  align-items: center;
-  justify-content: end;
-  column-gap: 0.375rem;
+/* ==========================================================================
+   Change / Secondary Value
+   ========================================================================== */
 
-  min-inline-size: max-content;
+/*
+ * This element serves two related presentations:
+ *
+ * Gainers / Losers:
+ *   ▲ 3.10 (6.70%)
+ *
+ * Volume / Value:
+ *   Riyal 420.5M
+ *
+ * The shared market-status file only draws an arrow when the parent has an
+ * explicit up/down/neutral state.
+ */
+
+.market-movers__change {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  justify-self: end;
+
+  gap: 0.375rem;
+
+  min-inline-size: 0;
+  min-block-size: 1.125rem;
+
   max-inline-size: 100%;
 
-  font-size: var(--text-xs);
+  overflow: visible;
+
+  font-size: var(--text-sm);
   font-weight: ds.font-weight("bold");
-  line-height: var(--line-height-tight);
+  line-height: 1.2;
 
   text-align: end;
+
   white-space: nowrap;
 
   font-variant-numeric: tabular-nums;
+
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
+/* ==========================================================================
+   Shared Direction Icon Integration
+   ========================================================================== */
+
+/*
+ * Do not draw an arrow here.
+ *
+ * market-status.scss owns the actual geometry.
+ */
+
 .market-movers__change .market-change__icon {
-  --icon-size: 0.75rem;
+  flex: 0 0 auto;
+
+  overflow: visible;
+}
+
+/* ==========================================================================
+   Riyal Icon — Value Tab
+   ========================================================================== */
+
+/*
+ * Value rows intentionally use:
+ *
+ *   market-change__icon has-icon icon-riyal
+ *
+ * This icon is currency, not direction.
+ *
+ * Do not reset its font/pseudo-element here. Only give it a predictable
+ * visual box.
+ */
+
+.market-movers__change .market-change__icon.icon-riyal {
+  --icon-size: 1rem;
+
+  position: static;
+
+  inset: auto;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
+  flex: 0 0 var(--icon-size);
+
   inline-size: var(--icon-size);
   block-size: var(--icon-size);
 
-  overflow: hidden;
+  min-inline-size: var(--icon-size);
+  min-block-size: var(--icon-size);
 
-  color: currentColor;
-}
+  margin: 0;
+  padding: 0;
 
-.market-movers__change .market-change__icon svg {
-  display: block;
-
-  inline-size: 100%;
-  block-size: 100%;
-
-  fill: currentColor;
-}
-
-.market-movers__change .market-change__value {
-  min-inline-size: 0;
+  overflow: visible;
 
   color: currentColor;
 
-  text-align: end;
-  white-space: nowrap;
+  font-size: var(--icon-size);
+  line-height: 1;
+
+  vertical-align: middle;
+
+  transform: none;
 }
 
 /* ==========================================================================
@@ -452,13 +662,65 @@
   min-block-size: 8rem;
 
   margin: 0;
+
   padding: var(--market-panel-space);
 
   color: var(--market-movers-muted);
 
   font-size: var(--text-sm);
   line-height: var(--line-height-relaxed);
+
   text-align: center;
+}
+
+/* ==========================================================================
+   Desktop
+   ========================================================================== */
+
+@include ds.respond-up(xl) {
+  .market-movers {
+    block-size: 100%;
+
+    min-block-size: 0;
+
+    overflow: hidden;
+  }
+
+  .market-movers__panel {
+    flex: 1 1 0;
+
+    min-block-size: 0;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+}
+
+/* ==========================================================================
+   Tablet / Constrained Desktop
+   ========================================================================== */
+
+@include ds.respond-between(md, xl) {
+  /*
+   * Details stops using its fixed XL canvas here.
+   *
+   * Let Movers become content-sized rather than introducing a nested
+   * scrollbar into the tablet layout.
+   */
+
+  .market-movers {
+    block-size: auto;
+
+    overflow: visible;
+  }
+
+  .market-movers__panel {
+    flex: 0 1 auto;
+
+    overflow: visible;
+
+    scrollbar-gutter: auto;
+  }
 }
 
 /* ==========================================================================
@@ -483,9 +745,7 @@
   }
 
   .market-movers__panel {
-    display: none;
-
-    max-block-size: none;
+    flex: 0 1 auto;
 
     padding-inline: var(--market-panel-space-sm);
 
@@ -494,9 +754,8 @@
     scrollbar-gutter: auto;
   }
 
-  .market-movers__panel.is-active,
-  .market-movers__panel[aria-hidden="false"] {
-    display: block;
+  .market-movers__row {
+    min-block-size: auto;
   }
 }
 
@@ -505,21 +764,72 @@
    ========================================================================== */
 
 @include ds.respond-down(sm) {
+  .market-movers {
+    --market-movers-numbers-width: 6.75rem;
+  }
+
+  .market-movers__tabs {
+    padding-inline: var(--space-1, #{ds.space(1)});
+  }
+
   .market-movers__tab {
     min-inline-size: 6rem;
 
-    padding-inline: 0.625rem;
+    padding-inline: var(--space-2, #{ds.space(2)});
+
+    font-size: var(--text-xs);
   }
 
   .market-movers__row {
-    gap: 0.625rem;
+    gap: var(--space-2, #{ds.space(2)});
 
-    padding: 0.625rem 0.375rem;
+    padding-block: var(--space-2, #{ds.space(2)});
+    padding-inline: var(--space-1, #{ds.space(1)});
   }
 
   .market-movers__name,
-  .market-movers__price {
+  .market-movers__market,
+  .market-movers__price,
+  .market-movers__change {
     font-size: var(--text-xs);
+  }
+
+  .market-movers__change .market-change__icon.icon-riyal {
+    --icon-size: 0.9375rem;
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] {
+  .market-movers__info {
+    text-align: start;
+  }
+
+  /*
+   * Financial values remain LTR intentionally.
+   */
+
+  .market-movers__numbers {
+    direction: ltr;
+
+    unicode-bidi: isolate;
+
+    justify-items: start;
+
+    text-align: start;
+  }
+
+  .market-movers__change {
+    direction: ltr;
+
+    unicode-bidi: isolate;
+
+    justify-self: start;
+
+    text-align: start;
   }
 }
 
@@ -528,9 +838,21 @@
    ========================================================================== */
 
 html[data-contrast="high"] {
+  .market-movers {
+    --market-movers-line: var(--market-details-border-strong, #ffffff);
+
+    --market-movers-bg-hover: transparent;
+
+    --market-movers-tab-hover: transparent;
+
+    --market-movers-scrollbar: currentColor;
+
+    --market-movers-scrollbar-hover: currentColor;
+  }
+
   .market-movers__tabs,
   .market-movers__row {
-    border-color: var(--market-details-border-strong);
+    border-color: var(--market-movers-line);
   }
 
   .market-movers__tab.is-active::after,
@@ -539,20 +861,82 @@ html[data-contrast="high"] {
   }
 
   .market-movers__indicator {
-    outline: 2px solid currentColor;
-    outline-offset: 2px;
+    border-color: currentColor;
+
+    outline: 1px solid currentColor;
+
+    outline-offset: 1px;
 
     box-shadow: none;
   }
 
   .market-movers__row:hover {
     outline: 1px solid var(--market-movers-line);
+
     outline-offset: -1px;
   }
 }
 
 /* ==========================================================================
-   Reduced Motion
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .market-movers {
+    --market-movers-bg: Canvas;
+
+    --market-movers-bg-hover: Canvas;
+
+    --market-movers-tab-hover: Canvas;
+
+    --market-movers-fg: CanvasText;
+
+    --market-movers-muted: CanvasText;
+
+    --market-movers-line: CanvasText;
+
+    --market-movers-scrollbar: CanvasText;
+
+    --market-movers-scrollbar-hover: CanvasText;
+
+    forced-color-adjust: auto;
+  }
+
+  .market-movers__tab {
+    color: ButtonText;
+  }
+
+  .market-movers__tab.is-active,
+  .market-movers__tab[aria-selected="true"] {
+    color: Highlight;
+  }
+
+  .market-movers__tab.is-active::after,
+  .market-movers__tab[aria-selected="true"]::after {
+    background: Highlight;
+  }
+
+  .market-movers__indicator {
+    border-color: CanvasText;
+
+    background: CanvasText;
+
+    box-shadow: none;
+  }
+
+  .market-movers__change .market-change__icon.icon-riyal {
+    color: CanvasText;
+  }
+
+  .market-movers__row:hover {
+    outline: 1px solid CanvasText;
+
+    outline-offset: -1px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion — System
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
@@ -563,10 +947,74 @@ html[data-contrast="high"] {
   }
 }
 
+/* ==========================================================================
+   Reduced Motion — Application
+   ========================================================================== */
+
 html[data-motion="reduce"] {
   .market-movers__tab,
   .market-movers__row,
   .market-movers__name {
     transition: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .market-movers {
+    block-size: auto;
+
+    overflow: visible;
+
+    background: #ffffff;
+
+    color: #000000;
+  }
+
+  .market-movers__tabs {
+    display: none;
+  }
+
+  .market-movers__panel {
+    display: block !important;
+
+    block-size: auto;
+
+    overflow: visible;
+
+    color: #000000;
+  }
+
+  .market-movers__panel[hidden] {
+    display: none !important;
+  }
+
+  .market-movers__row {
+    min-block-size: 0;
+
+    break-inside: avoid;
+
+    border-color: #000000;
+
+    background: #ffffff;
+  }
+
+  .market-movers__name,
+  .market-movers__market,
+  .market-movers__price,
+  .market-movers__change,
+  .market-movers__change .market-change__icon.icon-riyal {
+    color: #000000;
+  }
+
+  .market-movers__indicator {
+    border-color: #000000;
+
+    background: #000000;
+
+    box-shadow: none;
   }
 }

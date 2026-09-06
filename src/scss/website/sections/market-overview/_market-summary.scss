@@ -1,76 +1,256 @@
 @use "../../../design-system/abstracts" as ds;
 
 /* ==========================================================================
-   Shared Summary Geometry
-   ========================================================================== */
-
-/*
- * These variables live on the common Market Overview owner because the
- * bridge must use the same card spacing and scrollbar measurements.
- */
-
-.market-overview {
-  --market-summary-card-block-space: 0.625rem;
-  --market-summary-scrollbar-size: 0.375rem;
-}
-
-/* ==========================================================================
    Market Summary
    ========================================================================== */
 
+/*
+ * Market Summary composition.
+ *
+ * Responsibilities:
+ *
+ * - Present the permanent market Summary surface.
+ * - Lay out the market clock and selectable market-card rail.
+ * - Own horizontal rail scrolling and overflow affordances.
+ * - Own previous / next browse controls.
+ * - Own the "return to selected market" control.
+ *
+ * Direction strategy:
+ *
+ * - DOM order always remains logical market order.
+ * - CSS logical properties own LTR / RTL placement.
+ * - The outer grid uses one template in both directions.
+ * - The browser mirrors inline-start / inline-end naturally.
+ * - The actual rail direction is explicit for predictable scrolling.
+ * - No row-reverse, column-reverse, or physical left/right positioning.
+ *
+ * This file does NOT own:
+ *
+ * - Individual market-card presentation.
+ * - Market selection behavior.
+ * - Bridge geometry.
+ * - Market-clock internals.
+ * - Market Details.
+ */
+
+/* ==========================================================================
+   Root
+   ========================================================================== */
+
 .market-summary {
-  --market-summary-bg: #0b2c41;
-  --market-summary-fg: var(--color-on-dark);
-  --market-summary-muted: #a9c4ff;
+  /* -----------------------------------------------------------------------
+     Surface Contract
+     -------------------------------------------------------------------- */
 
-  --market-summary-border: rgb(255 255 255 / 0.18);
-  --market-summary-border-hover: rgb(255 255 255 / 0.32);
+  /*
+   * Market Overview is the source of truth for this permanent-dark
+   * environment.
+   *
+   * Summary should consume that contract instead of independently repeating
+   * the same hex values.
+   */
 
-  --market-summary-surface: rgb(255 255 255 / 0.08);
+  --market-summary-bg: var(--market-overview-bg, #0b2233);
 
-  --market-summary-surface-active: var(--market-overview-connected-bg, #334c5c);
+  --market-summary-surface: var(--market-overview-side-bg, #102f45);
 
-  --market-status-neutral: #9cb3c9;
-  --market-status-halted: #fff12c;
+  --market-summary-surface-hover: var(--market-overview-insights-bg, #173d52);
 
-  --market-summary-container-width: 1320px;
-  --market-summary-container-space: 2rem;
-  --market-summary-gap: clamp(1rem, 2vw, 2rem);
+  --market-summary-fg: var(--market-overview-fg, #{ds.brand("white")});
 
-  --market-summary-clock-width: 20rem;
+  --market-summary-muted: var(--market-overview-muted, #b7c7d4);
+
+  --market-summary-muted-strong: var(--market-overview-muted-strong, #d1dce3);
+
+  --market-summary-border: var(
+    --market-overview-border,
+    rgb(255 255 255 / 0.12)
+  );
+
+  --market-summary-border-hover: var(
+    --market-overview-border-hover,
+    rgb(255 255 255 / 0.22)
+  );
+
+  --market-summary-border-strong: var(
+    --market-overview-border-strong,
+    rgb(255 255 255 / 0.32)
+  );
+
+  /* -----------------------------------------------------------------------
+     Main Layout
+     -------------------------------------------------------------------- */
+
+  --market-summary-container-width: var(
+    --market-overview-container-width,
+    #{ds.$container-xxxl}
+  );
+
+  --market-summary-container-space: var(
+    --market-overview-container-space,
+    2rem
+  );
+
+  /*
+   * The structural Clock → Markets gap should be slightly larger than the
+   * gap between individual market cards.
+   */
+
+  --market-summary-gap: var(--space-4, #{ds.space(4)});
+
+  /*
+   * Clock is supporting market context rather than the primary Summary
+   * content.
+   *
+   * Give it enough room for the analog face and text without allowing it to
+   * dominate the market rail.
+   */
+
+  --market-summary-clock-width: clamp(18rem, 20vw, 19rem);
+
+  --market-summary-padding-block: var(--space-2, #{ds.space(2)});
+
+  /* -----------------------------------------------------------------------
+     Market Rail
+     -------------------------------------------------------------------- */
+
+  --market-summary-card-width: clamp(15.5rem, 20vw, 17.25rem);
+
+  /*
+   * Cards belong to one market-navigation family.
+   *
+   * The previous larger separation made each item read more like an
+   * independent dashboard card.
+   */
+
+  --market-summary-card-gap: var(--space-2, #{ds.space(2)});
+
+  --market-summary-scroll-padding: var(--space-1, #{ds.space(1)});
+
+  --market-summary-scrollbar-size: 0.375rem;
+
+  --market-summary-card-block-space: var(--space-1, #{ds.space(1)});
+
+  /* -----------------------------------------------------------------------
+     Edge Affordances
+     -------------------------------------------------------------------- */
+
+  --market-summary-edge-size: clamp(3rem, 5vw, 4.5rem);
+
+  --market-summary-edge-bg: color-mix(
+    in srgb,
+    var(--market-summary-bg) 86%,
+    transparent
+  );
+
+  --market-summary-control-size: 2.5rem;
+
+  --market-summary-control-offset: var(--space-2, #{ds.space(2)});
+
+  /* -----------------------------------------------------------------------
+     Local Semantic Contract
+     -------------------------------------------------------------------- */
+
+  /*
+   * Nested website/design-system utilities can safely consume ordinary
+   * semantic tokens inside this permanently dark surface.
+   */
+
+  --color-surface: var(--market-summary-bg);
+
+  --color-surface-alt: var(--market-summary-surface);
+
+  --color-surface-hover: var(--market-summary-surface-hover);
+
+  --color-text: var(--market-summary-fg);
+
+  --color-heading: var(--market-summary-fg);
+
+  --color-text-muted: var(--market-summary-muted);
+
+  --color-border: var(--market-summary-border);
+
+  --color-border-strong: var(--market-summary-border-strong);
+
+  --color-market-positive: var(--market-overview-success, #4ade80);
+
+  --color-market-negative: var(--market-overview-danger, #fb7185);
+
+  --color-market-neutral: var(
+    --market-overview-neutral,
+    var(--market-summary-muted)
+  );
+
+  /* -----------------------------------------------------------------------
+     Root Geometry
+     -------------------------------------------------------------------- */
 
   position: relative;
-  z-index: 2;
 
-  padding: 0;
+  isolation: isolate;
+
+  inline-size: 100%;
+
+  min-inline-size: 0;
+
+  overflow: hidden;
 
   background: var(--market-summary-bg);
+
   color: var(--market-summary-fg);
 
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  line-height: var(--line-height-normal);
+  color-scheme: dark;
 }
 
 /* ==========================================================================
-   Container
+   Summary Container
    ========================================================================== */
+
+/*
+ * Use the same logical grid in LTR and RTL.
+ *
+ * `direction` automatically changes which physical edge represents
+ * inline-start.
+ */
 
 .market-summary__container {
   display: grid;
+
   grid-template-columns:
     minmax(var(--market-summary-clock-width), var(--market-summary-clock-width))
     minmax(0, 1fr);
 
-  align-items: stretch;
-  gap: var(--market-summary-gap);
+  grid-template-areas: "clock rail";
 
-  //inline-size: min(100% - var(--market-summary-container-space), var(--market-summary-container-width));
+  align-items: stretch;
+
+  column-gap: var(--market-summary-gap);
+
+  inline-size: min(
+    calc(100% - var(--market-summary-container-space)),
+    var(--market-summary-container-width)
+  );
 
   min-inline-size: 0;
 
   margin-inline: auto;
-  padding: 0;
+
+  padding-block: var(--market-summary-padding-block);
+}
+
+/* ==========================================================================
+   Clock Region
+   ========================================================================== */
+
+.market-summary__clock {
+  grid-area: clock;
+
+  align-self: stretch;
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  margin: 0;
 }
 
 /* ==========================================================================
@@ -78,13 +258,22 @@
    ========================================================================== */
 
 .market-summary__cards-wrap {
+  grid-area: rail;
+
   position: relative;
 
-  display: flex;
-  align-items: stretch;
+  isolation: isolate;
+
+  display: block;
+
+  inline-size: 100%;
 
   min-inline-size: 0;
   min-block-size: 0;
+
+  margin: 0;
+
+  overflow: hidden;
 }
 
 /* ==========================================================================
@@ -93,15 +282,34 @@
 
 .market-summary__cards {
   display: grid;
+
   grid-auto-flow: column;
-  grid-auto-columns: clamp(15.5rem, 21vw, 17.5rem);
+
+  grid-auto-columns: var(--market-summary-card-width);
+
   align-items: stretch;
-  gap: 1rem;
+
+  column-gap: var(--market-summary-card-gap);
 
   inline-size: 100%;
+  max-inline-size: 100%;
+
   min-inline-size: 0;
+  min-block-size: 0;
+
+  margin: 0;
 
   padding-block: var(--market-summary-card-block-space);
+
+  /*
+   * IMPORTANT:
+   *
+   * Do not physically inset the card rail.
+   *
+   * The first / last card must be able to reach the same logical container
+   * edge used by the bridge and Market Details.
+   */
+
   padding-inline: 0;
 
   overflow-x: auto;
@@ -109,64 +317,111 @@
 
   overscroll-behavior-inline: contain;
 
-  scroll-behavior: smooth;
-  scroll-padding-inline: 0.5rem;
+  /*
+   * Keep logical scroll breathing room without changing physical card
+   * geometry.
+   */
+
+  scroll-padding-inline: var(--market-summary-scroll-padding);
+
   scroll-snap-type: inline proximity;
 
   scrollbar-width: thin;
-  scrollbar-color: color-mix(
-      in oklab,
-      var(--market-summary-fg),
-      transparent 60%
-    )
-    transparent;
+
+  scrollbar-color: var(--market-summary-border-strong) transparent;
 
   touch-action: pan-x pan-y;
 
-  cursor: grab;
-
   -webkit-overflow-scrolling: touch;
+}
 
-  &::-webkit-scrollbar {
-    block-size: var(--market-summary-scrollbar-size);
+/* ==========================================================================
+   Explicit Rail Direction
+   ========================================================================== */
+
+/*
+ * Outer page composition inherits direction naturally.
+ *
+ * The actual scrolling element is explicit so browser scrolling and JS
+ * visibility geometry agree about logical start / end.
+ */
+
+:root[dir="ltr"] {
+  .market-summary__cards {
+    direction: ltr;
   }
+}
 
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    border-radius: var(--radius-pill);
-
-    background: color-mix(in oklab, var(--market-summary-fg), transparent 60%);
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in oklab, var(--market-summary-fg), transparent 42%);
-  }
-
-  &.is-dragging {
-    scroll-behavior: auto;
-    scroll-snap-type: none;
-
-    cursor: grabbing;
-    user-select: none;
-
-    * {
-      pointer-events: none;
-    }
+:root[dir="rtl"] {
+  .market-summary__cards {
+    direction: rtl;
   }
 }
 
 /* ==========================================================================
-   Scroll Edge Fades
+   Individual Rail Item
    ========================================================================== */
+
+.market-summary__cards > [data-market-card] {
+  min-inline-size: 0;
+
+  scroll-snap-align: start;
+
+  scroll-snap-stop: normal;
+}
+
+/* ==========================================================================
+   Scrollbar
+   ========================================================================== */
+
+.market-summary__cards::-webkit-scrollbar {
+  block-size: var(--market-summary-scrollbar-size);
+}
+
+.market-summary__cards::-webkit-scrollbar-button {
+  display: none;
+
+  inline-size: 0;
+  block-size: 0;
+}
+
+.market-summary__cards::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.market-summary__cards::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+
+  background: var(--market-summary-border-strong);
+}
+
+.market-summary__cards::-webkit-scrollbar-thumb:hover {
+  background: var(--market-summary-muted);
+}
+
+.market-summary__cards::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ==========================================================================
+   Logical Edge Affordances
+   ========================================================================== */
+
+/*
+ * JS owns:
+ *
+ * - .has-overflow-start
+ * - .has-overflow-end
+ *
+ * CSS only renders those states.
+ */
 
 .market-summary__cards-wrap::before,
 .market-summary__cards-wrap::after {
   content: "";
 
   position: absolute;
+
   z-index: 3;
 
   inset-block-start: var(--market-summary-card-block-space);
@@ -176,109 +431,95 @@
       var(--market-summary-scrollbar-size)
   );
 
-  inline-size: 2.5rem;
+  inline-size: var(--market-summary-edge-size);
 
   opacity: 0;
 
   pointer-events: none;
 
-  @include ds.transition(opacity, fast);
+  background: var(--market-summary-edge-bg);
+
+  @include ds.transition(opacity, "fast");
 }
+
+/* Logical start */
 
 .market-summary__cards-wrap::before {
   inset-inline-start: 0;
-
-  background: linear-gradient(
-    to right,
-    var(--market-summary-bg) 0%,
-    color-mix(in oklab, var(--market-summary-bg), transparent 18%) 42%,
-    transparent 100%
-  );
 }
+
+/* Logical end */
 
 .market-summary__cards-wrap::after {
   inset-inline-end: 0;
-
-  background: linear-gradient(
-    to left,
-    var(--market-summary-bg) 0%,
-    color-mix(in oklab, var(--market-summary-bg), transparent 18%) 42%,
-    transparent 100%
-  );
 }
 
-.market-summary__cards-wrap.has-overflow-start::before,
+.market-summary__cards-wrap.has-overflow-start::before {
+  opacity: 1;
+}
+
 .market-summary__cards-wrap.has-overflow-end::after {
   opacity: 1;
 }
 
 /* ==========================================================================
-   Selected Market Return Control
+   Shared Rail Controls
    ========================================================================== */
 
-.market-summary__selected-market {
-  --icon-size: 1rem;
-
+.market-summary__scroll-control {
   position: absolute;
-
-  inset-inline-end: 0.75rem;
-
-  inset-block-end: calc(
-    var(--market-summary-card-block-space) +
-      var(--market-summary-scrollbar-size) + 0.625rem
-  );
 
   z-index: 5;
 
+  inset-block-start: 50%;
+
   display: inline-grid;
-  grid-template-columns: auto minmax(0, auto);
-  align-items: center;
-  gap: 0.5rem;
 
-  min-block-size: 2.5rem;
-  max-inline-size: calc(100% - 1.5rem);
+  place-items: center;
 
-  padding: 0.5rem 0.75rem;
+  inline-size: var(--market-summary-control-size);
+  block-size: var(--market-summary-control-size);
+
+  padding: 0;
+
+  appearance: none;
 
   border: 1px solid var(--market-summary-border-hover);
+
   border-radius: var(--radius-pill);
 
-  background: color-mix(in oklab, var(--market-summary-bg), white 15%);
+  background: var(--market-summary-surface);
 
   color: var(--market-summary-fg);
 
-  box-shadow: var(--shadow-md);
+  /*
+   * Keep navigation controls above the rail without making them appear like
+   * floating primary actions.
+   */
 
-  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-sm);
+
+  transform: translateY(-50%);
 
   cursor: pointer;
 
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-
-  transform: translateY(0.375rem);
+  touch-action: manipulation;
 
   @include ds.transition(
-    (
-      opacity,
-      visibility,
-      transform,
-      background-color,
-      border-color,
-      box-shadow
-    ),
-    fast
+    (background-color, border-color, box-shadow, color, opacity, transform),
+    "fast"
   );
 
-  &:hover {
-    border-color: var(--color-primary);
+  &[hidden] {
+    display: none !important;
+  }
 
-    background: color-mix(in oklab, var(--market-summary-bg), white 22%);
+  &:hover:not(:disabled) {
+    border-color: var(--market-summary-border-strong);
 
-    box-shadow: var(--shadow-lg);
+    background: var(--market-summary-surface-hover);
 
-    transform: translateY(0);
+    box-shadow: var(--shadow-md);
   }
 
   &:focus {
@@ -289,65 +530,286 @@
     @include ds.focus-ring;
   }
 
-  &.is-visible {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-
-    transform: translateY(0);
+  &:active:not(:disabled) {
+    transform: translateY(-50%) scale(0.96);
   }
 
-  &[hidden] {
-    display: none;
+  &:disabled {
+    opacity: 0.45;
+
+    cursor: default;
+
+    pointer-events: none;
+  }
+
+  .has-icon {
+    --icon-size: 1rem;
+
+    color: inherit;
+
+    pointer-events: none;
   }
 }
 
-.market-summary__selected-market-icon {
+/* ==========================================================================
+   Previous Control
+   ========================================================================== */
+
+/*
+ * Previous = logical inline-start.
+ *
+ * LTR -> left
+ * RTL -> right
+ */
+
+.market-summary__scroll-control--prev {
+  inset-inline-start: var(--market-summary-control-offset);
+}
+
+/* ==========================================================================
+   Next Control
+   ========================================================================== */
+
+/*
+ * Next = logical inline-end.
+ *
+ * LTR -> right
+ * RTL -> left
+ */
+
+.market-summary__scroll-control--next {
+  inset-inline-end: var(--market-summary-control-offset);
+}
+
+/* ==========================================================================
+   RTL Control Icons
+   ========================================================================== */
+
+:root[dir="rtl"] {
+  .market-summary__scroll-control--prev,
+  .market-summary__scroll-control--next {
+    .has-icon {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+/* ==========================================================================
+   Return to Selected Market
+   ========================================================================== */
+
+/*
+ * This is a recovery affordance rather than a primary action.
+ *
+ * It appears only when the selected market has moved outside the visible
+ * rail. Keep it visually quieter than the selected market card itself.
+ */
+
+.market-summary__selected-market {
+  position: absolute;
+
+  z-index: 6;
+
+  inset-inline-end: var(--market-summary-control-offset);
+
+  inset-block-start: calc(
+    50% + (var(--market-summary-control-size) / 2) +
+      var(--space-2, #{ds.space(2)})
+  );
+
   display: inline-flex;
+
   align-items: center;
   justify-content: center;
 
+  gap: var(--space-2, #{ds.space(2)});
+
+  min-block-size: 2.25rem;
+
+  max-inline-size: min(10rem, calc(100% - 2rem));
+
+  padding-block: var(--space-2, #{ds.space(2)});
+
+  padding-inline: var(--space-3, #{ds.space(3)});
+
+  appearance: none;
+
+  border: 1px solid var(--market-summary-border-hover);
+
+  border-radius: var(--radius-pill);
+
+  background: var(--market-summary-surface);
+
+  color: var(--market-summary-fg);
+
+  box-shadow: var(--shadow-sm);
+
+  font: inherit;
+
+  font-size: var(--text-xs);
+
+  font-weight: ds.font-weight("bold");
+
+  line-height: var(--line-height-tight);
+
+  cursor: pointer;
+
+  touch-action: manipulation;
+
+  @include ds.transition(
+    (background-color, border-color, box-shadow, color, opacity, transform),
+    "fast"
+  );
+
+  &[hidden] {
+    display: none !important;
+  }
+
+  &:hover {
+    border-color: var(--market-summary-border-strong);
+
+    background: var(--market-summary-surface-hover);
+
+    box-shadow: var(--shadow-md);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include ds.focus-ring;
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+/* ==========================================================================
+   Selected Market Indicator
+   ========================================================================== */
+
+.market-summary__selected-market-icon,
+.market-summary__selected-market-indicator {
   flex: 0 0 auto;
 
-  color: var(--color-primary);
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+
+  border-radius: var(--radius-pill);
+
+  background: var(--color-primary);
+
+  color: transparent;
+
+  &::before,
+  &::after {
+    content: none !important;
+
+    display: none !important;
+  }
 }
+
+/* ==========================================================================
+   Selected Market Name
+   ========================================================================== */
 
 .market-summary__selected-market-name {
   min-inline-size: 0;
-  max-inline-size: 8rem;
+
+  max-inline-size: 6rem;
+
+  overflow: hidden;
 
   color: inherit;
 
-  font-size: var(--text-xs);
-  font-weight: ds.font-weight("bold");
-  line-height: 1;
+  font: inherit;
 
-  overflow: hidden;
   text-overflow: ellipsis;
+
   white-space: nowrap;
 }
 
 /* ==========================================================================
-   Bidirectional Layout
+   Large Tablet / Small Desktop
    ========================================================================== */
 
-html[dir="rtl"] {
-  .market-summary__cards-wrap::before {
-    background: linear-gradient(
-      to left,
-      var(--market-summary-bg) 0%,
-      color-mix(in oklab, var(--market-summary-bg), transparent 18%) 42%,
-      transparent 100%
-    );
+@include ds.respond-down(lg) {
+  .market-summary {
+    --market-summary-clock-width: 17rem;
+
+    --market-summary-card-width: clamp(15rem, 28vw, 16.5rem);
+
+    --market-summary-gap: var(--space-3, #{ds.space(3)});
+
+    --market-summary-card-gap: var(--space-2, #{ds.space(2)});
+
+    --market-summary-padding-block: var(--space-1, #{ds.space(1)});
+  }
+}
+
+/* ==========================================================================
+   Mobile / Narrow Tablet
+   ========================================================================== */
+
+@include ds.respond-down(md) {
+  .market-summary {
+    --market-summary-card-width: min(82vw, 18rem);
+
+    --market-summary-edge-size: 3.5rem;
+
+    --market-summary-control-size: 2.375rem;
+
+    --market-summary-control-offset: var(--space-1, #{ds.space(1)});
   }
 
-  .market-summary__cards-wrap::after {
-    background: linear-gradient(
-      to right,
-      var(--market-summary-bg) 0%,
-      color-mix(in oklab, var(--market-summary-bg), transparent 18%) 42%,
-      transparent 100%
-    );
+  .market-summary__container {
+    grid-template-columns: minmax(0, 1fr);
+
+    grid-template-areas:
+      "clock"
+      "rail";
+
+    row-gap: var(--space-3, #{ds.space(3)});
+
+    column-gap: 0;
+  }
+
+  /*
+   * Mobile presents one focused card at a time more strongly than desktop.
+   */
+
+  .market-summary__cards {
+    scroll-snap-type: inline mandatory;
+  }
+}
+
+/* ==========================================================================
+   Small Mobile
+   ========================================================================== */
+
+@include ds.respond-down(sm) {
+  .market-summary {
+    --market-summary-container-space: 1rem;
+
+    --market-summary-card-width: min(84vw, 17rem);
+
+    --market-summary-card-gap: var(--space-1, #{ds.space(1)});
+
+    --market-summary-padding-block: var(--space-1, #{ds.space(1)});
+
+    --market-summary-scroll-padding: var(--space-1, #{ds.space(1)});
+
+    --market-summary-card-block-space: var(--space-1, #{ds.space(1)});
+  }
+
+  .market-summary__selected-market {
+    inset-inline-end: var(--space-1, #{ds.space(1)});
+
+    max-inline-size: min(9rem, calc(100% - 1rem));
+
+    padding-inline: var(--space-2, #{ds.space(2)});
   }
 }
 
@@ -355,25 +817,95 @@ html[dir="rtl"] {
    High Contrast
    ========================================================================== */
 
-html[data-contrast="high"] {
+:root[data-contrast="high"] {
   .market-summary {
-    --market-summary-border: rgb(255 255 255 / 0.55);
-    --market-summary-border-hover: rgb(255 255 255 / 0.9);
+    --market-summary-bg: var(--color-bg);
+
+    --market-summary-surface: var(--color-surface);
+
+    --market-summary-surface-hover: var(--color-surface-hover);
+
+    --market-summary-fg: var(--color-text);
+
+    --market-summary-muted: var(--color-text-muted);
+
+    --market-summary-muted-strong: var(--color-text);
+
+    --market-summary-border: var(--color-border);
+
+    --market-summary-border-hover: var(--color-border-strong);
+
+    --market-summary-border-strong: var(--color-border-strong);
+
+    --market-summary-edge-bg: var(--market-summary-bg);
+
+    color-scheme: normal;
   }
 
+  .market-summary__scroll-control,
   .market-summary__selected-market {
     border-width: 2px;
 
-    background: var(--market-summary-bg);
     box-shadow: none;
   }
+}
 
-  .market-summary__cards {
-    scrollbar-color: var(--market-summary-fg) transparent;
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
 
-    &::-webkit-scrollbar-thumb {
-      background: var(--market-summary-fg);
-    }
+@media (forced-colors: active) {
+  .market-summary {
+    --market-summary-bg: Canvas;
+
+    --market-summary-surface: Canvas;
+
+    --market-summary-surface-hover: Canvas;
+
+    --market-summary-fg: CanvasText;
+
+    --market-summary-muted: CanvasText;
+
+    --market-summary-muted-strong: CanvasText;
+
+    --market-summary-border: CanvasText;
+
+    --market-summary-border-hover: CanvasText;
+
+    --market-summary-border-strong: CanvasText;
+
+    --market-summary-edge-bg: Canvas;
+
+    color-scheme: normal;
+  }
+
+  /*
+   * Fades do not provide useful information in forced-colors environments.
+   */
+
+  .market-summary__cards-wrap::before,
+  .market-summary__cards-wrap::after {
+    display: none;
+  }
+
+  .market-summary__scroll-control,
+  .market-summary__selected-market {
+    border: 1px solid ButtonText;
+
+    background: ButtonFace;
+
+    color: ButtonText;
+
+    box-shadow: none;
+
+    forced-color-adjust: auto;
+  }
+
+  .market-summary__selected-market-icon,
+  .market-summary__selected-market-indicator {
+    background: Highlight;
+
+    forced-color-adjust: auto;
   }
 }
 
@@ -381,87 +913,113 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+@media (prefers-reduced-motion: reduce) {
   .market-summary__cards {
     scroll-behavior: auto;
   }
 
   .market-summary__cards-wrap::before,
   .market-summary__cards-wrap::after,
+  .market-summary__scroll-control,
   .market-summary__selected-market {
     transition: none;
   }
 
-  .market-summary__selected-market:hover {
+  .market-summary__scroll-control--prev:hover,
+  .market-summary__scroll-control--prev:active,
+  .market-summary__scroll-control--next:hover,
+  .market-summary__scroll-control--next:active {
+    transform: translateY(-50%);
+  }
+
+  .market-summary__selected-market:active {
+    transform: none;
+  }
+}
+
+:root[data-motion="reduce"] {
+  .market-summary__cards {
+    scroll-behavior: auto;
+  }
+
+  .market-summary__cards-wrap::before,
+  .market-summary__cards-wrap::after,
+  .market-summary__scroll-control,
+  .market-summary__selected-market {
+    transition: none;
+  }
+
+  .market-summary__scroll-control--prev:hover,
+  .market-summary__scroll-control--prev:active,
+  .market-summary__scroll-control--next:hover,
+  .market-summary__scroll-control--next:active {
+    transform: translateY(-50%);
+  }
+
+  .market-summary__selected-market:active {
     transform: none;
   }
 }
 
 /* ==========================================================================
-   Large Tablet
+   Print
    ========================================================================== */
 
-@include ds.respond-down(lg) {
+@media print {
   .market-summary {
-    --market-summary-clock-width: 100%;
+    --market-summary-bg: #ffffff;
+
+    --market-summary-surface: #ffffff;
+
+    --market-summary-surface-hover: #ffffff;
+
+    --market-summary-fg: #000000;
+
+    --market-summary-muted: #000000;
+
+    --market-summary-muted-strong: #000000;
+
+    --market-summary-border: #000000;
+
+    --market-summary-border-hover: #000000;
+
+    --market-summary-border-strong: #000000;
+
+    overflow: visible;
+
+    background: #ffffff;
+
+    color: #000000;
+
+    color-scheme: light;
   }
 
   .market-summary__container {
     grid-template-columns: minmax(0, 1fr);
+
+    grid-template-areas:
+      "clock"
+      "rail";
+  }
+
+  .market-summary__cards-wrap {
+    overflow: visible;
   }
 
   .market-summary__cards {
-    grid-auto-columns: minmax(15rem, 18rem);
-  }
-}
+    grid-auto-flow: row;
 
-/* ==========================================================================
-   Tablet
-   ========================================================================== */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 
-@include ds.respond-down(md) {
-  .market-summary {
-    --market-summary-gap: 1rem;
+    overflow: visible;
+
+    scrollbar-width: none;
   }
 
   .market-summary__cards-wrap::before,
-  .market-summary__cards-wrap::after {
-    inline-size: 2rem;
-  }
-}
-
-/* ==========================================================================
-   Mobile
-   ========================================================================== */
-
-@include ds.respond-down(sm) {
-  .market-overview {
-    --market-summary-card-block-space: 0.5rem;
-    --market-summary-scrollbar-size: 0.3125rem;
-  }
-
-  .market-summary {
-    --market-summary-container-space: 1rem;
-  }
-
-  .market-summary__cards {
-    grid-auto-columns: minmax(14.5rem, 85vw);
-    gap: 0.75rem;
-  }
-
+  .market-summary__cards-wrap::after,
+  .market-summary__scroll-control,
   .market-summary__selected-market {
-    inset-inline-end: 0.5rem;
-
-    inset-block-end: calc(
-      var(--market-summary-card-block-space) +
-        var(--market-summary-scrollbar-size) + 0.5rem
-    );
-
-    min-block-size: 2.375rem;
-    padding: 0.4375rem 0.625rem;
-  }
-
-  .market-summary__selected-market-name {
-    max-inline-size: 6rem;
+    display: none !important;
   }
 }

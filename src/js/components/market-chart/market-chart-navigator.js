@@ -3,20 +3,33 @@
    ========================================================================== */
 
 /**
- * The navigator controller manages only the
- * visible viewport.
+ * The navigator controller owns only viewport state.
  *
- * It does not:
+ * Responsibilities:
  *
- * - Select a named chart range.
+ * - Track data bounds for each named range.
+ * - Track the visible x-axis viewport.
+ * - Track whether the user is following the latest live edge.
+ * - Apply programmatic x-axis extremes.
+ * - Preserve manually selected navigator / zoom / pan viewports.
+ *
+ * It does NOT:
+ *
+ * - Select named chart ranges.
  * - Infer 1W, 1M, or ALL from viewport width.
- * - Load chart data.
+ * - Load market data.
  * - Modify toolbar controls.
- * - Create a second Highstock navigator.
+ * - Create another Highstock navigator.
+ * - Update the navigator Highcharts series.
  *
- * The parent Market Chart controller owns the
- * active range, active mode, data loading, and
- * live-feed lifecycle.
+ * The parent Market Chart controller owns:
+ *
+ * - active range;
+ * - active mode;
+ * - chart data;
+ * - Highcharts series;
+ * - live-feed lifecycle;
+ * - final chart redraw.
  */
 
 /* ==========================================================================
@@ -30,6 +43,11 @@ const DEFAULT_EDGE_TOLERANCE_RATIO = 0.01;
 const DEFAULT_EDGE_TOLERANCE_MINIMUM = 1_000;
 
 const DEFAULT_LIVE_WINDOW_DURATION = null;
+
+/*
+ * Fractional Highcharts axis calculations can differ by tiny amounts.
+ */
+const VIEWPORT_EPSILON = 0.5;
 
 const INTERNAL_TRIGGERS = new Set([
   "market-chart-initialize",
@@ -127,6 +145,17 @@ function getBoundsDuration(bounds) {
   return Math.max(0, bounds.maximum - bounds.minimum);
 }
 
+function areBoundsEqual(first, second, epsilon = VIEWPORT_EPSILON) {
+  if (!first || !second) {
+    return first === second;
+  }
+
+  return (
+    Math.abs(first.minimum - second.minimum) <= epsilon &&
+    Math.abs(first.maximum - second.maximum) <= epsilon
+  );
+}
+
 /* ==========================================================================
    Point Helpers
    ========================================================================== */
@@ -144,6 +173,17 @@ function getPointTimestamp(point) {
 
   return null;
 }
+
+/* ==========================================================================
+   Data Bounds
+   ========================================================================== */
+
+/*
+ * General-purpose bounds calculation.
+ *
+ * This accepts arbitrary external datasets, so it deliberately scans every
+ * point rather than assuming chronological order.
+ */
 
 function getDataBounds(data) {
   if (!Array.isArray(data) || !data.length) {
@@ -168,6 +208,42 @@ function getDataBounds(data) {
 
   if (!Number.isFinite(minimum) || !Number.isFinite(maximum)) {
     return null;
+  }
+
+  return {
+    minimum,
+    maximum,
+  };
+}
+
+/*
+ * Fast live-data bounds.
+ *
+ * Controller-owned live data is normalized, sorted and bounded before it is
+ * passed here.
+ *
+ * Therefore:
+ *
+ *   first point = minimum x
+ *   last point  = maximum x
+ *
+ * This turns the normal live bounds calculation from O(n) into O(1).
+ */
+
+function getOrderedDataBounds(data) {
+  if (!Array.isArray(data) || !data.length) {
+    return null;
+  }
+
+  const minimum = getPointTimestamp(data[0]);
+
+  const maximum = getPointTimestamp(data[data.length - 1]);
+
+  if (minimum === null || maximum === null || minimum > maximum) {
+    /*
+     * Defensive fallback for an unexpected external / unsorted dataset.
+     */
+    return getDataBounds(data);
   }
 
   return {
@@ -213,7 +289,9 @@ function normalizeViewport(viewport, dataBounds) {
 
   let minimum = clamp(
     bounds.minimum,
+
     dataBounds.minimum,
+
     dataBounds.maximum - duration,
   );
 
@@ -436,9 +514,9 @@ class MarketChartNavigatorController {
     }
 
     /*
-     * Fallback for Highcharts builds that do
-     * not expose addEvent().
+     * Defensive fallback for a Highcharts build without Highcharts.addEvent().
      */
+
     const originalHandler = axis.options?.events?.afterSetExtremes;
 
     const controller = this;
@@ -477,6 +555,7 @@ class MarketChartNavigatorController {
       );
     };
   }
+
   unbind() {
     if (typeof this.removeAxisEvent === "function") {
       this.removeAxisEvent();
@@ -491,6 +570,11 @@ class MarketChartNavigatorController {
 
   initializeRangeState(range, data, options = {}) {
     const normalizedRange = normalizeRange(range);
+
+    /*
+     * Full range initialization accepts external data, so use the defensive
+     * general bounds calculation here.
+     */
 
     const dataBounds = getDataBounds(data);
 
@@ -617,7 +701,6 @@ class MarketChartNavigatorController {
 
           ...detail,
         },
-
         this,
       );
     } catch (error) {
@@ -643,7 +726,6 @@ class MarketChartNavigatorController {
 
           ...detail,
         },
-
         this,
       );
     } catch (error) {
@@ -691,9 +773,9 @@ class MarketChartNavigatorController {
     state.viewport = viewport;
 
     /*
-     * Navigator drag, scrollbar drag, pan, and
-     * zoom never select a named range.
+     * Navigator drag, scrollbar drag, pan and zoom never select a named range.
      */
+
     state.userControlled =
       USER_TRIGGERS.has(trigger) || Boolean(event?.DOMEvent);
 
@@ -749,14 +831,37 @@ class MarketChartNavigatorController {
 
     state.viewport = normalizedViewport;
 
+    /*
+     * A live replacement can change price without changing the latest
+     * timestamp. In that case the x-axis viewport is already correct.
+     *
+     * Avoid another setExtremes() transaction entirely.
+     */
+
+    const currentViewport = getAxisViewport(axis);
+
+    if (
+      options.force !== true &&
+      currentViewport &&
+      areBoundsEqual(currentViewport, normalizedViewport)
+    ) {
+      if (options.notify === true) {
+        this.notifyViewportChange(state, {
+          source: options.source || "programmatic",
+
+          trigger,
+        });
+      }
+
+      return true;
+    }
+
     this.applyingExtremes = true;
 
     try {
       axis.setExtremes(
         normalizedViewport.minimum,
-
         normalizedViewport.maximum,
-
         redraw,
         animation,
         {
@@ -825,17 +930,13 @@ class MarketChartNavigatorController {
     }
 
     /*
-     * Restore a preserved user viewport only
-     * when explicitly requested. Otherwise use
-     * full range or the latest live window.
+     * Restore a preserved user viewport only when explicitly requested.
+     * Otherwise use either the complete range or the latest live window.
      */
+
     if (!existingState || resetViewport || !existingState.userControlled) {
       state.viewport = state.followLatest
-        ? createTrailingViewport(
-            state.dataBounds,
-
-            state.liveWindowDuration,
-          )
+        ? createTrailingViewport(state.dataBounds, state.liveWindowDuration)
         : createFullViewport(state.dataBounds);
 
       state.userControlled = false;
@@ -869,9 +970,12 @@ class MarketChartNavigatorController {
 
     const state = this.ensureRangeState(range, data);
 
-    const previousBounds = cloneBounds(state.dataBounds);
-
     const previousViewport = cloneBounds(state.viewport);
+
+    /*
+     * updateData() is the safe general-purpose path for externally supplied
+     * data and therefore performs the complete defensive bounds scan.
+     */
 
     const nextBounds = getDataBounds(data);
 
@@ -892,12 +996,7 @@ class MarketChartNavigatorController {
     const shouldFollowLatest =
       isLiveUpdate && state.followLatest && options.followLatest !== false;
 
-    /*
-     * New datasets begin with their complete
-     * extent unless live-following requests a
-     * trailing window.
-     */
-    if (!previousBounds || !previousViewport) {
+    if (!previousViewport) {
       state.viewport = shouldFollowLatest
         ? createTrailingViewport(nextBounds, state.liveWindowDuration)
         : createFullViewport(nextBounds);
@@ -929,17 +1028,25 @@ class MarketChartNavigatorController {
       state.viewport = normalizeViewport(state.viewport, nextBounds);
     } else {
       /*
-       * Preserve a manually selected viewport
-       * while new data arrives.
+       * Preserve a manually selected viewport while external data changes.
        */
+
       state.viewport = normalizeViewport(previousViewport, nextBounds);
     }
 
-    /*
-     * Updating an inactive range changes only
-     * its stored state.
-     */
     if (!isActiveRange) {
+      return cloneRangeState(state);
+    }
+
+    /*
+     * Do not send a redundant setExtremes() request if updating the data did
+     * not change the effective viewport.
+     */
+
+    if (
+      areBoundsEqual(previousViewport, state.viewport) &&
+      options.forceViewport !== true
+    ) {
       return cloneRangeState(state);
     }
 
@@ -961,22 +1068,140 @@ class MarketChartNavigatorController {
   /* ========================================================================
      Live Data
      ======================================================================== */
+
   appendLiveData(data, options = {}) {
+    if (this.destroyed) {
+      return null;
+    }
+
     const range = normalizeRange(options.range ?? this.activeRange);
 
-    return this.updateData(data, {
-      ...options,
+    const state = this.ensureRangeState(range, data, {
+      followLatest: options.followLatest ?? true,
 
-      range,
-
-      live: true,
+      liveWindowDuration: options.liveWindowDuration,
     });
+
+    const previousViewport = cloneBounds(state.viewport);
+
+    /*
+     * CRITICAL HOT PATH
+     * -----------------
+     *
+     * Parent market-chart.js passes its internal chronologically ordered,
+     * bounded trend array.
+     *
+     * Read only first + last timestamps. Do NOT scan all points.
+     */
+
+    const nextBounds = getOrderedDataBounds(data);
+
+    state.dataBounds = nextBounds;
+
+    if (!nextBounds) {
+      state.viewport = null;
+
+      state.userControlled = false;
+
+      return cloneRangeState(state);
+    }
+
+    const configuredDuration = toPositiveNumber(
+      options.liveWindowDuration ?? state.liveWindowDuration,
+
+      null,
+    );
+
+    if (configuredDuration !== null) {
+      state.liveWindowDuration = configuredDuration;
+    }
+
+    const shouldFollowLatest =
+      state.followLatest && options.followLatest !== false;
+
+    if (!previousViewport) {
+      state.viewport = shouldFollowLatest
+        ? createTrailingViewport(nextBounds, state.liveWindowDuration)
+        : createFullViewport(nextBounds);
+    } else if (shouldFollowLatest) {
+      /*
+       * Preserve the currently visible duration unless a fixed live window
+       * was explicitly configured.
+       */
+
+      const dataDuration = getBoundsDuration(nextBounds);
+
+      const previousDuration = getBoundsDuration(previousViewport);
+
+      const duration = Math.min(
+        state.liveWindowDuration || previousDuration || dataDuration,
+
+        dataDuration,
+      );
+
+      state.viewport = {
+        minimum: nextBounds.maximum - duration,
+
+        maximum: nextBounds.maximum,
+      };
+
+      state.viewport = normalizeViewport(state.viewport, nextBounds);
+    } else {
+      /*
+       * User is inspecting historical points.
+       *
+       * Preserve that viewport as new live data arrives. Only clamp it when
+       * bounded history has shifted so far that the old viewport is no longer
+       * available.
+       */
+
+      state.viewport = normalizeViewport(previousViewport, nextBounds);
+    }
+
+    const isActiveRange = range === this.activeRange;
+
+    if (!isActiveRange) {
+      return cloneRangeState(state);
+    }
+
+    /*
+     * A replacement at the same latest timestamp usually changes only Y,
+     * not X. Do not call axis.setExtremes() in that case.
+     */
+
+    if (areBoundsEqual(previousViewport, state.viewport)) {
+      return cloneRangeState(state);
+    }
+
+    /*
+     * The parent controller requested redraw:false for live transactions.
+     *
+     * setExtremes() updates logical x-axis state here and the parent issues
+     * the one final chart.redraw(false) after both live series are updated.
+     */
+
+    this.applyActiveViewport({
+      redraw: options.redraw !== false,
+
+      animation: false,
+
+      notify: options.notify === true,
+
+      source: "live",
+
+      trigger: "market-chart-live",
+    });
+
+    return cloneRangeState(state);
   }
+  /* ========================================================================
+     Follow Latest
+     ======================================================================== */
 
   /**
-   * Enables live-following and moves the
-   * viewport to the latest edge while
-   * preserving its current duration.
+   * Re-enable live following and move the viewport to the newest edge.
+   *
+   * This affects viewport behavior only. It does not start or stop polling.
    */
   followLatest(options = {}) {
     if (this.destroyed) {
@@ -1043,6 +1268,10 @@ class MarketChartNavigatorController {
 
     return true;
   }
+
+  /* ========================================================================
+     Stop Following
+     ======================================================================== */
 
   stopFollowing(options = {}) {
     if (this.destroyed) {
@@ -1208,9 +1437,12 @@ class MarketChartNavigatorController {
     }
 
     /*
-     * Reapply exact logical extremes after
-     * Highcharts recalculates its plot box.
+     * Highcharts may recalculate its plot dimensions during reflow.
+     *
+     * Reapply the logical viewport only when necessary. applyViewport()
+     * already skips redundant setExtremes() calls when the axis is unchanged.
      */
+
     return this.applyActiveViewport({
       redraw: options.redraw !== false,
 
@@ -1247,6 +1479,10 @@ class MarketChartNavigatorController {
   isUserControlled(range = this.activeRange) {
     return Boolean(this.getRangeState(range)?.userControlled);
   }
+
+  /* ========================================================================
+     Live Window Duration
+     ======================================================================== */
 
   setLiveWindowDuration(duration, options = {}) {
     if (this.destroyed) {
@@ -1310,10 +1546,11 @@ class MarketChartNavigatorController {
     }
 
     /*
-     * Unbind before marking destroyed because
-     * the fallback cleanup requires chart
-     * access.
+     * Unbind first.
+     *
+     * The fallback event cleanup may still need access to the Highcharts axis.
      */
+
     this.unbind();
 
     this.rangeStates.clear();
