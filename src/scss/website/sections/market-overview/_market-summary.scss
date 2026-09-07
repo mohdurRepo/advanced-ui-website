@@ -108,13 +108,13 @@
 
   --market-summary-clock-width: clamp(18rem, 20vw, 19rem);
 
-  --market-summary-padding-block: var(--space-2, #{ds.space(2)});
+  --market-summary-padding-block: var(--space-1, #{ds.space(1)});
 
   /* -----------------------------------------------------------------------
      Market Rail
      -------------------------------------------------------------------- */
 
-  --market-summary-card-width: clamp(15.5rem, 20vw, 17.25rem);
+  --market-summary-card-width: clamp(17.5rem, 30vw, 17.5rem);
 
   /*
    * Cards belong to one market-navigation family.
@@ -235,6 +235,7 @@
 
   margin-inline: auto;
 
+  padding-block: 0;
   padding-block: var(--market-summary-padding-block);
 }
 
@@ -739,7 +740,7 @@
   .market-summary {
     --market-summary-clock-width: 17rem;
 
-    --market-summary-card-width: clamp(15rem, 28vw, 16.5rem);
+    --market-summary-card-width: clamp(16.5rem, 29vw, 16.5rem);
 
     --market-summary-gap: var(--space-3, #{ds.space(3)});
 

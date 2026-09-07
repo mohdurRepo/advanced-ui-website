@@ -74,8 +74,6 @@
 
   overflow: hidden;
 
-  background: var(--market-movers-bg);
-
   color: var(--market-movers-fg);
 }
 
@@ -381,7 +379,7 @@
   color: var(--market-movers-fg);
 
   font-size: var(--text-sm);
-  font-weight: ds.font-weight("heavy");
+  font-weight: ds.font-weight("regular");
   line-height: var(--line-height-tight);
 
   text-decoration: none;
