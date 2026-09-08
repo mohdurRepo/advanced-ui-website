@@ -700,8 +700,6 @@ html[dir="rtl"] {
     inset: 0;
     z-index: 13;
 
-    background: color-mix(in oklab, var(--chart-tooltip-bg), transparent 12%);
-
     content: "";
   }
 }
