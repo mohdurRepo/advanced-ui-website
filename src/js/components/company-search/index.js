@@ -5,46 +5,51 @@
 /**
  * Shared company search for:
  *
- * 1. Utility-rail company search modal
- * 2. Home discovery search
+ * 1. Home discovery search
+ * 2. Company search modal
  *
- * Architecture:
+ * Responsibilities:
  *
- * Portal / JSP
- *   ↓
- * GET /api
- *   ↓
- * window.searchableSymbols
- *   ↓
- * "company-search:data"
- *   ↓
- * Company Search
- *   ↓
- * modal + home search
- *
- * Important:
- *
- * - Portal/JSP owns the /api request.
- * - This module performs NO network requests.
- * - This module does NOT depend on jQuery.
- * - This module does NOT use Typeahead.js or Bloodhound.
- * - Modal and home search share one company collection.
- * - Portal owns document.documentElement.lang.
- * - Portal owns document.documentElement.dir.
- * - Generic modal owns modal open/close behavior.
+ * - Uses typeahead-standalone.
+ * - Does not depend on jQuery.
+ * - Does not open or close modals.
+ * - Does not manage modal focus.
+ * - Home suggestions appear after typing.
+ * - Modal shows all companies when empty/focused.
+ * - Portal owns document language/direction.
  * - Portal window.submitSearch() owns final navigation.
+ *
+ * Company image fallback:
+ *
+ * /abu-ibrahim/{companyCode}.jpg
+ *        ↓
+ * /abu-ibrahim/default-Logo.png
+ *        ↓
+ * initials
  */
 
-const HOME_RESULT_LIMIT = 8;
+/* ==========================================================================
+   Configuration
+   ========================================================================== */
 
-const FALLBACK_LOGO_URL = "/no-image.png";
+const RESULT_LIMIT = 100;
 
-const DATA_EVENT = "company-search:data";
-const ERROR_EVENT = "company-search:error";
+const COMPANY_IMAGE_BASE_PATH = "/abu-ibrahim";
 
-/**
- * Exact legacy market priority.
- */
+const DEFAULT_COMPANY_IMAGE = `${COMPANY_IMAGE_BASE_PATH}/default-Logo.png`;
+
+const SEARCH_SURFACES = Object.freeze([
+  {
+    selector: "#home-discovery-search-input",
+    showAllWhenEmpty: false,
+  },
+
+  {
+    selector: "#companySearchInput",
+    showAllWhenEmpty: true,
+  },
+]);
+
 const MARKET_ORDER = Object.freeze({
   M: 1,
   S: 2,
@@ -55,116 +60,102 @@ const MARKET_ORDER = Object.freeze({
   O: 7,
 });
 
-const SELECTORS = Object.freeze({
-  modal: "[data-company-search-modal]",
-
-  modalTrigger: "[data-search-toggle]",
-
-  modalForm: "[data-company-search-form]",
-  modalInput: "[data-company-search-input]",
-
-  modalResults: "[data-company-search-results]",
-  modalList: "[data-company-search-list]",
-  modalCount: "[data-company-search-count]",
-
-  modalLoading: "[data-company-search-loading]",
-  modalEmpty: "[data-company-search-empty]",
-  modalError: "[data-company-search-error]",
-
-  homeForm: "[data-home-discovery-search]",
-  homeInput: "[data-home-discovery-search-input]",
-
-  homeResults: "[data-home-discovery-search-results]",
-  homeList: "[data-home-discovery-search-list]",
-
-  homeLoading: "[data-home-discovery-search-loading]",
-  homeEmpty: "[data-home-discovery-search-empty]",
-  homeError: "[data-home-discovery-search-error]",
-});
-
-const CSS = Object.freeze({
-  active: "is-active",
-});
-
-/* ==========================================================================
-   Module State
-   ========================================================================== */
-
 let initialized = false;
-
-/**
- * Original Portal records.
- *
- * We do not mutate these.
- */
-let rawCompanies = [];
-
-/**
- * Normalized records used internally by the component.
- */
-let companies = [];
-
-let modalMatches = [];
-let homeMatches = [];
-
-let modalActiveIndex = -1;
-let homeActiveIndex = -1;
-
-/**
- * If the shared fallback image itself fails once,
- * do not keep requesting it for every result.
- */
-let fallbackLogoUnavailable = false;
-
-/* ==========================================================================
-   DOM References
-   ========================================================================== */
-
-let modal = null;
-let modalTriggers = [];
-
-let modalForm = null;
-let modalInput = null;
-
-let modalResults = null;
-let modalList = null;
-let modalCount = null;
-
-let modalLoading = null;
-let modalEmpty = null;
-let modalError = null;
-
-let homeForm = null;
-let homeInput = null;
-
-let homeResults = null;
-let homeList = null;
-
-let homeLoading = null;
-let homeEmpty = null;
-let homeError = null;
+let imageFallbackBound = false;
 
 /* ==========================================================================
    Language
    ========================================================================== */
 
-/**
- * Portal owns <html lang>.
- *
- * We only read it.
- */
 function getLanguage() {
-  const language = document.documentElement.lang || "en";
-
-  return language.toLowerCase().startsWith("ar") ? "ar" : "en";
+  return (document.documentElement.lang || "en").toLowerCase();
 }
 
 function isArabic() {
-  return getLanguage() === "ar";
+  return getLanguage().startsWith("ar");
 }
 
 /* ==========================================================================
-   Generic Helpers
+   Company Data
+   ========================================================================== */
+
+/**
+ * Temporary development source:
+ *
+ * <script
+ *   type="application/json"
+ *   id="company-search-data"
+ * >
+ *   [...]
+ * </script>
+ *
+ * Later:
+ *
+ * window.searchableSymbols
+ */
+function getCompanies() {
+  const element = document.getElementById("company-search-data");
+
+  if (element) {
+    try {
+      const data = JSON.parse(element.textContent || "[]");
+
+      if (Array.isArray(data)) {
+        return data;
+      }
+
+      console.warn("CompanySearch: company-search-data must contain an array.");
+    } catch (error) {
+      console.error("CompanySearch: invalid static company JSON.", error);
+    }
+  }
+
+  /**
+   * Portal/API collection.
+   */
+  if (Array.isArray(window.searchableSymbols)) {
+    return window.searchableSymbols;
+  }
+
+  return [];
+}
+
+/* ==========================================================================
+   Localized Values
+   ========================================================================== */
+
+function displayName(company) {
+  if (isArabic()) {
+    return (
+      company.companyNameAR ||
+      company.companyNameEN ||
+      company.tradingNameAr ||
+      company.tradingNameEn ||
+      company.symbol ||
+      ""
+    );
+  }
+
+  return (
+    company.companyNameEN ||
+    company.companyNameAR ||
+    company.tradingNameEn ||
+    company.tradingNameAr ||
+    company.symbol ||
+    ""
+  );
+}
+
+function displaySector(company) {
+  if (isArabic()) {
+    return company.sectorNameAr || company.sectorNameEn || "";
+  }
+
+  return company.sectorNameEn || company.sectorNameAr || "";
+}
+
+/* ==========================================================================
+   Text Helpers
    ========================================================================== */
 
 function normalizeText(value) {
@@ -174,286 +165,21 @@ function normalizeText(value) {
     .trim();
 }
 
-function compactWhitespace(value) {
-  return String(value ?? "")
-    .replace(/\s+/gu, " ")
-    .trim();
-}
-
 function numericOnly(value) {
   return String(value ?? "").replace(/\D+/gu, "");
 }
 
-function createElement(tagName, className = "", textContent = "") {
-  const element = document.createElement(tagName);
-
-  if (className) {
-    element.className = className;
-  }
-
-  if (textContent !== "") {
-    element.textContent = textContent;
-  }
-
-  return element;
-}
-
-function clearElement(element) {
-  element?.replaceChildren();
-}
-
-function setHidden(element, hidden) {
-  if (!element) {
-    return;
-  }
-
-  element.hidden = hidden;
-}
-
 /* ==========================================================================
-   Safe URLs
+   HTML Safety
    ========================================================================== */
 
-function getSafeUrl(value, fallback = "") {
-  if (typeof value !== "string" || !value.trim()) {
-    return fallback;
-  }
-
-  try {
-    const url = new URL(value.trim(), window.location.origin);
-
-    if (url.protocol !== "http:" && url.protocol !== "https:") {
-      return fallback;
-    }
-
-    return url.href;
-  } catch {
-    return fallback;
-  }
-}
-
-function getSafeLogoUrl(value) {
-  return getSafeUrl(value, "");
-}
-
-/* ==========================================================================
-   Company Contract
-   ========================================================================== */
-
-/**
- * Actual legacy Portal /api fields:
- *
- * companyNameEN
- * companyNameAR
- * symbol
- * isin
- * tradingNameEn
- * tradingNameAr
- * sectorNameEn
- * sectorNameAr
- * market_type
- *
- * Normalize once at the boundary.
- */
-function normalizeCompany(source, index) {
-  if (!source || typeof source !== "object") {
-    return null;
-  }
-
-  const symbol = String(source.symbol ?? "").trim();
-
-  const isin = String(source.isin ?? "").trim();
-
-  const nameEn = String(source.companyNameEN ?? "").trim();
-
-  const nameAr = String(source.companyNameAR ?? "").trim();
-
-  const tradingNameEn = String(source.tradingNameEn ?? "").trim();
-
-  const tradingNameAr = String(source.tradingNameAr ?? "").trim();
-
-  const sectorEn = String(source.sectorNameEn ?? "").trim();
-
-  const sectorAr = String(source.sectorNameAr ?? "").trim();
-
-  const market = String(source.market_type ?? "")
-    .trim()
-    .toUpperCase();
-
-  /**
-   * The legacy code supplied so far does not prove a
-   * different company-image property.
-   *
-   * Keep this strict rather than guessing aliases.
-   */
-  const logo = String(source.logo ?? "").trim();
-
-  const company = {
-    id: `${symbol || isin || "company"}-${index}`,
-
-    symbol,
-    isin,
-
-    nameEn,
-    nameAr,
-
-    tradingNameEn,
-    tradingNameAr,
-
-    sectorEn,
-    sectorAr,
-
-    market,
-    logo,
-
-    source,
-  };
-
-  company.searchIndex = buildSearchIndex(company);
-
-  return company;
-}
-
-/* ==========================================================================
-   Search Index
-   ========================================================================== */
-
-/**
- * Match the fields indexed by the legacy Bloodhound
- * implementation:
- *
- * - companyNameEN
- * - companyNameAR
- * - symbol
- * - isin
- * - tradingNameEn
- * - tradingNameAr
- * - sectorNameEn
- * - sectorNameAr
- * - numeric-only ISIN
- */
-function buildSearchIndex(company) {
-  const values = [
-    company.nameEn,
-    company.nameAr,
-
-    company.symbol,
-    company.isin,
-
-    company.tradingNameEn,
-    company.tradingNameAr,
-
-    company.sectorEn,
-    company.sectorAr,
-  ];
-
-  const tokens = new Set();
-
-  for (const value of values) {
-    const normalized = normalizeText(value);
-
-    if (!normalized) {
-      continue;
-    }
-
-    /**
-     * Keep the complete field value.
-     */
-    tokens.add(normalized);
-
-    /**
-     * Also index individual searchable pieces.
-     */
-    for (const token of normalized.split(/[\s\-_./()]+/gu)) {
-      if (token) {
-        tokens.add(token);
-      }
-    }
-  }
-
-  const numericIsin = numericOnly(company.isin);
-
-  if (numericIsin) {
-    tokens.add(numericIsin);
-  }
-
-  return Array.from(tokens);
-}
-
-/* ==========================================================================
-   Company Store
-   ========================================================================== */
-
-function setCompanies(source) {
-  rawCompanies = Array.isArray(source) ? source : [];
-
-  companies = rawCompanies
-    .map(normalizeCompany)
-    .filter(Boolean)
-    .filter((company) => {
-      return Boolean(
-        company.symbol || company.isin || company.nameEn || company.nameAr,
-      );
-    });
-
-  return companies;
-}
-
-/* ==========================================================================
-   Portal Data
-   ========================================================================== */
-
-/**
- * JSP owns the /api request and publishes the response as:
- *
- * window.searchableSymbols
- */
-function getPortalCompanies() {
-  return Array.isArray(window.searchableSymbols)
-    ? window.searchableSymbols
-    : [];
-}
-
-function getCompaniesFromEvent(event) {
-  const source = event?.detail?.companies;
-
-  return Array.isArray(source) ? source : [];
-}
-
-function initializeCompanyData() {
-  setCompanies(getPortalCompanies());
-}
-
-/* ==========================================================================
-   Localized Values
-   ========================================================================== */
-
-function companyName(company) {
-  if (isArabic()) {
-    return (
-      company.nameAr ||
-      company.nameEn ||
-      company.tradingNameAr ||
-      company.tradingNameEn ||
-      company.symbol
-    );
-  }
-
-  return (
-    company.nameEn ||
-    company.nameAr ||
-    company.tradingNameEn ||
-    company.tradingNameAr ||
-    company.symbol
-  );
-}
-
-function companySector(company) {
-  if (isArabic()) {
-    return company.sectorAr || company.sectorEn;
-  }
-
-  return company.sectorEn || company.sectorAr;
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 /* ==========================================================================
@@ -461,304 +187,332 @@ function companySector(company) {
    ========================================================================== */
 
 function companyInitials(company) {
-  const name = compactWhitespace(companyName(company));
+  const name = displayName(company);
 
-  if (!name) {
-    return isArabic() ? "م ح" : "SA";
-  }
-
-  const words = name.split(/\s+/gu).filter(Boolean).slice(0, 2);
+  const words = String(name || "")
+    .trim()
+    .split(/\s+/u)
+    .filter(Boolean)
+    .slice(0, 2);
 
   if (!words.length) {
-    return isArabic() ? "م ح" : "SA";
+    return isArabic() ? "ش" : "C";
   }
+
+  const characters = words
+    .map((word) => {
+      return Array.from(word)[0] || "";
+    })
+    .filter(Boolean);
 
   if (isArabic()) {
-    return words
-      .map((word) => Array.from(word)[0] || "")
-      .filter(Boolean)
-      .join(" ");
+    return characters.join(" ");
   }
 
-  return words
-    .map((word) => Array.from(word)[0] || "")
-    .filter(Boolean)
-    .join("")
-    .toLocaleUpperCase("en");
+  return characters.join("").toLocaleUpperCase("en");
 }
 
 /* ==========================================================================
-   Query Tokenization
+   Company Images
+   ========================================================================== */
+
+function primaryCompanyImageUrl(company) {
+  if (!company.companyCode) {
+    return DEFAULT_COMPANY_IMAGE;
+  }
+
+  return `${COMPANY_IMAGE_BASE_PATH}/${encodeURIComponent(
+    String(company.companyCode),
+  )}.jpg`;
+}
+
+function initialImageStage(company) {
+  return company.companyCode ? "company" : "default";
+}
+
+/* ==========================================================================
+   Prepared Search Records
    ========================================================================== */
 
 /**
- * Legacy query tokenizer behavior:
+ * The original Portal objects are not mutated.
  *
- * - normalized whole query
- * - numeric-only variant
- * - alphanumeric pieces
+ * These fields exist only for the Typeahead index.
  */
-function tokenizeQuery(query) {
-  const normalized = normalizeText(query);
+function prepareCompanies(companies) {
+  return companies.map((company, index) => {
+    return {
+      ...company,
 
-  if (!normalized) {
-    return [];
-  }
+      __searchId: [company.symbol, company.isin, index]
+        .filter((value) => {
+          return value !== null && value !== undefined && value !== "";
+        })
+        .join("-"),
 
-  const tokens = new Set([normalized]);
+      __numericIsin: numericOnly(company.isin),
 
-  const numeric = numericOnly(normalized);
-
-  if (numeric) {
-    tokens.add(numeric);
-  }
-
-  for (const token of normalized.split(/[\s\-_./()]+/gu)) {
-    if (token) {
-      tokens.add(token);
-    }
-  }
-
-  return Array.from(tokens);
-}
-
-function matchesQuery(company, tokens) {
-  if (!tokens.length) {
-    return true;
-  }
-
-  return tokens.every((token) => {
-    return company.searchIndex.some((candidate) => candidate.includes(token));
+      __numericSymbol: numericOnly(company.symbol),
+    };
   });
 }
 
 /* ==========================================================================
-   Legacy Ranking
+   Market Ranking
    ========================================================================== */
 
 /**
- * Exact legacy market order:
+ * Legacy market priority:
  *
  * M → S → E → F → D → B → O → unknown
  */
 function marketRank(company) {
-  return MARKET_ORDER[company.market] ?? 99;
+  const market = String(company.market_type || "")
+    .trim()
+    .toUpperCase();
+
+  return MARKET_ORDER[market] ?? 99;
 }
+
+/* ==========================================================================
+   Query Ranking
+   ========================================================================== */
 
 /**
- * Legacy rankQuery() ranks matches by the query's position
- * inside:
+ * Ranking:
  *
- * localized company name + symbol + ISIN
- *
- * Position 0 therefore wins over a later occurrence.
+ * 1. Market priority
+ * 2. Query position
+ * 3. Localized company name
  */
-function queryRank(company, query) {
-  const normalizedQuery = normalizeText(query);
+function rankQuery(a, b, query) {
+  /* ------------------------------------------------------------------------
+     Market
+     ------------------------------------------------------------------------ */
 
-  if (!normalizedQuery) {
-    return 0;
+  const marketDifference = marketRank(a) - marketRank(b);
+
+  if (marketDifference !== 0) {
+    return marketDifference;
   }
 
-  const candidate = normalizeText(
-    [companyName(company), company.symbol, company.isin]
-      .filter(Boolean)
-      .join(" "),
-  );
+  /* ------------------------------------------------------------------------
+     Query
+     ------------------------------------------------------------------------ */
 
-  const position = candidate.indexOf(normalizedQuery);
+  const normalizedQuery = normalizeText(query);
 
-  return position >= 0 ? position : Number.MAX_SAFE_INTEGER;
-}
-
-function sortCompanies(items, query = "") {
-  return [...items].sort((a, b) => {
-    /* --------------------------------------------------------------------
-         1. Market priority
-         -------------------------------------------------------------------- */
-
-    const marketDifference = marketRank(a) - marketRank(b);
-
-    if (marketDifference !== 0) {
-      return marketDifference;
-    }
-
-    /* --------------------------------------------------------------------
-         2. Query position
-         -------------------------------------------------------------------- */
-
-    const queryDifference = queryRank(a, query) - queryRank(b, query);
-
-    if (queryDifference !== 0) {
-      return queryDifference;
-    }
-
-    /* --------------------------------------------------------------------
-         3. Localized company name
-         -------------------------------------------------------------------- */
-
-    return companyName(a).localeCompare(companyName(b), getLanguage(), {
+  /**
+   * Empty query is the modal's
+   * default company directory.
+   */
+  if (!normalizedQuery) {
+    return displayName(a).localeCompare(displayName(b), getLanguage(), {
       sensitivity: "base",
       numeric: true,
     });
-  });
-}
+  }
 
-function searchCompanies(query, { limit = Infinity } = {}) {
-  const tokens = tokenizeQuery(query);
-
-  const matches = companies.filter((company) => matchesQuery(company, tokens));
-
-  return sortCompanies(matches, query).slice(0, limit);
-}
-
-/* ==========================================================================
-   Logo
-   ========================================================================== */
-
-/**
- * Fallback chain:
- *
- * company image
- *   ↓ fails
- * /no-image.png
- *   ↓ fails
- * localized initials
- */
-function createLogo(company, { rootClass, imageClass, initialsClass, size }) {
-  const root = createElement("span", rootClass);
-
-  root.setAttribute("aria-hidden", "true");
-
-  /**
-   * Initials always exist underneath the image.
-   */
-  const initials = createElement(
-    "span",
-    initialsClass,
-    companyInitials(company),
+  const aText = normalizeText(
+    [displayName(a), a.symbol, a.isin].filter(Boolean).join(" "),
   );
 
-  initials.dir = isArabic() ? "rtl" : "ltr";
+  const bText = normalizeText(
+    [displayName(b), b.symbol, b.isin].filter(Boolean).join(" "),
+  );
 
-  root.append(initials);
+  const aIndex = aText.indexOf(normalizedQuery);
 
-  const logoUrl = getSafeLogoUrl(company.logo);
+  const bIndex = bText.indexOf(normalizedQuery);
 
-  /**
-   * No company logo available.
-   *
-   * Try /no-image.png unless we already know that the
-   * shared fallback failed earlier on this page.
-   */
-  if (!logoUrl) {
-    if (!fallbackLogoUnavailable) {
-      appendLogoImage(root, FALLBACK_LOGO_URL, "fallback", imageClass, size);
+  if (aIndex !== bIndex) {
+    if (aIndex === -1) {
+      return 1;
     }
 
-    return root;
+    if (bIndex === -1) {
+      return -1;
+    }
+
+    return aIndex - bIndex;
   }
 
-  appendLogoImage(root, logoUrl, "primary", imageClass, size);
+  /* ------------------------------------------------------------------------
+     Name
+     ------------------------------------------------------------------------ */
 
-  return root;
+  return displayName(a).localeCompare(displayName(b), getLanguage(), {
+    sensitivity: "base",
+    numeric: true,
+  });
 }
 
-function appendLogoImage(root, source, stage, imageClass, size) {
-  const image = createElement("img", imageClass);
-
-  image.alt = "";
-
-  image.width = size;
-  image.height = size;
-
-  image.decoding = "async";
-
-  image.dataset.companyLogoStage = stage;
-
-  /**
-   * Register error handling before assigning src.
-   */
-  image.addEventListener(
-    "error",
-    () => {
-      handleLogoError(image, root, imageClass, size);
-    },
-    {
-      once: true,
-    },
-  );
-
-  image.src = source;
-
-  root.append(image);
-}
-
-function handleLogoError(image, root, imageClass, size) {
-  if (!image.isConnected) {
-    return;
-  }
-
-  const stage = image.dataset.companyLogoStage;
-
-  image.remove();
-
-  /**
-   * Primary company image failed.
-   *
-   * Try the shared no-image asset.
-   */
-  if (stage === "primary" && !fallbackLogoUnavailable) {
-    appendLogoImage(root, FALLBACK_LOGO_URL, "fallback", imageClass, size);
-
-    return;
-  }
-
-  /**
-   * Shared fallback itself failed.
-   */
-  if (stage === "fallback") {
-    fallbackLogoUnavailable = true;
-
-    removeFallbackLogoImages();
-  }
-
-  /**
-   * The initials already exist underneath, so removing
-   * the failed image reveals them automatically.
-   */
-}
-
-function removeFallbackLogoImages() {
-  const images = document.querySelectorAll(
-    '[data-company-logo-stage="fallback"]',
-  );
-
-  images.forEach((image) => {
-    image.remove();
+function sortCompanies(companies, query = "") {
+  return [...companies].sort((a, b) => {
+    return rankQuery(a, b, query);
   });
 }
 
 /* ==========================================================================
-   Legacy Portal Submission
+   Legacy Fallback Matching
    ========================================================================== */
 
 /**
- * Central Portal integration.
+ * The library handles indexed searching.
  *
- * This intentionally mirrors the old form mechanism:
- *
- * window.submitSearch(
- *   query,
- *   window.searchableSymbols
- * );
- *
- * Both modal and home forms use this function.
- *
- * A clicked result also uses it, but passes the selected
- * company's symbol instead of the raw input value.
+ * If the index returns no matches,
+ * preserve broad legacy substring behavior.
  */
-function submitPortalSearch(value) {
+function fallbackSearch(companies, query) {
+  const normalizedQuery = normalizeText(query);
+
+  if (!normalizedQuery) {
+    return [];
+  }
+
+  const digits = numericOnly(query);
+
+  return companies.filter((company) => {
+    const searchableValues = [
+      company.companyNameEN,
+      company.companyNameAR,
+
+      company.symbol,
+      company.isin,
+
+      company.tradingNameEn,
+      company.tradingNameAr,
+
+      company.sectorNameEn,
+      company.sectorNameAr,
+    ];
+
+    const haystack = searchableValues
+      .filter(Boolean)
+      .map(normalizeText)
+      .join(" ");
+
+    if (haystack.includes(normalizedQuery)) {
+      return true;
+    }
+
+    if (digits && numericOnly(company.symbol).includes(digits)) {
+      return true;
+    }
+
+    if (digits && numericOnly(company.isin).includes(digits)) {
+      return true;
+    }
+
+    return false;
+  });
+}
+
+/* ==========================================================================
+   Suggestion Template
+   ========================================================================== */
+
+function suggestionTemplate(company) {
+  const name = displayName(company);
+
+  const sector = displaySector(company);
+
+  const imageUrl = primaryCompanyImageUrl(company);
+
+  const imageStage = initialImageStage(company);
+
+  const symbolMarkup = company.symbol
+    ? `
+        <span
+          class="tt-ticker"
+          dir="ltr"
+          lang="en"
+        >
+          ${escapeHtml(company.symbol)}
+        </span>
+      `
+    : "";
+
+  const isinMarkup = company.isin
+    ? `
+        <span
+          class="tt-isin"
+          dir="ltr"
+          lang="en"
+        >
+          ${escapeHtml(company.isin)}
+        </span>
+      `
+    : "";
+
+  const sectorMarkup = sector
+    ? `
+        <span class="tt-sub">
+          <span
+            class="tt-chip"
+            dir="auto"
+          >
+            ${escapeHtml(sector)}
+          </span>
+        </span>
+      `
+    : "";
+
+  return `
+    <div class="tt-row">
+
+      <span
+        class="tt-avatar"
+        aria-hidden="true"
+      >
+        <span
+          class="tt-initials"
+          dir="${isArabic() ? "rtl" : "ltr"}"
+        >
+          ${escapeHtml(companyInitials(company))}
+        </span>
+
+        <img
+          class="tt-company-image"
+          src="${escapeHtml(imageUrl)}"
+          alt=""
+          width="40"
+          height="40"
+          decoding="async"
+          data-company-image-stage="${imageStage}"
+        >
+      </span>
+
+      <span class="tt-meta">
+
+        <span class="tt-title-row">
+
+          <span
+            class="tt-title"
+            dir="auto"
+          >
+            ${escapeHtml(name)}
+          </span>
+
+          ${symbolMarkup}
+
+          ${isinMarkup}
+
+        </span>
+
+        ${sectorMarkup}
+
+      </span>
+
+    </div>
+  `;
+}
+
+/* ==========================================================================
+   Portal Submission
+   ========================================================================== */
+
+function submitPortalSearch(value, portalCompanies) {
   const query = String(value ?? "").trim();
 
   if (!query) {
@@ -766,1081 +520,305 @@ function submitPortalSearch(value) {
   }
 
   if (typeof window.submitSearch === "function") {
-    window.submitSearch(query, window.searchableSymbols);
+    window.submitSearch(query, window.searchableSymbols || portalCompanies);
 
     return;
   }
 
-  console.warn("CompanySearch: window.submitSearch is not available.");
+  /**
+   * Temporary static-data
+   * development fallback.
+   */
+  console.log("CompanySearch: submitted", query);
 }
 
-/**
- * Exact legacy selected-result behavior:
- *
- * window.submitSearch(
- *   item.symbol,
- *   window.searchableSymbols
- * );
- */
-function selectCompany(company) {
+function selectCompany(company, portalCompanies) {
   if (!company?.symbol) {
     return;
   }
 
-  submitPortalSearch(company.symbol);
+  submitPortalSearch(company.symbol, portalCompanies);
 }
 
 /* ==========================================================================
-   Modal Result
+   Templates
    ========================================================================== */
 
-/**
- * Compact visual structure:
- *
- * [logo]  Company Name                     >
- *         Symbol  ISIN  Sector
- */
-function createModalResult(company, index) {
-  const item = createElement("li", "company-search__item");
-
-  const button = createElement("button", "company-search__result");
-
-  button.type = "button";
-
-  button.dataset.companySearchResult = "";
-
-  button.dataset.resultIndex = String(index);
-
-  if (company.symbol) {
-    button.dataset.symbol = company.symbol;
-  }
-
-  if (company.isin) {
-    button.dataset.isin = company.isin;
-  }
-
-  if (index === modalActiveIndex) {
-    button.classList.add(CSS.active);
-  }
-
-  /* ------------------------------------------------------------------------
-     Logo
-     ------------------------------------------------------------------------ */
-
-  button.append(
-    createLogo(company, {
-      rootClass: "company-search__logo",
-
-      imageClass: "company-search__logo-image",
-
-      initialsClass: "company-search__logo-initials",
-
-      size: 44,
-    }),
-  );
-
-  /* ------------------------------------------------------------------------
-     Content
-     ------------------------------------------------------------------------ */
-
-  const content = createElement("span", "company-search__content");
-
-  /* ------------------------------------------------------------------------
-     Company Name
-     ------------------------------------------------------------------------ */
-
-  const name = createElement(
-    "span",
-    "company-search__name",
-    companyName(company),
-  );
-
-  name.dir = "auto";
-
-  content.append(name);
-
-  /* ------------------------------------------------------------------------
-     Symbol + ISIN + Sector
-     ------------------------------------------------------------------------ */
-
-  const meta = createElement("span", "company-search__meta");
-
-  if (company.symbol) {
-    const symbol = createElement(
-      "span",
-      "company-search__symbol",
-      company.symbol,
-    );
-
-    symbol.dir = "ltr";
-    symbol.lang = "en";
-
-    meta.append(symbol);
-  }
-
-  if (company.isin) {
-    const isin = createElement("span", "company-search__isin", company.isin);
-
-    isin.dir = "ltr";
-    isin.lang = "en";
-
-    meta.append(isin);
-  }
-
-  const sector = companySector(company);
-
-  if (sector) {
-    const sectorElement = createElement(
-      "span",
-      "company-search__sector",
-      sector,
-    );
-
-    sectorElement.dir = "auto";
-
-    meta.append(sectorElement);
-  }
-
-  if (meta.childElementCount) {
-    content.append(meta);
-  }
-
-  button.append(content);
-
-  /* ------------------------------------------------------------------------
-     Action Indicator
-     ------------------------------------------------------------------------ */
-
-  const indicator = createElement(
-    "span",
-    "company-search__result-indicator has-icon icon-chevron-right",
-  );
-
-  indicator.setAttribute("aria-hidden", "true");
-
-  button.append(indicator);
-
-  /* ------------------------------------------------------------------------
-     Legacy Result Selection
-     ------------------------------------------------------------------------ */
-
-  button.addEventListener("click", () => {
-    selectCompany(company);
-  });
-
-  item.append(button);
-
-  return item;
-}
-
-/* ==========================================================================
-   Home Result
-   ========================================================================== */
-
-/**
- * Home discovery remains compact and uses its own
- * website-specific presentation.
- *
- * It shares:
- *
- * - normalized company data
- * - ranking
- * - search
- * - logo fallback
- * - Portal selection
- *
- * It does not inherit the modal result layout.
- */
-function createHomeResult(company, index) {
-  const item = createElement("li", "home-discovery-search__item");
-
-  const button = createElement("button", "home-discovery-search__result");
-
-  button.type = "button";
-
-  button.dataset.homeDiscoverySearchResult = "";
-
-  button.dataset.resultIndex = String(index);
-
-  if (company.symbol) {
-    button.dataset.symbol = company.symbol;
-  }
-
-  if (company.isin) {
-    button.dataset.isin = company.isin;
-  }
-
-  if (index === homeActiveIndex) {
-    button.classList.add(CSS.active);
-  }
-
-  /* ------------------------------------------------------------------------
-     Logo
-     ------------------------------------------------------------------------ */
-
-  button.append(
-    createLogo(company, {
-      rootClass: "home-discovery-search__logo",
-
-      imageClass: "home-discovery-search__logo-image",
-
-      initialsClass: "home-discovery-search__logo-initials",
-
-      size: 40,
-    }),
-  );
-
-  /* ------------------------------------------------------------------------
-     Content
-     ------------------------------------------------------------------------ */
-
-  const content = createElement("span", "home-discovery-search__content");
-
-  const primary = createElement("span", "home-discovery-search__primary");
-
-  const name = createElement(
-    "span",
-    "home-discovery-search__name",
-    companyName(company),
-  );
-
-  name.dir = "auto";
-
-  primary.append(name);
-
-  if (company.symbol) {
-    const symbol = createElement(
-      "span",
-      "home-discovery-search__symbol",
-      company.symbol,
-    );
-
-    symbol.dir = "ltr";
-    symbol.lang = "en";
-
-    primary.append(symbol);
-  }
-
-  if (company.isin) {
-    const isin = createElement(
-      "span",
-      "home-discovery-search__isin",
-      company.isin,
-    );
-
-    isin.dir = "ltr";
-    isin.lang = "en";
-
-    primary.append(isin);
-  }
-
-  content.append(primary);
-
-  const sector = companySector(company);
-
-  if (sector) {
-    const secondary = createElement("span", "home-discovery-search__secondary");
-
-    const sectorElement = createElement(
-      "span",
-      "home-discovery-search__sector",
-      sector,
-    );
-
-    sectorElement.dir = "auto";
-
-    secondary.append(sectorElement);
-
-    content.append(secondary);
-  }
-
-  button.append(content);
-
-  /* ------------------------------------------------------------------------
-     Action Indicator
-     ------------------------------------------------------------------------ */
-
-  const indicator = createElement(
-    "span",
-    "home-discovery-search__indicator has-icon icon-chevron-right",
-  );
-
-  indicator.setAttribute("aria-hidden", "true");
-
-  button.append(indicator);
-
-  /* ------------------------------------------------------------------------
-     Legacy Result Selection
-     ------------------------------------------------------------------------ */
-
-  button.addEventListener("click", () => {
-    selectCompany(company);
-  });
-
-  item.append(button);
-
-  return item;
-}
-/* ==========================================================================
-   Modal Rendering
-   ========================================================================== */
-
-function updateModalCount(count) {
-  if (!modalCount) {
-    return;
-  }
-
-  modalCount.textContent = String(count);
-
-  modalCount.setAttribute(
-    "aria-label",
-    `${count} ${count === 1 ? "result" : "results"}`,
-  );
-}
-
-function renderModalResults(items) {
-  if (!modalList) {
-    return;
-  }
-
-  modalMatches = items;
-  modalActiveIndex = -1;
-
-  clearElement(modalList);
-
-  updateModalCount(items.length);
-
-  setHidden(modalLoading, true);
-
-  setHidden(modalError, true);
-
-  if (!items.length) {
-    setHidden(modalResults, true);
-
-    setHidden(modalEmpty, false);
-
-    return;
-  }
-
-  const fragment = document.createDocumentFragment();
-
-  items.forEach((company, index) => {
-    fragment.append(createModalResult(company, index));
-  });
-
-  modalList.append(fragment);
-
-  setHidden(modalEmpty, true);
-
-  setHidden(modalResults, false);
-}
-
-/* ==========================================================================
-   Home Rendering
-   ========================================================================== */
-
-function renderHomeResults(items) {
-  if (!homeList) {
-    return;
-  }
-
-  homeMatches = items;
-  homeActiveIndex = -1;
-
-  clearElement(homeList);
-
-  setHidden(homeLoading, true);
-
-  setHidden(homeError, true);
-
-  setHidden(homeResults, false);
-
-  if (!items.length) {
-    setHidden(homeEmpty, false);
-
-    return;
-  }
-
-  const fragment = document.createDocumentFragment();
-
-  items.forEach((company, index) => {
-    fragment.append(createHomeResult(company, index));
-  });
-
-  homeList.append(fragment);
-
-  setHidden(homeEmpty, true);
-}
-
-/* ==========================================================================
-   Modal States
-   ========================================================================== */
-
-function showModalLoading() {
-  clearElement(modalList);
-
-  modalMatches = [];
-  modalActiveIndex = -1;
-
-  updateModalCount(0);
-
-  setHidden(modalResults, true);
-
-  setHidden(modalEmpty, true);
-
-  setHidden(modalError, true);
-
-  setHidden(modalLoading, false);
-}
-
-function showModalError() {
-  clearElement(modalList);
-
-  modalMatches = [];
-  modalActiveIndex = -1;
-
-  updateModalCount(0);
-
-  setHidden(modalResults, true);
-
-  setHidden(modalLoading, true);
-
-  setHidden(modalEmpty, true);
-
-  setHidden(modalError, false);
-}
-
-/* ==========================================================================
-   Home States
-   ========================================================================== */
-
-function showHomeLoading() {
-  clearElement(homeList);
-
-  homeMatches = [];
-  homeActiveIndex = -1;
-
-  setHidden(homeResults, false);
-
-  setHidden(homeEmpty, true);
-
-  setHidden(homeError, true);
-
-  setHidden(homeLoading, false);
-}
-
-function showHomeError() {
-  clearElement(homeList);
-
-  homeMatches = [];
-  homeActiveIndex = -1;
-
-  setHidden(homeResults, false);
-
-  setHidden(homeLoading, true);
-
-  setHidden(homeEmpty, true);
-
-  setHidden(homeError, false);
-}
-
-function clearHomeResults() {
-  clearElement(homeList);
-
-  homeMatches = [];
-  homeActiveIndex = -1;
-
-  setHidden(homeLoading, true);
-
-  setHidden(homeEmpty, true);
-
-  setHidden(homeError, true);
-
-  setHidden(homeResults, true);
-}
-
-/* ==========================================================================
-   Active Result Helpers
-   ========================================================================== */
-
-function setModalActiveIndex(index) {
-  if (!modalMatches.length || !modalList) {
-    modalActiveIndex = -1;
-
-    return;
-  }
-
-  modalActiveIndex =
-    ((index % modalMatches.length) + modalMatches.length) % modalMatches.length;
-
-  const buttons = modalList.querySelectorAll("[data-company-search-result]");
-
-  buttons.forEach((button, buttonIndex) => {
-    const active = buttonIndex === modalActiveIndex;
-
-    button.classList.toggle(CSS.active, active);
-
-    if (active) {
-      button.scrollIntoView({
-        block: "nearest",
-      });
-    }
-  });
-}
-
-function setHomeActiveIndex(index) {
-  if (!homeMatches.length || !homeList) {
-    homeActiveIndex = -1;
-
-    return;
-  }
-
-  homeActiveIndex =
-    ((index % homeMatches.length) + homeMatches.length) % homeMatches.length;
-
-  const buttons = homeList.querySelectorAll(
-    "[data-home-discovery-search-result]",
-  );
-
-  buttons.forEach((button, buttonIndex) => {
-    const active = buttonIndex === homeActiveIndex;
-
-    button.classList.toggle(CSS.active, active);
-
-    if (active) {
-      button.scrollIntoView({
-        block: "nearest",
-      });
-    }
-  });
-}
-
-/* ==========================================================================
-   Modal Search
-   ========================================================================== */
-
-function filterModal() {
-  if (!modalInput) {
-    return;
-  }
-
-  const query = modalInput.value.trim();
-
-  renderModalResults(searchCompanies(query));
-}
-
-/**
- * The generic modal controller owns opening and closing.
- *
- * Company Search only prepares its content.
- */
-function loadModalCompanies() {
-  if (!companies.length) {
-    showModalLoading();
-
-    return;
-  }
-
-  filterModal();
-}
-
-/* ==========================================================================
-   Home Search
-   ========================================================================== */
-
-function searchHome() {
-  if (!homeInput) {
-    return;
-  }
-
-  const query = homeInput.value.trim();
-
-  if (!query) {
-    clearHomeResults();
-
-    return;
-  }
+function createTemplates({ companies, showAllWhenEmpty }) {
+  const templates = {
+    header() {
+      return `
+        <div class="tt-section">
+          ${isArabic() ? "النتائج" : "Results"}
+        </div>
+      `;
+    },
+
+    suggestion(company) {
+      return suggestionTemplate(company);
+    },
+
+    notFound() {
+      return `
+        <span class="tt-empty-message">
+          ${isArabic() ? "لا توجد نتائج" : "No matches found"}
+        </span>
+      `;
+    },
+  };
 
   /**
-   * JSP may still be waiting for /api.
+   * Modal only:
+   *
+   * Show the complete company list
+   * while the query is empty.
    */
-  if (!companies.length) {
-    showHomeLoading();
-
-    return;
+  if (showAllWhenEmpty) {
+    templates.empty = function emptySuggestions() {
+      return sortCompanies(companies, "").slice(0, RESULT_LIMIT);
+    };
   }
 
-  renderHomeResults(
-    searchCompanies(query, {
-      limit: HOME_RESULT_LIMIT,
-    }),
-  );
-}
-
-function refreshVisibleHomeResults() {
-  if (!homeInput || !homeResults || homeResults.hidden) {
-    return;
-  }
-
-  const query = homeInput.value.trim();
-
-  if (!query) {
-    clearHomeResults();
-
-    return;
-  }
-
-  if (!companies.length) {
-    showHomeLoading();
-
-    return;
-  }
-
-  renderHomeResults(
-    searchCompanies(query, {
-      limit: HOME_RESULT_LIMIT,
-    }),
-  );
+  return templates;
 }
 
 /* ==========================================================================
-   Portal Data Events
+   Typeahead Instance
    ========================================================================== */
 
-/**
- * JSP publishes:
- *
- * window.dispatchEvent(
- *   new CustomEvent("company-search:data", {
- *     detail: {
- *       companies: window.searchableSymbols
- *     }
- *   })
- * );
- */
-function onCompanySearchData(event) {
-  const source = getCompaniesFromEvent(event);
-
-  /**
-   * Keep the Portal global authoritative because the
-   * legacy submitSearch() integration expects it.
-   */
-  window.searchableSymbols = source;
-
-  setCompanies(source);
-
-  /**
-   * If the modal is already open when the AJAX response
-   * arrives, immediately replace the loading state with
-   * the correct results.
-   */
-  if (modal && modal.getAttribute("aria-hidden") === "false") {
-    filterModal();
-  }
-
-  /**
-   * If the user already typed into the home search while
-   * the API was loading, refresh that visible query.
-   */
-  refreshVisibleHomeResults();
-}
-
-function onCompanySearchError() {
-  /**
-   * Do not replace usable data with an error if the Portal
-   * already supplied a company collection.
-   */
-  if (companies.length) {
+function initSearchInput({
+  typeahead,
+  input,
+  companies,
+  portalCompanies,
+  showAllWhenEmpty,
+}) {
+  if (!input) {
     return;
   }
 
-  if (modal && modal.getAttribute("aria-hidden") === "false") {
-    showModalError();
-  }
+  typeahead({
+    input,
 
-  if (homeInput?.value.trim()) {
-    showHomeError();
-  }
-}
+    /* ----------------------------------------------------------------------
+       Source
+       ---------------------------------------------------------------------- */
 
-/* ==========================================================================
-   Modal Keyboard Navigation
-   ========================================================================== */
+    source: {
+      local: companies,
 
-function onModalKeyDown(event) {
-  switch (event.key) {
-    case "ArrowDown":
-      if (!modalMatches.length) {
-        return;
-      }
+      keys: [
+        "companyNameEN",
+        "companyNameAR",
 
-      event.preventDefault();
+        "symbol",
+        "isin",
 
-      setModalActiveIndex(modalActiveIndex + 1);
+        "tradingNameEn",
+        "tradingNameAr",
 
-      break;
+        "sectorNameEn",
+        "sectorNameAr",
 
-    case "ArrowUp":
-      if (!modalMatches.length) {
-        return;
-      }
+        "__numericIsin",
+        "__numericSymbol",
+      ],
 
-      event.preventDefault();
+      identity(company) {
+        return company.__searchId;
+      },
+    },
 
-      setModalActiveIndex(
-        modalActiveIndex <= 0 ? modalMatches.length - 1 : modalActiveIndex - 1,
-      );
+    /* ----------------------------------------------------------------------
+       Search
+       ---------------------------------------------------------------------- */
 
-      break;
+    minLength: 1,
 
-    case "Home":
-      if (!modalMatches.length) {
-        return;
-      }
+    limit: RESULT_LIMIT,
 
-      event.preventDefault();
-
-      setModalActiveIndex(0);
-
-      break;
-
-    case "End":
-      if (!modalMatches.length) {
-        return;
-      }
-
-      event.preventDefault();
-
-      setModalActiveIndex(modalMatches.length - 1);
-
-      break;
-
-    case "Enter":
-      /**
-       * Selecting an explicitly highlighted result matches
-       * legacy Typeahead selection:
-       *
-       * submitSearch(
-       *   item.symbol,
-       *   window.searchableSymbols
-       * )
-       */
-      if (modalActiveIndex >= 0 && modalMatches[modalActiveIndex]) {
-        event.preventDefault();
-
-        selectCompany(modalMatches[modalActiveIndex]);
-      }
-
-      /**
-       * If there is no explicitly selected result,
-       * do NOT prevent Enter here.
-       *
-       * The form submit handler below receives the typed
-       * query exactly like the legacy `.search` form.
-       */
-
-      break;
+    highlight: true,
 
     /**
-     * Escape remains owned by the generic modal.
+     * Do not select the first
+     * company automatically.
      */
-    default:
-      break;
-  }
-}
+    autoSelect: false,
 
-/* ==========================================================================
-   Home Keyboard Navigation
-   ========================================================================== */
+    /**
+     * No ghost autocomplete text.
+     */
+    hint: false,
 
-function onHomeKeyDown(event) {
-  switch (event.key) {
-    case "ArrowDown":
-      if (!homeMatches.length) {
-        return;
-      }
+    preventSubmit: true,
 
-      event.preventDefault();
+    retainFocus: true,
 
-      setHomeActiveIndex(homeActiveIndex + 1);
+    listScrollOptions: {
+      block: "nearest",
+      inline: "nearest",
+      behavior: "auto",
+    },
 
-      break;
+    /* ----------------------------------------------------------------------
+       Display / Selection
+       ---------------------------------------------------------------------- */
 
-    case "ArrowUp":
-      if (!homeMatches.length) {
-        return;
-      }
-
-      event.preventDefault();
-
-      setHomeActiveIndex(
-        homeActiveIndex <= 0 ? homeMatches.length - 1 : homeActiveIndex - 1,
-      );
-
-      break;
-
-    case "Home":
-      if (!homeMatches.length) {
-        return;
-      }
-
-      event.preventDefault();
-
-      setHomeActiveIndex(0);
-
-      break;
-
-    case "End":
-      if (!homeMatches.length) {
-        return;
-      }
-
-      event.preventDefault();
-
-      setHomeActiveIndex(homeMatches.length - 1);
-
-      break;
-
-    case "Enter":
-      /**
-       * Explicit keyboard result selection behaves like
-       * selecting a legacy Typeahead suggestion.
-       */
-      if (homeActiveIndex >= 0 && homeMatches[homeActiveIndex]) {
-        event.preventDefault();
-
-        selectCompany(homeMatches[homeActiveIndex]);
-      }
+    display(company, event) {
+      const value = displayName(company);
 
       /**
-       * Otherwise allow the form's submit event to run.
-       * The raw typed query is submitted exactly like
-       * the old search form.
+       * Enter selection is owned
+       * by onSubmit().
+       *
+       * Pointer/Tab selection
+       * submits the company.
        */
+      const isEnter = event instanceof KeyboardEvent && event.key === "Enter";
 
-      break;
+      if (event && !isEnter) {
+        queueMicrotask(() => {
+          selectCompany(company, portalCompanies);
+        });
+      }
 
-    case "Escape":
-      clearHomeResults();
+      return value;
+    },
 
-      break;
+    /* ----------------------------------------------------------------------
+       Ranking
+       ---------------------------------------------------------------------- */
 
-    default:
-      break;
-  }
-}
+    hooks: {
+      async updateHits(resultSet) {
+        const query = resultSet.query || "";
 
-/* ==========================================================================
-   Form Submission
-   ========================================================================== */
+        let matches = Array.isArray(resultSet.hits) ? [...resultSet.hits] : [];
 
-/**
- * Exact legacy form behavior:
- *
- * var q = ($input.val() || '').trim();
- *
- * if (!q) return;
- *
- * window.submitSearch(
- *   q,
- *   window.searchableSymbols
- * );
- *
- * We intentionally do NOT:
- *
- * - replace the query with the first match
- * - require exactly one result
- * - manufacture a route
- * - navigate directly
- *
- * Portal submitSearch() remains authoritative.
- */
+        /**
+         * Broad legacy fallback.
+         */
+        if (!matches.length && query) {
+          matches = fallbackSearch(companies, query);
+        }
 
-function onModalSubmit(event) {
-  event.preventDefault();
+        matches = sortCompanies(matches, query).slice(0, RESULT_LIMIT);
 
-  submitPortalSearch(modalInput?.value);
-}
+        resultSet.hits = matches;
 
-function onHomeSubmit(event) {
-  event.preventDefault();
+        resultSet.count = matches.length;
 
-  submitPortalSearch(homeInput?.value);
-}
+        return resultSet;
+      },
+    },
 
-/* ==========================================================================
-   Home Outside Click
-   ========================================================================== */
+    /* ----------------------------------------------------------------------
+       Templates
+       ---------------------------------------------------------------------- */
 
-function onDocumentPointerDown(event) {
-  if (!homeForm || !homeResults || homeResults.hidden) {
+    templates: createTemplates({
+      companies,
+      showAllWhenEmpty,
+    }),
+
+    /* ----------------------------------------------------------------------
+       Enter
+       ---------------------------------------------------------------------- */
+
+    onSubmit(event, selectedCompany) {
+      event.preventDefault();
+
+      /**
+       * Explicitly highlighted item.
+       */
+      if (selectedCompany?.symbol) {
+        selectCompany(selectedCompany, portalCompanies);
+
+        return;
+      }
+
+      /**
+       * Nothing highlighted:
+       * submit raw query.
+       */
+      submitPortalSearch(input.value, portalCompanies);
+    },
+  });
+
+  /* ==========================================================================
+     Form Submit
+     ========================================================================== */
+
+  const form = input.closest("form");
+
+  if (!form) {
     return;
   }
 
-  if (event.target instanceof Node && !homeForm.contains(event.target)) {
-    clearHomeResults();
-  }
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    submitPortalSearch(input.value, portalCompanies);
+  });
 }
 
 /* ==========================================================================
-   Modal Trigger
+   Company Image Fallback
    ========================================================================== */
 
 /**
- * The trigger already contains:
+ * Fallback sequence:
  *
- * data-modal-open="companySearchModal"
- *
- * Therefore the generic modal controller owns opening.
- *
- * We only:
- *
- * - prepare search results
- * - focus the input after opening
+ * companyCode.jpg
+ *      ↓ error
+ * default-Logo.png
+ *      ↓ error
+ * remove image
+ *      ↓
+ * initials underneath become visible
  */
-function onModalTriggerClick() {
-  loadModalCompanies();
+function bindImageFallback() {
+  if (imageFallbackBound) {
+    return;
+  }
 
-  /**
-   * Allow the generic modal controller to complete its
-   * opening work before moving focus.
-   */
-  window.requestAnimationFrame(() => {
-    window.requestAnimationFrame(() => {
-      modalInput?.focus({
-        preventScroll: true,
-      });
-    });
-  });
-}
+  imageFallbackBound = true;
 
-/* ==========================================================================
-   DOM Resolution
-   ========================================================================== */
+  document.addEventListener(
+    "error",
+    (event) => {
+      const image = event.target;
 
-function resolveDom() {
-  modal = document.querySelector(SELECTORS.modal);
+      if (!(image instanceof HTMLImageElement)) {
+        return;
+      }
 
-  modalTriggers = Array.from(document.querySelectorAll(SELECTORS.modalTrigger));
+      if (!image.classList.contains("tt-company-image")) {
+        return;
+      }
 
-  modalForm = modal?.querySelector(SELECTORS.modalForm);
+      const stage = image.dataset.companyImageStage;
 
-  modalInput = modal?.querySelector(SELECTORS.modalInput);
+      /* --------------------------------------------------------------------
+         Company image failed
+         -------------------------------------------------------------------- */
 
-  modalResults = modal?.querySelector(SELECTORS.modalResults);
+      if (stage === "company") {
+        image.dataset.companyImageStage = "default";
 
-  modalList = modal?.querySelector(SELECTORS.modalList);
+        image.src = DEFAULT_COMPANY_IMAGE;
 
-  modalCount = modal?.querySelector(SELECTORS.modalCount);
+        return;
+      }
 
-  modalLoading = modal?.querySelector(SELECTORS.modalLoading);
+      /* --------------------------------------------------------------------
+         Default logo failed
+         -------------------------------------------------------------------- */
 
-  modalEmpty = modal?.querySelector(SELECTORS.modalEmpty);
-
-  modalError = modal?.querySelector(SELECTORS.modalError);
-
-  homeForm = document.querySelector(SELECTORS.homeForm);
-
-  homeInput = homeForm?.querySelector(SELECTORS.homeInput);
-
-  homeResults = homeForm?.querySelector(SELECTORS.homeResults);
-
-  homeList = homeForm?.querySelector(SELECTORS.homeList);
-
-  homeLoading = homeForm?.querySelector(SELECTORS.homeLoading);
-
-  homeEmpty = homeForm?.querySelector(SELECTORS.homeEmpty);
-
-  homeError = homeForm?.querySelector(SELECTORS.homeError);
-}
-
-/* ==========================================================================
-   Event Binding
-   ========================================================================== */
-
-function bindEvents() {
-  /* ------------------------------------------------------------------------
-     Modal Trigger
-     ------------------------------------------------------------------------ */
-
-  modalTriggers.forEach((trigger) => {
-    trigger.addEventListener("click", onModalTriggerClick);
-  });
-
-  /* ------------------------------------------------------------------------
-     Modal Search
-     ------------------------------------------------------------------------ */
-
-  modalInput?.addEventListener("input", filterModal);
-
-  modalInput?.addEventListener("keydown", onModalKeyDown);
-
-  modalForm?.addEventListener("submit", onModalSubmit);
-
-  /* ------------------------------------------------------------------------
-     Home Search
-     ------------------------------------------------------------------------ */
-
-  homeInput?.addEventListener("input", searchHome);
-
-  homeInput?.addEventListener("keydown", onHomeKeyDown);
-
-  homeForm?.addEventListener("submit", onHomeSubmit);
-
-  /* ------------------------------------------------------------------------
-     Home Dismissal
-     ------------------------------------------------------------------------ */
-
-  document.addEventListener("pointerdown", onDocumentPointerDown);
-
-  /* ------------------------------------------------------------------------
-     Portal / JSP Data Bridge
-     ------------------------------------------------------------------------ */
-
-  window.addEventListener(DATA_EVENT, onCompanySearchData);
-
-  window.addEventListener(ERROR_EVENT, onCompanySearchError);
-}
-
-/* ==========================================================================
-   Initial UI State
-   ========================================================================== */
-
-function initializeState() {
-  clearElement(modalList);
-  clearElement(homeList);
-
-  modalMatches = [];
-  homeMatches = [];
-
-  modalActiveIndex = -1;
-  homeActiveIndex = -1;
-
-  updateModalCount(0);
-
-  /* ------------------------------------------------------------------------
-     Modal
-     ------------------------------------------------------------------------ */
-
-  setHidden(modalResults, true);
-
-  setHidden(modalLoading, true);
-
-  setHidden(modalEmpty, true);
-
-  setHidden(modalError, true);
-
-  /* ------------------------------------------------------------------------
-     Home
-     ------------------------------------------------------------------------ */
-
-  setHidden(homeResults, true);
-
-  setHidden(homeLoading, true);
-
-  setHidden(homeEmpty, true);
-
-  setHidden(homeError, true);
+      image.remove();
+    },
+    true,
+  );
 }
 
 /* ==========================================================================
@@ -1852,38 +830,93 @@ export function initCompanySearch() {
     return;
   }
 
-  resolveDom();
+  /* ------------------------------------------------------------------------
+     Library
+     ------------------------------------------------------------------------ */
 
-  /**
-   * Do nothing on pages that contain neither company
-   * search surface.
-   */
-  if (!modal && !homeForm) {
+  const typeahead = window.typeahead;
+
+  if (typeof typeahead !== "function") {
+    console.error("CompanySearch: typeahead-standalone is not available.");
+
     return;
   }
 
-  initialized = true;
+  /* ------------------------------------------------------------------------
+     Search Surfaces
+     ------------------------------------------------------------------------ */
+
+  const surfaces = SEARCH_SURFACES.map((surface) => {
+    return {
+      ...surface,
+
+      input: document.querySelector(surface.selector),
+    };
+  }).filter((surface) => {
+    return Boolean(surface.input);
+  });
+
+  if (!surfaces.length) {
+    return;
+  }
+
+  /* ------------------------------------------------------------------------
+     Company Collection
+     ------------------------------------------------------------------------ */
+
+  const portalCompanies = getCompanies();
+
+  if (!portalCompanies.length) {
+    console.warn("CompanySearch: no company data found.");
+
+    return;
+  }
+
+  const companies = prepareCompanies(portalCompanies);
 
   /**
-   * Race-safe Portal initialization.
-   *
-   * Case A
-   * ------
-   * JSP AJAX completed before Vite initialized.
-   *
-   * window.searchableSymbols already contains the
-   * company collection, so read it immediately.
-   *
-   * Case B
-   * ------
-   * Vite initialized before JSP AJAX completed.
-   *
-   * The "company-search:data" listener receives the
-   * collection later.
+   * Preserve Portal contract with
+   * untouched original records.
    */
-  initializeCompanyData();
+  window.searchableSymbols = portalCompanies;
 
-  initializeState();
+  /* ------------------------------------------------------------------------
+     Initialize
+     ------------------------------------------------------------------------ */
 
-  bindEvents();
+  surfaces.forEach((surface) => {
+    initSearchInput({
+      typeahead,
+
+      input: surface.input,
+
+      companies,
+
+      portalCompanies,
+
+      showAllWhenEmpty: surface.showAllWhenEmpty,
+    });
+  });
+
+  bindImageFallback();
+
+  initialized = true;
+
+  /* ------------------------------------------------------------------------
+     Temporary Development Log
+     ------------------------------------------------------------------------ */
+
+  console.log("CompanySearch: initialized", {
+    companies: portalCompanies.length,
+
+    surfaces: surfaces.map((surface) => {
+      return {
+        input: surface.input.id,
+
+        showAllWhenEmpty: surface.showAllWhenEmpty,
+      };
+    }),
+
+    typeahead: typeof window.typeahead,
+  });
 }

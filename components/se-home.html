@@ -5924,15 +5924,15 @@
               </h3>
 
               <!-- ===============================================================
-             Search
-        ================================================================ -->
+     Search
+================================================================ -->
               <form
+                id="searchForm"
                 class="home-discovery-search"
                 role="search"
                 aria-label="Search companies, news, and market updates"
                 action="#"
                 method="get"
-                data-home-discovery-search
               >
                 <label
                   class="visually-hidden"
@@ -5949,74 +5949,22 @@
                 <input
                   id="home-discovery-search-input"
                   class="home-discovery-search__input"
-                  type="search"
+                  type="text"
                   name="q"
                   placeholder="Search companies, news, and updates"
                   autocomplete="off"
+                  inputmode="search"
                   enterkeyhint="search"
                   spellcheck="false"
-                  data-home-discovery-search-input
                 />
 
                 <button
+                  id="searchCompanyButton"
                   class="home-discovery-search__submit has-icon icon-chevron-right icon-flip-rtl"
                   type="submit"
                   aria-label="Submit search"
                 ></button>
-
-                <div
-                  class="home-discovery-search__results"
-                  data-home-discovery-search-results
-                  hidden
-                >
-                  <ul
-                    class="home-discovery-search__list"
-                    data-home-discovery-search-list
-                  ></ul>
-
-                  <div
-                    class="home-discovery-search__state"
-                    data-home-discovery-search-loading
-                    role="status"
-                    hidden
-                  >
-                    <span
-                      class="home-discovery-search__loading"
-                      aria-hidden="true"
-                    ></span>
-
-                    <span>Searching companies</span>
-                  </div>
-
-                  <div
-                    class="home-discovery-search__state"
-                    data-home-discovery-search-empty
-                    hidden
-                  >
-                    <span
-                      class="home-discovery-search__state-icon has-icon icon-search"
-                      aria-hidden="true"
-                    ></span>
-
-                    <span>No matching companies found.</span>
-                  </div>
-
-                  <div
-                    class="home-discovery-search__state"
-                    data-home-discovery-search-error
-                    role="alert"
-                    hidden
-                  >
-                    <span
-                      class="home-discovery-search__state-icon has-icon icon-info-warning"
-                      aria-hidden="true"
-                    ></span>
-
-                    <span> Company search is currently unavailable. </span>
-                  </div>
-                </div>
               </form>
-
               <!-- ===============================================================
              Quick Links
         ================================================================ -->
@@ -8568,26 +8516,32 @@
 
     <!-- ===============================================================
      Company Search Modal
-     =============================================================== -->
-
+================================================================ -->
     <div
       id="companySearchModal"
-      class="modal modal-lg modal-rounded modal-no-header modal-no-footer modal-visual company-search-modal"
+      class="modal modal-md modal-rounded modal-no-header modal-no-footer modal-visual company-search-modal"
       role="dialog"
       aria-modal="true"
       aria-hidden="true"
       aria-labelledby="companySearchModalTitle"
       aria-describedby="companySearchModalDescription"
-      data-company-search-modal
     >
+      <!-- =============================================================
+       Backdrop
+  ============================================================== -->
+
       <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
+
+      <!-- =============================================================
+       Dialog
+  ============================================================== -->
 
       <div class="modal-dialog">
         <div class="modal-content surface-hero">
           <div class="modal-body">
             <!-- =========================================================
              Heading
-             ========================================================= -->
+        ========================================================== -->
 
             <div class="modal-login-heading">
               <div>
@@ -8605,7 +8559,7 @@
 
             <!-- =========================================================
              Close
-             ========================================================= -->
+        ========================================================== -->
 
             <button
               class="modal-close"
@@ -8616,19 +8570,19 @@
 
             <!-- =========================================================
              Company Search
-             ========================================================= -->
+        ========================================================== -->
 
-            <div class="company-search" data-company-search>
+            <div class="company-search">
               <!-- =======================================================
-               Search Field
-               ======================================================= -->
+               Search Form
+          ======================================================== -->
 
               <form
+                id="companySearchForm"
                 class="company-search__form"
                 role="search"
                 action="#"
                 method="get"
-                data-company-search-form
               >
                 <label class="visually-hidden" for="companySearchInput">
                   Search companies
@@ -8643,113 +8597,17 @@
                   <input
                     id="companySearchInput"
                     class="form-control"
-                    type="search"
+                    type="text"
                     name="company"
                     placeholder="Search by company, symbol, ISIN, or sector"
                     autocomplete="off"
+                    inputmode="search"
                     enterkeyhint="search"
                     spellcheck="false"
-                    data-company-search-input
+                    data-modal-initial-focus
                   />
                 </div>
               </form>
-
-              <!-- =======================================================
-               Results
-               ======================================================= -->
-
-              <section
-                class="company-search__results"
-                aria-labelledby="companySearchResultsTitle"
-                data-company-search-results
-                hidden
-              >
-                <div class="company-search__results-header">
-                  <h3
-                    id="companySearchResultsTitle"
-                    class="company-search__results-title"
-                  >
-                    Results
-                  </h3>
-
-                  <span
-                    class="company-search__results-count"
-                    data-company-search-count
-                    aria-live="polite"
-                  >
-                    0
-                  </span>
-                </div>
-
-                <ul
-                  id="companySearchResultList"
-                  class="company-search__list"
-                  data-company-search-list
-                ></ul>
-              </section>
-
-              <!-- =======================================================
-               Loading State
-               ======================================================= -->
-
-              <div
-                class="company-search__state"
-                data-company-search-loading
-                role="status"
-                aria-live="polite"
-                hidden
-              >
-                <span class="company-search__loading" aria-hidden="true"></span>
-
-                <p class="company-search__state-title">Loading companies</p>
-
-                <p class="company-search__state-text">
-                  Please wait while company information is loaded.
-                </p>
-              </div>
-
-              <!-- =======================================================
-               Empty State
-               ======================================================= -->
-
-              <div
-                class="company-search__state"
-                data-company-search-empty
-                hidden
-              >
-                <span
-                  class="company-search__state-icon has-icon icon-search"
-                  aria-hidden="true"
-                ></span>
-
-                <p class="company-search__state-title">No matches found</p>
-
-                <p class="company-search__state-text">
-                  Try searching by company name, symbol, ISIN, or sector.
-                </p>
-              </div>
-
-              <!-- =======================================================
-               Error State
-               ======================================================= -->
-
-              <div
-                class="company-search__state"
-                data-company-search-error
-                role="alert"
-                hidden
-              >
-                <span
-                  class="company-search__state-icon has-icon icon-info-warning"
-                  aria-hidden="true"
-                ></span>
-
-                <p class="company-search__state-title">Search is unavailable</p>
-
-                <p class="company-search__state-text">
-                  Company information could not be loaded. Please try again.
-                </p>
-              </div>
             </div>
           </div>
         </div>
@@ -9928,6 +9786,61 @@
       title="Back to top"
     ></button>
   </body>
+  <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+
+  <script src="https://unpkg.com/typeahead-standalone@5.4.0/dist/typeahead-standalone.umd.js"></script>
+  <script type="application/json" id="company-search-data">
+    [
+      {
+        "companyCode": "2222",
+        "companyNameEN": "Saudi Aramco",
+        "companyNameAR": "أرامكو السعودية",
+        "symbol": "2222",
+        "isin": "SA14TG012N13",
+        "tradingNameEn": "ARAMCO",
+        "tradingNameAr": "أرامكو",
+        "sectorNameEn": "Energy",
+        "sectorNameAr": "الطاقة",
+        "market_type": "M"
+      },
+      {
+        "companyCode": "1120",
+        "companyNameEN": "Al Rajhi Bank",
+        "companyNameAR": "مصرف الراجحي",
+        "symbol": "1120",
+        "isin": "SA0007879113",
+        "tradingNameEn": "ALRAJHI",
+        "tradingNameAr": "الراجحي",
+        "sectorNameEn": "Banks",
+        "sectorNameAr": "البنوك",
+        "market_type": "M"
+      },
+      {
+        "companyCode": "2010",
+        "companyNameEN": "SABIC",
+        "companyNameAR": "سابك",
+        "symbol": "2010",
+        "isin": "SA0007879121",
+        "tradingNameEn": "SABIC",
+        "tradingNameAr": "سابك",
+        "sectorNameEn": "Materials",
+        "sectorNameAr": "المواد الأساسية",
+        "market_type": "M"
+      },
+      {
+        "companyCode": "7010",
+        "companyNameEN": "Saudi Telecom Company",
+        "companyNameAR": "شركة الاتصالات السعودية",
+        "symbol": "7010",
+        "isin": "SA0007879543",
+        "tradingNameEn": "STC",
+        "tradingNameAr": "اس تي سي",
+        "sectorNameEn": "Telecommunication Services",
+        "sectorNameAr": "خدمات الاتصالات",
+        "market_type": "M"
+      }
+    ]
+  </script>
   <script>
     (() => {
       "use strict";
