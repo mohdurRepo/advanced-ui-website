@@ -37,6 +37,329 @@
 			</div>
 
 
+	<script>
+		(function($) {
+			'use strict';
+
+			// =============================
+			// 0) i18n / direction
+			// =============================
+			var LANG = (document.documentElement.lang || 'en').toLowerCase();
+			document.documentElement.dir = (LANG === 'ar') ? 'rtl' : 'ltr';
+
+			// Arabic text encoded
+			var AR_LABEL = '\u0646\u0645\u0648\u0630\u062C \u0627\u0644\u0628\u062D\u062B \u0639\u0646 \u0634\u0631\u0643\u0629';
+			var AR_HEADER = '\u0627\u0644\u0646\u062A\u0627\u0626\u062C';
+			var AR_EMPTY = '\u0644\u0627 \u062A\u0648\u062C\u062F \u0646\u062A\u0627\u0626\u062C';
+
+			var HEADER_TEXT = (LANG === 'ar') ? AR_HEADER : 'Results';
+			var EMPTY_TEXT = (LANG === 'ar') ? AR_EMPTY : 'No matches found';
+
+			var $input = $('#searchInput');
+			if (!$input.length)
+				$input = $('#searchQuery');
+
+			var $label = $('label[for="searchInput"], label[for="searchQuery"]');
+			if ($label.length) {
+				$label.text((LANG === 'ar') ? AR_LABEL : 'Search form company');
+			}
+
+			// =============================
+			// 1) Helpers
+			// =============================
+			function displayName(item) {
+				return (LANG === 'ar' ? (item.companyNameAR || item.companyNameEN)
+						: (item.companyNameEN || item.companyNameAR));
+			}
+
+			function initials(str) {
+				var clean = (str || '').trim().split(/\s+/).filter(Boolean);
+				var chars = clean.slice(0, 2).map(function(s) {
+					return s[0];
+				});
+
+				if (LANG === 'ar') {
+					return chars.join(' '); // add space between arabic letters
+				}
+				return chars.join('').toUpperCase();
+			}
+
+			function companyDatumTokenizer(d) {
+				var tks = [];
+				function add(s) {
+					if (!s)
+						return;
+					s = String(s).toLowerCase();
+					tks.push(s);
+					s.split(/\s+/).forEach(function(v) {
+						if (v)
+							tks.push(v);
+					});
+					s.split(/[^a-z0-9]+/).forEach(function(v) {
+						if (v)
+							tks.push(v);
+					});
+				}
+				add(d.companyNameEN);
+				add(d.companyNameAR);
+				add(d.symbol);
+				add(d.isin);
+				add(d.tradingNameEn);
+				add(d.tradingNameAr);
+				add(d.sectorNameEn);
+				add(d.sectorNameAr);
+
+				if (d.isin) {
+					tks.push(d.isin.replace(/\D+/g, ''));
+				}
+				return tks;
+			}
+
+			function companyQueryTokenizer(q) {
+				q = String(q || '').toLowerCase().trim();
+				if (!q)
+					return [];
+				var parts = [ q ];
+				var digits = q.replace(/\D+/g, '');
+				if (digits && digits !== q)
+					parts.push(digits);
+				q.split(/[^a-z0-9]+/).forEach(function(v) {
+					parts.push(v);
+				});
+
+				var seen = {}, out = [];
+				parts.forEach(function(p) {
+					if (!seen[p]) {
+						seen[p] = true;
+						out.push(p);
+					}
+				});
+				return out;
+			}
+
+			// =============================
+			// 2) NEW Market-type ranking
+			// M → S → E → F → D → B/O → Others
+			// =============================
+			var MARKET_ORDER = {
+				"M" : 1,
+				"S" : 2,
+				"E" : 3,
+				"F" : 4,
+				"D" : 5,
+				"B" : 6,
+				"O" : 7
+			};
+
+			function marketRank(item) {
+				var mt = item.market_type || '';
+				return MARKET_ORDER[mt] || 99;
+			}
+
+			function rankQuery(a, b, q) {
+				var ma = marketRank(a);
+				var mb = marketRank(b);
+
+				if (ma !== mb)
+					return ma - mb;
+
+				var A = (displayName(a) + ' ' + (a.symbol || '') + ' ' + (a.isin || ''))
+						.toLowerCase();
+				var B = (displayName(b) + ' ' + (b.symbol || '') + ' ' + (b.isin || ''))
+						.toLowerCase();
+				var s = (q || '').toLowerCase();
+				var ia = A.indexOf(s), ib = B.indexOf(s);
+
+				if (ia === ib)
+					return displayName(a).localeCompare(displayName(b));
+				if (ia === 0 && ib !== 0)
+					return -1;
+				if (ib === 0 && ia !== 0)
+					return 1;
+				return ia - ib;
+			}
+
+			function suggestionTemplate(ctx) {
+				var name = displayName(ctx);
+
+				var avatar = '<span class="tt-initials" aria-hidden="true">'
+						+ initials(name) + '</span>';
+				var symChip = ctx.symbol ? '<span class="tt-ticker" dir="ltr" lang="en">'
+						+ ctx.symbol + '</span>'
+						: '';
+				var isinChip = ctx.isin ? '<span class="tt-isin" dir="ltr" lang="en">'
+						+ ctx.isin + '</span>'
+						: '';
+				var sector = (LANG === 'ar' ? ctx.sectorNameAr
+						: ctx.sectorNameEn)
+						|| '';
+
+				return ''
+						+ '<div class="tt-row">'
+						+ '<div class="tt-avatar">'
+						+ avatar
+						+ '</div>'
+						+ '<div class="tt-meta">'
+						+ '<div class="tt-title-row">'
+						+ '<span class="tt-title">'
+						+ name
+						+ '</span>'
+						+ symChip
+						+ isinChip
+						+ '</div>'
+						+ '<div class="tt-sub">'
+						+ (sector ? '<span class="tt-chip">' + sector
+								+ '</span>' : '') + '</div>' + '</div>'
+						+ '</div>';
+			}
+
+			// =============================
+			// 3) Typeahead initialization
+			// =============================
+			var engine = null;
+
+			function initTypeahead(DATA) {
+				if (!Array.isArray(DATA))
+					DATA = [];
+
+				try {
+					$input.typeahead('destroy');
+				} catch (e) {
+				}
+
+				engine = new Bloodhound({
+					datumTokenizer : companyDatumTokenizer,
+					queryTokenizer : companyQueryTokenizer,
+					local : DATA,
+					limit : 100,
+					sorter : function(a, b) {
+						return rankQuery(a, b, $input.val());
+					}
+				});
+
+				engine.initialize();
+
+				function sourceWithFallback(q, sync) {
+					engine
+							.get(
+									q,
+									function(res) {
+										if (res && res.length) {
+											sync(res); // return ALL results (scroll will handle overflow)
+											return;
+										}
+
+										var ql = String(q || '').toLowerCase();
+										var digits = ql.replace(/\D+/g, '');
+
+										var out = DATA
+												.filter(function(c) {
+													var hay = (displayName(c)
+															+ ' '
+															+ (c.symbol || '')
+															+ ' '
+															+ (c.isin || '')
+															+ ' '
+															+ (c.tradingNameEn || '')
+															+ ' '
+															+ (c.tradingNameAr || '')
+															+ ' '
+															+ (c.sectorNameEn || '')
+															+ ' ' + (c.sectorNameAr || ''))
+															.toLowerCase();
+													if (hay.indexOf(ql) >= 0)
+														return true;
+													if (digits
+															&& String(
+																	c.symbol
+																			|| '')
+																	.toLowerCase()
+																	.indexOf(
+																			digits) >= 0)
+														return true;
+													if (digits
+															&& String(
+																	c.isin
+																			|| '')
+																	.toLowerCase()
+																	.indexOf(
+																			digits) >= 0)
+														return true;
+													return false;
+												});
+
+										sync(out); // again: all results
+									});
+				}
+
+				$input
+						.typeahead(
+								{
+									hint : true,
+									highlight : true,
+									minLength : 1,
+									autoselect : true
+								},
+								{
+									name : 'companies',
+									display : displayName,
+									limit : Infinity, // allow all items
+									source : sourceWithFallback,
+									templates : {
+										header : '<div class="tt-section">'
+												+ HEADER_TEXT + '</div>',
+										suggestion : suggestionTemplate,
+										empty : '<div class="tt-empty">'
+												+ '<svg class="tt-empty-icon" viewBox="0 0 24 24" aria-hidden="true">'
+												+ '<path d="M9 18l6-6-6-6"/>'
+												+ '</svg>' + '<span>'
+												+ EMPTY_TEXT + '</span>'
+												+ '</div>'
+									}
+								})
+						.on(
+								'typeahead:selected',
+								function(e, item) {
+									if (typeof window.submitSearch === 'function') {
+										window.submitSearch(item.symbol,
+												window.searchableSymbols);
+									}
+								});
+			}
+
+			function getCompaniesList() {
+				return $
+						.ajax({
+							type : 'GET',
+							url : "/url",
+							error : function(err) {
+								console.error('GET company list failed', err);
+							},
+							success : function(msg) {
+								window.searchableSymbols = msg || [];
+								initTypeahead(window.searchableSymbols);
+							}
+						});
+			}
+
+			getCompaniesList();
+
+			// =============================
+			// 4) Submit wiring
+			// =============================
+			$(document).on('submit', '.search', function(e) {
+				e.preventDefault();
+				var q = ($input.val() || '').trim();
+				if (!q)
+					return;
+
+				if (typeof window.submitSearch === 'function') {
+					window.submitSearch(q, window.searchableSymbols);
+				}
+			});
+
+		})(jQuery);
+	</script>
 
             /*!
  * typeahead.js 0.10.5
