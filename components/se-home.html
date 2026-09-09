@@ -9849,91 +9849,84 @@
        Guard
        ========================================================================== */
 
-      if (window.__marketChartValidationInitialized) {
+      if (window.__marketPerformanceValidationInitialized) {
         return;
       }
 
-      window.__marketChartValidationInitialized = true;
+      window.__marketPerformanceValidationInitialized = true;
 
       /* ==========================================================================
-       Validation Configuration
+       Test Configuration
        ========================================================================== */
 
       /*
-       * Development acceleration:
+       * Validation acceleration:
        *
        * 5 real seconds = 1 simulated market minute.
        *
-       * This lets us validate minute-by-minute live behavior,
-       * catch-up, navigator updates and performance quickly.
-       *
-       * The chart timestamps themselves are still one minute apart.
+       * Production will use backend timestamps.
        */
       const POLL_INTERVAL = 5_000;
-
       const MARKET_STEP = 60_000;
 
       const CANDLE_BUCKET_SIZE = MARKET_STEP;
 
-      const LIVE_WINDOW_DURATION = 60 * 60 * 1_000;
+      /*
+       * Full Saudi session is approximately five hours.
+       * 360 points gives comfortable one-minute capacity
+       * while remaining tiny for Highstock.
+       */
+      const MAX_POINTS = 360;
 
       /*
-       * 240 one-minute points = 4 hours.
+       * Initial static session:
+       *
+       * 10:00 -> 10:59 Riyadh.
        */
-      const MAX_POINTS = 240;
-
       const INITIAL_MINUTES = 60;
 
       const API_TIMEOUT = 10_000;
-
-      const INACTIVE_REASON = "overview-inactive";
-
       const TIME_ZONE = "Asia/Riyadh";
 
+      const DAY = 24 * 60 * 60 * 1_000;
+
       /* ==========================================================================
-       Historical Range Definitions
+       Historical Ranges
        ========================================================================== */
 
       const RANGE_DEFINITIONS = Object.freeze({
         "1W": Object.freeze({
-          duration: 7 * 24 * 60 * 60 * 1_000,
-
+          duration: 7 * DAY,
           points: 140,
         }),
 
         "1M": Object.freeze({
-          duration: 30 * 24 * 60 * 60 * 1_000,
-
+          duration: 30 * DAY,
           points: 160,
         }),
 
         "3M": Object.freeze({
-          duration: 90 * 24 * 60 * 60 * 1_000,
-
+          duration: 90 * DAY,
           points: 180,
         }),
 
         "6M": Object.freeze({
-          duration: 180 * 24 * 60 * 60 * 1_000,
-
+          duration: 180 * DAY,
           points: 180,
         }),
 
         "1Y": Object.freeze({
-          duration: 365 * 24 * 60 * 60 * 1_000,
-
+          duration: 365 * DAY,
           points: 200,
         }),
 
         "5Y": Object.freeze({
-          duration: 5 * 365 * 24 * 60 * 60 * 1_000,
-
+          duration: 5 * 365 * DAY,
           points: 220,
         }),
 
         ALL: Object.freeze({
-          duration: 10 * 365 * 24 * 60 * 60 * 1_000,
-
+          duration: 10 * 365 * DAY,
           points: 240,
         }),
       });
@@ -9945,141 +9938,111 @@
       const MARKETS = Object.freeze([
         Object.freeze({
           key: "tasi",
-
           symbol: "TASI",
 
           nameEn: "Tadawul All Share Index",
-
           nameAr: "مؤشر السوق الرئيسية (تاسي)",
 
           currency: "SAR",
 
           previousClose: 10_838.1,
-
           decimals: 2,
 
           amplitude: 10.5,
-
           noise: 1.35,
-
           phase: 0.25,
 
           seed: 8_080_826,
 
           chartSelector: "#tasi-chart",
-
           panelSelector: "#market-panel-tasi",
         }),
 
         Object.freeze({
           key: "nomu",
-
           symbol: "NOMUC",
 
           nameEn: "Parallel Market Capped Index",
-
           nameAr: "مؤشر السوق الموازية (نمو حد أعلى)",
 
           currency: "SAR",
 
           previousClose: 25_420.75,
-
           decimals: 2,
 
           amplitude: 21,
-
           noise: 2.7,
-
           phase: 1.1,
 
           seed: 8_080_827,
 
           chartSelector: "#nomu-chart",
-
           panelSelector: "#market-panel-nomu",
         }),
 
         Object.freeze({
           key: "sukuk",
-
           symbol: "SUKUK",
 
           nameEn: "Sukuk/Bonds Market Index",
-
           nameAr: "مؤشر سوق الصكوك / السندات",
 
           currency: "SAR",
 
           previousClose: 985.35,
-
           decimals: 2,
 
           amplitude: 1.8,
-
           noise: 0.24,
-
           phase: 2.8,
 
           seed: 8_080_829,
 
           chartSelector: "#sukuk-chart",
-
           panelSelector: "#market-panel-sukuk",
         }),
 
         Object.freeze({
           key: "reits",
-
           symbol: "REITS",
 
           nameEn: "REITs Index",
-
           nameAr: "صناديق الاستثمار العقارية",
 
           currency: "SAR",
 
           previousClose: 824.65,
-
           decimals: 2,
 
           amplitude: 3.1,
-
           noise: 0.45,
-
           phase: 3.65,
 
           seed: 8_080_830,
 
           chartSelector: "#reits-chart",
-
           panelSelector: "#market-panel-funds",
         }),
 
         Object.freeze({
           key: "mt30",
-
           symbol: "MT30",
 
           nameEn: "MT30 Index",
-
           nameAr: "إم تي 30",
 
           currency: "SAR",
 
           previousClose: 1_426.4,
-
           decimals: 2,
 
           amplitude: 4.6,
-
           noise: 0.75,
-
           phase: 2.05,
 
           seed: 8_080_828,
 
           chartSelector: "#mt30-chart",
-
           panelSelector: "#market-panel-derivatives",
         }),
       ]);
@@ -10088,20 +10051,22 @@
        Runtime
        ========================================================================== */
 
-      const feeds = new Map();
-
-      const runtimes = new Map();
-
-      const panelObservers = [];
-
       const listenerController = new AbortController();
 
       let chartAPI = null;
 
+      /*
+       * Critical architecture:
+       *
+       * ONE runtime only.
+       *
+       * No Map.
+       * No cache.
+       * No inactive controller.
+       */
       let activeRuntime = null;
 
-      let activityFrame = null;
-
+      let switchTimer = null;
       let destroyed = false;
 
       /* ==========================================================================
@@ -10123,23 +10088,39 @@
       function getMessages(market) {
         const name = getMarketName(market);
 
-        if (isArabic()) {
-          return {
-            loading: `جارٍ تحميل بيانات ${name}…`,
+        return isArabic()
+          ? {
+              loading: `جارٍ تحميل بيانات ${name}…`,
 
-            empty: `بيانات ${name} غير متاحة حالياً.`,
+              empty: `بيانات ${name} غير متاحة حالياً.`,
 
-            error: `تعذر تحميل بيانات ${name}.`,
-          };
-        }
+              error: `تعذر تحميل بيانات ${name}.`,
+            }
+          : {
+              loading: `Loading ${name} data…`,
 
-        return {
-          loading: `Loading ${name} data…`,
+              empty: `${name} data is currently unavailable.`,
 
-          empty: `${name} data is currently unavailable.`,
+              error: `${name} data could not be loaded.`,
+            };
+      }
 
-          error: `${name} data could not be loaded.`,
-        };
+      function getLabels() {
+        return isArabic()
+          ? {
+              time: "الوقت",
+              date: "التاريخ",
+              value: "قيمة المؤشر",
+              live: "مباشر",
+              closed: "مغلق",
+            }
+          : {
+              time: "Time",
+              date: "Date",
+              value: "Index Value",
+              live: "Live",
+              closed: "Closed",
+            };
       }
 
       /* ==========================================================================
@@ -10179,7 +10160,7 @@
       }
 
       /* ==========================================================================
-       Riyadh Session Time
+       Riyadh Session
        ========================================================================== */
 
       function getRiyadhDateParts() {
@@ -10212,30 +10193,15 @@
         const { year, month, day } = getRiyadhDateParts();
 
         /*
-         * Saudi Arabia is UTC+03:00.
+         * Riyadh = UTC+03:00
          *
-         * 10:00 Riyadh
-         * =
-         * 07:00 UTC.
-         *
-         * The resulting value is a real
-         * epoch timestamp. Highcharts then
-         * displays it using Asia/Riyadh.
+         * 10:00 Riyadh = 07:00 UTC.
          */
-        return Date.UTC(
-          year,
-          month - 1,
-          day,
-
-          7,
-          0,
-          0,
-          0,
-        );
+        return Date.UTC(year, month - 1, day, 7, 0, 0, 0);
       }
 
       /* ==========================================================================
-       Abort Helper
+       Abort
        ========================================================================== */
 
       function throwIfAborted(signal) {
@@ -10255,10 +10221,10 @@
       }
 
       /* ==========================================================================
-       Candlestick Conversion
+       Candlestick Helpers
        ========================================================================== */
 
-      function createCandles(trend, market) {
+      function createHistoricalCandles(trend, market) {
         if (!Array.isArray(trend) || !trend.length) {
           return [];
         }
@@ -10270,11 +10236,7 @@
 
           const movement = Math.abs(close - open);
 
-          const spread = Math.max(
-            movement * 0.5,
-
-            market.noise * 0.2,
-          );
+          const spread = Math.max(movement * 0.5, market.noise * 0.2);
 
           const high = roundValue(
             Math.max(open, close) + spread,
@@ -10292,26 +10254,23 @@
             market.decimals,
           );
 
-          const candle = [
+          previousClose = close;
+
+          return [
             timestamp,
 
             roundValue(open, market.decimals),
 
             high,
-
             low,
 
             roundValue(close, market.decimals),
           ];
-
-          previousClose = close;
-
-          return candle;
         });
       }
 
       /* ==========================================================================
-       Historical Data
+       Historical Static Data
        ========================================================================== */
 
       function createHistoricalTrend(market, definition, seedOffset) {
@@ -10326,7 +10285,7 @@
         const scale = Math.max(
           1,
 
-          Math.log10(definition.duration / (24 * 60 * 60 * 1_000) + 10),
+          Math.log10(definition.duration / DAY + 10),
         );
 
         let price = market.previousClose - market.amplitude * 0.25 * scale;
@@ -10373,14 +10332,14 @@
 
           trend,
 
-          line: trend.map((point) => [...point]),
+          line: trend,
 
-          candlestick: createCandles(trend, market),
+          candlestick: createHistoricalCandles(trend, market),
         };
       }
 
       /* ==========================================================================
-       Live Market Feed
+       Static Live Feed
        ========================================================================== */
 
       function createMarketFeed(market) {
@@ -10393,28 +10352,29 @@
 
           sequence: 0,
 
-          history: [],
+          trend: [],
 
-          /*
-           * Real browser time used only
-           * to determine how many simulated
-           * market minutes have passed.
-           */
+          candles: [],
+
+          open: true,
+
           lastRealTickAt: Date.now(),
         };
 
         function trimHistory() {
-          const overflow = state.history.length - MAX_POINTS;
+          const overflow = state.trend.length - MAX_POINTS;
 
-          if (overflow <= 0) {
-            return;
+          if (overflow > 0) {
+            state.trend.splice(0, overflow);
+
+            state.candles.splice(0, overflow);
           }
-
-          state.history.splice(0, overflow);
         }
 
         function createPointAt(timestamp) {
           const sequence = state.sequence;
+
+          const open = state.price;
 
           const primary =
             Math.sin(sequence * 0.16 + market.phase) * market.amplitude * 0.72;
@@ -10430,7 +10390,7 @@
 
           const noise = (random() - 0.5) * market.noise;
 
-          const price = roundValue(
+          const close = roundValue(
             Math.max(
               0.01,
 
@@ -10440,54 +10400,90 @@
             market.decimals,
           );
 
-          const point = [timestamp, price];
+          const movement = Math.abs(close - open);
+
+          const wick = Math.max(
+            movement * 0.45,
+
+            market.noise * (0.15 + random() * 0.2),
+          );
+
+          const high = roundValue(
+            Math.max(open, close) + wick,
+
+            market.decimals,
+          );
+
+          const low = roundValue(
+            Math.max(
+              0.01,
+
+              Math.min(open, close) - wick,
+            ),
+
+            market.decimals,
+          );
+
+          const trendPoint = [timestamp, close];
+
+          const candle = [
+            timestamp,
+
+            roundValue(open, market.decimals),
+
+            high,
+            low,
+            close,
+          ];
 
           state.timestamp = timestamp;
 
-          state.price = price;
+          state.price = close;
 
           state.sequence += 1;
 
-          const last = state.history[state.history.length - 1];
+          state.trend.push(trendPoint);
 
-          if (!last || timestamp > last[0]) {
-            state.history.push(point);
-          } else if (timestamp === last[0]) {
-            state.history[state.history.length - 1] = point;
-          }
+          state.candles.push(candle);
 
           trimHistory();
 
-          return point;
+          return candle;
         }
 
-        /* ------------------------------------------------------------------------
+        /* ----------------------------------------------------------------------
          Seed 10:00 -> 10:59
-         ------------------------------------------------------------------------ */
+         ---------------------------------------------------------------------- */
 
-        function seedIntraday() {
-          const sessionStart = getRiyadhSessionStart();
+        function seed() {
+          const start = getRiyadhSessionStart();
 
-          state.timestamp = sessionStart - MARKET_STEP;
+          state.timestamp = start - MARKET_STEP;
 
           state.price = market.previousClose;
 
           state.sequence = 0;
 
-          state.history.length = 0;
+          state.trend.length = 0;
+
+          state.candles.length = 0;
 
           for (let minute = 0; minute < INITIAL_MINUTES; minute += 1) {
-            createPointAt(sessionStart + minute * MARKET_STEP);
+            createPointAt(start + minute * MARKET_STEP);
           }
 
           state.lastRealTickAt = Date.now();
         }
 
-        /* ------------------------------------------------------------------------
-         Catch-up
-         ------------------------------------------------------------------------ */
+        /* ----------------------------------------------------------------------
+         Simulated New Data
+         ---------------------------------------------------------------------- */
 
         function ensureCurrent() {
+          if (!state.open) {
+            return;
+          }
+
           const now = Date.now();
 
           const elapsed = Math.max(
@@ -10509,21 +10505,22 @@
           state.lastRealTickAt += missingSteps * POLL_INTERVAL;
         }
 
-        /* ------------------------------------------------------------------------
-         Range Data
-         ------------------------------------------------------------------------ */
+        /* ----------------------------------------------------------------------
+         Ranges
+         ---------------------------------------------------------------------- */
 
         function createIntradayRange() {
-          const trend = state.history.map((point) => [...point]);
-
           return {
             comparisonValue: market.previousClose,
 
-            trend,
+            trend: state.trend.map((point) => [...point]),
 
-            line: trend.map((point) => [...point]),
+            /*
+             * Trend and Line share geometry.
+             */
+            line: state.trend.map((point) => [...point]),
 
-            candlestick: createCandles(trend, market),
+            candlestick: state.candles.map((point) => [...point]),
           };
         }
 
@@ -10547,59 +10544,80 @@
           return ranges;
         }
 
-        /* ------------------------------------------------------------------------
+        /* ----------------------------------------------------------------------
          API-like `since`
-         ------------------------------------------------------------------------ */
+         ---------------------------------------------------------------------- */
 
         function getPointsSince(since) {
+          if (!state.open) {
+            return [];
+          }
+
           ensureCurrent();
 
           const timestamp = Number(since);
 
           if (!Number.isFinite(timestamp)) {
-            const latest = state.history[state.history.length - 1];
+            const latest = state.candles[state.candles.length - 1];
 
             return latest ? [[...latest]] : [];
           }
 
-          return state.history
+          /*
+           * Strictly newer timestamps.
+           *
+           * Same endpoint state after market
+           * close therefore performs zero
+           * Highcharts work.
+           */
+          return state.candles
             .filter((point) => point[0] > timestamp)
             .map((point) => [...point]);
         }
 
-        seedIntraday();
+        function close() {
+          state.open = false;
+
+          state.lastRealTickAt = Date.now();
+        }
+
+        function open() {
+          state.open = true;
+
+          /*
+           * Make one simulated minute immediately
+           * available to the next refresh.
+           */
+          state.lastRealTickAt = Date.now() - POLL_INTERVAL;
+        }
+
+        function getState() {
+          return {
+            open: state.open,
+
+            timestamp: state.timestamp,
+
+            price: state.price,
+
+            historyLength: state.trend.length,
+
+            sequence: state.sequence,
+          };
+        }
+
+        seed();
 
         return {
           createRanges,
-
           getPointsSince,
-
-          getState() {
-            return {
-              timestamp: state.timestamp,
-
-              historyLength: state.history.length,
-
-              sequence: state.sequence,
-            };
-          },
+          close,
+          open,
+          getState,
         };
       }
 
-      function getFeed(market) {
-        let feed = feeds.get(market.key);
-
-        if (!feed) {
-          feed = createMarketFeed(market);
-
-          feeds.set(market.key, feed);
-        }
-
-        return feed;
-      }
-
       /* ==========================================================================
-       DOM Resolution
+       DOM
        ========================================================================== */
 
       function resolveChartElement(market) {
@@ -10659,6 +10677,8 @@
           lastLiveMs: null,
 
           lastBatchSize: 0,
+
+          liveUpdates: 0,
         };
       }
 
@@ -10694,6 +10714,8 @@
         runtime.metrics.lastBatchSize =
           event.detail?.points?.length ?? (event.detail?.point ? 1 : 0);
 
+        runtime.metrics.liveUpdates += 1;
+
         runtime.metrics.fetchStartedAt = null;
       }
 
@@ -10702,8 +10724,10 @@
        ========================================================================== */
 
       function createChartConfiguration(market, panel, feed, metrics) {
+        const labels = getLabels();
+
         return {
-          context: "overview",
+          context: "performance",
 
           symbol: market.symbol,
 
@@ -10727,7 +10751,15 @@
 
           candleBucketSize: CANDLE_BUCKET_SIZE,
 
-          liveWindowDuration: LIVE_WINDOW_DURATION,
+          /*
+           * Keep one-hour focus available
+           * when genuinely NEW live data arrives.
+           *
+           * Initial chart is still full-session
+           * because market-chart.js now starts
+           * followLatest = false.
+           */
+          liveWindowDuration: 60 * 60 * 1_000,
 
           ranges: feed.createRanges(),
 
@@ -10747,42 +10779,114 @@
             root: panel,
           },
 
+          /* --------------------------------------------------------------------
+           Axis
+           -------------------------------------------------------------------- */
+
+          axis: {
+            x: {
+              title: {
+                "1D": labels.time,
+
+                default: labels.date,
+              },
+
+              rotation: {
+                "1D": 0,
+
+                default: -20,
+              },
+
+              labels: true,
+
+              showFirstLabel: true,
+
+              showLastLabel: true,
+
+              minPadding: 0,
+
+              maxPadding: 0,
+            },
+
+            y: {
+              opposite: true,
+
+              labels: true,
+
+              minPadding: 0.06,
+
+              maxPadding: 0.06,
+
+              format: {
+                decimals: market.decimals,
+
+                useGrouping: true,
+              },
+            },
+          },
+
+          yAxisTitle: labels.value,
+
+          /*
+           * null allows the range-aware
+           * Time / Date configuration above.
+           */
+          xAxisTitle: null,
+
+          /* --------------------------------------------------------------------
+           Navigator
+           -------------------------------------------------------------------- */
+
           navigatorEnabled: true,
 
           navigator: {
             enabled: true,
 
-            height: 38,
+            height: 40,
 
-            margin: 10,
+            margin: 14,
 
             handles: true,
 
             labels: true,
 
-            tickPixelInterval: 100,
+            /*
+             * Edge labels intentionally remain
+             * disabled by market-chart-options.js.
+             */
+            showFirstLabel: false,
+
+            showLastLabel: false,
+
+            tickPixelInterval: 110,
 
             dataGrouping: false,
           },
 
+          /* --------------------------------------------------------------------
+           Export
+           -------------------------------------------------------------------- */
+
           /*
-           * Export is disabled only for
-           * this market-chart instance.
+           * Highcharts API enabled.
            *
-           * Highcharts exporting modules
-           * remain available for other
-           * chart components/pages.
+           * Native Highcharts hamburger hidden.
+           *
+           * Our new custom menu remains visible.
            */
           exporting: {
-            enabled: false,
+            enabled: true,
+
+            showContextButton: false,
+
+            fallbackToExportServer: false,
+
+            sourceWidth: 1_200,
+
+            sourceHeight: 675,
+
+            scale: 2,
           },
-
-          yAxisTitle: isArabic() ? "قيمة المؤشر" : "Index Value",
-
-          /*
-           * Keep the overview clean.
-           */
-          xAxisTitle: false,
 
           animation: false,
 
@@ -10792,6 +10896,10 @@
 
           messages: getMessages(market),
 
+          /* --------------------------------------------------------------------
+           Live
+           -------------------------------------------------------------------- */
+
           live: {
             enabled: true,
 
@@ -10799,16 +10907,16 @@
 
             alignToInterval: false,
 
+            /*
+             * Initial snapshot already exists.
+             */
             immediate: false,
 
             /*
-             * Intentional:
+             * Browser-tab pause only.
              *
-             * hidden browser tab
-             * -> stop timer
-             * -> resume
-             * -> request everything since
-             *    the last chart timestamp.
+             * Market-tab switching destroys
+             * the entire chart instead.
              */
             pauseWhenHidden: true,
 
@@ -10821,54 +10929,108 @@
 
               metrics.fetchStartedAt = performance.now();
 
-              /*
-               * In production this becomes:
-               *
-               * fetch(
-               *   `/api/market/${market.symbol}?since=${since}`,
-               *   { signal }
-               * )
-               *
-               * and the endpoint may return:
-               *
-               * {
-               *   points: [...]
-               * }
-               */
               const points = feed.getPointsSince(since);
 
               throwIfAborted(signal);
 
-              return {
-                points,
-              };
+              /*
+               * Empty means:
+               *
+               * market unchanged / market closed.
+               */
+              return points.length
+                ? {
+                    points,
+                  }
+                : null;
             },
 
             onError(error, metadata) {
-              console.error(
-                `${market.symbol} live validation failed.`,
+              if (error?.name === "AbortError") {
+                return;
+              }
 
-                {
-                  error,
-                  metadata,
-                },
-              );
+              console.error(`${market.symbol} live validation failed.`, {
+                error,
+                metadata,
+              });
             },
           },
         };
       }
 
       /* ==========================================================================
-       Runtime Creation
+       Market Status
        ========================================================================== */
 
-      function createRuntime(market) {
-        const existing = runtimes.get(market.key);
-
-        if (existing) {
-          return existing;
+      function updateMarketStatus(runtime, open) {
+        if (!runtime?.panel) {
+          return;
         }
 
+        const labels = getLabels();
+
+        const statusText = runtime.panel.querySelector(
+          "[data-chart-live-status]",
+        );
+
+        if (statusText) {
+          statusText.textContent = open ? labels.live : labels.closed;
+        }
+
+        const statusIcon = runtime.panel.querySelector(".market-status");
+
+        if (statusIcon) {
+          statusIcon.classList.toggle("market-status--open", open);
+
+          statusIcon.classList.toggle("market-status--closed", !open);
+        }
+      }
+
+      /* ==========================================================================
+       Active Runtime
+       ========================================================================== */
+
+      function destroyActiveRuntime() {
+        const runtime = activeRuntime;
+
+        if (!runtime) {
+          return;
+        }
+
+        /*
+         * Remove runtime-specific DOM listener first.
+         */
+        runtime.listenerController.abort();
+
+        try {
+          /*
+           * This destroys:
+           *
+           * - live controller;
+           * - active request;
+           * - polling timer;
+           * - Highcharts instance;
+           * - ResizeObserver;
+           * - theme observer;
+           * - chart listeners.
+           */
+          runtime.controller?.destroy();
+        } catch (error) {
+          console.error(
+            `${runtime.market.symbol} chart destruction failed.`,
+            error,
+          );
+        }
+
+        if (runtime.panel.marketChartController === runtime.controller) {
+          delete runtime.panel.marketChartController;
+        }
+
+        activeRuntime = null;
+      }
+
+      function createRuntime(market) {
         const chartElement = resolveChartElement(market);
 
         if (!chartElement) {
@@ -10887,9 +11049,17 @@
           return null;
         }
 
-        const feed = getFeed(market);
+        /*
+         * Fresh feed every time the market
+         * tab is selected.
+         *
+         * No feed cache.
+         */
+        const feed = createMarketFeed(market);
 
         const metrics = createMetrics();
+
+        const runtimeListener = new AbortController();
 
         panel.setAttribute("aria-busy", "true");
 
@@ -10906,6 +11076,8 @@
         panel.setAttribute("aria-busy", "false");
 
         if (!controller) {
+          runtimeListener.abort();
+
           console.error(`${market.symbol}: chart controller was not created.`);
 
           return null;
@@ -10913,21 +11085,14 @@
 
         const runtime = {
           market,
-
           panel,
-
           chartElement,
-
           controller,
-
           feed,
-
           metrics,
 
-          active: true,
+          listenerController: runtimeListener,
         };
-
-        runtimes.set(market.key, runtime);
 
         panel.marketChartController = controller;
 
@@ -10939,9 +11104,11 @@
           },
 
           {
-            signal: listenerController.signal,
+            signal: runtimeListener.signal,
           },
         );
+
+        updateMarketStatus(runtime, true);
 
         console.info(
           `[Market Chart] ${market.symbol} created in ${metrics.createMs.toFixed(
@@ -10953,50 +11120,11 @@
       }
 
       /* ==========================================================================
-       Runtime Activity
+       Selected Market
        ========================================================================== */
 
-      function deactivateRuntime(runtime) {
-        if (!runtime || !runtime.active) {
-          return;
-        }
-
-        runtime.active = false;
-
-        /*
-         * Keep Highcharts and all data
-         * in memory.
-         *
-         * Only polling/render work pauses.
-         */
-        runtime.controller.setActive(false, INACTIVE_REASON);
-      }
-
-      function activateRuntime(runtime) {
-        if (!runtime) {
-          return;
-        }
-
-        if (runtime.active) {
-          return;
-        }
-
-        runtime.active = true;
-
-        /*
-         * The live controller resumes
-         * immediately and requests all
-         * missing points via `since`.
-         */
-        runtime.controller.setActive(true, INACTIVE_REASON);
-      }
-
-      /* ==========================================================================
-       Active Market Synchronization
-       ========================================================================== */
-
-      function syncActiveChart() {
-        activityFrame = null;
+      function syncSelectedMarket() {
+        switchTimer = null;
 
         if (destroyed || !chartAPI) {
           return;
@@ -11005,98 +11133,316 @@
         const market = getVisibleMarket();
 
         if (!market) {
-          if (activeRuntime) {
-            deactivateRuntime(activeRuntime);
-
-            activeRuntime = null;
-          }
-
-          return;
-        }
-
-        if (activeRuntime?.market.key === market.key) {
-          activateRuntime(activeRuntime);
+          /*
+           * If there is temporarily no visible
+           * tab during a transition, do not keep
+           * the old chart alive.
+           */
+          destroyActiveRuntime();
 
           return;
         }
 
-        if (activeRuntime) {
-          deactivateRuntime(activeRuntime);
-        }
-
-        const runtime = createRuntime(market);
-
-        if (!runtime) {
-          activeRuntime = null;
+        if (activeRuntime?.market?.key === market.key) {
+          /*
+           * Already the only active chart.
+           */
+          activeRuntime.controller?.getChart()?.reflow();
 
           return;
         }
 
-        activateRuntime(runtime);
+        /*
+         * Important:
+         *
+         * destroy OLD market completely
+         * BEFORE creating the new one.
+         */
+        destroyActiveRuntime();
 
-        activeRuntime = runtime;
+        activeRuntime = createRuntime(market);
       }
 
-      function scheduleActiveChartSync() {
-        if (destroyed || activityFrame !== null) {
+      function scheduleSelectedMarketSync() {
+        if (destroyed) {
           return;
         }
 
-        activityFrame = requestAnimationFrame(syncActiveChart);
+        if (switchTimer !== null) {
+          window.clearTimeout(switchTimer);
+        }
+
+        /*
+         * Wait until the tab component has
+         * finished applying hidden/classes.
+         *
+         * Event-driven only.
+         *
+         * No MutationObserver.
+         */
+        switchTimer = window.setTimeout(syncSelectedMarket, 0);
       }
 
       /* ==========================================================================
-       Panel Observation
+       Tab Events
        ========================================================================== */
 
-      function observePanels() {
-        if (typeof MutationObserver !== "function") {
-          return;
-        }
+      function bindMarketTabs() {
+        const overview =
+          document.querySelector("[data-market-overview]") || document;
 
-        const observed = new Set();
-
-        for (const market of MARKETS) {
-          const chartElement = resolveChartElement(market);
-
-          const panel = resolvePanel(market, chartElement);
-
-          const viewPanel =
-            chartElement?.closest("[data-market-view-panel]") || null;
-
-          for (const element of [panel, viewPanel]) {
-            if (!element || observed.has(element)) {
-              continue;
-            }
-
-            observed.add(element);
-
-            const observer = new MutationObserver(scheduleActiveChartSync);
-
-            /*
-             * Observe only visibility-owning
-             * elements, never Highcharts SVG.
-             */
-            observer.observe(element, {
-              attributes: true,
-
-              attributeFilter: ["hidden", "aria-hidden", "class", "style"],
-            });
-
-            panelObservers.push(observer);
-          }
-        }
-      }
-
-      function bindOverviewActivity() {
-        document.querySelector("[data-market-overview]")?.addEventListener(
+        /*
+         * Generic click-based tabs.
+         */
+        overview.addEventListener(
           "click",
 
-          scheduleActiveChartSync,
+          scheduleSelectedMarketSync,
 
           {
             passive: true,
 
+            signal: listenerController.signal,
+          },
+        );
+
+        /*
+         * Bootstrap-style tab event if present.
+         *
+         * Harmless when Bootstrap is not used.
+         */
+        overview.addEventListener(
+          "shown.bs.tab",
+
+          scheduleSelectedMarketSync,
+
+          {
+            signal: listenerController.signal,
+          },
+        );
+
+        /*
+         * Optional project-level event.
+         */
+        overview.addEventListener(
+          "marketviewchange",
+
+          scheduleSelectedMarketSync,
+
+          {
+            signal: listenerController.signal,
+          },
+        );
+
+        window.addEventListener(
+          "hashchange",
+
+          scheduleSelectedMarketSync,
+
+          {
+            signal: listenerController.signal,
+          },
+        );
+      }
+
+      /* ==========================================================================
+       Custom Export Menu
+       ========================================================================== */
+
+      function closeExportMenus() {
+        document
+          .querySelectorAll("[data-chart-export-menu]")
+          .forEach((menu) => {
+            menu.setAttribute("hidden", "");
+          });
+
+        document
+          .querySelectorAll("[data-chart-export-trigger]")
+          .forEach((trigger) => {
+            trigger.setAttribute("aria-expanded", "false");
+          });
+      }
+
+      function toggleExportMenu(trigger) {
+        const root = trigger.closest("[data-chart-export]");
+
+        const menu = root?.querySelector("[data-chart-export-menu]");
+
+        if (!menu) {
+          return;
+        }
+
+        const opening = menu.hasAttribute("hidden");
+
+        closeExportMenus();
+
+        if (!opening) {
+          return;
+        }
+
+        menu.removeAttribute("hidden");
+
+        trigger.setAttribute("aria-expanded", "true");
+      }
+
+      function getExportFilename() {
+        const runtime = activeRuntime;
+
+        if (!runtime) {
+          return "market-performance";
+        }
+
+        const state = runtime.controller.getState();
+
+        return [runtime.market.symbol, state.range, state.mode, "performance"]
+          .join("-")
+          .toLowerCase();
+      }
+
+      function executeExport(action) {
+        const chart = activeRuntime?.controller?.getChart();
+
+        if (!chart) {
+          return;
+        }
+
+        const filename = getExportFilename();
+
+        switch (action) {
+          case "fullscreen":
+            chart.fullscreen?.toggle?.();
+
+            break;
+
+          case "print":
+            chart.print?.();
+
+            break;
+
+          case "png":
+            chart.exportChart?.({
+              type: "image/png",
+
+              filename,
+            });
+
+            break;
+
+          case "pdf":
+            chart.exportChart?.({
+              type: "application/pdf",
+
+              filename,
+            });
+
+            break;
+
+          default:
+            break;
+        }
+      }
+
+      function bindExportUI() {
+        document.addEventListener(
+          "click",
+
+          (event) => {
+            const trigger = event.target?.closest?.(
+              "[data-chart-export-trigger]",
+            );
+
+            if (trigger) {
+              event.preventDefault();
+              event.stopPropagation();
+
+              toggleExportMenu(trigger);
+
+              return;
+            }
+
+            const actionButton = event.target?.closest?.(
+              "[data-export-action]",
+            );
+
+            if (actionButton) {
+              event.preventDefault();
+              event.stopPropagation();
+
+              const action = actionButton.dataset.exportAction;
+
+              closeExportMenus();
+
+              try {
+                executeExport(action);
+              } catch (error) {
+                console.error(`Chart export "${action}" failed.`, error);
+              }
+
+              return;
+            }
+
+            if (!event.target?.closest?.("[data-chart-export]")) {
+              closeExportMenus();
+            }
+          },
+
+          {
+            signal: listenerController.signal,
+          },
+        );
+
+        document.addEventListener(
+          "keydown",
+
+          (event) => {
+            if (event.key !== "Escape") {
+              return;
+            }
+
+            closeExportMenus();
+          },
+
+          {
+            signal: listenerController.signal,
+          },
+        );
+      }
+
+      /* ==========================================================================
+       Compare Test Hook
+       ========================================================================== */
+
+      function bindCompareUI() {
+        document.addEventListener(
+          "click",
+
+          (event) => {
+            const button = event.target?.closest?.("[data-chart-compare]");
+
+            if (!button) {
+              return;
+            }
+
+            const active = button.getAttribute("aria-pressed") !== "true";
+
+            button.setAttribute("aria-pressed", active ? "true" : "false");
+
+            button.classList.toggle("is-active", active);
+
+            button.dispatchEvent(
+              new CustomEvent("marketperformancecomparechange", {
+                bubbles: true,
+
+                detail: {
+                  active,
+
+                  controller: activeRuntime?.controller || null,
+                },
+              }),
+            );
+          },
+
+          {
             signal: listenerController.signal,
           },
         );
@@ -11107,23 +11453,32 @@
        ========================================================================== */
 
       function getPerformanceReport() {
-        return [...runtimes.values()].map((runtime) => {
-          const state = runtime.controller.getState();
+        const runtime = activeRuntime;
 
-          const chart = runtime.controller.getChart();
+        if (!runtime) {
+          return [];
+        }
 
-          const mainSeries = chart?.series?.find(
-            (series) =>
-              !series.options?.isInternal &&
-              series.options?.id !== "market-chart-navigator-series",
-          );
+        const state = runtime.controller.getState();
 
-          const samples = runtime.metrics.liveSamples;
+        const chart = runtime.controller.getChart();
 
-          return {
+        const mainSeries = chart?.series?.find(
+          (series) =>
+            !series.options?.isInternal &&
+            series.options?.id !== "market-chart-navigator-series",
+        );
+
+        const samples = runtime.metrics.liveSamples;
+
+        return [
+          {
             market: runtime.market.symbol,
 
-            active: runtime.active,
+            /*
+             * This should ALWAYS be 1.
+             */
+            activeCharts: 1,
 
             range: state.range,
 
@@ -11133,7 +11488,11 @@
 
             followLatest: state.navigator?.followLatest,
 
+            userDetached: state.navigator?.userDetachedFromLive,
+
             liveState: state.live?.state ?? "off",
+
+            marketOpen: runtime.feed.getState().open,
 
             points: mainSeries?.data?.length ?? 0,
 
@@ -11149,8 +11508,10 @@
               : null,
 
             lastBatch: runtime.metrics.lastBatchSize,
-          };
-        });
+
+            liveUpdates: runtime.metrics.liveUpdates,
+          },
+        ];
       }
 
       function report() {
@@ -11162,7 +11523,71 @@
       }
 
       /* ==========================================================================
-       Chart API Readiness
+       Market Close Test
+       ========================================================================== */
+
+      function closeMarket() {
+        const runtime = activeRuntime;
+
+        if (!runtime) {
+          return false;
+        }
+
+        runtime.feed.close();
+
+        /*
+         * No need to keep polling a known
+         * closed market in this test.
+         */
+        runtime.controller.pauseLive("market-closed");
+
+        updateMarketStatus(runtime, false);
+
+        /*
+         * If testing 1D, market close returns
+         * to the complete trading session.
+         */
+        const state = runtime.controller.getState();
+
+        if (state.range === "1D") {
+          runtime.controller.setRange("1D", {
+            resetViewport: true,
+          });
+        }
+
+        console.info(
+          `[Market Chart] ${runtime.market.symbol} simulated market close.`,
+        );
+
+        return true;
+      }
+
+      function openMarket() {
+        const runtime = activeRuntime;
+
+        if (!runtime) {
+          return false;
+        }
+
+        runtime.feed.open();
+
+        updateMarketStatus(runtime, true);
+
+        /*
+         * Removing the matching pause
+         * reason resumes this one chart.
+         */
+        runtime.controller.resumeLiveUpdates("market-closed");
+
+        console.info(
+          `[Market Chart] ${runtime.market.symbol} simulated market reopen.`,
+        );
+
+        return true;
+      }
+
+      /* ==========================================================================
+       Chart API
        ========================================================================== */
 
       function waitForChartAPI() {
@@ -11170,6 +11595,10 @@
           const started = performance.now();
 
           function check() {
+            if (destroyed) {
+              return;
+            }
+
             const api = window.SEMarketCharts;
 
             if (api && typeof api.create === "function") {
@@ -11188,7 +11617,7 @@
               return;
             }
 
-            setTimeout(check, 25);
+            window.setTimeout(check, 25);
           }
 
           check();
@@ -11226,39 +11655,17 @@
 
         listenerController.abort();
 
-        for (const observer of panelObservers) {
-          observer.disconnect();
+        if (switchTimer !== null) {
+          window.clearTimeout(switchTimer);
+
+          switchTimer = null;
         }
 
-        panelObservers.length = 0;
+        closeExportMenus();
 
-        if (activityFrame !== null) {
-          cancelAnimationFrame(activityFrame);
+        destroyActiveRuntime();
 
-          activityFrame = null;
-        }
-
-        for (const runtime of runtimes.values()) {
-          try {
-            runtime.controller.destroy();
-          } catch (error) {
-            console.error(
-              `${runtime.market.symbol} chart destruction failed.`,
-
-              error,
-            );
-          }
-
-          if (runtime.panel.marketChartController === runtime.controller) {
-            delete runtime.panel.marketChartController;
-          }
-        }
-
-        runtimes.clear();
-
-        feeds.clear();
-
-        activeRuntime = null;
+        chartAPI = null;
       }
 
       /* ==========================================================================
@@ -11272,28 +11679,16 @@
           return activeRuntime?.controller || null;
         },
 
-        get(symbol) {
-          const value = String(symbol || "").toLowerCase();
-
-          const runtime = [...runtimes.values()].find(
-            (item) =>
-              item.market.symbol.toLowerCase() === value ||
-              item.market.key === value,
-          );
-
-          return runtime?.controller || null;
+        getChart() {
+          return activeRuntime?.controller?.getChart() || null;
         },
 
-        getFeed(symbol) {
-          const value = String(symbol || "").toLowerCase();
+        getFeed() {
+          return activeRuntime?.feed?.getState() || null;
+        },
 
-          const runtime = [...runtimes.values()].find(
-            (item) =>
-              item.market.symbol.toLowerCase() === value ||
-              item.market.key === value,
-          );
-
-          return runtime?.feed?.getState() || null;
+        getMarket() {
+          return activeRuntime?.market || null;
         },
 
         refreshLive() {
@@ -11308,6 +11703,12 @@
           );
         },
 
+        closeMarket,
+
+        openMarket,
+
+        sync: scheduleSelectedMarketSync,
+
         destroy: destroyValidation,
       };
 
@@ -11321,11 +11722,19 @@
 
           chartAPI = await waitForChartAPI();
 
-          observePanels();
+          if (destroyed) {
+            return;
+          }
 
-          bindOverviewActivity();
+          bindMarketTabs();
+          bindExportUI();
+          bindCompareUI();
 
-          scheduleActiveChartSync();
+          /*
+           * Create only the market that is
+           * currently visible.
+           */
+          syncSelectedMarket();
 
           window.addEventListener(
             "pagehide",
@@ -11337,7 +11746,7 @@
             },
           );
 
-          console.info("[Market Chart] validation ready.", {
+          console.info("[Market Chart] single-runtime validation ready.", {
             displayTimeZone: TIME_ZONE,
 
             sessionStart: "10:00",
@@ -11348,14 +11757,21 @@
 
             maxPoints: MAX_POINTS,
 
+            runtimeCache: false,
+
+            hiddenCharts: 0,
+
             animation: false,
           });
 
-          console.info("Performance: marketChartTest.report()");
+          console.info("Report: marketChartTest.report()");
+
+          console.info("Close test: marketChartTest.closeMarket()");
+
+          console.info("Reopen test: marketChartTest.openMarket()");
         } catch (error) {
           console.error(
             "[Market Chart] validation initialization failed.",
-
             error,
           );
         }

@@ -16,40 +16,24 @@
        Production Configuration
        ========================================================================== */
 
-    /*
-     * Overview market data refreshes once per minute.
-     */
     const LIVE_INTERVAL = 60_000;
-
-    /*
-     * Keep approximately the latest trading hour visible
-     * while the chart is following the live edge.
-     */
     const LIVE_WINDOW_DURATION = 60 * 60 * 1_000;
 
     /*
-     * Four hours of one-minute observations.
+     * A full Saudi intraday session is longer than
+     * the previous 240-point / four-hour limit.
      *
-     * Enough for navigator context while keeping every
-     * Highcharts operation small.
+     * 360 one-minute observations keeps the complete
+     * session available while remaining very small
+     * for Highstock.
      */
-    const MAX_POINTS = 240;
+    const MAX_POINTS = 360;
 
     const REQUEST_TIMEOUT = 10_000;
+    const API_READY_TIMEOUT = 10_000;
 
     const TIME_ZONE = "Asia/Riyadh";
-
-    /*
-     * Backend dateTime values without an explicit timezone
-     * represent Saudi market time.
-     *
-     * Saudi Arabia is permanently UTC+03:00.
-     */
     const RIYADH_OFFSET = "+03:00";
-
-    const INACTIVE_REASON = "overview-inactive";
-
-    const API_READY_TIMEOUT = 10_000;
 
     /* ==========================================================================
        Markets
@@ -74,11 +58,6 @@
 
       Object.freeze({
         key: "nomu",
-
-        /*
-         * Page key is `nomu`.
-         * Existing backend contract uses `nomuc`.
-         */
         apiId: "nomuc",
 
         symbol: "NOMUC",
@@ -122,10 +101,6 @@
         decimals: 2,
 
         chartSelector: "#reits-chart",
-
-        /*
-         * REITs chart is inside Funds.
-         */
         panelSelector: "#market-panel-funds",
       }),
 
@@ -142,10 +117,6 @@
         decimals: 2,
 
         chartSelector: "#mt30-chart",
-
-        /*
-         * MT30 chart is inside Derivatives.
-         */
         panelSelector: "#market-panel-derivatives",
       }),
     ]);
@@ -154,33 +125,22 @@
        Runtime
        ========================================================================== */
 
-    /*
-     * One Highcharts controller per market after first visit.
-     *
-     * Changing tabs suspends the old controller instead
-     * of destroying/recreating it.
-     */
-    const runtimes = new Map();
-
-    /*
-     * Initial requests are cancellable.
-     *
-     * If the user switches tabs before a market's first
-     * request finishes, that unused request is aborted.
-     */
-    const pendingCreations = new Map();
-
-    const panelObservers = [];
-
     const listenerController = new AbortController();
 
     let chartAPI = null;
 
+    /*
+     * Exactly ONE Highcharts/controller runtime.
+     */
     let activeRuntime = null;
 
-    let activityFrame = null;
+    /*
+     * Exactly ONE initial API request may be pending.
+     */
+    let pendingCreation = null;
 
-    let activityRevision = 0;
+    let syncFrame = null;
+    let syncRevision = 0;
 
     let destroyed = false;
 
@@ -263,35 +223,27 @@
       }
 
       /* ------------------------------------------------------------------------
-         Numeric Epoch
+         Numeric epoch
          ------------------------------------------------------------------------ */
 
-      if (typeof value === "number" || /^\d+$/.test(String(value).trim())) {
+      const text = String(value).trim();
+
+      if (typeof value === "number" || /^\d+$/.test(text)) {
         const numeric = Number(value);
 
         if (!Number.isFinite(numeric)) {
           return null;
         }
 
-        /*
-         * Seconds -> milliseconds.
-         */
         return numeric < 10_000_000_000 ? numeric * 1_000 : numeric;
       }
 
-      const source = String(value).trim();
+      const source = text;
 
       /* ------------------------------------------------------------------------
-         Already Zoned
+         Zoned date/time
          ------------------------------------------------------------------------ */
 
-      /*
-       * Examples:
-       *
-       * 2026-09-07T10:00:00Z
-       * 2026-09-07T10:00:00+03:00
-       * 2026-09-07T10:00:00+0300
-       */
       if (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(source)) {
         const timestamp = Date.parse(source);
 
@@ -299,7 +251,7 @@
       }
 
       /* ------------------------------------------------------------------------
-         Saudi Local ISO DateTime
+         Saudi local ISO date/time
          ------------------------------------------------------------------------ */
 
       const isoLocalMatch = source.match(
@@ -331,7 +283,7 @@
       }
 
       /* ------------------------------------------------------------------------
-         Saudi Local DD/MM/YYYY
+         Saudi local DD/MM/YYYY
          ------------------------------------------------------------------------ */
 
       const dayFirstMatch = source.match(
@@ -352,7 +304,7 @@
       }
 
       /*
-       * Final fallback for any backend representation
+       * Final fallback for backend representations
        * already understood by the browser.
        */
       const timestamp = Date.parse(source);
@@ -374,7 +326,7 @@
       params.set("methodType", "parsingMethod");
 
       /* ------------------------------------------------------------------------
-         Existing chart type contract
+         Existing backend chart type
          ------------------------------------------------------------------------ */
 
       let chartType = "SQL_MI_MSPV";
@@ -423,9 +375,8 @@
       }
 
       /*
-       * The backend may contain duplicate timestamps.
-       *
-       * Latest occurrence wins.
+       * Duplicate timestamp:
+       * latest backend occurrence wins.
        */
       const byTimestamp = new Map();
 
@@ -445,15 +396,13 @@
         byTimestamp.set(timestamp, [timestamp, value]);
       }
 
-      /*
-       * Highstock expects monotonically ordered X values.
-       */
       const points = [...byTimestamp.values()].sort(
         (first, second) => first[0] - second[0],
       );
 
       /*
-       * Overview does not need an unbounded session history.
+       * Keep one complete intraday session,
+       * not an unbounded history.
        */
       return points.length > MAX_POINTS ? points.slice(-MAX_POINTS) : points;
     }
@@ -505,21 +454,11 @@
         });
       }
 
-      /*
-       * Needed for first-load requests.
-       *
-       * Live requests are also protected by the live
-       * controller's requestTimeout.
-       */
-      const timeoutId = window.setTimeout(
-        () => {
-          timedOut = true;
+      const timeoutId = window.setTimeout(() => {
+        timedOut = true;
 
-          controller.abort();
-        },
-
-        REQUEST_TIMEOUT,
-      );
+        controller.abort();
+      }, REQUEST_TIMEOUT);
 
       try {
         const response = await fetch(url, {
@@ -540,9 +479,7 @@
           );
         }
 
-        const payload = await response.json();
-
-        return normalizeSnapshot(payload);
+        return normalizeSnapshot(await response.json());
       } catch (error) {
         if (timedOut) {
           const timeoutError = new Error(
@@ -582,28 +519,33 @@
       const sinceTimestamp = toTimestamp(since);
 
       /*
-       * No existing chart data:
-       *
-       * return the whole bounded snapshot so the live
-       * controller can recover from an initial-load failure.
+       * Recovery from an empty initial chart.
        */
       if (sinceTimestamp === null) {
         return snapshot;
       }
 
       /*
-       * Include the existing latest timestamp too.
+       * Critical production behavior:
        *
-       * This allows Highcharts Point.update() to correct
-       * the current market minute if the backend changes it.
+       * STRICTLY NEWER timestamps only.
        *
-       * Any genuinely newer points become the catch-up batch.
+       * If the backend repeatedly returns the same
+       * final market-close snapshot:
+       *
+       * → []
+       * → live controller returns null
+       * → no Point.update()
+       * → no setData()
+       * → no navigator update
+       * → no redraw
+       * → no setExtremes()
        */
-      return snapshot.filter((point) => point[0] >= sinceTimestamp);
+      return snapshot.filter((point) => point[0] > sinceTimestamp);
     }
 
     /* ==========================================================================
-       DOM Resolution
+       DOM
        ========================================================================== */
 
     function resolveChartElement(market) {
@@ -646,7 +588,7 @@
     }
 
     /* ==========================================================================
-       Comparison Value
+       Comparison
        ========================================================================== */
 
     function resolveComparisonValue(points) {
@@ -655,17 +597,14 @@
       }
 
       /*
-       * Current endpoint does not expose a separate
-       * previous-close value.
-       *
-       * Until it does, use the first valid chart point
-       * as this Overview chart's comparison baseline.
+       * Current Overview endpoint does not expose
+       * a separate previous-close field.
        */
       return toFiniteNumber(points[0]?.[1]);
     }
 
     /* ==========================================================================
-       Market Chart Configuration
+       Chart Configuration
        ========================================================================== */
 
     function createChartOptions(market, panel, initialPoints) {
@@ -685,11 +624,9 @@
         previousClose: comparisonValue,
 
         /*
-         * Overview is intentionally one
-         * simple intraday trend chart.
+         * Overview remains intentionally simple.
          */
         mode: "trend",
-
         range: "1D",
 
         language: getLanguage(),
@@ -700,12 +637,14 @@
 
         maxPoints: MAX_POINTS,
 
+        /*
+         * Initial chart = complete available session.
+         *
+         * This live window is applied by market-chart.js
+         * only after a genuinely newer timestamp arrives.
+         */
         liveWindowDuration: LIVE_WINDOW_DURATION,
 
-        /*
-         * Highcharts animation is not useful for a dashboard
-         * receiving one-minute market updates.
-         */
         animation: false,
 
         xAxisTitle: labels.time,
@@ -715,9 +654,6 @@
         capabilities: {
           intraday: true,
 
-          /*
-           * No historical/detail ranges on Overview.
-           */
           historical: false,
 
           live: true,
@@ -733,6 +669,10 @@
 
             rotation: 0,
 
+            /*
+             * market-chart-options.js now guarantees
+             * the real first intraday timestamp.
+             */
             showFirstLabel: true,
 
             showLastLabel: true,
@@ -744,8 +684,7 @@
 
           y: {
             /*
-             * Overview value axis remains physically
-             * on the right in both LTR and RTL.
+             * Physically right in both LTR/RTL.
              */
             opposite: true,
 
@@ -791,17 +730,18 @@
           },
         },
 
-        /*
-         * One application dataset.
-         *
-         * No candlestick data and no detail ranges.
-         */
         ranges: {
           "1D": {
             comparisonValue,
 
             trend: initialPoints,
 
+            /*
+             * Same immutable initial geometry.
+             *
+             * market-chart.js shares live trend/line
+             * storage after the first update.
+             */
             line: initialPoints,
           },
         },
@@ -811,7 +751,7 @@
         },
 
         /* ----------------------------------------------------------------------
-           Highstock Navigator
+           Navigator
            ---------------------------------------------------------------------- */
 
         navigatorEnabled: true,
@@ -821,17 +761,24 @@
 
           labels: true,
 
-          height: 38,
+          height: 34,
 
-          margin: 10,
+          margin: 14,
 
           handles: true,
 
-          handleWidth: 7,
+          handleWidth: 6,
 
-          handleHeight: 20,
+          handleHeight: 16,
 
-          tickPixelInterval: 105,
+          /*
+           * Main X axis owns exact edge time labels.
+           */
+          showFirstLabel: false,
+
+          showLastLabel: false,
+
+          tickPixelInterval: 110,
 
           dataGrouping: false,
         },
@@ -840,12 +787,6 @@
            Export
            ---------------------------------------------------------------------- */
 
-        /*
-         * Disabled for this component only.
-         *
-         * Highcharts exporting modules remain available
-         * globally for other pages/charts.
-         */
         exporting: {
           enabled: false,
         },
@@ -859,22 +800,18 @@
 
           interval: LIVE_INTERVAL,
 
-          /*
-           * Poll on real minute boundaries.
-           */
           alignToInterval: true,
 
           /*
-           * We already requested the initial snapshot
-           * before creating Highcharts.
+           * Initial snapshot was fetched before
+           * Highstock creation.
            */
           immediate: false,
 
           /*
-           * Hidden browser tabs do not poll.
+           * Browser-tab visibility only.
            *
-           * On return, the controller resumes and asks
-           * for everything since its latest timestamp.
+           * Market tabs no longer use suspension.
            */
           pauseWhenHidden: true,
 
@@ -889,22 +826,15 @@
 
             const points = selectLivePoints(snapshot, since);
 
+            /*
+             * No newer timestamp:
+             *
+             * true no-op.
+             */
             if (!points.length) {
               return null;
             }
 
-            /*
-             * The new controller accepts one point OR a
-             * batch through the same live callback.
-             *
-             * Normal minute:
-             *   [same/latest point, new point]
-             *   -> one bounded synchronization/redraw.
-             *
-             * Return after hidden tab:
-             *   all points >= since
-             *   -> one catch-up setData()/redraw.
-             */
             return {
               points,
             };
@@ -931,16 +861,64 @@
     }
 
     /* ==========================================================================
+       Runtime Destruction
+       ========================================================================== */
+
+    function destroyActiveRuntime() {
+      const runtime = activeRuntime;
+
+      if (!runtime) {
+        return;
+      }
+
+      /*
+       * Immediately detach it from global state so no
+       * later callback considers this market active.
+       */
+      activeRuntime = null;
+
+      try {
+        /*
+         * market-chart.js destroy():
+         *
+         * - destroys live controller;
+         * - aborts active live request;
+         * - removes polling timer;
+         * - disconnects chart observers;
+         * - destroys Highstock.
+         */
+        runtime.controller?.destroy();
+      } catch (error) {
+        console.error(
+          `${runtime.market.symbol} chart destruction failed.`,
+          error,
+        );
+      }
+
+      if (runtime.panel.marketChartController === runtime.controller) {
+        delete runtime.panel.marketChartController;
+      }
+    }
+
+    /* ==========================================================================
+       Pending Initial Request
+       ========================================================================== */
+
+    function cancelPendingCreation() {
+      if (!pendingCreation) {
+        return;
+      }
+
+      pendingCreation.controller.abort();
+
+      pendingCreation = null;
+    }
+
+    /* ==========================================================================
        Runtime Creation
        ========================================================================== */
 
     async function createRuntime(market, signal) {
-      const existing = runtimes.get(market.key);
-
-      if (existing) {
-        return existing;
-      }
-
       const chartElement = resolveChartElement(market);
 
       if (!chartElement) {
@@ -967,13 +945,10 @@
 
       try {
         /*
-         * Fetch before constructing Highcharts.
+         * API first.
          *
-         * This avoids:
-         *
-         * empty chart
-         * -> snapshot
-         * -> immediate structural chart rebuild
+         * Highstock is not constructed until the
+         * selected market snapshot is available.
          */
         initialPoints = await requestSnapshot(market, signal);
       } catch (error) {
@@ -984,22 +959,22 @@
         }
 
         /*
-         * Temporary first-load failure does not permanently
-         * kill the chart.
-         *
-         * The live controller can recover on its next retry.
+         * Allow live polling to recover from a
+         * temporary initial API failure.
          */
         console.error(`${market.symbol} initial chart request failed.`, error);
       }
 
-      if (destroyed || signal?.aborted) {
+      if (destroyed || signal.aborted) {
         panel.setAttribute("aria-busy", "false");
 
         return null;
       }
 
+      let controller = null;
+
       try {
-        const controller = chartAPI.create(
+        controller = chartAPI.create(
           chartElement,
 
           createChartOptions(market, panel, initialPoints),
@@ -1014,15 +989,7 @@
           panel,
           chartElement,
           controller,
-
-          /*
-           * Newly-created charts are created only for
-           * the currently visible tab.
-           */
-          active: true,
         };
-
-        runtimes.set(market.key, runtime);
 
         panel.marketChartController = controller;
 
@@ -1030,6 +997,8 @@
 
         return runtime;
       } catch (error) {
+        controller?.destroy();
+
         panel.setAttribute("aria-busy", "false");
 
         console.error(`${market.symbol} chart initialization failed.`, error);
@@ -1039,283 +1008,149 @@
     }
 
     /* ==========================================================================
-       Pending Creation
+       Selected Market Synchronization
        ========================================================================== */
 
-    function cancelPendingCreation(marketKey) {
-      const pending = pendingCreations.get(marketKey);
+    async function synchronizeSelectedMarket() {
+      syncFrame = null;
 
-      if (!pending) {
-        return;
-      }
-
-      pending.controller.abort();
-
-      pendingCreations.delete(marketKey);
-    }
-
-    function cancelOtherPendingCreations(activeMarketKey) {
-      for (const marketKey of pendingCreations.keys()) {
-        if (marketKey !== activeMarketKey) {
-          cancelPendingCreation(marketKey);
-        }
-      }
-    }
-
-    function ensureRuntime(market) {
-      const existing = runtimes.get(market.key);
-
-      if (existing) {
-        return Promise.resolve(existing);
-      }
-
-      const pending = pendingCreations.get(market.key);
-
-      if (pending) {
-        return pending.promise;
-      }
-
-      const controller = new AbortController();
-
-      const promise = createRuntime(market, controller.signal).finally(() => {
-        const current = pendingCreations.get(market.key);
-
-        if (current?.controller === controller) {
-          pendingCreations.delete(market.key);
-        }
-      });
-
-      pendingCreations.set(market.key, {
-        controller,
-        promise,
-      });
-
-      return promise;
-    }
-
-    /* ==========================================================================
-       Runtime Activity
-       ========================================================================== */
-
-    function deactivateRuntime(runtime) {
-      if (!runtime || !runtime.active) {
-        return;
-      }
-
-      runtime.active = false;
-
-      /*
-       * Keep Highstock/data in memory.
-       *
-       * market-chart.js now handles suspension:
-       *
-       * - live polling pauses
-       * - rendering is deferred
-       * - resize/theme work is avoided
-       */
-      runtime.controller.setActive?.(false, INACTIVE_REASON);
-    }
-
-    function activateRuntime(runtime) {
-      if (!runtime) {
-        return;
-      }
-
-      if (runtime.active) {
-        return;
-      }
-
-      runtime.active = true;
-
-      /*
-       * market-chart.js resumes the live controller.
-       *
-       * The next request receives:
-       *
-       * since = controller's latest stored timestamp
-       *
-       * so the full backend snapshot is reduced to only
-       * the relevant catch-up points.
-       */
-      runtime.controller.setActive?.(true, INACTIVE_REASON);
-    }
-
-    /* ==========================================================================
-       Visible Market Synchronization
-       ========================================================================== */
-
-    async function synchronizeVisibleMarket(revision) {
       if (destroyed || !chartAPI) {
         return;
       }
 
       const market = getVisibleMarket();
 
-      /* ------------------------------------------------------------------------
-         Nothing Visible
-         ------------------------------------------------------------------------ */
-
-      if (!market) {
-        if (activeRuntime) {
-          deactivateRuntime(activeRuntime);
-
-          activeRuntime = null;
-        }
-
-        cancelOtherPendingCreations(null);
-
-        return;
-      }
-
       /*
-       * Do not finish creating a chart the user
-       * has already navigated away from.
+       * Already exactly the market we need.
        */
-      cancelOtherPendingCreations(market.key);
+      if (market && activeRuntime?.market?.key === market.key) {
+        activeRuntime.controller?.getChart()?.reflow();
 
-      /* ------------------------------------------------------------------------
-         Same Market
-         ------------------------------------------------------------------------ */
-
-      if (activeRuntime?.market.key === market.key) {
-        activateRuntime(activeRuntime);
-
-        return;
-      }
-
-      /* ------------------------------------------------------------------------
-         Suspend Previous
-         ------------------------------------------------------------------------ */
-
-      if (activeRuntime) {
-        deactivateRuntime(activeRuntime);
-
-        activeRuntime = null;
-      }
-
-      /* ------------------------------------------------------------------------
-         Create / Reuse Selected Market
-         ------------------------------------------------------------------------ */
-
-      const runtime = await ensureRuntime(market);
-
-      if (destroyed || !runtime) {
         return;
       }
 
       /*
-       * Network request may have taken time.
-       *
-       * Never activate a result for a tab that is
-       * no longer selected.
+       * Same market is already loading.
        */
       if (
-        revision !== activityRevision ||
+        market &&
+        !activeRuntime &&
+        pendingCreation?.marketKey === market.key
+      ) {
+        return;
+      }
+
+      const revision = ++syncRevision;
+
+      /*
+       * Any previous initial request is no longer useful.
+       */
+      cancelPendingCreation();
+
+      /*
+       * The old market must disappear completely.
+       *
+       * No hidden Highcharts instance survives
+       * while the selected market loads.
+       */
+      destroyActiveRuntime();
+
+      if (!market) {
+        return;
+      }
+
+      const creationController = new AbortController();
+
+      pendingCreation = {
+        marketKey: market.key,
+
+        controller: creationController,
+      };
+
+      const runtime = await createRuntime(market, creationController.signal);
+
+      if (pendingCreation?.controller === creationController) {
+        pendingCreation = null;
+      }
+
+      /*
+       * The user may have selected another tab while
+       * the network request was in flight.
+       */
+      if (
+        destroyed ||
+        creationController.signal.aborted ||
+        revision !== syncRevision ||
         getVisibleMarket()?.key !== market.key
       ) {
-        deactivateRuntime(runtime);
+        runtime?.controller?.destroy();
 
         return;
       }
 
       activeRuntime = runtime;
 
-      activateRuntime(runtime);
+      if (runtime) {
+        console.info(
+          `[Market Chart] ${market.symbol} active — one Highstock instance.`,
+        );
+      }
     }
 
-    function syncActiveChart() {
-      activityFrame = null;
-
-      activityRevision += 1;
-
-      const revision = activityRevision;
-
-      void synchronizeVisibleMarket(revision);
-    }
-
-    function scheduleActiveChartSync() {
-      if (destroyed || activityFrame !== null) {
+    function scheduleSelectedMarketSync() {
+      if (destroyed || syncFrame !== null) {
         return;
       }
 
       /*
-       * One tab selection may alter multiple classes,
-       * hidden attributes and aria-hidden values.
+       * One frame lets the page's tab component finish
+       * updating hidden/aria/class state first.
        *
-       * Collapse all of them into one resolution.
+       * Event-driven only.
+       *
+       * No MutationObserver.
        */
-      activityFrame = window.requestAnimationFrame(syncActiveChart);
+      syncFrame = window.requestAnimationFrame(() => {
+        void synchronizeSelectedMarket();
+      });
     }
 
     /* ==========================================================================
-       Visibility Observation
+       Market Tab Events
        ========================================================================== */
 
-    function observeElement(element, observed) {
-      if (!element || observed.has(element)) {
-        return;
-      }
-
-      observed.add(element);
-
-      const observer = new MutationObserver(scheduleActiveChartSync);
+    function bindMarketActivity() {
+      const root = document.querySelector("[data-market-overview]") || document;
 
       /*
-       * Observe only elements responsible for page visibility.
+       * Existing tab implementation.
        *
-       * Never observe the Highcharts SVG subtree.
+       * We resolve the actually-visible market after
+       * its own click handler has completed.
        */
-      observer.observe(element, {
-        attributes: true,
+      root.addEventListener("click", scheduleSelectedMarketSync, {
+        passive: true,
 
-        attributeFilter: ["hidden", "aria-hidden", "class", "style", "open"],
+        signal: listenerController.signal,
       });
 
-      panelObservers.push(observer);
-    }
-
-    function observePanels() {
-      if (typeof MutationObserver !== "function") {
-        return;
-      }
-
-      const observed = new Set();
-
-      for (const market of MARKETS) {
-        const chartElement = resolveChartElement(market);
-
-        const panel = resolvePanel(market, chartElement);
-
-        const viewPanel =
-          chartElement?.closest("[data-market-view-panel]") || null;
-
-        observeElement(panel, observed);
-
-        observeElement(viewPanel, observed);
-      }
+      /*
+       * Bootstrap-compatible tab event.
+       */
+      root.addEventListener("shown.bs.tab", scheduleSelectedMarketSync, {
+        signal: listenerController.signal,
+      });
 
       /*
-       * Closing the parent Overview disclosure may
-       * hide every chart without mutating each market tab.
+       * Optional application-level event.
        */
-      observeElement(
-        document.querySelector("[data-market-details-disclosure]"),
-        observed,
-      );
-    }
+      root.addEventListener("marketviewchange", scheduleSelectedMarketSync, {
+        signal: listenerController.signal,
+      });
 
-    /* ==========================================================================
-       Overview Interaction
-       ========================================================================== */
-
-    function bindOverviewActivity() {
-      document
-        .querySelector("[data-market-overview]")
-        ?.addEventListener("click", scheduleActiveChartSync, {
-          signal: listenerController.signal,
-
-          passive: true,
-        });
+      window.addEventListener("hashchange", scheduleSelectedMarketSync, {
+        signal: listenerController.signal,
+      });
     }
 
     /* ==========================================================================
@@ -1381,49 +1216,19 @@
 
       destroyed = true;
 
-      activityRevision += 1;
+      syncRevision += 1;
 
       listenerController.abort();
 
-      for (const observer of panelObservers) {
-        observer.disconnect();
+      if (syncFrame !== null) {
+        window.cancelAnimationFrame(syncFrame);
+
+        syncFrame = null;
       }
 
-      panelObservers.length = 0;
+      cancelPendingCreation();
 
-      if (activityFrame !== null) {
-        window.cancelAnimationFrame(activityFrame);
-
-        activityFrame = null;
-      }
-
-      for (const pending of pendingCreations.values()) {
-        pending.controller.abort();
-      }
-
-      pendingCreations.clear();
-
-      /*
-       * Highcharts instances live until actual page teardown.
-       */
-      for (const runtime of runtimes.values()) {
-        try {
-          runtime.controller.destroy?.();
-        } catch (error) {
-          console.error(
-            `${runtime.market.symbol} chart destruction failed.`,
-            error,
-          );
-        }
-
-        if (runtime.panel.marketChartController === runtime.controller) {
-          delete runtime.panel.marketChartController;
-        }
-      }
-
-      runtimes.clear();
-
-      activeRuntime = null;
+      destroyActiveRuntime();
 
       chartAPI = null;
     }
@@ -1442,19 +1247,35 @@
           return;
         }
 
-        observePanels();
-
-        bindOverviewActivity();
+        bindMarketActivity();
 
         /*
-         * Only the currently visible chart is requested
-         * and constructed on first paint.
+         * Initial page:
+         *
+         * fetch + create ONLY the selected market.
          */
-        scheduleActiveChartSync();
+        await synchronizeSelectedMarket();
 
         window.addEventListener("pagehide", destroyOverviewCharts, {
           once: true,
         });
+
+        console.info(
+          "[Market Chart] Overview single-runtime architecture ready.",
+          {
+            activeChartLimit: 1,
+
+            runtimeCache: false,
+
+            mutationObservers: 0,
+
+            maxIntradayPoints: MAX_POINTS,
+
+            liveInterval: LIVE_INTERVAL,
+
+            timeZone: TIME_ZONE,
+          },
+        );
       } catch (error) {
         if (isAbortError(error)) {
           return;

@@ -9148,32 +9148,17 @@
        ========================================================================== */
 
       const TIME_ZONE = "Asia/Riyadh";
+      const RIYADH_OFFSET = "+03:00";
 
       const LIVE_INTERVAL = 60_000;
-
       const LIVE_WINDOW_DURATION = 60 * 60 * 1_000;
+      const LIVE_CANDLE_BUCKET = 60_000;
 
-      /*
-       * Large enough for a complete Saudi trading session
-       * at one-minute resolution while remaining very small
-       * for Highstock.
-       */
       const MAX_LIVE_POINTS = 480;
-
-      /*
-       * Historical named ranges are bounded before they are
-       * handed to Highcharts.
-       */
       const MAX_HISTORICAL_POINTS = 1_000;
 
       const REQUEST_TIMEOUT = 10_000;
-
       const CHART_API_TIMEOUT = 10_000;
-
-      /*
-       * Live candlestick aggregation.
-       */
-      const LIVE_CANDLE_BUCKET = 60_000;
 
       const DAY = 24 * 60 * 60 * 1_000;
 
@@ -9188,11 +9173,11 @@
       });
 
       /*
-       * When the backend does not provide OHLC fields,
-       * candlesticks are derived only from observed index
-       * samples inside these buckets.
+       * When real backend OHLC is available,
+       * these buckets aggregate real candles.
        *
-       * No artificial high/low values are invented.
+       * Otherwise candles are derived only from
+       * actual observed index samples.
        */
       const CANDLE_BUCKETS = Object.freeze({
         "1D": LIVE_CANDLE_BUCKET,
@@ -9211,114 +9196,108 @@
       });
 
       /* ==========================================================================
-       DOM
-       ========================================================================== */
-
-      const root = document.querySelector("[data-performance-chart]");
-
-      if (!root) {
-        return;
-      }
-
-      const chartElement = root.querySelector("[data-market-chart]");
-
-      if (!chartElement) {
-        console.error("Main Market Performance chart element is missing.");
-
-        return;
-      }
-
-      const titleElement = root.querySelector(".chart-toolbar__title");
-
-      const exportRoot = root.querySelector("[data-chart-export]");
-
-      const exportTrigger = exportRoot?.querySelector(
-        "[data-chart-export-trigger]",
-      );
-
-      const exportMenu = exportRoot?.querySelector("[data-chart-export-menu]");
-
-      const compareButton = root.querySelector("[data-chart-compare]");
-
-      /* ==========================================================================
-       Lifecycle
+       Runtime
        ========================================================================== */
 
       const pageController = new AbortController();
-
       const { signal: pageSignal } = pageController;
 
-      let marketChartAPI = null;
+      let root = null;
+      let chartElement = null;
+      let titleElement = null;
 
+      let exportRoot = null;
+      let exportTrigger = null;
+      let exportMenu = null;
+
+      let compareButton = null;
+
+      let serverConfiguration = null;
+
+      let marketChartAPI = null;
       let controller = null;
 
       let destroyed = false;
 
       /* ==========================================================================
+       DOM
+       ========================================================================== */
+
+      function resolveDOM() {
+        root = document.querySelector("[data-performance-chart]");
+
+        if (!root) {
+          throw new Error("Main Market Performance root is missing.");
+        }
+
+        chartElement = root.querySelector("[data-market-chart]");
+
+        if (!chartElement) {
+          throw new Error("Main Market Performance chart element is missing.");
+        }
+
+        titleElement = root.querySelector(".chart-toolbar__title");
+
+        exportRoot = root.querySelector("[data-chart-export]");
+
+        exportTrigger = exportRoot?.querySelector(
+          "[data-chart-export-trigger]",
+        );
+
+        exportMenu = exportRoot?.querySelector("[data-chart-export-menu]");
+
+        compareButton = root.querySelector("[data-chart-compare]");
+      }
+
+      /* ==========================================================================
        Server Configuration
        ========================================================================== */
 
-      /*
-       * Preferred production integration:
-       *
-       * window.marketPerformanceConfig = {
-       *   symbol: "...",
-       *   jwtToken: "...",
-       *   pageName: "MainMarketWatch",
-       *   intradayChartType: "SQL_MI_MSPV",
-       *   historicalChartType: "SQL_T_IC_ALL_PER"
-       * };
-       *
-       * Data attributes are also supported during migration.
-       */
+      function resolveServerConfiguration() {
+        const external =
+          window.marketPerformanceConfig &&
+          typeof window.marketPerformanceConfig === "object"
+            ? window.marketPerformanceConfig
+            : {};
 
-      const externalConfiguration =
-        window.marketPerformanceConfig &&
-        typeof window.marketPerformanceConfig === "object"
-          ? window.marketPerformanceConfig
-          : {};
+        return Object.freeze({
+          symbol:
+            external.symbol ||
+            root.dataset.chartSymbol ||
+            root.dataset.chartCompanySymbol ||
+            "${requestScope.chart_tasi_current_sector}",
 
-      const serverConfiguration = Object.freeze({
-        symbol:
-          externalConfiguration.symbol ||
-          root.dataset.chartSymbol ||
-          root.dataset.chartCompanySymbol ||
-          "${requestScope.chart_tasi_current_sector}",
+          parameter: external.parameter || root.dataset.chartParameter || null,
 
-        parameter:
-          externalConfiguration.parameter ||
-          root.dataset.chartParameter ||
-          null,
+          jwtToken:
+            external.jwtToken ||
+            root.dataset.chartToken ||
+            document.querySelector("[data-chart-token]")?.dataset.chartToken ||
+            "",
 
-        jwtToken:
-          externalConfiguration.jwtToken ||
-          root.dataset.chartToken ||
-          document.querySelector("[data-chart-token]")?.dataset.chartToken ||
-          "",
+          pageName:
+            external.pageName ||
+            root.dataset.chartPageName ||
+            "MainMarketWatch",
 
-        pageName:
-          externalConfiguration.pageName ||
-          root.dataset.chartPageName ||
-          "MainMarketWatch",
+          intradayChartType:
+            external.intradayChartType ||
+            root.dataset.chartIntraday ||
+            root.dataset.chartIntrady ||
+            "SQL_MI_MSPV",
 
-        intradayChartType:
-          externalConfiguration.intradayChartType ||
-          root.dataset.chartIntraday ||
-          root.dataset.chartIntrady ||
-          "SQL_MI_MSPV",
+          historicalChartType:
+            external.historicalChartType ||
+            root.dataset.chartHistorical ||
+            "SQL_T_IC_ALL_PER",
 
-        historicalChartType:
-          externalConfiguration.historicalChartType ||
-          root.dataset.chartHistorical ||
-          "SQL_T_IC_ALL_PER",
+          currency: external.currency || root.dataset.chartCurrency || "SAR",
 
-        currency:
-          externalConfiguration.currency || root.dataset.chartCurrency || "SAR",
-
-        decimals: Number.isFinite(Number(externalConfiguration.decimals))
-          ? Number(externalConfiguration.decimals)
-          : 2,
-      });
+          decimals: Number.isFinite(Number(external.decimals))
+            ? Number(external.decimals)
+            : 2,
+        });
+      }
 
       /* ==========================================================================
        Locale
@@ -9333,9 +9312,7 @@
       }
 
       function getChartName() {
-        const value = titleElement?.textContent?.trim();
-
-        return value || "Main Market Performance";
+        return titleElement?.textContent?.trim() || "Main Market Performance";
       }
 
       function getLabels() {
@@ -9412,7 +9389,7 @@
       }
 
       /* ==========================================================================
-       Timestamp Normalization
+       Timestamp
        ========================================================================== */
 
       function toTimestamp(value) {
@@ -9424,47 +9401,47 @@
           return null;
         }
 
+        const text = String(value).trim();
+
         /* ------------------------------------------------------------------------
          Numeric Epoch
          ------------------------------------------------------------------------ */
 
-        if (typeof value === "number" || /^\d+$/.test(String(value).trim())) {
-          const numeric = Number(value);
+        if (typeof value === "number" || /^\d+$/.test(text)) {
+          const number = Number(value);
 
-          if (!Number.isFinite(numeric)) {
+          if (!Number.isFinite(number)) {
             return null;
           }
 
-          return numeric < 10_000_000_000 ? numeric * 1_000 : numeric;
+          return number < 10_000_000_000 ? number * 1_000 : number;
         }
-
-        const source = String(value).trim();
 
         /* ------------------------------------------------------------------------
          Already Zoned
          ------------------------------------------------------------------------ */
 
-        if (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(source)) {
-          const timestamp = Date.parse(source);
+        if (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(text)) {
+          const timestamp = Date.parse(text);
 
           return Number.isFinite(timestamp) ? timestamp : null;
         }
 
         /* ------------------------------------------------------------------------
-         YYYY-MM-DD
+         Historical YYYY-MM-DD
          ------------------------------------------------------------------------ */
 
-        const dateOnly = source.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        const dateOnly = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
 
         if (dateOnly) {
           const [, year, month, day] = dateOnly;
 
           /*
-           * Noon Riyadh keeps a historical trading date
-           * stable regardless of the visitor's timezone.
+           * Noon Riyadh keeps the trading date
+           * stable in every visitor timezone.
            */
           const timestamp = Date.parse(
-            `${year}-${month}-${day}T12:00:00+03:00`,
+            `${year}-${month}-${day}T12:00:00${RIYADH_OFFSET}`,
           );
 
           return Number.isFinite(timestamp) ? timestamp : null;
@@ -9474,7 +9451,7 @@
          Riyadh Local DateTime
          ------------------------------------------------------------------------ */
 
-        const localDateTime = source.match(
+        const localDateTime = text.match(
           /^(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/,
         );
 
@@ -9498,17 +9475,13 @@
             `${year}-${month}-${day}T${hour.padStart(
               2,
               "0",
-            )}:${minute}:${second}${fraction}+03:00`,
+            )}:${minute}:${second}${fraction}${RIYADH_OFFSET}`,
           );
 
           return Number.isFinite(timestamp) ? timestamp : null;
         }
 
-        /* ------------------------------------------------------------------------
-         Final Browser-Supported Fallback
-         ------------------------------------------------------------------------ */
-
-        const timestamp = Date.parse(source);
+        const timestamp = Date.parse(text);
 
         return Number.isFinite(timestamp) ? timestamp : null;
       }
@@ -9554,7 +9527,7 @@
       }
 
       /* ==========================================================================
-       Payload
+       Payload Normalization
        ========================================================================== */
 
       function unwrapPayload(payload) {
@@ -9566,19 +9539,12 @@
           return [];
         }
 
-        const candidates = [
-          payload.data,
-          payload.items,
-          payload.results,
-          payload.rows,
-        ];
-
-        return candidates.find(Array.isArray) || [];
+        return (
+          [payload.data, payload.items, payload.results, payload.rows].find(
+            Array.isArray,
+          ) || []
+        );
       }
-
-      /* ==========================================================================
-       Backend Point Normalization
-       ========================================================================== */
 
       function normalizeSnapshot(payload) {
         const source = unwrapPayload(payload);
@@ -9600,24 +9566,23 @@
             continue;
           }
 
-          const value = toFiniteNumber(
-            item.indexPrice ??
+          const close = toFiniteNumber(
+            item.closePrice ??
+              item.close ??
+              item.indexPrice ??
               item.value ??
-              item.price ??
-              item.closePrice ??
-              item.close,
+              item.price,
           );
 
           /*
-           * A zero index value is not a valid
-           * market observation.
+           * Main scalar series.
            */
-          if (value !== null && value !== 0) {
-            trendByTimestamp.set(timestamp, [timestamp, value]);
+          if (close !== null && close !== 0) {
+            trendByTimestamp.set(timestamp, [timestamp, close]);
           }
 
           /* ----------------------------------------------------------------------
-           Real OHLC if Backend Supplies It
+           Real Backend OHLC
            ---------------------------------------------------------------------- */
 
           const open = toFiniteNumber(item.openPrice ?? item.open);
@@ -9625,10 +9590,6 @@
           const high = toFiniteNumber(item.highPrice ?? item.high);
 
           const low = toFiniteNumber(item.lowPrice ?? item.low);
-
-          const close = toFiniteNumber(
-            item.closePrice ?? item.close ?? item.indexPrice,
-          );
 
           if (
             open === null ||
@@ -9656,17 +9617,12 @@
           ]);
         }
 
-        const trend = [...trendByTimestamp.values()].sort(
-          (first, second) => first[0] - second[0],
-        );
-
-        const candlestick = [...candlesByTimestamp.values()].sort(
-          (first, second) => first[0] - second[0],
-        );
-
         return {
-          trend,
-          candlestick,
+          trend: [...trendByTimestamp.values()].sort((a, b) => a[0] - b[0]),
+
+          candlestick: [...candlesByTimestamp.values()].sort(
+            (a, b) => a[0] - b[0],
+          ),
         };
       }
 
@@ -9675,12 +9631,12 @@
        ========================================================================== */
 
       async function requestSnapshot(chartType, externalSignal = null) {
-        const controller = new AbortController();
+        const requestController = new AbortController();
 
         let timedOut = false;
 
         const forwardAbort = () => {
-          controller.abort();
+          requestController.abort();
         };
 
         if (externalSignal) {
@@ -9693,15 +9649,11 @@
           });
         }
 
-        const timeoutId = window.setTimeout(
-          () => {
-            timedOut = true;
+        const timeoutId = window.setTimeout(() => {
+          timedOut = true;
 
-            controller.abort();
-          },
-
-          REQUEST_TIMEOUT,
-        );
+          requestController.abort();
+        }, REQUEST_TIMEOUT);
 
         try {
           const response = await fetch(buildMarketUrl(chartType), {
@@ -9709,7 +9661,7 @@
 
             credentials: "same-origin",
 
-            signal: controller.signal,
+            signal: requestController.signal,
 
             headers: {
               Accept: "application/json",
@@ -9722,9 +9674,7 @@
             );
           }
 
-          const payload = await response.json();
-
-          return normalizeSnapshot(payload);
+          return normalizeSnapshot(await response.json());
         } catch (error) {
           if (timedOut) {
             const timeoutError = new Error("Market chart request timed out.");
@@ -9738,7 +9688,7 @@
             throw externalSignal.reason || createAbortError();
           }
 
-          if (controller.signal.aborted) {
+          if (requestController.signal.aborted) {
             throw createAbortError();
           }
 
@@ -9751,16 +9701,52 @@
       }
 
       /* ==========================================================================
-       Range Helpers
+       Sorted Range Helpers
        ========================================================================== */
+
+      function lowerBound(points, timestamp) {
+        let low = 0;
+        let high = points.length;
+
+        while (low < high) {
+          const middle = (low + high) >> 1;
+
+          if (points[middle][0] < timestamp) {
+            low = middle + 1;
+          } else {
+            high = middle;
+          }
+        }
+
+        return low;
+      }
+
+      function upperBound(points, timestamp) {
+        let low = 0;
+        let high = points.length;
+
+        while (low < high) {
+          const middle = (low + high) >> 1;
+
+          if (points[middle][0] <= timestamp) {
+            low = middle + 1;
+          } else {
+            high = middle;
+          }
+        }
+
+        return low;
+      }
 
       function sliceByTime(points, minimum, maximum) {
         if (!Array.isArray(points) || !points.length) {
           return [];
         }
 
-        return points.filter(
-          (point) => point[0] >= minimum && point[0] <= maximum,
+        return points.slice(
+          lowerBound(points, minimum),
+
+          upperBound(points, maximum),
         );
       }
 
@@ -9769,20 +9755,20 @@
           return points;
         }
 
-        if (maximumPoints < 3) {
+        if (maximumPoints <= 2) {
           return [points[0], points[points.length - 1]];
         }
 
         const result = [points[0]];
 
-        const available = maximumPoints - 2;
-
         const lastIndex = points.length - 1;
 
-        for (let index = 1; index <= available; index += 1) {
-          const sourceIndex = Math.round((index * lastIndex) / (available + 1));
+        const interior = maximumPoints - 2;
 
-          result.push(points[sourceIndex]);
+        const step = lastIndex / (interior + 1);
+
+        for (let index = 1; index <= interior; index += 1) {
+          result.push(points[Math.round(index * step)]);
         }
 
         result.push(points[lastIndex]);
@@ -9791,7 +9777,7 @@
       }
 
       /* ==========================================================================
-       Candle Aggregation
+       Candlesticks
        ========================================================================== */
 
       function aggregateCandles(candles, bucketSize) {
@@ -9832,12 +9818,19 @@
         return result;
       }
 
+      /*
+       * Fallback only.
+       *
+       * No fake spread/high/low is invented.
+       * OHLC is derived from observations inside
+       * the actual period.
+       */
       function createCandlesFromSamples(points, bucketSize) {
         if (!Array.isArray(points) || !points.length) {
           return [];
         }
 
-        const candles = [];
+        const result = [];
 
         let current = null;
 
@@ -9846,7 +9839,7 @@
 
           if (!current || current[0] !== bucket) {
             if (current) {
-              candles.push(current);
+              result.push(current);
             }
 
             current = [bucket, value, value, value, value];
@@ -9862,10 +9855,10 @@
         }
 
         if (current) {
-          candles.push(current);
+          result.push(current);
         }
 
-        return candles;
+        return result;
       }
 
       /* ==========================================================================
@@ -9893,10 +9886,6 @@
 
           trend: displayTrend,
 
-          /*
-           * Same geometry; the data module can
-           * normalize/copy it when required.
-           */
           line: displayTrend,
 
           candlestick,
@@ -9911,24 +9900,33 @@
         const ranges = {};
 
         /* ------------------------------------------------------------------------
-         1D
+         Intraday
          ------------------------------------------------------------------------ */
 
-        const intradayTrend = intraday.trend;
+        const intradayReference = intraday.trend.length
+          ? intraday.trend
+          : intraday.candlestick;
 
-        if (intradayTrend.length) {
-          const end = intradayTrend[intradayTrend.length - 1][0];
+        if (intradayReference.length) {
+          const first = intradayReference[0][0];
 
-          const start = Math.max(intradayTrend[0][0], end - DAY);
+          const end = intradayReference[intradayReference.length - 1][0];
 
+          /*
+           * Full available current session.
+           *
+           * Do not reduce this to the last hour.
+           * liveWindowDuration is only used after
+           * genuinely new live data arrives.
+           */
           ranges["1D"] = createRangeRecord({
             range: "1D",
 
-            trend: intradayTrend,
+            trend: intraday.trend,
 
             candles: intraday.candlestick,
 
-            minimum: start,
+            minimum: first,
 
             maximum: end,
           });
@@ -9938,28 +9936,43 @@
          Historical
          ------------------------------------------------------------------------ */
 
-        if (historical.trend.length) {
-          const end = historical.trend[historical.trend.length - 1][0];
+        const historicalReference = historical.trend.length
+          ? historical.trend
+          : historical.candlestick;
 
-          for (const [range, duration] of Object.entries(RANGE_WINDOWS)) {
-            const minimum =
-              duration === null ? historical.trend[0][0] : end - duration;
+        if (!historicalReference.length) {
+          return ranges;
+        }
 
-            const record = createRangeRecord({
-              range,
+        const historicalStart = historicalReference[0][0];
 
-              trend: historical.trend,
+        const historicalEnd =
+          historicalReference[historicalReference.length - 1][0];
 
-              candles: historical.candlestick,
+        for (const [range, duration] of Object.entries(RANGE_WINDOWS)) {
+          const minimum =
+            duration === null
+              ? historicalStart
+              : Math.max(
+                  historicalStart,
 
-              minimum,
+                  historicalEnd - duration,
+                );
 
-              maximum: end,
-            });
+          const record = createRangeRecord({
+            range,
 
-            if (record.trend.length || record.candlestick.length) {
-              ranges[range] = record;
-            }
+            trend: historical.trend,
+
+            candles: historical.candlestick,
+
+            minimum,
+
+            maximum: historicalEnd,
+          });
+
+          if (record.trend.length || record.candlestick.length) {
+            ranges[range] = record;
           }
         }
 
@@ -9967,7 +9980,7 @@
       }
 
       /* ==========================================================================
-       Live Delta
+       Live Payload
        ========================================================================== */
 
       function selectLivePoints(snapshot, since) {
@@ -9977,24 +9990,44 @@
           return [];
         }
 
-        const timestamp = toTimestamp(since);
+        const sinceTimestamp = toTimestamp(since);
+
+        const newerTrend =
+          sinceTimestamp === null
+            ? trend.slice(-MAX_LIVE_POINTS)
+            : trend.filter((point) => point[0] > sinceTimestamp);
 
         /*
-         * Initial live recovery after an empty
-         * first-load response.
+         * Market closed / unchanged response.
          */
-        if (timestamp === null) {
-          return trend.slice(-MAX_LIVE_POINTS);
+        if (!newerTrend.length) {
+          return [];
         }
 
         /*
-         * Strictly newer timestamps.
+         * Preserve REAL backend OHLC when the
+         * endpoint supplied it.
          *
-         * This prevents a needless redraw when
-         * the endpoint returns the exact same
-         * snapshot on the next poll.
+         * market-chart.js accepts:
+         *
+         * [x, y]
+         * or
+         * [x, open, high, low, close]
+         *
+         * and extracts close automatically for
+         * the Trend/Navigator live path.
          */
-        return trend.filter((point) => point[0] > timestamp);
+        if (!snapshot.candlestick.length) {
+          return newerTrend;
+        }
+
+        const candlesByTimestamp = new Map(
+          snapshot.candlestick.map((point) => [point[0], point]),
+        );
+
+        return newerTrend.map(
+          (trendPoint) => candlesByTimestamp.get(trendPoint[0]) || trendPoint,
+        );
       }
 
       /* ==========================================================================
@@ -10003,30 +10036,35 @@
 
       async function loadInitialData() {
         const [intradayResult, historicalResult] = await Promise.allSettled([
-          requestSnapshot(serverConfiguration.intradayChartType, pageSignal),
+          requestSnapshot(
+            serverConfiguration.intradayChartType,
 
-          requestSnapshot(serverConfiguration.historicalChartType, pageSignal),
+            pageSignal,
+          ),
+
+          requestSnapshot(
+            serverConfiguration.historicalChartType,
+
+            pageSignal,
+          ),
         ]);
 
         if (pageSignal.aborted) {
           throw pageSignal.reason || createAbortError();
         }
 
+        const empty = {
+          trend: [],
+          candlestick: [],
+        };
+
         const intraday =
-          intradayResult.status === "fulfilled"
-            ? intradayResult.value
-            : {
-                trend: [],
-                candlestick: [],
-              };
+          intradayResult.status === "fulfilled" ? intradayResult.value : empty;
 
         const historical =
           historicalResult.status === "fulfilled"
             ? historicalResult.value
-            : {
-                trend: [],
-                candlestick: [],
-              };
+            : empty;
 
         if (
           intradayResult.status === "rejected" &&
@@ -10063,7 +10101,7 @@
       function createChartConfiguration(initialData) {
         const labels = getLabels();
 
-        const intradayComparison =
+        const previousClose =
           initialData.ranges?.["1D"]?.comparisonValue ?? null;
 
         return {
@@ -10075,7 +10113,7 @@
 
           currency: serverConfiguration.currency,
 
-          previousClose: intradayComparison,
+          previousClose,
 
           range: "1D",
 
@@ -10091,6 +10129,12 @@
 
           candleBucketSize: LIVE_CANDLE_BUCKET,
 
+          /*
+           * Initial = complete session.
+           *
+           * One-hour live focus begins only after
+           * a genuinely NEW timestamp.
+           */
           liveWindowDuration: LIVE_WINDOW_DURATION,
 
           animation: false,
@@ -10122,11 +10166,15 @@
               rotation: {
                 "1D": 0,
 
-                default: -25,
+                default: -20,
               },
 
               labels: true,
 
+              /*
+               * 1D first label is now the actual
+               * first market timestamp.
+               */
               showFirstLabel: true,
 
               showLastLabel: true,
@@ -10137,10 +10185,6 @@
             },
 
             y: {
-              /*
-               * New design keeps the value axis
-               * physically on the right.
-               */
               opposite: true,
 
               labels: true,
@@ -10198,28 +10242,32 @@
 
             labels: true,
 
-            height: 38,
+            height: 40,
 
-            margin: 10,
+            margin: 14,
 
             handles: true,
 
-            handleWidth: 7,
+            handleWidth: 6,
 
-            handleHeight: 20,
+            handleHeight: 16,
 
-            tickPixelInterval: 105,
+            /*
+             * Avoid clipped duplicate labels
+             * beside navigator handles.
+             */
+            showFirstLabel: false,
+
+            showLastLabel: false,
+
+            tickPixelInterval: 110,
 
             dataGrouping: false,
           },
 
           /*
            * Highcharts export engine ON.
-           *
-           * Highcharts context button OFF.
-           *
-           * Our HTML menu is the only visible
-           * export interface.
+           * Native context button OFF.
            */
           exporting: {
             enabled: true,
@@ -10242,11 +10290,11 @@
 
             alignToInterval: true,
 
-            /*
-             * Initial snapshot has already been fetched.
-             */
             immediate: false,
 
+            /*
+             * Browser-tab visibility only.
+             */
             pauseWhenHidden: true,
 
             retry: true,
@@ -10264,6 +10312,12 @@
 
               const points = selectLivePoints(snapshot, since);
 
+              /*
+               * Critical market-close behavior.
+               *
+               * Same last timestamp:
+               * return null and do zero chart work.
+               */
               return points.length
                 ? {
                     points,
@@ -10292,7 +10346,7 @@
       }
 
       /* ==========================================================================
-       File Name
+       Export Filename
        ========================================================================== */
 
       function slugify(value) {
@@ -10308,11 +10362,15 @@
       function getExportFileName() {
         const state = controller?.getState?.();
 
-        const range = String(state?.range || "1D").toLowerCase();
+        return [
+          slugify(getChartName()),
 
-        const mode = String(state?.mode || "trend").toLowerCase();
+          String(state?.range || "1D").toLowerCase(),
 
-        return [slugify(getChartName()), range, mode, "performance"]
+          String(state?.mode || "trend").toLowerCase(),
+
+          "performance",
+        ]
           .filter(Boolean)
           .join("-");
       }
@@ -10359,7 +10417,7 @@
         }
       }
 
-      async function executeExport(action) {
+      function executeExport(action) {
         const chart = controller?.getChart?.();
 
         if (!chart) {
@@ -10369,56 +10427,40 @@
         const filename = getExportFileName();
 
         switch (action) {
-          case "fullscreen": {
+          case "fullscreen":
             if (typeof chart.fullscreen?.toggle !== "function") {
               throw new Error("Highcharts fullscreen support is unavailable.");
             }
 
             chart.fullscreen.toggle();
 
-            return;
-          }
+            break;
 
-          case "print": {
+          case "print":
             if (typeof chart.print !== "function") {
               throw new Error("Highcharts print support is unavailable.");
             }
 
             chart.print();
 
-            return;
-          }
+            break;
 
-          case "png": {
+          case "png":
+          case "pdf":
             if (typeof chart.exportChart !== "function") {
               throw new Error("Highcharts exporting support is unavailable.");
             }
 
             chart.exportChart({
-              type: "image/png",
+              type: action === "png" ? "image/png" : "application/pdf",
 
               filename,
             });
 
-            return;
-          }
-
-          case "pdf": {
-            if (typeof chart.exportChart !== "function") {
-              throw new Error("Highcharts exporting support is unavailable.");
-            }
-
-            chart.exportChart({
-              type: "application/pdf",
-
-              filename,
-            });
-
-            return;
-          }
+            break;
 
           default:
-            return;
+            break;
         }
       }
 
@@ -10431,7 +10473,6 @@
           "click",
           (event) => {
             event.preventDefault();
-
             event.stopPropagation();
 
             if (isExportOpen()) {
@@ -10467,7 +10508,7 @@
 
         exportMenu.addEventListener(
           "click",
-          async (event) => {
+          (event) => {
             const button = event.target?.closest?.("[data-export-action]");
 
             if (!button) {
@@ -10475,7 +10516,6 @@
             }
 
             event.preventDefault();
-
             event.stopPropagation();
 
             const action = button.dataset.exportAction;
@@ -10483,7 +10523,7 @@
             closeExportMenu();
 
             try {
-              await executeExport(action);
+              executeExport(action);
             } catch (error) {
               console.error(
                 `Market chart export action "${action}" failed.`,
@@ -10541,12 +10581,11 @@
 
             const direction = event.key === "ArrowDown" ? 1 : -1;
 
-            const startIndex = currentIndex >= 0 ? currentIndex : 0;
+            const start = currentIndex >= 0 ? currentIndex : 0;
 
-            const nextIndex =
-              (startIndex + direction + items.length) % items.length;
+            const next = (start + direction + items.length) % items.length;
 
-            items[nextIndex].focus();
+            items[next].focus();
           },
           {
             signal: pageSignal,
@@ -10583,7 +10622,7 @@
       }
 
       /* ==========================================================================
-       Compare Hook
+       Compare
        ========================================================================== */
 
       function bindCompare() {
@@ -10594,23 +10633,22 @@
         compareButton.addEventListener(
           "click",
           () => {
-            const next = compareButton.getAttribute("aria-pressed") !== "true";
+            const active =
+              compareButton.getAttribute("aria-pressed") !== "true";
 
-            compareButton.setAttribute("aria-pressed", next ? "true" : "false");
+            compareButton.setAttribute(
+              "aria-pressed",
+              active ? "true" : "false",
+            );
 
-            compareButton.classList.toggle("is-active", next);
+            compareButton.classList.toggle("is-active", active);
 
-            /*
-             * Compare business logic stays outside
-             * the base market chart.
-             */
             root.dispatchEvent(
               new CustomEvent("marketperformancecomparechange", {
                 bubbles: true,
 
                 detail: {
-                  active: next,
-
+                  active,
                   controller,
                 },
               }),
@@ -10675,10 +10713,14 @@
       }
 
       /* ==========================================================================
-       Creation
+       Chart Creation
        ========================================================================== */
 
       async function createPerformanceChart() {
+        root.setAttribute("aria-busy", "true");
+
+        chartElement.dataset.chartState = "loading";
+
         const initialData = await loadInitialData();
 
         if (destroyed || pageSignal.aborted) {
@@ -10700,10 +10742,6 @@
         root.marketChartController = controller;
 
         root.setAttribute("aria-busy", "false");
-
-        bindExportMenu();
-
-        bindCompare();
       }
 
       /* ==========================================================================
@@ -10717,10 +10755,24 @@
 
         destroyed = true;
 
+        /*
+         * Aborts:
+         *
+         * - initial requests;
+         * - export/compare listeners.
+         */
         pageController.abort();
 
         closeExportMenu();
 
+        /*
+         * Aborts:
+         *
+         * - live request;
+         * - live timer;
+         * - chart observers;
+         * - Highstock.
+         */
         try {
           controller?.destroy?.();
         } catch (error) {
@@ -10730,15 +10782,14 @@
           );
         }
 
-        if (root.marketChartController === controller) {
+        if (root?.marketChartController === controller) {
           delete root.marketChartController;
         }
 
         controller = null;
-
         marketChartAPI = null;
 
-        root.setAttribute("aria-busy", "false");
+        root?.setAttribute("aria-busy", "false");
       }
 
       /* ==========================================================================
@@ -10749,25 +10800,58 @@
         try {
           await waitForDOM();
 
+          if (destroyed) {
+            return;
+          }
+
+          resolveDOM();
+
+          serverConfiguration = resolveServerConfiguration();
+
           marketChartAPI = await waitForMarketChartAPI();
 
           if (destroyed || pageSignal.aborted) {
             return;
           }
 
+          /*
+           * Bind page UI once.
+           */
+          bindExportMenu();
+          bindCompare();
+
+          /*
+           * One Highstock chart.
+           */
           await createPerformanceChart();
 
           window.addEventListener("pagehide", destroy, {
             once: true,
+          });
+
+          console.info("[Market Chart] Main Market Performance ready.", {
+            highstockInstances: 1,
+
+            timeZone: TIME_ZONE,
+
+            initialViewport: "full-session",
+
+            liveFollow: "new-timestamp-only",
+
+            realOHLC: "preserved-when-available",
+
+            nativeExportButton: false,
           });
         } catch (error) {
           if (isAbortError(error)) {
             return;
           }
 
-          root.setAttribute("aria-busy", "false");
+          root?.setAttribute("aria-busy", "false");
 
-          chartElement.dataset.chartState = "error";
+          if (chartElement) {
+            chartElement.dataset.chartState = "error";
+          }
 
           console.error(
             "Main Market Performance initialization failed.",

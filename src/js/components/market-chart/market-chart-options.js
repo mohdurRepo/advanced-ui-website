@@ -9,31 +9,33 @@ import {
   normalizeMarketChartRange,
 } from "./market-chart-data";
 
-/* ==========================================================================
-   Constants
-   ========================================================================== */
+/* ========================================================================== */
+/* Constants                                                                  */
+/* ========================================================================== */
 
 const DEFAULT_LANGUAGE = "en";
 const DEFAULT_TIME_ZONE = "Asia/Riyadh";
 const DEFAULT_DECIMALS = 2;
 const DEFAULT_RANGE = "1D";
+const INTRADAY_RANGE = "1D";
 
 const DEFAULT_ANIMATION_DURATION = 250;
 const MAX_ANIMATION_DURATION = 1_000;
-
-const INTRADAY_RANGE = "1D";
+const MINUTE = 60_000;
 
 const CONTEXT_LAYOUT = Object.freeze({
   overview: Object.freeze({
     spacing: 12,
+    bottomSpacing: 18,
     yAxisTickPixelInterval: 52,
-    navigatorHeight: 36,
+    navigatorHeight: 34,
   }),
 
   performance: Object.freeze({
     spacing: 16,
+    bottomSpacing: 24,
     yAxisTickPixelInterval: 56,
-    navigatorHeight: 38,
+    navigatorHeight: 40,
   }),
 });
 
@@ -98,9 +100,18 @@ const DEFAULT_TOOLTIP_DATE_FORMATS = Object.freeze({
   }),
 });
 
-/* ==========================================================================
-   Generic Helpers
-   ========================================================================== */
+const INTRADAY_TICK_INTERVALS = Object.freeze([
+  5 * MINUTE,
+  10 * MINUTE,
+  15 * MINUTE,
+  30 * MINUTE,
+  60 * MINUTE,
+  2 * 60 * MINUTE,
+]);
+
+/* ========================================================================== */
+/* Generic Helpers                                                            */
+/* ========================================================================== */
 
 function isPlainObject(value) {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -181,9 +192,9 @@ function resolveRTL(element, language) {
   return isArabicLanguage(language);
 }
 
-/* ==========================================================================
-   Motion
-   ========================================================================== */
+/* ========================================================================== */
+/* Motion                                                                     */
+/* ========================================================================== */
 
 function prefersReducedMotion(element) {
   const document = element?.ownerDocument;
@@ -248,9 +259,9 @@ export function normalizeMarketChartAnimation(
     : false;
 }
 
-/* ==========================================================================
-   Number Formatting
-   ========================================================================== */
+/* ========================================================================== */
+/* Formatting                                                                 */
+/* ========================================================================== */
 
 function createNumberFormatter({
   language,
@@ -292,10 +303,6 @@ function createNumberFormatter({
   };
 }
 
-/* ==========================================================================
-   Date Formatting
-   ========================================================================== */
-
 function getDateFormat(range, customFormats, defaults) {
   const normalizedRange = normalizeMarketChartRange(range);
 
@@ -334,17 +341,120 @@ function createDateFormatter({ language, timeZone, options }) {
 
     const date = new Date(value);
 
-    if (Number.isNaN(date.getTime())) {
-      return "";
-    }
-
-    return formatter.format(date);
+    return Number.isNaN(date.getTime()) ? "" : formatter.format(date);
   };
 }
 
-/* ==========================================================================
-   X Axis
-   ========================================================================== */
+/* ========================================================================== */
+/* Intraday Ticks                                                             */
+/* ========================================================================== */
+
+function chooseIntradayTickInterval(span, axisLength, configuredInterval) {
+  const explicit = toFiniteNumber(configuredInterval);
+
+  if (explicit !== null && explicit > 0) {
+    return explicit;
+  }
+
+  const width = Math.max(1, toFiniteNumber(axisLength) ?? 1);
+
+  /*
+   * Roughly one label per 88px.
+   *
+   * This keeps labels professional and
+   * prevents 1D charts from becoming noisy.
+   */
+  const targetTicks = clamp(Math.floor(width / 88), 3, 8);
+
+  const desired = span / Math.max(1, targetTicks - 1);
+
+  return (
+    INTRADAY_TICK_INTERVALS.find((interval) => interval >= desired) ||
+    INTRADAY_TICK_INTERVALS[INTRADAY_TICK_INTERVALS.length - 1]
+  );
+}
+
+function createIntradayTickPositioner(configuration = {}) {
+  return function intradayTickPositioner() {
+    const dataMinimum = toFiniteNumber(this.dataMin);
+
+    const dataMaximum = toFiniteNumber(this.dataMax);
+
+    const axisMinimum = toFiniteNumber(this.min);
+
+    const axisMaximum = toFiniteNumber(this.max);
+
+    if (
+      dataMinimum === null ||
+      dataMaximum === null ||
+      axisMinimum === null ||
+      axisMaximum === null ||
+      axisMaximum < axisMinimum
+    ) {
+      return undefined;
+    }
+
+    /*
+     * Use the actual visible/data start.
+     *
+     * If trading data begins at 10:00,
+     * 10:00 is the first label.
+     *
+     * If the first real point is 10:30,
+     * the first label is 10:30.
+     */
+    const minimum = Math.max(dataMinimum, axisMinimum);
+
+    const maximum = Math.min(dataMaximum, axisMaximum);
+
+    if (maximum <= minimum) {
+      return [minimum];
+    }
+
+    const interval = chooseIntradayTickInterval(
+      maximum - minimum,
+      this.len,
+      configuration.tickInterval,
+    );
+
+    const positions = [minimum];
+
+    /*
+     * After the exact first point, use
+     * clean clock boundaries.
+     */
+    let tick = Math.ceil(minimum / interval) * interval;
+
+    /*
+     * Avoid two nearly-identical labels
+     * when the session begins exactly on
+     * an interval boundary.
+     */
+    if (tick <= minimum + 500) {
+      tick += interval;
+    }
+
+    while (tick < maximum - 500) {
+      positions.push(tick);
+
+      tick += interval;
+    }
+
+    /*
+     * Deliberately do NOT force the final
+     * timestamp.
+     *
+     * The right edge already contains the
+     * Y-axis labels/title and forcing another
+     * time label there makes the UI crowded.
+     */
+    return positions;
+  };
+}
+
+/* ========================================================================== */
+/* X Axis                                                                     */
+/* ========================================================================== */
 
 function createXAxisOptions({
   range,
@@ -355,6 +465,8 @@ function createXAxisOptions({
   dateFormats = {},
 }) {
   const normalizedRange = normalizeMarketChartRange(range);
+
+  const intraday = normalizedRange === INTRADAY_RANGE;
 
   const formatDate = createDateFormatter({
     language,
@@ -370,7 +482,7 @@ function createXAxisOptions({
   const title = resolveRangeValue(
     configuration.title,
     normalizedRange,
-    normalizedRange === INTRADAY_RANGE ? "Time" : "Date",
+    intraday ? "Time" : "Date",
   );
 
   const rotation =
@@ -380,20 +492,26 @@ function createXAxisOptions({
     type: "datetime",
 
     /*
-     * Intraday must retain real elapsed-time spacing.
+     * Intraday keeps real elapsed-time spacing.
      *
-     * Historical market datasets benefit from
-     * Highstock's ordinal handling of trading gaps.
+     * Historical data uses Highstock ordinal
+     * behavior so non-trading gaps do not
+     * unnecessarily dominate the chart.
      */
-    ordinal: normalizedRange !== INTRADAY_RANGE,
+    ordinal: !intraday,
 
     minPadding: toNonNegativeNumber(configuration.minPadding, 0),
 
     maxPadding: toNonNegativeNumber(configuration.maxPadding, 0),
 
-    startOnTick: configuration.startOnTick === true,
+    /*
+     * We explicitly own the first 1D tick.
+     * Highcharts must not extend the range to
+     * another "nice" clock boundary.
+     */
+    startOnTick: false,
 
-    endOnTick: configuration.endOnTick === true,
+    endOnTick: false,
 
     lineWidth: 1,
 
@@ -408,6 +526,25 @@ function createXAxisOptions({
     gridLineWidth: configuration.gridLineWidth ?? 0,
 
     gridLineColor: theme.grid,
+
+    tickPixelInterval: toNonNegativeNumber(
+      configuration.tickPixelInterval,
+
+      intraday ? 88 : 100,
+    ),
+
+    /*
+     * 1D:
+     *
+     * force the genuine first trading timestamp.
+     *
+     * Historical:
+     *
+     * Highstock owns normal date ticks.
+     */
+    tickPositioner: intraday
+      ? createIntradayTickPositioner(configuration)
+      : undefined,
 
     crosshair:
       configuration.crosshair === false
@@ -434,6 +571,15 @@ function createXAxisOptions({
       reserveSpace: true,
 
       y: rotation === 0 ? 18 : 22,
+
+      /*
+       * Let Highcharts protect the edge labels
+       * rather than allowing them to spill into
+       * the Y-axis/navigator area.
+       */
+      overflow: "justify",
+
+      crop: true,
 
       style: {
         color: theme.muted,
@@ -472,9 +618,9 @@ function createXAxisOptions({
   };
 }
 
-/* ==========================================================================
-   Y Axis
-   ========================================================================== */
+/* ========================================================================== */
+/* Y Axis                                                                     */
+/* ========================================================================== */
 
 function createYAxisOptions({
   language,
@@ -502,8 +648,7 @@ function createYAxisOptions({
    * LTR -> right
    * RTL -> left
    *
-   * A page can explicitly force a
-   * physical side through `opposite`.
+   * Pages may explicitly override this.
    */
   const opposite =
     typeof configuration.opposite === "boolean" ? configuration.opposite : !rtl;
@@ -559,8 +704,8 @@ function createYAxisOptions({
       enabled: configuration.labels !== false,
 
       /*
-       * Explicitly keep numbers
-       * outside the plotting rectangle.
+       * Y-axis values remain completely
+       * outside the plot.
        */
       reserveSpace: true,
 
@@ -604,28 +749,34 @@ function createYAxisOptions({
   };
 }
 
-/* ==========================================================================
-   Tooltip
-   ========================================================================== */
+/* ========================================================================== */
+/* Tooltip                                                                    */
+/* ========================================================================== */
 
 function getTooltipLabels(language) {
-  if (isArabicLanguage(language)) {
-    return {
-      value: "القيمة",
-      open: "الافتتاح",
-      high: "الأعلى",
-      low: "الأدنى",
-      close: "الإغلاق",
-    };
-  }
+  return isArabicLanguage(language)
+    ? {
+        value: "القيمة",
 
-  return {
-    value: "Value",
-    open: "Open",
-    high: "High",
-    low: "Low",
-    close: "Close",
-  };
+        open: "الافتتاح",
+
+        high: "الأعلى",
+
+        low: "الأدنى",
+
+        close: "الإغلاق",
+      }
+    : {
+        value: "Value",
+
+        open: "Open",
+
+        high: "High",
+
+        low: "Low",
+
+        close: "Close",
+      };
 }
 
 function getTooltipValues(point, mode) {
@@ -706,19 +857,17 @@ function createTooltipOptions({
     useGrouping: false,
   });
 
-  function row(label, value) {
-    return `
+  const row = (label, value) => `
       <div class="market-chart-tooltip__row">
-        <span class="market-chart-tooltip__label">
-          ${escapeHTML(label)}
-        </span>
+      <span class="market-chart-tooltip__label">
+        ${escapeHTML(label)}
+      </span>
 
-        <span class="market-chart-tooltip__value">
-          ${escapeHTML(formatNumber(value))}
-        </span>
-      </div>
-    `;
-  }
+      <span class="market-chart-tooltip__value">
+        ${escapeHTML(formatNumber(value))}
+      </span>
+    </div>
+  `;
 
   return {
     enabled: configuration.enabled !== false,
@@ -760,7 +909,7 @@ function createTooltipOptions({
         return false;
       }
 
-      const rows =
+      const body =
         normalizedMode === "candlestick"
           ? [
               row(labels.open, values.open),
@@ -827,7 +976,7 @@ function createTooltipOptions({
                 : ""
             }
 
-            ${rows}
+            ${body}
 
           </div>
 
@@ -839,9 +988,9 @@ function createTooltipOptions({
   };
 }
 
-/* ==========================================================================
-   Main Series
-   ========================================================================== */
+/* ========================================================================== */
+/* Main Series                                                                */
+/* ========================================================================== */
 
 function createMainSeries({
   mode,
@@ -874,12 +1023,13 @@ function createMainSeries({
     showInLegend: false,
 
     /*
-     * Navigator has one explicit,
-     * separate lightweight series.
+     * Navigator has its own explicit,
+     * lightweight series.
+     *
+     * Do not let Highstock clone the
+     * main series automatically.
      */
     showInNavigator: false,
-
-    turboThreshold: 0,
 
     dataGrouping: {
       enabled: false,
@@ -889,9 +1039,9 @@ function createMainSeries({
   };
 }
 
-/* ==========================================================================
-   Navigator
-   ========================================================================== */
+/* ========================================================================== */
+/* Navigator                                                                  */
+/* ========================================================================== */
 
 function createNavigatorOptions({
   Highcharts,
@@ -913,6 +1063,8 @@ function createNavigatorOptions({
 
   const normalizedRange = normalizeMarketChartRange(range);
 
+  const intraday = normalizedRange === INTRADAY_RANGE;
+
   const navigatorTheme = getMarketChartNavigatorTheme(
     Highcharts,
     theme,
@@ -923,20 +1075,21 @@ function createNavigatorOptions({
     language,
     timeZone,
 
-    options:
-      normalizedRange === INTRADAY_RANGE
-        ? {
-            hour: "2-digit",
+    options: intraday
+      ? {
+          hour: "2-digit",
 
-            minute: "2-digit",
+          minute: "2-digit",
 
-            hourCycle: "h23",
-          }
-        : getDateFormat(
-            normalizedRange,
-            configuration.formats,
-            DEFAULT_X_AXIS_FORMATS,
-          ),
+          hourCycle: "h23",
+        }
+      : getDateFormat(
+          normalizedRange,
+
+          configuration.formats,
+
+          DEFAULT_X_AXIS_FORMATS,
+        ),
   });
 
   return {
@@ -944,13 +1097,18 @@ function createNavigatorOptions({
 
     /*
      * market-chart.js explicitly
-     * owns navigator data updates.
+     * synchronizes navigator data.
      */
     adaptToUpdatedData: false,
 
     height: toNonNegativeNumber(configuration.height, layout.navigatorHeight),
 
-    margin: toNonNegativeNumber(configuration.margin, 10),
+    /*
+     * Slightly larger separation from
+     * main axis labels for a cleaner
+     * professional layout.
+     */
+    margin: toNonNegativeNumber(configuration.margin, 14),
 
     maskInside: true,
 
@@ -961,9 +1119,9 @@ function createNavigatorOptions({
     handles: {
       enabled: configuration.handles !== false,
 
-      width: toNonNegativeNumber(configuration.handleWidth, 7),
+      width: toNonNegativeNumber(configuration.handleWidth, 6),
 
-      height: toNonNegativeNumber(configuration.handleHeight, 18),
+      height: toNonNegativeNumber(configuration.handleHeight, 16),
 
       backgroundColor: navigatorTheme.handles.backgroundColor,
 
@@ -973,39 +1131,43 @@ function createNavigatorOptions({
     xAxis: {
       type: "datetime",
 
-      ordinal: normalizedRange !== INTRADAY_RANGE,
+      ordinal: !intraday,
 
       overscroll: 0,
 
       minPadding: 0,
+
       maxPadding: 0,
 
       startOnTick: false,
+
       endOnTick: false,
 
       lineWidth: 0,
+
       tickWidth: 0,
+
       gridLineWidth: 0,
 
       tickPixelInterval: toNonNegativeNumber(
         configuration.tickPixelInterval,
-        100,
+        110,
       ),
 
       labels: {
         enabled: configuration.labels !== false,
 
-        /*
-         * Never place navigator
-         * labels over the mini-chart.
-         */
         inside: false,
 
         reserveSpace: true,
 
-        y: 14,
+        y: 16,
 
         rotation: 0,
+
+        overflow: "justify",
+
+        crop: true,
 
         style: {
           color: theme.muted,
@@ -1019,15 +1181,31 @@ function createNavigatorOptions({
           return formatDate(this.value);
         },
       },
+
+      /*
+       * Do not force navigator edge labels.
+       *
+       * They collide with the handles and
+       * were the clipped labels visible in
+       * the previous design.
+       *
+       * The main axis already communicates
+       * the exact session start.
+       */
+      showFirstLabel: configuration.showFirstLabel === true,
+
+      showLastLabel: configuration.showLastLabel === true,
     },
 
     yAxis: {
       gridLineWidth: 0,
 
       startOnTick: false,
+
       endOnTick: false,
 
       minPadding: 0.08,
+
       maxPadding: 0.08,
 
       labels: {
@@ -1085,39 +1263,32 @@ function createNavigatorOptions({
   };
 }
 
-/* ==========================================================================
-   Exporting
-   ========================================================================== */
+/* ========================================================================== */
+/* Export                                                                     */
+/* ========================================================================== */
 
 function createExportingOptions(exporting = {}) {
   const configuration = isPlainObject(exporting) ? exporting : {};
 
   /*
-   * IMPORTANT:
-   *
    * `enabled`
-   * controls Highcharts exporting
-   * capability.
+   * enables Highcharts export APIs.
    *
    * `showContextButton`
-   * controls Highcharts' own menu.
+   * controls Highcharts' own hamburger.
    *
-   * This allows:
+   * Performance pages therefore use:
    *
-   * Performance page:
+   * exporting: {
+   *   enabled: true,
+   *   showContextButton: false
+   * }
    *
-   *   exporting: {
-   *     enabled: true
-   *   }
+   * and our custom HTML menu calls:
    *
-   * while our custom HTML menu calls:
-   *
-   *   chart.exportChart()
-   *   chart.print()
-   *   chart.fullscreen.toggle()
-   *
-   * without showing Highcharts'
-   * default hamburger button.
+   * chart.exportChart()
+   * chart.print()
+   * chart.fullscreen.toggle()
    */
 
   const enabled = configuration.enabled === true;
@@ -1147,9 +1318,9 @@ function createExportingOptions(exporting = {}) {
   };
 }
 
-/* ==========================================================================
-   Responsive
-   ========================================================================== */
+/* ========================================================================== */
+/* Responsive                                                                 */
+/* ========================================================================== */
 
 function createResponsiveOptions() {
   return {
@@ -1162,12 +1333,17 @@ function createResponsiveOptions() {
         chartOptions: {
           chart: {
             spacingTop: 10,
+
             spacingRight: 14,
-            spacingBottom: 10,
+
+            spacingBottom: 20,
+
             spacingLeft: 14,
           },
 
           xAxis: {
+            tickPixelInterval: 78,
+
             labels: {
               style: {
                 fontSize: "10px",
@@ -1194,17 +1370,18 @@ function createResponsiveOptions() {
           },
 
           navigator: {
-            height: 34,
+            height: 36,
 
-            margin: 8,
+            margin: 12,
 
             handles: {
-              width: 7,
-              height: 18,
+              width: 6,
+
+              height: 16,
             },
 
             xAxis: {
-              tickPixelInterval: 92,
+              tickPixelInterval: 96,
 
               labels: {
                 style: {
@@ -1224,12 +1401,17 @@ function createResponsiveOptions() {
         chartOptions: {
           chart: {
             spacingTop: 8,
+
             spacingRight: 12,
-            spacingBottom: 8,
+
+            spacingBottom: 18,
+
             spacingLeft: 12,
           },
 
           xAxis: {
+            tickPixelInterval: 70,
+
             labels: {
               style: {
                 fontSize: "9px",
@@ -1254,12 +1436,12 @@ function createResponsiveOptions() {
           },
 
           navigator: {
-            height: 32,
+            height: 34,
 
-            margin: 7,
+            margin: 10,
 
             xAxis: {
-              tickPixelInterval: 82,
+              tickPixelInterval: 88,
             },
           },
         },
@@ -1268,9 +1450,9 @@ function createResponsiveOptions() {
   };
 }
 
-/* ==========================================================================
-   Factory
-   ========================================================================== */
+/* ========================================================================== */
+/* Factory                                                                    */
+/* ========================================================================== */
 
 export function createMarketChartOptions({
   Highcharts,
@@ -1359,16 +1541,23 @@ export function createMarketChartOptions({
 
   const seriesTheme = getMarketChartSeriesTheme(
     Highcharts,
+
     theme,
+
     normalizedMode,
+
     direction,
   );
 
-  const resolvedAnimation = normalizeMarketChartAnimation(animation, {
-    element,
+  const resolvedAnimation = normalizeMarketChartAnimation(
+    animation,
 
-    mode: normalizedMode,
-  });
+    {
+      element,
+
+      mode: normalizedMode,
+    },
+  );
 
   /* ------------------------------------------------------------------------
      Axis Configuration
@@ -1388,10 +1577,6 @@ export function createMarketChartOptions({
     ...(isPlainObject(yAxis) ? yAxis : {}),
   };
 
-  /*
-   * Explicit top-level axis titles
-   * override nested axis settings.
-   */
   if (xAxisTitle !== null && xAxisTitle !== undefined) {
     xAxisConfiguration.title = xAxisTitle;
   }
@@ -1416,7 +1601,7 @@ export function createMarketChartOptions({
     : data;
 
   /* ------------------------------------------------------------------------
-     Exporting
+     Export
      ------------------------------------------------------------------------ */
 
   const exportingOptions = createExportingOptions(exporting);
@@ -1458,9 +1643,9 @@ export function createMarketChartOptions({
 
   const arabic = isArabicLanguage(language);
 
-  /* ==========================================================================
+  /* ========================================================================
      Highstock Options
-     ========================================================================== */
+     ======================================================================== */
 
   return {
     chart: {
@@ -1469,17 +1654,15 @@ export function createMarketChartOptions({
       animation: resolvedAnimation,
 
       /*
-       * Highcharts calculates the
-       * actual axis margins.
+       * Highcharts owns plot margins.
        *
-       * Do not hard-code marginLeft /
-       * marginRight.
+       * We only provide clean outer spacing.
        */
       spacingTop: layout.spacing,
 
       spacingRight: layout.spacing,
 
-      spacingBottom: layout.spacing,
+      spacingBottom: layout.bottomSpacing,
 
       spacingLeft: layout.spacing,
 
@@ -1518,9 +1701,8 @@ export function createMarketChartOptions({
     },
 
     /*
-     * Highcharts owns chart time.
-     *
-     * No useUTC override.
+     * Single source of truth for all
+     * Highcharts datetime rendering.
      */
     time: {
       timezone: timeZone || DEFAULT_TIME_ZONE,
@@ -1555,9 +1737,8 @@ export function createMarketChartOptions({
     },
 
     /*
-     * Named ranges represent application
-     * datasets, not Highstock's built-in
-     * range selector.
+     * Application range buttons are
+     * backend datasets.
      */
     rangeSelector: {
       enabled: false,
@@ -1682,10 +1863,22 @@ export function createMarketChartOptions({
         },
       },
 
+      /*
+       * Candlestick remains completely
+       * native Highstock rendering.
+       *
+       * We only tune spacing.
+       */
       candlestick: {
+        animation: false,
+
         dataGrouping: {
           enabled: false,
         },
+
+        pointPadding: 0.08,
+
+        groupPadding: 0.04,
       },
     },
 
@@ -1710,22 +1903,13 @@ export function createMarketChartOptions({
     },
 
     /*
-     * Overview:
+     * Performance page:
      *
-     *   exporting: {
-     *     enabled: false
-     *   }
+     * exporting.enabled = true
+     * showContextButton = false
      *
-     * Performance:
-     *
-     *   exporting: {
-     *     enabled: true
-     *   }
-     *
-     * In both cases Highcharts'
-     * default menu remains hidden
-     * unless `showContextButton`
-     * is explicitly true.
+     * Our designed menu is therefore
+     * the only visible export UI.
      */
     exporting: exportingOptions,
 
@@ -1733,8 +1917,8 @@ export function createMarketChartOptions({
   };
 }
 
-/* ==========================================================================
-   Public Constants
-   ========================================================================== */
+/* ========================================================================== */
+/* Public Constants                                                           */
+/* ========================================================================== */
 
 export { CONTEXT_LAYOUT, DEFAULT_TOOLTIP_DATE_FORMATS, DEFAULT_X_AXIS_FORMATS };
