@@ -1,0 +1,2966 @@
+
+
+<section class="market-overview market-overview--${marketOverviewMode}"
+	aria-label="Market overview" data-market-overview
+	data-market-details-mode="${marketDetailsMode}">
+
+	<section class="market-summary" aria-labelledby="market-summary-title"
+		data-market-summary>
+		<h2 id="market-summary-title" class="visually-hidden">Market
+			summary</h2>
+			
+		<div class="market-summary__container container">
+			<!-- ============= Clock ============= -->
+			<section class="market-summary__clock"
+				aria-label="Saudi Arabia market time" data-market-clock>
+				<!-- Decorative analog clock -->
+
+				<div class="clock-face" aria-hidden="true">
+					<div class="clock-ticks" data-clock-ticks></div>
+
+					<span class="clock-number clock-number--12"
+						style="--clock-angle: 0deg"> 12 </span> <span
+						class="clock-number clock-number--3" style="--clock-angle: 90deg">
+						3 </span> <span class="clock-number clock-number--6"
+						style="--clock-angle: 180deg"> 6 </span> <span
+						class="clock-number clock-number--9" style="--clock-angle: 270deg">
+						9 </span> <span class="clock-hand clock-hand--hour" data-clock-hour-hand></span>
+
+					<span class="clock-hand clock-hand--minute" data-clock-minute-hand></span>
+
+					<!-- Second hand with rotating Tadawul brand icon -->
+
+					<span class="clock-hand clock-hand--second" data-clock-second-hand>
+						<span class="clock-hand__brand-icon has-icon icon-tadawul"
+						aria-hidden="true"></span>
+					</span> <span class="clock-center"></span>
+				</div>
+
+				<!-- Accessible digital time -->
+
+				<div class="clock-info">
+					<div class="clock-info__time-group">
+						<div class="market-summary__location">
+							<span
+								class="market-summary__location-icon has-icon icon-location-pin"
+								aria-hidden="true"></span> <span
+								class="market-summary__location-text" data-market-clock-location>
+								Riyadh, Saudi Arabia </span>
+						</div>
+
+						<time class="market-summary__time" data-market-clock-time
+							datetime=""> --:-- </time>
+					</div>
+
+					<div class="clock-info__date-group">
+						<span class="market-summary__day" data-market-clock-day> —
+						</span>
+
+						<time class="market-summary__date" data-market-clock-date
+							datetime=""> — </time>
+					</div>
+				</div>
+			</section>
+			<!-- ============= Market cards ============= -->
+			<div class="market-summary__cards-wrap">
+				<div class="market-summary__cards" role="tablist"
+					aria-label="Markets" aria-orientation="horizontal" data-market-tabs>
+
+					<!-- ===== TASI ===== -->
+					<button class="market-card is-active" id="market-tab-tasi"
+						type="button" role="tab" aria-selected="true"
+						aria-controls="market-panel-tasi" tabindex="0" data-market-card
+						data-market="M" data-key="tasi" data-timer-key="tasi"
+						data-target="tasi">
+						<span class="market-card__top"> <span
+							class="status-icon ${tasiMarketStatusColor}"
+							data-field="statusIcon"> <span
+								class="market-status ${tasiMarketStatusCodeClass}"
+								aria-hidden="true"></span>
+						</span> <span class="market-card__market"> <span
+								class="market-status-title"><fmt:message
+										key="theme.nav.card.mainmarket" /></span>
+						</span>
+						</span> <span class="market-card__body"> <span
+							class="market-card__main"> <span
+								class="market-card__title"><fmt:message
+										key="theme.nav.tasi" /></span> <span class="market-card__status"
+								data-field="marketStatus"> <fmt:message
+										key="${siteStatus}" />
+							</span>
+						</span> <span class="market-card__divider" aria-hidden="true"></span> <span
+							class="market-card__metrics"> <data
+									class="market-card__value"
+									value="${siteToolHelper.getInstance().getTASIInfo().tasiTodaysSummaryBean.indexPrice}"
+									data-field="indexPrice"> <fmt:formatNumber type="number"
+									minFractionDigits="2" maxFractionDigits="2"
+									value="${siteToolHelper.getInstance().getTASIInfo().tasiTodaysSummaryBean.indexPrice}" />
+								</data> <span
+								class="market-card__change market-change ${tasiIndexStatus}"
+								data-field="change"> <span data-field="netChange">
+										<fmt:formatNumber type="number" pattern="#,###.##"
+											minFractionDigits="2" maxFractionDigits="2"
+											value="${siteToolHelper.getInstance().getTASIInfo().tasiTodaysSummaryBean.netChange}" />
+								</span> <span data-field="percentChange"> (<fmt:formatNumber
+											type="number" pattern="#,###.##" minFractionDigits="2"
+											maxFractionDigits="2"
+											value="${siteToolHelper.getInstance().getTASIInfo().tasiTodaysSummaryBean.percentChange}" />%)
+								</span>
+							</span>
+						</span>
+						</span>
+
+						<time class="market-card__timer" data-field="timer"
+							data-market-countdown datetime="">&nbsp;</time>
+					</button>
+
+					<!-- ===== NOMU ===== -->
+					<button class="market-card" id="market-tab-nomu" type="button"
+						role="tab" aria-selected="false" aria-controls="market-panel-nomu"
+						tabindex="-1" data-market-card data-market="N" data-key="nomuc"
+						data-timer-key="nomuc" data-target="nomuc">
+						<span class="market-card__top"> <span
+							class="status-icon ${nomucMarketStatusColor}"
+							data-field="statusIcon"> <span
+								class="market-status ${nomucMarketStatusCodeClass}"
+								aria-hidden="true"></span>
+						</span> <span class="market-card__market"> <span
+								class="market-status-title"><fmt:message
+										key="theme.nav.card.parallel" /></span>
+						</span>
+						</span> <span class="market-card__body"> <span
+							class="market-card__main"> <span
+								class="market-card__title"><fmt:message
+										key="theme.nav.sme.sasi" /></span> <span class="market-card__status"
+								data-field="marketStatus"> <fmt:message
+										key="${siteStatusNOMU}" />
+							</span>
+						</span> <span class="market-card__divider" aria-hidden="true"></span> <span
+							class="market-card__metrics"> <data
+									class="market-card__value"
+									value="${siteToolHelper.getInstance().getSMAIInfo().getSmeSASITodaysSummaryBean().indexPrice}"
+									data-field="indexPrice"> <fmt:formatNumber type="number"
+									minFractionDigits="2" maxFractionDigits="2"
+									value="${siteToolHelper.getInstance().getSMAIInfo().getSmeSASITodaysSummaryBean().indexPrice}" />
+								</data> <span
+								class="market-card__change market-change ${nomuIndexStatus}"
+								data-field="change"> <span data-field="netChange">
+										<fmt:formatNumber type="number" pattern="#,###.##"
+											minFractionDigits="2" maxFractionDigits="2"
+											value="${siteToolHelper.getInstance().getSMAIInfo().getSmeSASITodaysSummaryBean().netChange}" />
+								</span> <span data-field="percentChange"> (<fmt:formatNumber
+											type="number" pattern="#,###.##" minFractionDigits="2"
+											maxFractionDigits="2"
+											value="${siteToolHelper.getInstance().getSMAIInfo().getSmeSASITodaysSummaryBean().percentChange}" />%)
+								</span>
+							</span>
+						</span>
+						</span>
+
+						<time class="market-card__timer" data-field="timer"
+							data-market-countdown datetime="">&nbsp;</time>
+					</button>
+
+					<!-- ===== SUKUK ===== -->
+					<button class="market-card" id="market-tab-sukuk" type="button"
+						role="tab" aria-selected="false"
+						aria-controls="market-panel-sukuk" tabindex="-1" data-market-card
+						data-market="S" data-key="sukuk" data-timer-key="sukuk"
+						data-target="sukuk">
+						<span class="market-card__top"> <span
+							class="status-icon ${sukukMarketStatusColor}"
+							data-field="statusIcon"> <span
+								class="market-status ${sukukMarketStatusCodeClass}"
+								aria-hidden="true"></span>
+						</span> <span class="market-card__market"> <span
+								class="market-status-title"><fmt:message
+										key="theme.nav.card.sukuk" /></span>
+						</span>
+						</span> <span class="market-card__body"> <span
+							class="market-card__main"> <span
+								class="market-card__title"><fmt:message
+										key="theme.nav.sukuk" /></span> <span class="market-card__status"
+								data-field="marketStatus"> <fmt:message
+										key="${siteStatusSukuk}" />
+							</span>
+						</span> <span class="market-card__divider" aria-hidden="true"></span> <span
+							class="market-card__metrics"> <data
+									class="market-card__value"
+									value="${siteToolHelper.getInstance().getSukukInfo().getTasiTodaysSummaryBean().indexPrice}"
+									data-field="indexPrice"> <fmt:formatNumber type="number"
+									minFractionDigits="2" maxFractionDigits="2"
+									value="${siteToolHelper.getInstance().getSukukInfo().getTasiTodaysSummaryBean().indexPrice}" />
+								</data> <span
+								class="market-card__change market-change ${sukukIndexStatus}"
+								data-field="change"> <span data-field="netChange">
+										<fmt:formatNumber type="number" pattern="#,###.##"
+											minFractionDigits="2" maxFractionDigits="2"
+											value="${siteToolHelper.getInstance().getSukukInfo().getTasiTodaysSummaryBean().netChange}" />
+								</span> <span data-field="percentChange"> (<fmt:formatNumber
+											type="number" pattern="#,###.##" minFractionDigits="2"
+											maxFractionDigits="2"
+											value="${siteToolHelper.getInstance().getSukukInfo().getTasiTodaysSummaryBean().percentChange}" />%)
+								</span>
+							</span>
+						</span>
+						</span>
+
+						<time class="market-card__timer" data-field="timer"
+							data-market-countdown datetime="">&nbsp;</time>
+					</button>
+
+					<!-- ===== FUNDS (no index value in helper) ===== -->
+					<button class="market-card market-card--compact"
+						id="market-tab-funds" type="button" role="tab"
+						aria-selected="false" aria-controls="market-panel-funds"
+						tabindex="-1" data-market-card data-market="F" data-key="REITs"
+						data-timer-key="REITs" data-target="REITs">
+						<span class="market-card__top"> <span
+							class="status-icon ${tasiMarketStatusColor}"
+							data-field="statusIcon"> <span
+								class="market-status ${tasiMarketStatusCodeClass}"
+								aria-hidden="true"></span>
+						</span> <span class="market-card__market"> <span
+								class="market-status-title"><fmt:message
+										key="theme.nav.card.funds" /></span>
+						</span>
+						</span> <span class="market-card__body"> <span
+							class="market-card__main"> <span
+								class="market-card__title"><fmt:message
+										key="theme.site.tools.marketstatus.funds" /></span> <span
+								class="market-card__status" data-field="marketStatus"> <fmt:message
+										key="${siteStatus}" />
+							</span>
+						</span>
+						</span>
+
+						<time class="market-card__timer" data-field="timer"
+							data-market-countdown datetime="">&nbsp;</time>
+					</button>
+
+					<!-- ===== DERIVATIVES ===== -->
+					<button class="market-card market-card--compact Derivatives-tab"
+						id="market-tab-derivatives" type="button" role="tab"
+						aria-selected="false" aria-controls="market-panel-derivatives"
+						tabindex="-1" data-market-card data-market="D" data-key="mt30"
+						data-timer-key="mt30" data-target="mt30">
+						<span class="market-card__top"> <span
+							class="status-icon ${derivativeMarketStatusColor}"
+							data-field="statusIcon"> <span
+								class="market-status ${derivativeMarketStatusCodeClass}"
+								aria-hidden="true"></span>
+						</span> <span class="market-card__market"> <span
+								class="market-status-title"><fmt:message
+										key="theme.nav.card.derivatives" /></span>
+						</span>
+						</span> <span class="market-card__body"> <span
+							class="market-card__main"> <span
+								class="market-card__title"><fmt:message
+										key="theme.site.tools.marketstatus.DerivativesMarket" /></span> <span
+								class="market-card__status" data-field="marketStatus"> <fmt:message
+										key="${siteStatusDerivatives}" />
+							</span>
+						</span>
+						</span>
+
+						<time class="market-card__timer" data-field="timer"
+							data-market-countdown datetime="">&nbsp;</time>
+					</button>
+				</div>
+
+				<!-- Return to selected market -->
+				<button class="market-summary__selected-market tooltip-context"
+					type="button" data-selected-market
+					data-tooltip="Return to selected market"
+					data-tooltip-placement="top" aria-label="Return to selected market"
+					hidden>
+					<span
+						class="market-summary__selected-market-icon has-icon icon-chart-line"
+						aria-hidden="true"></span> <strong
+						class="market-summary__selected-market-name"
+						data-selected-market-name>TASI</strong>
+				</button>
+			</div>
+		</div>
+
+
+
+	</section>
+
+
+	<!-- ============================================================
+       Market Details 
+  ============================================================= -->
+	<details class="market-overview__disclosure"
+		data-market-details-disclosure <c:if test="${isHomePage}">open</c:if>>
+
+		<summary class="market-overview__summary" data-market-overview-toggle
+			aria-expanded="${isHomePage ? 'true' : 'false'}"
+			<c:if test="${isHomePage}">hidden</c:if>>
+			<span class="market-overview__summary-icon has-icon icon-chevron-up"
+				aria-hidden="true"></span> <span class="visually-hidden"
+				data-market-overview-toggle-label>Hide market details</span>
+		</summary>
+
+		<div class="market-overview__details-content"
+			data-market-overview-details
+			aria-hidden="${isHomePage ? 'false' : 'true'}">
+
+			<div class="market-bridge" aria-hidden="true" data-market-bridge>
+				<div class="market-bridge__inner">
+					<div class="market-bridge__bar" data-market-bridge-bar></div>
+				</div>
+			</div>
+
+			<section class="market-details"
+				aria-labelledby="market-details-title">
+				<h2 id="market-details-title" class="visually-hidden">Market
+					details</h2>
+				<div class="container market-details__container">
+
+					<%-- ============================================================
+               PANEL :: TASI (Main Market)
+          ============================================================= --%>
+					<section
+						class="market-details-panel market-details-panel--overview is-active"
+						id="market-panel-tasi" role="tabpanel"
+						aria-labelledby="market-tab-tasi" aria-hidden="false"
+						data-market-detail-panel data-market="M">
+						<div class="market-details-panel__grid">
+
+
+							<div class="market-details-panel__main" data-chart-viewport>
+								<div id="tasi-chart" class="market-chart market-chart--overview"
+									data-tasi-live-chart data-chart-context="overview"
+									data-chart-state="loading" data-chart-id="tasi" role="img"
+									aria-label="TASI market performance chart"></div>
+							</div>
+
+
+							<div class="market-details-panel__mobile-summary"
+								aria-label="TASI trading summary">
+								<div class="market-details-panel__mobile-metric">
+									<span class="market-details-panel__mobile-metric-label">
+										<span
+										class="market-details-panel__mobile-metric-icon has-icon icon-riyal"
+										aria-hidden="true"></span> <span><fmt:message
+												key="market.valueTraded" /></span>
+									</span>
+									<data class="market-details-panel__mobile-metric-value"
+										value="${requestScope.tasiBean.tasiTodaysSummaryBean.turnOver}"
+										data-detail-field="tasi.turnOver"> <fmt:formatNumber
+										type="number" pattern="##,###,###.##" minFractionDigits="2"
+										maxFractionDigits="2"
+										value="${requestScope.tasiBean.tasiTodaysSummaryBean.turnOver}" />
+									</data>
+								</div>
+								<div class="market-details-panel__mobile-metric">
+									<span class="market-details-panel__mobile-metric-label">
+										<fmt:message key="market.volumeTraded" />
+									</span>
+									<data class="market-details-panel__mobile-metric-value"
+										value="${requestScope.tasiBean.tasiTodaysSummaryBean.volumeTraded}"
+										data-detail-field="tasi.volumeTraded"> <fmt:formatNumber
+										type="number" pattern="##,###,###"
+										value="${requestScope.tasiBean.tasiTodaysSummaryBean.volumeTraded}" />
+									</data>
+								</div>
+							</div>
+
+
+							<div class="market-details-panel__toggle-wrap">
+								<button
+									class="market-details-panel__toggle btn btn-outline-primary btn-sm has-icon icon-chevron-down icon-end"
+									type="button" data-market-details-toggle aria-expanded="false"
+									aria-controls="tasi-market-details">
+									<span data-market-details-toggle-text>Show market
+										details</span>
+								</button>
+							</div>
+
+
+							<div class="market-details-panel__collapsible"
+								id="tasi-market-details" data-market-details-collapsible
+								aria-hidden="false">
+
+								<%-- Market Movers --%>
+								<div class="market-details-panel__insights">
+									<div class="market-movers" data-market-movers>
+										<div class="market-movers__tabs" role="tablist"
+											aria-label="TASI market movers" aria-orientation="horizontal">
+											<button class="market-movers__tab is-active"
+												id="tasi-tab-gainers" type="button" role="tab"
+												aria-selected="true" aria-controls="tasi-gainers"
+												tabindex="0" data-market-movers-tab>
+												<fmt:message key="market.marketShareindex.topgainers" />
+											</button>
+											<button class="market-movers__tab" id="tasi-tab-losers"
+												type="button" role="tab" aria-selected="false"
+												aria-controls="tasi-losers" tabindex="-1"
+												data-market-movers-tab>
+												<fmt:message key="market.marketShareindex.toplosers" />
+											</button>
+											<button class="market-movers__tab" id="tasi-tab-volume"
+												type="button" role="tab" aria-selected="false"
+												aria-controls="tasi-volume" tabindex="-1"
+												data-market-movers-tab>
+												<fmt:message key="market.marketShareindex.byvolume" />
+											</button>
+											<button class="market-movers__tab" id="tasi-tab-value"
+												type="button" role="tab" aria-selected="false"
+												aria-controls="tasi-value" tabindex="-1"
+												data-market-movers-tab>
+												<fmt:message key="market.marketShareindex.byvalue" />
+											</button>
+										</div>
+
+
+										<div class="market-movers__panel is-active" id="tasi-gainers"
+											role="tabpanel" aria-labelledby="tasi-tab-gainers"
+											data-market-movers-panel data-detail-list="tasi.gainers">
+											<c:choose>
+												<c:when test="${not empty requestScope.gainers.result}">
+													<ul class="market-movers__list">
+														<c:forEach items="${requestScope.gainers.result}"
+															var="gainer" varStatus="gainerCount" begin="0" end="4">
+															<c:set var="companyStatusClass" value="" />
+															<c:choose>
+																<c:when test="${gainer.companyStatus == '1'}">
+																	<c:set var="companyStatusClass" value="caution" />
+																</c:when>
+																<c:when test="${gainer.companyStatus == '2'}">
+																	<c:set var="companyStatusClass" value="warning" />
+																</c:when>
+																<c:when test="${gainer.companyStatus == '3'}">
+																	<c:set var="companyStatusClass" value="danger" />
+																</c:when>
+															</c:choose>
+															<li class="market-movers__row">
+																<div class="market-movers__info">
+																	<portal:urlGeneration
+																		contentNode="com.tadawul.hidden.company.profile.v3"
+																		portletMode="view" portletParameterType="render"
+																		layoutNode="com.tadawul.v3.company.profile.node.v3"
+																		keepNavigationalState="false">
+																		<portal:urlParam name="companySymbol"
+																			value="${gainer.symbol}" />
+																		<a class="market-movers__name"
+																			href="<%wpsURL.write(out);%>"> <span><c:out
+																					value="${gainer.szCompany}" /></span> <span
+																			class="market-movers__indicator market-movers__indicator--${companyStatusClass}"
+																			aria-hidden="true"></span>
+																		</a>
+																	</portal:urlGeneration>
+																	<span class="market-movers__market"><fmt:message
+																			key="market.marketShareindex" /></span>
+																</div>
+																<div class="market-movers__numbers">
+																	<data class="market-movers__price"
+																		value="${gainer.bdLastPrice}">
+																	<c:out value="${gainer.bdLastPrice}" /></data>
+																	<span
+																		class="market-movers__change market-change market-change--up">
+																		<span
+																		class="market-change__icon has-icon icon-arrow-up"
+																		aria-hidden="true"></span> <span><c:out
+																				value="${gainer.bdNetChange}" /> (<c:out
+																				value="${gainer.bdPercnetChange}" />%)</span>
+																	</span>
+																</div>
+															</li>
+														</c:forEach>
+													</ul>
+												</c:when>
+												<c:otherwise>
+													<p class="market-movers__empty">No data available</p>
+												</c:otherwise>
+											</c:choose>
+										</div>
+
+
+										<div class="market-movers__panel" id="tasi-losers"
+											role="tabpanel" aria-labelledby="tasi-tab-losers"
+											aria-hidden="true" data-market-movers-panel
+											data-detail-list="tasi.losers" hidden>
+											<c:choose>
+												<c:when test="${not empty requestScope.losers.result}">
+													<ul class="market-movers__list">
+														<c:forEach items="${requestScope.losers.result}"
+															var="losers" varStatus="losersCount" begin="0" end="4">
+															<c:set var="companyStatusClass" value="" />
+															<c:choose>
+																<c:when test="${losers.companyStatus == '1'}">
+																	<c:set var="companyStatusClass" value="caution" />
+																</c:when>
+																<c:when test="${losers.companyStatus == '2'}">
+																	<c:set var="companyStatusClass" value="warning" />
+																</c:when>
+																<c:when test="${losers.companyStatus == '3'}">
+																	<c:set var="companyStatusClass" value="danger" />
+																</c:when>
+															</c:choose>
+															<li class="market-movers__row">
+																<div class="market-movers__info">
+																	<portal:urlGeneration
+																		contentNode="com.tadawul.hidden.company.profile.v3"
+																		portletMode="view" portletParameterType="render"
+																		layoutNode="com.tadawul.v3.company.profile.node.v3"
+																		keepNavigationalState="false">
+																		<portal:urlParam name="companySymbol"
+																			value="${losers.symbol}" />
+																		<a class="market-movers__name"
+																			href="<%wpsURL.write(out);%>"> <span><c:out
+																					value="${losers.szCompany}" /></span> <span
+																			class="market-movers__indicator market-movers__indicator--${companyStatusClass}"
+																			aria-hidden="true"></span>
+																		</a>
+																	</portal:urlGeneration>
+																	<span class="market-movers__market"><fmt:message
+																			key="market.marketShareindex" /></span>
+																</div>
+																<div class="market-movers__numbers">
+																	<data class="market-movers__price"
+																		value="${losers.bdLastPrice}">
+																	<c:out value="${losers.bdLastPrice}" /></data>
+																	<span
+																		class="market-movers__change market-change market-change--down">
+																		<span
+																		class="market-change__icon has-icon icon-arrow-down"
+																		aria-hidden="true"></span> <span>−<c:out
+																				value="${losers.bdNetChange}" /> (−<c:out
+																				value="${losers.bdPercnetChange}" />%)
+																	</span>
+																	</span>
+																</div>
+															</li>
+														</c:forEach>
+													</ul>
+												</c:when>
+												<c:otherwise>
+													<p class="market-movers__empty">No data available</p>
+												</c:otherwise>
+											</c:choose>
+										</div>
+
+										<%-- Volume --%>
+										<div class="market-movers__panel" id="tasi-volume"
+											role="tabpanel" aria-labelledby="tasi-tab-volume"
+											aria-hidden="true" data-market-movers-panel
+											data-detail-list="tasi.volume" hidden>
+											<c:choose>
+												<c:when test="${not empty requestScope.byVolume.result}">
+													<ul class="market-movers__list">
+														<c:forEach items="${requestScope.byVolume.result}"
+															var="byVolume" varStatus="byVolumeCount" begin="0"
+															end="4">
+															<c:set var="companyStatusClass" value="" />
+															<c:choose>
+																<c:when test="${byVolume.companyStatus == '1'}">
+																	<c:set var="companyStatusClass" value="caution" />
+																</c:when>
+																<c:when test="${byVolume.companyStatus == '2'}">
+																	<c:set var="companyStatusClass" value="warning" />
+																</c:when>
+																<c:when test="${byVolume.companyStatus == '3'}">
+																	<c:set var="companyStatusClass" value="danger" />
+																</c:when>
+															</c:choose>
+															<li class="market-movers__row">
+																<div class="market-movers__info">
+																	<portal:urlGeneration
+																		contentNode="com.tadawul.hidden.company.profile.v3"
+																		portletMode="view" portletParameterType="render"
+																		layoutNode="com.tadawul.v3.company.profile.node.v3"
+																		keepNavigationalState="false">
+																		<portal:urlParam name="companySymbol"
+																			value="${byVolume.symbol}" />
+																		<a class="market-movers__name"
+																			href="<%wpsURL.write(out);%>"> <span><c:out
+																					value="${byVolume.szCompany}" /></span> <span
+																			class="market-movers__indicator market-movers__indicator--${companyStatusClass}"
+																			aria-hidden="true"></span>
+																		</a>
+																	</portal:urlGeneration>
+																	<span class="market-movers__market"><fmt:message
+																			key="market.marketShareindex" /></span>
+																</div>
+																<div class="market-movers__numbers">
+																	<data class="market-movers__price"
+																		value="${byVolume.bdLastPrice}">
+																	<c:out value="${byVolume.bdLastPrice}" /></data>
+																	<data class="market-movers__change"
+																		value="${byVolume.volume}">
+																	<fmt:formatNumber type="number" pattern="##,###,###"
+																		value="${fn:replace(byVolume.volume, ',', '')}" /></data>
+
+																</div>
+															</li>
+														</c:forEach>
+													</ul>
+												</c:when>
+												<c:otherwise>
+													<p class="market-movers__empty">No data available</p>
+												</c:otherwise>
+											</c:choose>
+										</div>
+
+										<%-- Value --%>
+										<div class="market-movers__panel" id="tasi-value"
+											role="tabpanel" aria-labelledby="tasi-tab-value"
+											aria-hidden="true" data-market-movers-panel
+											data-detail-list="tasi.value" hidden>
+											<c:choose>
+												<c:when test="${not empty requestScope.byvalue.result}">
+													<ul class="market-movers__list">
+														<c:forEach items="${requestScope.byvalue.result}"
+															var="byvalue" varStatus="byvalueCount" begin="0" end="4">
+															<c:set var="companyStatusClass" value="" />
+															<c:choose>
+																<c:when test="${byvalue.companyStatus == '1'}">
+																	<c:set var="companyStatusClass" value="caution" />
+																</c:when>
+																<c:when test="${byvalue.companyStatus == '2'}">
+																	<c:set var="companyStatusClass" value="warning" />
+																</c:when>
+																<c:when test="${byvalue.companyStatus == '3'}">
+																	<c:set var="companyStatusClass" value="danger" />
+																</c:when>
+															</c:choose>
+															<li class="market-movers__row">
+																<div class="market-movers__info">
+																	<portal:urlGeneration
+																		contentNode="com.tadawul.hidden.company.profile.v3"
+																		portletMode="view" portletParameterType="render"
+																		layoutNode="com.tadawul.v3.company.profile.node.v3"
+																		keepNavigationalState="false">
+																		<portal:urlParam name="companySymbol"
+																			value="${byvalue.symbol}" />
+																		<a class="market-movers__name"
+																			href="<%wpsURL.write(out);%>"> <span><c:out
+																					value="${byvalue.szCompany}" /></span> <span
+																			class="market-movers__indicator market-movers__indicator--${companyStatusClass}"
+																			aria-hidden="true"></span>
+																		</a>
+																	</portal:urlGeneration>
+																	<span class="market-movers__market"><fmt:message
+																			key="market.marketShareindex" /></span>
+																</div>
+																<div class="market-movers__numbers">
+																	<data class="market-movers__price"
+																		value="${byvalue.bdLastPrice}">
+																	<c:out value="${byvalue.bdLastPrice}" /></data>
+																	<span class="market-movers__change"> <span
+																		class="market-change__icon has-icon icon-riyal"
+																		aria-hidden="true"></span> <span>
+																			${byvalue.turnover}</span>
+																	</span>
+																</div>
+															</li>
+														</c:forEach>
+													</ul>
+												</c:when>
+												<c:otherwise>
+													<p class="market-movers__empty">No data available</p>
+												</c:otherwise>
+											</c:choose>
+										</div>
+									</div>
+								</div>
+
+								<%-- Stats --%>
+								<div class="market-details-panel__stats">
+									<dl class="market-stats">
+										<div
+											class="market-stats__item market-stats__item--mobile-summary">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.valueTraded" /></span> <span
+													class="market-stats__icon has-icon icon-riyal"
+													aria-hidden="true"></span>
+											</dt>
+											<dd class="market-stats__value"
+												data-detail-field="tasi.turnOver">
+												<data
+													value="${requestScope.tasiBean.tasiTodaysSummaryBean.turnOver}">
+												<fmt:formatNumber type="number" pattern="##,###,###.##"
+													minFractionDigits="2" maxFractionDigits="2"
+													value="${requestScope.tasiBean.tasiTodaysSummaryBean.turnOver}" />
+												</data>
+											</dd>
+										</div>
+
+										<div
+											class="market-stats__item market-stats__item--mobile-summary">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.volumeTraded" /></span>
+											</dt>
+											<dd class="market-stats__value"
+												data-detail-field="tasi.volumeTraded">
+												<data
+													value="${requestScope.tasiBean.tasiTodaysSummaryBean.volumeTraded}">
+												<fmt:formatNumber type="number" pattern="##,###,###"
+													value="${requestScope.tasiBean.tasiTodaysSummaryBean.volumeTraded}" />
+												</data>
+											</dd>
+										</div>
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.marketCap" /></span> <span
+													class="market-stats__icon has-icon icon-riyal"
+													aria-hidden="true"></span>
+											</dt>
+											<dd class="market-stats__value">
+												<data value="${requestScope.marketCapBean.marketCap_Main}">
+												<c:out value="${requestScope.marketCapBean.marketCap_Main}" />
+												</data>
+											</dd>
+										</div>
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.symbols.listed" /></span>
+											</dt>
+											<dd class="market-stats__value">
+												<data
+													value="${requestScope.marketCapBean.noOfSymbolsListed_Main}">
+												<c:out
+													value="${requestScope.marketCapBean.noOfSymbolsListed_Main}" />
+												</data>
+											</dd>
+										</div>
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label market-stats__label--down">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.symbolsdown" /></span>
+											</dt>
+											<dd class="market-stats__value">
+												<data value="${requestScope.marketBean.noOfDowns}"> <c:out
+													value="${requestScope.marketBean.noOfDowns}" /> </data>
+											</dd>
+										</div>
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label market-stats__label--up">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.symbolsup" /></span>
+											</dt>
+											<dd class="market-stats__value">
+												<data value="${requestScope.marketBean.noOfUps}"> <c:out
+													value="${requestScope.marketBean.noOfUps}" /> </data>
+											</dd>
+										</div>
+
+										<c:set var="tasiYtdChange"
+											value="${requestScope.tasibeanDetails.tasiYearToDateBean.change}" />
+										<c:set var="tasiYtdPct"
+											value="${requestScope.tasibeanDetails.tasiYearToDateBean.percentChange}" />
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.index.change.daily" /></span>
+											</dt>
+											<dd
+												class="market-stats__value ${tasiYtdChange >= 0 ? 'market-change market-change--up' : (tasiYtdChange < 0 ? 'market-change market-change--down' : '')}"
+												data-detail-field="tasi.dailyChange">
+												<c:choose>
+													<c:when test="${tasiYtdChange == 0}">
+														<strong><fmt:message key="N/A" /></strong>
+													</c:when>
+													<c:otherwise>
+														<data value="${tasiYtdChange}"> <fmt:formatNumber
+															type="number" minFractionDigits="2" maxFractionDigits="2"
+															value="${tasiYtdChange}" /> </data>
+													</c:otherwise>
+												</c:choose>
+											</dd>
+										</div>
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.funds.etfs.change.percentage" /></span>
+											</dt>
+											<dd
+												class="market-stats__value ${tasiYtdPct >= 0 ? 'market-change market-change--up' : (tasiYtdPct < 0 ? 'market-change market-change--down' : '')}"
+												data-detail-field="tasi.dailyPercentChange">
+												<c:choose>
+													<c:when test="${tasiYtdPct == 0}">
+														<strong><fmt:message key="N/A" /></strong>
+													</c:when>
+													<c:otherwise>
+														<data value="${tasiYtdPct}"> <fmt:formatNumber
+															type="number" minFractionDigits="2" maxFractionDigits="2"
+															value="${tasiYtdPct}" />% </data>
+													</c:otherwise>
+												</c:choose>
+											</dd>
+										</div>
+									</dl>
+								</div>
+							</div>
+						</div>
+					</section>
+
+
+					<c:set var="nomuTurnOver"
+						value="${requestScope.smeSasiBean.smeSASITodaysSummaryBean.turnOver}" />
+					<c:set var="nomuVolume"
+						value="${requestScope.smeSasiBean.smeSASITodaysSummaryBean.volumeTraded}" />
+					<c:set var="nomuChange"
+						value="${requestScope.tasiBeanNomuDetails.tasiYearToDateBean.change}" />
+					<c:set var="nomuPct"
+						value="${requestScope.tasiBeanNomuDetails.tasiYearToDateBean.percentChange}" />
+
+					<section
+						class="market-details-panel market-details-panel--overview"
+						id="market-panel-nomu" role="tabpanel"
+						aria-labelledby="market-tab-nomu" aria-hidden="true"
+						data-market-detail-panel data-market="N" hidden>
+						<div class="market-details-panel__grid">
+
+							<div class="market-details-panel__main">
+								<div class="market-details-panel__chart market-chart"
+									id="nomu-chart" data-chart-id="nomu" role="img"
+									aria-label="Nomu Parallel Market performance chart"></div>
+							</div>
+
+							<div class="market-details-panel__mobile-summary"
+								aria-label="Nomu trading summary">
+								<div class="market-details-panel__mobile-metric">
+									<span class="market-details-panel__mobile-metric-label">
+										<span
+										class="market-details-panel__mobile-metric-icon has-icon icon-riyal"
+										aria-hidden="true"></span> <span><fmt:message
+												key="market.valueTraded" /></span>
+									</span>
+									<data class="market-details-panel__mobile-metric-value"
+										value="${nomuTurnOver}" data-detail-field="nomu.turnOver">
+									<fmt:formatNumber type="number" pattern="##,###,###.##"
+										minFractionDigits="2" maxFractionDigits="2"
+										value="${nomuTurnOver}" /> </data>
+								</div>
+								<div class="market-details-panel__mobile-metric">
+									<span class="market-details-panel__mobile-metric-label">
+										<fmt:message key="market.volumeTraded" />
+									</span>
+									<data class="market-details-panel__mobile-metric-value"
+										value="${nomuVolume}" data-detail-field="nomu.volumeTraded">
+									<fmt:formatNumber type="number" pattern="##,###,###"
+										value="${nomuVolume}" /> </data>
+								</div>
+							</div>
+
+							<div class="market-details-panel__toggle-wrap">
+								<button
+									class="market-details-panel__toggle btn btn-outline-primary btn-sm has-icon icon-chevron-down icon-end"
+									type="button" data-market-details-toggle aria-expanded="false"
+									aria-controls="nomu-market-details">
+									<span data-market-details-toggle-text>Show market
+										details</span>
+								</button>
+							</div>
+
+							<div class="market-details-panel__collapsible"
+								id="nomu-market-details" data-market-details-collapsible
+								aria-hidden="false">
+
+								<div class="market-details-panel__insights">
+									<div class="market-movers" data-market-movers>
+										<div class="market-movers__tabs" role="tablist"
+											aria-label="Nomu market movers" aria-orientation="horizontal">
+											<button class="market-movers__tab is-active"
+												id="nomu-tab-gainers" type="button" role="tab"
+												aria-selected="true" aria-controls="nomu-gainers"
+												tabindex="0" data-market-movers-tab>
+												<fmt:message key="market.marketShareindex.topgainers" />
+											</button>
+											<button class="market-movers__tab" id="nomu-tab-losers"
+												type="button" role="tab" aria-selected="false"
+												aria-controls="nomu-losers" tabindex="-1"
+												data-market-movers-tab>
+												<fmt:message key="market.marketShareindex.toplosers" />
+											</button>
+											<button class="market-movers__tab" id="nomu-tab-volume"
+												type="button" role="tab" aria-selected="false"
+												aria-controls="nomu-volume" tabindex="-1"
+												data-market-movers-tab>
+												<fmt:message key="market.marketShareindex.byvolume" />
+											</button>
+											<button class="market-movers__tab" id="nomu-tab-value"
+												type="button" role="tab" aria-selected="false"
+												aria-controls="nomu-value" tabindex="-1"
+												data-market-movers-tab>
+												<fmt:message key="market.marketShareindex.byvalue" />
+											</button>
+										</div>
+
+
+										<div class="market-movers__panel is-active" id="nomu-gainers"
+											role="tabpanel" aria-labelledby="nomu-tab-gainers"
+											data-market-movers-panel data-detail-list="nomu.gainers">
+											<c:choose>
+												<c:when test="${not empty requestScope.nomu_gainers.result}">
+													<ul class="market-movers__list">
+														<c:forEach items="${requestScope.nomu_gainers.result}"
+															var="gainer" varStatus="gainerCount" begin="0" end="4">
+															<c:set var="companyStatusClass" value="" />
+															<c:choose>
+																<c:when test="${gainer.companyStatus == '1'}">
+																	<c:set var="companyStatusClass" value="caution" />
+																</c:when>
+																<c:when test="${gainer.companyStatus == '2'}">
+																	<c:set var="companyStatusClass" value="warning" />
+																</c:when>
+																<c:when test="${gainer.companyStatus == '3'}">
+																	<c:set var="companyStatusClass" value="danger" />
+																</c:when>
+															</c:choose>
+															<li class="market-movers__row">
+																<div class="market-movers__info">
+																	<portal:urlGeneration
+																		contentNode="com.tadawul.hidden.company.profile.nomu.v3"
+																		portletMode="view" portletParameterType="render"
+																		layoutNode="com.tadawul.v3.company.profile.nomu.node.v3"
+																		keepNavigationalState="false">
+																		<portal:urlParam name="companySymbol"
+																			value="${gainer.symbol}" />
+																		<a class="market-movers__name"
+																			href="<%wpsURL.write(out);%>"> <span><c:out
+																					value="${gainer.szCompany}" /></span> <span
+																			class="market-movers__indicator market-movers__indicator--${companyStatusClass}"
+																			aria-hidden="true"></span>
+																		</a>
+																	</portal:urlGeneration>
+																	<span class="market-movers__market"><fmt:message
+																			key="market.marketShareindex.sme" /></span>
+																</div>
+																<div class="market-movers__numbers">
+																	<data class="market-movers__price"
+																		value="${gainer.bdLastPrice}">
+																	<c:out value="${gainer.bdLastPrice}" /></data>
+																	<span
+																		class="market-movers__change market-change market-change--up">
+																		<span
+																		class="market-change__icon has-icon icon-arrow-up"
+																		aria-hidden="true"></span> <span><c:out
+																				value="${gainer.bdNetChange}" /> (<c:out
+																				value="${gainer.bdPercnetChange}" />%)</span>
+																	</span>
+																</div>
+															</li>
+														</c:forEach>
+													</ul>
+												</c:when>
+												<c:otherwise>
+													<p class="market-movers__empty">No data available</p>
+												</c:otherwise>
+											</c:choose>
+										</div>
+
+										<%-- Nomu Losers --%>
+										<div class="market-movers__panel" id="nomu-losers"
+											role="tabpanel" aria-labelledby="nomu-tab-losers"
+											aria-hidden="true" data-market-movers-panel
+											data-detail-list="nomu.losers" hidden>
+											<c:choose>
+												<c:when test="${not empty requestScope.nomu_losers.result}">
+													<ul class="market-movers__list">
+														<c:forEach items="${requestScope.nomu_losers.result}"
+															var="losers" varStatus="losersCount" begin="0" end="4">
+															<c:set var="companyStatusClass" value="" />
+															<c:choose>
+																<c:when test="${losers.companyStatus == '1'}">
+																	<c:set var="companyStatusClass" value="caution" />
+																</c:when>
+																<c:when test="${losers.companyStatus == '2'}">
+																	<c:set var="companyStatusClass" value="warning" />
+																</c:when>
+																<c:when test="${losers.companyStatus == '3'}">
+																	<c:set var="companyStatusClass" value="danger" />
+																</c:when>
+															</c:choose>
+															<li class="market-movers__row">
+																<div class="market-movers__info">
+																	<portal:urlGeneration
+																		contentNode="com.tadawul.hidden.company.profile.nomu.v3"
+																		portletMode="view" portletParameterType="render"
+																		layoutNode="com.tadawul.v3.company.profile.nomu.node.v3"
+																		keepNavigationalState="false">
+																		<portal:urlParam name="companySymbol"
+																			value="${losers.symbol}" />
+																		<a class="market-movers__name"
+																			href="<%wpsURL.write(out);%>"> <span><c:out
+																					value="${losers.szCompany}" /></span> <span
+																			class="market-movers__indicator market-movers__indicator--${companyStatusClass}"
+																			aria-hidden="true"></span>
+																		</a>
+																	</portal:urlGeneration>
+																	<span class="market-movers__market"><fmt:message
+																			key="market.marketShareindex.sme" /></span>
+																</div>
+																<div class="market-movers__numbers">
+																	<data class="market-movers__price"
+																		value="${losers.bdLastPrice}">
+																	<c:out value="${losers.bdLastPrice}" /></data>
+																	<span
+																		class="market-movers__change market-change market-change--down">
+																		<span
+																		class="market-change__icon has-icon icon-arrow-down"
+																		aria-hidden="true"></span> <span>−<c:out
+																				value="${losers.bdNetChange}" /> (−<c:out
+																				value="${losers.bdPercnetChange}" />%)
+																	</span>
+																	</span>
+																</div>
+															</li>
+														</c:forEach>
+													</ul>
+												</c:when>
+												<c:otherwise>
+													<p class="market-movers__empty">No data available</p>
+												</c:otherwise>
+											</c:choose>
+										</div>
+
+										<%-- Nomu Volume --%>
+										<div class="market-movers__panel" id="nomu-volume"
+											role="tabpanel" aria-labelledby="nomu-tab-volume"
+											aria-hidden="true" data-market-movers-panel
+											data-detail-list="nomu.volume" hidden>
+											<c:choose>
+												<c:when
+													test="${not empty requestScope.nomu_byVolume.result}">
+													<ul class="market-movers__list">
+														<c:forEach items="${requestScope.nomu_byVolume.result}"
+															var="byVolume" varStatus="byVolumeCount" begin="0"
+															end="4">
+															<c:set var="companyStatusClass" value="" />
+															<c:choose>
+																<c:when test="${byVolume.companyStatus == '1'}">
+																	<c:set var="companyStatusClass" value="caution" />
+																</c:when>
+																<c:when test="${byVolume.companyStatus == '2'}">
+																	<c:set var="companyStatusClass" value="warning" />
+																</c:when>
+																<c:when test="${byVolume.companyStatus == '3'}">
+																	<c:set var="companyStatusClass" value="danger" />
+																</c:when>
+															</c:choose>
+															<li class="market-movers__row">
+																<div class="market-movers__info">
+																	<portal:urlGeneration
+																		contentNode="com.tadawul.hidden.company.profile.nomu.v3"
+																		portletMode="view" portletParameterType="render"
+																		layoutNode="com.tadawul.v3.company.profile.nomu.node.v3"
+																		keepNavigationalState="false">
+																		<portal:urlParam name="companySymbol"
+																			value="${byVolume.symbol}" />
+																		<a class="market-movers__name"
+																			href="<%wpsURL.write(out);%>"> <span><c:out
+																					value="${byVolume.szCompany}" /></span> <span
+																			class="market-movers__indicator market-movers__indicator--${companyStatusClass}"
+																			aria-hidden="true"></span>
+																		</a>
+																	</portal:urlGeneration>
+																	<span class="market-movers__market"><fmt:message
+																			key="market.marketShareindex.sme" /></span>
+																</div>
+																<div class="market-movers__numbers">
+																	<data class="market-movers__price"
+																		value="${byVolume.bdLastPrice}">
+																	<c:out value="${byVolume.bdLastPrice}" /></data>
+																	<data class="market-movers__change"
+																		value="${byVolume.volume}">
+																	<fmt:formatNumber type="number" pattern="##,###,###"
+																		value="${fn:replace(byVolume.volume, ',', '')}" /></data>
+																</div>
+															</li>
+														</c:forEach>
+													</ul>
+												</c:when>
+												<c:otherwise>
+													<p class="market-movers__empty">No data available</p>
+												</c:otherwise>
+											</c:choose>
+										</div>
+
+										<%-- Nomu Value --%>
+										<div class="market-movers__panel" id="nomu-value"
+											role="tabpanel" aria-labelledby="nomu-tab-value"
+											aria-hidden="true" data-market-movers-panel
+											data-detail-list="nomu.value" hidden>
+											<c:choose>
+												<c:when test="${not empty requestScope.nomu_byvalue.result}">
+													<ul class="market-movers__list">
+														<c:forEach items="${requestScope.nomu_byvalue.result}"
+															var="byvalue" varStatus="byvalueCount" begin="0" end="4">
+															<c:set var="companyStatusClass" value="" />
+															<c:choose>
+																<c:when test="${byvalue.companyStatus == '1'}">
+																	<c:set var="companyStatusClass" value="caution" />
+																</c:when>
+																<c:when test="${byvalue.companyStatus == '2'}">
+																	<c:set var="companyStatusClass" value="warning" />
+																</c:when>
+																<c:when test="${byvalue.companyStatus == '3'}">
+																	<c:set var="companyStatusClass" value="danger" />
+																</c:when>
+															</c:choose>
+															<li class="market-movers__row">
+																<div class="market-movers__info">
+																	<portal:urlGeneration
+																		contentNode="com.tadawul.hidden.company.profile.nomu.v3"
+																		portletMode="view" portletParameterType="render"
+																		layoutNode="com.tadawul.v3.company.profile.nomu.node.v3"
+																		keepNavigationalState="false">
+																		<portal:urlParam name="companySymbol"
+																			value="${byvalue.symbol}" />
+																		<a class="market-movers__name"
+																			href="<%wpsURL.write(out);%>"> <span><c:out
+																					value="${byvalue.szCompany}" /></span> <span
+																			class="market-movers__indicator market-movers__indicator--${companyStatusClass}"
+																			aria-hidden="true"></span>
+																		</a>
+																	</portal:urlGeneration>
+																	<span class="market-movers__market"><fmt:message
+																			key="market.marketShareindex.sme" /></span>
+																</div>
+																<div class="market-movers__numbers">
+																	<data class="market-movers__price"
+																		value="${byvalue.bdLastPrice}">
+																	<c:out value="${byvalue.bdLastPrice}" /></data>
+																	<span class="market-movers__change"> <span
+																		class="market-change__icon has-icon icon-riyal"
+																		aria-hidden="true"></span> <span>${byvalue.turnover}</span>
+																	</span>
+																</div>
+															</li>
+														</c:forEach>
+													</ul>
+												</c:when>
+												<c:otherwise>
+													<p class="market-movers__empty">No data available</p>
+												</c:otherwise>
+											</c:choose>
+										</div>
+									</div>
+								</div>
+
+								<%-- Nomu Stats --%>
+								<div class="market-details-panel__stats">
+									<dl class="market-stats">
+										<div
+											class="market-stats__item market-stats__item--mobile-summary">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.valueTraded" /></span> <span
+													class="market-stats__icon has-icon icon-riyal"
+													aria-hidden="true"></span>
+											</dt>
+											<dd class="market-stats__value"
+												data-detail-field="nomu.turnOver">
+												<data value="${nomuTurnOver}"> <fmt:formatNumber
+													type="number" pattern="##,###,###.##" minFractionDigits="2"
+													maxFractionDigits="2" value="${nomuTurnOver}" /> </data>
+											</dd>
+										</div>
+
+										<div
+											class="market-stats__item market-stats__item--mobile-summary">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.volumeTraded" /></span>
+											</dt>
+											<dd class="market-stats__value"
+												data-detail-field="nomu.volumeTraded">
+												<data value="${nomuVolume}"> <fmt:formatNumber
+													type="number" pattern="##,###,###" value="${nomuVolume}" />
+												</data>
+											</dd>
+										</div>
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.marketCap" /></span> <span
+													class="market-stats__icon has-icon icon-riyal"
+													aria-hidden="true"></span>
+											</dt>
+											<dd class="market-stats__value">
+												<data value="${requestScope.marketCapBean.marketCap_Nomu}">
+												<c:out value="${requestScope.marketCapBean.marketCap_Nomu}" />
+												</data>
+											</dd>
+										</div>
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.symbols.listed" /></span>
+											</dt>
+											<dd class="market-stats__value">
+												<data
+													value="${requestScope.marketCapBean.noOfSymbolsListed_Nomu}">
+												<c:out
+													value="${requestScope.marketCapBean.noOfSymbolsListed_Nomu}" />
+												</data>
+											</dd>
+										</div>
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label market-stats__label--down">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.symbolsdown" /></span>
+											</dt>
+											<dd class="market-stats__value">
+												<data value="${requestScope.marketSMEBean.noOfDowns}">
+												<c:out value="${requestScope.marketSMEBean.noOfDowns}" /> </data>
+											</dd>
+										</div>
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label market-stats__label--up">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.symbolsup" /></span>
+											</dt>
+											<dd class="market-stats__value">
+												<data value="${requestScope.marketSMEBean.noOfUps}">
+												<c:out value="${requestScope.marketSMEBean.noOfUps}" /> </data>
+											</dd>
+										</div>
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.index.change.daily" /></span>
+											</dt>
+											<dd
+												class="market-stats__value ${nomuChange >= 0 ? 'market-change market-change--up' : (nomuChange < 0 ? 'market-change market-change--down' : '')}"
+												data-detail-field="nomu.dailyChange">
+												<data value="${nomuChange}"> <fmt:formatNumber
+													type="number" minFractionDigits="2" maxFractionDigits="2"
+													value="${nomuChange}" /> </data>
+											</dd>
+										</div>
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.funds.etfs.change.percentage" /></span>
+											</dt>
+											<dd
+												class="market-stats__value ${nomuPct >= 0 ? 'market-change market-change--up' : (nomuPct < 0 ? 'market-change market-change--down' : '')}"
+												data-detail-field="nomu.dailyPercentChange">
+												<data value="${nomuPct}"> <fmt:formatNumber
+													type="number" minFractionDigits="2" maxFractionDigits="2"
+													value="${nomuPct}" />% </data>
+											</dd>
+										</div>
+									</dl>
+								</div>
+							</div>
+						</div>
+					</section>
+
+
+					<c:set var="sukukTurnover"
+						value="${requestScope.sukukIndicesBean.tasiTodaysSummaryBean.turnOver}" />
+					<c:set var="sukukVolume"
+						value="${requestScope.sukukIndicesBean.tasiTodaysSummaryBean.volumeTraded}" />
+					<c:set var="sukukChange"
+						value="${requestScope.tasiBeanSukukDetails.tasiYearToDateBean.change}" />
+					<c:set var="sukukPct"
+						value="${requestScope.tasiBeanSukukDetails.tasiYearToDateBean.percentChange}" />
+
+					<section
+						class="market-details-panel market-details-panel--overview"
+						id="market-panel-sukuk" role="tabpanel"
+						aria-labelledby="market-tab-sukuk" aria-hidden="true"
+						data-market-detail-panel data-market="S" hidden>
+						<div class="market-details-panel__grid">
+
+							<div class="market-details-panel__main">
+								<div class="market-details-panel__chart market-chart"
+									id="sukuk-chart" data-chart-id="sukuk" role="img"
+									aria-label="Sukuk and Bonds market chart"></div>
+							</div>
+
+							<div class="market-details-panel__mobile-summary"
+								aria-label="Sukuk and Bonds trading summary">
+								<div class="market-details-panel__mobile-metric">
+									<span class="market-details-panel__mobile-metric-label">
+										<span
+										class="has-icon icon-riyal market-details-panel__mobile-metric-icon"
+										aria-hidden="true"></span> <span><fmt:message
+												key="market.valueTraded" /></span>
+									</span>
+									<data class="market-details-panel__mobile-metric-value"
+										value="${sukukTurnover}" data-detail-field="sukuk.turnOver">
+									<fmt:formatNumber type="number" pattern="##,###,###.##"
+										minFractionDigits="2" maxFractionDigits="2"
+										value="${sukukTurnover}" /> </data>
+								</div>
+								<div class="market-details-panel__mobile-metric">
+									<span class="market-details-panel__mobile-metric-label">
+										<fmt:message key="market.volumeTraded.sukuk" />
+									</span>
+									<data class="market-details-panel__mobile-metric-value"
+										value="${sukukVolume}" data-detail-field="sukuk.volumeTraded">
+									<fmt:formatNumber type="number" pattern="##,###,###"
+										value="${sukukVolume}" /> </data>
+								</div>
+							</div>
+
+							<div class="market-details-panel__toggle-wrap">
+								<button
+									class="market-details-panel__toggle btn btn-outline-primary btn-sm has-icon icon-chevron-down icon-end"
+									type="button" data-market-details-toggle aria-expanded="false"
+									aria-controls="sukuk-market-details">
+									<span data-market-details-toggle-text>Show market
+										details</span>
+								</button>
+							</div>
+
+							<div class="market-details-panel__collapsible"
+								id="sukuk-market-details" data-market-details-collapsible
+								aria-hidden="false">
+
+								<div class="market-details-panel__insights">
+									<div class="market-movers" data-market-movers>
+										<div class="market-movers__tabs" role="tablist"
+											aria-label="Sukuk and Bonds market movers"
+											aria-orientation="horizontal">
+											<button class="market-movers__tab is-active"
+												id="sukuk-tab-gainers" type="button" role="tab"
+												aria-selected="true" aria-controls="sukuk-gainers"
+												tabindex="0" data-market-movers-tab>
+												<fmt:message key="market.marketShareindex.topgainers" />
+											</button>
+											<button class="market-movers__tab" id="sukuk-tab-losers"
+												type="button" role="tab" aria-selected="false"
+												aria-controls="sukuk-losers" tabindex="-1"
+												data-market-movers-tab>
+												<fmt:message key="market.marketShareindex.toplosers" />
+											</button>
+											<button class="market-movers__tab" id="sukuk-tab-volume"
+												type="button" role="tab" aria-selected="false"
+												aria-controls="sukuk-volume" tabindex="-1"
+												data-market-movers-tab>
+												<fmt:message key="market.marketShareindex.byvolume" />
+											</button>
+											<button class="market-movers__tab" id="sukuk-tab-value"
+												type="button" role="tab" aria-selected="false"
+												aria-controls="sukuk-value" tabindex="-1"
+												data-market-movers-tab>
+												<fmt:message key="market.marketShareindex.byvalue" />
+											</button>
+										</div>
+
+										<%-- Sukuk Gainers --%>
+										<div class="market-movers__panel is-active" id="sukuk-gainers"
+											role="tabpanel" aria-labelledby="sukuk-tab-gainers"
+											data-market-movers-panel>
+											<c:choose>
+												<c:when
+													test="${not empty requestScope.sukuk_gainers.result}">
+													<ul class="market-movers__list" role="list">
+														<c:forEach items="${requestScope.sukuk_gainers.result}"
+															var="gainer" varStatus="gainerCount" begin="0" end="4">
+															<li class="market-movers__row">
+																<div class="market-movers__info">
+																	<portal:urlGeneration
+																		contentNode="com.tadawul.v3.sukukmaret.company.profile.sukuk.v3"
+																		portletMode="view" portletParameterType="render"
+																		layoutNode="com.tadawul.v3.sukukmaret.company.profile.sukuk.v3.node"
+																		keepNavigationalState="false">
+																		<portal:urlParam name="SukukBondsSymbol"
+																			value="${gainer.symbol}" />
+																		<a class="market-movers__name"
+																			href="<%wpsURL.write(out);%>"> <span><c:out
+																					value="${gainer.companyName}" /></span> <span
+																			class="market-movers__indicator market-movers__indicator--"
+																			aria-hidden="true"></span>
+																		</a>
+																	</portal:urlGeneration>
+																	<span class="market-movers__market"><fmt:message
+																			key="market.marketShareindex.bond" /></span>
+																</div>
+																<div class="market-movers__numbers">
+																	<data class="market-movers__price"
+																		value="${gainer.closePrice}">
+																	<c:out value="${gainer.closePrice}" /></data>
+																	<data
+																		class="market-movers__change market-change market-change--up"
+																		value="${gainer.percentChange}"> <span
+																		class="has-icon icon-arrow-up market-change__icon"
+																		aria-hidden="true"></span> <span><c:out
+																			value="${gainer.percentChange}" />%</span> </data>
+																</div>
+															</li>
+														</c:forEach>
+													</ul>
+												</c:when>
+												<c:otherwise>
+													<p class="market-movers__empty">No data available</p>
+												</c:otherwise>
+											</c:choose>
+										</div>
+
+										<%-- Sukuk Losers --%>
+										<div class="market-movers__panel" id="sukuk-losers"
+											role="tabpanel" aria-labelledby="sukuk-tab-losers"
+											aria-hidden="true" data-market-movers-panel hidden>
+											<c:choose>
+												<c:when test="${not empty requestScope.sukuk_losers.result}">
+													<ul class="market-movers__list" role="list">
+														<c:forEach items="${requestScope.sukuk_losers.result}"
+															var="losers" varStatus="losersCount" begin="0" end="4">
+															<li class="market-movers__row">
+																<div class="market-movers__info">
+																	<portal:urlGeneration
+																		contentNode="com.tadawul.v3.sukukmaret.company.profile.sukuk.v3"
+																		portletMode="view" portletParameterType="render"
+																		layoutNode="com.tadawul.v3.sukukmaret.company.profile.sukuk.v3.node"
+																		keepNavigationalState="false">
+																		<portal:urlParam name="SukukBondsSymbol"
+																			value="${losers.symbol}" />
+																		<a class="market-movers__name"
+																			href="<%wpsURL.write(out);%>"> <span><c:out
+																					value="${losers.companyName}" /></span> <span
+																			class="market-movers__indicator market-movers__indicator--"
+																			aria-hidden="true"></span>
+																		</a>
+																	</portal:urlGeneration>
+																	<span class="market-movers__market"><fmt:message
+																			key="market.marketShareindex.bond" /></span>
+																</div>
+																<div class="market-movers__numbers">
+																	<data class="market-movers__price"
+																		value="${losers.closePrice}">
+																	<c:out value="${losers.closePrice}" /></data>
+																	<data
+																		class="market-movers__change market-change market-change--down"
+																		value="${losers.percentChange}"> <span
+																		class="has-icon icon-arrow-down market-change__icon"
+																		aria-hidden="true"></span> <span>−<c:out
+																			value="${losers.percentChange}" />%
+																	</span> </data>
+																</div>
+															</li>
+														</c:forEach>
+													</ul>
+												</c:when>
+												<c:otherwise>
+													<p class="market-movers__empty">No data available</p>
+												</c:otherwise>
+											</c:choose>
+										</div>
+
+										<%-- Sukuk Volume --%>
+										<div class="market-movers__panel" id="sukuk-volume"
+											role="tabpanel" aria-labelledby="sukuk-tab-volume"
+											aria-hidden="true" data-market-movers-panel hidden>
+											<c:choose>
+												<c:when
+													test="${not empty requestScope.sukuk_byVolume.result}">
+													<ul class="market-movers__list" role="list">
+														<c:forEach items="${requestScope.sukuk_byVolume.result}"
+															var="byVolume" varStatus="byVolumeCount" begin="0"
+															end="4">
+															<li class="market-movers__row">
+																<div class="market-movers__info">
+																	<portal:urlGeneration
+																		contentNode="com.tadawul.v3.sukukmaret.company.profile.sukuk.v3"
+																		portletMode="view" portletParameterType="render"
+																		layoutNode="com.tadawul.v3.sukukmaret.company.profile.sukuk.v3.node"
+																		keepNavigationalState="false">
+																		<portal:urlParam name="SukukBondsSymbol"
+																			value="${byVolume.symbol}" />
+																		<a class="market-movers__name"
+																			href="<%wpsURL.write(out);%>"> <span><c:out
+																					value="${byVolume.companyName}" /></span> <span
+																			class="market-movers__indicator market-movers__indicator--"
+																			aria-hidden="true"></span>
+																		</a>
+																	</portal:urlGeneration>
+																	<span class="market-movers__market"><fmt:message
+																			key="market.marketShareindex.bond" /></span>
+																</div>
+																<div class="market-movers__numbers">
+																	<data class="market-movers__price"
+																		value="${byVolume.volumeTraded}">
+																	<fmt:formatNumber type="number" pattern="##,###,###"
+																		value="${fn:replace(byVolume.volumeTraded, ',', '')}" /></data>
+																	<data class="market-movers__change"
+																		value="${byVolume.percentChange}">
+																	<c:out value="${byVolume.percentChange}" />%</data>
+																</div>
+															</li>
+														</c:forEach>
+													</ul>
+												</c:when>
+												<c:otherwise>
+													<p class="market-movers__empty">No data available</p>
+												</c:otherwise>
+											</c:choose>
+										</div>
+
+										<%-- Sukuk Value --%>
+										<div class="market-movers__panel" id="sukuk-value"
+											role="tabpanel" aria-labelledby="sukuk-tab-value"
+											aria-hidden="true" data-market-movers-panel hidden>
+											<c:choose>
+												<c:when
+													test="${not empty requestScope.sukuk_byvalue.result}">
+													<ul class="market-movers__list" role="list">
+														<c:forEach items="${requestScope.sukuk_byvalue.result}"
+															var="byvalue" varStatus="byvalueCount" begin="0" end="4">
+															<li class="market-movers__row">
+																<div class="market-movers__info">
+																	<portal:urlGeneration
+																		contentNode="com.tadawul.v3.sukukmaret.company.profile.sukuk.v3"
+																		portletMode="view" portletParameterType="render"
+																		layoutNode="com.tadawul.v3.sukukmaret.company.profile.sukuk.v3.node"
+																		keepNavigationalState="false">
+																		<portal:urlParam name="SukukBondsSymbol"
+																			value="${byvalue.symbol}" />
+																		<a class="market-movers__name"
+																			href="<%wpsURL.write(out);%>"> <span><c:out
+																					value="${byvalue.companyName}" /></span> <span
+																			class="market-movers__indicator market-movers__indicator--"
+																			aria-hidden="true"></span>
+																		</a>
+																	</portal:urlGeneration>
+																	<span class="market-movers__market"><fmt:message
+																			key="market.marketShareindex.bond" /></span>
+																</div>
+																<div class="market-movers__numbers">
+																	<data class="market-movers__price"
+																		value="${byvalue.turnover}">${byvalue.turnover}</data>
+																	<data class="market-movers__change"
+																		value="${byvalue.percentChange}">
+																	<c:out value="${byvalue.percentChange}" />%</data>
+																</div>
+															</li>
+														</c:forEach>
+													</ul>
+												</c:when>
+												<c:otherwise>
+													<p class="market-movers__empty">No data available</p>
+												</c:otherwise>
+											</c:choose>
+										</div>
+									</div>
+								</div>
+
+								<%-- Sukuk Stats --%>
+								<div class="market-details-panel__stats">
+									<dl class="market-stats">
+										<div
+											class="market-stats__item market-stats__item--mobile-summary">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.valueTraded" /></span> <span
+													class="has-icon icon-riyal market-stats__icon"
+													aria-hidden="true"></span>
+											</dt>
+											<dd class="market-stats__value"
+												data-detail-field="sukuk.turnOver">
+												<data value="${sukukTurnover}"> <fmt:formatNumber
+													type="number" pattern="##,###,###.##" minFractionDigits="2"
+													maxFractionDigits="2" value="${sukukTurnover}" /> </data>
+											</dd>
+										</div>
+
+										<div
+											class="market-stats__item market-stats__item--mobile-summary">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.volumeTraded.sukuk" /></span>
+											</dt>
+											<dd class="market-stats__value"
+												data-detail-field="sukuk.volumeTraded">
+												<data value="${sukukVolume}"> <fmt:formatNumber
+													type="number" pattern="##,###,###" value="${sukukVolume}" />
+												</data>
+											</dd>
+										</div>
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.marketCap.sukuk" /></span> <span
+													class="has-icon icon-riyal market-stats__icon"
+													aria-hidden="true"></span>
+											</dt>
+											<dd class="market-stats__value">
+												<data value="${requestScope.marketCapBean.marketCap_Sukuk}">
+												<c:out value="${requestScope.marketCapBean.marketCap_Sukuk}" />
+												</data>
+											</dd>
+										</div>
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.symbols.listed" /></span>
+											</dt>
+											<dd class="market-stats__value">
+												<data
+													value="${requestScope.marketCapBean.noOfSymbolsListed_Sukuk}">
+												<c:out
+													value="${requestScope.marketCapBean.noOfSymbolsListed_Sukuk}" />
+												</data>
+											</dd>
+										</div>
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label market-stats__label--down">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.symbolsdown" /></span>
+											</dt>
+											<dd class="market-stats__value">
+												<data value="${requestScope.marketSukukBean.noOfDowns}">
+												<c:out value="${requestScope.marketSukukBean.noOfDowns}" />
+												</data>
+											</dd>
+										</div>
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label market-stats__label--up">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.symbolsup" /></span>
+											</dt>
+											<dd class="market-stats__value">
+												<data value="${requestScope.marketSukukBean.noOfUps}">
+												<c:out value="${requestScope.marketSukukBean.noOfUps}" /> </data>
+											</dd>
+										</div>
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.index.change.daily" /></span>
+											</dt>
+											<dd
+												class="market-stats__value ${sukukChange >= 0 ? 'market-change market-change--up' : (sukukChange < 0 ? 'market-change market-change--down' : '')}"
+												data-detail-field="sukuk.dailyChange">
+												<data value="${sukukChange}"> <fmt:formatNumber
+													type="number" minFractionDigits="2" maxFractionDigits="2"
+													value="${sukukChange}" /> </data>
+											</dd>
+										</div>
+
+										<div class="market-stats__item">
+											<dt class="market-stats__label">
+												<span class="market-stats__label-text"><fmt:message
+														key="market.funds.etfs.change.percentage" /></span>
+											</dt>
+											<dd
+												class="market-stats__value ${sukukPct >= 0 ? 'market-change market-change--up' : (sukukPct < 0 ? 'market-change market-change--down' : '')}"
+												data-detail-field="sukuk.dailyPercentChange">
+												<data value="${sukukPct}"> <fmt:formatNumber
+													type="number" minFractionDigits="2" maxFractionDigits="2"
+													value="${sukukPct}" />% </data>
+											</dd>
+										</div>
+									</dl>
+								</div>
+							</div>
+						</div>
+					</section>
+
+
+					<section class="market-details-panel" id="market-panel-funds"
+						role="tabpanel" aria-labelledby="market-tab-funds"
+						aria-hidden="true" data-market-detail-panel data-market="F" hidden>
+
+						<div class="market-views">
+							<div class="market-views__list" role="tablist"
+								aria-label="Fund categories" aria-orientation="horizontal">
+								<button class="market-views__tab is-active" id="funds-tab-reits"
+									type="button" role="tab" aria-selected="true"
+									aria-controls="funds-reits" tabindex="0" data-market-view-tab>
+									<fmt:message key="markets.funds.reits.label" />
+								</button>
+								<button class="market-views__tab" id="funds-tab-etfs"
+									type="button" role="tab" aria-selected="false"
+									aria-controls="funds-etfs" tabindex="-1" data-market-view-tab>
+									<fmt:message key="market.funds.etfs.label" />
+								</button>
+								<button class="market-views__tab" id="funds-tab-cefs"
+									type="button" role="tab" aria-selected="false"
+									aria-controls="funds-cefs" tabindex="-1" data-market-view-tab>
+									<fmt:message key="market.funds.cefs.label" />
+								</button>
+							</div>
+						</div>
+
+						<%-- REITs View --%>
+						<div
+							class="market-view-panel market-details-panel--overview is-active"
+							id="funds-reits" role="tabpanel"
+							aria-labelledby="funds-tab-reits" aria-hidden="false"
+							data-market-view-panel>
+							<div class="market-details-panel__grid">
+
+								<div class="market-details-panel__main">
+									<div class="market-details-panel__chart market-chart"
+										id="reits-chart" data-chart-id="reits" role="img"
+										aria-label="REITs market chart"></div>
+								</div>
+
+								<div class="market-details-panel__mobile-summary"
+									aria-label="REITs trading summary">
+									<c:forEach items="${requestScope.indicesList}" var="index">
+										<c:if test="${index.symbol eq 'TRTI'}">
+											<div class="market-details-panel__mobile-metric">
+												<span class="market-details-panel__mobile-metric-label">
+													<span
+													class="has-icon icon-riyal market-details-panel__mobile-metric-icon"
+													aria-hidden="true"></span> <span><fmt:message
+															key="market.valueTraded" /></span>
+												</span>
+												<data class="market-details-panel__mobile-metric-value"
+													value="${index.turnover}"
+													data-detail-field="funds.reits.turnOver"> <c:out
+													value="${index.turnover}" /> </data>
+											</div>
+											<div class="market-details-panel__mobile-metric">
+												<span class="market-details-panel__mobile-metric-label">
+													<fmt:message key="market.volumeTraded" />
+												</span>
+												<data class="market-details-panel__mobile-metric-value"
+													value="${index.volume}"
+													data-detail-field="funds.reits.volumeTraded"> <c:out
+													value="${index.volume}" /> </data>
+											</div>
+										</c:if>
+									</c:forEach>
+								</div>
+
+								<div class="market-details-panel__toggle-wrap">
+									<button
+										class="market-details-panel__toggle btn btn-outline-primary btn-sm has-icon icon-chevron-down icon-end"
+										type="button" data-market-details-toggle aria-expanded="false"
+										aria-controls="reits-market-details">
+										<span data-market-details-toggle-text>Show market
+											details</span>
+									</button>
+								</div>
+
+								<div class="market-details-panel__collapsible"
+									id="reits-market-details" data-market-details-collapsible
+									aria-hidden="false">
+
+									<div class="market-details-panel__insights">
+										<div class="market-movers" data-market-movers>
+											<div class="market-movers__tabs" role="tablist"
+												aria-label="REITs market movers"
+												aria-orientation="horizontal">
+												<button class="market-movers__tab is-active"
+													id="reits-tab-gainers" type="button" role="tab"
+													aria-selected="true" aria-controls="reits-gainers"
+													tabindex="0" data-market-movers-tab>
+													<fmt:message key="market.marketShareindex.topgainers" />
+												</button>
+												<button class="market-movers__tab" id="reits-tab-losers"
+													type="button" role="tab" aria-selected="false"
+													aria-controls="reits-losers" tabindex="-1"
+													data-market-movers-tab>
+													<fmt:message key="market.marketShareindex.toplosers" />
+												</button>
+												<button class="market-movers__tab" id="reits-tab-volume"
+													type="button" role="tab" aria-selected="false"
+													aria-controls="reits-volume" tabindex="-1"
+													data-market-movers-tab>
+													<fmt:message key="market.marketShareindex.byvolume" />
+												</button>
+												<button class="market-movers__tab" id="reits-tab-value"
+													type="button" role="tab" aria-selected="false"
+													aria-controls="reits-value" tabindex="-1"
+													data-market-movers-tab>
+													<fmt:message key="market.marketShareindex.byvalue" />
+												</button>
+											</div>
+
+
+											<div class="market-movers__panel is-active"
+												id="reits-gainers" role="tabpanel"
+												aria-labelledby="reits-tab-gainers" data-market-movers-panel
+												data-detail-list="funds.reits.gainers">
+												<c:choose>
+													<c:when
+														test="${not empty requestScope.funds_riets_gainers.result}">
+														<ul class="market-movers__list" role="list">
+															<c:forEach
+																items="${requestScope.funds_riets_gainers.result}"
+																var="fgainer" varStatus="fgainerCount" begin="0" end="4">
+																<li class="market-movers__row">
+																	<div class="market-movers__info">
+																		<portal:urlGeneration
+																			contentNode="com.tadawul.hidden.company.profile.reits.v3"
+																			portletMode="view" portletParameterType="render"
+																			layoutNode="com.tadawul.hidden.company.profile.reits.v3.node"
+																			keepNavigationalState="false">
+																			<portal:urlParam name="companySymbol"
+																				value="${fgainer.symbol}" />
+																			<a class="market-movers__name"
+																				href="<%wpsURL.write(out);%>"> <span><c:out
+																						value="${fgainer.companyName}" /></span> <span
+																				class="market-movers__indicator market-movers__indicator--"
+																				aria-hidden="true"></span>
+																			</a>
+																		</portal:urlGeneration>
+																		<span class="market-movers__market"><fmt:message
+																				key="markets.funds.reits.label" /></span>
+																	</div>
+																	<div class="market-movers__numbers">
+																		<data class="market-movers__price"
+																			value="${fgainer.lastTradedPrice}">
+																		<c:out value="${fgainer.lastTradedPrice}" /></data>
+																		<data
+																			class="market-movers__change market-change market-change--up"
+																			value="${fgainer.netPercentChange}"> <span
+																			class="has-icon icon-arrow-up market-change__icon"
+																			aria-hidden="true"></span> <span><c:out
+																				value="${fgainer.netChange}" /> (<c:out
+																				value="${fgainer.netPercentChange}" />%)</span> </data>
+																	</div>
+																</li>
+															</c:forEach>
+														</ul>
+													</c:when>
+													<c:otherwise>
+														<p class="market-movers__empty">No data available</p>
+													</c:otherwise>
+												</c:choose>
+											</div>
+
+											<%-- REITs Losers --%>
+											<div class="market-movers__panel" id="reits-losers"
+												role="tabpanel" aria-labelledby="reits-tab-losers"
+												aria-hidden="true" data-market-movers-panel
+												data-detail-list="funds.reits.losers" hidden>
+												<c:choose>
+													<c:when
+														test="${not empty requestScope.funds_riets_losers.result}">
+														<ul class="market-movers__list" role="list">
+															<c:forEach
+																items="${requestScope.funds_riets_losers.result}"
+																var="floser" varStatus="floserCount" begin="0" end="4">
+																<li class="market-movers__row">
+																	<div class="market-movers__info">
+																		<portal:urlGeneration
+																			contentNode="com.tadawul.hidden.company.profile.reits.v3"
+																			portletMode="view" portletParameterType="render"
+																			layoutNode="com.tadawul.hidden.company.profile.reits.v3.node"
+																			keepNavigationalState="false">
+																			<portal:urlParam name="companySymbol"
+																				value="${floser.symbol}" />
+																			<a class="market-movers__name"
+																				href="<%wpsURL.write(out);%>"> <span><c:out
+																						value="${floser.companyName}" /></span> <span
+																				class="market-movers__indicator market-movers__indicator--"
+																				aria-hidden="true"></span>
+																			</a>
+																		</portal:urlGeneration>
+																		<span class="market-movers__market"><fmt:message
+																				key="markets.funds.reits.label" /></span>
+																	</div>
+																	<div class="market-movers__numbers">
+																		<data class="market-movers__price"
+																			value="${floser.lastTradedPrice}">
+																		<c:out value="${floser.lastTradedPrice}" /></data>
+																		<data
+																			class="market-movers__change market-change market-change--down"
+																			value="${floser.netPercentChange}"> <span
+																			class="has-icon icon-arrow-down market-change__icon"
+																			aria-hidden="true"></span> <span>−<c:out
+																				value="${floser.netChange}" /> (−<c:out
+																				value="${floser.netPercentChange}" />%)
+																		</span> </data>
+																	</div>
+																</li>
+															</c:forEach>
+														</ul>
+													</c:when>
+													<c:otherwise>
+														<p class="market-movers__empty">No data available</p>
+													</c:otherwise>
+												</c:choose>
+											</div>
+
+											<%-- REITs Volume --%>
+											<div class="market-movers__panel" id="reits-volume"
+												role="tabpanel" aria-labelledby="reits-tab-volume"
+												aria-hidden="true" data-market-movers-panel
+												data-detail-list="funds.reits.volume" hidden>
+												<c:choose>
+													<c:when
+														test="${not empty requestScope.funds_riets_byVolume.result}">
+														<ul class="market-movers__list" role="list">
+															<c:forEach
+																items="${requestScope.funds_riets_byVolume.result}"
+																var="byVolume" varStatus="byVolumeCount" begin="0"
+																end="4">
+																<li class="market-movers__row">
+																	<div class="market-movers__info">
+																		<portal:urlGeneration
+																			contentNode="com.tadawul.hidden.company.profile.reits.v3"
+																			portletMode="view" portletParameterType="render"
+																			layoutNode="com.tadawul.hidden.company.profile.reits.v3.node"
+																			keepNavigationalState="false">
+																			<portal:urlParam name="companySymbol"
+																				value="${byVolume.symbol}" />
+																			<a class="market-movers__name"
+																				href="<%wpsURL.write(out);%>"> <span><c:out
+																						value="${byVolume.companyName}" /></span> <span
+																				class="market-movers__indicator market-movers__indicator--"
+																				aria-hidden="true"></span>
+																			</a>
+																		</portal:urlGeneration>
+																		<span class="market-movers__market"><fmt:message
+																				key="markets.funds.reits.label" /> </span>
+																	</div>
+																	<div class="market-movers__numbers">
+																		<data class="market-movers__price"
+																			value="${byVolume.lastTradedPrice}">
+																		<c:out value="${byVolume.lastTradedPrice}" /></data>
+																		<data class="market-movers__change"
+																			value="${byVolume.volume}">
+																		<fmt:formatNumber type="number" pattern="##,###,###"
+																			value="${fn:replace(byVolume.volume, ',', '')}" /></data>
+																	</div>
+																</li>
+															</c:forEach>
+														</ul>
+													</c:when>
+													<c:otherwise>
+														<p class="market-movers__empty">No data available</p>
+													</c:otherwise>
+												</c:choose>
+											</div>
+
+											<%-- REITs Value --%>
+											<div class="market-movers__panel" id="reits-value"
+												role="tabpanel" aria-labelledby="reits-tab-value"
+												aria-hidden="true" data-market-movers-panel
+												data-detail-list="funds.reits.value" hidden>
+												<c:choose>
+													<c:when
+														test="${not empty requestScope.funds_riets_byvalue.result}">
+														<ul class="market-movers__list" role="list">
+															<c:forEach
+																items="${requestScope.funds_riets_byvalue.result}"
+																var="byvalue" varStatus="byvalueCount" begin="0" end="4">
+																<li class="market-movers__row">
+																	<div class="market-movers__info">
+																		<portal:urlGeneration
+																			contentNode="com.tadawul.hidden.company.profile.reits.v3"
+																			portletMode="view" portletParameterType="render"
+																			layoutNode="com.tadawul.hidden.company.profile.reits.v3.node"
+																			keepNavigationalState="false">
+																			<portal:urlParam name="companySymbol"
+																				value="${byvalue.symbol}" />
+																			<a class="market-movers__name"
+																				href="<%wpsURL.write(out);%>"> <span><c:out
+																						value="${byvalue.companyName}" /></span> <span
+																				class="market-movers__indicator market-movers__indicator--"
+																				aria-hidden="true"></span>
+																			</a>
+																		</portal:urlGeneration>
+																		<span class="market-movers__market"><fmt:message
+																				key="markets.funds.reits.label" /></span>
+																	</div>
+																	<div class="market-movers__numbers">
+																		<data class="market-movers__price"
+																			value="${byvalue.lastTradedPrice}">
+																		<c:out value="${byvalue.lastTradedPrice}" /></data>
+																		<span class="market-movers__change"> <span
+																			class="has-icon icon-riyal market-change__icon"
+																			aria-hidden="true"></span> <span>${byvalue.turnover}</span>
+																		</span>
+																	</div>
+																</li>
+															</c:forEach>
+														</ul>
+													</c:when>
+													<c:otherwise>
+														<p class="market-movers__empty">No data available</p>
+													</c:otherwise>
+												</c:choose>
+											</div>
+										</div>
+									</div>
+
+									<%-- REITs Stats --%>
+									<div class="market-details-panel__stats">
+										<dl class="market-stats">
+											<c:forEach items="${requestScope.indicesList}" var="index">
+												<c:if test="${index.symbol eq 'TRTI'}">
+													<div
+														class="market-stats__item market-stats__item--mobile-summary">
+														<dt class="market-stats__label">
+															<span class="market-stats__label-text"><fmt:message
+																	key="market.valueTraded" /></span> <span
+																class="has-icon icon-riyal market-stats__icon"
+																aria-hidden="true"></span>
+														</dt>
+														<dd class="market-stats__value">
+															<c:out value="${index.turnover}" />
+														</dd>
+													</div>
+													<div
+														class="market-stats__item market-stats__item--mobile-summary">
+														<dt class="market-stats__label">
+															<span class="market-stats__label-text"><fmt:message
+																	key="market.volumeTraded" /></span>
+														</dt>
+														<dd class="market-stats__value">
+															<c:out value="${index.volume}" />
+														</dd>
+													</div>
+													<div class="market-stats__item">
+														<dt class="market-stats__label">
+															<span class="market-stats__label-text"><fmt:message
+																	key="market.symbolstrades" /></span>
+														</dt>
+														<dd class="market-stats__value">
+															<fmt:formatNumber type="number" pattern="##,###,###"
+																minFractionDigits="0" maxFractionDigits="0"
+																value="${index.noOfTrades}" />
+														</dd>
+													</div>
+												</c:if>
+											</c:forEach>
+											<div class="market-stats__item">
+												<dt class="market-stats__label">
+													<span class="market-stats__label-text"><fmt:message
+															key="market.listedFunds" /></span>
+												</dt>
+												<dd class="market-stats__value">
+													<fmt:formatNumber type="number" pattern="##,###,###"
+														minFractionDigits="0" maxFractionDigits="0"
+														value="${requestScope.listedFundsREITs}" />
+												</dd>
+											</div>
+										</dl>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<%-- ETFs View --%>
+						<div class="market-view-panel market-details-panel--overview"
+							id="funds-etfs" role="tabpanel" aria-labelledby="funds-tab-etfs"
+							aria-hidden="true" data-market-view-panel hidden>
+							<div class="market-details-panel__grid">
+
+								<div class="market-details-panel__main">
+									<div class="market-panel">
+										<div class="market-details-panel__table table-responsive">
+											<table class="table table-compact">
+												<caption class="visually-hidden">Exchange-traded
+													fund market activity</caption>
+												<thead>
+													<tr>
+														<th scope="col"><fmt:message
+																key="market.funds.etfs.label" /></th>
+														<th scope="col" class="numeric"><fmt:message
+																key="market.price" /></th>
+														<th scope="col" class="numeric"><fmt:message
+																key="market.funds.etfs.change.percentage" /></th>
+														<th scope="col" class="numeric"><fmt:message
+																key="market.funds.etfs.inav.unit" /></th>
+													</tr>
+												</thead>
+												<tbody id="marketWatchETFs"
+													data-detail-table="funds.etfs.watch">
+													<c:forEach items="${requestScope.marketWatchETFsBeans}"
+														var="etfItem">
+														<tr>
+															<th scope="row"><portal:urlGeneration
+																	contentNode="com.tadawul.hidden.company.etf.v3"
+																	portletMode="view" portletParameterType="render"
+																	layoutNode="com.tadawul.hidden.company.etf.v3.node"
+																	keepNavigationalState="false">
+																	<portal:urlParam name="etfSymbolParameter"
+																		value="${etfItem.symbol}" />
+																	<a href="<%wpsURL.write(out);%>"><c:out
+																			value="${etfItem.issuerName}" /></a>
+																</portal:urlGeneration></th>
+															<td class="numeric"><data
+																	value="${etfItem.lastTradePriceModified}">
+																<c:out value="${etfItem.lastTradePriceModified}" /></data></td>
+															<c:choose>
+																<c:when
+																	test="${etfItem.percentChangeDoubleModified gt 0}">
+																	<td class="numeric market-change market-change--up">
+																		<span
+																		class="has-icon icon-arrow-up market-change__icon"
+																		aria-hidden="true"></span> <data
+																			value="${etfItem.percentChangeDoubleModified}">
+																		<c:out value="${etfItem.percentChangeDoubleModified}" />%</data>
+																	</td>
+																</c:when>
+																<c:when
+																	test="${etfItem.percentChangeDoubleModified eq 0}">
+																	<td class="numeric"><data
+																			value="${etfItem.percentChangeDoubleModified}">
+																		<c:out value="${etfItem.percentChangeDoubleModified}" />%</data>
+																	</td>
+																</c:when>
+																<c:otherwise>
+																	<td class="numeric market-change market-change--down">
+																		<span
+																		class="has-icon icon-arrow-down market-change__icon"
+																		aria-hidden="true"></span> <data
+																			value="${etfItem.percentChangeDoubleModified}">
+																		<c:out value="${etfItem.percentChangeDoubleModified}" />%</data>
+																	</td>
+																</c:otherwise>
+															</c:choose>
+															<td class="numeric"><data
+																	value="${etfItem.INAVModified}">
+																<c:out value="${etfItem.INAVModified}" /></data></td>
+														</tr>
+													</c:forEach>
+												</tbody>
+											</table>
+										</div>
+									</div>
+								</div>
+
+								<%-- ETFs Movers tabs (Gainers / Losers / Volume / Value) --%>
+								<div class="market-details-panel__mobile-summary"
+									aria-label="ETFs trading summary">
+									<div class="market-details-panel__mobile-metric">
+										<span class="market-details-panel__mobile-metric-label">
+											<span
+											class="has-icon icon-riyal market-details-panel__mobile-metric-icon"
+											aria-hidden="true"></span> <span><fmt:message
+													key="market.valueTraded" /></span>
+										</span>
+										<data class="market-details-panel__mobile-metric-value"
+											value="${requestScope.etfMarketOverview.turnover}"> <c:out
+											value="${requestScope.etfMarketOverview.turnover}" /> </data>
+									</div>
+									<div class="market-details-panel__mobile-metric">
+										<span class="market-details-panel__mobile-metric-label"><fmt:message
+												key="market.volumeTraded" /></span>
+										<data class="market-details-panel__mobile-metric-value"
+											value="${requestScope.etfMarketOverview.volume}"> <c:out
+											value="${requestScope.etfMarketOverview.volume}" /> </data>
+									</div>
+								</div>
+
+								<div class="market-details-panel__toggle-wrap">
+									<button
+										class="market-details-panel__toggle btn btn-outline-primary btn-sm has-icon icon-chevron-down icon-end"
+										type="button" data-market-details-toggle aria-expanded="false"
+										aria-controls="etfs-market-details">
+										<span data-market-details-toggle-text>Show market
+											details</span>
+									</button>
+								</div>
+
+								<div class="market-details-panel__collapsible"
+									id="etfs-market-details" data-market-details-collapsible
+									aria-hidden="false">
+									<div class="market-details-panel__insights">
+										<div class="market-movers" data-market-movers>
+											<div class="market-movers__tabs" role="tablist"
+												aria-label="ETFs market movers"
+												aria-orientation="horizontal">
+												<button class="market-movers__tab is-active"
+													id="etfs-tab-gainers" type="button" role="tab"
+													aria-selected="true" aria-controls="etfs-gainers"
+													tabindex="0" data-market-movers-tab>
+													<fmt:message key="market.marketShareindex.topgainers" />
+												</button>
+												<button class="market-movers__tab" id="etfs-tab-losers"
+													type="button" role="tab" aria-selected="false"
+													aria-controls="etfs-losers" tabindex="-1"
+													data-market-movers-tab>
+													<fmt:message key="market.marketShareindex.toplosers" />
+												</button>
+												<button class="market-movers__tab" id="etfs-tab-volume"
+													type="button" role="tab" aria-selected="false"
+													aria-controls="etfs-volume" tabindex="-1"
+													data-market-movers-tab>
+													<fmt:message key="market.marketShareindex.byvolume" />
+												</button>
+												<button class="market-movers__tab" id="etfs-tab-value"
+													type="button" role="tab" aria-selected="false"
+													aria-controls="etfs-value" tabindex="-1"
+													data-market-movers-tab>
+													<fmt:message key="market.marketShareindex.byvalue" />
+												</button>
+											</div>
+
+											<%-- ETFs Gainers --%>
+											<div class="market-movers__panel is-active" id="etfs-gainers"
+												role="tabpanel" aria-labelledby="etfs-tab-gainers"
+												data-market-movers-panel
+												data-detail-list="funds.etfs.gainers">
+												<c:choose>
+													<c:when
+														test="${not empty requestScope.funds_etfs_gainers.result}">
+														<ul class="market-movers__list" role="list">
+															<c:forEach
+																items="${requestScope.funds_etfs_gainers.result}"
+																var="fgainer" varStatus="fgainerCount" begin="0" end="4">
+																<li class="market-movers__row">
+																	<div class="market-movers__info">
+																		<portal:urlGeneration
+																			contentNode="com.tadawul.hidden.company.etf.v3"
+																			portletMode="view" portletParameterType="render"
+																			layoutNode="com.tadawul.hidden.company.etf.v3.node"
+																			keepNavigationalState="false">
+																			<portal:urlParam name="etfSymbolParameter"
+																				value="${fgainer.symbol}" />
+																			<a class="market-movers__name"
+																				href="<%wpsURL.write(out);%>"> <span><c:out
+																						value="${fgainer.companyName}" /></span> <span
+																				class="market-movers__indicator market-movers__indicator--"
+																				aria-hidden="true"></span>
+																			</a>
+																		</portal:urlGeneration>
+																		<span class="market-movers__market"> <fmt:message
+																				key="market.funds.etfs.label" /></span>
+																	</div>
+																	<div class="market-movers__numbers">
+																		<data class="market-movers__price"
+																			value="${fgainer.lastTradedPrice}">
+																		<c:out value="${fgainer.lastTradedPrice}" /></data>
+																		<data
+																			class="market-movers__change market-change market-change--up"
+																			value="${fgainer.netPercentChange}"> <span
+																			class="has-icon icon-arrow-up market-change__icon"
+																			aria-hidden="true"></span> <span><c:out
+																				value="${fgainer.netChange}" /> (<c:out
+																				value="${fgainer.netPercentChange}" />%)</span> </data>
+																	</div>
+																</li>
+															</c:forEach>
+														</ul>
+													</c:when>
+													<c:otherwise>
+														<p class="market-movers__empty">No data available</p>
+													</c:otherwise>
+												</c:choose>
+											</div>
+
+											<%-- ETFs Losers --%>
+											<div class="market-movers__panel" id="etfs-losers"
+												role="tabpanel" aria-labelledby="etfs-tab-losers"
+												aria-hidden="true" data-market-movers-panel
+												data-detail-list="funds.etfs.losers" hidden>
+												<c:choose>
+													<c:when
+														test="${not empty requestScope.funds_etfs_losers.result}">
+														<ul class="market-movers__list" role="list">
+															<c:forEach
+																items="${requestScope.funds_etfs_losers.result}"
+																var="fgainer" varStatus="fgainerCount" begin="0" end="4">
+																<li class="market-movers__row">
+																	<div class="market-movers__info">
+																		<portal:urlGeneration
+																			contentNode="com.tadawul.hidden.company.etf.v3"
+																			portletMode="view" portletParameterType="render"
+																			layoutNode="com.tadawul.hidden.company.etf.v3.node"
+																			keepNavigationalState="false">
+																			<portal:urlParam name="etfSymbolParameter"
+																				value="${fgainer.symbol}" />
+																			<a class="market-movers__name"
+																				href="<%wpsURL.write(out);%>"> <span><c:out
+																						value="${fgainer.companyName}" /></span> <span
+																				class="market-movers__indicator market-movers__indicator--"
+																				aria-hidden="true"></span>
+																			</a>
+																		</portal:urlGeneration>
+																		<span class="market-movers__market"> <fmt:message
+																				key="market.funds.etfs.label" /></span>
+																	</div>
+																	<div class="market-movers__numbers">
+																		<data class="market-movers__price"
+																			value="${fgainer.lastTradedPrice}">
+																		<c:out value="${fgainer.lastTradedPrice}" /></data>
+																		<data
+																			class="market-movers__change market-change market-change--down"
+																			value="${fgainer.netPercentChange}"> <span
+																			class="has-icon icon-arrow-down market-change__icon"
+																			aria-hidden="true"></span> <span>−<c:out
+																				value="${fgainer.netChange}" /> (−<c:out
+																				value="${fgainer.netPercentChange}" />%)
+																		</span> </data>
+																	</div>
+																</li>
+															</c:forEach>
+														</ul>
+													</c:when>
+													<c:otherwise>
+														<p class="market-movers__empty">No data available</p>
+													</c:otherwise>
+												</c:choose>
+											</div>
+
+											<%-- ETFs Volume --%>
+											<div class="market-movers__panel" id="etfs-volume"
+												role="tabpanel" aria-labelledby="etfs-tab-volume"
+												aria-hidden="true" data-market-movers-panel hidden>
+												<c:choose>
+													<c:when
+														test="${not empty requestScope.funds_etfs_byVolume.result}">
+														<ul class="market-movers__list" role="list">
+															<c:forEach
+																items="${requestScope.funds_etfs_byVolume.result}"
+																var="byVolume" varStatus="byVolumeCount" begin="0"
+																end="4">
+																<li class="market-movers__row">
+																	<div class="market-movers__info">
+																		<portal:urlGeneration
+																			contentNode="com.tadawul.hidden.company.etf.v3"
+																			portletMode="view" portletParameterType="render"
+																			layoutNode="com.tadawul.hidden.company.etf.v3.node"
+																			keepNavigationalState="false">
+																			<portal:urlParam name="etfSymbolParameter"
+																				value="${byVolume.symbol}" />
+																			<a class="market-movers__name"
+																				href="<%wpsURL.write(out);%>"> <span><c:out
+																						value="${byVolume.companyName}" /></span> <span
+																				class="market-movers__indicator market-movers__indicator--"
+																				aria-hidden="true"></span>
+																			</a>
+																		</portal:urlGeneration>
+																		<span class="market-movers__market"> <fmt:message
+																				key="market.funds.etfs.label" /></span>
+																	</div>
+																	<div class="market-movers__numbers">
+																		<data class="market-movers__price"
+																			value="${byVolume.lastTradedPrice}">
+																		<c:out value="${byVolume.lastTradedPrice}" /></data>
+																		<data class="market-movers__change"
+																			value="${byVolume.volume}">
+																		<c:out value="${byVolume.volume}" /></data>
+																	</div>
+																</li>
+															</c:forEach>
+														</ul>
+													</c:when>
+													<c:otherwise>
+														<p class="market-movers__empty">Volume data is
+															currently unavailable.</p>
+													</c:otherwise>
+												</c:choose>
+											</div>
+
+											<%-- ETFs Value --%>
+											<div class="market-movers__panel" id="etfs-value"
+												role="tabpanel" aria-labelledby="etfs-tab-value"
+												aria-hidden="true" data-market-movers-panel hidden>
+												<c:choose>
+													<c:when
+														test="${not empty requestScope.funds_etfs_byvalue.result}">
+														<ul class="market-movers__list" role="list">
+															<c:forEach
+																items="${requestScope.funds_etfs_byvalue.result}"
+																var="byvalue" varStatus="byvalueCount" begin="0" end="4">
+																<li class="market-movers__row">
+																	<div class="market-movers__info">
+																		<portal:urlGeneration
+																			contentNode="com.tadawul.hidden.company.etf.v3"
+																			portletMode="view" portletParameterType="render"
+																			layoutNode="com.tadawul.hidden.company.etf.v3.node"
+																			keepNavigationalState="false">
+																			<portal:urlParam name="etfSymbolParameter"
+																				value="${byvalue.symbol}" />
+																			<a class="market-movers__name"
+																				href="<%wpsURL.write(out);%>"> <span><c:out
+																						value="${byvalue.companyName}" /></span> <span
+																				class="market-movers__indicator market-movers__indicator--"
+																				aria-hidden="true"></span>
+																			</a>
+																		</portal:urlGeneration>
+																		<span class="market-movers__market"> <fmt:message
+																				key="market.funds.etfs.label" /></span>
+																	</div>
+																	<div class="market-movers__numbers">
+																		<data class="market-movers__price"
+																			value="${byvalue.lastTradedPrice}">
+																		<c:out value="${byvalue.lastTradedPrice}" /></data>
+																		<span class="market-movers__change"> <span
+																			class="has-icon icon-riyal market-change__icon"
+																			aria-hidden="true"></span> <span><c:out
+																					value="${byvalue.turnover}" /></span>
+																		</span>
+																	</div>
+																</li>
+															</c:forEach>
+														</ul>
+													</c:when>
+													<c:otherwise>
+														<p class="market-movers__empty">Value data is
+															currently unavailable.</p>
+													</c:otherwise>
+												</c:choose>
+											</div>
+										</div>
+									</div>
+
+									<%-- ETF Stats --%>
+									<div class="market-details-panel__stats">
+										<dl class="market-stats">
+											<div
+												class="market-stats__item market-stats__item--mobile-summary">
+												<dt class="market-stats__label">
+													<span class="market-stats__label-text"><fmt:message
+															key="market.valueTraded" /></span> <span
+														class="has-icon icon-riyal market-stats__icon"
+														aria-hidden="true"></span>
+												</dt>
+												<dd class="market-stats__value">
+													<c:out value="${requestScope.etfMarketOverview.turnover}" />
+												</dd>
+											</div>
+											<div
+												class="market-stats__item market-stats__item--mobile-summary">
+												<dt class="market-stats__label">
+													<span class="market-stats__label-text"><fmt:message
+															key="market.volumeTraded" /></span>
+												</dt>
+												<dd class="market-stats__value">
+													<c:out value="${requestScope.etfMarketOverview.volume}" />
+												</dd>
+											</div>
+											<div class="market-stats__item">
+												<dt class="market-stats__label">
+													<span class="market-stats__label-text"><fmt:message
+															key="market.symbolstrades" /></span>
+												</dt>
+												<dd class="market-stats__value">
+													<c:out value="${requestScope.etfMarketOverview.noOfTrades}" />
+												</dd>
+											</div>
+											<div class="market-stats__item">
+												<dt class="market-stats__label">
+													<span class="market-stats__label-text"><fmt:message
+															key="market.listedFunds" /></span>
+												</dt>
+												<dd class="market-stats__value">
+													<c:out value="${requestScope.listedFundsETFs}" />
+												</dd>
+											</div>
+										</dl>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<%-- CEFs View --%>
+						<div class="market-view-panel market-details-panel--analytics"
+							id="funds-cefs" role="tabpanel" aria-labelledby="funds-tab-cefs"
+							aria-hidden="true" data-market-view-panel hidden>
+							<div class="market-details-panel__grid">
+
+								<div class="market-details-panel__main">
+									<div class="market-panel">
+										<div class="market-details-panel__table table-responsive">
+											<table class="table table-compact">
+												<caption class="visually-hidden">Closed-end fund
+													market activity</caption>
+												<thead>
+													<tr>
+														<th scope="col"><fmt:message
+																key="market.funds.cefs.label" /></th>
+														<th scope="col" class="numeric"><fmt:message
+																key="market.price" /></th>
+														<th scope="col" class="numeric"><fmt:message
+																key="market.funds.etfs.change.percentage" /></th>
+														<th scope="col" class="numeric"><fmt:message
+																key="market.volumeTraded" /></th>
+													</tr>
+												</thead>
+												<tbody id="marketWatchCEFs"
+													data-detail-table="funds.cefs.watch">
+													<c:forEach items="${requestScope.marketWatchCEFsBeans}"
+														var="cEFsBean">
+														<tr>
+															<th scope="row"><portal:urlGeneration
+																	contentNode="com.tadawul.hidden.company.profile.v3"
+																	portletMode="view" portletParameterType="render"
+																	layoutNode="com.tadawul.v3.company.profile.node.v3"
+																	keepNavigationalState="false">
+																	<portal:urlParam name="companySymbol"
+																		value="${cEFsBean.companyRef}" />
+																	<a href="<%wpsURL.write(out);%>"><c:out
+																			value="${cEFsBean.companyName}" /></a>
+																</portal:urlGeneration></th>
+															<td class="numeric"><data
+																	value="${cEFsBean.lastTradePriceModified}">
+																<c:out value="${cEFsBean.lastTradePriceModified}" /></data></td>
+															<c:choose>
+																<c:when test="${cEFsBean.unformatedPrecentChange gt 0}">
+																	<td class="numeric market-change market-change--up">
+																		<span
+																		class="has-icon icon-arrow-up market-change__icon"
+																		aria-hidden="true"></span> <data
+																			value="${cEFsBean.precentChange}">
+																		<c:out value="${cEFsBean.precentChange}" />%</data>
+																	</td>
+																</c:when>
+																<c:when test="${cEFsBean.unformatedPrecentChange eq 0}">
+																	<td class="numeric"><c:out
+																			value="${cEFsBean.precentChange}" />%</td>
+																</c:when>
+																<c:otherwise>
+																	<td class="numeric market-change market-change--down">
+																		<span
+																		class="has-icon icon-arrow-down market-change__icon"
+																		aria-hidden="true"></span> <data
+																			value="${cEFsBean.precentChange}">
+																		<c:out value="${cEFsBean.precentChange}" />%</data>
+																	</td>
+																</c:otherwise>
+															</c:choose>
+															<td class="numeric"><data
+																	value="${cEFsBean.volumeTraded}">
+																<c:out value="${cEFsBean.volumeTraded}" /></data></td>
+														</tr>
+													</c:forEach>
+												</tbody>
+											</table>
+										</div>
+									</div>
+								</div>
+
+								<div class="market-details-panel__mobile-summary"
+									aria-label="CEFs trading summary">
+									<div class="market-details-panel__mobile-metric">
+										<span class="market-details-panel__mobile-metric-label">
+											<span
+											class="has-icon icon-riyal market-details-panel__mobile-metric-icon"
+											aria-hidden="true"></span> <span><fmt:message
+													key="market.valueTraded" /></span>
+										</span>
+										<data class="market-details-panel__mobile-metric-value"
+											value="${requestScope.cefMarketOverview.turnover}"> <c:out
+											value="${requestScope.cefMarketOverview.turnover}" /> </data>
+									</div>
+									<div class="market-details-panel__mobile-metric">
+										<span class="market-details-panel__mobile-metric-label"><fmt:message
+												key="market.volumeTraded" /></span>
+										<data class="market-details-panel__mobile-metric-value"
+											value="${requestScope.cefMarketOverview.volume}"> <c:out
+											value="${requestScope.cefMarketOverview.volume}" /> </data>
+									</div>
+								</div>
+
+								<div class="market-details-panel__toggle-wrap">
+									<button
+										class="market-details-panel__toggle btn btn-outline-primary btn-sm has-icon icon-chevron-down icon-end"
+										type="button" data-market-details-toggle aria-expanded="false"
+										aria-controls="cefs-market-details">
+										<span data-market-details-toggle-text>Show market
+											details</span>
+									</button>
+								</div>
+
+								<div class="market-details-panel__collapsible"
+									id="cefs-market-details" data-market-details-collapsible
+									aria-hidden="false">
+									<div class="market-details-panel__stats">
+										<dl class="market-stats">
+											<div
+												class="market-stats__item market-stats__item--mobile-summary">
+												<dt class="market-stats__label">
+													<span class="market-stats__label-text"><fmt:message
+															key="market.valueTraded" /></span> <span
+														class="has-icon icon-riyal market-stats__icon"
+														aria-hidden="true"></span>
+												</dt>
+												<dd class="market-stats__value">
+													<c:out value="${requestScope.cefMarketOverview.turnover}" />
+												</dd>
+											</div>
+											<div
+												class="market-stats__item market-stats__item--mobile-summary">
+												<dt class="market-stats__label">
+													<span class="market-stats__label-text"><fmt:message
+															key="market.volumeTraded" /></span>
+												</dt>
+												<dd class="market-stats__value">
+													<c:out value="${requestScope.cefMarketOverview.volume}" />
+												</dd>
+											</div>
+											<div class="market-stats__item">
+												<dt class="market-stats__label">
+													<span class="market-stats__label-text"><fmt:message
+															key="market.symbolstrades" /></span>
+												</dt>
+												<dd class="market-stats__value">
+													<c:out value="${requestScope.cefMarketOverview.noOfTrades}" />
+												</dd>
+											</div>
+											<div class="market-stats__item">
+												<dt class="market-stats__label">
+													<span class="market-stats__label-text"><fmt:message
+															key="market.listedFunds" /></span>
+												</dt>
+												<dd class="market-stats__value">
+													<c:out value="${requestScope.listedFundsCEFs}" />
+												</dd>
+											</div>
+										</dl>
+									</div>
+								</div>
+							</div>
+						</div>
+					</section>
+
+					<%-- ============================================================
+               PANEL :: DERIVATIVES (MT30 / Derivatives)
+          ============================================================= --%>
+					<section class="market-details-panel" id="market-panel-derivatives"
+						role="tabpanel" aria-labelledby="market-tab-derivatives"
+						aria-hidden="true" data-market-detail-panel data-market="D" hidden>
+
+						<div class="market-views">
+							<div class="market-views__list" role="tablist"
+								aria-label="Derivatives views" aria-orientation="horizontal">
+								<button class="market-views__tab is-active"
+									id="derivatives-tab-mt30" type="button" role="tab"
+									aria-selected="true" aria-controls="derivatives-mt30"
+									tabindex="0" data-market-view-tab>
+									<fmt:message key="nav.derivative-mt30" />
+								</button>
+								<button class="market-views__tab" id="derivatives-tab-summary"
+									type="button" role="tab" aria-selected="false"
+									aria-controls="derivatives-summary" tabindex="-1"
+									data-market-view-tab>
+									<fmt:message key="market.marketShareindex.derivatives" />
+								</button>
+							</div>
+						</div>
+
+						<%-- MT30 View --%>
+						<div
+							class="market-view-panel market-details-panel--analytics is-active"
+							id="derivatives-mt30" role="tabpanel"
+							aria-labelledby="derivatives-tab-mt30" data-market-view-panel>
+							<div class="market-details-panel__grid">
+								<div class="market-details-panel__main">
+									<div class="market-details-panel__chart market-chart"
+										id="mt30-chart" data-chart-id="mt30" role="img"
+										aria-label="MT30 index chart"></div>
+								</div>
+
+								<div class="market-details-panel__mobile-summary"
+									aria-label="MT30 market summary">
+									<div class="market-details-panel__mobile-metric">
+										<span class="market-details-panel__mobile-metric-label"><fmt:message
+												key="nav.open" /></span>
+										<data class="market-details-panel__mobile-metric-value"
+											value="${siteToolHelper.getInstance().getTIMT30Info().tasiTodaysSummaryBean.openPrice}">
+										<fmt:formatNumber type="number" pattern="#,###.##"
+											minFractionDigits="2" maxFractionDigits="2"
+											value="${siteToolHelper.getInstance().getTIMT30Info().tasiTodaysSummaryBean.openPrice}" />
+										</data>
+									</div>
+									<div class="market-details-panel__mobile-metric">
+										<span class="market-details-panel__mobile-metric-label"><fmt:message
+												key="nav.close" /></span>
+										<data class="market-details-panel__mobile-metric-value"
+											value="${siteToolHelper.getInstance().getTIMT30Info().tasiTodaysSummaryBean.previouseIndexPrice}">
+										<fmt:formatNumber type="number" pattern="#,###.##"
+											minFractionDigits="2" maxFractionDigits="2"
+											value="${siteToolHelper.getInstance().getTIMT30Info().tasiTodaysSummaryBean.previouseIndexPrice}" />
+										</data>
+									</div>
+								</div>
+
+								<div class="market-details-panel__toggle-wrap">
+									<button
+										class="market-details-panel__toggle btn btn-outline-primary btn-sm has-icon icon-chevron-down icon-end"
+										type="button" data-market-details-toggle aria-expanded="false"
+										aria-controls="mt30-market-details">
+										<span data-market-details-toggle-text>Show market
+											details</span>
+									</button>
+								</div>
+
+								<div class="market-details-panel__collapsible"
+									id="mt30-market-details" data-market-details-collapsible>
+									<div class="market-details-panel__stats">
+										<dl class="market-stats">
+											<div
+												class="market-stats__item market-stats__item--mobile-summary">
+												<dt class="market-stats__label">
+													<span class="market-stats__label-text"><fmt:message
+															key="nav.open" /></span>
+												</dt>
+												<dd class="market-stats__value">
+													<data
+														value="${siteToolHelper.getInstance().getTIMT30Info().tasiTodaysSummaryBean.openPrice}">
+													<fmt:formatNumber type="number" pattern="#,###.##"
+														minFractionDigits="2" maxFractionDigits="2"
+														value="${siteToolHelper.getInstance().getTIMT30Info().tasiTodaysSummaryBean.openPrice}" />
+													</data>
+												</dd>
+											</div>
+											<div
+												class="market-stats__item market-stats__item--mobile-summary">
+												<dt class="market-stats__label">
+													<span class="market-stats__label-text"><fmt:message
+															key="nav.close" /></span>
+												</dt>
+												<dd class="market-stats__value">
+													<data
+														value="${siteToolHelper.getInstance().getTIMT30Info().tasiTodaysSummaryBean.previouseIndexPrice}">
+													<fmt:formatNumber type="number" pattern="#,###.##"
+														minFractionDigits="2" maxFractionDigits="2"
+														value="${siteToolHelper.getInstance().getTIMT30Info().tasiTodaysSummaryBean.previouseIndexPrice}" />
+													</data>
+												</dd>
+											</div>
+										</dl>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<%-- Derivatives Summary View --%>
+						<div class="market-view-panel market-details-panel--dashboard"
+							id="derivatives-summary" role="tabpanel"
+							aria-labelledby="derivatives-tab-summary" aria-hidden="true"
+							data-market-view-panel hidden>
+							<div class="derivatives-dashboard">
+
+								<%-- Derivative Market --%>
+								<article class="derivatives-dashboard__card"
+									aria-labelledby="derivative-market-title">
+									<header class="derivatives-dashboard__header">
+										<h3 class="derivatives-dashboard__title"
+											id="derivative-market-title">
+											<fmt:message key="market.marketShareindex.derivative" />
+										</h3>
+									</header>
+									<div class="table-responsive custom-scrollbar">
+										<table class="table table-compact">
+											<caption class="visually-hidden">Derivative market
+												trading activity</caption>
+											<thead>
+												<tr>
+													<th scope="col"><fmt:message
+															key="market.summary.derivative.intrumentType" /></th>
+													<th scope="col" class="numeric"><fmt:message
+															key="market.volumeTraded" /></th>
+													<th scope="col" class="numeric"><fmt:message
+															key="market.open.interest" /></th>
+												</tr>
+											</thead>
+											<tbody>
+												<c:forEach items="${requestScope.instrumentList}"
+													var="contracts">
+													<tr>
+														<th scope="row"><wps:urlGeneration
+																contentNode="com.tadawul.saudiexchange.v3.derivativemarket.watch"
+																layoutNode="com.tadawul.saudiexchange.v3.derivativemarket.watch.node"
+																portletMode="view" portletParameterType="render"
+																keepNavigationalState="false">
+																<wps:urlParam name="derivativeType"
+																	value="${contracts.companySymbol}" />
+																<a href="<%wpsURL.write(out);%>"><c:out
+																		value="${contracts.companyName}" /></a>
+															</wps:urlGeneration></th>
+														<td class="numeric"><fmt:formatNumber type="number"
+																pattern="###,###" minFractionDigits="0"
+																value="${contracts.volume}" /></td>
+														<td class="numeric"><fmt:formatNumber type="number"
+																pattern="###,###" minFractionDigits="0"
+																value="${contracts.openInterest}" /></td>
+													</tr>
+												</c:forEach>
+											</tbody>
+										</table>
+									</div>
+								</article>
+
+								<%-- Index Futures --%>
+								<article class="derivatives-dashboard__card"
+									aria-labelledby="index-futures-title">
+									<header class="derivatives-dashboard__header">
+										<h3 class="derivatives-dashboard__title"
+											id="index-futures-title">
+											<fmt:message key="market.summary.derivative.index" />
+										</h3>
+									</header>
+									<div class="table-responsive custom-scrollbar">
+										<table class="table table-compact">
+											<caption class="visually-hidden">Index futures
+												trading activity</caption>
+											<thead>
+												<tr>
+													<th scope="col"><fmt:message
+															key="market.summary.derivative.Underlying" /></th>
+													<th scope="col" class="numeric"><fmt:message
+															key="market.volumeTraded" /></th>
+													<th scope="col" class="numeric"><fmt:message
+															key="market.open.interest" /></th>
+												</tr>
+											</thead>
+											<tbody>
+												<c:forEach items="${requestScope.summaryList_IF}"
+													var="contract">
+													<tr>
+														<th scope="row"><wps:urlGeneration
+																contentNode="com.tadawul.saudiexchange.v3.derivativemarket.watch"
+																layoutNode="com.tadawul.saudiexchange.v3.derivativemarket.watch.node"
+																portletMode="view" portletParameterType="render"
+																keepNavigationalState="false">
+																<wps:urlParam name="derivativeType" value="F" />
+																<a href="<%wpsURL.write(out);%>"><fmt:message
+																		key="market.summary.derivative.mt30Index" /></a>
+															</wps:urlGeneration></th>
+														<td class="numeric"><fmt:formatNumber
+																value="${contract.volume}" pattern="###,###.##"
+																minFractionDigits="2" /></td>
+														<td class="numeric"><fmt:formatNumber
+																value="${contract.openInterest}" pattern="###,###" /></td>
+													</tr>
+												</c:forEach>
+											</tbody>
+										</table>
+									</div>
+								</article>
+
+								<%-- Mobile "Show more" toggle --%>
+								<div class="derivatives-dashboard__toggle">
+									<button
+										class="market-details-panel__toggle btn btn-outline-primary btn-sm has-icon icon-chevron-down icon-end"
+										type="button" data-market-details-toggle
+										data-market-details-label-show="Show more tables"
+										data-market-details-label-hide="Hide additional tables"
+										aria-expanded="false" aria-controls="derivatives-more-tables">
+										<span data-market-details-toggle-text>Show more tables</span>
+									</button>
+								</div>
+
+								<%-- Additional tables --%>
+								<div class="derivatives-dashboard__more"
+									id="derivatives-more-tables" data-market-details-collapsible>
+
+									<%-- SSF --%>
+									<article class="derivatives-dashboard__card"
+										aria-labelledby="single-stock-futures-title">
+										<header class="derivatives-dashboard__header">
+											<h3 class="derivatives-dashboard__title"
+												id="single-stock-futures-title">
+												<fmt:message key="market.summary.derivative.ssf" />
+											</h3>
+										</header>
+										<div class="table-responsive custom-scrollbar">
+											<table class="table table-compact">
+												<caption class="visually-hidden">Single stock
+													futures trading activity</caption>
+												<thead>
+													<tr>
+														<th scope="col"><fmt:message
+																key="market.summary.derivative.Underlying" /></th>
+														<th scope="col" class="numeric"><fmt:message
+																key="market.volumeTraded" /></th>
+														<th scope="col" class="numeric"><fmt:message
+																key="market.open.interest" /></th>
+													</tr>
+												</thead>
+												<tbody>
+													<c:forEach items="${requestScope.summaryList_SSF}"
+														var="contract">
+														<tr>
+															<th scope="row"><wps:urlGeneration
+																	contentNode="com.tadawul.saudiexchange.v3.derivativemarket.watch"
+																	layoutNode="com.tadawul.saudiexchange.v3.derivativemarket.watch.node"
+																	portletMode="view" portletParameterType="render"
+																	keepNavigationalState="false">
+																	<wps:urlParam name="derivativeType" value="F" />
+																	<a href="<%wpsURL.write(out);%>"><c:out
+																			value="${contract.companyName}" /></a>
+																</wps:urlGeneration></th>
+															<td class="numeric"><fmt:formatNumber
+																	value="${contract.volume}" pattern="###,###.##"
+																	minFractionDigits="2" /></td>
+															<td class="numeric"><fmt:formatNumber
+																	value="${contract.openInterest}" pattern="###,###" /></td>
+														</tr>
+													</c:forEach>
+												</tbody>
+											</table>
+										</div>
+									</article>
+
+									<%-- SSO --%>
+									<article class="derivatives-dashboard__card"
+										aria-labelledby="single-stock-options-title">
+										<header class="derivatives-dashboard__header">
+											<h3 class="derivatives-dashboard__title"
+												id="single-stock-options-title">
+												<fmt:message key="market.summary.derivative.sso" />
+											</h3>
+										</header>
+										<div class="table-responsive custom-scrollbar">
+											<table class="table table-compact">
+												<caption class="visually-hidden">Single stock
+													options trading activity</caption>
+												<thead>
+													<tr>
+														<th scope="col"><fmt:message
+																key="market.summary.derivative.Underlying" /></th>
+														<th scope="col" class="numeric"><fmt:message
+																key="market.volumeTraded" /></th>
+														<th scope="col" class="numeric"><fmt:message
+																key="market.open.interest" /></th>
+													</tr>
+												</thead>
+												<tbody>
+													<c:forEach items="${requestScope.summaryList_SSO}"
+														var="contract">
+														<tr>
+															<th scope="row"><wps:urlGeneration
+																	contentNode="com.tadawul.saudiexchange.v3.derivativemarket.watch"
+																	layoutNode="com.tadawul.saudiexchange.v3.derivativemarket.watch.node"
+																	portletMode="view" portletParameterType="render"
+																	keepNavigationalState="false">
+																	<wps:urlParam name="derivativeType" value="O" />
+																	<a href="<%wpsURL.write(out);%>"><c:out
+																			value="${contract.companyName}" /></a>
+																</wps:urlGeneration></th>
+															<td class="numeric"><fmt:formatNumber
+																	value="${contract.volume}" pattern="###,###.##"
+																	minFractionDigits="2" /></td>
+															<td class="numeric"><fmt:formatNumber
+																	value="${contract.openInterest}" pattern="###,###" /></td>
+														</tr>
+													</c:forEach>
+												</tbody>
+											</table>
+										</div>
+									</article>
+								</div>
+							</div>
+						</div>
+					</section>
+
+				</div>
+			</section>
+		</div>
+	</details>
+</section>
+
+
