@@ -1,0 +1,187 @@
+@use "../abstracts" as ds;
+
+/* ==========================================================================
+   Skeleton
+   ========================================================================== */
+
+/*
+ * Generic content-loading placeholder.
+ *
+ * Use while content is unavailable during the initial request.
+ *
+ * This component owns only placeholder presentation.
+ * Components and pages remain responsible for dimensions and composition.
+ */
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+.skeleton {
+  --skeleton-base: rgb(0 68 227 / 0.1);
+  --skeleton-highlight: rgb(255 255 255 / 0.72);
+
+  display: block;
+
+  inline-size: var(--skeleton-width, 100%);
+  max-inline-size: 100%;
+
+  block-size: var(--skeleton-height, 0.75rem);
+
+  border-radius: var(--skeleton-radius, var(--radius-pill));
+
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 0%,
+    var(--skeleton-base) 38%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 62%,
+    var(--skeleton-base) 100%
+  );
+
+  background-size: 220% 100%;
+
+  animation: skeleton-loading 1.4s ease-in-out infinite;
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Width
+   ========================================================================== */
+
+.skeleton--sm {
+  --skeleton-width: 42%;
+}
+
+.skeleton--md {
+  --skeleton-width: 66%;
+}
+
+.skeleton--lg {
+  --skeleton-width: 88%;
+}
+
+/* ==========================================================================
+   Shape
+   ========================================================================== */
+
+.skeleton--circle {
+  --skeleton-radius: 50%;
+
+  inline-size: var(--skeleton-size, 2.5rem);
+  block-size: var(--skeleton-size, 2.5rem);
+}
+
+/* ==========================================================================
+   Market Values
+   ========================================================================== */
+
+/*
+ * Shared market-data placeholder sizes.
+ *
+ * These remain generic enough for index values, quotes, metrics,
+ * tables, and mobile cards.
+ */
+
+.skeleton--market-value {
+  --skeleton-width: 8rem;
+  --skeleton-height: 1.75rem;
+}
+
+.skeleton--market-change {
+  --skeleton-width: 4rem;
+  --skeleton-height: 1rem;
+}
+
+.skeleton--market-percent {
+  --skeleton-width: 3.5rem;
+  --skeleton-height: 1rem;
+}
+
+/* ==========================================================================
+   Animation
+   ========================================================================== */
+
+@keyframes skeleton-loading {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -20% 0;
+  }
+}
+
+/* ==========================================================================
+   Dark Surfaces
+   ========================================================================== */
+
+:where(
+    .surface-dark,
+    .surface-brand,
+    .surface-hero,
+    .surface-insights,
+    .surface-market
+  )
+  .skeleton {
+  --skeleton-base: rgb(255 255 255 / 0.14);
+  --skeleton-highlight: rgb(255 255 255 / 0.32);
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .skeleton {
+  --skeleton-base: currentColor;
+  --skeleton-highlight: transparent;
+
+  outline: 1px solid currentColor;
+
+  animation: none;
+
+  opacity: 0.45;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .skeleton {
+    background: CanvasText;
+
+    outline: 0;
+
+    animation: none;
+
+    opacity: 0.35;
+
+    forced-color-adjust: auto;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+html[data-motion="reduce"] .skeleton {
+  animation: none;
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .skeleton {
+    display: none;
+  }
+}

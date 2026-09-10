@@ -5499,8 +5499,8 @@
         <div class="container hero-section__content">
           <div class="hero-intro">
             <!-- ====================================================================
-           Market Identity
-           ================================================================= -->
+           Header
+           ==================================================================== -->
 
             <header class="hero-intro__header">
               <div class="hero-intro__brand">
@@ -5520,45 +5520,112 @@
             </header>
 
             <!-- ====================================================================
-           Market Index and Actions
-           ================================================================= -->
+           Footer
+           ==================================================================== -->
 
             <footer class="hero-intro__footer">
-              <!-- TASI Index -->
+              <!-- ==================================================================
+             TASI Index
+             ================================================================== -->
 
               <div
                 class="instrument-price"
-                aria-label="TASI Index: 10,804.11 points. Increased by 28.65 points, or 0.27 percent."
                 dir="ltr"
+                aria-busy="true"
+                aria-label="TASI Index market data is loading."
+                data-market-index
               >
                 <p class="instrument-price__label">
                   TASI Index
                   <span>(TASI)</span>
                 </p>
 
+                <!-- ================================================================
+               Current Value
+               ================================================================ -->
+
                 <div class="instrument-price__current">
-                  <data class="instrument-price__value" value="10804.11">
+                  <!-- Initial Loading -->
+
+                  <span
+                    class="skeleton skeleton--market-value"
+                    aria-hidden="true"
+                    data-market-index-loading
+                  ></span>
+
+                  <!-- Live Value -->
+
+                  <data
+                    class="instrument-price__value market-live-update"
+                    value="10804.11"
+                    data-market-index-value
+                    data-market-index-live
+                    hidden
+                  >
                     10,804.11
                   </data>
                 </div>
 
-                <div class="instrument-price__change price-up">
+                <!-- ================================================================
+               Change
+               ================================================================ -->
+
+                <div
+                  class="instrument-price__change price-up"
+                  data-market-index-change-state
+                >
+                  <!-- Initial Loading -->
+
+                  <span
+                    class="skeleton skeleton--market-change"
+                    aria-hidden="true"
+                    data-market-index-loading
+                  ></span>
+
+                  <span
+                    class="skeleton skeleton--market-percent"
+                    aria-hidden="true"
+                    data-market-index-loading
+                  ></span>
+
+                  <!-- Direction Icon -->
+
                   <span
                     class="instrument-price__change-icon has-icon icon-triangle-up"
                     aria-hidden="true"
+                    data-market-index-change-icon
+                    data-market-index-live
+                    hidden
                   ></span>
 
-                  <data class="instrument-price__change-value" value="28.65">
+                  <!-- Change Value -->
+
+                  <data
+                    class="instrument-price__change-value market-live-update"
+                    value="28.65"
+                    data-market-index-change
+                    data-market-index-live
+                    hidden
+                  >
                     28.65
                   </data>
 
-                  <span class="instrument-price__change-percentage">
+                  <!-- Change Percentage -->
+
+                  <span
+                    class="instrument-price__change-percentage"
+                    data-market-index-change-percent
+                    data-market-index-live
+                    hidden
+                  >
                     (0.27%)
                   </span>
                 </div>
               </div>
 
-              <!-- Main Market Actions -->
+              <!-- ==================================================================
+             Actions
+             ================================================================== -->
 
               <nav class="hero-intro__actions" aria-label="Main Market actions">
                 <a class="btn btn-light btn-arrow" href="#">
@@ -6058,7 +6125,9 @@
                   </div>
 
                   <div class="tabs-content market-activity__content">
-                    <!-- Top gainers -->
+                    <!-- ======================================================================
+                         Top gainers
+                         ====================================================================== -->
 
                     <div
                       id="activity-gainers-panel"
@@ -6067,343 +6136,403 @@
                       aria-labelledby="activity-gainers-tab"
                     >
                       <div
-                        class="table-responsive market-activity-table"
-                        role="region"
-                        aria-label="Top gaining companies"
-                        tabindex="0"
+                        class="data-view"
+                        aria-busy="true"
+                        data-market-activity-view="gainers"
                       >
-                        <table
-                          class="table table-striped table-hover market-activity-table__table"
+                        <!-- ================================================================
+                             Desktop / Tablet Table
+                             ================================================================ -->
+
+                        <div class="data-view__table">
+                          <div
+                            class="table-responsive market-activity-table"
+                            role="region"
+                            aria-label="Top gaining companies"
+                            tabindex="0"
+                          >
+                            <table
+                              class="table table-striped table-hover market-activity-table__table"
+                              aria-busy="true"
+                              data-market-activity-table="gainers"
+                            >
+                              <thead>
+                                <tr>
+                                  <th scope="col">Company</th>
+                                  <th scope="col">Price</th>
+                                  <th scope="col">Change</th>
+                                  <th scope="col">Change %</th>
+                                  <th scope="col">
+                                    <span
+                                      class="market-activity-table__heading-stack"
+                                    >
+                                      <span>5 Day</span>
+                                      <span>Performance</span>
+                                    </span>
+                                  </th>
+                                </tr>
+                              </thead>
+
+                              <tbody data-market-activity-body="gainers">
+                                <tr>
+                                  <th
+                                    class="market-activity-table__company"
+                                    scope="row"
+                                  >
+                                    <div
+                                      class="market-activity-table__company-content"
+                                    >
+                                      <span
+                                        class="table-skeleton table-skeleton-md"
+                                        aria-hidden="true"
+                                      ></span>
+                                    </div>
+                                  </th>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td>
+                                    <span
+                                      class="table-skeleton table-skeleton-lg"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+                                </tr>
+
+                                <tr>
+                                  <th
+                                    class="market-activity-table__company"
+                                    scope="row"
+                                  >
+                                    <div
+                                      class="market-activity-table__company-content"
+                                    >
+                                      <span
+                                        class="table-skeleton table-skeleton-lg"
+                                        aria-hidden="true"
+                                      ></span>
+                                    </div>
+                                  </th>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td>
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+                                </tr>
+
+                                <tr>
+                                  <th
+                                    class="market-activity-table__company"
+                                    scope="row"
+                                  >
+                                    <div
+                                      class="market-activity-table__company-content"
+                                    >
+                                      <span
+                                        class="table-skeleton table-skeleton-md"
+                                        aria-hidden="true"
+                                      ></span>
+                                    </div>
+                                  </th>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td>
+                                    <span
+                                      class="table-skeleton table-skeleton-lg"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+                                </tr>
+
+                                <tr>
+                                  <th
+                                    class="market-activity-table__company"
+                                    scope="row"
+                                  >
+                                    <div
+                                      class="market-activity-table__company-content"
+                                    >
+                                      <span
+                                        class="table-skeleton table-skeleton-lg"
+                                        aria-hidden="true"
+                                      ></span>
+                                    </div>
+                                  </th>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td>
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                        <!-- ================================================================
+                             Mobile Cards
+                             ================================================================ -->
+
+                        <div
+                          class="data-view__cards"
+                          aria-label="Top gaining companies"
                         >
-                          <thead>
-                            <tr>
-                              <th scope="col">Company</th>
-                              <th scope="col">Price</th>
-                              <th scope="col">Change</th>
-                              <th scope="col">Change %</th>
-                              <th scope="col">
-                                <span
-                                  class="market-activity-table__heading-stack"
-                                >
-                                  <span>5 Day</span>
-                                  <span>Performance</span>
-                                </span>
-                              </th>
-                            </tr>
-                          </thead>
-
-                          <tbody>
-                            <tr>
-                              <th
-                                class="market-activity-table__company"
-                                scope="row"
-                              >
-                                <div
-                                  class="market-activity-table__company-content"
-                                >
-                                  <button
-                                    class="market-activity-table__watchlist has-icon icon-star-outline"
-                                    type="button"
-                                    aria-label="Add MBC Group to watchlist"
-                                    aria-pressed="false"
-                                  ></button>
-
+                          <div
+                            class="data-view__cards-inner"
+                            data-market-activity-cards="gainers"
+                          >
+                            <article class="data-card data-card--compact">
+                              <div class="data-card__main">
+                                <div class="data-card__identity">
                                   <span
-                                    class="market-activity-table__company-identity"
-                                  >
-                                    <span
-                                      class="market-activity-table__company-name"
-                                    >
-                                      MBC Group
-                                    </span>
-
-                                    <span
-                                      class="market-activity-table__company-symbol"
-                                      dir="ltr"
-                                    >
-                                      4072
-                                    </span>
-                                  </span>
-                                </div>
-                              </th>
-
-                              <td
-                                class="market-activity-table__number"
-                                dir="ltr"
-                              >
-                                <data value="45.00">45.00</data>
-                              </td>
-
-                              <td
-                                class="market-activity-table__number price-up"
-                                dir="ltr"
-                              >
-                                <data value="2.55">2.55</data>
-                              </td>
-
-                              <td
-                                class="market-activity-table__number price-up"
-                                dir="ltr"
-                              >
-                                <data value="6.01">6.01%</data>
-                              </td>
-
-                              <td
-                                class="market-activity-table__performance-cell"
-                              >
-                                <div
-                                  class="market-activity-table__performance"
-                                  role="img"
-                                  aria-label="Five-day performance: up, up, down, up, up"
-                                >
-                                  <span class="is-up" aria-hidden="true"></span>
-                                  <span class="is-up" aria-hidden="true"></span>
-                                  <span
-                                    class="is-down"
+                                    class="skeleton skeleton--circle"
+                                    style="--skeleton-size: 2rem"
                                     aria-hidden="true"
                                   ></span>
-                                  <span class="is-up" aria-hidden="true"></span>
-                                  <span class="is-up" aria-hidden="true"></span>
-                                </div>
-                              </td>
-                            </tr>
 
-                            <tr>
-                              <th
-                                class="market-activity-table__company"
-                                scope="row"
-                              >
-                                <div
-                                  class="market-activity-table__company-content"
-                                >
-                                  <button
-                                    class="market-activity-table__watchlist has-icon icon-star-outline"
-                                    type="button"
-                                    aria-label="Add NGC to watchlist"
-                                    aria-pressed="false"
-                                  ></button>
-
-                                  <span
-                                    class="market-activity-table__company-identity"
-                                  >
+                                  <div class="data-card__identity-content">
                                     <span
-                                      class="market-activity-table__company-name"
-                                    >
-                                      NGC
-                                    </span>
+                                      class="skeleton skeleton--lg"
+                                      aria-hidden="true"
+                                    ></span>
 
                                     <span
-                                      class="market-activity-table__company-symbol"
-                                      dir="ltr"
-                                    >
-                                      2090
-                                    </span>
-                                  </span>
+                                      class="skeleton skeleton--sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
                                 </div>
-                              </th>
 
-                              <td
-                                class="market-activity-table__number"
-                                dir="ltr"
-                              >
-                                <data value="21.42">21.42</data>
-                              </td>
+                                <div class="data-card__quote">
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-value"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
 
-                              <td
-                                class="market-activity-table__number price-up"
-                                dir="ltr"
-                              >
-                                <data value="0.96">0.96</data>
-                              </td>
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-percent"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
 
-                              <td
-                                class="market-activity-table__number price-up"
-                                dir="ltr"
-                              >
-                                <data value="4.41">4.41%</data>
-                              </td>
-
-                              <td
-                                class="market-activity-table__performance-cell"
-                              >
-                                <div
-                                  class="market-activity-table__performance"
-                                  role="img"
-                                  aria-label="Five-day performance: up, down, down, up, up"
-                                >
-                                  <span class="is-up" aria-hidden="true"></span>
+                            <article class="data-card data-card--compact">
+                              <div class="data-card__main">
+                                <div class="data-card__identity">
                                   <span
-                                    class="is-down"
+                                    class="skeleton skeleton--circle"
+                                    style="--skeleton-size: 2rem"
                                     aria-hidden="true"
                                   ></span>
-                                  <span
-                                    class="is-down"
-                                    aria-hidden="true"
-                                  ></span>
-                                  <span class="is-up" aria-hidden="true"></span>
-                                  <span class="is-up" aria-hidden="true"></span>
-                                </div>
-                              </td>
-                            </tr>
 
-                            <tr>
-                              <th
-                                class="market-activity-table__company"
-                                scope="row"
-                              >
-                                <div
-                                  class="market-activity-table__company-content"
-                                >
-                                  <button
-                                    class="market-activity-table__watchlist has-icon icon-star-outline"
-                                    type="button"
-                                    aria-label="Add Zamil Industrial to watchlist"
-                                    aria-pressed="false"
-                                  ></button>
-
-                                  <span
-                                    class="market-activity-table__company-identity"
-                                  >
+                                  <div class="data-card__identity-content">
                                     <span
-                                      class="market-activity-table__company-name"
-                                    >
-                                      Zamil Industrial
-                                    </span>
+                                      class="skeleton skeleton--md"
+                                      aria-hidden="true"
+                                    ></span>
 
                                     <span
-                                      class="market-activity-table__company-symbol"
-                                      dir="ltr"
-                                    >
-                                      2240
-                                    </span>
-                                  </span>
+                                      class="skeleton skeleton--sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
                                 </div>
-                              </th>
 
-                              <td
-                                class="market-activity-table__number"
-                                dir="ltr"
-                              >
-                                <data value="46.05">46.05</data>
-                              </td>
+                                <div class="data-card__quote">
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-value"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
 
-                              <td
-                                class="market-activity-table__number price-up"
-                                dir="ltr"
-                              >
-                                <data value="1.85">1.85</data>
-                              </td>
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-percent"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
 
-                              <td
-                                class="market-activity-table__number price-up"
-                                dir="ltr"
-                              >
-                                <data value="4.19">4.19%</data>
-                              </td>
-
-                              <td
-                                class="market-activity-table__performance-cell"
-                              >
-                                <div
-                                  class="market-activity-table__performance"
-                                  role="img"
-                                  aria-label="Five-day performance: up, up, up, down, up"
-                                >
-                                  <span class="is-up" aria-hidden="true"></span>
-                                  <span class="is-up" aria-hidden="true"></span>
-                                  <span class="is-up" aria-hidden="true"></span>
+                            <article class="data-card data-card--compact">
+                              <div class="data-card__main">
+                                <div class="data-card__identity">
                                   <span
-                                    class="is-down"
+                                    class="skeleton skeleton--circle"
+                                    style="--skeleton-size: 2rem"
                                     aria-hidden="true"
                                   ></span>
-                                  <span class="is-up" aria-hidden="true"></span>
-                                </div>
-                              </td>
-                            </tr>
 
-                            <tr>
-                              <th
-                                class="market-activity-table__company"
-                                scope="row"
-                              >
-                                <div
-                                  class="market-activity-table__company-content"
-                                >
-                                  <button
-                                    class="market-activity-table__watchlist has-icon icon-star-outline"
-                                    type="button"
-                                    aria-label="Add GASCO to watchlist"
-                                    aria-pressed="false"
-                                  ></button>
-
-                                  <span
-                                    class="market-activity-table__company-identity"
-                                  >
+                                  <div class="data-card__identity-content">
                                     <span
-                                      class="market-activity-table__company-name"
-                                    >
-                                      GASCO
-                                    </span>
+                                      class="skeleton skeleton--lg"
+                                      aria-hidden="true"
+                                    ></span>
 
                                     <span
-                                      class="market-activity-table__company-symbol"
-                                      dir="ltr"
-                                    >
-                                      2080
-                                    </span>
-                                  </span>
+                                      class="skeleton skeleton--sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
                                 </div>
-                              </th>
 
-                              <td
-                                class="market-activity-table__number"
-                                dir="ltr"
-                              >
-                                <data value="30.00">30.00</data>
-                              </td>
+                                <div class="data-card__quote">
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-value"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
 
-                              <td
-                                class="market-activity-table__number price-up"
-                                dir="ltr"
-                              >
-                                <data value="3.25">3.25</data>
-                              </td>
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-percent"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
 
-                              <td
-                                class="market-activity-table__number price-up"
-                                dir="ltr"
-                              >
-                                <data value="4.17">4.17%</data>
-                              </td>
-
-                              <td
-                                class="market-activity-table__performance-cell"
-                              >
-                                <div
-                                  class="market-activity-table__performance"
-                                  role="img"
-                                  aria-label="Five-day performance: down, up, up, up, down"
-                                >
+                            <article class="data-card data-card--compact">
+                              <div class="data-card__main">
+                                <div class="data-card__identity">
                                   <span
-                                    class="is-down"
+                                    class="skeleton skeleton--circle"
+                                    style="--skeleton-size: 2rem"
                                     aria-hidden="true"
                                   ></span>
-                                  <span class="is-up" aria-hidden="true"></span>
-                                  <span class="is-up" aria-hidden="true"></span>
-                                  <span class="is-up" aria-hidden="true"></span>
-                                  <span
-                                    class="is-down"
-                                    aria-hidden="true"
-                                  ></span>
+
+                                  <div class="data-card__identity-content">
+                                    <span
+                                      class="skeleton skeleton--md"
+                                      aria-hidden="true"
+                                    ></span>
+
+                                    <span
+                                      class="skeleton skeleton--sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
                                 </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
+
+                                <div class="data-card__quote">
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-value"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-percent"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    <!-- Top losers -->
+                    <!-- ======================================================================
+                         Top losers
+                         ====================================================================== -->
 
                     <div
                       id="activity-losers-panel"
@@ -6413,37 +6542,403 @@
                       hidden
                     >
                       <div
-                        class="table-responsive market-activity-table"
-                        role="region"
-                        aria-label="Top declining companies"
-                        tabindex="0"
+                        class="data-view"
+                        aria-busy="true"
+                        data-market-activity-view="losers"
                       >
-                        <table
-                          class="table table-striped table-hover market-activity-table__table"
-                        >
-                          <thead>
-                            <tr>
-                              <th scope="col">Company</th>
-                              <th scope="col">Price</th>
-                              <th scope="col">Change</th>
-                              <th scope="col">Change %</th>
-                              <th scope="col">
-                                <span
-                                  class="market-activity-table__heading-stack"
-                                >
-                                  <span>5 Day</span>
-                                  <span>Performance</span>
-                                </span>
-                              </th>
-                            </tr>
-                          </thead>
+                        <!-- ================================================================
+                             Desktop / Tablet Table
+                             ================================================================ -->
 
-                          <tbody data-market-activity-body="losers"></tbody>
-                        </table>
+                        <div class="data-view__table">
+                          <div
+                            class="table-responsive market-activity-table"
+                            role="region"
+                            aria-label="Top declining companies"
+                            tabindex="0"
+                          >
+                            <table
+                              class="table table-striped table-hover market-activity-table__table"
+                              aria-busy="true"
+                              data-market-activity-table="losers"
+                            >
+                              <thead>
+                                <tr>
+                                  <th scope="col">Company</th>
+                                  <th scope="col">Price</th>
+                                  <th scope="col">Change</th>
+                                  <th scope="col">Change %</th>
+                                  <th scope="col">
+                                    <span
+                                      class="market-activity-table__heading-stack"
+                                    >
+                                      <span>5 Day</span>
+                                      <span>Performance</span>
+                                    </span>
+                                  </th>
+                                </tr>
+                              </thead>
+
+                              <tbody data-market-activity-body="losers">
+                                <tr>
+                                  <th
+                                    class="market-activity-table__company"
+                                    scope="row"
+                                  >
+                                    <div
+                                      class="market-activity-table__company-content"
+                                    >
+                                      <span
+                                        class="table-skeleton table-skeleton-md"
+                                        aria-hidden="true"
+                                      ></span>
+                                    </div>
+                                  </th>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td>
+                                    <span
+                                      class="table-skeleton table-skeleton-lg"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+                                </tr>
+
+                                <tr>
+                                  <th
+                                    class="market-activity-table__company"
+                                    scope="row"
+                                  >
+                                    <div
+                                      class="market-activity-table__company-content"
+                                    >
+                                      <span
+                                        class="table-skeleton table-skeleton-lg"
+                                        aria-hidden="true"
+                                      ></span>
+                                    </div>
+                                  </th>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td>
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+                                </tr>
+
+                                <tr>
+                                  <th
+                                    class="market-activity-table__company"
+                                    scope="row"
+                                  >
+                                    <div
+                                      class="market-activity-table__company-content"
+                                    >
+                                      <span
+                                        class="table-skeleton table-skeleton-md"
+                                        aria-hidden="true"
+                                      ></span>
+                                    </div>
+                                  </th>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td>
+                                    <span
+                                      class="table-skeleton table-skeleton-lg"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+                                </tr>
+
+                                <tr>
+                                  <th
+                                    class="market-activity-table__company"
+                                    scope="row"
+                                  >
+                                    <div
+                                      class="market-activity-table__company-content"
+                                    >
+                                      <span
+                                        class="table-skeleton table-skeleton-lg"
+                                        aria-hidden="true"
+                                      ></span>
+                                    </div>
+                                  </th>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td>
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                        <!-- ================================================================
+                             Mobile Cards
+                             ================================================================ -->
+
+                        <div
+                          class="data-view__cards"
+                          aria-label="Top declining companies"
+                        >
+                          <div
+                            class="data-view__cards-inner"
+                            data-market-activity-cards="losers"
+                          >
+                            <article class="data-card data-card--compact">
+                              <div class="data-card__main">
+                                <div class="data-card__identity">
+                                  <span
+                                    class="skeleton skeleton--circle"
+                                    style="--skeleton-size: 2rem"
+                                    aria-hidden="true"
+                                  ></span>
+
+                                  <div class="data-card__identity-content">
+                                    <span
+                                      class="skeleton skeleton--lg"
+                                      aria-hidden="true"
+                                    ></span>
+
+                                    <span
+                                      class="skeleton skeleton--sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+
+                                <div class="data-card__quote">
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-value"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-percent"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
+
+                            <article class="data-card data-card--compact">
+                              <div class="data-card__main">
+                                <div class="data-card__identity">
+                                  <span
+                                    class="skeleton skeleton--circle"
+                                    style="--skeleton-size: 2rem"
+                                    aria-hidden="true"
+                                  ></span>
+
+                                  <div class="data-card__identity-content">
+                                    <span
+                                      class="skeleton skeleton--md"
+                                      aria-hidden="true"
+                                    ></span>
+
+                                    <span
+                                      class="skeleton skeleton--sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+
+                                <div class="data-card__quote">
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-value"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-percent"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
+
+                            <article class="data-card data-card--compact">
+                              <div class="data-card__main">
+                                <div class="data-card__identity">
+                                  <span
+                                    class="skeleton skeleton--circle"
+                                    style="--skeleton-size: 2rem"
+                                    aria-hidden="true"
+                                  ></span>
+
+                                  <div class="data-card__identity-content">
+                                    <span
+                                      class="skeleton skeleton--lg"
+                                      aria-hidden="true"
+                                    ></span>
+
+                                    <span
+                                      class="skeleton skeleton--sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+
+                                <div class="data-card__quote">
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-value"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-percent"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
+
+                            <article class="data-card data-card--compact">
+                              <div class="data-card__main">
+                                <div class="data-card__identity">
+                                  <span
+                                    class="skeleton skeleton--circle"
+                                    style="--skeleton-size: 2rem"
+                                    aria-hidden="true"
+                                  ></span>
+
+                                  <div class="data-card__identity-content">
+                                    <span
+                                      class="skeleton skeleton--md"
+                                      aria-hidden="true"
+                                    ></span>
+
+                                    <span
+                                      class="skeleton skeleton--sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+
+                                <div class="data-card__quote">
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-value"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-percent"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    <!-- Most active by volume -->
+                    <!-- ======================================================================
+                         Most active by volume
+                         ====================================================================== -->
 
                     <div
                       id="activity-volume-panel"
@@ -6453,37 +6948,403 @@
                       hidden
                     >
                       <div
-                        class="table-responsive market-activity-table"
-                        role="region"
-                        aria-label="Most active companies by volume"
-                        tabindex="0"
+                        class="data-view"
+                        aria-busy="true"
+                        data-market-activity-view="volume"
                       >
-                        <table
-                          class="table table-striped table-hover market-activity-table__table"
-                        >
-                          <thead>
-                            <tr>
-                              <th scope="col">Company</th>
-                              <th scope="col">Price</th>
-                              <th scope="col">Volume</th>
-                              <th scope="col">Change %</th>
-                              <th scope="col">
-                                <span
-                                  class="market-activity-table__heading-stack"
-                                >
-                                  <span>5 Day</span>
-                                  <span>Performance</span>
-                                </span>
-                              </th>
-                            </tr>
-                          </thead>
+                        <!-- ================================================================
+                             Desktop / Tablet Table
+                             ================================================================ -->
 
-                          <tbody data-market-activity-body="volume"></tbody>
-                        </table>
+                        <div class="data-view__table">
+                          <div
+                            class="table-responsive market-activity-table"
+                            role="region"
+                            aria-label="Most active companies by volume"
+                            tabindex="0"
+                          >
+                            <table
+                              class="table table-striped table-hover market-activity-table__table"
+                              aria-busy="true"
+                              data-market-activity-table="volume"
+                            >
+                              <thead>
+                                <tr>
+                                  <th scope="col">Company</th>
+                                  <th scope="col">Price</th>
+                                  <th scope="col">Volume</th>
+                                  <th scope="col">Change %</th>
+                                  <th scope="col">
+                                    <span
+                                      class="market-activity-table__heading-stack"
+                                    >
+                                      <span>5 Day</span>
+                                      <span>Performance</span>
+                                    </span>
+                                  </th>
+                                </tr>
+                              </thead>
+
+                              <tbody data-market-activity-body="volume">
+                                <tr>
+                                  <th
+                                    class="market-activity-table__company"
+                                    scope="row"
+                                  >
+                                    <div
+                                      class="market-activity-table__company-content"
+                                    >
+                                      <span
+                                        class="table-skeleton table-skeleton-md"
+                                        aria-hidden="true"
+                                      ></span>
+                                    </div>
+                                  </th>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td>
+                                    <span
+                                      class="table-skeleton table-skeleton-lg"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+                                </tr>
+
+                                <tr>
+                                  <th
+                                    class="market-activity-table__company"
+                                    scope="row"
+                                  >
+                                    <div
+                                      class="market-activity-table__company-content"
+                                    >
+                                      <span
+                                        class="table-skeleton table-skeleton-lg"
+                                        aria-hidden="true"
+                                      ></span>
+                                    </div>
+                                  </th>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td>
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+                                </tr>
+
+                                <tr>
+                                  <th
+                                    class="market-activity-table__company"
+                                    scope="row"
+                                  >
+                                    <div
+                                      class="market-activity-table__company-content"
+                                    >
+                                      <span
+                                        class="table-skeleton table-skeleton-md"
+                                        aria-hidden="true"
+                                      ></span>
+                                    </div>
+                                  </th>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td>
+                                    <span
+                                      class="table-skeleton table-skeleton-lg"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+                                </tr>
+
+                                <tr>
+                                  <th
+                                    class="market-activity-table__company"
+                                    scope="row"
+                                  >
+                                    <div
+                                      class="market-activity-table__company-content"
+                                    >
+                                      <span
+                                        class="table-skeleton table-skeleton-lg"
+                                        aria-hidden="true"
+                                      ></span>
+                                    </div>
+                                  </th>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td>
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                        <!-- ================================================================
+                             Mobile Cards
+                             ================================================================ -->
+
+                        <div
+                          class="data-view__cards"
+                          aria-label="Most active companies by volume"
+                        >
+                          <div
+                            class="data-view__cards-inner"
+                            data-market-activity-cards="volume"
+                          >
+                            <article class="data-card data-card--compact">
+                              <div class="data-card__main">
+                                <div class="data-card__identity">
+                                  <span
+                                    class="skeleton skeleton--circle"
+                                    style="--skeleton-size: 2rem"
+                                    aria-hidden="true"
+                                  ></span>
+
+                                  <div class="data-card__identity-content">
+                                    <span
+                                      class="skeleton skeleton--lg"
+                                      aria-hidden="true"
+                                    ></span>
+
+                                    <span
+                                      class="skeleton skeleton--sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+
+                                <div class="data-card__quote">
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-value"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-percent"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
+
+                            <article class="data-card data-card--compact">
+                              <div class="data-card__main">
+                                <div class="data-card__identity">
+                                  <span
+                                    class="skeleton skeleton--circle"
+                                    style="--skeleton-size: 2rem"
+                                    aria-hidden="true"
+                                  ></span>
+
+                                  <div class="data-card__identity-content">
+                                    <span
+                                      class="skeleton skeleton--md"
+                                      aria-hidden="true"
+                                    ></span>
+
+                                    <span
+                                      class="skeleton skeleton--sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+
+                                <div class="data-card__quote">
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-value"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-percent"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
+
+                            <article class="data-card data-card--compact">
+                              <div class="data-card__main">
+                                <div class="data-card__identity">
+                                  <span
+                                    class="skeleton skeleton--circle"
+                                    style="--skeleton-size: 2rem"
+                                    aria-hidden="true"
+                                  ></span>
+
+                                  <div class="data-card__identity-content">
+                                    <span
+                                      class="skeleton skeleton--lg"
+                                      aria-hidden="true"
+                                    ></span>
+
+                                    <span
+                                      class="skeleton skeleton--sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+
+                                <div class="data-card__quote">
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-value"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-percent"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
+
+                            <article class="data-card data-card--compact">
+                              <div class="data-card__main">
+                                <div class="data-card__identity">
+                                  <span
+                                    class="skeleton skeleton--circle"
+                                    style="--skeleton-size: 2rem"
+                                    aria-hidden="true"
+                                  ></span>
+
+                                  <div class="data-card__identity-content">
+                                    <span
+                                      class="skeleton skeleton--md"
+                                      aria-hidden="true"
+                                    ></span>
+
+                                    <span
+                                      class="skeleton skeleton--sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+
+                                <div class="data-card__quote">
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-value"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-percent"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    <!-- Most active by value -->
+                    <!-- ======================================================================
+                         Most active by value
+                         ====================================================================== -->
 
                     <div
                       id="activity-value-panel"
@@ -6493,93 +7354,566 @@
                       hidden
                     >
                       <div
-                        class="table-responsive market-activity-table"
-                        role="region"
-                        aria-label="Most active companies by value"
-                        tabindex="0"
+                        class="data-view"
+                        aria-busy="true"
+                        data-market-activity-view="value"
                       >
-                        <table
-                          class="table table-striped table-hover market-activity-table__table"
-                        >
-                          <thead>
-                            <tr>
-                              <th scope="col">Company</th>
-                              <th scope="col">Price</th>
-                              <th scope="col">Value</th>
-                              <th scope="col">Change %</th>
-                              <th scope="col">
-                                <span
-                                  class="market-activity-table__heading-stack"
-                                >
-                                  <span>5 Day</span>
-                                  <span>Performance</span>
-                                </span>
-                              </th>
-                            </tr>
-                          </thead>
+                        <!-- ================================================================
+                             Desktop / Tablet Table
+                             ================================================================ -->
 
-                          <tbody data-market-activity-body="value"></tbody>
-                        </table>
+                        <div class="data-view__table">
+                          <div
+                            class="table-responsive market-activity-table"
+                            role="region"
+                            aria-label="Most active companies by value"
+                            tabindex="0"
+                          >
+                            <table
+                              class="table table-striped table-hover market-activity-table__table"
+                              aria-busy="true"
+                              data-market-activity-table="value"
+                            >
+                              <thead>
+                                <tr>
+                                  <th scope="col">Company</th>
+                                  <th scope="col">Price</th>
+                                  <th scope="col">Value</th>
+                                  <th scope="col">Change %</th>
+                                  <th scope="col">
+                                    <span
+                                      class="market-activity-table__heading-stack"
+                                    >
+                                      <span>5 Day</span>
+                                      <span>Performance</span>
+                                    </span>
+                                  </th>
+                                </tr>
+                              </thead>
+
+                              <tbody data-market-activity-body="value">
+                                <tr>
+                                  <th
+                                    class="market-activity-table__company"
+                                    scope="row"
+                                  >
+                                    <div
+                                      class="market-activity-table__company-content"
+                                    >
+                                      <span
+                                        class="table-skeleton table-skeleton-md"
+                                        aria-hidden="true"
+                                      ></span>
+                                    </div>
+                                  </th>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td>
+                                    <span
+                                      class="table-skeleton table-skeleton-lg"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+                                </tr>
+
+                                <tr>
+                                  <th
+                                    class="market-activity-table__company"
+                                    scope="row"
+                                  >
+                                    <div
+                                      class="market-activity-table__company-content"
+                                    >
+                                      <span
+                                        class="table-skeleton table-skeleton-lg"
+                                        aria-hidden="true"
+                                      ></span>
+                                    </div>
+                                  </th>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td>
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+                                </tr>
+
+                                <tr>
+                                  <th
+                                    class="market-activity-table__company"
+                                    scope="row"
+                                  >
+                                    <div
+                                      class="market-activity-table__company-content"
+                                    >
+                                      <span
+                                        class="table-skeleton table-skeleton-md"
+                                        aria-hidden="true"
+                                      ></span>
+                                    </div>
+                                  </th>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td>
+                                    <span
+                                      class="table-skeleton table-skeleton-lg"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+                                </tr>
+
+                                <tr>
+                                  <th
+                                    class="market-activity-table__company"
+                                    scope="row"
+                                  >
+                                    <div
+                                      class="market-activity-table__company-content"
+                                    >
+                                      <span
+                                        class="table-skeleton table-skeleton-lg"
+                                        aria-hidden="true"
+                                      ></span>
+                                    </div>
+                                  </th>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td class="table-cell-numeric">
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+
+                                  <td>
+                                    <span
+                                      class="table-skeleton table-skeleton-md"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                        <!-- ================================================================
+                             Mobile Cards
+                             ================================================================ -->
+
+                        <div
+                          class="data-view__cards"
+                          aria-label="Most active companies by value"
+                        >
+                          <div
+                            class="data-view__cards-inner"
+                            data-market-activity-cards="value"
+                          >
+                            <article class="data-card data-card--compact">
+                              <div class="data-card__main">
+                                <div class="data-card__identity">
+                                  <span
+                                    class="skeleton skeleton--circle"
+                                    style="--skeleton-size: 2rem"
+                                    aria-hidden="true"
+                                  ></span>
+
+                                  <div class="data-card__identity-content">
+                                    <span
+                                      class="skeleton skeleton--lg"
+                                      aria-hidden="true"
+                                    ></span>
+
+                                    <span
+                                      class="skeleton skeleton--sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+
+                                <div class="data-card__quote">
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-value"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-percent"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
+
+                            <article class="data-card data-card--compact">
+                              <div class="data-card__main">
+                                <div class="data-card__identity">
+                                  <span
+                                    class="skeleton skeleton--circle"
+                                    style="--skeleton-size: 2rem"
+                                    aria-hidden="true"
+                                  ></span>
+
+                                  <div class="data-card__identity-content">
+                                    <span
+                                      class="skeleton skeleton--md"
+                                      aria-hidden="true"
+                                    ></span>
+
+                                    <span
+                                      class="skeleton skeleton--sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+
+                                <div class="data-card__quote">
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-value"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-percent"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
+
+                            <article class="data-card data-card--compact">
+                              <div class="data-card__main">
+                                <div class="data-card__identity">
+                                  <span
+                                    class="skeleton skeleton--circle"
+                                    style="--skeleton-size: 2rem"
+                                    aria-hidden="true"
+                                  ></span>
+
+                                  <div class="data-card__identity-content">
+                                    <span
+                                      class="skeleton skeleton--lg"
+                                      aria-hidden="true"
+                                    ></span>
+
+                                    <span
+                                      class="skeleton skeleton--sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+
+                                <div class="data-card__quote">
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-value"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-percent"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
+
+                            <article class="data-card data-card--compact">
+                              <div class="data-card__main">
+                                <div class="data-card__identity">
+                                  <span
+                                    class="skeleton skeleton--circle"
+                                    style="--skeleton-size: 2rem"
+                                    aria-hidden="true"
+                                  ></span>
+
+                                  <div class="data-card__identity-content">
+                                    <span
+                                      class="skeleton skeleton--md"
+                                      aria-hidden="true"
+                                    ></span>
+
+                                    <span
+                                      class="skeleton skeleton--sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+
+                                <div class="data-card__quote">
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-value"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+
+                                  <div class="data-card__quote-item">
+                                    <span
+                                      class="skeleton skeleton--market-percent"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </section>
             </div>
-
             <!-- ===============================================================
-           Dashboard trading summary: 3 columns × 2 rows
-           =============================================================== -->
+     Dashboard Trading Summary
+     =============================================================== -->
 
             <dl
               class="market-dashboard__metrics"
               aria-label="Main Market trading summary"
+              aria-busy="true"
+              data-market-metrics
             >
+              <!-- =============================================================
+       Value Traded
+       ============================================================= -->
+
               <div class="market-dashboard__metric">
                 <dt class="market-dashboard__metric-label">Value Traded</dt>
+
                 <dd class="market-dashboard__metric-value" dir="ltr">
-                  <data value="7014665452.12">7,014,665,452.12</data>
+                  <span
+                    class="skeleton skeleton--md"
+                    aria-hidden="true"
+                    data-market-metric-loading
+                  ></span>
+
+                  <data
+                    class="market-live-update"
+                    value="7014665452.12"
+                    data-market-metric="value-traded"
+                    hidden
+                  >
+                    7,014,665,452.12
+                  </data>
                 </dd>
               </div>
 
+              <!-- =============================================================
+       Volume Traded
+       ============================================================= -->
+
               <div class="market-dashboard__metric">
                 <dt class="market-dashboard__metric-label">Volume Traded</dt>
+
                 <dd class="market-dashboard__metric-value" dir="ltr">
-                  <data value="315557435">315,557,435</data>
+                  <span
+                    class="skeleton skeleton--md"
+                    aria-hidden="true"
+                    data-market-metric-loading
+                  ></span>
+
+                  <data
+                    class="market-live-update"
+                    value="315557435"
+                    data-market-metric="volume-traded"
+                    hidden
+                  >
+                    315,557,435
+                  </data>
                 </dd>
               </div>
+
+              <!-- =============================================================
+       Market Capitalization
+       ============================================================= -->
 
               <div class="market-dashboard__metric">
                 <dt class="market-dashboard__metric-label">
                   Market Capitalization
                 </dt>
+
                 <dd class="market-dashboard__metric-value" dir="ltr">
-                  <data value="10251004260000">10,251,004.26</data>
+                  <span
+                    class="skeleton skeleton--lg"
+                    aria-hidden="true"
+                    data-market-metric-loading
+                  ></span>
+
+                  <data
+                    class="market-live-update"
+                    value="10251004260000"
+                    data-market-metric="market-capitalization"
+                    hidden
+                  >
+                    10,251,004.26
+                  </data>
                 </dd>
               </div>
+
+              <!-- =============================================================
+       Symbols Up
+       ============================================================= -->
 
               <div class="market-dashboard__metric">
                 <dt class="market-dashboard__metric-label price-up">
                   Symbols Up
                 </dt>
+
                 <dd class="market-dashboard__metric-value price-up" dir="ltr">
-                  <data value="102">102</data>
+                  <span
+                    class="skeleton skeleton--sm"
+                    aria-hidden="true"
+                    data-market-metric-loading
+                  ></span>
+
+                  <data
+                    class="market-live-update"
+                    value="102"
+                    data-market-metric="symbols-up"
+                    hidden
+                  >
+                    102
+                  </data>
                 </dd>
               </div>
+
+              <!-- =============================================================
+       Symbols Down
+       ============================================================= -->
 
               <div class="market-dashboard__metric">
                 <dt class="market-dashboard__metric-label price-down">
                   Symbols Down
                 </dt>
+
                 <dd class="market-dashboard__metric-value price-down" dir="ltr">
-                  <data value="122">122</data>
+                  <span
+                    class="skeleton skeleton--sm"
+                    aria-hidden="true"
+                    data-market-metric-loading
+                  ></span>
+
+                  <data
+                    class="market-live-update"
+                    value="122"
+                    data-market-metric="symbols-down"
+                    hidden
+                  >
+                    122
+                  </data>
                 </dd>
               </div>
 
+              <!-- =============================================================
+       Symbols Listed
+       ============================================================= -->
+
               <div class="market-dashboard__metric">
                 <dt class="market-dashboard__metric-label">Symbols Listed</dt>
+
                 <dd class="market-dashboard__metric-value" dir="ltr">
-                  <data value="250">250</data>
+                  <span
+                    class="skeleton skeleton--sm"
+                    aria-hidden="true"
+                    data-market-metric-loading
+                  ></span>
+
+                  <data
+                    class="market-live-update"
+                    value="250"
+                    data-market-metric="symbols-listed"
+                    hidden
+                  >
+                    250
+                  </data>
                 </dd>
               </div>
             </dl>
@@ -9151,7 +10485,6 @@
       const RIYADH_OFFSET = "+03:00";
 
       const LIVE_INTERVAL = 60_000;
-      const LIVE_WINDOW_DURATION = 60 * 60 * 1_000;
       const LIVE_CANDLE_BUCKET = 60_000;
 
       const MAX_LIVE_POINTS = 480;
@@ -9172,26 +10505,14 @@
         ALL: null,
       });
 
-      /*
-       * When real backend OHLC is available,
-       * these buckets aggregate real candles.
-       *
-       * Otherwise candles are derived only from
-       * actual observed index samples.
-       */
       const CANDLE_BUCKETS = Object.freeze({
         "1D": LIVE_CANDLE_BUCKET,
-
         "1W": DAY,
         "1M": DAY,
-
         "3M": 7 * DAY,
         "6M": 7 * DAY,
-
         "1Y": 30 * DAY,
-
         "5Y": 90 * DAY,
-
         ALL: 365 * DAY,
       });
 
@@ -9209,7 +10530,6 @@
       let exportRoot = null;
       let exportTrigger = null;
       let exportMenu = null;
-
       let compareButton = null;
 
       let serverConfiguration = null;
@@ -9239,11 +10559,9 @@
         titleElement = root.querySelector(".chart-toolbar__title");
 
         exportRoot = root.querySelector("[data-chart-export]");
-
         exportTrigger = exportRoot?.querySelector(
           "[data-chart-export-trigger]",
         );
-
         exportMenu = exportRoot?.querySelector("[data-chart-export-menu]");
 
         compareButton = root.querySelector("[data-chart-compare]");
@@ -9335,16 +10653,12 @@
         return isArabic()
           ? {
               loading: `جارٍ تحميل بيانات ${name}…`,
-
               empty: `بيانات ${name} غير متاحة حالياً.`,
-
               error: `تعذر تحميل بيانات ${name}.`,
             }
           : {
               loading: `Loading ${name} data…`,
-
               empty: `${name} data is currently unavailable.`,
-
               error: `${name} data could not be loaded.`,
             };
       }
@@ -9363,6 +10677,7 @@
         if (
           value === null ||
           value === undefined ||
+          typeof value === "boolean" ||
           (typeof value === "string" && value.trim() === "")
         ) {
           return null;
@@ -9378,7 +10693,6 @@
 
       function createAbortError(message = "The request was cancelled.") {
         const error = new Error(message);
-
         error.name = "AbortError";
 
         return error;
@@ -9403,9 +10717,9 @@
 
         const text = String(value).trim();
 
-        /* ------------------------------------------------------------------------
-         Numeric Epoch
-         ------------------------------------------------------------------------ */
+        /* ----------------------------------------------------------------------
+         Numeric epoch
+         ---------------------------------------------------------------------- */
 
         if (typeof value === "number" || /^\d+$/.test(text)) {
           const number = Number(value);
@@ -9417,9 +10731,9 @@
           return number < 10_000_000_000 ? number * 1_000 : number;
         }
 
-        /* ------------------------------------------------------------------------
-         Already Zoned
-         ------------------------------------------------------------------------ */
+        /* ----------------------------------------------------------------------
+         Already zoned
+         ---------------------------------------------------------------------- */
 
         if (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(text)) {
           const timestamp = Date.parse(text);
@@ -9427,9 +10741,9 @@
           return Number.isFinite(timestamp) ? timestamp : null;
         }
 
-        /* ------------------------------------------------------------------------
+        /* ----------------------------------------------------------------------
          Historical YYYY-MM-DD
-         ------------------------------------------------------------------------ */
+         ---------------------------------------------------------------------- */
 
         const dateOnly = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
 
@@ -9437,8 +10751,8 @@
           const [, year, month, day] = dateOnly;
 
           /*
-           * Noon Riyadh keeps the trading date
-           * stable in every visitor timezone.
+           * Noon Riyadh keeps the trading date stable
+           * regardless of the visitor's local timezone.
            */
           const timestamp = Date.parse(
             `${year}-${month}-${day}T12:00:00${RIYADH_OFFSET}`,
@@ -9447,9 +10761,9 @@
           return Number.isFinite(timestamp) ? timestamp : null;
         }
 
-        /* ------------------------------------------------------------------------
-         Riyadh Local DateTime
-         ------------------------------------------------------------------------ */
+        /* ----------------------------------------------------------------------
+         Riyadh local datetime
+         ---------------------------------------------------------------------- */
 
         const localDateTime = text.match(
           /^(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/,
@@ -9512,15 +10826,10 @@
         const params = new URLSearchParams();
 
         params.set("methodType", "parsingMethod");
-
         params.set("chart-type", chartType);
-
         params.set("chart-parameter", getChartParameter());
-
         params.set("format", "json");
-
         params.set("pageName", serverConfiguration.pageName);
-
         params.set("jwtToken", serverConfiguration.jwtToken);
 
         return `/url?${params.toString()}`;
@@ -9550,7 +10859,6 @@
         const source = unwrapPayload(payload);
 
         const trendByTimestamp = new Map();
-
         const candlesByTimestamp = new Map();
 
         for (const item of source) {
@@ -9574,16 +10882,13 @@
               item.price,
           );
 
-          /*
-           * Main scalar series.
-           */
           if (close !== null && close !== 0) {
+            /*
+             * Last valid record wins when the backend
+             * returns the same timestamp more than once.
+             */
             trendByTimestamp.set(timestamp, [timestamp, close]);
           }
-
-          /* ----------------------------------------------------------------------
-           Real Backend OHLC
-           ---------------------------------------------------------------------- */
 
           const open = toFiniteNumber(item.openPrice ?? item.open);
 
@@ -9658,11 +10963,8 @@
         try {
           const response = await fetch(buildMarketUrl(chartType), {
             method: "GET",
-
             credentials: "same-origin",
-
             signal: requestController.signal,
-
             headers: {
               Accept: "application/json",
             },
@@ -9745,33 +11047,89 @@
 
         return points.slice(
           lowerBound(points, minimum),
-
           upperBound(points, maximum),
         );
       }
 
-      function downsample(points, maximumPoints) {
+      /*
+       * Lightweight shape-preserving sampling.
+       *
+       * Instead of selecting only evenly spaced points,
+       * each bucket keeps its local minimum and maximum.
+       * This avoids losing obvious historical peaks/troughs.
+       */
+      function downsampleTrend(points, maximumPoints) {
         if (!Array.isArray(points) || points.length <= maximumPoints) {
           return points;
         }
 
         if (maximumPoints <= 2) {
-          return [points[0], points[points.length - 1]];
+          return [points[0], points.at(-1)];
         }
 
-        const result = [points[0]];
+        const first = points[0];
 
-        const lastIndex = points.length - 1;
+        const last = points.at(-1);
 
-        const interior = maximumPoints - 2;
+        const interior = points.slice(1, -1);
 
-        const step = lastIndex / (interior + 1);
+        const targetInterior = Math.max(2, maximumPoints - 2);
 
-        for (let index = 1; index <= interior; index += 1) {
-          result.push(points[Math.round(index * step)]);
+        const pairBudget = Math.max(1, Math.floor(targetInterior / 2));
+
+        const bucketSize = Math.ceil(interior.length / pairBudget);
+
+        const sampled = [first];
+
+        for (let start = 0; start < interior.length; start += bucketSize) {
+          const bucket = interior.slice(start, start + bucketSize);
+
+          if (!bucket.length) {
+            continue;
+          }
+
+          let minPoint = bucket[0];
+
+          let maxPoint = bucket[0];
+
+          for (const point of bucket) {
+            if (point[1] < minPoint[1]) {
+              minPoint = point;
+            }
+
+            if (point[1] > maxPoint[1]) {
+              maxPoint = point;
+            }
+          }
+
+          if (minPoint[0] === maxPoint[0]) {
+            sampled.push(minPoint);
+          } else if (minPoint[0] < maxPoint[0]) {
+            sampled.push(minPoint, maxPoint);
+          } else {
+            sampled.push(maxPoint, minPoint);
+          }
         }
 
-        result.push(points[lastIndex]);
+        sampled.push(last);
+
+        /*
+         * Bucket math can occasionally produce one or two
+         * more points than requested. Trim deterministically.
+         */
+        if (sampled.length <= maximumPoints) {
+          return sampled;
+        }
+
+        const result = [sampled[0]];
+
+        const step = (sampled.length - 1) / (maximumPoints - 1);
+
+        for (let index = 1; index < maximumPoints - 1; index += 1) {
+          result.push(sampled[Math.round(index * step)]);
+        }
+
+        result.push(sampled.at(-1));
 
         return result;
       }
@@ -9786,7 +11144,6 @@
         }
 
         const result = [];
-
         let current = null;
 
         for (const candle of candles) {
@@ -9821,9 +11178,9 @@
       /*
        * Fallback only.
        *
-       * No fake spread/high/low is invented.
-       * OHLC is derived from observations inside
-       * the actual period.
+       * No artificial candle spread is invented.
+       * OHLC is derived from observed index values
+       * inside the real bucket.
        */
       function createCandlesFromSamples(points, bucketSize) {
         if (!Array.isArray(points) || !points.length) {
@@ -9831,7 +11188,6 @@
         }
 
         const result = [];
-
         let current = null;
 
         for (const [timestamp, value] of points) {
@@ -9862,7 +11218,7 @@
       }
 
       /* ==========================================================================
-       Range Record
+       Range Records
        ========================================================================== */
 
       function createRangeRecord({ range, trend, candles, minimum, maximum }) {
@@ -9871,7 +11227,7 @@
         const displayTrend =
           range === "1D"
             ? rawTrend.slice(-MAX_LIVE_POINTS)
-            : downsample(rawTrend, MAX_HISTORICAL_POINTS);
+            : downsampleTrend(rawTrend, MAX_HISTORICAL_POINTS);
 
         const sourceCandles = sliceByTime(candles, minimum, maximum);
 
@@ -9886,22 +11242,21 @@
 
           trend: displayTrend,
 
+          /*
+           * Trend and Line share scalar geometry.
+           */
           line: displayTrend,
 
           candlestick,
         };
       }
 
-      /* ==========================================================================
-       Named Ranges
-       ========================================================================== */
-
       function createRanges(intraday, historical) {
         const ranges = {};
 
-        /* ------------------------------------------------------------------------
-         Intraday
-         ------------------------------------------------------------------------ */
+        /* ----------------------------------------------------------------------
+         1D
+         ---------------------------------------------------------------------- */
 
         const intradayReference = intraday.trend.length
           ? intraday.trend
@@ -9910,31 +11265,20 @@
         if (intradayReference.length) {
           const first = intradayReference[0][0];
 
-          const end = intradayReference[intradayReference.length - 1][0];
+          const end = intradayReference.at(-1)[0];
 
-          /*
-           * Full available current session.
-           *
-           * Do not reduce this to the last hour.
-           * liveWindowDuration is only used after
-           * genuinely new live data arrives.
-           */
           ranges["1D"] = createRangeRecord({
             range: "1D",
-
             trend: intraday.trend,
-
             candles: intraday.candlestick,
-
             minimum: first,
-
             maximum: end,
           });
         }
 
-        /* ------------------------------------------------------------------------
-         Historical
-         ------------------------------------------------------------------------ */
+        /* ----------------------------------------------------------------------
+         Historical ranges
+         ---------------------------------------------------------------------- */
 
         const historicalReference = historical.trend.length
           ? historical.trend
@@ -9946,28 +11290,19 @@
 
         const historicalStart = historicalReference[0][0];
 
-        const historicalEnd =
-          historicalReference[historicalReference.length - 1][0];
+        const historicalEnd = historicalReference.at(-1)[0];
 
         for (const [range, duration] of Object.entries(RANGE_WINDOWS)) {
           const minimum =
             duration === null
               ? historicalStart
-              : Math.max(
-                  historicalStart,
-
-                  historicalEnd - duration,
-                );
+              : Math.max(historicalStart, historicalEnd - duration);
 
           const record = createRangeRecord({
             range,
-
             trend: historical.trend,
-
             candles: historical.candlestick,
-
             minimum,
-
             maximum: historicalEnd,
           });
 
@@ -9980,54 +11315,59 @@
       }
 
       /* ==========================================================================
-       Live Payload
+       Live Reconciliation
        ========================================================================== */
 
       function selectLivePoints(snapshot, since) {
-        const trend = snapshot.trend;
-
-        if (!trend.length) {
-          return [];
-        }
-
-        const sinceTimestamp = toTimestamp(since);
-
-        const newerTrend =
-          sinceTimestamp === null
-            ? trend.slice(-MAX_LIVE_POINTS)
-            : trend.filter((point) => point[0] > sinceTimestamp);
-
         /*
-         * Market closed / unchanged response.
+         * Prefer real OHLC when supplied because a same-timestamp
+         * backend candle correction must reach the controller too.
          */
-        if (!newerTrend.length) {
-          return [];
-        }
-
-        /*
-         * Preserve REAL backend OHLC when the
-         * endpoint supplied it.
-         *
-         * market-chart.js accepts:
-         *
-         * [x, y]
-         * or
-         * [x, open, high, low, close]
-         *
-         * and extracts close automatically for
-         * the Trend/Navigator live path.
-         */
-        if (!snapshot.candlestick.length) {
-          return newerTrend;
-        }
-
-        const candlesByTimestamp = new Map(
+        const candleByTimestamp = new Map(
           snapshot.candlestick.map((point) => [point[0], point]),
         );
 
-        return newerTrend.map(
-          (trendPoint) => candlesByTimestamp.get(trendPoint[0]) || trendPoint,
+        const scalarByTimestamp = new Map(
+          snapshot.trend.map((point) => [point[0], point]),
         );
+
+        const timestamps = new Set([
+          ...scalarByTimestamp.keys(),
+          ...candleByTimestamp.keys(),
+        ]);
+
+        if (!timestamps.size) {
+          return [];
+        }
+
+        const ordered = [...timestamps].sort((a, b) => a - b);
+
+        const sinceTimestamp = toTimestamp(since);
+
+        const selected =
+          sinceTimestamp === null
+            ? ordered.slice(-MAX_LIVE_POINTS)
+            : ordered.filter((timestamp) => timestamp >= sinceTimestamp);
+
+        /*
+         * Inclusive boundary is intentional:
+         *
+         * equal timestamp + equal data
+         *   -> core noop
+         *
+         * equal timestamp + changed data
+         *   -> core replace
+         *
+         * newer timestamp
+         *   -> core append
+         */
+        return selected
+          .map(
+            (timestamp) =>
+              candleByTimestamp.get(timestamp) ||
+              scalarByTimestamp.get(timestamp),
+          )
+          .filter(Boolean);
       }
 
       /* ==========================================================================
@@ -10035,18 +11375,18 @@
        ========================================================================== */
 
       async function loadInitialData() {
+        /*
+         * The current backend exposes one intraday endpoint
+         * and one all-history endpoint, so fetching both once
+         * at initialization is appropriate.
+         *
+         * Historical data is not refetched when the user
+         * drags the navigator or switches display mode.
+         */
         const [intradayResult, historicalResult] = await Promise.allSettled([
-          requestSnapshot(
-            serverConfiguration.intradayChartType,
+          requestSnapshot(serverConfiguration.intradayChartType, pageSignal),
 
-            pageSignal,
-          ),
-
-          requestSnapshot(
-            serverConfiguration.historicalChartType,
-
-            pageSignal,
-          ),
+          requestSnapshot(serverConfiguration.historicalChartType, pageSignal),
         ]);
 
         if (pageSignal.aborted) {
@@ -10089,7 +11429,6 @@
         return {
           intraday,
           historical,
-
           ranges: createRanges(intraday, historical),
         };
       }
@@ -10130,12 +11469,12 @@
           candleBucketSize: LIVE_CANDLE_BUCKET,
 
           /*
-           * Initial = complete session.
+           * Full available intraday session.
            *
-           * One-hour live focus begins only after
-           * a genuinely NEW timestamp.
+           * Do not force the chart into a one-hour viewport
+           * after the first genuinely new live point.
            */
-          liveWindowDuration: LIVE_WINDOW_DURATION,
+          liveWindowDuration: null,
 
           animation: false,
 
@@ -10171,10 +11510,6 @@
 
               labels: true,
 
-              /*
-               * 1D first label is now the actual
-               * first market timestamp.
-               */
               showFirstLabel: true,
 
               showLastLabel: true,
@@ -10229,12 +11564,23 @@
             },
           },
 
+          /*
+           * Application range buttons choose these named
+           * backend-derived datasets.
+           *
+           * Highcharts' native rangeSelector stays disabled
+           * inside market-chart-options.js.
+           */
           ranges: initialData.ranges,
 
           controls: {
             root,
           },
 
+          /*
+           * Navigator only controls the viewport inside
+           * the selected named range.
+           */
           navigatorEnabled: true,
 
           navigator: {
@@ -10252,10 +11598,6 @@
 
             handleHeight: 16,
 
-            /*
-             * Avoid clipped duplicate labels
-             * beside navigator handles.
-             */
             showFirstLabel: false,
 
             showLastLabel: false,
@@ -10265,10 +11607,6 @@
             dataGrouping: false,
           },
 
-          /*
-           * Highcharts export engine ON.
-           * Native context button OFF.
-           */
           exporting: {
             enabled: true,
 
@@ -10283,6 +11621,13 @@
             scale: 2,
           },
 
+          /*
+           * Live polling is created once.
+           *
+           * market-chart.js pauses it automatically whenever
+           * the active named range is not 1D, and resumes with
+           * an immediate reconciliation when 1D is selected again.
+           */
           live: {
             enabled: true,
 
@@ -10292,9 +11637,6 @@
 
             immediate: false,
 
-            /*
-             * Browser-tab visibility only.
-             */
             pauseWhenHidden: true,
 
             retry: true,
@@ -10303,21 +11645,14 @@
 
             requestTimeout: REQUEST_TIMEOUT,
 
-            async fetchPoint({ signal, since } = {}) {
+            async fetchUpdates({ signal, since } = {}) {
               const snapshot = await requestSnapshot(
                 serverConfiguration.intradayChartType,
-
                 signal,
               );
 
               const points = selectLivePoints(snapshot, since);
 
-              /*
-               * Critical market-close behavior.
-               *
-               * Same last timestamp:
-               * return null and do zero chart work.
-               */
               return points.length
                 ? {
                     points,
@@ -10471,6 +11806,7 @@
 
         exportTrigger.addEventListener(
           "click",
+
           (event) => {
             event.preventDefault();
             event.stopPropagation();
@@ -10483,6 +11819,7 @@
 
             openExportMenu();
           },
+
           {
             signal: pageSignal,
           },
@@ -10490,6 +11827,7 @@
 
         exportTrigger.addEventListener(
           "keydown",
+
           (event) => {
             if (event.key !== "ArrowDown" && event.key !== "ArrowUp") {
               return;
@@ -10501,6 +11839,7 @@
               focusFirst: true,
             });
           },
+
           {
             signal: pageSignal,
           },
@@ -10508,6 +11847,7 @@
 
         exportMenu.addEventListener(
           "click",
+
           (event) => {
             const button = event.target?.closest?.("[data-export-action]");
 
@@ -10531,6 +11871,7 @@
               );
             }
           },
+
           {
             signal: pageSignal,
           },
@@ -10538,6 +11879,7 @@
 
         exportMenu.addEventListener(
           "keydown",
+
           (event) => {
             const items = getExportItems();
 
@@ -10568,7 +11910,7 @@
             if (event.key === "End") {
               event.preventDefault();
 
-              items[items.length - 1].focus();
+              items.at(-1)?.focus();
 
               return;
             }
@@ -10587,6 +11929,7 @@
 
             items[next].focus();
           },
+
           {
             signal: pageSignal,
           },
@@ -10594,6 +11937,7 @@
 
         document.addEventListener(
           "click",
+
           (event) => {
             if (!isExportOpen() || exportRoot.contains(event.target)) {
               return;
@@ -10601,6 +11945,7 @@
 
             closeExportMenu();
           },
+
           {
             signal: pageSignal,
           },
@@ -10608,6 +11953,7 @@
 
         document.addEventListener(
           "keydown",
+
           (event) => {
             if (event.key === "Escape" && isExportOpen()) {
               closeExportMenu({
@@ -10615,6 +11961,7 @@
               });
             }
           },
+
           {
             signal: pageSignal,
           },
@@ -10632,14 +11979,12 @@
 
         compareButton.addEventListener(
           "click",
+
           () => {
             const active =
               compareButton.getAttribute("aria-pressed") !== "true";
 
-            compareButton.setAttribute(
-              "aria-pressed",
-              active ? "true" : "false",
-            );
+            compareButton.setAttribute("aria-pressed", String(active));
 
             compareButton.classList.toggle("is-active", active);
 
@@ -10654,6 +11999,7 @@
               }),
             );
           },
+
           {
             signal: pageSignal,
           },
@@ -10665,6 +12011,12 @@
        ========================================================================== */
 
       function waitForMarketChartAPI() {
+        const immediate = window.SEMarketCharts;
+
+        if (immediate && typeof immediate.create === "function") {
+          return Promise.resolve(immediate);
+        }
+
         return new Promise((resolve, reject) => {
           const started = performance.now();
 
@@ -10721,27 +12073,30 @@
 
         chartElement.dataset.chartState = "loading";
 
-        const initialData = await loadInitialData();
+        try {
+          const initialData = await loadInitialData();
 
-        if (destroyed || pageSignal.aborted) {
-          return;
-        }
+          if (destroyed || pageSignal.aborted) {
+            return;
+          }
 
-        controller = marketChartAPI.create(
-          chartElement,
-
-          createChartConfiguration(initialData),
-        );
-
-        if (!controller) {
-          throw new Error(
-            "Main Market Performance controller was not created.",
+          controller = marketChartAPI.create(
+            chartElement,
+            createChartConfiguration(initialData),
           );
+
+          if (!controller) {
+            throw new Error(
+              "Main Market Performance controller was not created.",
+            );
+          }
+
+          root.marketChartController = controller;
+
+          chartElement.dataset.chartState = "ready";
+        } finally {
+          root.setAttribute("aria-busy", "false");
         }
-
-        root.marketChartController = controller;
-
-        root.setAttribute("aria-busy", "false");
       }
 
       /* ==========================================================================
@@ -10755,24 +12110,10 @@
 
         destroyed = true;
 
-        /*
-         * Aborts:
-         *
-         * - initial requests;
-         * - export/compare listeners.
-         */
         pageController.abort();
 
         closeExportMenu();
 
-        /*
-         * Aborts:
-         *
-         * - live request;
-         * - live timer;
-         * - chart observers;
-         * - Highstock.
-         */
         try {
           controller?.destroy?.();
         } catch (error) {
@@ -10791,6 +12132,38 @@
 
         root?.setAttribute("aria-busy", "false");
       }
+
+      /* ==========================================================================
+       Test / Debug API
+       ========================================================================== */
+
+      window.mainMarketChartTest = {
+        getController() {
+          return controller;
+        },
+
+        getChart() {
+          return controller?.getChart?.() || null;
+        },
+
+        getState() {
+          return controller?.getState?.() || null;
+        },
+
+        refreshLive() {
+          return controller?.refreshLive?.() ?? false;
+        },
+
+        setRange(range) {
+          return controller?.setRange?.(range) ?? false;
+        },
+
+        setMode(mode) {
+          return controller?.setMode?.(mode) ?? false;
+        },
+
+        destroy,
+      };
 
       /* ==========================================================================
        Initialize
@@ -10815,13 +12188,16 @@
           }
 
           /*
-           * Bind page UI once.
+           * Bind page-owned UI only.
+           *
+           * Range and mode buttons are owned by
+           * market-chart.js through controls.root.
            */
           bindExportMenu();
           bindCompare();
 
           /*
-           * One Highstock chart.
+           * Exactly one Highstock instance.
            */
           await createPerformanceChart();
 
@@ -10834,11 +12210,21 @@
 
             timeZone: TIME_ZONE,
 
+            initialRange: "1D",
+
             initialViewport: "full-session",
 
-            liveFollow: "new-timestamp-only",
+            liveWindowDuration: null,
+
+            liveOnlyOn: "1D",
+
+            liveReconciliation: "inclusive-latest",
+
+            navigator: "viewport-only",
 
             realOHLC: "preserved-when-available",
+
+            nativeRangeSelector: false,
 
             nativeExportButton: false,
           });
@@ -10861,6 +12247,1440 @@
       }
 
       void initialize();
+    })();
+  </script>
+  <script>
+    (() => {
+      "use strict";
+
+      /* ========================================================================
+     Market Summary — Static Live Demo
+     ======================================================================== */
+
+      const INITIAL_LOAD_DELAY = 1200;
+      const REFRESH_INTERVAL = 5000;
+      const LIVE_UPDATE_DURATION = 900;
+
+      const locale =
+        document.documentElement.lang || navigator.language || "en-US";
+
+      /* ========================================================================
+     Number Formatters
+     ======================================================================== */
+
+      const priceFormatter = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+      const signedPriceFormatter = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        signDisplay: "exceptZero",
+      });
+
+      const integerFormatter = new Intl.NumberFormat(locale, {
+        maximumFractionDigits: 0,
+      });
+
+      const signedPercentageFormatter = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        signDisplay: "exceptZero",
+      });
+
+      const compactFormatter = new Intl.NumberFormat(locale, {
+        notation: "compact",
+        maximumFractionDigits: 2,
+      });
+
+      const moneyFormatter = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+      /* ========================================================================
+     Runtime State
+     ======================================================================== */
+
+      const state = {
+        initialized: false,
+        refreshInFlight: false,
+        refreshTimer: null,
+        snapshotNumber: 0,
+
+        watchlist: new Set(),
+
+        index: {
+          previousClose: 10775.46,
+          value: 10801.01,
+        },
+
+        metrics: {
+          valueTraded: 7014665452.12,
+          volumeTraded: 315557435,
+          marketCapitalization: 10251004.26,
+          symbolsUp: 102,
+          symbolsDown: 122,
+          symbolsListed: 250,
+        },
+
+        securities: [
+          {
+            symbol: "4072",
+            name: "MBC Group",
+            previousClose: 42.45,
+            price: 45.0,
+            volume: 4215000,
+            tradedValue: 189675000,
+            history: ["up", "up", "down", "up", "up"],
+          },
+          {
+            symbol: "2090",
+            name: "NGC",
+            previousClose: 20.46,
+            price: 21.42,
+            volume: 7125000,
+            tradedValue: 152617500,
+            history: ["up", "down", "down", "up", "up"],
+          },
+          {
+            symbol: "2240",
+            name: "Zamil Industrial",
+            previousClose: 44.2,
+            price: 46.05,
+            volume: 3280000,
+            tradedValue: 151044000,
+            history: ["up", "up", "up", "down", "up"],
+          },
+          {
+            symbol: "2080",
+            name: "GASCO",
+            previousClose: 28.8,
+            price: 30.0,
+            volume: 5380000,
+            tradedValue: 161400000,
+            history: ["down", "up", "up", "up", "down"],
+          },
+          {
+            symbol: "1120",
+            name: "Al Rajhi Bank",
+            previousClose: 96.1,
+            price: 95.72,
+            volume: 12540000,
+            tradedValue: 1200248880,
+            history: ["up", "down", "up", "down", "down"],
+          },
+          {
+            symbol: "2222",
+            name: "Saudi Aramco",
+            previousClose: 27.95,
+            price: 27.76,
+            volume: 19850000,
+            tradedValue: 551036000,
+            history: ["down", "down", "up", "down", "up"],
+          },
+          {
+            symbol: "7010",
+            name: "stc",
+            previousClose: 43.6,
+            price: 43.17,
+            volume: 6830000,
+            tradedValue: 294851100,
+            history: ["up", "down", "down", "up", "down"],
+          },
+          {
+            symbol: "2010",
+            name: "SABIC",
+            previousClose: 68.7,
+            price: 67.82,
+            volume: 4960000,
+            tradedValue: 336387200,
+            history: ["down", "up", "down", "down", "down"],
+          },
+          {
+            symbol: "1180",
+            name: "SNB",
+            previousClose: 36.4,
+            price: 36.18,
+            volume: 10450000,
+            tradedValue: 378081000,
+            history: ["up", "up", "down", "down", "up"],
+          },
+          {
+            symbol: "1010",
+            name: "Riyad Bank",
+            previousClose: 29.85,
+            price: 30.12,
+            volume: 8940000,
+            tradedValue: 269272800,
+            history: ["down", "up", "up", "down", "up"],
+          },
+        ],
+      };
+
+      /* ========================================================================
+     DOM Cache
+     ======================================================================== */
+
+      const dom = {
+        index: document.querySelector("[data-market-index]"),
+
+        indexLoading: document.querySelectorAll("[data-market-index-loading]"),
+
+        indexLive: document.querySelectorAll("[data-market-index-live]"),
+
+        indexValue: document.querySelector("[data-market-index-value]"),
+
+        indexChangeState: document.querySelector(
+          "[data-market-index-change-state]",
+        ),
+
+        indexChangeIcon: document.querySelector(
+          "[data-market-index-change-icon]",
+        ),
+
+        indexChange: document.querySelector("[data-market-index-change]"),
+
+        indexChangePercent: document.querySelector(
+          "[data-market-index-change-percent]",
+        ),
+
+        metrics: document.querySelector("[data-market-metrics]"),
+      };
+
+      const liveUpdateTimers = new WeakMap();
+
+      /* ========================================================================
+     Utilities
+     ======================================================================== */
+
+      function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+      }
+
+      function round(value, precision = 2) {
+        const multiplier = 10 ** precision;
+        return Math.round(value * multiplier) / multiplier;
+      }
+
+      function randomBetween(min, max) {
+        return min + Math.random() * (max - min);
+      }
+
+      function sanitizeId(value) {
+        return String(value)
+          .toLowerCase()
+          .replace(/[^a-z0-9_-]+/g, "-")
+          .replace(/^-+|-+$/g, "");
+      }
+
+      function escapeAttribute(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/"/g, "&quot;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      function getDirection(value) {
+        if (value > 0) return "up";
+        if (value < 0) return "down";
+        return "neutral";
+      }
+
+      function getPriceStateClass(value) {
+        const direction = getDirection(value);
+
+        if (direction === "up") return "price-up";
+        if (direction === "down") return "price-down";
+        return "price-neutral";
+      }
+
+      function applyPriceState(element, value) {
+        if (!element) return;
+
+        element.classList.remove("price-up", "price-down", "price-neutral");
+
+        element.classList.add(getPriceStateClass(value));
+      }
+
+      function setDataValue(
+        element,
+        rawValue,
+        formattedValue,
+        { animate = false } = {},
+      ) {
+        if (!element) return;
+
+        const previousValue = Number(element.value);
+
+        element.value = String(rawValue);
+        element.textContent = formattedValue;
+
+        if (
+          animate &&
+          Number.isFinite(previousValue) &&
+          previousValue !== rawValue
+        ) {
+          triggerLiveUpdate(element, previousValue, rawValue);
+        }
+      }
+
+      /* ========================================================================
+     Live Update Feedback
+     ======================================================================== */
+
+      function triggerLiveUpdate(element, previousValue, nextValue) {
+        if (!element || previousValue === nextValue) return;
+
+        const direction =
+          nextValue > previousValue
+            ? "up"
+            : nextValue < previousValue
+              ? "down"
+              : "neutral";
+
+        const updateClasses = [
+          "is-updating-up",
+          "is-updating-down",
+          "is-updating-neutral",
+        ];
+
+        element.classList.remove(...updateClasses);
+
+        const existingTimer = liveUpdateTimers.get(element);
+
+        if (existingTimer) {
+          window.clearTimeout(existingTimer);
+        }
+
+        void element.offsetWidth;
+
+        element.classList.add(`is-updating-${direction}`);
+
+        const timer = window.setTimeout(() => {
+          element.classList.remove(...updateClasses);
+          liveUpdateTimers.delete(element);
+        }, LIVE_UPDATE_DURATION);
+
+        liveUpdateTimers.set(element, timer);
+      }
+
+      /* ========================================================================
+     Market Calculations
+     ======================================================================== */
+
+      function enrichSecurity(security) {
+        const change = round(security.price - security.previousClose, 2);
+
+        const changePercent = round((change / security.previousClose) * 100, 2);
+
+        return {
+          ...security,
+          change,
+          changePercent,
+        };
+      }
+
+      function getActivityDatasets() {
+        const securities = state.securities.map(enrichSecurity);
+
+        return {
+          gainers: [...securities]
+            .sort((a, b) => b.changePercent - a.changePercent)
+            .slice(0, 4),
+
+          losers: [...securities]
+            .sort((a, b) => a.changePercent - b.changePercent)
+            .slice(0, 4),
+
+          volume: [...securities]
+            .sort((a, b) => b.volume - a.volume)
+            .slice(0, 4),
+
+          value: [...securities]
+            .sort((a, b) => b.tradedValue - a.tradedValue)
+            .slice(0, 4),
+        };
+      }
+
+      /* ========================================================================
+     Mock Snapshot Boundary
+     ======================================================================== */
+
+      function getMockSnapshot({ initial = false } = {}) {
+        if (!initial) {
+          mutateMockMarket();
+        }
+
+        const indexChange = round(
+          state.index.value - state.index.previousClose,
+          2,
+        );
+
+        const indexChangePercent = round(
+          (indexChange / state.index.previousClose) * 100,
+          2,
+        );
+
+        return {
+          index: {
+            value: state.index.value,
+            change: indexChange,
+            changePercent: indexChangePercent,
+          },
+
+          metrics: {
+            ...state.metrics,
+          },
+
+          activity: getActivityDatasets(),
+        };
+      }
+
+      /* ========================================================================
+     Static Demo Mutation
+     ======================================================================== */
+
+      function mutateMockMarket() {
+        state.snapshotNumber += 1;
+
+        const indexMovement = randomBetween(-0.0012, 0.0012);
+
+        state.index.value = round(state.index.value * (1 + indexMovement), 2);
+
+        state.securities.forEach((security) => {
+          const movement = randomBetween(-0.0065, 0.0065);
+
+          security.price = Math.max(
+            0.01,
+            round(security.price * (1 + movement), 2),
+          );
+
+          const addedVolume = Math.round(randomBetween(15000, 220000));
+
+          security.volume += addedVolume;
+
+          security.tradedValue = round(
+            security.tradedValue + addedVolume * security.price,
+            2,
+          );
+
+          if (Math.random() < 0.2) {
+            const direction =
+              movement > 0.0005
+                ? "up"
+                : movement < -0.0005
+                  ? "down"
+                  : "neutral";
+
+            security.history = [...security.history.slice(1), direction];
+          }
+        });
+
+        state.metrics.volumeTraded += Math.round(
+          randomBetween(450000, 1800000),
+        );
+
+        state.metrics.valueTraded = round(
+          state.metrics.valueTraded + randomBetween(18000000, 85000000),
+          2,
+        );
+
+        state.metrics.marketCapitalization = Math.max(
+          0,
+          round(
+            state.metrics.marketCapitalization *
+              (1 + randomBetween(-0.0008, 0.0008)),
+            2,
+          ),
+        );
+
+        const listed = state.metrics.symbolsListed;
+
+        const unchanged = clamp(
+          listed - state.metrics.symbolsUp - state.metrics.symbolsDown,
+          0,
+          listed,
+        );
+
+        const upAdjustment = Math.round(randomBetween(-3, 3));
+
+        state.metrics.symbolsUp = clamp(
+          state.metrics.symbolsUp + upAdjustment,
+          0,
+          listed - unchanged,
+        );
+
+        state.metrics.symbolsDown = clamp(
+          listed - unchanged - state.metrics.symbolsUp,
+          0,
+          listed,
+        );
+      }
+
+      /* ========================================================================
+     Hero — TASI
+     ======================================================================== */
+
+      function renderMarketIndex(index, { initial = false } = {}) {
+        if (!dom.index) return;
+
+        const direction = getDirection(index.change);
+
+        setDataValue(
+          dom.indexValue,
+          index.value,
+          priceFormatter.format(index.value),
+          { animate: !initial },
+        );
+
+        /*
+         * Important:
+         * Positive change includes "+".
+         * Negative change includes "-".
+         * Zero has no sign.
+         */
+
+        setDataValue(
+          dom.indexChange,
+          index.change,
+          signedPriceFormatter.format(index.change),
+        );
+
+        if (dom.indexChangePercent) {
+          dom.indexChangePercent.textContent = `(${signedPercentageFormatter.format(index.changePercent)}%)`;
+        }
+
+        applyPriceState(dom.indexChangeState, index.change);
+
+        if (dom.indexChangeIcon) {
+          if (direction === "neutral") {
+            dom.indexChangeIcon.hidden = true;
+            dom.indexChangeIcon.style.transform = "";
+          } else {
+            dom.indexChangeIcon.hidden = false;
+            dom.indexChangeIcon.style.transform =
+              direction === "down" ? "rotate(180deg)" : "";
+          }
+        }
+
+        const directionText =
+          direction === "up"
+            ? "Increased"
+            : direction === "down"
+              ? "Decreased"
+              : "Unchanged";
+
+        dom.index.setAttribute(
+          "aria-label",
+          [
+            `TASI Index: ${priceFormatter.format(index.value)} points.`,
+            `${directionText} by ${priceFormatter.format(Math.abs(index.change))} points,`,
+            `or ${priceFormatter.format(Math.abs(index.changePercent))} percent.`,
+          ].join(" "),
+        );
+
+        if (initial) {
+          dom.indexLoading.forEach((element) => {
+            element.hidden = true;
+          });
+
+          dom.indexLive.forEach((element) => {
+            element.hidden = false;
+          });
+
+          dom.index.setAttribute("aria-busy", "false");
+        }
+      }
+
+      /* ========================================================================
+     Dashboard Metrics
+     ======================================================================== */
+
+      const metricConfiguration = {
+        "value-traded": {
+          source: "valueTraded",
+          format: moneyFormatter.format.bind(moneyFormatter),
+          animate: true,
+        },
+
+        "volume-traded": {
+          source: "volumeTraded",
+          format: integerFormatter.format.bind(integerFormatter),
+          animate: true,
+        },
+
+        "market-capitalization": {
+          source: "marketCapitalization",
+          format: moneyFormatter.format.bind(moneyFormatter),
+          animate: true,
+        },
+
+        "symbols-up": {
+          source: "symbolsUp",
+          format: integerFormatter.format.bind(integerFormatter),
+          animate: false,
+        },
+
+        "symbols-down": {
+          source: "symbolsDown",
+          format: integerFormatter.format.bind(integerFormatter),
+          animate: false,
+        },
+
+        "symbols-listed": {
+          source: "symbolsListed",
+          format: integerFormatter.format.bind(integerFormatter),
+          animate: false,
+        },
+      };
+
+      function renderMetrics(metrics, { initial = false } = {}) {
+        if (!dom.metrics) return;
+
+        Object.entries(metricConfiguration).forEach(
+          ([metricName, configuration]) => {
+            const element = dom.metrics.querySelector(
+              `[data-market-metric="${metricName}"]`,
+            );
+
+            if (!element) return;
+
+            const value = metrics[configuration.source];
+
+            setDataValue(element, value, configuration.format(value), {
+              animate: !initial && configuration.animate,
+            });
+
+            if (initial) {
+              element.hidden = false;
+            }
+          },
+        );
+
+        if (initial) {
+          dom.metrics
+            .querySelectorAll("[data-market-metric-loading]")
+            .forEach((element) => {
+              element.hidden = true;
+            });
+
+          dom.metrics.setAttribute("aria-busy", "false");
+        }
+      }
+
+      /* ========================================================================
+     Today’s Activity — Formatting
+     ======================================================================== */
+
+      function getActivitySecondaryRaw(type, security) {
+        if (type === "gainers" || type === "losers") {
+          return security.change;
+        }
+
+        if (type === "volume") {
+          return security.volume;
+        }
+
+        return security.tradedValue;
+      }
+
+      function formatActivitySecondary(type, security) {
+        if (type === "gainers" || type === "losers") {
+          return signedPriceFormatter.format(security.change);
+        }
+
+        if (type === "volume") {
+          return integerFormatter.format(security.volume);
+        }
+
+        return compactFormatter.format(security.tradedValue);
+      }
+
+      function shouldAnimateSecondary(type) {
+        return type === "volume" || type === "value";
+      }
+
+      function getSecondaryLabel(type) {
+        if (type === "volume") return "Volume";
+        if (type === "value") return "Value";
+        return "Change";
+      }
+
+      /* ========================================================================
+     Five-day Performance
+     ======================================================================== */
+
+      function getPerformanceLabel(history) {
+        return `Five-day performance: ${history.join(", ")}`;
+      }
+
+      function createPerformanceMarkup(history) {
+        return `
+      <div
+        class="market-activity-table__performance"
+        role="img"
+        aria-label="${escapeAttribute(getPerformanceLabel(history))}"
+      >
+        ${history
+          .map(
+            (direction) => `
+              <span
+                class="is-${direction}"
+                aria-hidden="true"
+              ></span>
+            `,
+          )
+          .join("")}
+      </div>
+    `;
+      }
+
+      function updatePerformanceElement(element, history) {
+        if (!element) return;
+
+        element.setAttribute("aria-label", getPerformanceLabel(history));
+
+        const bars = element.querySelectorAll(":scope > span");
+
+        if (bars.length !== history.length) {
+          element.innerHTML = history
+            .map(
+              (direction) => `
+            <span
+              class="is-${direction}"
+              aria-hidden="true"
+            ></span>
+          `,
+            )
+            .join("");
+
+          return;
+        }
+
+        bars.forEach((bar, index) => {
+          bar.classList.remove("is-up", "is-down", "is-neutral");
+
+          bar.classList.add(`is-${history[index]}`);
+        });
+      }
+
+      /* ========================================================================
+     Watchlist
+     ======================================================================== */
+
+      function isWatched(symbol) {
+        return state.watchlist.has(String(symbol));
+      }
+
+      function getWatchlistLabel(security, watched) {
+        return watched
+          ? `Remove ${security.name} from watchlist`
+          : `Add ${security.name} to watchlist`;
+      }
+
+      function syncWatchlistButtons(symbol) {
+        const security = state.securities.find(
+          (item) => item.symbol === String(symbol),
+        );
+
+        if (!security) return;
+
+        const watched = isWatched(symbol);
+
+        document
+          .querySelectorAll(
+            `[data-market-watchlist="${CSS.escape(String(symbol))}"]`,
+          )
+          .forEach((button) => {
+            button.setAttribute("aria-pressed", String(watched));
+            button.setAttribute(
+              "aria-label",
+              getWatchlistLabel(security, watched),
+            );
+          });
+      }
+
+      function toggleWatchlist(symbol) {
+        const normalizedSymbol = String(symbol);
+
+        if (state.watchlist.has(normalizedSymbol)) {
+          state.watchlist.delete(normalizedSymbol);
+        } else {
+          state.watchlist.add(normalizedSymbol);
+        }
+
+        syncWatchlistButtons(normalizedSymbol);
+      }
+
+      /* ========================================================================
+     Desktop Table Rows
+     ======================================================================== */
+
+      function createActivityRow(type, security) {
+        const row = document.createElement("tr");
+
+        row.dataset.marketSymbol = security.symbol;
+
+        row.innerHTML = `
+      <th
+        class="market-activity-table__company"
+        scope="row"
+      >
+        <div class="market-activity-table__company-content">
+          <button
+            class="market-activity-table__watchlist has-icon icon-star-outline"
+            type="button"
+            aria-pressed="false"
+            data-market-watchlist="${escapeAttribute(security.symbol)}"
+          ></button>
+
+          <span class="market-activity-table__company-identity">
+            <span class="market-activity-table__company-name"></span>
+
+            <span
+              class="market-activity-table__company-symbol"
+              dir="ltr"
+            ></span>
+          </span>
+        </div>
+      </th>
+
+      <td
+        class="market-activity-table__number"
+        dir="ltr"
+      >
+        <data
+          class="market-live-update"
+          data-market-field="price"
+        ></data>
+      </td>
+
+      <td
+        class="market-activity-table__number"
+        dir="ltr"
+        data-market-secondary-cell
+      >
+        <data
+          class="market-live-update"
+          data-market-field="secondary"
+        ></data>
+      </td>
+
+      <td
+        class="market-activity-table__number"
+        dir="ltr"
+        data-market-change-percent-cell
+      >
+        <data data-market-field="change-percent"></data>
+      </td>
+
+      <td class="market-activity-table__performance-cell">
+        ${createPerformanceMarkup(security.history)}
+      </td>
+    `;
+
+        return row;
+      }
+
+      function updateActivityRow(
+        row,
+        type,
+        security,
+        rank,
+        { initial = false } = {},
+      ) {
+        row.dataset.rank = String(rank);
+        row.dataset.marketSymbol = security.symbol;
+
+        const name = row.querySelector(".market-activity-table__company-name");
+
+        const symbol = row.querySelector(
+          ".market-activity-table__company-symbol",
+        );
+
+        const watchlistButton = row.querySelector("[data-market-watchlist]");
+
+        const price = row.querySelector('[data-market-field="price"]');
+
+        const secondary = row.querySelector('[data-market-field="secondary"]');
+
+        const secondaryCell = row.querySelector("[data-market-secondary-cell]");
+
+        const percent = row.querySelector(
+          '[data-market-field="change-percent"]',
+        );
+
+        const percentCell = row.querySelector(
+          "[data-market-change-percent-cell]",
+        );
+
+        const performance = row.querySelector(
+          ".market-activity-table__performance",
+        );
+
+        if (name) name.textContent = security.name;
+        if (symbol) symbol.textContent = security.symbol;
+
+        if (watchlistButton) {
+          const watched = isWatched(security.symbol);
+
+          watchlistButton.dataset.marketWatchlist = security.symbol;
+          watchlistButton.setAttribute("aria-pressed", String(watched));
+          watchlistButton.setAttribute(
+            "aria-label",
+            getWatchlistLabel(security, watched),
+          );
+        }
+
+        setDataValue(
+          price,
+          security.price,
+          priceFormatter.format(security.price),
+          { animate: !initial },
+        );
+
+        const secondaryRaw = getActivitySecondaryRaw(type, security);
+
+        setDataValue(
+          secondary,
+          secondaryRaw,
+          formatActivitySecondary(type, security),
+          {
+            animate: !initial && shouldAnimateSecondary(type),
+          },
+        );
+
+        if (type === "gainers" || type === "losers") {
+          applyPriceState(secondaryCell, security.change);
+        } else {
+          secondaryCell?.classList.remove(
+            "price-up",
+            "price-down",
+            "price-neutral",
+          );
+        }
+
+        if (percent) {
+          percent.value = String(security.changePercent);
+          percent.textContent = `${signedPercentageFormatter.format(security.changePercent)}%`;
+        }
+
+        applyPriceState(percentCell, security.changePercent);
+
+        updatePerformanceElement(performance, security.history);
+      }
+
+      function renderActivityTable(type, securities, { initial = false } = {}) {
+        const body = document.querySelector(
+          `[data-market-activity-body="${type}"]`,
+        );
+
+        const table = document.querySelector(
+          `[data-market-activity-table="${type}"]`,
+        );
+
+        if (!body) return;
+
+        const existingRows = new Map(
+          Array.from(body.querySelectorAll("tr[data-market-symbol]")).map(
+            (row) => [row.dataset.marketSymbol, row],
+          ),
+        );
+
+        if (initial) {
+          body
+            .querySelectorAll("tr:not([data-market-symbol])")
+            .forEach((row) => row.remove());
+        }
+
+        const visibleSymbols = new Set();
+
+        securities.forEach((security, index) => {
+          visibleSymbols.add(security.symbol);
+
+          let row = existingRows.get(security.symbol);
+          const isNewRow = !row;
+
+          if (!row) {
+            row = createActivityRow(type, security);
+          }
+
+          updateActivityRow(row, type, security, index + 1, {
+            initial: initial || isNewRow,
+          });
+
+          body.appendChild(row);
+        });
+
+        existingRows.forEach((row, symbol) => {
+          if (!visibleSymbols.has(symbol)) {
+            row.remove();
+          }
+        });
+
+        if (initial && table) {
+          table.setAttribute("aria-busy", "false");
+        }
+      }
+
+      /* ========================================================================
+     Mobile Cards
+     ======================================================================== */
+
+      function createActivityCard(type, security) {
+        const article = document.createElement("article");
+
+        article.className = "data-card data-card--compact";
+        article.dataset.marketSymbol = security.symbol;
+
+        const detailsId = `market-${sanitizeId(type)}-${sanitizeId(security.symbol)}-details`;
+
+        article.innerHTML = `
+      <div class="data-card__main">
+        <div class="data-card__identity">
+          <button
+            class="data-card__favorite has-icon icon-star-outline"
+            type="button"
+            aria-pressed="false"
+            data-market-watchlist="${escapeAttribute(security.symbol)}"
+          ></button>
+
+          <div class="data-card__identity-content">
+            <span class="data-card__title"></span>
+
+            <span class="data-card__identity-code">
+              <span
+                class="data-card__symbol"
+                dir="ltr"
+              ></span>
+            </span>
+          </div>
+        </div>
+
+        <div class="data-card__quote">
+          <div class="data-card__quote-item">
+            <span
+              class="data-card__quote-label"
+              data-market-card-primary-label
+            ></span>
+
+            <data
+              class="data-card__price market-live-update"
+              data-market-card-primary
+            ></data>
+          </div>
+
+          <div class="data-card__quote-item">
+            <span class="data-card__quote-label">
+              Change %
+            </span>
+
+            <data
+              class="data-card__change"
+              data-market-card-change-percent
+            ></data>
+          </div>
+        </div>
+      </div>
+
+      <button
+        class="data-card__toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="${escapeAttribute(detailsId)}"
+        data-market-card-toggle
+      >
+        <span
+          class="has-icon icon-chevron-down"
+          aria-hidden="true"
+        ></span>
+
+        <span class="data-card__toggle-label">
+          Show details
+        </span>
+      </button>
+
+      <div
+        id="${escapeAttribute(detailsId)}"
+        class="data-card__details"
+        hidden
+        data-market-card-details
+      >
+        <dl class="data-card__fields">
+          <div class="data-card__field">
+            <dt class="data-card__label">Price</dt>
+
+            <dd
+              class="data-card__value data-card__value--numeric"
+            >
+              <data data-market-card-detail-price></data>
+            </dd>
+          </div>
+
+          <div class="data-card__field">
+            <dt
+              class="data-card__label"
+              data-market-card-secondary-label
+            ></dt>
+
+            <dd
+              class="data-card__value data-card__value--numeric"
+              data-market-card-secondary-state
+            >
+              <data data-market-card-secondary></data>
+            </dd>
+          </div>
+
+          <div class="data-card__field data-card__field--full">
+            <dt class="data-card__label">
+              5 Day Performance
+            </dt>
+
+            <dd class="data-card__value">
+              ${createPerformanceMarkup(security.history)}
+            </dd>
+          </div>
+        </dl>
+      </div>
+    `;
+
+        return article;
+      }
+
+      function updateActivityCard(
+        card,
+        type,
+        security,
+        rank,
+        { initial = false } = {},
+      ) {
+        card.dataset.rank = String(rank);
+        card.dataset.marketSymbol = security.symbol;
+
+        const title = card.querySelector(".data-card__title");
+        const symbol = card.querySelector(".data-card__symbol");
+
+        const watchlistButton = card.querySelector("[data-market-watchlist]");
+
+        const primaryLabel = card.querySelector(
+          "[data-market-card-primary-label]",
+        );
+
+        const primary = card.querySelector("[data-market-card-primary]");
+
+        const changePercent = card.querySelector(
+          "[data-market-card-change-percent]",
+        );
+
+        const detailPrice = card.querySelector(
+          "[data-market-card-detail-price]",
+        );
+
+        const secondaryLabel = card.querySelector(
+          "[data-market-card-secondary-label]",
+        );
+
+        const secondaryState = card.querySelector(
+          "[data-market-card-secondary-state]",
+        );
+
+        const secondary = card.querySelector("[data-market-card-secondary]");
+
+        const performance = card.querySelector(
+          ".market-activity-table__performance",
+        );
+
+        if (title) title.textContent = security.name;
+        if (symbol) symbol.textContent = security.symbol;
+
+        if (watchlistButton) {
+          const watched = isWatched(security.symbol);
+
+          watchlistButton.dataset.marketWatchlist = security.symbol;
+          watchlistButton.setAttribute("aria-pressed", String(watched));
+          watchlistButton.setAttribute(
+            "aria-label",
+            getWatchlistLabel(security, watched),
+          );
+        }
+
+        let primaryRaw;
+        let primaryFormatted;
+        let primaryName;
+
+        if (type === "volume") {
+          primaryName = "Volume";
+          primaryRaw = security.volume;
+          primaryFormatted = compactFormatter.format(security.volume);
+        } else if (type === "value") {
+          primaryName = "Value";
+          primaryRaw = security.tradedValue;
+          primaryFormatted = compactFormatter.format(security.tradedValue);
+        } else {
+          primaryName = "Price";
+          primaryRaw = security.price;
+          primaryFormatted = priceFormatter.format(security.price);
+        }
+
+        if (primaryLabel) {
+          primaryLabel.textContent = primaryName;
+        }
+
+        setDataValue(primary, primaryRaw, primaryFormatted, {
+          animate: !initial,
+        });
+
+        if (changePercent) {
+          changePercent.value = String(security.changePercent);
+          changePercent.textContent = `${signedPercentageFormatter.format(security.changePercent)}%`;
+
+          applyPriceState(changePercent, security.changePercent);
+        }
+
+        if (detailPrice) {
+          detailPrice.value = String(security.price);
+          detailPrice.textContent = priceFormatter.format(security.price);
+        }
+
+        if (secondaryLabel) {
+          secondaryLabel.textContent = getSecondaryLabel(type);
+        }
+
+        const secondaryRaw = getActivitySecondaryRaw(type, security);
+
+        if (secondary) {
+          secondary.value = String(secondaryRaw);
+          secondary.textContent = formatActivitySecondary(type, security);
+        }
+
+        if (type === "gainers" || type === "losers") {
+          applyPriceState(secondaryState, security.change);
+        } else {
+          secondaryState?.classList.remove(
+            "price-up",
+            "price-down",
+            "price-neutral",
+          );
+        }
+
+        updatePerformanceElement(performance, security.history);
+      }
+
+      function renderActivityCards(type, securities, { initial = false } = {}) {
+        const container = document.querySelector(
+          `[data-market-activity-cards="${type}"]`,
+        );
+
+        if (!container) return;
+
+        const existingCards = new Map(
+          Array.from(container.querySelectorAll("[data-market-symbol]")).map(
+            (card) => [card.dataset.marketSymbol, card],
+          ),
+        );
+
+        if (initial) {
+          container
+            .querySelectorAll(".data-card:not([data-market-symbol])")
+            .forEach((card) => card.remove());
+        }
+
+        const visibleSymbols = new Set();
+
+        securities.forEach((security, index) => {
+          visibleSymbols.add(security.symbol);
+
+          let card = existingCards.get(security.symbol);
+          const isNewCard = !card;
+
+          if (!card) {
+            card = createActivityCard(type, security);
+          }
+
+          updateActivityCard(card, type, security, index + 1, {
+            initial: initial || isNewCard,
+          });
+
+          container.appendChild(card);
+        });
+
+        existingCards.forEach((card, symbol) => {
+          if (!visibleSymbols.has(symbol)) {
+            card.remove();
+          }
+        });
+      }
+
+      /* ========================================================================
+     Today’s Activity
+     ======================================================================== */
+
+      function renderActivity(activity, { initial = false } = {}) {
+        Object.entries(activity).forEach(([type, securities]) => {
+          renderActivityTable(type, securities, { initial });
+          renderActivityCards(type, securities, { initial });
+
+          const view = document.querySelector(
+            `[data-market-activity-view="${type}"]`,
+          );
+
+          if (initial && view) {
+            view.setAttribute("aria-busy", "false");
+          }
+        });
+      }
+
+      /* ========================================================================
+     Full Snapshot
+     ======================================================================== */
+
+      function renderSnapshot(snapshot, { initial = false } = {}) {
+        renderMarketIndex(snapshot.index, { initial });
+        renderMetrics(snapshot.metrics, { initial });
+        renderActivity(snapshot.activity, { initial });
+      }
+
+      /* ========================================================================
+     Mobile Card Expansion
+     ======================================================================== */
+
+      function toggleCardDetails(button) {
+        const card = button.closest(".data-card");
+
+        if (!card) return;
+
+        const details = card.querySelector("[data-market-card-details]");
+
+        if (!details) return;
+
+        const expanded = button.getAttribute("aria-expanded") === "true";
+
+        const nextExpanded = !expanded;
+
+        button.setAttribute("aria-expanded", String(nextExpanded));
+
+        details.hidden = !nextExpanded;
+
+        card.classList.toggle("is-expanded", nextExpanded);
+
+        const label = button.querySelector(".data-card__toggle-label");
+
+        if (label) {
+          label.textContent = nextExpanded ? "Hide details" : "Show details";
+        }
+      }
+
+      /* ========================================================================
+     Interaction Delegation
+     ======================================================================== */
+
+      document.addEventListener("click", (event) => {
+        const watchlistButton = event.target.closest("[data-market-watchlist]");
+
+        if (watchlistButton) {
+          toggleWatchlist(watchlistButton.dataset.marketWatchlist);
+          return;
+        }
+
+        const cardToggle = event.target.closest("[data-market-card-toggle]");
+
+        if (cardToggle) {
+          toggleCardDetails(cardToggle);
+        }
+      });
+
+      /* ========================================================================
+     Refresh
+     ======================================================================== */
+
+      async function refreshMarket() {
+        if (state.refreshInFlight || document.hidden) {
+          return;
+        }
+
+        state.refreshInFlight = true;
+
+        try {
+          const snapshot = getMockSnapshot();
+
+          renderSnapshot(snapshot, {
+            initial: false,
+          });
+        } catch (error) {
+          console.error("Market refresh failed:", error);
+        } finally {
+          state.refreshInFlight = false;
+        }
+      }
+
+      /* ========================================================================
+     Initial Load
+     ======================================================================== */
+
+      function initializeMarket() {
+        window.setTimeout(() => {
+          try {
+            const snapshot = getMockSnapshot({
+              initial: true,
+            });
+
+            renderSnapshot(snapshot, {
+              initial: true,
+            });
+
+            state.initialized = true;
+
+            startRefreshTimer();
+          } catch (error) {
+            console.error("Initial market load failed:", error);
+          }
+        }, INITIAL_LOAD_DELAY);
+      }
+
+      /* ========================================================================
+     Refresh Timer
+     ======================================================================== */
+
+      function startRefreshTimer() {
+        stopRefreshTimer();
+
+        state.refreshTimer = window.setInterval(
+          refreshMarket,
+          REFRESH_INTERVAL,
+        );
+      }
+
+      function stopRefreshTimer() {
+        if (!state.refreshTimer) return;
+
+        window.clearInterval(state.refreshTimer);
+        state.refreshTimer = null;
+      }
+
+      /* ========================================================================
+     Page Visibility
+     ======================================================================== */
+
+      document.addEventListener("visibilitychange", () => {
+        if (!state.initialized) return;
+
+        if (document.hidden) {
+          stopRefreshTimer();
+          return;
+        }
+
+        refreshMarket();
+        startRefreshTimer();
+      });
+
+      /* ========================================================================
+     Start
+     ======================================================================== */
+
+      initializeMarket();
     })();
   </script>
 </html>

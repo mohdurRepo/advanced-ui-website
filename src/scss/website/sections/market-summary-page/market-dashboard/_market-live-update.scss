@@ -1,0 +1,170 @@
+@use "../../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Market Live Update
+   ========================================================================== */
+
+/*
+ * Visual feedback for values that change during live market-data refreshes.
+ *
+ * This utility owns only:
+ *
+ * - temporary update highlighting
+ * - directional update state
+ * - accessible contrast behavior
+ * - reduced-motion behavior
+ *
+ * JavaScript remains responsible for:
+ *
+ * - polling
+ * - API requests
+ * - comparing old and new values
+ * - applying and removing update classes
+ */
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+.market-live-update {
+  position: relative;
+
+  border-radius: var(--radius-sm);
+
+  @include ds.transition((background-color, color, box-shadow), "normal");
+}
+
+/* ==========================================================================
+   Positive Update
+   ========================================================================== */
+
+.market-live-update.is-updating-up {
+  background: var(--color-market-positive-bg);
+  color: var(--color-market-positive);
+}
+
+/* ==========================================================================
+   Negative Update
+   ========================================================================== */
+
+.market-live-update.is-updating-down {
+  background: var(--color-market-negative-bg);
+  color: var(--color-market-negative);
+}
+
+/* ==========================================================================
+   Neutral Update
+   ========================================================================== */
+
+.market-live-update.is-updating-neutral {
+  background: var(--color-market-neutral-bg);
+  color: var(--color-market-neutral);
+}
+
+/* ==========================================================================
+   Numeric Content
+   ========================================================================== */
+
+.market-live-update:where(data, output),
+.market-live-update :where(data, output) {
+  font-variant-numeric: tabular-nums;
+
+  unicode-bidi: isolate;
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .market-live-update.is-updating-up,
+  .market-live-update.is-updating-down,
+  .market-live-update.is-updating-neutral {
+    background: transparent;
+    color: inherit;
+
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  .market-live-update.is-updating-up {
+    text-decoration-line: underline;
+    text-decoration-style: double;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+  }
+
+  .market-live-update.is-updating-down {
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+  }
+
+  .market-live-update.is-updating-neutral {
+    text-decoration: none;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .market-live-update.is-updating-up,
+  .market-live-update.is-updating-down,
+  .market-live-update.is-updating-neutral {
+    background: Canvas;
+    color: CanvasText;
+
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+
+    forced-color-adjust: auto;
+  }
+
+  .market-live-update.is-updating-up {
+    text-decoration-line: underline;
+    text-decoration-style: double;
+  }
+
+  .market-live-update.is-updating-down {
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+  }
+
+  .market-live-update.is-updating-neutral {
+    text-decoration: none;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+html[data-motion="reduce"] .market-live-update {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .market-live-update {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .market-live-update {
+    background: transparent !important;
+    color: #000000 !important;
+
+    outline: 0 !important;
+
+    text-decoration: none !important;
+
+    box-shadow: none !important;
+  }
+}

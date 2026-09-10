@@ -9,9 +9,9 @@ import {
   normalizeMarketChartRange,
 } from "./market-chart-data";
 
-/* ========================================================================== */
-/* Constants                                                                  */
-/* ========================================================================== */
+/* ==========================================================================
+   Constants
+   ========================================================================== */
 
 const DEFAULT_LANGUAGE = "en";
 const DEFAULT_TIME_ZONE = "Asia/Riyadh";
@@ -28,7 +28,10 @@ const CONTEXT_LAYOUT = Object.freeze({
     spacing: 12,
     bottomSpacing: 18,
     yAxisTickPixelInterval: 52,
-    navigatorHeight: 34,
+    navigatorHeight: 32,
+    navigatorMargin: 12,
+    navigatorLabels: false,
+    navigatorTickPixelInterval: 120,
   }),
 
   performance: Object.freeze({
@@ -36,6 +39,9 @@ const CONTEXT_LAYOUT = Object.freeze({
     bottomSpacing: 24,
     yAxisTickPixelInterval: 56,
     navigatorHeight: 40,
+    navigatorMargin: 14,
+    navigatorLabels: true,
+    navigatorTickPixelInterval: 110,
   }),
 });
 
@@ -85,11 +91,9 @@ const DEFAULT_TOOLTIP_DATE_FORMATS = Object.freeze({
     day: "2-digit",
     month: "short",
     year: "numeric",
-
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
-
     hourCycle: "h23",
   }),
 
@@ -109,12 +113,18 @@ const INTRADAY_TICK_INTERVALS = Object.freeze([
   2 * 60 * MINUTE,
 ]);
 
-/* ========================================================================== */
-/* Generic Helpers                                                            */
-/* ========================================================================== */
+/* ==========================================================================
+   Generic Helpers
+   ========================================================================== */
 
 function isPlainObject(value) {
-  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+
+  return prototype === Object.prototype || prototype === null;
 }
 
 function isElement(value) {
@@ -125,6 +135,7 @@ function toFiniteNumber(value) {
   if (
     value === null ||
     value === undefined ||
+    typeof value === "boolean" ||
     (typeof value === "string" && value.trim() === "")
   ) {
     return null;
@@ -165,7 +176,9 @@ function resolveRangeValue(value, range, fallback) {
 function resolveContext(element, context) {
   const value = String(
     context || element?.dataset?.chartContext || "performance",
-  ).toLowerCase();
+  )
+    .trim()
+    .toLowerCase();
 
   return CONTEXT_LAYOUT[value] ? value : "performance";
 }
@@ -192,9 +205,9 @@ function resolveRTL(element, language) {
   return isArabicLanguage(language);
 }
 
-/* ========================================================================== */
-/* Motion                                                                     */
-/* ========================================================================== */
+/* ==========================================================================
+   Motion
+   ========================================================================== */
 
 function prefersReducedMotion(element) {
   const document = element?.ownerDocument;
@@ -238,7 +251,6 @@ export function normalizeMarketChartAnimation(
 
     return {
       duration,
-
       ...(animation.easing
         ? {
             easing: animation.easing,
@@ -259,9 +271,9 @@ export function normalizeMarketChartAnimation(
     : false;
 }
 
-/* ========================================================================== */
-/* Formatting                                                                 */
-/* ========================================================================== */
+/* ==========================================================================
+   Formatting
+   ========================================================================== */
 
 function createNumberFormatter({
   language,
@@ -281,17 +293,13 @@ function createNumberFormatter({
   try {
     formatter = new Intl.NumberFormat(language || DEFAULT_LANGUAGE, {
       minimumFractionDigits: precision,
-
       maximumFractionDigits: precision,
-
       useGrouping,
     });
   } catch {
     formatter = new Intl.NumberFormat(DEFAULT_LANGUAGE, {
       minimumFractionDigits: precision,
-
       maximumFractionDigits: precision,
-
       useGrouping,
     });
   }
@@ -345,9 +353,9 @@ function createDateFormatter({ language, timeZone, options }) {
   };
 }
 
-/* ========================================================================== */
-/* Intraday Ticks                                                             */
-/* ========================================================================== */
+/* ==========================================================================
+   Intraday Ticks
+   ========================================================================== */
 
 function chooseIntradayTickInterval(span, axisLength, configuredInterval) {
   const explicit = toFiniteNumber(configuredInterval);
@@ -358,12 +366,6 @@ function chooseIntradayTickInterval(span, axisLength, configuredInterval) {
 
   const width = Math.max(1, toFiniteNumber(axisLength) ?? 1);
 
-  /*
-   * Roughly one label per 88px.
-   *
-   * This keeps labels professional and
-   * prevents 1D charts from becoming noisy.
-   */
   const targetTicks = clamp(Math.floor(width / 88), 3, 8);
 
   const desired = span / Math.max(1, targetTicks - 1);
@@ -394,15 +396,6 @@ function createIntradayTickPositioner(configuration = {}) {
       return undefined;
     }
 
-    /*
-     * Use the actual visible/data start.
-     *
-     * If trading data begins at 10:00,
-     * 10:00 is the first label.
-     *
-     * If the first real point is 10:30,
-     * the first label is 10:30.
-     */
     const minimum = Math.max(dataMinimum, axisMinimum);
 
     const maximum = Math.min(dataMaximum, axisMaximum);
@@ -419,17 +412,8 @@ function createIntradayTickPositioner(configuration = {}) {
 
     const positions = [minimum];
 
-    /*
-     * After the exact first point, use
-     * clean clock boundaries.
-     */
     let tick = Math.ceil(minimum / interval) * interval;
 
-    /*
-     * Avoid two nearly-identical labels
-     * when the session begins exactly on
-     * an interval boundary.
-     */
     if (tick <= minimum + 500) {
       tick += interval;
     }
@@ -440,21 +424,13 @@ function createIntradayTickPositioner(configuration = {}) {
       tick += interval;
     }
 
-    /*
-     * Deliberately do NOT force the final
-     * timestamp.
-     *
-     * The right edge already contains the
-     * Y-axis labels/title and forcing another
-     * time label there makes the UI crowded.
-     */
     return positions;
   };
 }
 
-/* ========================================================================== */
-/* X Axis                                                                     */
-/* ========================================================================== */
+/* ==========================================================================
+   X Axis
+   ========================================================================== */
 
 function createXAxisOptions({
   range,
@@ -488,30 +464,26 @@ function createXAxisOptions({
   const rotation =
     Number(resolveRangeValue(configuration.rotation, normalizedRange, 0)) || 0;
 
+  const labelOptions = isPlainObject(configuration.labelOptions)
+    ? configuration.labelOptions
+    : {};
+
   return {
     type: "datetime",
 
     /*
-     * Intraday keeps real elapsed-time spacing.
-     *
-     * Historical data uses Highstock ordinal
-     * behavior so non-trading gaps do not
-     * unnecessarily dominate the chart.
+     * Intraday preserves elapsed-time spacing.
+     * Historical uses Highstock ordinal spacing.
      */
-    ordinal: !intraday,
+    ordinal: configuration.ordinal ?? !intraday,
 
     minPadding: toNonNegativeNumber(configuration.minPadding, 0),
 
     maxPadding: toNonNegativeNumber(configuration.maxPadding, 0),
 
-    /*
-     * We explicitly own the first 1D tick.
-     * Highcharts must not extend the range to
-     * another "nice" clock boundary.
-     */
-    startOnTick: false,
+    startOnTick: configuration.startOnTick === true,
 
-    endOnTick: false,
+    endOnTick: configuration.endOnTick === true,
 
     lineWidth: 1,
 
@@ -533,18 +505,12 @@ function createXAxisOptions({
       intraday ? 88 : 100,
     ),
 
-    /*
-     * 1D:
-     *
-     * force the genuine first trading timestamp.
-     *
-     * Historical:
-     *
-     * Highstock owns normal date ticks.
-     */
-    tickPositioner: intraday
-      ? createIntradayTickPositioner(configuration)
-      : undefined,
+    tickPositioner:
+      intraday && configuration.tickPositioner !== false
+        ? createIntradayTickPositioner(configuration)
+        : undefined,
+
+    minRange: configuration.minRange ?? undefined,
 
     crosshair:
       configuration.crosshair === false
@@ -557,6 +523,10 @@ function createXAxisOptions({
             dashStyle: "ShortDot",
 
             snap: true,
+
+            ...(isPlainObject(configuration.crosshair)
+              ? configuration.crosshair
+              : {}),
           },
 
     labels: {
@@ -572,11 +542,6 @@ function createXAxisOptions({
 
       y: rotation === 0 ? 18 : 22,
 
-      /*
-       * Let Highcharts protect the edge labels
-       * rather than allowing them to spill into
-       * the Y-axis/navigator area.
-       */
       overflow: "justify",
 
       crop: true,
@@ -587,15 +552,15 @@ function createXAxisOptions({
         fontSize: "11px",
 
         textOverflow: "none",
+
+        ...(isPlainObject(labelOptions.style) ? labelOptions.style : {}),
       },
 
       formatter() {
         return formatDate(this.value);
       },
 
-      ...(isPlainObject(configuration.labelOptions)
-        ? configuration.labelOptions
-        : {}),
+      ...labelOptions,
     },
 
     showFirstLabel: configuration.showFirstLabel !== false,
@@ -605,7 +570,7 @@ function createXAxisOptions({
     title: {
       text: title === false ? null : title,
 
-      margin: 14,
+      margin: toNonNegativeNumber(configuration.titleMargin, 14),
 
       style: {
         color: theme.muted,
@@ -613,14 +578,18 @@ function createXAxisOptions({
         fontSize: "11px",
 
         fontWeight: "500",
+
+        ...(isPlainObject(configuration.titleStyle)
+          ? configuration.titleStyle
+          : {}),
       },
     },
   };
 }
 
-/* ========================================================================== */
-/* Y Axis                                                                     */
-/* ========================================================================== */
+/* ==========================================================================
+   Y Axis
+   ========================================================================== */
 
 function createYAxisOptions({
   language,
@@ -642,14 +611,6 @@ function createYAxisOptions({
     useGrouping: formatConfiguration.useGrouping !== false,
   });
 
-  /*
-   * Default:
-   *
-   * LTR -> right
-   * RTL -> left
-   *
-   * Pages may explicitly override this.
-   */
   const opposite =
     typeof configuration.opposite === "boolean" ? configuration.opposite : !rtl;
 
@@ -685,7 +646,7 @@ function createYAxisOptions({
 
     gridLineColor: theme.grid,
 
-    gridLineDashStyle: "ShortDot",
+    gridLineDashStyle: configuration.gridLineDashStyle || "ShortDot",
 
     crosshair:
       configuration.crosshair === false
@@ -698,15 +659,15 @@ function createYAxisOptions({
             dashStyle: "ShortDot",
 
             snap: true,
+
+            ...(isPlainObject(configuration.crosshair)
+              ? configuration.crosshair
+              : {}),
           },
 
     labels: {
       enabled: configuration.labels !== false,
 
-      /*
-       * Y-axis values remain completely
-       * outside the plot.
-       */
       reserveSpace: true,
 
       align: opposite ? "left" : "right",
@@ -719,6 +680,8 @@ function createYAxisOptions({
         fontSize: "11px",
 
         textOverflow: "none",
+
+        ...(isPlainObject(labelOptions.style) ? labelOptions.style : {}),
       },
 
       formatter() {
@@ -734,7 +697,11 @@ function createYAxisOptions({
           ? null
           : configuration.title || "Index Value",
 
-      margin: toNonNegativeNumber(configuration.titleMargin, 18),
+      margin: toNonNegativeNumber(
+        configuration.titleMargin,
+
+        18,
+      ),
 
       style: {
         color: theme.muted,
@@ -742,6 +709,8 @@ function createYAxisOptions({
         fontSize: "11px",
 
         fontWeight: "600",
+
+        ...(isPlainObject(titleOptions.style) ? titleOptions.style : {}),
       },
 
       ...titleOptions,
@@ -749,9 +718,9 @@ function createYAxisOptions({
   };
 }
 
-/* ========================================================================== */
-/* Tooltip                                                                    */
-/* ========================================================================== */
+/* ==========================================================================
+   Tooltip
+   ========================================================================== */
 
 function getTooltipLabels(language) {
   return isArabicLanguage(language)
@@ -839,7 +808,9 @@ function createTooltipOptions({
 
     options: getDateFormat(
       range,
+
       tooltipDateFormats,
+
       DEFAULT_TOOLTIP_DATE_FORMATS,
     ),
   });
@@ -859,15 +830,15 @@ function createTooltipOptions({
 
   const row = (label, value) => `
       <div class="market-chart-tooltip__row">
-      <span class="market-chart-tooltip__label">
-        ${escapeHTML(label)}
-      </span>
+        <span class="market-chart-tooltip__label">
+          ${escapeHTML(label)}
+        </span>
 
-      <span class="market-chart-tooltip__value">
-        ${escapeHTML(formatNumber(value))}
-      </span>
-    </div>
-  `;
+        <span class="market-chart-tooltip__value">
+          ${escapeHTML(formatNumber(value))}
+        </span>
+      </div>
+    `;
 
   return {
     enabled: configuration.enabled !== false,
@@ -898,12 +869,18 @@ function createTooltipOptions({
       color: theme.text,
 
       fontSize: "12px",
+
+      ...(isPlainObject(configuration.style) ? configuration.style : {}),
     },
 
     formatter() {
       const point = this.point || this.points?.[0]?.point || this;
 
-      const values = getTooltipValues(point, normalizedMode);
+      const values = getTooltipValues(
+        point,
+
+        normalizedMode,
+      );
 
       if (!values) {
         return false;
@@ -941,10 +918,7 @@ function createTooltipOptions({
 
         changeHTML = `
           <div
-            class="
-              market-chart-tooltip__change
-              market-chart-tooltip__change--${direction}
-            "
+            class="market-chart-tooltip__change market-chart-tooltip__change--${direction}"
           >
             ${escapeHTML(`${sign}${formatNumber(change)}${percentage}`)}
           </div>
@@ -955,6 +929,7 @@ function createTooltipOptions({
         <div class="market-chart-tooltip">
 
           <div class="market-chart-tooltip__header">
+
             <strong class="market-chart-tooltip__title">
               ${escapeHTML(seriesName)}
             </strong>
@@ -962,6 +937,7 @@ function createTooltipOptions({
             <span class="market-chart-tooltip__date">
               ${escapeHTML(formatDate(point.x))}
             </span>
+
           </div>
 
           <div class="market-chart-tooltip__body">
@@ -985,12 +961,14 @@ function createTooltipOptions({
         </div>
       `;
     },
+
+    ...(isPlainObject(configuration.options) ? configuration.options : {}),
   };
 }
 
-/* ========================================================================== */
-/* Main Series                                                                */
-/* ========================================================================== */
+/* ==========================================================================
+   Main Series
+   ========================================================================== */
 
 function createMainSeries({
   mode,
@@ -1023,14 +1001,13 @@ function createMainSeries({
     showInLegend: false,
 
     /*
-     * Navigator has its own explicit,
-     * lightweight series.
-     *
-     * Do not let Highstock clone the
-     * main series automatically.
+     * Explicit navigator series.
      */
     showInNavigator: false,
 
+    /*
+     * Keep exact canonical controller points.
+     */
     dataGrouping: {
       enabled: false,
     },
@@ -1039,9 +1016,9 @@ function createMainSeries({
   };
 }
 
-/* ========================================================================== */
-/* Navigator                                                                  */
-/* ========================================================================== */
+/* ==========================================================================
+   Navigator
+   ========================================================================== */
 
 function createNavigatorOptions({
   Highcharts,
@@ -1067,7 +1044,9 @@ function createNavigatorOptions({
 
   const navigatorTheme = getMarketChartNavigatorTheme(
     Highcharts,
+
     theme,
+
     direction,
   );
 
@@ -1092,46 +1071,77 @@ function createNavigatorOptions({
         ),
   });
 
+  const labelsEnabled =
+    configuration.labels === true ||
+    (configuration.labels !== false && layout.navigatorLabels === true);
+
   return {
     enabled: true,
 
     /*
-     * market-chart.js explicitly
-     * synchronizes navigator data.
+     * Navigator data is explicitly
+     * synchronized by market-chart.js.
      */
     adaptToUpdatedData: false,
 
-    height: toNonNegativeNumber(configuration.height, layout.navigatorHeight),
-
     /*
-     * Slightly larger separation from
-     * main axis labels for a cleaner
-     * professional layout.
+     * The controller alone owns
+     * live-follow behavior.
      */
-    margin: toNonNegativeNumber(configuration.margin, 14),
+    stickToMax: false,
 
-    maskInside: true,
+    height: toNonNegativeNumber(
+      configuration.height,
+
+      layout.navigatorHeight,
+    ),
+
+    margin: toNonNegativeNumber(
+      configuration.margin,
+
+      layout.navigatorMargin,
+    ),
+
+    maskInside: configuration.maskInside !== false,
 
     maskFill: navigatorTheme.maskFill,
 
-    outlineWidth: 0,
+    outlineWidth: toNonNegativeNumber(
+      configuration.outlineWidth,
+
+      0,
+    ),
+
+    outlineColor: configuration.outlineColor || theme.border,
 
     handles: {
       enabled: configuration.handles !== false,
 
-      width: toNonNegativeNumber(configuration.handleWidth, 6),
+      width: toNonNegativeNumber(
+        configuration.handleWidth,
 
-      height: toNonNegativeNumber(configuration.handleHeight, 16),
+        7,
+      ),
+
+      height: toNonNegativeNumber(
+        configuration.handleHeight,
+
+        layout.navigatorHeight <= 32 ? 14 : 18,
+      ),
 
       backgroundColor: navigatorTheme.handles.backgroundColor,
 
       borderColor: navigatorTheme.handles.borderColor,
+
+      ...(isPlainObject(configuration.handleOptions)
+        ? configuration.handleOptions
+        : {}),
     },
 
     xAxis: {
       type: "datetime",
 
-      ordinal: !intraday,
+      ordinal: configuration.ordinal ?? !intraday,
 
       overscroll: 0,
 
@@ -1151,15 +1161,16 @@ function createNavigatorOptions({
 
       tickPixelInterval: toNonNegativeNumber(
         configuration.tickPixelInterval,
-        110,
+
+        layout.navigatorTickPixelInterval,
       ),
 
       labels: {
-        enabled: configuration.labels !== false,
+        enabled: labelsEnabled,
 
         inside: false,
 
-        reserveSpace: true,
+        reserveSpace: labelsEnabled,
 
         y: 16,
 
@@ -1175,6 +1186,10 @@ function createNavigatorOptions({
           fontSize: "10px",
 
           textOutline: "none",
+
+          ...(isPlainObject(configuration.labelStyle)
+            ? configuration.labelStyle
+            : {}),
         },
 
         formatter() {
@@ -1183,14 +1198,8 @@ function createNavigatorOptions({
       },
 
       /*
-       * Do not force navigator edge labels.
-       *
-       * They collide with the handles and
-       * were the clipped labels visible in
-       * the previous design.
-       *
-       * The main axis already communicates
-       * the exact session start.
+       * Avoid labels colliding
+       * with the handles.
        */
       showFirstLabel: configuration.showFirstLabel === true,
 
@@ -1246,6 +1255,9 @@ function createNavigatorOptions({
 
       showInLegend: false,
 
+      /*
+       * Optional visual-only grouping.
+       */
       dataGrouping: {
         enabled: configuration.dataGrouping === true,
       },
@@ -1263,33 +1275,12 @@ function createNavigatorOptions({
   };
 }
 
-/* ========================================================================== */
-/* Export                                                                     */
-/* ========================================================================== */
+/* ==========================================================================
+   Export
+   ========================================================================== */
 
 function createExportingOptions(exporting = {}) {
   const configuration = isPlainObject(exporting) ? exporting : {};
-
-  /*
-   * `enabled`
-   * enables Highcharts export APIs.
-   *
-   * `showContextButton`
-   * controls Highcharts' own hamburger.
-   *
-   * Performance pages therefore use:
-   *
-   * exporting: {
-   *   enabled: true,
-   *   showContextButton: false
-   * }
-   *
-   * and our custom HTML menu calls:
-   *
-   * chart.exportChart()
-   * chart.print()
-   * chart.fullscreen.toggle()
-   */
 
   const enabled = configuration.enabled === true;
 
@@ -1302,13 +1293,29 @@ function createExportingOptions(exporting = {}) {
 
     fallbackToExportServer: configuration.fallbackToExportServer ?? false,
 
-    sourceWidth: toNonNegativeNumber(configuration.sourceWidth, 1_200),
+    sourceWidth: toNonNegativeNumber(
+      configuration.sourceWidth,
 
-    sourceHeight: toNonNegativeNumber(configuration.sourceHeight, 675),
+      1_200,
+    ),
 
-    scale: toNonNegativeNumber(configuration.scale, 2),
+    sourceHeight: toNonNegativeNumber(
+      configuration.sourceHeight,
 
-    printMaxWidth: toNonNegativeNumber(configuration.printMaxWidth, 1_200),
+      675,
+    ),
+
+    scale: toNonNegativeNumber(
+      configuration.scale,
+
+      2,
+    ),
+
+    printMaxWidth: toNonNegativeNumber(
+      configuration.printMaxWidth,
+
+      1_200,
+    ),
 
     buttons: {
       contextButton: {
@@ -1318,9 +1325,9 @@ function createExportingOptions(exporting = {}) {
   };
 }
 
-/* ========================================================================== */
-/* Responsive                                                                 */
-/* ========================================================================== */
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
 
 function createResponsiveOptions() {
   return {
@@ -1370,18 +1377,18 @@ function createResponsiveOptions() {
           },
 
           navigator: {
-            height: 36,
+            height: 34,
 
             margin: 12,
 
             handles: {
-              width: 6,
+              width: 7,
 
               height: 16,
             },
 
             xAxis: {
-              tickPixelInterval: 96,
+              tickPixelInterval: 100,
 
               labels: {
                 style: {
@@ -1436,12 +1443,18 @@ function createResponsiveOptions() {
           },
 
           navigator: {
-            height: 34,
+            height: 32,
 
             margin: 10,
 
+            handles: {
+              width: 7,
+
+              height: 14,
+            },
+
             xAxis: {
-              tickPixelInterval: 88,
+              tickPixelInterval: 96,
             },
           },
         },
@@ -1450,9 +1463,9 @@ function createResponsiveOptions() {
   };
 }
 
-/* ========================================================================== */
-/* Factory                                                                    */
-/* ========================================================================== */
+/* ==========================================================================
+   Factory
+   ========================================================================== */
 
 export function createMarketChartOptions({
   Highcharts,
@@ -1531,11 +1544,19 @@ export function createMarketChartOptions({
 
   const hasData = Array.isArray(data) && data.length > 0;
 
-  const resolvedContext = resolveContext(element, context);
+  const resolvedContext = resolveContext(
+    element,
+
+    context,
+  );
 
   const layout = CONTEXT_LAYOUT[resolvedContext];
 
-  const rtl = resolveRTL(element, language);
+  const rtl = resolveRTL(
+    element,
+
+    language,
+  );
 
   const theme = getMarketChartTheme(element);
 
@@ -1653,11 +1674,6 @@ export function createMarketChartOptions({
 
       animation: resolvedAnimation,
 
-      /*
-       * Highcharts owns plot margins.
-       *
-       * We only provide clean outer spacing.
-       */
       spacingTop: layout.spacing,
 
       spacingRight: layout.spacing,
@@ -1701,8 +1717,7 @@ export function createMarketChartOptions({
     },
 
     /*
-     * Single source of truth for all
-     * Highcharts datetime rendering.
+     * One timezone source.
      */
     time: {
       timezone: timeZone || DEFAULT_TIME_ZONE,
@@ -1737,13 +1752,17 @@ export function createMarketChartOptions({
     },
 
     /*
-     * Application range buttons are
+     * Application buttons select
      * backend datasets.
      */
     rangeSelector: {
       enabled: false,
     },
 
+    /*
+     * Navigator is the viewport control.
+     * No duplicate scrollbar UI.
+     */
     scrollbar: {
       enabled: false,
     },
@@ -1838,6 +1857,9 @@ export function createMarketChartOptions({
       series: {
         animation: resolvedAnimation,
 
+        /*
+         * Exact controller-owned data.
+         */
         dataGrouping: {
           enabled: false,
         },
@@ -1863,12 +1885,6 @@ export function createMarketChartOptions({
         },
       },
 
-      /*
-       * Candlestick remains completely
-       * native Highstock rendering.
-       *
-       * We only tune spacing.
-       */
       candlestick: {
         animation: false,
 
@@ -1902,23 +1918,14 @@ export function createMarketChartOptions({
       },
     },
 
-    /*
-     * Performance page:
-     *
-     * exporting.enabled = true
-     * showContextButton = false
-     *
-     * Our designed menu is therefore
-     * the only visible export UI.
-     */
     exporting: exportingOptions,
 
     responsive: createResponsiveOptions(),
   };
 }
 
-/* ========================================================================== */
-/* Public Constants                                                           */
-/* ========================================================================== */
+/* ==========================================================================
+   Public Constants
+   ========================================================================== */
 
 export { CONTEXT_LAYOUT, DEFAULT_TOOLTIP_DATE_FORMATS, DEFAULT_X_AXIS_FORMATS };

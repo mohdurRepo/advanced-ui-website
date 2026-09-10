@@ -3,6 +3,7 @@ import {
   destroyAllMarketCharts,
   destroyMarketChart,
   getMarketChart,
+  MarketChartController,
 } from "./market-chart";
 
 /* ==========================================================================
@@ -14,29 +15,38 @@ export {
   destroyAllMarketCharts,
   destroyMarketChart,
   getMarketChart,
+  MarketChartController,
 };
 
 /* ==========================================================================
-   Browser API
+   API Object
    ========================================================================== */
 
 const marketChartsAPI = Object.freeze({
   create: createMarketChart,
+
   get: getMarketChart,
+
   destroy: destroyMarketChart,
+
   destroyAll: destroyAllMarketCharts,
 });
 
 /* ==========================================================================
-   Initialization
+   Application Initialization
    ========================================================================== */
 
-/*
- * Compatibility entry point for the existing application bootstrap:
+/**
+ * Registers the browser-facing Market Chart API.
+ *
+ * This function is intentionally explicit.
+ *
+ * Importing this module alone does not mutate window.
+ * The application bootstrap decides when initialization happens:
+ *
+ *   import { initMarketCharts } from "./components/market-chart";
  *
  *   initMarketCharts();
- *
- * The actual chart implementation remains module-based.
  */
 export function initMarketCharts() {
   if (typeof window !== "undefined") {
@@ -47,20 +57,9 @@ export function initMarketCharts() {
 }
 
 /* ==========================================================================
-   Automatic Browser Registration
+   Exports
    ========================================================================== */
 
-/*
- * Keep the API immediately available for legacy pages using:
- *
- *   window.SEMarketCharts.create(...)
- *
- * Calling initMarketCharts() again from main.js is harmless.
- */
-initMarketCharts();
-
-/* ==========================================================================
-   Default Export
-   ========================================================================== */
+export { marketChartsAPI };
 
 export default marketChartsAPI;
