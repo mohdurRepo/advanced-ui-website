@@ -187,26 +187,6 @@
      Market Dashboard
      ========================================================================== -->
 
-<portlet:resourceURL
-  id="getTopGainersDetails"
-  var="topGainersResourceUrl"
-/>
-
-<portlet:resourceURL
-  id="getTopLosersDetails"
-  var="topLosersResourceUrl"
-/>
-
-<portlet:resourceURL
-  id="getMoversByVolumeDetails"
-  var="moversByVolumeResourceUrl"
-/>
-
-<portlet:resourceURL
-  id="getMoversByValueDetails"
-  var="moversByValueResourceUrl"
-/>
-
 <section
   class="market-dashboard section"
   aria-labelledby="market-dashboard-title"
@@ -728,7 +708,6 @@
                   class="data-view"
                   aria-busy="true"
                   data-market-activity-view="gainers"
-                  data-market-activity-url="${topGainersResourceUrl}"
                 >
                   <!-- ========================================================
                        Desktop / Tablet Table
@@ -1154,7 +1133,6 @@
                   class="data-view"
                   aria-busy="true"
                   data-market-activity-view="losers"
-                  data-market-activity-url="${topLosersResourceUrl}"
                 >
                   <!-- ========================================================
                        Desktop / Tablet Table
@@ -1580,7 +1558,6 @@
                   class="data-view"
                   aria-busy="true"
                   data-market-activity-view="volume"
-                  data-market-activity-url="${moversByVolumeResourceUrl}"
                 >
                   <!-- ========================================================
                        Desktop / Tablet Table
@@ -2068,7 +2045,6 @@
                   class="data-view"
                   aria-busy="true"
                   data-market-activity-view="value"
-                  data-market-activity-url="${moversByValueResourceUrl}"
                 >
                   <!-- ========================================================
                        Desktop / Tablet Table
@@ -2753,1905 +2729,3888 @@
     </div>
   </div>
 </section>
-
 <script>
-  (() => {
-    "use strict";
+  window.MainMarketConfig = Object.freeze({
+    requestLocale: "${pageContext.request.locale.language}",
 
-    /* ========================================================================
+    endpoints: Object.freeze({
+      gainers:
+        '<portlet:resourceURL id="getTopGainersDetails"></portlet:resourceURL>',
+
+      losers:
+        '<portlet:resourceURL id="getTopLosersDetails"></portlet:resourceURL>',
+
+      volume:
+        '<portlet:resourceURL id="getMoversByVolumeDetails"></portlet:resourceURL>',
+
+      value:
+        '<portlet:resourceURL id="getMoversByValueDetails"></portlet:resourceURL>'
+    })
+  });
+</script>
+<script>
+(() => {
+  "use strict";
+
+  /* ==========================================================================
      Main Market — Production Live Data
-     ======================================================================== */
+     ========================================================================== */
 
-    const REFRESH_INTERVAL = 60_000;
-    const LIVE_UPDATE_DURATION = 900;
+  const REFRESH_INTERVAL = 60_000;
+  const LIVE_UPDATE_DURATION = 900;
+  const ACTIVITY_LIMIT = 4;
 
-    const ACTIVITY_TYPES = ["gainers", "losers", "volume", "value"];
+  const ACTIVITY_TYPES = Object.freeze([
+    "gainers",
+    "losers",
+    "volume",
+    "value",
+  ]);
 
-    const locale =
-      document.documentElement.lang || navigator.language || "en-US";
+  /* ==========================================================================
+     jQuery
+     ========================================================================== */
 
-    /* ========================================================================
+  if (
+    typeof window.jQuery === "undefined" ||
+    typeof window.jQuery.ajax !== "function"
+  ) {
+    console.error(
+      "Main Market: jQuery must load before market-summary.js."
+    );
+
+    return;
+  }
+
+  const $ = window.jQuery;
+
+  /* ==========================================================================
+     JSP Configuration
+     ========================================================================== */
+
+  /*
+   * Expected JSP configuration:
+   *
+   * window.MainMarketConfig = Object.freeze({
+   *   requestLocale: "...",
+   *
+   *   endpoints: Object.freeze({
+   *     gainers: "...",
+   *     losers: "...",
+   *     volume: "...",
+   *     value: "..."
+   *   })
+   * });
+   *
+   * Hero support is also ready for:
+   *
+   *   endpoints.index
+   *
+   * or:
+   *
+   *   marketIndexUrl
+   *
+   * Until we wire that JSP value, the existing
+   * window.getMarketIndexUrl legacy global remains
+   * supported as a fallback.
+   */
+
+  const config =
+    window.MainMarketConfig ?? {};
+
+  const endpoints =
+    config.endpoints ?? {};
+
+  /* ==========================================================================
+     Locale
+     ========================================================================== */
+
+  const locale =
+    document.documentElement.lang ||
+    config.requestLocale ||
+    navigator.language ||
+    "en-US";
+
+  /* ==========================================================================
      Number Formatters
-     ======================================================================== */
+     ========================================================================== */
 
-    const priceFormatter = new Intl.NumberFormat(locale, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+  const priceFormatter =
+    new Intl.NumberFormat(
+      locale,
+      {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }
+    );
 
-    const signedPriceFormatter = new Intl.NumberFormat(locale, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-      signDisplay: "exceptZero",
-    });
+  const signedPriceFormatter =
+    new Intl.NumberFormat(
+      locale,
+      {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        signDisplay: "exceptZero",
+      }
+    );
 
-    const signedPercentFormatter = new Intl.NumberFormat(locale, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-      signDisplay: "exceptZero",
-    });
+  const signedPercentFormatter =
+    new Intl.NumberFormat(
+      locale,
+      {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        signDisplay: "exceptZero",
+      }
+    );
 
-    const integerFormatter = new Intl.NumberFormat(locale, {
-      maximumFractionDigits: 0,
-    });
+  const integerFormatter =
+    new Intl.NumberFormat(
+      locale,
+      {
+        maximumFractionDigits: 0,
+      }
+    );
 
-    const moneyFormatter = new Intl.NumberFormat(locale, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+  const moneyFormatter =
+    new Intl.NumberFormat(
+      locale,
+      {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }
+    );
 
-    /* ========================================================================
+  /* ==========================================================================
      Runtime State
-     ======================================================================== */
+     ========================================================================== */
 
-    const state = {
-      started: false,
-      refreshTimer: null,
+  const state = {
+    started: false,
 
-      index: {
-        loaded: false,
-        controller: null,
-      },
+    refreshTimer: null,
 
-      activity: Object.fromEntries(
-        ACTIVITY_TYPES.map((type) => [
+    index: {
+      loaded: false,
+      request: null,
+    },
+
+    activity: Object.fromEntries(
+      ACTIVITY_TYPES.map(
+        (type) => [
           type,
+
           {
             loaded: false,
-            controller: null,
+            request: null,
             items: new Map(),
           },
-        ]),
-      ),
-    };
+        ]
+      )
+    ),
+  };
 
-    /* ========================================================================
+  /* ==========================================================================
      DOM Cache
-     ======================================================================== */
+     ========================================================================== */
 
-    const dom = {
-      index: document.querySelector("[data-market-index]"),
-
-      indexLoading: document.querySelectorAll("[data-market-index-loading]"),
-
-      indexLive: document.querySelectorAll("[data-market-index-live]"),
-
-      indexValue: document.querySelector("[data-market-index-value]"),
-
-      indexChangeState: document.querySelector(
-        "[data-market-index-change-state]",
+  const dom = {
+    index:
+      document.querySelector(
+        "[data-market-index]"
       ),
 
-      indexChangeIcon: document.querySelector(
-        "[data-market-index-change-icon]",
+    indexLoading:
+      document.querySelectorAll(
+        "[data-market-index-loading]"
       ),
 
-      indexChange: document.querySelector("[data-market-index-change]"),
-
-      indexChangePercent: document.querySelector(
-        "[data-market-index-change-percent]",
+    indexLive:
+      document.querySelectorAll(
+        "[data-market-index-live]"
       ),
 
-      requestLocale: document.querySelector("#requestLocale"),
-    };
+    indexValue:
+      document.querySelector(
+        "[data-market-index-value]"
+      ),
 
-    const liveUpdateTimers = new WeakMap();
+    indexChangeState:
+      document.querySelector(
+        "[data-market-index-change-state]"
+      ),
 
-    /* ========================================================================
+    indexChangeIcon:
+      document.querySelector(
+        "[data-market-index-change-icon]"
+      ),
+
+    indexChange:
+      document.querySelector(
+        "[data-market-index-change]"
+      ),
+
+    indexChangePercent:
+      document.querySelector(
+        "[data-market-index-change-percent]"
+      ),
+
+    requestLocale:
+      document.getElementById(
+        "requestLocale"
+      ),
+  };
+
+  /* ==========================================================================
+     Live Update Timers
+     ========================================================================== */
+
+  const liveUpdateTimers =
+    new WeakMap();
+
+  /* ==========================================================================
      Generic Utilities
-     ======================================================================== */
+     ========================================================================== */
 
-    function toNumber(value) {
-      if (typeof value === "number") {
-        return Number.isFinite(value) ? value : null;
-      }
-
-      if (value === null || value === undefined || value === "") {
-        return null;
-      }
-
-      const normalized = String(value).replace(/,/g, "").trim();
-
-      if (!normalized) {
-        return null;
-      }
-
-      const number = Number(normalized);
-
-      return Number.isFinite(number) ? number : null;
-    }
-
-    function getDirection(value) {
-      if (value > 0) {
-        return "up";
-      }
-
-      if (value < 0) {
-        return "down";
-      }
-
-      return "neutral";
-    }
-
-    function applyPriceState(element, value) {
-      if (!element) {
-        return;
-      }
-
-      element.classList.remove("price-up", "price-down", "price-neutral");
-
-      element.classList.add(`price-${getDirection(value)}`);
-    }
-
-    function sanitizeId(value) {
-      return String(value)
-        .toLowerCase()
-        .replace(/[^a-z0-9_-]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-    }
-
-    function getRequestLocale() {
-      return dom.requestLocale?.value || document.documentElement.lang || "en";
-    }
-
-    function getSafeHref(value) {
-      if (!value) {
-        return null;
-      }
-
-      try {
-        const url = new URL(String(value), window.location.href);
-
-        return url.protocol === "http:" || url.protocol === "https:"
-          ? url.href
-          : null;
-      } catch {
-        return null;
-      }
-    }
-
-    /* ========================================================================
-     Data Value Updates
-     ======================================================================== */
-
-    function setDataValue(
-      element,
-      rawValue,
-      formattedValue,
-      { animate = false } = {},
+  function toNumber(value) {
+    if (
+      typeof value === "number"
     ) {
-      if (!element) {
-        return;
-      }
-
-      const previousValue = toNumber(element.getAttribute("value"));
-
-      if (rawValue === null || rawValue === undefined) {
-        element.removeAttribute("value");
-      } else {
-        element.setAttribute("value", String(rawValue));
-      }
-
-      element.textContent = formattedValue;
-
-      if (
-        animate &&
-        previousValue !== null &&
-        rawValue !== null &&
-        rawValue !== undefined &&
-        previousValue !== rawValue
-      ) {
-        triggerLiveUpdate(element, previousValue, rawValue);
-      }
+      return Number.isFinite(value)
+        ? value
+        : null;
     }
 
-    /* ========================================================================
-     Live Update Feedback
-     ======================================================================== */
-
-    function triggerLiveUpdate(element, previousValue, nextValue) {
-      if (!element || previousValue === nextValue) {
-        return;
-      }
-
-      const direction =
-        nextValue > previousValue
-          ? "up"
-          : nextValue < previousValue
-            ? "down"
-            : "neutral";
-
-      const classes = [
-        "is-updating-up",
-        "is-updating-down",
-        "is-updating-neutral",
-      ];
-
-      element.classList.remove(...classes);
-
-      const existingTimer = liveUpdateTimers.get(element);
-
-      if (existingTimer) {
-        window.clearTimeout(existingTimer);
-      }
-
-      /*
-       * Intentional reflow.
-       *
-       * Allows the same element to visibly react on
-       * consecutive refreshes in the same direction.
-       */
-
-      void element.offsetWidth;
-
-      element.classList.add(`is-updating-${direction}`);
-
-      const timer = window.setTimeout(() => {
-        element.classList.remove(...classes);
-
-        liveUpdateTimers.delete(element);
-      }, LIVE_UPDATE_DURATION);
-
-      liveUpdateTimers.set(element, timer);
-    }
-
-    /* ========================================================================
-     HTTP
-     ======================================================================== */
-
-    async function requestJson(url, { signal } = {}) {
-      const response = await fetch(url, {
-        method: "GET",
-
-        credentials: "same-origin",
-
-        cache: "no-store",
-
-        headers: {
-          Accept: "application/json",
-        },
-
-        signal,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status} ${response.statusText}`);
-      }
-
-      const text = (await response.text()).trim();
-
-      if (!text) {
-        return null;
-      }
-
-      const parsed = JSON.parse(text);
-
-      /*
-       * Defensive support for endpoints that return
-       * a JSON string containing JSON.
-       */
-
-      return typeof parsed === "string" ? JSON.parse(parsed) : parsed;
-    }
-
-    function buildResourceUrl(baseUrl) {
-      const url = new URL(baseUrl, window.location.href);
-
-      url.searchParams.set("requestLocale", getRequestLocale());
-
-      return url.href;
-    }
-
-    /* ========================================================================
-     Hero / TASI
-     ======================================================================== */
-
-    function getMarketIndexEndpoint() {
-      /*
-       * Preferred future contract:
-       *
-       * data-market-index-url="..."
-       */
-
-      const attributeUrl = dom.index?.getAttribute("data-market-index-url");
-
-      if (attributeUrl) {
-        return attributeUrl;
-      }
-
-      /*
-       * Current legacy contract.
-       */
-
-      if (
-        typeof getMarketIndexUrl !== "undefined" &&
-        typeof getMarketIndexUrl === "string" &&
-        getMarketIndexUrl
-      ) {
-        return getMarketIndexUrl;
-      }
-
-      /*
-       * Additional fallback when the variable was
-       * explicitly attached to window.
-       */
-
-      if (
-        typeof window.getMarketIndexUrl === "string" &&
-        window.getMarketIndexUrl
-      ) {
-        return window.getMarketIndexUrl;
-      }
-
+    if (
+      value === null ||
+      value === undefined ||
+      value === ""
+    ) {
       return null;
     }
 
-    function normalizeIndexResponse(payload) {
-      if (!payload || typeof payload !== "object") {
-        throw new Error("Invalid Main Market index response.");
-      }
+    const normalized =
+      String(value)
+        .replace(/,/g, "")
+        .trim();
 
-      const indexPrice = toNumber(payload.indexPrice);
+    if (!normalized) {
+      return null;
+    }
 
-      const netChange = toNumber(payload.netChange);
+    const number =
+      Number(normalized);
 
-      const percentChange = toNumber(payload.percentChange);
+    return Number.isFinite(number)
+      ? number
+      : null;
+  }
 
-      if (indexPrice === null || netChange === null || percentChange === null) {
-        throw new Error(
-          "Main Market index response is missing required values.",
+  function getDirection(value) {
+    if (value > 0) {
+      return "up";
+    }
+
+    if (value < 0) {
+      return "down";
+    }
+
+    return "neutral";
+  }
+
+  function applyPriceState(
+    element,
+    value
+  ) {
+    if (!element) {
+      return;
+    }
+
+    element.classList.remove(
+      "price-up",
+      "price-down",
+      "price-neutral"
+    );
+
+    element.classList.add(
+      `price-${getDirection(value)}`
+    );
+  }
+
+  function sanitizeId(value) {
+    return String(value)
+      .toLowerCase()
+      .replace(
+        /[^a-z0-9_-]+/g,
+        "-"
+      )
+      .replace(
+        /^-+|-+$/g,
+        ""
+      );
+  }
+
+  function getRequestLocale() {
+    return (
+      config.requestLocale ||
+      dom.requestLocale?.value ||
+      document.documentElement.lang ||
+      "en"
+    );
+  }
+
+  function getSafeHref(value) {
+    if (!value) {
+      return null;
+    }
+
+    try {
+      const url =
+        new URL(
+          String(value),
+          window.location.href
         );
-      }
 
-      return {
-        indexPrice,
-        netChange,
-        percentChange,
-      };
+      return (
+        url.protocol === "http:" ||
+        url.protocol === "https:"
+      )
+        ? url.href
+        : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function normalizeLabelText(
+    value
+  ) {
+    return String(
+      value || ""
+    )
+      .replace(
+        /\s+/g,
+        " "
+      )
+      .trim();
+  }
+
+  /* ==========================================================================
+     Numeric DOM Updates
+     ========================================================================== */
+
+  function setDataValue(
+    element,
+    rawValue,
+    formattedValue,
+    {
+      animate = false,
+    } = {}
+  ) {
+    if (!element) {
+      return;
     }
 
-    function revealIndexLiveState() {
-      dom.indexLoading.forEach((element) => {
-        element.hidden = true;
-      });
-
-      dom.indexLive.forEach((element) => {
-        element.hidden = false;
-      });
-
-      dom.index?.setAttribute("aria-busy", "false");
-    }
-
-    function renderIndex(data, { initial = false } = {}) {
-      if (!dom.index) {
-        return;
-      }
-
-      const direction = getDirection(data.netChange);
-
-      /* ------------------------------------------------------------------------
-       Index Value
-       ------------------------------------------------------------------------ */
-
-      setDataValue(
-        dom.indexValue,
-        data.indexPrice,
-        priceFormatter.format(data.indexPrice),
-        {
-          animate: !initial,
-        },
+    const previousValue =
+      toNumber(
+        element.getAttribute(
+          "value"
+        )
       );
 
-      /* ------------------------------------------------------------------------
+    if (
+      rawValue === null ||
+      rawValue === undefined
+    ) {
+      element.removeAttribute(
+        "value"
+      );
+    } else {
+      element.setAttribute(
+        "value",
+        String(rawValue)
+      );
+    }
+
+    element.textContent =
+      formattedValue;
+
+    if (
+      animate &&
+      previousValue !== null &&
+      rawValue !== null &&
+      rawValue !== undefined &&
+      previousValue !== rawValue
+    ) {
+      triggerLiveUpdate(
+        element,
+        previousValue,
+        rawValue
+      );
+    }
+  }
+
+  /* ==========================================================================
+     Live Refresh Highlight
+     ========================================================================== */
+
+  function triggerLiveUpdate(
+    element,
+    previousValue,
+    nextValue
+  ) {
+    if (
+      !element ||
+      previousValue === nextValue
+    ) {
+      return;
+    }
+
+    const direction =
+      nextValue > previousValue
+        ? "up"
+        : nextValue < previousValue
+          ? "down"
+          : "neutral";
+
+    const classes = [
+      "is-updating-up",
+      "is-updating-down",
+      "is-updating-neutral",
+    ];
+
+    element.classList.remove(
+      ...classes
+    );
+
+    const existingTimer =
+      liveUpdateTimers.get(
+        element
+      );
+
+    if (existingTimer) {
+      window.clearTimeout(
+        existingTimer
+      );
+    }
+
+    /*
+     * Intentional reflow.
+     *
+     * This allows the same temporary update
+     * feedback to run on consecutive refreshes.
+     */
+
+    void element.offsetWidth;
+
+    element.classList.add(
+      `is-updating-${direction}`
+    );
+
+    const timer =
+      window.setTimeout(
+        () => {
+          element.classList.remove(
+            ...classes
+          );
+
+          liveUpdateTimers.delete(
+            element
+          );
+        },
+        LIVE_UPDATE_DURATION
+      );
+
+    liveUpdateTimers.set(
+      element,
+      timer
+    );
+  }
+
+  /* ==========================================================================
+     jQuery AJAX Transport
+     ========================================================================== */
+
+  /*
+   * Important:
+   *
+   * We deliberately keep jQuery AJAX because these
+   * are existing Liferay/portlet resource URLs.
+   *
+   * We also deliberately request text and parse JSON
+   * ourselves.
+   *
+   * That gives us useful diagnostics when a portal
+   * redirect/error returns:
+   *
+   *   <!doctype html>
+   *
+   * rather than only receiving a generic JSON parser
+   * exception from jQuery.
+   */
+
+  function parseJsonResponse(
+    responseText,
+    url
+  ) {
+    if (
+      responseText === null ||
+      responseText === undefined
+    ) {
+      return null;
+    }
+
+    if (
+      typeof responseText ===
+      "object"
+    ) {
+      return responseText;
+    }
+
+    const text =
+      String(responseText)
+        .trim();
+
+    if (!text) {
+      return null;
+    }
+
+    if (
+      /^\s*<!doctype/i.test(
+        text
+      ) ||
+      /^\s*<html/i.test(
+        text
+      )
+    ) {
+      throw new Error(
+        [
+          "Expected JSON but received HTML from",
+          `${url}.`,
+          "Check the generated resource URL and resource handler.",
+        ].join(" ")
+      );
+    }
+
+    let parsed;
+
+    try {
+      parsed =
+        JSON.parse(text);
+    } catch (error) {
+      throw new Error(
+        `Invalid JSON returned by ${url}: ${error.message}`
+      );
+    }
+
+    /*
+     * Defensive support for an endpoint that
+     * serializes JSON twice.
+     */
+
+    if (
+      typeof parsed ===
+      "string"
+    ) {
+      const nested =
+        parsed.trim();
+
+      if (
+        nested.startsWith("{") ||
+        nested.startsWith("[")
+      ) {
+        try {
+          return JSON.parse(
+            nested
+          );
+        } catch {
+          return parsed;
+        }
+      }
+    }
+
+    return parsed;
+  }
+
+  function ajaxJson(
+    url,
+    {
+      data = {},
+    } = {}
+  ) {
+    let jqXHR = null;
+
+    const promise =
+      new Promise(
+        (
+          resolve,
+          reject
+        ) => {
+          jqXHR =
+            $.ajax({
+              url,
+
+              type: "GET",
+
+              data,
+
+              /*
+               * We parse manually.
+               */
+
+              dataType: "text",
+
+              cache: false,
+            })
+              .done(
+                (
+                  responseText,
+                  _textStatus,
+                  xhr
+                ) => {
+                  try {
+                    resolve(
+                      parseJsonResponse(
+                        responseText,
+                        url
+                      )
+                    );
+                  } catch (error) {
+                    console.error(
+                      "Main Market endpoint returned an unexpected response:",
+                      {
+                        url,
+
+                        status:
+                          xhr?.status,
+
+                        contentType:
+                          xhr
+                            ?.getResponseHeader?.(
+                              "Content-Type"
+                            ),
+
+                        preview:
+                          String(
+                            responseText
+                          ).slice(
+                            0,
+                            300
+                          ),
+                      }
+                    );
+
+                    reject(
+                      error
+                    );
+                  }
+                }
+              )
+              .fail(
+                (
+                  xhr,
+                  textStatus,
+                  errorThrown
+                ) => {
+                  if (
+                    textStatus ===
+                    "abort"
+                  ) {
+                    const error =
+                      new Error(
+                        "Request aborted"
+                      );
+
+                    error.name =
+                      "AbortError";
+
+                    reject(
+                      error
+                    );
+
+                    return;
+                  }
+
+                  const responseText =
+                    xhr?.responseText
+                      ? String(
+                          xhr.responseText
+                        )
+                      : "";
+
+                  const htmlResponse =
+                    /^\s*</.test(
+                      responseText
+                    );
+
+                  reject(
+                    new Error(
+                      [
+                        `Request failed (${xhr?.status || 0}).`,
+
+                        errorThrown ||
+                          textStatus ||
+                          "Unknown error.",
+
+                        htmlResponse
+                          ? "Server returned HTML instead of JSON."
+                          : "",
+
+                        `Endpoint: ${url}`,
+                      ]
+                        .filter(
+                          Boolean
+                        )
+                        .join(
+                          " "
+                        )
+                    )
+                  );
+                }
+              );
+        }
+      );
+
+    return {
+      promise,
+
+      abort() {
+        if (
+          jqXHR &&
+          jqXHR.readyState !== 4
+        ) {
+          jqXHR.abort();
+        }
+      },
+    };
+  }
+
+  /* ==========================================================================
+     Hero / TASI Index Endpoint
+     ========================================================================== */
+
+  function getMarketIndexEndpoint() {
+    /*
+     * Option 1:
+     *
+     * HTML-owned Hero URL.
+     */
+
+    const attributeUrl =
+      dom.index?.getAttribute(
+        "data-market-index-url"
+      );
+
+    if (
+      attributeUrl?.trim()
+    ) {
+      return attributeUrl.trim();
+    }
+
+    /*
+     * Option 2:
+     *
+     * MainMarketConfig.
+     *
+     * We already support this now, so when we add
+     * the Hero endpoint to the JSP later the JS will
+     * not need another structural rewrite.
+     */
+
+    const configuredUrl =
+      endpoints.index ||
+      config.marketIndexUrl;
+
+    if (
+      typeof configuredUrl ===
+        "string" &&
+      configuredUrl.trim()
+    ) {
+      return configuredUrl.trim();
+    }
+
+    /*
+     * Option 3:
+     *
+     * Existing legacy global.
+     *
+     * This keeps the Hero working until we complete
+     * its JSP endpoint migration.
+     */
+
+    if (
+      typeof window
+        .getMarketIndexUrl ===
+        "string" &&
+      window
+        .getMarketIndexUrl
+        .trim()
+    ) {
+      return window
+        .getMarketIndexUrl
+        .trim();
+    }
+
+    return null;
+  }
+
+  /* ==========================================================================
+     Hero Response Normalization
+     ========================================================================== */
+
+  function normalizeIndexResponse(
+    payload
+  ) {
+    if (
+      !payload ||
+      typeof payload !== "object"
+    ) {
+      throw new Error(
+        "Invalid Main Market index response."
+      );
+    }
+
+    const indexPrice =
+      toNumber(
+        payload.indexPrice
+      );
+
+    const netChange =
+      toNumber(
+        payload.netChange
+      );
+
+    const percentChange =
+      toNumber(
+        payload.percentChange
+      );
+
+    if (
+      indexPrice === null ||
+      netChange === null ||
+      percentChange === null
+    ) {
+      throw new Error(
+        [
+          "Main Market index response is missing",
+          "indexPrice, netChange or percentChange.",
+        ].join(" ")
+      );
+    }
+
+    return {
+      indexPrice,
+      netChange,
+      percentChange,
+    };
+  }
+
+  /* ==========================================================================
+     Hero Loading State
+     ========================================================================== */
+
+  function revealIndexLiveState() {
+    dom.indexLoading.forEach(
+      (element) => {
+        element.hidden =
+          true;
+      }
+    );
+
+    dom.indexLive.forEach(
+      (element) => {
+        element.hidden =
+          false;
+      }
+    );
+
+    dom.index?.setAttribute(
+      "aria-busy",
+      "false"
+    );
+  }
+
+  /* ==========================================================================
+     Hero Render
+     ========================================================================== */
+
+  function renderIndex(
+    data,
+    {
+      initial = false,
+    } = {}
+  ) {
+    if (!dom.index) {
+      return;
+    }
+
+    const direction =
+      getDirection(
+        data.netChange
+      );
+
+    /* ------------------------------------------------------------------------
+       Current Index
+       ------------------------------------------------------------------------ */
+
+    setDataValue(
+      dom.indexValue,
+
+      data.indexPrice,
+
+      priceFormatter.format(
+        data.indexPrice
+      ),
+
+      {
+        animate:
+          !initial,
+      }
+    );
+
+    /* ------------------------------------------------------------------------
        Net Change
        ------------------------------------------------------------------------ */
 
-      setDataValue(
-        dom.indexChange,
-        data.netChange,
-        signedPriceFormatter.format(data.netChange),
-      );
+    setDataValue(
+      dom.indexChange,
 
-      /* ------------------------------------------------------------------------
-       Percentage
+      data.netChange,
+
+      signedPriceFormatter.format(
+        data.netChange
+      )
+    );
+
+    /* ------------------------------------------------------------------------
+       Percentage Change
        ------------------------------------------------------------------------ */
 
-      if (dom.indexChangePercent) {
-        dom.indexChangePercent.textContent = `(${signedPercentFormatter.format(
-          data.percentChange,
+    if (
+      dom.indexChangePercent
+    ) {
+      dom.indexChangePercent
+        .textContent =
+        `(${signedPercentFormatter.format(
+          data.percentChange
         )}%)`;
-      }
+    }
 
-      /* ------------------------------------------------------------------------
-       Positive / Negative / Neutral State
+    /* ------------------------------------------------------------------------
+       Semantic State
        ------------------------------------------------------------------------ */
 
-      applyPriceState(dom.indexChangeState, data.netChange);
+    applyPriceState(
+      dom.indexChangeState,
+      data.netChange
+    );
 
-      /* ------------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
        Direction Icon
        ------------------------------------------------------------------------ */
 
-      if (dom.indexChangeIcon) {
-        if (direction === "neutral") {
-          dom.indexChangeIcon.hidden = true;
+    if (
+      dom.indexChangeIcon
+    ) {
+      if (
+        direction ===
+        "neutral"
+      ) {
+        dom.indexChangeIcon.hidden =
+          true;
 
-          dom.indexChangeIcon.style.transform = "";
-        } else {
-          dom.indexChangeIcon.hidden = false;
+        dom.indexChangeIcon
+          .style.transform =
+          "";
+      } else {
+        dom.indexChangeIcon.hidden =
+          false;
 
-          dom.indexChangeIcon.style.transform =
-            direction === "down" ? "rotate(180deg)" : "";
-        }
+        dom.indexChangeIcon
+          .style.transform =
+          direction === "down"
+            ? "rotate(180deg)"
+            : "";
       }
+    }
 
-      /* ------------------------------------------------------------------------
-       Accessibility
+    /* ------------------------------------------------------------------------
+       Accessible Market Description
        ------------------------------------------------------------------------ */
 
-      const movementText =
-        direction === "up"
-          ? "Increased"
-          : direction === "down"
-            ? "Decreased"
-            : "Unchanged";
+    const movementText =
+      direction === "up"
+        ? "Increased"
+        : direction === "down"
+          ? "Decreased"
+          : "Unchanged";
 
-      dom.index.setAttribute(
-        "aria-label",
-        [
-          `TASI Index: ${priceFormatter.format(data.indexPrice)} points.`,
+    dom.index.setAttribute(
+      "aria-label",
 
-          `${movementText} by ${priceFormatter.format(
-            Math.abs(data.netChange),
-          )} points,`,
+      [
+        `TASI Index: ${priceFormatter.format(
+          data.indexPrice
+        )} points.`,
 
-          `or ${priceFormatter.format(Math.abs(data.percentChange))} percent.`,
-        ].join(" "),
-      );
+        `${movementText} by ${priceFormatter.format(
+          Math.abs(
+            data.netChange
+          )
+        )} points,`,
 
-      revealIndexLiveState();
+        `or ${priceFormatter.format(
+          Math.abs(
+            data.percentChange
+          )
+        )} percent.`,
+      ].join(
+        " "
+      )
+    );
 
-      state.index.loaded = true;
+    revealIndexLiveState();
+
+    state.index.loaded =
+      true;
+  }
+
+  /* ==========================================================================
+     Hero Initial Failure
+     ========================================================================== */
+
+  function renderIndexUnavailable() {
+    if (!dom.index) {
+      return;
     }
 
-    function renderIndexUnavailable() {
-      if (!dom.index) {
-        return;
-      }
+    revealIndexLiveState();
 
-      revealIndexLiveState();
+    setDataValue(
+      dom.indexValue,
+      null,
+      "—"
+    );
 
-      setDataValue(dom.indexValue, null, "—");
+    setDataValue(
+      dom.indexChange,
+      null,
+      "—"
+    );
 
-      setDataValue(dom.indexChange, null, "—");
+    if (
+      dom.indexChangePercent
+    ) {
+      dom.indexChangePercent
+        .textContent =
+        "—";
+    }
 
-      if (dom.indexChangePercent) {
-        dom.indexChangePercent.textContent = "—";
-      }
+    if (
+      dom.indexChangeIcon
+    ) {
+      dom.indexChangeIcon.hidden =
+        true;
 
-      if (dom.indexChangeIcon) {
-        dom.indexChangeIcon.hidden = true;
+      dom.indexChangeIcon
+        .style.transform =
+        "";
+    }
 
-        dom.indexChangeIcon.style.transform = "";
-      }
-
-      dom.indexChangeState?.classList.remove(
+    dom.indexChangeState
+      ?.classList.remove(
         "price-up",
         "price-down",
-        "price-neutral",
+        "price-neutral"
       );
 
-      dom.index.setAttribute(
-        "aria-label",
-        "TASI Index market data is temporarily unavailable.",
-      );
+    dom.index.setAttribute(
+      "aria-label",
+      "TASI Index market data is temporarily unavailable."
+    );
+  }
+
+  /* ==========================================================================
+     Hero Request
+     ========================================================================== */
+
+  async function loadMarketIndex({
+    initial = false,
+  } = {}) {
+    if (!dom.index) {
+      return;
     }
 
-    async function loadMarketIndex({ initial = false } = {}) {
-      if (!dom.index) {
+    const endpoint =
+      getMarketIndexEndpoint();
+
+    if (!endpoint) {
+      console.error(
+        [
+          "Main Market: index endpoint is unavailable.",
+          "Add endpoints.index / marketIndexUrl to MainMarketConfig",
+          "or expose data-market-index-url.",
+        ].join(" ")
+      );
+
+      if (
+        !state.index.loaded
+      ) {
+        renderIndexUnavailable();
+      }
+
+      return;
+    }
+
+    /*
+     * Prevent an older Hero request from replacing
+     * a newer response.
+     */
+
+    state.index.request
+      ?.abort();
+
+    const request =
+      ajaxJson(
+        endpoint
+      );
+
+    state.index.request =
+      request;
+
+    try {
+      const payload =
+        await request.promise;
+
+      const data =
+        normalizeIndexResponse(
+          payload
+        );
+
+      renderIndex(
+        data,
+
+        {
+          initial:
+            initial ||
+            !state.index.loaded,
+        }
+      );
+    } catch (error) {
+      if (
+        error.name ===
+        "AbortError"
+      ) {
         return;
       }
 
-      const endpoint = getMarketIndexEndpoint();
-
-      if (!endpoint) {
-        console.error("Main Market index URL is not available.");
-
-        if (!state.index.loaded) {
-          renderIndexUnavailable();
-        }
-
-        return;
-      }
+      console.error(
+        "Unable to load Main Market index:",
+        error
+      );
 
       /*
-       * Abort the previous index request so a stale
-       * response can never overwrite newer data.
-       */
-
-      state.index.controller?.abort();
-
-      const controller = new AbortController();
-
-      state.index.controller = controller;
-
-      try {
-        const payload = await requestJson(endpoint, {
-          signal: controller.signal,
-        });
-
-        const data = normalizeIndexResponse(payload);
-
-        renderIndex(data, {
-          initial: initial || !state.index.loaded,
-        });
-      } catch (error) {
-        if (error.name === "AbortError") {
-          return;
-        }
-
-        console.error("Unable to load Main Market index:", error);
-
-        /*
-         * On an initial failure replace the skeleton
-         * with an unavailable state.
-         *
-         * On later refresh failures leave the last
-         * successful market value visible.
-         */
-
-        if (!state.index.loaded) {
-          renderIndexUnavailable();
-        }
-      } finally {
-        if (state.index.controller === controller) {
-          state.index.controller = null;
-        }
-      }
-    }
-
-    /* ========================================================================
-     Activity API Normalization
-     ======================================================================== */
-
-    function extractActivityRows(payload) {
-      if (Array.isArray(payload)) {
-        return payload;
-      }
-
-      if (!payload || typeof payload !== "object") {
-        return [];
-      }
-
-      /*
-       * Current DataTables-style backend is expected
-       * to use `data`.
+       * Initial failure:
+       * reveal unavailable state.
        *
-       * Other common wrappers are supported defensively.
+       * Refresh failure:
+       * preserve the last successful value.
        */
 
-      return (
-        [payload.data, payload.aaData, payload.rows, payload.results].find(
-          Array.isArray,
-        ) || []
+      if (
+        !state.index.loaded
+      ) {
+        renderIndexUnavailable();
+      }
+    } finally {
+      if (
+        state.index.request ===
+        request
+      ) {
+        state.index.request =
+          null;
+      }
+    }
+  }
+
+  /* ==========================================================================
+     Activity Endpoints
+     ========================================================================== */
+
+  function getActivityView(type) {
+    return document.querySelector(
+      `[data-market-activity-view="${type}"]`
+    );
+  }
+
+  function getActivityUrl(type) {
+    const endpoint =
+      endpoints[type];
+
+    return (
+      typeof endpoint ===
+        "string" &&
+      endpoint.trim()
+    )
+      ? endpoint.trim()
+      : null;
+  }
+
+  /* ==========================================================================
+     Activity Response Extraction
+     ========================================================================== */
+
+  function extractActivityRows(
+    payload
+  ) {
+    if (
+      Array.isArray(
+        payload
+      )
+    ) {
+      return payload;
+    }
+
+    if (
+      !payload ||
+      typeof payload !==
+        "object"
+    ) {
+      return [];
+    }
+
+    const candidates = [
+      payload.data,
+      payload.aaData,
+      payload.rows,
+      payload.results,
+    ];
+
+    return (
+      candidates.find(
+        Array.isArray
+      ) ||
+      []
+    );
+  }
+
+  /* ==========================================================================
+     Five-Day Performance Normalization
+     ========================================================================== */
+
+  function normalizePerformance(
+    value
+  ) {
+    const number =
+      toNumber(
+        value
+      );
+
+    if (
+      number === null
+    ) {
+      return "neutral";
+    }
+
+    return getDirection(
+      number
+    );
+  }
+
+  /* ==========================================================================
+     Activity Item Normalization
+     ========================================================================== */
+
+  function normalizeActivityItem(
+    row
+  ) {
+    return {
+      symbol:
+        String(
+          row?.symbol ??
+            ""
+        ).trim(),
+
+      companyName:
+        String(
+          row?.companyName ??
+            ""
+        ).trim(),
+
+      companyURL:
+        getSafeHref(
+          row?.companyURL
+        ),
+
+      companyStatus:
+        toNumber(
+          row?.companyStatus
+        ),
+
+      watchListId:
+        row?.watchListId ??
+        0,
+
+      lastTradedPrice:
+        toNumber(
+          row?.lastTradedPrice
+        ),
+
+      netChange:
+        toNumber(
+          row?.netChange
+        ),
+
+      netPercentChange:
+        toNumber(
+          row?.netPercentChange
+        ),
+
+      volume:
+        toNumber(
+          row?.volume
+        ),
+
+      turnover:
+        toNumber(
+          row?.turnover
+        ),
+
+      performance: [
+        row?.day1Performance,
+        row?.day2Performance,
+        row?.day3Performance,
+        row?.day4Performance,
+        row?.day5Performance,
+      ].map(
+        normalizePerformance
+      ),
+    };
+  }
+
+  function normalizeActivityResponse(
+    payload
+  ) {
+    return extractActivityRows(
+      payload
+    )
+      .map(
+        normalizeActivityItem
+      )
+      .filter(
+        (item) =>
+          item.symbol
+      );
+  }
+
+  /* ==========================================================================
+     Activity Column Configuration
+     ========================================================================== */
+
+  function getActivityColumnCount(
+    type
+  ) {
+    return (
+      type === "volume" ||
+      type === "value"
+    )
+      ? 6
+      : 5;
+  }
+
+  function getActivityExtraLabel(
+    type
+  ) {
+    if (
+      type === "volume"
+    ) {
+      return "Volume";
+    }
+
+    if (
+      type === "value"
+    ) {
+      return "Value";
+    }
+
+    return null;
+  }
+
+  function getActivityExtraValue(
+    type,
+    item
+  ) {
+    if (
+      type === "volume"
+    ) {
+      return item.volume;
+    }
+
+    if (
+      type === "value"
+    ) {
+      return item.turnover;
+    }
+
+    return null;
+  }
+
+  function formatActivityExtra(
+    type,
+    value
+  ) {
+    if (
+      value === null
+    ) {
+      return "—";
+    }
+
+    if (
+      type === "volume"
+    ) {
+      return integerFormatter.format(
+        value
       );
     }
 
-    function normalizePerformance(value) {
-      const number = toNumber(value);
+    return moneyFormatter.format(
+      value
+    );
+  }
 
-      if (number === null) {
-        return "neutral";
-      }
+  /* ==========================================================================
+     Activity Labels
+     ========================================================================== */
 
-      return getDirection(number);
+  /*
+   * Labels come from the JSP-rendered table headers.
+   *
+   * That means the external JS does not need JSP
+   * localization tags.
+   */
+
+  function getActivityTableHeaders(
+    type
+  ) {
+    const table =
+      document.querySelector(
+        `[data-market-activity-table="${type}"]`
+      );
+
+    if (!table) {
+      return [];
     }
 
-    function normalizeActivityItem(row) {
-      return {
-        symbol: String(row?.symbol ?? ""),
+    return Array.from(
+      table.querySelectorAll(
+        "thead th"
+      )
+    ).map(
+      (header) =>
+        normalizeLabelText(
+          header.textContent
+        )
+    );
+  }
 
-        companyName: String(row?.companyName ?? ""),
+  function getActivityLabels(
+    type
+  ) {
+    const headers =
+      getActivityTableHeaders(
+        type
+      );
 
-        companyURL: getSafeHref(row?.companyURL),
+    const hasExtra =
+      type === "volume" ||
+      type === "value";
 
-        companyStatus: toNumber(row?.companyStatus),
+    return {
+      company:
+        headers[0] ||
+        "Company",
 
-        watchListId: row?.watchListId ?? 0,
+      price:
+        headers[1] ||
+        "Price",
 
-        lastTradedPrice: toNumber(row?.lastTradedPrice),
+      change:
+        headers[2] ||
+        "Change",
 
-        netChange: toNumber(row?.netChange),
+      percent:
+        headers[3] ||
+        "Change %",
 
-        netPercentChange: toNumber(row?.netPercentChange),
+      extra:
+        hasExtra
+          ? (
+              headers[4] ||
+              getActivityExtraLabel(
+                type
+              )
+            )
+          : null,
 
-        volume: toNumber(row?.volume),
+      performance:
+        headers[
+          hasExtra
+            ? 5
+            : 4
+        ] ||
+        "5 Day Performance",
+    };
+  }
 
-        turnover: toNumber(row?.turnover),
-
-        performance: [
-          row?.day1Performance,
-          row?.day2Performance,
-          row?.day3Performance,
-          row?.day4Performance,
-          row?.day5Performance,
-        ].map(normalizePerformance),
-      };
-    }
-
-    function normalizeActivityResponse(payload) {
-      return extractActivityRows(payload)
-        .map(normalizeActivityItem)
-        .filter((item) => item.symbol);
-    }
-
-    /* ========================================================================
-     Activity Configuration
-     ======================================================================== */
-
-    function getActivityUrl(type) {
-      return document
-        .querySelector(`[data-market-activity-view="${type}"]`)
-        ?.getAttribute("data-market-activity-url");
-    }
-
-    function getActivityColumnCount(type) {
-      return type === "volume" || type === "value" ? 6 : 5;
-    }
-
-    function getActivityExtraLabel(type) {
-      if (type === "volume") {
-        return "Volume";
-      }
-
-      if (type === "value") {
-        return "Value";
-      }
-
-      return null;
-    }
-
-    function getActivityExtraValue(type, item) {
-      if (type === "volume") {
-        return item.volume;
-      }
-
-      if (type === "value") {
-        return item.turnover;
-      }
-
-      return null;
-    }
-
-    function formatActivityExtra(type, value) {
-      if (value === null) {
-        return "—";
-      }
-
-      if (type === "volume") {
-        return integerFormatter.format(value);
-      }
-
-      return moneyFormatter.format(value);
-    }
-
-    /* ========================================================================
+  /* ==========================================================================
      Watchlist
-     ======================================================================== */
+     ========================================================================== */
 
-    function isUserValidated() {
-      return document.querySelector("#isUserValidated")?.value === "YES";
-    }
+  function isUserValidated() {
+    return (
+      document.getElementById(
+        "isUserValidated"
+      )?.value ===
+      "YES"
+    );
+  }
 
-    function hasWatchlistEntry(item) {
-      return !(
-        item.watchListId === 0 ||
-        item.watchListId === "0" ||
-        item.watchListId === null ||
-        item.watchListId === undefined ||
-        item.watchListId === ""
+  function hasWatchlistEntry(
+    item
+  ) {
+    const id =
+      item?.watchListId;
+
+    return !(
+      id === 0 ||
+      id === "0" ||
+      id === null ||
+      id === undefined ||
+      id === ""
+    );
+  }
+
+  function getWatchlistLabel(
+    item
+  ) {
+    const name =
+      item.companyName ||
+      item.symbol;
+
+    if (
+      !isUserValidated()
+    ) {
+      return (
+        `Sign in to add ${name} ` +
+        "to watchlist"
       );
     }
 
-    function getWatchlistLabel(item) {
-      const name = item.companyName || item.symbol;
+    return hasWatchlistEntry(
+      item
+    )
+      ? `Remove ${name} from watchlist`
+      : `Add ${name} to watchlist`;
+  }
 
-      if (!isUserValidated()) {
-        return `Sign in to add ${name} ` + "to watchlist";
-      }
-
-      return hasWatchlistEntry(item)
-        ? `Remove ${name} from watchlist`
-        : `Add ${name} to watchlist`;
+  function syncWatchlistButton(
+    button,
+    item
+  ) {
+    if (!button) {
+      return;
     }
 
-    function createWatchlistButton(item, { mobile = false } = {}) {
-      const button = document.createElement("button");
+    const active =
+      hasWatchlistEntry(
+        item
+      );
 
-      button.type = "button";
+    button.dataset
+      .marketWatchlist =
+      item.symbol;
 
-      button.className = mobile
+    button.dataset
+      .watchListId =
+      String(
+        item.watchListId ??
+        0
+      );
+
+    button.setAttribute(
+      "aria-pressed",
+      String(
+        active
+      )
+    );
+
+    button.setAttribute(
+      "aria-label",
+      getWatchlistLabel(
+        item
+      )
+    );
+
+    button.classList.toggle(
+      "is-active",
+      active
+    );
+  }
+
+  function createWatchlistButton(
+    item,
+    {
+      mobile = false,
+    } = {}
+  ) {
+    const button =
+      document.createElement(
+        "button"
+      );
+
+    button.type =
+      "button";
+
+    button.className =
+      mobile
         ? "data-card__favorite has-icon icon-star-outline"
         : "market-activity-table__watchlist has-icon icon-star-outline";
 
-      syncWatchlistButton(button, item);
+    syncWatchlistButton(
+      button,
+      item
+    );
 
-      return button;
+    return button;
+  }
+
+  function handleWatchlist(
+    item
+  ) {
+    if (!item) {
+      return;
     }
 
-    function syncWatchlistButton(button, item) {
-      if (!button) {
-        return;
-      }
+    /* ------------------------------------------------------------------------
+       Not Logged In
+       ------------------------------------------------------------------------ */
 
-      const active = hasWatchlistEntry(item);
-
-      button.dataset.marketWatchlist = item.symbol;
-
-      button.dataset.watchListId = String(item.watchListId ?? 0);
-
-      button.setAttribute("aria-pressed", String(active));
-
-      button.setAttribute("aria-label", getWatchlistLabel(item));
-
-      button.classList.toggle("is-active", active);
-    }
-
-    function handleWatchlist(item) {
-      if (!item) {
-        return;
-      }
-
-      /*
-       * Existing legacy authentication/watchlist
-       * functions are reused.
-       */
-
-      if (!isUserValidated()) {
-        if (typeof window.showLoginForm === "function") {
-          window.showLoginForm(item.symbol);
-        }
-
-        return;
-      }
-
-      if (hasWatchlistEntry(item)) {
-        if (typeof window.deleteCompanyFromWatchlist === "function") {
-          window.deleteCompanyFromWatchlist(item.watchListId, item.symbol);
-        }
-
-        return;
-      }
-
-      if (typeof window.showAddToWatchListPopup === "function") {
-        window.showAddToWatchListPopup(item.symbol);
-      }
-    }
-
-    /* ========================================================================
-     Five-day Performance
-     ======================================================================== */
-
-    function getPerformanceLabel(performance) {
-      const values = performance.map((direction, index) => {
-        const day = index + 1;
-
-        if (direction === "up") {
-          return `day ${day} up`;
-        }
-
-        if (direction === "down") {
-          return `day ${day} down`;
-        }
-
-        return `day ${day} ` + "no change or no data";
-      });
-
-      return "Five-day performance: " + `${values.join(", ")}.`;
-    }
-
-    function createPerformanceElement(performance) {
-      const wrapper = document.createElement("div");
-
-      wrapper.className = "market-activity-table__performance";
-
-      wrapper.setAttribute("role", "img");
-
-      wrapper.setAttribute("aria-label", getPerformanceLabel(performance));
-
-      performance.forEach((direction) => {
-        const bar = document.createElement("span");
-
-        bar.className = `is-${direction}`;
-
-        bar.setAttribute("aria-hidden", "true");
-
-        wrapper.appendChild(bar);
-      });
-
-      return wrapper;
-    }
-
-    function updatePerformanceElement(element, performance) {
-      if (!element) {
-        return;
-      }
-
-      element.setAttribute("aria-label", getPerformanceLabel(performance));
-
-      const bars = Array.from(element.children);
-
-      if (bars.length !== performance.length) {
-        element.replaceChildren(
-          ...performance.map((direction) => {
-            const bar = document.createElement("span");
-
-            bar.className = `is-${direction}`;
-
-            bar.setAttribute("aria-hidden", "true");
-
-            return bar;
-          }),
+    if (
+      !isUserValidated()
+    ) {
+      if (
+        typeof window
+          .showLoginForm ===
+        "function"
+      ) {
+        window.showLoginForm(
+          item.symbol
         );
-
-        return;
       }
 
-      bars.forEach((bar, index) => {
-        bar.classList.remove("is-up", "is-down", "is-neutral");
-
-        bar.classList.add(`is-${performance[index]}`);
-      });
+      return;
     }
 
-    /* ========================================================================
-     Company Identity
-     ======================================================================== */
+    /* ------------------------------------------------------------------------
+       Existing Watchlist Entry
+       ------------------------------------------------------------------------ */
 
-    function createCompanyIdentity(item) {
-      const wrapper = document.createElement("div");
-
-      wrapper.className = "market-activity-table__company-content";
-
-      wrapper.appendChild(createWatchlistButton(item));
-
-      const identity = document.createElement("span");
-
-      identity.className = "market-activity-table__company-identity";
-
-      const name = item.companyURL
-        ? document.createElement("a")
-        : document.createElement("span");
-
-      name.className = "market-activity-table__company-name";
-
-      name.textContent = item.companyName || item.symbol;
-
-      if (item.companyURL) {
-        name.href = item.companyURL;
+    if (
+      hasWatchlistEntry(
+        item
+      )
+    ) {
+      if (
+        typeof window
+          .deleteCompanyFromWatchlist ===
+        "function"
+      ) {
+        window
+          .deleteCompanyFromWatchlist(
+            item.watchListId,
+            item.symbol
+          );
       }
 
-      const symbol = document.createElement("span");
-
-      symbol.className = "market-activity-table__company-symbol";
-
-      symbol.dir = "ltr";
-
-      symbol.textContent = item.symbol;
-
-      identity.append(name, symbol);
-
-      wrapper.appendChild(identity);
-
-      return wrapper;
+      return;
     }
 
-    function updateCompanyIdentity(row, item) {
-      const cell = row.querySelector(".market-activity-table__company");
+    /* ------------------------------------------------------------------------
+       Add Watchlist Entry
+       ------------------------------------------------------------------------ */
 
-      if (!cell) {
-        return;
-      }
+    if (
+      typeof window
+        .showAddToWatchListPopup ===
+      "function"
+    ) {
+      window
+        .showAddToWatchListPopup(
+          item.symbol
+        );
+    }
+  }
 
-      syncWatchlistButton(cell.querySelector("[data-market-watchlist]"), item);
+  /* ==========================================================================
+     Five-Day Performance DOM
+     ========================================================================== */
 
-      const name = cell.querySelector(".market-activity-table__company-name");
+  function getPerformanceLabel(
+    performance
+  ) {
+    const labels =
+      performance.map(
+        (
+          direction,
+          index
+        ) => {
+          const day =
+            index + 1;
 
-      const symbol = cell.querySelector(
-        ".market-activity-table__company-symbol",
+          if (
+            direction === "up"
+          ) {
+            return (
+              `day ${day} up`
+            );
+          }
+
+          if (
+            direction === "down"
+          ) {
+            return (
+              `day ${day} down`
+            );
+          }
+
+          return (
+            `day ${day} ` +
+            "no change or no data"
+          );
+        }
       );
 
-      if (name) {
-        name.textContent = item.companyName || item.symbol;
+    return (
+      "Five-day performance: " +
+      `${labels.join(", ")}.`
+    );
+  }
 
-        if (name instanceof HTMLAnchorElement && item.companyURL) {
-          name.href = item.companyURL;
-        }
+  function createPerformanceElement(
+    performance
+  ) {
+    const wrapper =
+      document.createElement(
+        "div"
+      );
+
+    wrapper.className =
+      "market-activity-table__performance";
+
+    wrapper.setAttribute(
+      "role",
+      "img"
+    );
+
+    wrapper.setAttribute(
+      "aria-label",
+      getPerformanceLabel(
+        performance
+      )
+    );
+
+    performance.forEach(
+      (direction) => {
+        const bar =
+          document.createElement(
+            "span"
+          );
+
+        bar.className =
+          `is-${direction}`;
+
+        bar.setAttribute(
+          "aria-hidden",
+          "true"
+        );
+
+        wrapper.appendChild(
+          bar
+        );
       }
+    );
 
-      if (symbol) {
-        symbol.textContent = item.symbol;
+    return wrapper;
+  }
+
+  function updatePerformanceElement(
+    element,
+    performance
+  ) {
+    if (!element) {
+      return;
+    }
+
+    element.setAttribute(
+      "aria-label",
+      getPerformanceLabel(
+        performance
+      )
+    );
+
+    const bars =
+      Array.from(
+        element.children
+      );
+
+    if (
+      bars.length !==
+      performance.length
+    ) {
+      element.replaceChildren(
+        ...performance.map(
+          (direction) => {
+            const bar =
+              document.createElement(
+                "span"
+              );
+
+            bar.className =
+              `is-${direction}`;
+
+            bar.setAttribute(
+              "aria-hidden",
+              "true"
+            );
+
+            return bar;
+          }
+        )
+      );
+
+      return;
+    }
+
+    bars.forEach(
+      (
+        bar,
+        index
+      ) => {
+        bar.classList.remove(
+          "is-up",
+          "is-down",
+          "is-neutral"
+        );
+
+        bar.classList.add(
+          `is-${performance[index]}`
+        );
+      }
+    );
+  }
+
+  /* ==========================================================================
+     Desktop Company Identity
+     ========================================================================== */
+
+  function createCompanyIdentity(
+    item
+  ) {
+    const wrapper =
+      document.createElement(
+        "div"
+      );
+
+    wrapper.className =
+      "market-activity-table__company-content";
+
+    wrapper.appendChild(
+      createWatchlistButton(
+        item
+      )
+    );
+
+    const identity =
+      document.createElement(
+        "span"
+      );
+
+    identity.className =
+      "market-activity-table__company-identity";
+
+    const name =
+      document.createElement(
+        item.companyURL
+          ? "a"
+          : "span"
+      );
+
+    name.className =
+      "market-activity-table__company-name";
+
+    name.textContent =
+      item.companyName ||
+      item.symbol;
+
+    if (
+      item.companyURL
+    ) {
+      name.href =
+        item.companyURL;
+    }
+
+    const symbol =
+      document.createElement(
+        "span"
+      );
+
+    symbol.className =
+      "market-activity-table__company-symbol";
+
+    symbol.dir =
+      "ltr";
+
+    symbol.textContent =
+      item.symbol;
+
+    identity.append(
+      name,
+      symbol
+    );
+
+    wrapper.appendChild(
+      identity
+    );
+
+    return wrapper;
+  }
+
+  function updateCompanyIdentity(
+    row,
+    item
+  ) {
+    const cell =
+      row.querySelector(
+        ".market-activity-table__company"
+      );
+
+    if (!cell) {
+      return;
+    }
+
+    syncWatchlistButton(
+      cell.querySelector(
+        "[data-market-watchlist]"
+      ),
+      item
+    );
+
+    const name =
+      cell.querySelector(
+        ".market-activity-table__company-name"
+      );
+
+    if (name) {
+      name.textContent =
+        item.companyName ||
+        item.symbol;
+
+      if (
+        name instanceof
+          HTMLAnchorElement &&
+        item.companyURL
+      ) {
+        name.href =
+          item.companyURL;
       }
     }
 
-    /* ========================================================================
-     Desktop Activity Tables
-     ======================================================================== */
+    const symbol =
+      cell.querySelector(
+        ".market-activity-table__company-symbol"
+      );
 
-    function createActivityRow(type, item) {
-      const row = document.createElement("tr");
+    if (symbol) {
+      symbol.textContent =
+        item.symbol;
+    }
+  }
 
-      row.dataset.marketSymbol = item.symbol;
+  /* ==========================================================================
+     Desktop Activity Row Creation
+     ========================================================================== */
 
-      /* ------------------------------------------------------------------------
+  function createActivityRow(
+    type,
+    item
+  ) {
+    const row =
+      document.createElement(
+        "tr"
+      );
+
+    row.dataset
+      .marketSymbol =
+      item.symbol;
+
+    /* ------------------------------------------------------------------------
        Company
        ------------------------------------------------------------------------ */
 
-      const company = document.createElement("th");
+    const companyCell =
+      document.createElement(
+        "th"
+      );
 
-      company.className = "market-activity-table__company";
+    companyCell.scope =
+      "row";
 
-      company.scope = "row";
+    companyCell.className =
+      "market-activity-table__company";
 
-      company.appendChild(createCompanyIdentity(item));
+    companyCell.appendChild(
+      createCompanyIdentity(
+        item
+      )
+    );
 
-      /* ------------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
        Price
        ------------------------------------------------------------------------ */
 
-      const priceCell = document.createElement("td");
+    const priceCell =
+      document.createElement(
+        "td"
+      );
 
-      priceCell.className = "market-activity-table__number";
+    priceCell.className =
+      "market-activity-table__number";
 
-      priceCell.dir = "ltr";
+    priceCell.dir =
+      "ltr";
 
-      const price = document.createElement("data");
+    const price =
+      document.createElement(
+        "data"
+      );
 
-      price.className = "market-live-update";
+    price.className =
+      "market-live-update";
 
-      price.dataset.marketField = "price";
+    price.dataset
+      .marketField =
+      "price";
 
-      priceCell.appendChild(price);
+    priceCell.appendChild(
+      price
+    );
 
-      /* ------------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
        Change
        ------------------------------------------------------------------------ */
 
-      const changeCell = document.createElement("td");
+    const changeCell =
+      document.createElement(
+        "td"
+      );
 
-      changeCell.className = "market-activity-table__number";
+    changeCell.className =
+      "market-activity-table__number";
 
-      changeCell.dir = "ltr";
+    changeCell.dir =
+      "ltr";
 
-      changeCell.dataset.marketChangeCell = "";
+    changeCell.dataset
+      .marketChangeCell =
+      "";
 
-      const change = document.createElement("data");
+    const change =
+      document.createElement(
+        "data"
+      );
 
-      change.dataset.marketField = "change";
+    change.dataset
+      .marketField =
+      "change";
 
-      changeCell.appendChild(change);
+    changeCell.appendChild(
+      change
+    );
 
-      /* ------------------------------------------------------------------------
-       Change Percentage
+    /* ------------------------------------------------------------------------
+       Change %
        ------------------------------------------------------------------------ */
 
-      const percentCell = document.createElement("td");
+    const percentCell =
+      document.createElement(
+        "td"
+      );
 
-      percentCell.className = "market-activity-table__number";
+    percentCell.className =
+      "market-activity-table__number";
 
-      percentCell.dir = "ltr";
+    percentCell.dir =
+      "ltr";
 
-      percentCell.dataset.marketPercentCell = "";
+    percentCell.dataset
+      .marketPercentCell =
+      "";
 
-      const percent = document.createElement("data");
+    const percent =
+      document.createElement(
+        "data"
+      );
 
-      percent.dataset.marketField = "percent";
+    percent.dataset
+      .marketField =
+      "percent";
 
-      percentCell.appendChild(percent);
+    percentCell.appendChild(
+      percent
+    );
 
-      row.append(company, priceCell, changeCell, percentCell);
+    row.append(
+      companyCell,
+      priceCell,
+      changeCell,
+      percentCell
+    );
 
-      /* ------------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
        Volume / Value
        ------------------------------------------------------------------------ */
 
-      if (type === "volume" || type === "value") {
-        const extraCell = document.createElement("td");
+    if (
+      type === "volume" ||
+      type === "value"
+    ) {
+      const extraCell =
+        document.createElement(
+          "td"
+        );
 
-        extraCell.className = "market-activity-table__number";
+      extraCell.className =
+        "market-activity-table__number";
 
-        extraCell.dir = "ltr";
+      extraCell.dir =
+        "ltr";
 
-        const extra = document.createElement("data");
+      const extra =
+        document.createElement(
+          "data"
+        );
 
-        extra.className = "market-live-update";
+      extra.className =
+        "market-live-update";
 
-        extra.dataset.marketField = "extra";
+      extra.dataset
+        .marketField =
+        "extra";
 
-        extraCell.appendChild(extra);
+      extraCell.appendChild(
+        extra
+      );
 
-        row.appendChild(extraCell);
-      }
-
-      /* ------------------------------------------------------------------------
-       Five-day Performance
-       ------------------------------------------------------------------------ */
-
-      const performanceCell = document.createElement("td");
-
-      performanceCell.className = "market-activity-table__performance-cell";
-
-      performanceCell.appendChild(createPerformanceElement(item.performance));
-
-      row.appendChild(performanceCell);
-
-      return row;
+      row.appendChild(
+        extraCell
+      );
     }
 
-    function updateActivityRow(row, type, item, { initial = false } = {}) {
-      row.dataset.marketSymbol = item.symbol;
+    /* ------------------------------------------------------------------------
+       Five-Day Performance
+       ------------------------------------------------------------------------ */
 
-      row.dataset.companyStatus =
-        item.companyStatus === null ? "" : String(item.companyStatus);
+    const performanceCell =
+      document.createElement(
+        "td"
+      );
 
-      updateCompanyIdentity(row, item);
+    performanceCell.className =
+      "market-activity-table__performance-cell";
 
-      const price = row.querySelector('[data-market-field="price"]');
+    performanceCell.appendChild(
+      createPerformanceElement(
+        item.performance
+      )
+    );
 
-      const change = row.querySelector('[data-market-field="change"]');
+    row.appendChild(
+      performanceCell
+    );
 
-      const percent = row.querySelector('[data-market-field="percent"]');
+    return row;
+  }
 
-      const changeCell = row.querySelector("[data-market-change-cell]");
+  /* ==========================================================================
+     Desktop Activity Row Update
+     ========================================================================== */
 
-      const percentCell = row.querySelector("[data-market-percent-cell]");
+  function updateActivityRow(
+    row,
+    type,
+    item,
+    {
+      initial = false,
+    } = {}
+  ) {
+    row.dataset
+      .marketSymbol =
+      item.symbol;
 
-      /* ------------------------------------------------------------------------
+    row.dataset
+      .companyStatus =
+      item.companyStatus ===
+        null
+        ? ""
+        : String(
+            item.companyStatus
+          );
+
+    updateCompanyIdentity(
+      row,
+      item
+    );
+
+    /* ------------------------------------------------------------------------
        Price
        ------------------------------------------------------------------------ */
 
-      setDataValue(
-        price,
-        item.lastTradedPrice,
-        item.lastTradedPrice === null
-          ? "—"
-          : priceFormatter.format(item.lastTradedPrice),
-        {
-          animate: !initial && item.lastTradedPrice !== null,
-        },
+    const price =
+      row.querySelector(
+        '[data-market-field="price"]'
       );
 
-      /* ------------------------------------------------------------------------
+    setDataValue(
+      price,
+
+      item.lastTradedPrice,
+
+      item.lastTradedPrice ===
+        null
+        ? "—"
+        : priceFormatter.format(
+            item.lastTradedPrice
+          ),
+
+      {
+        animate:
+          !initial &&
+          item.lastTradedPrice !==
+            null,
+      }
+    );
+
+    /* ------------------------------------------------------------------------
        Change
        ------------------------------------------------------------------------ */
 
-      setDataValue(
-        change,
-        item.netChange,
-        item.netChange === null
-          ? "—"
-          : signedPriceFormatter.format(item.netChange),
+    const change =
+      row.querySelector(
+        '[data-market-field="change"]'
       );
 
-      /* ------------------------------------------------------------------------
-       Change Percentage
+    setDataValue(
+      change,
+
+      item.netChange,
+
+      item.netChange ===
+        null
+        ? "—"
+        : signedPriceFormatter.format(
+            item.netChange
+          )
+    );
+
+    applyPriceState(
+      row.querySelector(
+        "[data-market-change-cell]"
+      ),
+      item.netChange ??
+        0
+    );
+
+    /* ------------------------------------------------------------------------
+       Change %
        ------------------------------------------------------------------------ */
 
-      setDataValue(
-        percent,
-        item.netPercentChange,
-        item.netPercentChange === null
-          ? "—"
-          : `${signedPercentFormatter.format(item.netPercentChange)}%`,
+    const percent =
+      row.querySelector(
+        '[data-market-field="percent"]'
       );
 
-      /*
-       * Change / percentage retain their financial
-       * semantic colors.
-       *
-       * They do not receive temporary directional
-       * refresh colors because that could conflict
-       * with their actual market meaning.
-       */
+    setDataValue(
+      percent,
 
-      applyPriceState(changeCell, item.netChange ?? 0);
+      item.netPercentChange,
 
-      applyPriceState(percentCell, item.netPercentChange ?? 0);
+      item.netPercentChange ===
+        null
+        ? "—"
+        : `${signedPercentFormatter.format(
+            item.netPercentChange
+          )}%`
+    );
 
-      /* ------------------------------------------------------------------------
+    applyPriceState(
+      row.querySelector(
+        "[data-market-percent-cell]"
+      ),
+      item.netPercentChange ??
+        0
+    );
+
+    /*
+     * Do not use temporary directional refresh
+     * coloring on Change / Change %.
+     *
+     * A positive market change remains positive even
+     * if its latest snapshot moved slightly down.
+     */
+
+    /* ------------------------------------------------------------------------
        Volume / Value
        ------------------------------------------------------------------------ */
 
-      if (type === "volume" || type === "value") {
-        const extra = row.querySelector('[data-market-field="extra"]');
+    if (
+      type === "volume" ||
+      type === "value"
+    ) {
+      const extra =
+        row.querySelector(
+          '[data-market-field="extra"]'
+        );
 
-        const extraValue = getActivityExtraValue(type, item);
+      const extraValue =
+        getActivityExtraValue(
+          type,
+          item
+        );
 
-        setDataValue(extra, extraValue, formatActivityExtra(type, extraValue), {
-          animate: !initial && extraValue !== null,
-        });
-      }
+      setDataValue(
+        extra,
 
-      updatePerformanceElement(
-        row.querySelector(".market-activity-table__performance"),
-        item.performance,
-      );
-    }
+        extraValue,
 
-    function renderActivityTable(type, items, { initial = false } = {}) {
-      const body = document.querySelector(
-        `[data-market-activity-body="${type}"]`,
-      );
-
-      const table = document.querySelector(
-        `[data-market-activity-table="${type}"]`,
-      );
-
-      if (!body) {
-        return;
-      }
-
-      /*
-       * Existing real rows are keyed by symbol.
-       */
-
-      const existingRows = new Map(
-        Array.from(body.querySelectorAll("tr[data-market-symbol]")).map(
-          (row) => [row.dataset.marketSymbol, row],
+        formatActivityExtra(
+          type,
+          extraValue
         ),
+
+        {
+          animate:
+            !initial &&
+            extraValue !== null,
+        }
+      );
+    }
+
+    /* ------------------------------------------------------------------------
+       Performance
+       ------------------------------------------------------------------------ */
+
+    updatePerformanceElement(
+      row.querySelector(
+        ".market-activity-table__performance"
+      ),
+      item.performance
+    );
+  }
+
+  /* ==========================================================================
+     Desktop Table Reconciliation
+     ========================================================================== */
+
+  function renderActivityTable(
+    type,
+    items,
+    {
+      initial = false,
+    } = {}
+  ) {
+    const body =
+      document.querySelector(
+        `[data-market-activity-body="${type}"]`
       );
 
-      /*
-       * Remove initial skeleton rows or an old
-       * empty/error message.
-       */
+    const table =
+      document.querySelector(
+        `[data-market-activity-table="${type}"]`
+      );
 
-      body.querySelectorAll("tr:not([data-market-symbol])").forEach((row) => {
-        row.remove();
-      });
+    if (!body) {
+      return;
+    }
 
-      const visibleSymbols = new Set();
+    /*
+     * Only real rendered rows have data-market-symbol.
+     *
+     * Initial skeleton rows therefore stay outside
+     * this keyed map and can be removed once.
+     */
 
-      items.forEach((item) => {
-        visibleSymbols.add(item.symbol);
+    const existingRows =
+      new Map(
+        Array.from(
+          body.querySelectorAll(
+            "tr[data-market-symbol]"
+          )
+        ).map(
+          (row) => [
+            row.dataset
+              .marketSymbol,
 
-        let row = existingRows.get(item.symbol);
+            row,
+          ]
+        )
+      );
 
-        const isNew = !row;
+    /*
+     * Remove skeleton rows or old status rows.
+     */
 
-        if (!row) {
-          row = createActivityRow(type, item);
-        }
-
-        updateActivityRow(row, type, item, {
-          initial: initial || isNew,
-        });
-
-        /*
-         * Appending an existing DOM node moves it.
-         *
-         * This allows server ranking changes without
-         * destroying every row.
-         */
-
-        body.appendChild(row);
-      });
-
-      /*
-       * Remove companies no longer returned by the
-       * endpoint.
-       */
-
-      existingRows.forEach((row, symbol) => {
-        if (!visibleSymbols.has(symbol)) {
+    body
+      .querySelectorAll(
+        "tr:not([data-market-symbol])"
+      )
+      .forEach(
+        (row) => {
           row.remove();
         }
-      });
+      );
 
-      table?.setAttribute("aria-busy", "false");
-    }
+    const visibleSymbols =
+      new Set();
 
-    /* ========================================================================
-     Mobile Activity Cards
-     ======================================================================== */
+    items.forEach(
+      (item) => {
+        visibleSymbols.add(
+          item.symbol
+        );
 
-    function createCardField(label, field) {
-      const wrapper = document.createElement("div");
+        let row =
+          existingRows.get(
+            item.symbol
+          );
 
-      wrapper.className = "data-card__field";
+        const isNew =
+          !row;
 
-      const term = document.createElement("dt");
+        if (!row) {
+          row =
+            createActivityRow(
+              type,
+              item
+            );
+        }
 
-      term.className = "data-card__label";
+        updateActivityRow(
+          row,
+          type,
+          item,
+          {
+            initial:
+              initial ||
+              isNew,
+          }
+        );
 
-      term.textContent = label;
+        /*
+         * appendChild() moves an existing node.
+         *
+         * Therefore backend ranking changes can be
+         * reflected without destroying every row.
+         */
 
-      const value = document.createElement("dd");
-
-      value.className = "data-card__value data-card__value--numeric";
-
-      value.dataset.marketCardState = field;
-
-      const data = document.createElement("data");
-
-      data.dataset.marketCardField = field;
-
-      if (field === "extra") {
-        data.classList.add("market-live-update");
+        body.appendChild(
+          row
+        );
       }
+    );
 
-      value.appendChild(data);
+    /*
+     * Remove companies that are no longer in the
+     * returned Top 4 result.
+     */
 
-      wrapper.append(term, value);
+    existingRows.forEach(
+      (
+        row,
+        symbol
+      ) => {
+        if (
+          !visibleSymbols.has(
+            symbol
+          )
+        ) {
+          row.remove();
+        }
+      }
+    );
 
-      return wrapper;
+    table?.setAttribute(
+      "aria-busy",
+      "false"
+    );
+  }
+
+    /* ==========================================================================
+     Mobile Card Creation / Update
+     ========================================================================== */
+
+  function createCardField(
+    label,
+    field
+  ) {
+    const wrapper =
+      document.createElement(
+        "div"
+      );
+
+    wrapper.className =
+      "data-card__field";
+
+    const term =
+      document.createElement(
+        "dt"
+      );
+
+    term.className =
+      "data-card__label";
+
+    term.textContent =
+      label;
+
+    const value =
+      document.createElement(
+        "dd"
+      );
+
+    value.className =
+      "data-card__value data-card__value--numeric";
+
+    value.dataset
+      .marketCardState =
+      field;
+
+    const data =
+      document.createElement(
+        "data"
+      );
+
+    data.dataset
+      .marketCardField =
+      field;
+
+    /*
+     * Volume / Value can receive temporary
+     * snapshot update feedback.
+     */
+
+    if (
+      field === "extra"
+    ) {
+      data.classList.add(
+        "market-live-update"
+      );
     }
 
-    function createActivityCard(type, item) {
-      const card = document.createElement("article");
+    value.appendChild(
+      data
+    );
 
-      card.className = "data-card data-card--compact";
+    wrapper.append(
+      term,
+      value
+    );
 
-      card.dataset.marketSymbol = item.symbol;
+    return wrapper;
+  }
 
-      const detailsId = `market-${sanitizeId(type)}-${sanitizeId(
-        item.symbol,
+  /* ==========================================================================
+     Create Mobile Activity Card
+     ========================================================================== */
+
+  function createActivityCard(
+    type,
+    item
+  ) {
+    const labels =
+      getActivityLabels(
+        type
+      );
+
+    const card =
+      document.createElement(
+        "article"
+      );
+
+    card.className =
+      "data-card data-card--compact";
+
+    card.dataset
+      .marketSymbol =
+      item.symbol;
+
+    const detailsId =
+      `market-${sanitizeId(
+        type
+      )}-${sanitizeId(
+        item.symbol
       )}-details`;
 
-      /* ------------------------------------------------------------------------
-       Main
+    /* ------------------------------------------------------------------------
+       Main Card
        ------------------------------------------------------------------------ */
 
-      const main = document.createElement("div");
+    const main =
+      document.createElement(
+        "div"
+      );
 
-      main.className = "data-card__main";
+    main.className =
+      "data-card__main";
 
-      /* ------------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
        Identity
        ------------------------------------------------------------------------ */
 
-      const identity = document.createElement("div");
-
-      identity.className = "data-card__identity";
-
-      identity.appendChild(
-        createWatchlistButton(item, {
-          mobile: true,
-        }),
+    const identity =
+      document.createElement(
+        "div"
       );
 
-      const identityContent = document.createElement("div");
+    identity.className =
+      "data-card__identity";
 
-      identityContent.className = "data-card__identity-content";
+    identity.appendChild(
+      createWatchlistButton(
+        item,
+        {
+          mobile: true,
+        }
+      )
+    );
 
-      const security = item.companyURL
-        ? document.createElement("a")
-        : document.createElement("div");
+    const identityContent =
+      document.createElement(
+        "div"
+      );
 
-      if (item.companyURL) {
-        security.className = "data-card__security-link";
+    identityContent.className =
+      "data-card__identity-content";
 
-        security.href = item.companyURL;
-      }
+    const security =
+      document.createElement(
+        item.companyURL
+          ? "a"
+          : "div"
+      );
 
-      const title = document.createElement("span");
+    if (
+      item.companyURL
+    ) {
+      security.className =
+        "data-card__security-link";
 
-      title.className = "data-card__title";
+      security.href =
+        item.companyURL;
+    }
 
-      title.textContent = item.companyName || item.symbol;
+    const title =
+      document.createElement(
+        "span"
+      );
 
-      const identityCode = document.createElement("span");
+    title.className =
+      "data-card__title";
 
-      identityCode.className = "data-card__identity-code";
+    title.textContent =
+      item.companyName ||
+      item.symbol;
 
-      const symbol = document.createElement("span");
+    const identityCode =
+      document.createElement(
+        "span"
+      );
 
-      symbol.className = "data-card__symbol";
+    identityCode.className =
+      "data-card__identity-code";
 
-      symbol.dir = "ltr";
+    const symbol =
+      document.createElement(
+        "span"
+      );
 
-      symbol.textContent = item.symbol;
+    symbol.className =
+      "data-card__symbol";
 
-      identityCode.appendChild(symbol);
+    symbol.dir =
+      "ltr";
 
-      security.append(title, identityCode);
+    symbol.textContent =
+      item.symbol;
 
-      identityContent.appendChild(security);
+    identityCode.appendChild(
+      symbol
+    );
 
-      identity.appendChild(identityContent);
+    security.append(
+      title,
+      identityCode
+    );
 
-      /* ------------------------------------------------------------------------
-       Main Quote
+    identityContent.appendChild(
+      security
+    );
+
+    identity.appendChild(
+      identityContent
+    );
+
+    /* ------------------------------------------------------------------------
+       Quote
        ------------------------------------------------------------------------ */
 
-      const quote = document.createElement("div");
+    const quote =
+      document.createElement(
+        "div"
+      );
 
-      quote.className = "data-card__quote";
+    quote.className =
+      "data-card__quote";
 
-      /* Price */
+    /* Price */
 
-      const priceQuote = document.createElement("div");
+    const priceItem =
+      document.createElement(
+        "div"
+      );
 
-      priceQuote.className = "data-card__quote-item";
+    priceItem.className =
+      "data-card__quote-item";
 
-      const priceLabel = document.createElement("span");
+    const priceLabel =
+      document.createElement(
+        "span"
+      );
 
-      priceLabel.className = "data-card__quote-label";
+    priceLabel.className =
+      "data-card__quote-label";
 
-      priceLabel.textContent = "Price";
+    priceLabel.textContent =
+      labels.price;
 
-      const price = document.createElement("data");
+    const price =
+      document.createElement(
+        "data"
+      );
 
-      price.className = "data-card__price market-live-update";
+    price.className =
+      "data-card__price market-live-update";
 
-      price.dataset.marketCardPrice = "";
+    price.dataset
+      .marketCardPrice =
+      "";
 
-      priceQuote.append(priceLabel, price);
+    priceItem.append(
+      priceLabel,
+      price
+    );
 
-      /* Change Percentage */
+    /* Change Percentage */
 
-      const percentQuote = document.createElement("div");
+    const percentItem =
+      document.createElement(
+        "div"
+      );
 
-      percentQuote.className = "data-card__quote-item";
+    percentItem.className =
+      "data-card__quote-item";
 
-      const percentLabel = document.createElement("span");
+    const percentLabel =
+      document.createElement(
+        "span"
+      );
 
-      percentLabel.className = "data-card__quote-label";
+    percentLabel.className =
+      "data-card__quote-label";
 
-      percentLabel.textContent = "Change %";
+    percentLabel.textContent =
+      labels.percent;
 
-      const percent = document.createElement("data");
+    const percent =
+      document.createElement(
+        "data"
+      );
 
-      percent.className = "data-card__change";
+    percent.className =
+      "data-card__change";
 
-      percent.dataset.marketCardPercent = "";
+    percent.dataset
+      .marketCardPercent =
+      "";
 
-      percentQuote.append(percentLabel, percent);
+    percentItem.append(
+      percentLabel,
+      percent
+    );
 
-      quote.append(priceQuote, percentQuote);
+    quote.append(
+      priceItem,
+      percentItem
+    );
 
-      main.append(identity, quote);
+    main.append(
+      identity,
+      quote
+    );
 
-      /* ------------------------------------------------------------------------
-       Detail Toggle
+    /* ------------------------------------------------------------------------
+       Details Toggle
        ------------------------------------------------------------------------ */
 
-      const toggle = document.createElement("button");
+    const toggle =
+      document.createElement(
+        "button"
+      );
 
-      toggle.className = "data-card__toggle";
+    toggle.className =
+      "data-card__toggle";
 
-      toggle.type = "button";
+    toggle.type =
+      "button";
 
-      toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute(
+      "aria-expanded",
+      "false"
+    );
 
-      toggle.setAttribute("aria-controls", detailsId);
+    toggle.setAttribute(
+      "aria-controls",
+      detailsId
+    );
 
-      toggle.dataset.marketCardToggle = "";
+    toggle.dataset
+      .marketCardToggle =
+      "";
 
-      const toggleIcon = document.createElement("span");
+    const toggleIcon =
+      document.createElement(
+        "span"
+      );
 
-      toggleIcon.className = "has-icon icon-chevron-down";
+    toggleIcon.className =
+      "has-icon icon-chevron-down";
 
-      toggleIcon.setAttribute("aria-hidden", "true");
+    toggleIcon.setAttribute(
+      "aria-hidden",
+      "true"
+    );
 
-      const toggleLabel = document.createElement("span");
+    const toggleLabel =
+      document.createElement(
+        "span"
+      );
 
-      toggleLabel.className = "data-card__toggle-label";
+    toggleLabel.className =
+      "data-card__toggle-label";
 
-      toggleLabel.textContent = "Show details";
+    toggleLabel.textContent =
+      "Show details";
 
-      toggle.append(toggleIcon, toggleLabel);
+    toggle.append(
+      toggleIcon,
+      toggleLabel
+    );
 
-      /* ------------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
        Details
        ------------------------------------------------------------------------ */
 
-      const details = document.createElement("div");
+    const details =
+      document.createElement(
+        "div"
+      );
 
-      details.id = detailsId;
+    details.id =
+      detailsId;
 
-      details.className = "data-card__details";
+    details.className =
+      "data-card__details";
 
-      details.hidden = true;
+    details.hidden =
+      true;
 
-      details.dataset.marketCardDetails = "";
+    details.dataset
+      .marketCardDetails =
+      "";
 
-      const fields = document.createElement("dl");
+    const fields =
+      document.createElement(
+        "dl"
+      );
 
-      fields.className = "data-card__fields";
+    fields.className =
+      "data-card__fields";
 
-      /* Change */
+    /* Change */
 
-      fields.appendChild(createCardField("Change", "change"));
+    fields.appendChild(
+      createCardField(
+        labels.change,
+        "change"
+      )
+    );
 
-      /* Volume / Value */
+    /* Volume / Value */
 
-      if (type === "volume" || type === "value") {
-        fields.appendChild(
-          createCardField(getActivityExtraLabel(type), "extra"),
-        );
-      }
-
-      /* 5 Day Performance */
-
-      const performanceField = document.createElement("div");
-
-      performanceField.className = "data-card__field data-card__field--full";
-
-      const performanceLabel = document.createElement("dt");
-
-      performanceLabel.className = "data-card__label";
-
-      performanceLabel.textContent = "5 Day Performance";
-
-      const performanceValue = document.createElement("dd");
-
-      performanceValue.className = "data-card__value";
-
-      performanceValue.appendChild(createPerformanceElement(item.performance));
-
-      performanceField.append(performanceLabel, performanceValue);
-
-      fields.appendChild(performanceField);
-
-      details.appendChild(fields);
-
-      card.append(main, toggle, details);
-
-      return card;
+    if (
+      type === "volume" ||
+      type === "value"
+    ) {
+      fields.appendChild(
+        createCardField(
+          labels.extra ||
+            getActivityExtraLabel(
+              type
+            ),
+          "extra"
+        )
+      );
     }
 
-    function updateActivityCard(card, type, item, { initial = false } = {}) {
-      card.dataset.marketSymbol = item.symbol;
+    /* Five-Day Performance */
 
-      card.dataset.companyStatus =
-        item.companyStatus === null ? "" : String(item.companyStatus);
+    const performanceField =
+      document.createElement(
+        "div"
+      );
 
-      /* ------------------------------------------------------------------------
+    performanceField.className =
+      "data-card__field data-card__field--full";
+
+    const performanceLabel =
+      document.createElement(
+        "dt"
+      );
+
+    performanceLabel.className =
+      "data-card__label";
+
+    performanceLabel.textContent =
+      labels.performance;
+
+    const performanceValue =
+      document.createElement(
+        "dd"
+      );
+
+    performanceValue.className =
+      "data-card__value";
+
+    performanceValue.appendChild(
+      createPerformanceElement(
+        item.performance
+      )
+    );
+
+    performanceField.append(
+      performanceLabel,
+      performanceValue
+    );
+
+    fields.appendChild(
+      performanceField
+    );
+
+    details.appendChild(
+      fields
+    );
+
+    card.append(
+      main,
+      toggle,
+      details
+    );
+
+    return card;
+  }
+
+  /* ==========================================================================
+     Update Mobile Activity Card
+     ========================================================================== */
+
+  function updateActivityCard(
+    card,
+    type,
+    item,
+    {
+      initial = false,
+    } = {}
+  ) {
+    card.dataset
+      .marketSymbol =
+      item.symbol;
+
+    card.dataset
+      .companyStatus =
+      item.companyStatus ===
+        null
+        ? ""
+        : String(
+            item.companyStatus
+          );
+
+    /* ------------------------------------------------------------------------
        Watchlist
        ------------------------------------------------------------------------ */
 
-      syncWatchlistButton(card.querySelector("[data-market-watchlist]"), item);
+    syncWatchlistButton(
+      card.querySelector(
+        "[data-market-watchlist]"
+      ),
+      item
+    );
 
-      /* ------------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
        Company
        ------------------------------------------------------------------------ */
 
-      const title = card.querySelector(".data-card__title");
+    const title =
+      card.querySelector(
+        ".data-card__title"
+      );
 
-      const symbol = card.querySelector(".data-card__symbol");
+    if (title) {
+      title.textContent =
+        item.companyName ||
+        item.symbol;
+    }
 
-      const securityLink = card.querySelector(".data-card__security-link");
+    const symbol =
+      card.querySelector(
+        ".data-card__symbol"
+      );
 
-      if (title) {
-        title.textContent = item.companyName || item.symbol;
-      }
+    if (symbol) {
+      symbol.textContent =
+        item.symbol;
+    }
 
-      if (symbol) {
-        symbol.textContent = item.symbol;
-      }
+    const securityLink =
+      card.querySelector(
+        ".data-card__security-link"
+      );
 
-      if (securityLink && item.companyURL) {
-        securityLink.href = item.companyURL;
-      }
+    if (
+      securityLink &&
+      item.companyURL
+    ) {
+      securityLink.href =
+        item.companyURL;
+    }
 
-      /* ------------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
        Price
        ------------------------------------------------------------------------ */
 
-      const price = card.querySelector("[data-market-card-price]");
-
-      setDataValue(
-        price,
-        item.lastTradedPrice,
-        item.lastTradedPrice === null
-          ? "—"
-          : priceFormatter.format(item.lastTradedPrice),
-        {
-          animate: !initial && item.lastTradedPrice !== null,
-        },
+    const price =
+      card.querySelector(
+        "[data-market-card-price]"
       );
 
-      /* ------------------------------------------------------------------------
-       Change Percentage
+    setDataValue(
+      price,
+
+      item.lastTradedPrice,
+
+      item.lastTradedPrice ===
+        null
+        ? "—"
+        : priceFormatter.format(
+            item.lastTradedPrice
+          ),
+
+      {
+        animate:
+          !initial &&
+          item.lastTradedPrice !==
+            null,
+      }
+    );
+
+    /* ------------------------------------------------------------------------
+       Change %
        ------------------------------------------------------------------------ */
 
-      const percent = card.querySelector("[data-market-card-percent]");
-
-      setDataValue(
-        percent,
-        item.netPercentChange,
-        item.netPercentChange === null
-          ? "—"
-          : `${signedPercentFormatter.format(item.netPercentChange)}%`,
+    const percent =
+      card.querySelector(
+        "[data-market-card-percent]"
       );
 
-      applyPriceState(percent, item.netPercentChange ?? 0);
+    setDataValue(
+      percent,
 
-      /* ------------------------------------------------------------------------
+      item.netPercentChange,
+
+      item.netPercentChange ===
+        null
+        ? "—"
+        : `${signedPercentFormatter.format(
+            item.netPercentChange
+          )}%`
+    );
+
+    applyPriceState(
+      percent,
+      item.netPercentChange ??
+        0
+    );
+
+    /* ------------------------------------------------------------------------
        Change
        ------------------------------------------------------------------------ */
 
-      const change = card.querySelector('[data-market-card-field="change"]');
-
-      setDataValue(
-        change,
-        item.netChange,
-        item.netChange === null
-          ? "—"
-          : signedPriceFormatter.format(item.netChange),
+    const change =
+      card.querySelector(
+        '[data-market-card-field="change"]'
       );
 
-      applyPriceState(
-        card.querySelector('[data-market-card-state="change"]'),
-        item.netChange ?? 0,
-      );
+    setDataValue(
+      change,
 
-      /* ------------------------------------------------------------------------
+      item.netChange,
+
+      item.netChange ===
+        null
+        ? "—"
+        : signedPriceFormatter.format(
+            item.netChange
+          )
+    );
+
+    applyPriceState(
+      card.querySelector(
+        '[data-market-card-state="change"]'
+      ),
+      item.netChange ??
+        0
+    );
+
+    /* ------------------------------------------------------------------------
        Volume / Value
        ------------------------------------------------------------------------ */
 
-      if (type === "volume" || type === "value") {
-        const extra = card.querySelector('[data-market-card-field="extra"]');
+    if (
+      type === "volume" ||
+      type === "value"
+    ) {
+      const extra =
+        card.querySelector(
+          '[data-market-card-field="extra"]'
+        );
 
-        const extraValue = getActivityExtraValue(type, item);
+      const extraValue =
+        getActivityExtraValue(
+          type,
+          item
+        );
 
-        setDataValue(extra, extraValue, formatActivityExtra(type, extraValue), {
-          animate: !initial && extraValue !== null,
-        });
-      }
+      setDataValue(
+        extra,
 
-      /* ------------------------------------------------------------------------
-       Five-day Performance
-       ------------------------------------------------------------------------ */
+        extraValue,
 
-      updatePerformanceElement(
-        card.querySelector(".market-activity-table__performance"),
-        item.performance,
+        formatActivityExtra(
+          type,
+          extraValue
+        ),
+
+        {
+          animate:
+            !initial &&
+            extraValue !==
+              null,
+        }
       );
     }
 
-    function renderActivityCards(type, items, { initial = false } = {}) {
-      const container = document.querySelector(
-        `[data-market-activity-cards="${type}"]`,
+    /* ------------------------------------------------------------------------
+       Five-Day Performance
+       ------------------------------------------------------------------------ */
+
+    updatePerformanceElement(
+      card.querySelector(
+        ".market-activity-table__performance"
+      ),
+      item.performance
+    );
+  }
+
+  /* ==========================================================================
+     Mobile Card Reconciliation
+     ========================================================================== */
+
+  function renderActivityCards(
+    type,
+    items,
+    {
+      initial = false,
+    } = {}
+  ) {
+    const container =
+      document.querySelector(
+        `[data-market-activity-cards="${type}"]`
       );
 
-      if (!container) {
-        return;
-      }
+    if (!container) {
+      return;
+    }
 
-      const existingCards = new Map(
-        Array.from(container.querySelectorAll("[data-market-symbol]")).map(
-          (card) => [card.dataset.marketSymbol, card],
-        ),
-      );
+    /* ------------------------------------------------------------------------
+       Existing Cards
+       ------------------------------------------------------------------------ */
 
-      /*
-       * Removes initial loading cards and any old
-       * empty/error message before rendering data.
-       */
+    const existingCards =
+      new Map(
+        Array.from(
+          container.querySelectorAll(
+            ".data-card[data-market-symbol]"
+          )
+        ).map(
+          (card) => [
+            card.dataset
+              .marketSymbol,
 
-      container
-        .querySelectorAll(
-          ".data-card:not([data-market-symbol]), .data-view__empty",
+            card,
+          ]
         )
-        .forEach((element) => {
+      );
+
+    /* ------------------------------------------------------------------------
+       Remove Initial Skeleton Cards / Message
+       ------------------------------------------------------------------------ */
+
+    container
+      .querySelectorAll(
+        [
+          ".data-card:not([data-market-symbol])",
+          ".data-view__empty",
+        ].join(", ")
+      )
+      .forEach(
+        (element) => {
           element.remove();
-        });
+        }
+      );
 
-      const visibleSymbols = new Set();
+    const visibleSymbols =
+      new Set();
 
-      items.forEach((item) => {
-        visibleSymbols.add(item.symbol);
+    /* ------------------------------------------------------------------------
+       Create / Update / Reorder
+       ------------------------------------------------------------------------ */
 
-        let card = existingCards.get(item.symbol);
+    items.forEach(
+      (item) => {
+        visibleSymbols.add(
+          item.symbol
+        );
 
-        const isNew = !card;
+        let card =
+          existingCards.get(
+            item.symbol
+          );
+
+        const isNew =
+          !card;
 
         if (!card) {
-          card = createActivityCard(type, item);
+          card =
+            createActivityCard(
+              type,
+              item
+            );
         }
 
-        updateActivityCard(card, type, item, {
-          initial: initial || isNew,
-        });
+        updateActivityCard(
+          card,
+          type,
+          item,
+          {
+            initial:
+              initial ||
+              isNew,
+          }
+        );
 
         /*
-         * Existing cards are moved into the new
-         * server-provided ranking rather than all
-         * cards being destroyed/recreated.
+         * appendChild() moves existing cards into the
+         * latest backend order without rebuilding them.
          */
 
-        container.appendChild(card);
-      });
+        container.appendChild(
+          card
+        );
+      }
+    );
 
-      existingCards.forEach((card, symbol) => {
-        if (!visibleSymbols.has(symbol)) {
-          card.remove();
-        }
-      });
-    }
-
-    /* ========================================================================
-     Activity Empty / Error States
-     ======================================================================== */
-
-    function renderActivityMessage(type, message) {
-      const body = document.querySelector(
-        `[data-market-activity-body="${type}"]`,
-      );
-
-      const cards = document.querySelector(
-        `[data-market-activity-cards="${type}"]`,
-      );
-
-      /* ------------------------------------------------------------------------
-       Table
+    /* ------------------------------------------------------------------------
+       Remove Securities No Longer Returned
        ------------------------------------------------------------------------ */
 
-      if (body) {
-        body.replaceChildren();
-
-        /*
-         * table-loading IS appropriate here.
-         *
-         * This is one single full-width message row,
-         * not one class per skeleton row.
-         */
-
-        const row = document.createElement("tr");
-
-        row.className = "table-loading";
-
-        const cell = document.createElement("td");
-
-        cell.colSpan = getActivityColumnCount(type);
-
-        cell.textContent = message;
-
-        row.appendChild(cell);
-
-        body.appendChild(row);
+    existingCards.forEach(
+      (
+        card,
+        symbol
+      ) => {
+        if (
+          !visibleSymbols.has(
+            symbol
+          )
+        ) {
+          card.remove();
+        }
       }
+    );
+  }
 
-      /* ------------------------------------------------------------------------
+  /* ==========================================================================
+     Activity Empty / Error Message
+     ========================================================================== */
+
+  function renderActivityMessage(
+    type,
+    message
+  ) {
+    const body =
+      document.querySelector(
+        `[data-market-activity-body="${type}"]`
+      );
+
+    const cards =
+      document.querySelector(
+        `[data-market-activity-cards="${type}"]`
+      );
+
+    /* ------------------------------------------------------------------------
+       Desktop
+       ------------------------------------------------------------------------ */
+
+    if (body) {
+      body.replaceChildren();
+
+      const row =
+        document.createElement(
+          "tr"
+        );
+
+      /*
+       * Correct use of table-loading:
+       *
+       * one complete status row only.
+       *
+       * Skeleton rows never receive this class.
+       */
+
+      row.className =
+        "table-loading";
+
+      const cell =
+        document.createElement(
+          "td"
+        );
+
+      cell.colSpan =
+        getActivityColumnCount(
+          type
+        );
+
+      cell.textContent =
+        message;
+
+      row.appendChild(
+        cell
+      );
+
+      body.appendChild(
+        row
+      );
+    }
+
+    /* ------------------------------------------------------------------------
        Mobile
        ------------------------------------------------------------------------ */
 
-      if (cards) {
-        cards.replaceChildren();
+    if (cards) {
+      cards.replaceChildren();
 
-        const messageElement = document.createElement("p");
+      const messageElement =
+        document.createElement(
+          "p"
+        );
 
-        messageElement.className = "data-view__empty";
+      messageElement.className =
+        "data-view__empty";
 
-        messageElement.textContent = message;
+      messageElement.textContent =
+        message;
 
-        cards.appendChild(messageElement);
-      }
+      cards.appendChild(
+        messageElement
+      );
+    }
+  }
+
+  /* ==========================================================================
+     Complete Activity Loading
+     ========================================================================== */
+
+  function completeActivityLoading(
+    type
+  ) {
+    getActivityView(
+      type
+    )?.setAttribute(
+      "aria-busy",
+      "false"
+    );
+
+    document
+      .querySelector(
+        `[data-market-activity-table="${type}"]`
+      )
+      ?.setAttribute(
+        "aria-busy",
+        "false"
+      );
+  }
+
+  /* ==========================================================================
+     Load Activity Dataset
+     ========================================================================== */
+
+  async function loadActivity(
+    type,
+    {
+      force = false,
+    } = {}
+  ) {
+    if (
+      !ACTIVITY_TYPES.includes(
+        type
+      )
+    ) {
+      return;
     }
 
-    function completeActivityLoading(type) {
-      document
-        .querySelector(`[data-market-activity-view="${type}"]`)
-        ?.setAttribute("aria-busy", "false");
+    const activityState =
+      state.activity[type];
 
-      document
-        .querySelector(`[data-market-activity-table="${type}"]`)
-        ?.setAttribute("aria-busy", "false");
+    /* ------------------------------------------------------------------------
+       Lazy Loading
+       ------------------------------------------------------------------------ */
+
+    if (
+      activityState.loaded &&
+      !force
+    ) {
+      return;
     }
 
-    /* ========================================================================
-     Activity Requests
-     ======================================================================== */
+    /* ------------------------------------------------------------------------
+       Configured JSP Endpoint
+       ------------------------------------------------------------------------ */
 
-    async function loadActivity(type, { force = false } = {}) {
-      if (!ACTIVITY_TYPES.includes(type)) {
-        return;
+    const endpoint =
+      getActivityUrl(
+        type
+      );
+
+    if (!endpoint) {
+      console.error(
+        `Main Market: activity endpoint is missing for "${type}".`
+      );
+
+      if (
+        !activityState.loaded
+      ) {
+        renderActivityMessage(
+          type,
+          "Market data is temporarily unavailable."
+        );
+
+        completeActivityLoading(
+          type
+        );
       }
 
-      const activityState = state.activity[type];
+      return;
+    }
+
+    /* ------------------------------------------------------------------------
+       Cancel Stale Request
+       ------------------------------------------------------------------------ */
+
+    activityState.request
+      ?.abort();
+
+    /*
+     * Important:
+     *
+     * Do not rebuild or modify the resource URL.
+     *
+     * Pass the portlet URL exactly as JSP generated it,
+     * and allow jQuery to serialize requestLocale.
+     */
+
+    const request =
+      ajaxJson(
+        endpoint,
+        {
+          data: {
+            requestLocale:
+              getRequestLocale(),
+          },
+        }
+      );
+
+    activityState.request =
+      request;
+
+    const initial =
+      !activityState.loaded;
+
+    try {
+      /* ----------------------------------------------------------------------
+         Response
+         ---------------------------------------------------------------------- */
+
+      const payload =
+        await request.promise;
 
       /*
-       * First load is lazy.
+       * Preserve backend ranking.
        *
-       * Once loaded, force=true allows a refresh.
+       * Do not client-sort Gainers, Losers,
+       * Volume or Value.
        */
 
-      if (activityState.loaded && !force) {
-        return;
-      }
+      const items =
+        normalizeActivityResponse(
+          payload
+        ).slice(
+          0,
+          ACTIVITY_LIMIT
+        );
 
-      const baseUrl = getActivityUrl(type);
+      /* ----------------------------------------------------------------------
+         Empty Response
+         ---------------------------------------------------------------------- */
 
-      if (!baseUrl) {
-        console.error(`Market activity URL is missing for ${type}.`);
+      if (
+        !items.length
+      ) {
+        /*
+         * Initial empty response:
+         *
+         * replace skeletons with an empty state.
+         *
+         * Subsequent empty response:
+         *
+         * keep the last successfully rendered data.
+         */
 
-        if (!activityState.loaded) {
+        if (
+          !activityState.loaded
+        ) {
+          activityState.loaded =
+            true;
+
+          activityState.items =
+            new Map();
+
           renderActivityMessage(
             type,
-            "Market data is temporarily unavailable.",
+            "No market activity is available."
           );
 
-          completeActivityLoading(type);
+          completeActivityLoading(
+            type
+          );
         }
 
         return;
       }
+
+      /* ----------------------------------------------------------------------
+         Runtime Item Map
+         ---------------------------------------------------------------------- */
+
+      activityState.items =
+        new Map(
+          items.map(
+            (item) => [
+              item.symbol,
+              item,
+            ]
+          )
+        );
+
+      /* ----------------------------------------------------------------------
+         Desktop
+         ---------------------------------------------------------------------- */
+
+      renderActivityTable(
+        type,
+        items,
+        {
+          initial,
+        }
+      );
+
+      /* ----------------------------------------------------------------------
+         Mobile
+         ---------------------------------------------------------------------- */
+
+      renderActivityCards(
+        type,
+        items,
+        {
+          initial,
+        }
+      );
+
+      activityState.loaded =
+        true;
+
+      completeActivityLoading(
+        type
+      );
+    } catch (error) {
+      /* ----------------------------------------------------------------------
+         Request Aborted
+         ---------------------------------------------------------------------- */
+
+      if (
+        error.name ===
+        "AbortError"
+      ) {
+        return;
+      }
+
+      console.error(
+        `Unable to load ${type} market activity:`,
+        error
+      );
 
       /*
-       * Prevent overlapping/stale requests for the
-       * same dataset.
+       * Initial failure:
+       *
+       * remove the skeleton state and show unavailable.
+       *
+       * Later refresh failure:
+       *
+       * preserve the previously successful result.
        */
 
-      activityState.controller?.abort();
+      if (
+        !activityState.loaded
+      ) {
+        renderActivityMessage(
+          type,
+          "Market data is temporarily unavailable."
+        );
 
-      const controller = new AbortController();
-
-      activityState.controller = controller;
-
-      const initial = !activityState.loaded;
-
-      try {
-        const payload = await requestJson(buildResourceUrl(baseUrl), {
-          signal: controller.signal,
-        });
-
-        const items = normalizeActivityResponse(payload);
-
-        /*
-         * Keep the normalized backend objects available
-         * for interactions such as watchlist actions.
-         */
-
-        activityState.items = new Map(items.map((item) => [item.symbol, item]));
-
-        if (!items.length) {
-          renderActivityMessage(type, "No market activity is available.");
-
-          activityState.loaded = true;
-
-          completeActivityLoading(type);
-
-          return;
-        }
-
-        renderActivityTable(type, items, {
-          initial,
-        });
-
-        renderActivityCards(type, items, {
-          initial,
-        });
-
-        activityState.loaded = true;
-
-        completeActivityLoading(type);
-      } catch (error) {
-        if (error.name === "AbortError") {
-          return;
-        }
-
-        console.error(`Unable to load ${type} market activity:`, error);
-
-        /*
-         * Initial failure:
-         * replace skeleton with unavailable message.
-         *
-         * Refresh failure:
-         * keep previous successful values visible.
-         */
-
-        if (!activityState.loaded) {
-          renderActivityMessage(
-            type,
-            "Market data is temporarily unavailable.",
-          );
-
-          completeActivityLoading(type);
-        }
-      } finally {
-        if (activityState.controller === controller) {
-          activityState.controller = null;
-        }
+        completeActivityLoading(
+          type
+        );
+      }
+    } finally {
+      if (
+        activityState.request ===
+        request
+      ) {
+        activityState.request =
+          null;
       }
     }
+  }
 
-    /* ========================================================================
-     Tabs / Active Dataset
-     ======================================================================== */
+  /* ==========================================================================
+     Activity Tab Helpers
+     ========================================================================== */
 
-    function getActivityTypeFromTab(tab) {
-      const target = tab?.getAttribute("data-tab-target");
-
-      if (!target) {
-        return null;
-      }
-
-      const match = target.match(
-        /^activity-(gainers|losers|volume|value)-panel$/,
+  function getActivityTypeFromTab(
+    tab
+  ) {
+    const target =
+      tab?.getAttribute(
+        "data-tab-target"
       );
 
-      return match?.[1] || null;
+    if (!target) {
+      return null;
     }
 
-    function getActiveActivityType() {
-      const activeTab = document.querySelector(
-        '.market-activity__tab[aria-selected="true"]',
+    const match =
+      target.match(
+        /^activity-(gainers|losers|volume|value)-panel$/
       );
 
-      return getActivityTypeFromTab(activeTab) || "gainers";
+    return (
+      match?.[1] ||
+      null
+    );
+  }
+
+  function getActiveActivityType() {
+    const selectedTab =
+      document.querySelector(
+        '.market-activity__tab[aria-selected="true"]'
+      );
+
+    const activeTab =
+      selectedTab ||
+      document.querySelector(
+        ".market-activity__tab.active"
+      );
+
+    return (
+      getActivityTypeFromTab(
+        activeTab
+      ) ||
+      "gainers"
+    );
+  }
+
+  /* ==========================================================================
+     Mobile Card Details
+     ========================================================================== */
+
+  function toggleCardDetails(
+    button
+  ) {
+    const card =
+      button.closest(
+        ".data-card"
+      );
+
+    if (!card) {
+      return;
     }
 
-    /* ========================================================================
-     Mobile Card Expansion
-     ======================================================================== */
+    const details =
+      card.querySelector(
+        "[data-market-card-details]"
+      );
 
-    function toggleCardDetails(button) {
-      const card = button.closest(".data-card");
-
-      if (!card) {
-        return;
-      }
-
-      const details = card.querySelector("[data-market-card-details]");
-
-      if (!details) {
-        return;
-      }
-
-      const expanded = button.getAttribute("aria-expanded") === "true";
-
-      const nextExpanded = !expanded;
-
-      button.setAttribute("aria-expanded", String(nextExpanded));
-
-      details.hidden = !nextExpanded;
-
-      card.classList.toggle("is-expanded", nextExpanded);
-
-      const label = button.querySelector(".data-card__toggle-label");
-
-      if (label) {
-        label.textContent = nextExpanded ? "Hide details" : "Show details";
-      }
+    if (!details) {
+      return;
     }
 
-    /* ========================================================================
-     Event Delegation
-     ======================================================================== */
+    const expanded =
+      button.getAttribute(
+        "aria-expanded"
+      ) !== "true";
 
-    document.addEventListener("click", (event) => {
+    button.setAttribute(
+      "aria-expanded",
+      String(
+        expanded
+      )
+    );
+
+    details.hidden =
+      !expanded;
+
+    card.classList.toggle(
+      "is-expanded",
+      expanded
+    );
+
+    const label =
+      button.querySelector(
+        ".data-card__toggle-label"
+      );
+
+    if (label) {
+      label.textContent =
+        expanded
+          ? "Hide details"
+          : "Show details";
+    }
+  }
+
+  /* ==========================================================================
+     Resolve Watchlist Item From DOM
+     ========================================================================== */
+
+  function getActivityItemFromElement(
+    element
+  ) {
+    const view =
+      element.closest(
+        "[data-market-activity-view]"
+      );
+
+    if (!view) {
+      return null;
+    }
+
+    const type =
+      view.getAttribute(
+        "data-market-activity-view"
+      );
+
+    if (
+      !ACTIVITY_TYPES.includes(
+        type
+      )
+    ) {
+      return null;
+    }
+
+    const symbol =
+      element.getAttribute(
+        "data-market-watchlist"
+      );
+
+    if (!symbol) {
+      return null;
+    }
+
+    return (
+      state.activity[type]
+        .items.get(
+          symbol
+        ) ||
+      null
+    );
+  }
+
+  /* ==========================================================================
+     Delegated Activity Events
+     ========================================================================== */
+
+  document.addEventListener(
+    "click",
+    (event) => {
       /* ----------------------------------------------------------------------
          Activity Tab
          ---------------------------------------------------------------------- */
 
-      const tab = event.target.closest(
-        ".market-activity__tab[data-tab-target]",
-      );
+      const tab =
+        event.target.closest(
+          ".market-activity__tab[data-tab-target]"
+        );
 
       if (tab) {
-        const type = getActivityTypeFromTab(tab);
+        const type =
+          getActivityTypeFromTab(
+            tab
+          );
 
         if (type) {
           /*
@@ -4659,24 +6618,35 @@
            * load the dataset.
            *
            * Later visits:
-           * refresh it immediately so the user does
-           * not see an old cached tab.
+           * refresh immediately.
            */
 
-          loadActivity(type, {
-            force: state.activity[type].loaded,
-          });
+          loadActivity(
+            type,
+            {
+              force:
+                state.activity[type]
+                  .loaded,
+            }
+          );
         }
       }
 
       /* ----------------------------------------------------------------------
-         Mobile Details
+         Card Details
          ---------------------------------------------------------------------- */
 
-      const cardToggle = event.target.closest("[data-market-card-toggle]");
+      const cardToggle =
+        event.target.closest(
+          "[data-market-card-toggle]"
+        );
 
       if (cardToggle) {
-        toggleCardDetails(cardToggle);
+        event.preventDefault();
+
+        toggleCardDetails(
+          cardToggle
+        );
 
         return;
       }
@@ -4685,145 +6655,328 @@
          Watchlist
          ---------------------------------------------------------------------- */
 
-      const watchlistButton = event.target.closest("[data-market-watchlist]");
+      const watchlistButton =
+        event.target.closest(
+          "[data-market-watchlist]"
+        );
 
-      if (!watchlistButton) {
+      if (
+        !watchlistButton
+      ) {
         return;
       }
 
-      const symbol = watchlistButton.dataset.marketWatchlist;
+      event.preventDefault();
 
-      const type = ACTIVITY_TYPES.find((activityType) =>
-        document
-          .querySelector(`[data-market-activity-view="${activityType}"]`)
-          ?.contains(watchlistButton),
+      const item =
+        getActivityItemFromElement(
+          watchlistButton
+        );
+
+      handleWatchlist(
+        item
       );
+    }
+  );
 
-      if (!type || !symbol) {
-        return;
-      }
+  /* ==========================================================================
+     Refresh Visible Market Data
+     ========================================================================== */
 
-      const item = state.activity[type].items.get(symbol);
+  async function refreshVisibleMarketData() {
+    if (
+      document.hidden
+    ) {
+      return;
+    }
 
-      handleWatchlist(item);
-    });
+    const activeType =
+      getActiveActivityType();
 
-    /* ========================================================================
-     Production Refresh Cycle
-     ======================================================================== */
+    /*
+     * Hero refreshes every cycle.
+     *
+     * Only the currently visible Activity dataset
+     * refreshes automatically.
+     *
+     * Hidden tabs refresh when opened.
+     */
 
-    async function refreshVisibleMarketData() {
-      if (document.hidden) {
-        return;
-      }
-
-      const activeType = getActiveActivityType();
-
-      /*
-       * Hero always refreshes.
-       *
-       * Only the currently visible activity dataset
-       * refreshes automatically.
-       *
-       * Inactive tabs refresh when opened.
-       */
-
-      await Promise.allSettled([
+    await Promise.allSettled(
+      [
         loadMarketIndex({
           initial: false,
         }),
 
-        loadActivity(activeType, {
-          force: true,
-        }),
-      ]);
+        loadActivity(
+          activeType,
+          {
+            force: true,
+          }
+        ),
+      ]
+    );
+  }
+
+  /* ==========================================================================
+     Refresh Timer
+     ========================================================================== */
+
+  function stopRefreshTimer() {
+    if (
+      state.refreshTimer ===
+      null
+    ) {
+      return;
     }
 
-    function stopRefreshTimer() {
-      if (!state.refreshTimer) {
-        return;
-      }
+    window.clearInterval(
+      state.refreshTimer
+    );
 
-      window.clearInterval(state.refreshTimer);
+    state.refreshTimer =
+      null;
+  }
 
-      state.refreshTimer = null;
+  function startRefreshTimer() {
+    stopRefreshTimer();
+
+    if (
+      document.hidden
+    ) {
+      return;
     }
 
-    function startRefreshTimer() {
-      stopRefreshTimer();
-
-      state.refreshTimer = window.setInterval(
+    state.refreshTimer =
+      window.setInterval(
         refreshVisibleMarketData,
-        REFRESH_INTERVAL,
+        REFRESH_INTERVAL
       );
-    }
+  }
 
-    /* ========================================================================
+  /* ==========================================================================
+     Abort Current Requests
+     ========================================================================== */
+
+  function abortCurrentRequests() {
+    state.index.request
+      ?.abort();
+
+    ACTIVITY_TYPES.forEach(
+      (type) => {
+        state.activity[type]
+          .request?.abort();
+      }
+    );
+  }
+
+  /* ==========================================================================
      Page Visibility
-     ======================================================================== */
+     ========================================================================== */
 
-    document.addEventListener("visibilitychange", () => {
-      if (!state.started) {
+  document.addEventListener(
+    "visibilitychange",
+    () => {
+      if (
+        !state.started
+      ) {
         return;
       }
 
-      if (document.hidden) {
+      /* ----------------------------------------------------------------------
+         Page Hidden
+         ---------------------------------------------------------------------- */
+
+      if (
+        document.hidden
+      ) {
         stopRefreshTimer();
 
-        /*
-         * Abort requests that no longer need to finish
-         * while the user is away.
-         */
-
-        state.index.controller?.abort();
-
-        ACTIVITY_TYPES.forEach((type) => {
-          state.activity[type].controller?.abort();
-        });
+        abortCurrentRequests();
 
         return;
       }
 
+      /* ----------------------------------------------------------------------
+         Page Visible Again
+         ---------------------------------------------------------------------- */
+
       /*
-       * User returned:
-       *
-       * refresh immediately, then restart the normal
-       * 60-second cadence.
+       * Refresh immediately after returning instead
+       * of waiting for the next 60-second interval.
        */
 
       refreshVisibleMarketData();
 
       startRefreshTimer();
-    });
+    }
+  );
 
-    /* ========================================================================
-     Start
-     ======================================================================== */
+  /* ==========================================================================
+     Page Hide Cleanup
+     ========================================================================== */
 
-    async function initialize() {
-      state.started = true;
+  window.addEventListener(
+    "pagehide",
+    () => {
+      stopRefreshTimer();
 
-      /*
-       * Initial page load:
-       *
-       * - TASI loads immediately.
-       * - Gainers loads immediately because it is the
-       *   default selected activity tab.
-       * - Losers / Volume / Value remain skeletons until
-       *   the user opens those tabs.
-       */
+      abortCurrentRequests();
+    }
+  );
 
-      await Promise.allSettled([
+  /* ==========================================================================
+     Configuration / Markup Validation
+     ========================================================================== */
+
+  function validateConfiguration() {
+    if (
+      !window.MainMarketConfig
+    ) {
+      console.warn(
+        [
+          "Main Market: window.MainMarketConfig is missing.",
+          "Activity requests require JSP configuration.",
+        ].join(" ")
+      );
+    }
+
+    ACTIVITY_TYPES.forEach(
+      (type) => {
+        /* --------------------------------------------------------------------
+           Activity View
+           -------------------------------------------------------------------- */
+
+        if (
+          !getActivityView(
+            type
+          )
+        ) {
+          console.warn(
+            `Main Market: missing activity view "${type}".`
+          );
+        }
+
+        /* --------------------------------------------------------------------
+           Endpoint
+           -------------------------------------------------------------------- */
+
+        if (
+          !getActivityUrl(
+            type
+          )
+        ) {
+          console.warn(
+            `Main Market: missing configured endpoint for "${type}".`
+          );
+        }
+
+        /* --------------------------------------------------------------------
+           Desktop Body
+           -------------------------------------------------------------------- */
+
+        if (
+          !document.querySelector(
+            `[data-market-activity-body="${type}"]`
+          )
+        ) {
+          console.warn(
+            `Main Market: missing activity tbody "${type}".`
+          );
+        }
+
+        /* --------------------------------------------------------------------
+           Mobile Cards
+           -------------------------------------------------------------------- */
+
+        if (
+          !document.querySelector(
+            `[data-market-activity-cards="${type}"]`
+          )
+        ) {
+          console.warn(
+            `Main Market: missing activity cards container "${type}".`
+          );
+        }
+      }
+    );
+  }
+
+  /* ==========================================================================
+     Initialize Main Market
+     ========================================================================== */
+
+  async function initializeMainMarket() {
+    if (
+      state.started
+    ) {
+      return;
+    }
+
+    state.started =
+      true;
+
+    validateConfiguration();
+
+    /*
+     * Initial requests:
+     *
+     * Hero:
+     * load immediately.
+     *
+     * Gainers:
+     * load immediately because it is the initial tab.
+     *
+     * Losers / Volume / Value:
+     * remain in their skeleton state until opened.
+     */
+
+    await Promise.allSettled(
+      [
         loadMarketIndex({
           initial: true,
         }),
 
-        loadActivity("gainers"),
-      ]);
+        loadActivity(
+          "gainers"
+        ),
+      ]
+    );
 
-      startRefreshTimer();
-    }
+    startRefreshTimer();
+  }
 
-    initialize();
-  })();
+  /* ==========================================================================
+     Start
+     ========================================================================== */
+
+  /*
+   * Supports both:
+   *
+   * <script src="..." defer></script>
+   *
+   * and a script included after page markup.
+   */
+
+  if (
+    document.readyState ===
+    "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      initializeMainMarket,
+      {
+        once: true,
+      }
+    );
+  } else {
+    initializeMainMarket();
+  }
+
+  /* ==========================================================================
+     End Main Market
+     ========================================================================== */
+
+})();
+
 </script>
