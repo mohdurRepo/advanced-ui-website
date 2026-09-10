@@ -4,18 +4,29 @@
    Main Market Dashboard
    ========================================================================== */
 
+/*
+ * Owns the Main Market dashboard composition:
+ *
+ * - dashboard surface
+ * - chart / activity two-column layout
+ * - equal-height regions
+ * - six trading-summary metrics
+ * - responsive dashboard layout
+ *
+ * Chart internals, activity internals and live-update states are owned by
+ * their respective components.
+ */
+
 .market-dashboard {
   --market-dashboard-bg: var(--color-bg);
   --market-dashboard-fg: var(--color-text);
 
   --market-dashboard-surface-bg: var(--color-surface-alt);
-
   --market-dashboard-surface-border: var(--color-border);
 
   --market-dashboard-surface-space: clamp(1rem, 2vw, 1.5rem);
 
   --market-dashboard-gap: clamp(1.25rem, 2.5vw, 2rem);
-
   --market-dashboard-section-gap: clamp(0.875rem, 1.5vw, 1.25rem);
 
   position: relative;
@@ -54,24 +65,32 @@
    ========================================================================== */
 
 /*
- * CSS Grid owns equal-height behavior.
+ * CSS Grid owns the equal-height relationship between Performance and
+ * Today’s Activity.
  *
- * No child uses percentage block sizes, preventing circular height
- * calculations between the dashboard, Performance Chart and Highcharts.
+ * Avoid block-size: 100% on the children. The chart viewport already owns its
+ * minimum drawing height and percentage heights could create circular sizing
+ * with Highcharts.
  */
 
 .market-dashboard__grid {
   display: grid;
+
   grid-template-columns:
     minmax(0, 3fr)
     minmax(26rem, 2fr);
 
   align-items: stretch;
+
   gap: var(--market-dashboard-gap);
 
   min-inline-size: 0;
   min-block-size: 0;
 }
+
+/* ==========================================================================
+   Single-Region Safety
+   ========================================================================== */
 
 .market-dashboard__grid > :only-child {
   grid-column: 1 / -1;
@@ -94,12 +113,13 @@
    ========================================================================== */
 
 /*
- * The Primary region is itself a one-cell grid. Its Performance Chart
- * stretches naturally without block-size: 100%.
+ * The Primary region is a one-cell grid so its Performance Chart stretches
+ * naturally to the same row height as Today’s Activity.
  */
 
 .market-dashboard__primary {
   display: grid;
+
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
 }
@@ -134,7 +154,6 @@
   --market-dashboard-metric-bg: var(--color-surface);
 
   --market-dashboard-metric-label: var(--color-text-muted);
-
   --market-dashboard-metric-value: var(--color-heading);
 
   display: grid;
@@ -197,6 +216,10 @@
   text-wrap: balance;
 }
 
+/* ==========================================================================
+   Semantic Metric Labels
+   ========================================================================== */
+
 .market-dashboard__metric-label.price-up {
   color: var(--color-success);
 
@@ -233,6 +256,10 @@
   unicode-bidi: isolate;
 }
 
+/* ==========================================================================
+   Semantic Metric Values
+   ========================================================================== */
+
 .market-dashboard__metric-value.price-up {
   color: var(--color-success);
 }
@@ -242,13 +269,25 @@
 }
 
 /* ==========================================================================
+   Numeric Content
+   ========================================================================== */
+
+.market-dashboard__metric-value :where(data, output),
+.market-dashboard__metric-value:where(data, output) {
+  font-variant-numeric: tabular-nums;
+
+  unicode-bidi: isolate;
+}
+
+/* ==========================================================================
    Child Safety
    ========================================================================== */
 
 .market-dashboard__surface > *,
 .market-dashboard__grid > *,
 .market-dashboard__primary > *,
-.market-dashboard__secondary > * {
+.market-dashboard__secondary > *,
+.market-dashboard__metrics > * {
   min-inline-size: 0;
   min-block-size: 0;
 }
@@ -262,13 +301,16 @@
     --market-dashboard-gap: 1.5rem;
   }
 
+  /*
+   * Chart and Today’s Activity stack at this width.
+   */
+
   .market-dashboard__grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
   /*
-   * The dashboard is one column at this width, leaving sufficient horizontal
-   * room for all six summary metrics.
+   * There is still sufficient horizontal room for all six metrics.
    */
 
   .market-dashboard__metrics {
@@ -293,10 +335,14 @@
   .market-dashboard__metric {
     min-block-size: 5rem;
 
-    padding: 0.875rem 1rem;
+    padding-block: 0.875rem;
+    padding-inline: 1rem;
+
+    /*
+     * Reset desktop borders for the 3 × 2 layout.
+     */
 
     border-block-start: 1px solid var(--market-dashboard-metric-border);
-
     border-inline-start: 1px solid var(--market-dashboard-metric-border);
 
     /*
@@ -308,7 +354,7 @@
     }
 
     /*
-     * First metric in each tablet row.
+     * First item in each tablet row.
      */
 
     &:nth-child(3n + 1) {
@@ -338,11 +384,10 @@
     padding: 0.75rem;
 
     /*
-     * Reset tablet border placement.
+     * Reset tablet borders for the 2 × 3 layout.
      */
 
     border-block-start: 1px solid var(--market-dashboard-metric-border);
-
     border-inline-start: 1px solid var(--market-dashboard-metric-border);
 
     /*
@@ -354,7 +399,7 @@
     }
 
     /*
-     * First metric in each mobile row.
+     * First item in each mobile row.
      */
 
     &:nth-child(odd) {
@@ -407,8 +452,48 @@ html[data-contrast="high"] {
   }
 
   .market-dashboard__metric-label,
-  .market-dashboard__metric-value {
+  .market-dashboard__metric-value,
+  .market-dashboard__metric-label.price-up,
+  .market-dashboard__metric-label.price-down,
+  .market-dashboard__metric-value.price-up,
+  .market-dashboard__metric-value.price-down {
     color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .market-dashboard {
+    background: Canvas;
+    color: CanvasText;
+
+    forced-color-adjust: auto;
+  }
+
+  .market-dashboard__surface,
+  .market-dashboard__metrics {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+  }
+
+  .market-dashboard__metric {
+    border-color: CanvasText;
+  }
+
+  .market-dashboard__metric-label,
+  .market-dashboard__metric-value,
+  .market-dashboard__metric-label.price-up,
+  .market-dashboard__metric-label.price-down,
+  .market-dashboard__metric-value.price-up,
+  .market-dashboard__metric-value.price-down {
+    color: CanvasText;
   }
 }
 
@@ -430,8 +515,13 @@ html[data-contrast="high"] {
     background: transparent;
   }
 
+  /*
+   * Stack the chart and activity for predictable page-width printing.
+   */
+
   .market-dashboard__grid {
     grid-template-columns: minmax(0, 1fr);
+
     align-items: start;
   }
 
@@ -440,10 +530,16 @@ html[data-contrast="high"] {
     align-self: start;
   }
 
+  /*
+   * Metrics print as two rows of three.
+   */
+
   .market-dashboard__metrics {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 
     break-inside: avoid;
+
+    overflow: visible;
 
     border-color: #000000;
 
@@ -464,7 +560,11 @@ html[data-contrast="high"] {
   }
 
   .market-dashboard__metric-label,
-  .market-dashboard__metric-value {
+  .market-dashboard__metric-value,
+  .market-dashboard__metric-label.price-up,
+  .market-dashboard__metric-label.price-down,
+  .market-dashboard__metric-value.price-up,
+  .market-dashboard__metric-value.price-down {
     color: #000000;
   }
 }

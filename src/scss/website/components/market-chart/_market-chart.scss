@@ -64,7 +64,6 @@
   --chart-navigator-mask-opacity: 0.06;
   --chart-navigator-outline-opacity: 0.22;
   --chart-navigator-handle-border-opacity: 0.52;
-
   --chart-navigator-handle-bg: var(--color-surface);
 
   /* Layout */
@@ -209,6 +208,7 @@
     color: var(--chart-text) !important;
   }
 }
+
 /* ==========================================================================
    Axes and Grid
    ========================================================================== */
@@ -299,8 +299,8 @@
 .market-chart {
   /*
    * Navigator colors are owned by market-chart-theme.js.
-   * Avoid fill and stroke declarations here because they would override
-   * Highcharts runtime colors and break semantic up/down direction.
+   * Avoid fill/stroke overrides here because they would override
+   * Highcharts runtime colors and break semantic direction.
    */
 
   .highcharts-navigator-series {
@@ -370,6 +370,7 @@
 
   pointer-events: none;
 }
+
 /* ==========================================================================
    Custom Tooltip
    ========================================================================== */
@@ -390,7 +391,6 @@
   overflow: hidden;
 
   border: 1px solid var(--chart-tooltip-border);
-
   border-radius: var(--radius-lg);
 
   background: var(--chart-tooltip-bg);
@@ -527,12 +527,6 @@
   color: var(--chart-muted);
 }
 
-html[dir="rtl"] {
-  .market-chart-tooltip__change {
-    justify-content: flex-end;
-  }
-}
-
 /* ==========================================================================
    Candlestick Tooltip
    ========================================================================== */
@@ -593,6 +587,7 @@ html[dir="rtl"] {
     stroke-width: 2px !important;
   }
 }
+
 /* ==========================================================================
    State Message
    ========================================================================== */
@@ -774,7 +769,6 @@ html[dir="rtl"] {
   padding: 0.1875rem;
 
   border: 1px solid var(--market-chart-toggle-border);
-
   border-radius: var(--radius-pill);
 
   background: var(--market-chart-toggle-bg);
@@ -858,6 +852,7 @@ html[dir="rtl"] {
   --market-chart-height: 17rem;
   --market-chart-min-height: 15rem;
 }
+
 /* ==========================================================================
    Permanent Dark Surface
    ========================================================================== */
@@ -944,6 +939,10 @@ html[dir="rtl"] {
     direction: ltr;
 
     unicode-bidi: isolate;
+  }
+
+  .market-chart-tooltip__change {
+    justify-content: flex-end;
   }
 }
 
@@ -1089,9 +1088,7 @@ html[dir="rtl"] {
 html[data-theme="dark"] {
   .market-chart:not(.market-chart--dark-surface) {
     --chart-tooltip-bg: var(--color-surface);
-
     --chart-tooltip-border: var(--color-border-strong);
-
     --chart-navigator-handle-bg: var(--color-surface);
   }
 

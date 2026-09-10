@@ -12,6 +12,7 @@
   overflow-y: visible;
 
   overscroll-behavior-inline: contain;
+
   scrollbar-color: var(--color-border) transparent;
   scrollbar-width: thin;
 
@@ -44,7 +45,8 @@
 }
 
 /* ==========================================================================
-   Column Sizing
+   Standard Five-Column Layout
+   Gainers / Losers
    ========================================================================== */
 
 .market-activity-table__table {
@@ -72,6 +74,102 @@
 
     &:nth-child(5) {
       inline-size: 22%;
+    }
+  }
+}
+
+/* ==========================================================================
+   Standard Six-Column Layout
+   Volume / Value
+   ========================================================================== */
+
+.market-activity-table__table:is(
+  [data-market-activity-table="volume"],
+  [data-market-activity-table="value"]
+) {
+  min-inline-size: 41rem;
+
+  th,
+  td {
+    &:nth-child(1) {
+      inline-size: 27%;
+    }
+
+    &:nth-child(2) {
+      inline-size: 11%;
+    }
+
+    &:nth-child(3) {
+      inline-size: 16%;
+    }
+
+    &:nth-child(4) {
+      inline-size: 12%;
+    }
+
+    &:nth-child(5) {
+      inline-size: 18%;
+    }
+
+    &:nth-child(6) {
+      inline-size: 16%;
+    }
+  }
+
+  thead th:nth-child(3),
+  tbody td:nth-child(3),
+  thead th:nth-child(5),
+  tbody td:nth-child(5) {
+    white-space: nowrap;
+  }
+
+  tbody td:nth-child(3),
+  tbody td:nth-child(5) {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ==========================================================================
+   Compact Six-Column Layout
+   Today’s Activity Side Panel
+   ========================================================================== */
+
+/*
+ * Inside the narrow dashboard side panel, Volume / Value need a denser layout
+ * so they fit more often without initial horizontal scrolling.
+ */
+
+.market-activity
+  .market-activity-table__table:is(
+    [data-market-activity-table="volume"],
+    [data-market-activity-table="value"]
+  ) {
+  min-inline-size: 100%;
+
+  th,
+  td {
+    &:nth-child(1) {
+      inline-size: 33%;
+    }
+
+    &:nth-child(2) {
+      inline-size: 11%;
+    }
+
+    &:nth-child(3) {
+      inline-size: 18%;
+    }
+
+    &:nth-child(4) {
+      inline-size: 12%;
+    }
+
+    &:nth-child(5) {
+      inline-size: 0;
+    }
+
+    &:nth-child(6) {
+      inline-size: 26%;
     }
   }
 }
@@ -163,6 +261,10 @@
   text-align: start;
 }
 
+/* ==========================================================================
+   Company Content
+   ========================================================================== */
+
 .market-activity-table__company-content {
   display: flex;
   align-items: center;
@@ -171,11 +273,19 @@
   min-inline-size: 0;
 }
 
+/* ==========================================================================
+   Company Identity
+   ========================================================================== */
+
 .market-activity-table__company-identity {
   display: block;
 
   min-inline-size: 0;
 }
+
+/* ==========================================================================
+   Company Name
+   ========================================================================== */
 
 .market-activity-table__company-name {
   display: block;
@@ -193,6 +303,10 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ==========================================================================
+   Company Symbol
+   ========================================================================== */
 
 .market-activity-table__company-symbol {
   display: block;
@@ -279,6 +393,10 @@
   unicode-bidi: isolate;
 }
 
+/* ==========================================================================
+   Financial States
+   ========================================================================== */
+
 .market-activity-table .price-up {
   color: var(--color-success);
 
@@ -341,12 +459,46 @@
 }
 
 /* ==========================================================================
+   Compact Performance Bars
+   Volume / Value in Today’s Activity
+   ========================================================================== */
+
+.market-activity
+  .market-activity-table__table:is(
+    [data-market-activity-table="volume"],
+    [data-market-activity-table="value"]
+  )
+  .market-activity-table__performance {
+  gap: 0.125rem;
+}
+
+.market-activity
+  .market-activity-table__table:is(
+    [data-market-activity-table="volume"],
+    [data-market-activity-table="value"]
+  )
+  .market-activity-table__performance
+  > span {
+  inline-size: 0.5rem;
+  block-size: 1rem;
+
+  border-radius: 0.125rem;
+}
+
+/* ==========================================================================
    Mobile
    ========================================================================== */
 
 @include respond-down(sm) {
   .market-activity-table__table {
     min-inline-size: 28rem;
+  }
+
+  .market-activity-table__table:is(
+    [data-market-activity-table="volume"],
+    [data-market-activity-table="value"]
+  ) {
+    min-inline-size: 36rem;
   }
 
   .market-activity-table__table thead th,
@@ -434,6 +586,14 @@ html[data-contrast="high"] {
     background: currentColor;
   }
 
+  .market-activity-table__performance > .is-down {
+    background: transparent;
+  }
+
+  .market-activity-table__performance > .is-neutral {
+    background: transparent;
+  }
+
   .market-activity-table__watchlist {
     border: 2px solid currentColor;
 
@@ -442,10 +602,59 @@ html[data-contrast="high"] {
 }
 
 /* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .market-activity-table__performance > span {
+    border: 1px solid CanvasText;
+
+    background: Canvas;
+  }
+
+  .market-activity-table__performance > .is-up {
+    background: Highlight;
+  }
+
+  .market-activity-table__performance > .is-down {
+    background: CanvasText;
+  }
+
+  .market-activity-table__performance > .is-neutral {
+    background: GrayText;
+  }
+
+  .market-activity-table__watchlist {
+    border-color: ButtonText;
+
+    background: ButtonFace;
+    color: ButtonText;
+
+    forced-color-adjust: auto;
+  }
+
+  .market-activity-table__watchlist[aria-pressed="true"] {
+    border-color: Highlight;
+
+    color: Highlight;
+  }
+}
+
+/* ==========================================================================
    Reduced Motion
    ========================================================================== */
 
 html[data-motion="reduce"] {
+  .market-activity-table__watchlist {
+    transition: none;
+  }
+
+  .market-activity-table__watchlist:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
   .market-activity-table__watchlist {
     transition: none;
   }
@@ -464,7 +673,11 @@ html[data-motion="reduce"] {
     overflow: visible;
   }
 
-  .market-activity-table__table {
+  .market-activity-table__table,
+  .market-activity-table__table:is(
+    [data-market-activity-table="volume"],
+    [data-market-activity-table="value"]
+  ) {
     min-inline-size: 0;
 
     color: #000000;
@@ -482,5 +695,21 @@ html[data-motion="reduce"] {
 
   .market-activity-table__performance > span {
     border: 1px solid #000000;
+
+    background: transparent;
+  }
+
+  .market-activity-table__performance > .is-up {
+    background: #000000;
+  }
+
+  .market-activity-table__performance > .is-down {
+    background: linear-gradient(
+      135deg,
+      transparent 42%,
+      #000000 42%,
+      #000000 58%,
+      transparent 58%
+    );
   }
 }

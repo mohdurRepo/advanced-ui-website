@@ -31,6 +31,10 @@
 
   background: var(--chart-notes-bg);
   color: var(--chart-notes-fg);
+
+  &[hidden] {
+    display: none !important;
+  }
 }
 
 /* ==========================================================================
@@ -174,6 +178,10 @@
 
     transform: none;
   }
+
+  &[hidden] {
+    display: none !important;
+  }
 }
 
 /* ==========================================================================
@@ -183,6 +191,7 @@
 .market-dashboard__surface > .chart-notes {
   margin-block-start: 0;
 }
+
 /* ==========================================================================
    Mobile
    ========================================================================== */
@@ -190,6 +199,7 @@
 @include respond-down(sm) {
   .chart-notes {
     margin-block-start: 0.875rem;
+
     padding: 0.875rem;
   }
 

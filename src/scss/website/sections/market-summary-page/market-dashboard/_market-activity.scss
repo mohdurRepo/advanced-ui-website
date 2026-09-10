@@ -4,6 +4,18 @@
    Today’s Market Activity
    ========================================================================== */
 
+/*
+ * Owns the Today’s Activity card shell:
+ *
+ * - card surface
+ * - section heading
+ * - tab navigation
+ * - tab panels
+ * - responsive shell behavior
+ *
+ * Table and mobile-card presentation are owned by their respective components.
+ */
+
 .market-activity {
   --market-activity-bg: var(--color-surface);
   --market-activity-fg: var(--color-text);
@@ -11,7 +23,9 @@
   --market-activity-border: var(--color-border);
 
   --market-activity-shadow: var(--shadow-md);
+
   --market-activity-space: clamp(1rem, 2vw, 1.5rem);
+  --market-activity-tab-min: 6.5rem;
 
   display: flex;
   flex-direction: column;
@@ -22,6 +36,7 @@
   overflow: hidden;
 
   border: 1px solid var(--market-activity-border);
+  border-radius: var(--radius-2xl);
 
   background: var(--market-activity-bg);
   color: var(--market-activity-fg);
@@ -46,7 +61,7 @@
 }
 
 /* ==========================================================================
-   Heading
+   Heading Icon
    ========================================================================== */
 
 .market-activity__heading-icon {
@@ -60,6 +75,10 @@
   color: var(--color-primary);
 }
 
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
 .market-activity__title {
   min-inline-size: 0;
 
@@ -68,6 +87,7 @@
   color: var(--color-heading);
 
   font-size: clamp(var(--text-xl), 1rem + 0.8vw, var(--text-2xl));
+
   font-weight: font-weight("heavy");
   line-height: var(--line-height-tight);
 
@@ -76,7 +96,7 @@
 }
 
 /* ==========================================================================
-   Tabs
+   Tabs Container
    ========================================================================== */
 
 .market-activity__tabs {
@@ -89,12 +109,12 @@
 }
 
 /* ==========================================================================
-   Navigation
+   Tab Navigation
    ========================================================================== */
 
 .market-activity__nav {
   display: grid;
-  grid-template-columns: repeat(4, minmax(6.5rem, 1fr));
+  grid-template-columns: repeat(4, minmax(var(--market-activity-tab-min), 1fr));
 
   min-inline-size: 0;
 
@@ -108,7 +128,9 @@
   border-block-end: 1px solid var(--market-activity-border);
 
   overscroll-behavior-inline: contain;
+
   scrollbar-width: none;
+
   scroll-snap-type: inline proximity;
 
   touch-action: pan-x;
@@ -121,7 +143,7 @@
 }
 
 /* ==========================================================================
-   Navigation Tab
+   Tab
    ========================================================================== */
 
 .market-activity .market-activity__tab {
@@ -131,10 +153,11 @@
   align-items: center;
   justify-content: center;
 
-  min-inline-size: 6.5rem;
+  min-inline-size: var(--market-activity-tab-min);
   min-block-size: 3.25rem;
 
-  padding: 0.75rem 0.625rem;
+  padding-block: 0.75rem;
+  padding-inline: 0.625rem;
 
   border: 0;
   border-radius: 0;
@@ -151,6 +174,7 @@
   white-space: nowrap;
 
   cursor: pointer;
+
   scroll-snap-align: start;
 
   @include transition((background-color, color), fast);
@@ -216,7 +240,7 @@
 }
 
 /* ==========================================================================
-   Content and Panels
+   Content
    ========================================================================== */
 
 .market-activity__content {
@@ -226,14 +250,30 @@
   min-block-size: 0;
 }
 
+/* ==========================================================================
+   Tab Panel
+   ========================================================================== */
+
 .market-activity__panel {
   inline-size: 100%;
+
   min-inline-size: 0;
   min-block-size: 0;
 
   &[hidden] {
     display: none !important;
   }
+}
+
+/* ==========================================================================
+   Child Safety
+   ========================================================================== */
+
+.market-activity > *,
+.market-activity__tabs > *,
+.market-activity__content > *,
+.market-activity__panel > * {
+  min-inline-size: 0;
 }
 
 /* ==========================================================================
@@ -253,6 +293,7 @@
 @include respond-down(sm) {
   .market-activity {
     --market-activity-space: 0.875rem;
+    --market-activity-tab-min: 6.25rem;
   }
 
   .market-activity__header {
@@ -267,17 +308,16 @@
     font-size: var(--text-lg);
   }
 
-  .market-activity__nav {
-    grid-template-columns: repeat(4, minmax(6.25rem, 1fr));
-  }
-
   .market-activity .market-activity__tab {
-    min-inline-size: 6.25rem;
     min-block-size: 3rem;
 
     padding-inline: 0.5rem;
 
     font-size: 0.6875rem;
+
+    &::after {
+      inset-inline: 0.5rem;
+    }
   }
 }
 
@@ -307,8 +347,71 @@ html[data-contrast="high"] {
     border-block-end-width: 2px;
   }
 
-  .market-activity .market-activity__tab::after {
-    block-size: 0.25rem;
+  .market-activity .market-activity__tab {
+    color: currentColor;
+
+    &.active,
+    &[aria-selected="true"] {
+      background: transparent;
+    }
+
+    &::after {
+      block-size: 0.25rem;
+
+      background: currentColor;
+    }
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .market-activity {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+
+    forced-color-adjust: auto;
+  }
+
+  .market-activity__header,
+  .market-activity__nav {
+    border-color: CanvasText;
+  }
+
+  .market-activity__heading-icon,
+  .market-activity__title {
+    color: CanvasText;
+  }
+
+  .market-activity .market-activity__tab {
+    background: Canvas;
+    color: CanvasText;
+
+    &.active,
+    &[aria-selected="true"] {
+      background: Highlight;
+      color: HighlightText;
+
+      &::after {
+        background: HighlightText;
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+
+    &:disabled,
+    &[aria-disabled="true"] {
+      color: GrayText;
+    }
   }
 }
 
@@ -323,6 +426,13 @@ html[data-motion="reduce"] {
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .market-activity .market-activity__tab,
+  .market-activity .market-activity__tab::after {
+    transition: none;
+  }
+}
+
 /* ==========================================================================
    Print
    ========================================================================== */
@@ -331,12 +441,18 @@ html[data-motion="reduce"] {
   .market-activity {
     break-inside: avoid;
 
+    overflow: visible;
+
     border-color: #000000;
 
     background: transparent;
     color: #000000;
 
     box-shadow: none;
+  }
+
+  .market-activity__header {
+    border-block-end-color: #000000;
   }
 
   .market-activity__heading-icon,

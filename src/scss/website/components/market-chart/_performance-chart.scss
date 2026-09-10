@@ -16,15 +16,11 @@
 
 .performance-chart {
   --performance-chart-bg: var(--color-surface);
-
   --performance-chart-fg: var(--color-text);
-
   --performance-chart-border: var(--color-border);
-
   --performance-chart-shadow: var(--shadow-md);
 
   --performance-chart-space: clamp(1rem, 2vw, 1.5rem);
-
   --performance-chart-header-gap: 1rem;
 
   --performance-chart-state-accent: transparent;
@@ -40,13 +36,13 @@
     minmax(0, 1fr);
 
   inline-size: 100%;
+
   min-inline-size: 0;
   min-block-size: 0;
 
   overflow: hidden;
 
   border: 1px solid var(--performance-chart-border);
-
   border-radius: var(--radius-xl);
 
   background: var(--performance-chart-bg);
@@ -136,7 +132,6 @@
   .chart-surface,
   [data-chart-viewport] {
     --chart-viewport-height: var(--performance-chart-viewport-height);
-
     --chart-viewport-min-height: 18rem;
 
     position: relative;
@@ -238,6 +233,7 @@
     cursor: progress;
   }
 }
+
 /* ==========================================================================
    Fullscreen
    ========================================================================== */
@@ -246,7 +242,6 @@
 .performance-chart.is-fullscreen,
 .performance-chart.is-native-fullscreen {
   --performance-chart-space: clamp(1rem, 2vw, 2rem);
-
   --performance-chart-viewport-height: auto;
 
   position: fixed;
@@ -422,6 +417,7 @@ html.has-chart-fullscreen {
     padding-inline: 0.625rem;
   }
 }
+
 /* ==========================================================================
    Dark Theme
    ========================================================================== */
@@ -448,7 +444,6 @@ html[data-theme="dark"] {
 html[data-contrast="high"] {
   .performance-chart {
     --performance-chart-border: currentColor;
-
     --performance-chart-shadow: none;
 
     border-width: 2px;

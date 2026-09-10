@@ -7,13 +7,20 @@
 /*
  * Main Market specialization of the shared Performance Chart.
  *
- * This file controls only:
- * - Main Market chart height tokens
- * - Main Market responsive dimensions
- * - Page-specific theme adjustments
+ * This file owns only:
  *
- * Shared Performance Chart controls viewport sizing and flex behavior.
- * Generic Market Chart controls Highcharts presentation.
+ * - Main Market chart height
+ * - page-specific responsive dimensions
+ * - Main Market chart theme tokens
+ * - comparison-state restrictions
+ * - accessibility / print adjustments
+ *
+ * It does not own:
+ *
+ * - Highcharts configuration
+ * - chart data loading
+ * - toolbar interactions
+ * - generic Performance Chart layout
  */
 
 .market-index-chart {
@@ -28,14 +35,26 @@
    ========================================================================== */
 
 /*
- * The viewport has a stable minimum height but may grow when the dashboard
- * stretches this card to match Today’s Activity.
+ * The shared Performance Chart owns the overall card/flex layout.
  *
- * Its absolutely positioned Market Chart child cannot affect this height.
+ * Main Market only establishes a stable minimum drawing area.
+ *
+ * Do not use block-size: 100% here. The dashboard uses grid stretching and
+ * percentage heights could create a circular size dependency with Highcharts.
  */
 
 .market-index-chart [data-chart-viewport] {
+  min-inline-size: 0;
   min-block-size: var(--performance-chart-height);
+}
+
+/* ==========================================================================
+   Chart Canvas Safety
+   ========================================================================== */
+
+.market-index-chart [data-market-chart] {
+  min-inline-size: 0;
+  min-block-size: 0;
 }
 
 /* ==========================================================================
@@ -53,7 +72,6 @@
   --chart-border-strong: var(--color-border-strong);
 
   --chart-grid: var(--color-border);
-
   --chart-crosshair: var(--color-border-strong);
 
   --chart-line: var(--color-primary);
@@ -70,7 +88,9 @@
    ========================================================================== */
 
 /*
- * Candlesticks are unavailable while comparing multiple series.
+ * Candlesticks are unavailable while multiple series are being compared.
+ *
+ * Support both the class-based state and the declarative data attribute.
  */
 
 .market-index-chart.is-comparing,
@@ -141,6 +161,7 @@ html[data-contrast="high"] {
   .market-index-chart .market-chart {
     --chart-border: currentColor;
     --chart-border-strong: currentColor;
+
     --chart-grid: currentColor;
     --chart-crosshair: currentColor;
   }
@@ -150,7 +171,80 @@ html[data-contrast="high"] {
     .market-chart-toggle__button[data-chart-type="candlestick"] {
       opacity: 0.65;
 
-      text-decoration: line-through;
+      text-decoration-line: line-through;
+      text-decoration-thickness: 2px;
+    }
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .market-index-chart .market-chart {
+    --chart-bg: Canvas;
+
+    --chart-text: CanvasText;
+    --chart-heading: CanvasText;
+    --chart-muted: GrayText;
+
+    --chart-border: CanvasText;
+    --chart-border-strong: CanvasText;
+
+    --chart-grid: GrayText;
+    --chart-crosshair: Highlight;
+
+    --chart-line: Highlight;
+
+    --chart-success: Highlight;
+    --chart-danger: CanvasText;
+
+    --chart-tooltip-bg: Canvas;
+    --chart-tooltip-border: CanvasText;
+
+    forced-color-adjust: auto;
+  }
+
+  .market-index-chart.is-comparing,
+  .market-index-chart[data-chart-comparing="true"] {
+    .market-chart-toggle__button[data-chart-type="candlestick"] {
+      color: GrayText;
+
+      opacity: 1;
+
+      text-decoration-line: line-through;
+    }
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+/*
+ * The shared chart implementation controls chart animation.
+ *
+ * These states are provided here so any page-specific transitions added by
+ * shared controls do not animate when motion reduction is requested.
+ */
+
+html[data-motion="reduce"] {
+  .market-index-chart {
+    .market-chart-toggle__button,
+    .chart-range,
+    .chart-btn {
+      transition: none;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .market-index-chart {
+    .market-chart-toggle__button,
+    .chart-range,
+    .chart-btn {
+      transition: none;
     }
   }
 }
@@ -170,20 +264,30 @@ html[data-contrast="high"] {
 
   .market-index-chart [data-chart-viewport] {
     block-size: var(--performance-chart-height);
-
     min-block-size: var(--performance-chart-height);
+
+    overflow: visible;
   }
 
   .market-index-chart .market-chart {
     --chart-bg: transparent;
+
     --chart-text: #000000;
     --chart-heading: #000000;
     --chart-muted: #333333;
+
     --chart-border: #777777;
     --chart-border-strong: #000000;
+
     --chart-grid: #777777;
     --chart-crosshair: #000000;
+
     --chart-line: #000000;
+
+    --chart-success: #000000;
+    --chart-danger: #000000;
+
     --chart-tooltip-bg: #ffffff;
+    --chart-tooltip-border: #000000;
   }
 }

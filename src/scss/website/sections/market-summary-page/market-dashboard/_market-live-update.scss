@@ -18,7 +18,7 @@
  *
  * - polling
  * - API requests
- * - comparing old and new values
+ * - comparing previous and next values
  * - applying and removing update classes
  */
 
@@ -64,6 +64,18 @@
 /* ==========================================================================
    Numeric Content
    ========================================================================== */
+
+/*
+ * Support both:
+ *
+ * <data class="market-live-update">
+ *
+ * and:
+ *
+ * <span class="market-live-update">
+ *   <data>...</data>
+ * </span>
+ */
 
 .market-live-update:where(data, output),
 .market-live-update :where(data, output) {

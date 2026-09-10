@@ -44,6 +44,7 @@
   background: var(--chart-range-bg);
 
   overscroll-behavior-inline: contain;
+
   scroll-padding-inline: 0.1875rem;
   scroll-snap-type: inline proximity;
 
@@ -93,6 +94,7 @@
   white-space: nowrap;
 
   cursor: pointer;
+
   touch-action: manipulation;
 
   scroll-snap-align: start;
@@ -106,6 +108,7 @@
       [aria-pressed="true"]
     ):not(:disabled):not([aria-disabled="true"]) {
     background: var(--chart-range-hover-bg);
+
     color: var(--chart-range-hover-fg);
   }
 
@@ -150,6 +153,10 @@
   &.is-pending {
     cursor: progress;
   }
+
+  &[hidden] {
+    display: none !important;
+  }
 }
 
 /* ==========================================================================
@@ -174,6 +181,7 @@
     min-block-size: 2.75rem;
   }
 }
+
 /* ==========================================================================
    Constrained Desktop
    ========================================================================== */
@@ -181,6 +189,7 @@
 @media (min-width: 992px) and (max-width: 1180px) {
   .chart-toolbar__ranges {
     inline-size: fit-content;
+
     max-inline-size: 100%;
   }
 }
@@ -218,6 +227,10 @@
     font-size: 0.6875rem;
   }
 }
+
+/* ==========================================================================
+   Extra-Small Screens
+   ========================================================================== */
 
 @media (max-width: 360px) {
   .chart-range {

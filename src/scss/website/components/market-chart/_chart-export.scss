@@ -39,6 +39,10 @@
     cursor: not-allowed;
     pointer-events: none;
   }
+
+  &[hidden] {
+    display: none !important;
+  }
 }
 
 [data-chart-export-busy="true"] {
@@ -59,6 +63,7 @@
 
   inset-block-start: calc(100% + 0.5rem);
   inset-inline-end: 0;
+
   z-index: var(--z-dropdown);
 
   display: grid;
@@ -87,6 +92,7 @@
   list-style: none;
 
   overscroll-behavior: contain;
+
   scrollbar-gutter: stable;
 
   transform-origin: top right;
@@ -177,7 +183,7 @@ html[dir="rtl"] {
     background: color-mix(in oklab, var(--color-primary), transparent 90%);
   }
 
-  &[aria-pressed="true"]:not(:disabled) {
+  &[aria-pressed="true"]:not(:disabled):not([aria-disabled="true"]) {
     background: color-mix(in oklab, var(--color-primary), transparent 90%);
 
     color: var(--color-primary);
@@ -219,6 +225,7 @@ html[dir="rtl"] {
 
   pointer-events: none;
 }
+
 /* ==========================================================================
    Fullscreen
    ========================================================================== */
@@ -236,24 +243,6 @@ html[dir="rtl"] {
 
 html.has-chart-fullscreen {
   overflow: hidden;
-}
-
-/* ==========================================================================
-   Motion
-   ========================================================================== */
-
-@keyframes chart-export-menu-enter {
-  from {
-    opacity: 0;
-
-    transform: translateY(-0.25rem) scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-
-    transform: translateY(0) scale(1);
-  }
 }
 
 /* ==========================================================================
@@ -275,6 +264,7 @@ html.has-chart-fullscreen {
     position: fixed;
 
     inset-inline: 1rem;
+
     inset-block-start: auto;
     inset-block-end: max(1rem, env(safe-area-inset-bottom));
 
@@ -358,7 +348,7 @@ html[data-contrast="high"] {
       color: HighlightText;
     }
 
-    &[aria-pressed="true"]:not(:disabled) {
+    &[aria-pressed="true"]:not(:disabled):not([aria-disabled="true"]) {
       border: 1px solid Highlight;
 
       background: Highlight;
@@ -418,5 +408,23 @@ html[data-motion="reduce"] {
 
   html.has-chart-fullscreen {
     overflow: visible;
+  }
+}
+
+/* ==========================================================================
+   Animation
+   ========================================================================== */
+
+@keyframes chart-export-menu-enter {
+  from {
+    opacity: 0;
+
+    transform: translateY(-0.25rem) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0) scale(1);
   }
 }

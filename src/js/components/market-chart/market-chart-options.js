@@ -30,7 +30,7 @@ const CONTEXT_LAYOUT = Object.freeze({
     yAxisTickPixelInterval: 52,
     navigatorHeight: 32,
     navigatorMargin: 12,
-    navigatorLabels: false,
+    navigatorLabels: true,
     navigatorTickPixelInterval: 120,
   }),
 
